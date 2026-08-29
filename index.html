@@ -31,7 +31,8 @@ button{cursor:pointer}
 .cart{padding:20px;position:sticky;top:90px;min-height:350px}
 .side-title{font-weight:800;margin:0 0 18px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{border:1px solid #ddd;background:#fff;border-radius:8px;padding:8px 11px}
+.chip{border:1px solid #ddd;background:#fff;border-radius:8px;padding:8px 11px;display:inline-flex;align-items:center;gap:6px}
+.chip-icon{width:22px;height:22px;object-fit:contain;vertical-align:middle}.chip-icon-text{font-size:18px;line-height:1}
 .chip.active{border-color:var(--primary);color:var(--primary);background:#f3f5ff}
 .switch-row{display:flex;justify-content:space-between;align-items:center;padding:15px 0;border-bottom:1px solid #eee}
 .switch{width:43px;height:24px;background:#aaa;border-radius:20px;padding:3px}
@@ -183,6 +184,10 @@ function buildCategories(){
 function assetIcon_(value,folder){
   const v=String(value||'').trim();
   if(!v)return '';
+  const map = folder==='brand'
+    ? {'hoco':'hoco.svg','حُوکو':'hoco.svg','HOCO':'hoco.svg'}
+    : {'ایرپاد':'airpod.svg','airpod':'airpod.svg','AirPods':'airpod.svg'};
+  if(map[v]) return `<img class="chip-icon" src="assets/${folder}/${map[v]}" alt="">`;
   if(/\.(svg|png|jpg|jpeg|webp)$/i.test(v)) return `<img class="chip-icon" src="assets/${folder}/${esc(v)}" alt="">`;
   return `<span class="chip-icon-text">${esc(v)}</span>`;
 }
