@@ -18,9 +18,9 @@ button,input{font:inherit}
 button{cursor:pointer}
 .container{max-width:1540px;margin:auto;padding:18px}
 .topbar{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20}
-.topbar-inner{max-width:1540px;margin:auto;padding:10px 18px;display:grid;grid-template-columns:auto minmax(260px,600px) auto auto;grid-template-areas:"cart search login logo";direction:ltr;align-items:center;gap:18px;min-height:68px}
+.topbar-inner{max-width:1540px;margin:auto;padding:10px 18px;display:grid;grid-template-columns:auto minmax(260px,600px) auto;grid-template-areas:"login search logo";direction:ltr;align-items:center;gap:18px;min-height:68px}
 .logo{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:900;color:#00768f;white-space:nowrap}
-.logo{grid-area:logo}.topbar-inner>.btn:not(.primary){grid-area:login}.topbar-inner>.btn.primary{grid-area:cart}
+.logo{grid-area:logo}.topbar-inner>.btn:not(.primary){grid-area:login}
 .logo img{width:150px;height:44px;object-fit:contain}
 .search{grid-area:search;max-width:600px;width:100%;margin:auto;position:relative}
 .search input{width:100%;border:1px solid #e5e5ea;border-radius:9px;padding:13px 18px;outline:none;background:#fff}
@@ -69,7 +69,7 @@ button{cursor:pointer}
 .modal.open{display:flex}.modal-box{background:#fff;border-radius:18px;padding:22px;max-width:500px;width:100%}
 .modal-box input,.modal-box textarea{width:100%;margin:7px 0;padding:12px;border:1px solid #ddd;border-radius:9px}
 @media(max-width:1150px){.layout{grid-template-columns:230px minmax(0,1fr)}.cart{grid-column:1/-1;position:static}.cart-empty{padding:35px}}
-@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{position:static}.topbar-inner{grid-template-columns:1fr auto auto;grid-template-areas:"logo login cart" "search search search";gap:10px;padding:10px 12px}.logo img{width:128px;height:38px}.search{max-width:none}.variant{grid-template-columns:45px 1fr}.variant .price{grid-column:2}.categories{order:2}.toolbar{flex-wrap:wrap}}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{position:static}.topbar-inner{grid-template-columns:1fr auto;grid-template-areas:"login logo" "search search";gap:10px;padding:10px 12px}.logo img{width:128px;height:38px}.search{max-width:none}.variant{grid-template-columns:45px 1fr}.variant .price{grid-column:2}.categories{order:2}.toolbar{flex-wrap:wrap}}
 </style>
 </head>
 <body>
@@ -78,24 +78,14 @@ button{cursor:pointer}
     <div class="logo" id="storeName"><img src="logo.png" alt="تماس مارکت"></div>
     <button class="btn">ورود / ثبت نام</button>
     <div class="search"><input id="search" placeholder="جستجو کنید، برند، مدل و..."></div>
-    <button class="btn primary" onclick="scrollToCart()">سبد خرید</button>
   </div>
 </header>
 
 <main class="container">
   <div class="layout">
     <aside class="sidebar">
-      <h3 class="side-title">برند</h3>
-      <div class="chips" id="brands"></div>
-      <h3 class="side-title" style="margin-top:24px">پک</h3>
-      <div class="chips">
-        <button class="chip active">همه</button><button class="chip">گلوبال</button>
-        <button class="chip">ویتنام</button><button class="chip">چین</button>
-        <button class="chip">اصلی</button>
-      </div>
-      <div class="switch-row"><span>کالاهای خرید اعتباری</span><span class="switch"><i></i></span></div>
-      <div class="switch-row"><span>فقط کالاهای موجود</span><span id="stockSwitch" class="switch on" onclick="toggleStock()"><i></i></span></div>
-      <div class="switch-row"><span>فقط کالاهای پیشنهاد ویژه</span><span class="switch"><i></i></span></div>
+      <h3 class="side-title">پیشنهاد ویژه</h3>
+      <div class="switch-row"><span>فقط کالاهای پیشنهاد ویژه</span><span id="promoSwitch" class="switch" onclick="togglePromotion()"><i></i></span></div>
     </aside>
 
     <section>
@@ -131,7 +121,7 @@ button{cursor:pointer}
 /* Paste your deployed Google Apps Script /exec URL here. */
 const API_URL = "https://script.google.com/macros/s/AKfycbxDY0PcZad8NPSlD_DgPrQJRGJj8kn0swETF0x4Q2lQhhPMAdgCuzsGZghC2bkmuietZQ/exec";
 
-let allProducts = [], catalog = {categories:[], brands:[]}, cart = [], onlyStock = true, ascending = true;
+let allProducts = [], catalog = {categories:[], brands:[]}, cart = [], onlyStock = true, onlyPromotion = false, ascending = true;
 
 function money(n){ return Number(n||0).toLocaleString('fa-IR') + ' تومان'; }
 
@@ -171,21 +161,24 @@ function demoProducts(){
 
 function buildBrands(){
   const brands=catalog.brands.length?catalog.brands:[...new Set(allProducts.map(p=>p.brand).filter(Boolean))].map(name=>({brand_fa_name:name,icon:''}));
-  document.getElementById('brands').innerHTML = `<button class="chip active" onclick="filterBrand('')">همه</button>`+
-    brands.map(b=>{const name=b.brand_fa_name||b.brand_name||b.name; const icon=assetIcon_(b.icon,'brand'); return `<button class="chip" onclick="filterBrand('${String(name).replace(/'/g,"\\'")}')">${icon}${esc(name)}</button>`}).join('');
+  const el=document.getElementById('brands'); if(!el)return;
+  el.innerHTML = `<button class="chip active" onclick="filterBrand('')">همه</button>`+
+    brands.map(b=>{const name=b.brand_fa_name||b.brand_name||b.name; const icon=assetIcon_(b.icon,'brand',name); return `<button class="chip" onclick="filterBrand('${String(name).replace(/'/g,"\\'")}')">${icon}${esc(name)}</button>`}).join('');
 }
 function buildCategories(){
   const cats=catalog.categories||[];
   if(!cats.length)return;
-  document.getElementById('categories').innerHTML=cats.map(c=>{const name=c.category_fa_name||c.category_name; const icon=assetIcon_(c.icon,'category'); return `<button class="chip" onclick="filterCategory('${String(name).replace(/'/g,"\\'")}')">${icon}${esc(name)}</button>`}).join('');
+  document.getElementById('categories').innerHTML=cats.map(c=>{const name=c.category_fa_name||c.category_name; const icon=assetIcon_(c.icon,'category',name); return `<button class="chip" onclick="filterCategory('${String(name).replace(/'/g,"\\'")}')">${icon}${esc(name)}</button>`}).join('');
 }
-function assetIcon_(value,folder){
+function assetIcon_(value,folder,fallbackName){
   const v=String(value||'').trim();
-  if(!v)return '';
+  const fallback=String(fallbackName||'').trim();
   const map = folder==='brand'
     ? {'hoco':'hoco.svg','حُوکو':'hoco.svg','هوکو':'hoco.svg','HOCO':'hoco.svg','macdodo':'macdodo.svg','yesido':'yesido.svg','qcy':'qcy.svg','oxygen':'oxygen.svg','hadron':'hadron.svg'}
     : {'ایرپاد':'airpod.svg','airpod':'airpod.svg','AirPods':'airpod.svg','گوشی موبایل':'mobile.svg','موبایل':'mobile.svg','گوشی':'mobile.svg','تبلت':'mobile.svg','هدفون و هندزفری':'handsfree.svg','هندزفری':'handsfree.svg','هدفون':'headphon.svg','پاوربانک':'powerbank.svg','اسپیکر':'speacker.svg','ساعت':'watch.svg','شارژر':'adaptor.svg','آداپتور':'adaptor.svg','کابل':'cable.svg','قاب':'cover.svg','کاور':'cover.svg','محافظ صفحه':'glass.svg'};
   if(map[v]) return `<img class="chip-icon" src="assets/${folder}/${map[v]}" alt="">`;
+  if(map[fallback]) return `<img class="chip-icon" src="assets/${folder}/${map[fallback]}" alt="">`;
+  if(!v)return '';
   if(/\.(svg|png|jpg|jpeg|webp)$/i.test(v)) return `<img class="chip-icon" src="assets/${folder}/${esc(v)}" alt="">`;
   return `<span class="chip-icon-text">${esc(v)}</span>`;
 }
@@ -193,12 +186,14 @@ let selectedBrand='';
 function filterBrand(b){selectedBrand=b;render()}
 let selectedCategory='';
 function filterCategory(c){selectedCategory=c;render()}
+function togglePromotion(){onlyPromotion=!onlyPromotion;document.getElementById('promoSwitch').classList.toggle('on',onlyPromotion);render()}
 function toggleStock(){onlyStock=!onlyStock;document.getElementById('stockSwitch').classList.toggle('on',onlyStock);render()}
 function sortPrice(){ascending=!ascending;render()}
 function render(){
   const q=document.getElementById('search').value.trim().toLowerCase();
   let list=allProducts.filter(p=>
     (!onlyStock || Number(p.stock)>0) &&
+    (!onlyPromotion || p.promotion===true || String(p.promotion).toUpperCase()==='TRUE') &&
     (!selectedBrand || p.brand===selectedBrand) &&
     (!selectedCategory || p.Category===selectedCategory || p.category===selectedCategory) &&
     (!q || JSON.stringify(p).toLowerCase().includes(q))
