@@ -34,6 +34,10 @@ button{cursor:pointer}
 .cart{padding:20px;position:sticky;top:90px;min-height:350px}
 .side-title{font-weight:800;margin:0 0 18px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
+.brand-icons{display:flex;flex-wrap:wrap;gap:8px;margin:-4px 0 20px}
+.brand-icon-btn{width:46px;height:46px;padding:7px;border:1px solid var(--border);background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.brand-icon-btn.active{border-color:var(--primary);background:#e6f5f8}
+.brand-icon-btn img{width:30px;height:30px;object-fit:contain}
 .chip{border:1px solid #ddd;background:#fff;border-radius:8px;padding:8px 11px;display:inline-flex;align-items:center;gap:6px}
 .chip-icon{width:22px;height:22px;object-fit:contain;vertical-align:middle}.chip-icon-text{font-size:18px;line-height:1}
 .chip.active{border-color:var(--primary);color:var(--primary);background:#e6f5f8}
@@ -74,6 +78,7 @@ button{cursor:pointer}
 .modal{display:none;position:fixed;inset:0;background:#0006;z-index:50;align-items:center;justify-content:center;padding:20px}
 .modal.open{display:flex}.modal-box{background:#fff;border-radius:18px;padding:22px;max-width:500px;width:100%}
 .modal-box input,.modal-box textarea{width:100%;margin:7px 0;padding:12px;border:1px solid #ddd;border-radius:9px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.form-grid .full{grid-column:1/-1}
 @media(max-width:1150px){.layout{grid-template-columns:230px minmax(0,1fr)}.cart{grid-column:1/-1;position:static}.cart-empty{padding:35px}}
 @media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{position:static}.topbar-inner{grid-template-columns:1fr auto;grid-template-areas:"login logo" "search search";gap:10px;padding:10px 12px}.logo img{width:128px;height:38px}.topbar-inner>.btn:not(.primary){width:132px;max-width:132px}.search{max-width:none}.variant{grid-template-columns:45px 1fr}.variant .price{grid-column:2}.categories{order:2}.toolbar{flex-wrap:wrap}}
 </style>
@@ -83,7 +88,7 @@ button{cursor:pointer}
   <div class="topbar-promo"><img src="promo-banner.gif" alt=""></div>
   <div class="topbar-inner">
     <div class="logo" id="storeName"><img src="logo.png" alt="تماس مارکت"></div>
-    <button class="btn">ورود / ثبت نام</button>
+    <button class="btn" onclick="openRegister()">ورود / ثبت نام</button>
     <div class="search"><input id="search" placeholder="جستجو کنید، برند، مدل و..."></div>
   </div>
 </header>
@@ -96,6 +101,7 @@ button{cursor:pointer}
   </div>
   <div class="layout">
     <aside class="sidebar">
+      <div class="brand-icons" id="brands" aria-label="برندها"></div>
       <h3 class="side-title">پیشنهاد ویژه</h3>
       <div class="switch-row"><span>فقط کالاهای پیشنهاد ویژه</span><span id="promoSwitch" class="switch" onclick="togglePromotion()"><i></i></span></div>
     </aside>
@@ -170,8 +176,8 @@ function demoProducts(){
 function buildBrands(){
   const brands=catalog.brands.length?catalog.brands:[...new Set(allProducts.map(p=>p.brand).filter(Boolean))].map(name=>({brand_fa_name:name,icon:''}));
   const el=document.getElementById('brands'); if(!el)return;
-  el.innerHTML = `<button class="chip active" onclick="filterBrand('')">همه</button>`+
-    brands.map(b=>{const name=b.brand_fa_name||b.brand_name||b.name; const icon=assetIcon_(b.icon,'brand',name); return `<button class="chip" onclick="filterBrand('${String(name).replace(/'/g,"\\'")}')">${icon}${esc(name)}</button>`}).join('');
+  el.innerHTML = `<button class="brand-icon-btn active" title="همه" aria-label="همه" onclick="filterBrand('')">⌂</button>`+
+    brands.map(b=>{const name=b.brand_fa_name||b.brand_name||b.name; const icon=assetIcon_(b.icon,'brand',name); return `<button class="brand-icon-btn" title="${esc(name)}" aria-label="${esc(name)}" onclick="filterBrand('${String(name).replace(/'/g,"\\'")}')">${icon||'<span class="chip-icon-text">•</span>'}</button>`}).join('');
 }
 function buildCategories(){
   const cats=catalog.categories||[];
@@ -191,7 +197,11 @@ function assetIcon_(value,folder,fallbackName){
   return `<span class="chip-icon-text">${esc(v)}</span>`;
 }
 let selectedBrand='';
-function filterBrand(b){selectedBrand=b;render()}
+function filterBrand(b){
+  selectedBrand=b;
+  document.querySelectorAll('.brand-icon-btn').forEach(btn=>btn.classList.toggle('active', b && btn.getAttribute('title')===b ? true : !b && btn.getAttribute('title')==='همه'));
+  render();
+}
 let selectedCategory='';
 function filterCategory(c){selectedCategory=c;render()}
 function togglePromotion(){onlyPromotion=!onlyPromotion;document.getElementById('promoSwitch').classList.toggle('on',onlyPromotion);render()}
