@@ -56,11 +56,12 @@ button{cursor:pointer}
 .promo-banner{height:200px;border-radius:18px;overflow:hidden;margin-bottom:14px;background:linear-gradient(120deg,#00596b,#00768f,#008da8);box-shadow:0 10px 24px #00768f33;position:relative;color:#fff;padding:28px 34px}
 .promo-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.04}
 .promo-copy{position:relative;display:flex;flex-direction:column;gap:8px;max-width:480px}.promo-copy span{color:#ffd166;font-weight:700}.promo-copy strong{font-size:28px}.promo-copy small{opacity:.85}
-.categories{display:flex;gap:7px;overflow:auto;flex:1}
-.category-chip{position:relative;min-width:82px;min-height:96px;width:82px;height:96px;padding:0;display:flex;justify-content:center;align-items:center;text-align:center;line-height:1.25;overflow:hidden;background:#fff}
+.categories{display:flex;gap:18px;overflow:auto;flex:1}
+.category-chip{position:relative;min-width:104px;min-height:96px;width:104px;height:96px;padding:0;display:flex;justify-content:center;align-items:center;text-align:center;line-height:1.25;overflow:hidden;background:transparent;border-color:transparent}
 .category-chip .chip-icon{width:60px;height:60px;display:block;object-fit:contain}
 .category-chip .chip-icon-text{font-size:42px;line-height:1}
-.category-chip>span:not(.chip-icon-text){position:absolute;right:4px;left:4px;bottom:4px;padding:3px;border-radius:5px;background:#ffffffdf;color:#17324d;font-weight:600;font-size:11px}
+.category-chip>span:not(.chip-icon-text){position:absolute;right:0;left:0;bottom:4px;padding:3px;color:#17324d;font-weight:600;font-size:10px;white-space:nowrap}
+.category-chip.active,.category-chip:hover{border-color:transparent;background:transparent}
 .products{display:flex;flex-direction:column;gap:18px}
 .product{padding:15px}
 .product-head{display:flex;align-items:center;justify-content:space-between;gap:15px}
@@ -88,7 +89,7 @@ button{cursor:pointer}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.form-grid .full{grid-column:1/-1}
 @media(max-width:1150px){.layout{grid-template-columns:230px minmax(0,1fr)}.cart{grid-column:1/-1;position:static}.cart-empty{padding:35px}}
 @media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{position:static}.topbar-inner{grid-template-columns:1fr auto;grid-template-areas:"login logo" "search search";gap:10px;padding:10px 12px}.logo img{width:128px;height:38px}.topbar-inner>.btn:not(.primary){width:132px;max-width:132px}.search{max-width:none}.variant{grid-template-columns:45px 1fr}.variant .price{grid-column:2}.categories{order:2}.toolbar{flex-wrap:wrap}}
-@media(max-width:760px){.hero-slider{height:170px}.category-chip{min-width:72px;width:72px;min-height:84px;height:84px}.category-chip .chip-icon{width:50px;height:50px}.category-chip>span:not(.chip-icon-text){font-size:10px}}
+@media(max-width:760px){.hero-slider{height:170px}.categories{gap:12px}.category-chip{min-width:92px;width:92px;min-height:84px;height:84px}.category-chip .chip-icon{width:50px;height:50px}.category-chip>span:not(.chip-icon-text){font-size:9px}}
 </style>
 </head>
 <body>
