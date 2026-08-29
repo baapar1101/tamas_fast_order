@@ -46,8 +46,8 @@ button{cursor:pointer}
 .switch i{display:block;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
 .switch.on{background:#00768f}.switch.on i{transform:translateX(-19px)}
 .toolbar{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;margin-bottom:14px}
-.category-toolbar{width:100%;border-radius:0;margin:0 0 18px;padding:14px 22px}
-.hero-slider{width:100%;height:220px;margin:0 0 18px;position:relative;overflow:hidden;border-radius:16px;background:#eef3f5;box-shadow:0 8px 22px #00768f1c}
+.category-toolbar{width:100%;border-radius:0;margin:0 0 18px;padding:10px 18px}
+.hero-slider{width:100%;height:300px;margin:0 0 14px;position:relative;overflow:hidden;border-radius:0;background:#eef3f5;box-shadow:0 8px 22px #00768f1c}
 .hero-slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s ease}.hero-slide.active{opacity:1}
 .slider-nav{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 12px;pointer-events:none}
 .slider-arrow{pointer-events:auto;width:34px;height:34px;border:0;border-radius:50%;background:#ffffffd9;color:#00768f;font-size:24px;line-height:1}
@@ -57,9 +57,10 @@ button{cursor:pointer}
 .promo-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.04}
 .promo-copy{position:relative;display:flex;flex-direction:column;gap:8px;max-width:480px}.promo-copy span{color:#ffd166;font-weight:700}.promo-copy strong{font-size:28px}.promo-copy small{opacity:.85}
 .categories{display:flex;gap:7px;overflow:auto;flex:1}
-.category-chip{min-width:92px;min-height:112px;padding:12px 8px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;text-align:center;line-height:1.45}
-.category-chip .chip-icon{width:58px;height:58px;display:block;object-fit:contain}
-.category-chip .chip-icon-text{font-size:40px;line-height:1}
+.category-chip{position:relative;min-width:82px;min-height:96px;width:82px;height:96px;padding:0;display:flex;justify-content:center;align-items:center;text-align:center;line-height:1.25;overflow:hidden;background:#fff}
+.category-chip .chip-icon{width:60px;height:60px;display:block;object-fit:contain}
+.category-chip .chip-icon-text{font-size:42px;line-height:1}
+.category-chip>span:not(.chip-icon-text){position:absolute;right:4px;left:4px;bottom:4px;padding:3px;border-radius:5px;background:#ffffffdf;color:#17324d;font-weight:600;font-size:11px}
 .products{display:flex;flex-direction:column;gap:18px}
 .product{padding:15px}
 .product-head{display:flex;align-items:center;justify-content:space-between;gap:15px}
@@ -87,6 +88,7 @@ button{cursor:pointer}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.form-grid .full{grid-column:1/-1}
 @media(max-width:1150px){.layout{grid-template-columns:230px minmax(0,1fr)}.cart{grid-column:1/-1;position:static}.cart-empty{padding:35px}}
 @media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{position:static}.topbar-inner{grid-template-columns:1fr auto;grid-template-areas:"login logo" "search search";gap:10px;padding:10px 12px}.logo img{width:128px;height:38px}.topbar-inner>.btn:not(.primary){width:132px;max-width:132px}.search{max-width:none}.variant{grid-template-columns:45px 1fr}.variant .price{grid-column:2}.categories{order:2}.toolbar{flex-wrap:wrap}}
+@media(max-width:760px){.hero-slider{height:170px}.category-chip{min-width:72px;width:72px;min-height:84px;height:84px}.category-chip .chip-icon{width:50px;height:50px}.category-chip>span:not(.chip-icon-text){font-size:10px}}
 </style>
 </head>
 <body>
