@@ -100,6 +100,13 @@ button{cursor:pointer}
 </header>
 
 <main class="container">
+  <div class="hero-slider" id="heroSlider">
+    <img class="hero-slide active" src="assets/slides/slide-01.jpg" alt="">
+    <img class="hero-slide" src="assets/slides/slide-02.jpg" alt="">
+    <img class="hero-slide" src="assets/slides/slide-03.jpg" alt="">
+    <div class="slider-nav"><button class="slider-arrow" type="button" onclick="changeSlide(-1)">‹</button><button class="slider-arrow" type="button" onclick="changeSlide(1)">›</button></div>
+    <div class="slider-dots"><button class="slider-dot active" onclick="goToSlide(0)"></button><button class="slider-dot" onclick="goToSlide(1)"></button><button class="slider-dot" onclick="goToSlide(2)"></button></div>
+  </div>
   <div class="toolbar category-toolbar">
     <div class="categories" id="categories">
       <button class="chip active">دسته‌بندی‌ها</button>
@@ -155,8 +162,18 @@ button{cursor:pointer}
 const API_URL = "https://script.google.com/macros/s/AKfycbxDY0PcZad8NPSlD_DgPrQJRGJj8kn0swETF0x4Q2lQhhPMAdgCuzsGZghC2bkmuietZQ/exec";
 
 let allProducts = [], catalog = {categories:[], brands:[]}, cart = [], onlyStock = true, onlyPromotion = false, ascending = true;
+let currentSlide=0, sliderTimer;
 
 function money(n){ return Number(n||0).toLocaleString('fa-IR') + ' تومان'; }
+function goToSlide(index){
+  const slides=[...document.querySelectorAll('.hero-slide')],dots=[...document.querySelectorAll('.slider-dot')];
+  if(!slides.length)return;
+  currentSlide=(index+slides.length)%slides.length;
+  slides.forEach((slide,i)=>slide.classList.toggle('active',i===currentSlide));
+  dots.forEach((dot,i)=>dot.classList.toggle('active',i===currentSlide));
+}
+function changeSlide(step){goToSlide(currentSlide+step);resetSliderTimer()}
+function resetSliderTimer(){clearInterval(sliderTimer);sliderTimer=setInterval(()=>goToSlide(currentSlide+1),5000)}
 
 function jsonp(url){
   return new Promise((resolve,reject)=>{
@@ -312,6 +329,7 @@ function submitOrder(){
 function scrollToCart(){document.getElementById('cart').scrollIntoView({behavior:'smooth'})}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 document.getElementById('search').addEventListener('input',render);
+resetSliderTimer();
 load();
 </script>
 </body>
