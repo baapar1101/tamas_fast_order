@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>کسری پلاس | فروشگاه دیجیتال</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#3f51b5; --primary2:#536dfe; --bg:#f5f6f8; --card:#fff;
+  --text:#252525; --muted:#777; --border:#e8e8ee; --success:#13a085;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Vazirmatn",Tahoma,"Segoe UI",sans-serif}
+button,input{font:inherit}
+button{cursor:pointer}
+.container{max-width:1540px;margin:auto;padding:18px}
+.topbar{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20}
+.topbar-inner{max-width:1540px;margin:auto;padding:13px 18px;display:flex;align-items:center;gap:20px}
+.logo{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:900;color:#1672b9;white-space:nowrap}
+.logo img{width:150px;height:44px;object-fit:contain}
+.search{flex:1;max-width:600px;margin:auto;position:relative}
+.search input{width:100%;border:1px solid #e5e5ea;border-radius:9px;padding:13px 18px;outline:none;background:#fff}
+.btn{border:1px solid var(--border);background:#fff;border-radius:9px;padding:11px 17px}
+.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr) 390px;gap:20px;align-items:start}
+.sidebar,.cart,.product{background:var(--card);border:1px solid var(--border);border-radius:18px}
+.sidebar{padding:20px;position:sticky;top:90px}
+.cart{padding:20px;position:sticky;top:90px;min-height:350px}
+.side-title{font-weight:800;margin:0 0 18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid #ddd;background:#fff;border-radius:8px;padding:8px 11px}
+.chip.active{border-color:var(--primary);color:var(--primary);background:#f3f5ff}
+.switch-row{display:flex;justify-content:space-between;align-items:center;padding:15px 0;border-bottom:1px solid #eee}
+.switch{width:43px;height:24px;background:#aaa;border-radius:20px;padding:3px}
+.switch i{display:block;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on{background:#0bb39c}.switch.on i{transform:translateX(-19px)}
+.toolbar{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.promo-banner{height:200px;border-radius:18px;overflow:hidden;margin-bottom:14px;background:linear-gradient(120deg,#17324d,#2f6fed);box-shadow:0 10px 24px #17324d22;position:relative;color:#fff;padding:28px 34px}
+.promo-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.04}
+.promo-copy{position:relative;display:flex;flex-direction:column;gap:8px;max-width:480px}.promo-copy span{color:#ffd166;font-weight:700}.promo-copy strong{font-size:28px}.promo-copy small{opacity:.85}
+.categories{display:flex;gap:7px;overflow:auto;flex:1}
+.products{display:flex;flex-direction:column;gap:18px}
+.product{padding:15px}
+.product-head{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.product-title{font-size:17px;font-weight:700}
+.product-thumb{width:58px;height:58px;border-radius:8px;object-fit:cover;background:#eee}
+.variant-head{margin-top:12px;border:1px solid var(--border);border-bottom:0;border-radius:12px 12px 0 0;padding:15px;font-weight:800}
+.variant{border:1px solid var(--border);border-top:0;padding:13px;display:grid;grid-template-columns:45px 1fr auto;align-items:center;gap:14px}
+.variant:last-child{border-radius:0 0 12px 12px}
+.add{width:38px;height:38px;border-radius:50%;border:1px solid #92a2e8;background:#edf1ff;color:var(--primary);font-size:24px}
+.color-dot{width:17px;height:17px;border-radius:50%;display:inline-block;border:1px solid #bbb;vertical-align:middle;margin-left:7px}
+.meta{color:#777;font-size:12px;display:flex;gap:14px;flex-wrap:wrap}
+.price{font-weight:900;font-size:16px;white-space:nowrap}
+.old{text-decoration:line-through;color:#999;font-size:12px;margin-left:7px}
+.discount{background:#e53935;color:#fff;border-radius:10px;padding:3px 7px;font-size:11px}
+.cart-empty{text-align:center;color:#aaa;padding:100px 10px}
+.cart-item{border-bottom:1px solid #eee;padding:12px 0}
+.qty{display:flex;align-items:center;gap:8px;margin-top:7px}
+.qty button{border:1px solid #ddd;background:#fff;border-radius:6px;width:27px;height:27px}
+.total{display:flex;justify-content:space-between;font-weight:900;font-size:18px;padding-top:18px}
+.checkout{width:100%;margin-top:15px;padding:14px}
+.loading{text-align:center;padding:60px;color:#777}
+.modal{display:none;position:fixed;inset:0;background:#0006;z-index:50;align-items:center;justify-content:center;padding:20px}
+.modal.open{display:flex}.modal-box{background:#fff;border-radius:18px;padding:22px;max-width:500px;width:100%}
+.modal-box input,.modal-box textarea{width:100%;margin:7px 0;padding:12px;border:1px solid #ddd;border-radius:9px}
+@media(max-width:1150px){.layout{grid-template-columns:230px minmax(0,1fr)}.cart{grid-column:1/-1;position:static}.cart-empty{padding:35px}}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{position:static}.topbar-inner{flex-wrap:wrap}.search{order:3;flex-basis:100%}.variant{grid-template-columns:45px 1fr}.variant .price{grid-column:2}.categories{order:2}.toolbar{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="logo" id="storeName"><img src="logo.png" alt="کسری پلاس"></div>
+    <button class="btn">ورود / ثبت نام</button>
+    <div class="search"><input id="search" placeholder="جستجو کنید، برند، مدل و..."></div>
+    <button class="btn primary" onclick="scrollToCart()">سبد خرید 🛍</button>
+  </div>
+</header>
+
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h3 class="side-title">برند</h3>
+      <div class="chips" id="brands"></div>
+      <h3 class="side-title" style="margin-top:24px">پک</h3>
+      <div class="chips">
+        <button class="chip active">همه</button><button class="chip">گلوبال</button>
+        <button class="chip">ویتنام</button><button class="chip">چین</button>
+        <button class="chip">اصلی</button>
+      </div>
+      <div class="switch-row"><span>کالاهای خرید اعتباری</span><span class="switch"><i></i></span></div>
+      <div class="switch-row"><span>فقط کالاهای موجود</span><span id="stockSwitch" class="switch on" onclick="toggleStock()"><i></i></span></div>
+      <div class="switch-row"><span>فقط کالاهای پیشنهاد ویژه</span><span class="switch"><i></i></span></div>
+    </aside>
+
+    <section>
+      <div class="promo-banner"><img src="promo-banner.gif" alt=""><div class="promo-copy"><span>پیشنهاد ویژه</span><strong>تجربه خرید سریع و مطمئن</strong><small>ارسال فوری برای سفارش‌های امروز</small></div></div>
+      <div class="toolbar">
+        <div class="categories" id="categories">
+          <button class="chip active">گوشی موبایل</button>
+          <button class="chip">ساعت</button><button class="chip">هدفون و هندزفری</button>
+          <button class="chip">پاوربانک</button><button class="chip">شارژر دیواری و سیم</button>
+          <button class="chip">تبلت</button><button class="chip">اسپیکر</button>
+        </div>
+        <button class="btn" onclick="sortPrice()">لیست قیمت ↕</button>
+      </div>
+      <div id="products" class="products"><div class="loading">در حال دریافت محصولات از Google Sheets...</div></div>
+    </section>
+
+    <aside class="cart" id="cart">
+      <h3>سبد خرید 🛍</h3>
+      <div id="cartItems" class="cart-empty">لیست خرید شما خالی است</div>
+    </aside>
+  </div>
+</main>
+
+<div class="modal" id="checkoutModal">
+  <div class="modal-box">
+    <h3>ثبت سفارش</h3>
+    <input id="customerName" placeholder="نام و نام خانوادگی">
+    <input id="phone" placeholder="شماره موبایل">
+    <textarea id="address" rows="3" placeholder="آدرس"></textarea>
+    <button class="btn primary checkout" onclick="submitOrder()">ثبت سفارش</button>
+    <button class="btn checkout" onclick="closeModal()">انصراف</button>
+  </div>
+</div>
+
+<script>
+/* Paste your deployed Google Apps Script /exec URL here. */
+const API_URL = "https://script.google.com/macros/s/AKfycbxDY0PcZad8NPSlD_DgPrQJRGJj8kn0swETF0x4Q2lQhhPMAdgCuzsGZghC2bkmuietZQ/exec";
+
+let allProducts = [], catalog = {categories:[], brands:[]}, cart = [], onlyStock = true, ascending = true;
+
+function money(n){ return Number(n||0).toLocaleString('fa-IR') + ' تومان'; }
+
+function jsonp(url){
+  return new Promise((resolve,reject)=>{
+    const cb='jsonp_'+Date.now()+'_'+Math.random().toString(16).slice(2);
+    const s=document.createElement('script');
+    window[cb]=data=>{delete window[cb];s.remove();resolve(data)};
+    s.onerror=()=>{delete window[cb];s.remove();reject(new Error('API error'))};
+    s.src=url+(url.includes('?')?'&':'?')+'callback='+cb+'&_='+Date.now();
+    document.body.appendChild(s);
+  });
+}
+
+async function load(){
+  if(API_URL.startsWith('PASTE_')){
+    allProducts = demoProducts();
+  }else{
+    try{
+      const data=await jsonp(API_URL+'?action=catalog');
+      allProducts=data.products||[];
+      catalog={categories:data.categories||[],brands:data.brands||[]};
+    }catch(e){
+      console.warn(e); allProducts=demoProducts();
+    }
+  }
+  buildBrands(); buildCategories(); render();
+}
+
+function demoProducts(){
+  return [
+    {product_id:'1',title:'Apple iPhone 17 Pro Max 512/12GB ZA/A',model:'iPhone 17 Pro Max 512/12GB ZA/A',color:'نارنجی (Cosmic Orange)',color_en:'Cosmic Orange',price:450000000,old_price:455000000,discount:1,stock:5,warranty:'18 ماه گارانتی شرکتی',seller:'کسری پلاس',status:'Not Active',image_url:'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd8?auto=format&fit=crop&w=400&q=80',brand:'اپل'},
+    {product_id:'2',title:'Apple iPhone 17 Pro Max 512/12GB ZA/A',model:'iPhone 17 Pro Max 512/12GB ZA/A',color:'سرمه‌ای (Deep Blue)',color_en:'Deep Blue',price:477900000,old_price:482000000,discount:1,stock:3,warranty:'18 ماه گارانتی شرکتی',seller:'کسری پلاس',status:'Not Active',image_url:'https://images.unsplash.com/photo-1592286927505-2fd0f9d7c6f4?auto=format&fit=crop&w=400&q=80',brand:'اپل'},
+    {product_id:'3',title:'Apple iPhone 17 256/8GB CH/A',model:'iPhone 17 256/8GB CH/A',color:'مشکی (Black)',color_en:'Black',price:302590000,old_price:0,discount:0,stock:7,warranty:'18 ماه گارانتی شرکتی',seller:'کسری پلاس',status:'Not Active',image_url:'https://images.unsplash.com/photo-1591337676887-a217a6970a8a?auto=format&fit=crop&w=400&q=80',brand:'اپل'}
+  ];
+}
+
+function buildBrands(){
+  const brands=catalog.brands.length?catalog.brands:[...new Set(allProducts.map(p=>p.brand).filter(Boolean))].map(name=>({brand_fa_name:name,icon:''}));
+  document.getElementById('brands').innerHTML = `<button class="chip active" onclick="filterBrand('')">همه</button>`+
+    brands.map(b=>{const name=b.brand_fa_name||b.brand_name||b.name; const icon=assetIcon_(b.icon,'brand'); return `<button class="chip" onclick="filterBrand('${String(name).replace(/'/g,"\\'")}')">${icon}${esc(name)}</button>`}).join('');
+}
+function buildCategories(){
+  const cats=catalog.categories||[];
+  if(!cats.length)return;
+  document.getElementById('categories').innerHTML=cats.map(c=>{const name=c.category_fa_name||c.category_name; const icon=assetIcon_(c.icon,'category'); return `<button class="chip" onclick="filterCategory('${String(name).replace(/'/g,"\\'")}')">${icon}${esc(name)}</button>`}).join('');
+}
+function assetIcon_(value,folder){
+  const v=String(value||'').trim();
+  if(!v)return '';
+  if(/\.(svg|png|jpg|jpeg|webp)$/i.test(v)) return `<img class="chip-icon" src="assets/${folder}/${esc(v)}" alt="">`;
+  return `<span class="chip-icon-text">${esc(v)}</span>`;
+}
+let selectedBrand='';
+function filterBrand(b){selectedBrand=b;render()}
+let selectedCategory='';
+function filterCategory(c){selectedCategory=c;render()}
+function toggleStock(){onlyStock=!onlyStock;document.getElementById('stockSwitch').classList.toggle('on',onlyStock);render()}
+function sortPrice(){ascending=!ascending;render()}
+function render(){
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  let list=allProducts.filter(p=>
+    (!onlyStock || Number(p.stock)>0) &&
+    (!selectedBrand || p.brand===selectedBrand) &&
+    (!selectedCategory || p.Category===selectedCategory || p.category===selectedCategory) &&
+    (!q || JSON.stringify(p).toLowerCase().includes(q))
+  );
+  list.sort((a,b)=>ascending?Number(a.price)-Number(b.price):Number(b.price)-Number(a.price));
+
+  // Group by model/title
+  const groups={};
+  list.forEach(p=>{const k=p.model||p.title; (groups[k]??=[]).push(p)});
+  document.getElementById('products').innerHTML=Object.entries(groups).map(([title,items])=>`
+    <article class="product">
+      <div class="product-head">
+        <div class="product-title">${esc(title)}</div>
+        <img class="product-thumb" src="${esc(items[0].image_url||'')}" onerror="this.style.visibility='hidden'">
+      </div>
+      <div class="variant-head">رنگ‌بندی و بهترین پیشنهاد</div>
+      ${items.map(p=>variantHTML(p)).join('')}
+    </article>`).join('') || '<div class="loading">محصولی پیدا نشد.</div>';
+}
+function variantHTML(p){
+  const dot = p.color_en==='Deep Blue'?'#12273b':(p.color_en==='Black'?'#111':'#e7792b');
+  return `<div class="variant">
+    <button class="add" onclick='addToCart(${JSON.stringify(p).replace(/'/g,"&#39;")})'>+</button>
+    <div>
+      <div><span class="color-dot" style="background:${dot}"></span>${esc(p.color||'')}</div>
+      <div class="meta"><span>◉ اصلی</span><span>♧ ${esc(p.warranty||'')}</span><span>▣ ${esc(p.seller||'')}</span></div>
+    </div>
+    <div class="price">${p.old_price?`<span class="old">${money(p.old_price)}</span>`:''}${p.discount?`<span class="discount">${esc(p.discount)}٪</span>`:''}<br>${money(p.price)}</div>
+  </div>`;
+}
+function addToCart(p){
+  const x=cart.find(i=>i.product_id===p.product_id);
+  if(x)x.qty++; else cart.push({...p,qty:1});
+  renderCart();
+}
+function changeQty(id,d){
+  const x=cart.find(i=>i.product_id===id); if(!x)return;
+  x.qty+=d; if(x.qty<=0)cart=cart.filter(i=>i.product_id!==id); renderCart();
+}
+function renderCart(){
+  const el=document.getElementById('cartItems');
+  if(!cart.length){el.className='cart-empty';el.innerHTML='لیست خرید شما خالی است';return}
+  el.className='';
+  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  el.innerHTML=cart.map(i=>`<div class="cart-item"><b>${esc(i.color||i.title)}</b>
+    <div class="qty"><button onclick="changeQty('${i.product_id}',-1)">−</button>${i.qty}<button onclick="changeQty('${i.product_id}',1)">+</button>
+    <span>${money(i.price*i.qty)}</span></div></div>`).join('')+
+    `<div class="total"><span>مجموع</span><span>${money(total)}</span></div>
+     <button class="btn primary checkout" onclick="openModal()">ادامه و ثبت سفارش</button>`;
+}
+function openModal(){document.getElementById('checkoutModal').classList.add('open')}
+function closeModal(){document.getElementById('checkoutModal').classList.remove('open')}
+function submitOrder(){
+  const payload={action:'createOrder',customer_name:document.getElementById('customerName').value,phone:document.getElementById('phone').value,address:document.getElementById('address').value,items:cart.map(({product_id,title,color,price,qty})=>({product_id,title,color,price,qty})),total:cart.reduce((s,i)=>s+i.price*i.qty,0)};
+  if(!payload.customer_name||!payload.phone){alert('نام و شماره موبایل را وارد کنید.');return}
+  if(API_URL.startsWith('PASTE_')){alert('دمو: سفارش آماده است. ابتدا API_URL را تنظیم کنید.');return}
+  fetch(API_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+  alert('سفارش شما ثبت شد.');
+  cart=[];renderCart();closeModal();
+}
+function scrollToCart(){document.getElementById('cart').scrollIntoView({behavior:'smooth'})}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+document.getElementById('search').addEventListener('input',render);
+load();
+</script>
+</body>
+</html>

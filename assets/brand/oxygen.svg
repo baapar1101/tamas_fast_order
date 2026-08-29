@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <!-- Mcdodo-style background squircle -->
+  <rect width="500" height="500" rx="115" fill="#0b7a91" />
+  
+  <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+    
+    <!-- Oxygen Brand "O2" Icon Lockup -->
+    <!-- Large 'O' -->
+    <circle cx="230" cy="210" r="55" stroke="#ffffff" stroke-width="32" />
+    
+    <!-- Cutout mask effect to mimic 3D overlapping layers like the Oxygen logo -->
+    <path d="M 260,175 A 35,35 0 1,1 310,215 C 300,235 245,275 245,275 L 325,275" stroke="#0b7a91" stroke-width="48" />
+    
+    <!-- The '2' -->
+    <path d="M 260,175 A 35,35 0 1,1 310,215 C 300,235 245,275 245,275 L 325,275" stroke="#ffffff" stroke-width="32" />
+    
+    <!-- "oxygen" text rendered in Mcdodo's thick, monoline rounded font style -->
+    <g stroke="#ffffff" stroke-width="10">
+      <!-- o -->
+      <circle cx="145" cy="370" r="12" />
+      
+      <!-- x -->
+      <path d="M 175,358 L 199,382 M 199,358 L 175,382" />
+      
+      <!-- y -->
+      <path d="M 217,358 v 12 A 12,12 0 0,0 241,370 V 358 M 241,370 v 16 A 12,12 0 0,1 217,386" />
+      
+      <!-- g -->
+      <circle cx="271" cy="370" r="12" />
+      <path d="M 283,370 v 16 A 12,12 0 0,1 259,386" />
+      
+      <!-- e -->
+      <path d="M 301,370 L 325,370 A 12,12 0 1,0 301,370 A 12,12 0 0,0 321,378" />
+      
+      <!-- n -->
+      <path d="M 343,382 v -24 M 343,368 A 12,12 0 0,1 367,368 v 14" />
+    </g>
+  </g>
+</svg>
