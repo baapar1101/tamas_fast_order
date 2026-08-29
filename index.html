@@ -47,6 +47,12 @@ button{cursor:pointer}
 .switch.on{background:#00768f}.switch.on i{transform:translateX(-19px)}
 .toolbar{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;margin-bottom:14px}
 .category-toolbar{width:100%;border-radius:0;margin:0 0 18px;padding:14px 22px}
+.hero-slider{width:100%;height:220px;margin:0 0 18px;position:relative;overflow:hidden;border-radius:16px;background:#eef3f5;box-shadow:0 8px 22px #00768f1c}
+.hero-slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s ease}.hero-slide.active{opacity:1}
+.slider-nav{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 12px;pointer-events:none}
+.slider-arrow{pointer-events:auto;width:34px;height:34px;border:0;border-radius:50%;background:#ffffffd9;color:#00768f;font-size:24px;line-height:1}
+.slider-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:7px}
+.slider-dot{width:8px;height:8px;padding:0;border:0;border-radius:50%;background:#ffffffaa}.slider-dot.active{width:22px;border-radius:8px;background:#00768f}
 .promo-banner{height:200px;border-radius:18px;overflow:hidden;margin-bottom:14px;background:linear-gradient(120deg,#00596b,#00768f,#008da8);box-shadow:0 10px 24px #00768f33;position:relative;color:#fff;padding:28px 34px}
 .promo-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.04}
 .promo-copy{position:relative;display:flex;flex-direction:column;gap:8px;max-width:480px}.promo-copy span{color:#ffd166;font-weight:700}.promo-copy strong{font-size:28px}.promo-copy small{opacity:.85}
@@ -119,6 +125,19 @@ button{cursor:pointer}
     </aside>
   </div>
 </main>
+
+<div class="modal" id="registerModal"><div class="modal-box">
+<h3>ثبت نام فروشنده</h3>
+<div class="form-grid">
+<input id="regName" placeholder="نام *"><input id="regLastName" placeholder="نام خانوادگی *">
+<input id="regStoreName" placeholder="نام فروشگاه"><input id="regPhone" placeholder="تلفن ثابت">
+<input id="regMobile" placeholder="شماره موبایل *"><input id="regPostalCode" placeholder="کد پستی">
+<textarea id="regAddress" class="full" rows="3" placeholder="آدرس"></textarea>
+<input id="regCertificate" class="full" placeholder="لینک فایل جواز / گواهی">
+</div>
+<button class="btn primary checkout" onclick="submitRegistration()">ثبت نام</button>
+<button class="btn checkout" onclick="closeRegister()">انصراف</button>
+</div></div>
 
 <div class="modal" id="checkoutModal">
   <div class="modal-box">
@@ -263,6 +282,25 @@ function renderCart(){
 }
 function openModal(){document.getElementById('checkoutModal').classList.add('open')}
 function closeModal(){document.getElementById('checkoutModal').classList.remove('open')}
+function openRegister(){document.getElementById('registerModal').classList.add('open')}
+function closeRegister(){document.getElementById('registerModal').classList.remove('open')}
+async function submitRegistration(){
+  const payload={action:'registerUser',
+    name:document.getElementById('regName').value.trim(),
+    last_name:document.getElementById('regLastName').value.trim(),
+    Store_name:document.getElementById('regStoreName').value.trim(),
+    phone_number:document.getElementById('regPhone').value.trim(),
+    mobile_number:document.getElementById('regMobile').value.trim(),
+    address:document.getElementById('regAddress').value.trim(),
+    postal_code:document.getElementById('regPostalCode').value.trim(),
+    certificate_file_url:document.getElementById('regCertificate').value.trim()};
+  if(!payload.name||!payload.last_name||!payload.mobile_number){alert('نام، نام خانوادگی و شماره موبایل را وارد کنید.');return}
+  try{
+    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+    const data=await res.json(); if(!data.ok) throw new Error(data.error||'ثبت نام ناموفق بود');
+    alert('ثبت نام با موفقیت انجام شد و پس از بررسی فعال می‌شود.'); closeRegister();
+  }catch(err){alert(err.message||'خطا در ثبت نام');}
+}
 function submitOrder(){
   const payload={action:'createOrder',customer_name:document.getElementById('customerName').value,phone:document.getElementById('phone').value,address:document.getElementById('address').value,items:cart.map(({product_id,title,color,price,qty})=>({product_id,title,color,price,qty})),total:cart.reduce((s,i)=>s+i.price*i.qty,0)};
   if(!payload.customer_name||!payload.phone){alert('نام و شماره موبایل را وارد کنید.');return}
