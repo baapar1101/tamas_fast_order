@@ -18,7 +18,7 @@ button,input{font:inherit}
 button{cursor:pointer}
 .container{max-width:1540px;margin:auto;padding:18px}
 .topbar{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20}
-.topbar-promo{height:58px;max-width:1540px;margin:0 auto;position:relative;overflow:hidden;background:#00768f}
+.topbar-promo{height:58px;width:100%;max-width:none;margin:0;position:relative;overflow:hidden;background:#00768f}
 .topbar-promo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:1}
 .topbar-inner{max-width:1540px;margin:auto;padding:10px 18px;display:grid;grid-template-columns:auto minmax(260px,600px) auto;grid-template-areas:"login search logo";direction:ltr;align-items:center;gap:18px;min-height:68px}
 .logo{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:900;color:#00768f;white-space:nowrap}
@@ -46,6 +46,9 @@ button{cursor:pointer}
 .promo-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.04}
 .promo-copy{position:relative;display:flex;flex-direction:column;gap:8px;max-width:480px}.promo-copy span{color:#ffd166;font-weight:700}.promo-copy strong{font-size:28px}.promo-copy small{opacity:.85}
 .categories{display:flex;gap:7px;overflow:auto;flex:1}
+.category-chip{min-width:92px;min-height:112px;padding:12px 8px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;text-align:center;line-height:1.45}
+.category-chip .chip-icon{width:58px;height:58px;display:block;object-fit:contain}
+.category-chip .chip-icon-text{font-size:40px;line-height:1}
 .products{display:flex;flex-direction:column;gap:18px}
 .product{padding:15px}
 .product-head{display:flex;align-items:center;justify-content:space-between;gap:15px}
@@ -170,7 +173,7 @@ function buildBrands(){
 function buildCategories(){
   const cats=catalog.categories||[];
   if(!cats.length)return;
-  document.getElementById('categories').innerHTML=cats.map(c=>{const name=c.category_fa_name||c.category_name; const icon=assetIcon_(c.icon,'category',name); return `<button class="chip" onclick="filterCategory('${String(name).replace(/'/g,"\\'")}')">${icon}${esc(name)}</button>`}).join('');
+  document.getElementById('categories').innerHTML=cats.map(c=>{const name=c.category_fa_name||c.category_name; const icon=assetIcon_(c.icon,'category',name); return `<button class="chip category-chip" onclick="filterCategory('${String(name).replace(/'/g,"\\'")}')">${icon}<span>${esc(name)}</span></button>`}).join('');
 }
 function assetIcon_(value,folder,fallbackName){
   const v=String(value||'').trim();
@@ -239,7 +242,7 @@ function renderCart(){
   if(!cart.length){el.className='cart-empty';el.innerHTML='لیست خرید شما خالی است';return}
   el.className='';
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  el.innerHTML=cart.map(i=>`<div class="cart-item"><b>${esc(i.color||i.title)}</b>
+  el.innerHTML=cart.map(i=>`<div class="cart-item"><b>${esc(i.title||i.model||'محصول')}</b>${i.model&&i.model!==i.title?`<div class="meta">مدل: ${esc(i.model)}</div>`:''}${i.color?`<div class="meta">رنگ: ${esc(i.color)}</div>`:''}
     <div class="qty"><button onclick="changeQty('${i.product_id}',-1)">−</button>${i.qty}<button onclick="changeQty('${i.product_id}',1)">+</button>
     <span>${money(i.price*i.qty)}</span></div></div>`).join('')+
     `<div class="total"><span>مجموع</span><span>${money(total)}</span></div>
