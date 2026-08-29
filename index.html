@@ -22,7 +22,7 @@ button{cursor:pointer}
 .topbar-promo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:1}
 .topbar-inner{max-width:1540px;margin:auto;padding:10px 18px;display:grid;grid-template-columns:auto minmax(260px,600px) auto;grid-template-areas:"login search logo";direction:ltr;align-items:center;gap:18px;min-height:68px}
 .logo{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:900;color:#00768f;white-space:nowrap}
-.logo{grid-area:logo}.topbar-inner>.btn:not(.primary){grid-area:login}
+.logo{grid-area:logo}.topbar-inner>.btn:not(.primary){grid-area:login;justify-self:start;width:150px;max-width:150px;background:var(--primary);color:#fff;border-color:var(--primary);white-space:nowrap}
 .logo img{width:150px;height:44px;object-fit:contain}
 .search{grid-area:search;max-width:600px;width:100%;margin:auto;position:relative}
 .search input{width:100%;border:1px solid #e5e5ea;border-radius:9px;padding:13px 18px;outline:none;background:#fff}
@@ -74,7 +74,7 @@ button{cursor:pointer}
 .modal.open{display:flex}.modal-box{background:#fff;border-radius:18px;padding:22px;max-width:500px;width:100%}
 .modal-box input,.modal-box textarea{width:100%;margin:7px 0;padding:12px;border:1px solid #ddd;border-radius:9px}
 @media(max-width:1150px){.layout{grid-template-columns:230px minmax(0,1fr)}.cart{grid-column:1/-1;position:static}.cart-empty{padding:35px}}
-@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{position:static}.topbar-inner{grid-template-columns:1fr auto;grid-template-areas:"login logo" "search search";gap:10px;padding:10px 12px}.logo img{width:128px;height:38px}.search{max-width:none}.variant{grid-template-columns:45px 1fr}.variant .price{grid-column:2}.categories{order:2}.toolbar{flex-wrap:wrap}}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{position:static}.topbar-inner{grid-template-columns:1fr auto;grid-template-areas:"login logo" "search search";gap:10px;padding:10px 12px}.logo img{width:128px;height:38px}.topbar-inner>.btn:not(.primary){width:132px;max-width:132px}.search{max-width:none}.variant{grid-template-columns:45px 1fr}.variant .price{grid-column:2}.categories{order:2}.toolbar{flex-wrap:wrap}}
 </style>
 </head>
 <body>
