@@ -20,9 +20,9 @@ button{cursor:pointer}
 .topbar{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20}
 .topbar-promo{height:58px;width:100%;max-width:none;margin:0;position:relative;overflow:hidden;background:#00768f}
 .topbar-promo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:1}
-.topbar-inner{max-width:1540px;margin:auto;padding:10px 18px;display:grid;grid-template-columns:auto minmax(260px,600px) auto;grid-template-areas:"login search logo";direction:ltr;align-items:center;gap:18px;min-height:68px}
+.topbar-inner{max-width:1540px;margin:auto;padding:10px 36px;display:grid;grid-template-columns:220px minmax(260px,600px) 220px;grid-template-areas:"login search logo";direction:ltr;align-items:center;justify-content:space-between;gap:18px;min-height:68px}
 .logo{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:900;color:#00768f;white-space:nowrap}
-.logo{grid-area:logo}.topbar-inner>.btn:not(.primary){grid-area:login;justify-self:start;width:150px;max-width:150px;background:var(--primary);color:#fff;border-color:var(--primary);white-space:nowrap}
+.logo{grid-area:logo;justify-self:end}.topbar-inner>.btn:not(.primary){grid-area:login;justify-self:start;width:150px;max-width:150px;background:var(--primary);color:#fff;border-color:var(--primary);white-space:nowrap}
 .logo img{width:150px;height:44px;object-fit:contain}
 .search{grid-area:search;max-width:600px;width:100%;margin:auto;position:relative}
 .search input{width:100%;border:1px solid #e5e5ea;border-radius:9px;padding:13px 18px;outline:none;background:#fff}
@@ -88,7 +88,7 @@ button{cursor:pointer}
 .modal-box input,.modal-box textarea{width:100%;margin:7px 0;padding:12px;border:1px solid #ddd;border-radius:9px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.form-grid .full{grid-column:1/-1}
 @media(max-width:1150px){.layout{grid-template-columns:230px minmax(0,1fr)}.cart{grid-column:1/-1;position:static}.cart-empty{padding:35px}}
-@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{position:static}.topbar-inner{grid-template-columns:1fr auto;grid-template-areas:"login logo" "search search";gap:10px;padding:10px 12px}.logo img{width:128px;height:38px}.topbar-inner>.btn:not(.primary){width:132px;max-width:132px}.search{max-width:none}.variant{grid-template-columns:45px 1fr}.variant .price{grid-column:2}.categories{order:2}.toolbar{flex-wrap:wrap}}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{position:static}.topbar-inner{grid-template-columns:1fr auto;grid-template-areas:"login logo" "search search";gap:10px;padding:10px 12px}.logo{justify-self:end}.logo img{width:128px;height:38px}.topbar-inner>.btn:not(.primary){width:132px;max-width:132px}.search{max-width:none}.variant{grid-template-columns:45px 1fr}.variant .price{grid-column:2}.categories{order:2}.toolbar{flex-wrap:wrap}}
 @media(max-width:760px){.hero-slider{height:170px}.categories{gap:12px}.category-chip{min-width:92px;width:92px;min-height:84px;height:84px}.category-chip .chip-icon{width:50px;height:50px}.category-chip>span:not(.chip-icon-text){font-size:9px}}
 </style>
 </head>
@@ -216,19 +216,19 @@ function buildBrands(){
   const brands=catalog.brands.length?catalog.brands:[...new Set(allProducts.map(p=>p.brand).filter(Boolean))].map(name=>({brand_fa_name:name,icon:''}));
   const el=document.getElementById('brands'); if(!el)return;
   el.innerHTML = `<button class="brand-icon-btn active" title="همه" aria-label="همه" onclick="filterBrand('')">⌂</button>`+
-    brands.map(b=>{const name=b.brand_fa_name||b.brand_name||b.name; const icon=assetIcon_(b.icon,'brand',name); return `<button class="brand-icon-btn" title="${esc(name)}" aria-label="${esc(name)}" onclick="filterBrand('${String(name).replace(/'/g,"\\'")}')">${icon||'<span class="chip-icon-text">•</span>'}</button>`}).join('');
+    brands.map(b=>{const name=b.brand_fa_name||b.brand_name||b.name; const icon=assetIcon_(b.icon_url||b.icon,'brand',name); return `<button class="brand-icon-btn" title="${esc(name)}" aria-label="${esc(name)}" onclick="filterBrand('${String(name).replace(/'/g,"\\'")}')">${icon||'<span class="chip-icon-text">•</span>'}</button>`}).join('');
 }
 function buildCategories(){
   const cats=catalog.categories||[];
   if(!cats.length)return;
-  document.getElementById('categories').innerHTML=cats.map(c=>{const name=c.category_fa_name||c.category_name; const icon=assetIcon_(c.icon,'category',name); return `<button class="chip category-chip" onclick="filterCategory('${String(name).replace(/'/g,"\\'")}')">${icon}<span>${esc(name)}</span></button>`}).join('');
+  document.getElementById('categories').innerHTML=cats.map(c=>{const name=c.category_fa_name||c.category_name; const icon=assetIcon_(c.icon_url||c.icon,'category',name); return `<button class="chip category-chip" onclick="filterCategory('${String(name).replace(/'/g,"\\'")}')">${icon}<span>${esc(name)}</span></button>`}).join('');
 }
 function assetIcon_(value,folder,fallbackName){
   const v=String(value||'').trim();
   const fallback=String(fallbackName||'').trim();
   const map = folder==='brand'
     ? {'hoco':'hoco.svg','حُوکو':'hoco.svg','هوکو':'hoco.svg','HOCO':'hoco.svg','macdodo':'macdodo.svg','yesido':'yesido.svg','qcy':'qcy.svg','oxygen':'oxygen.svg','hadron':'hadron.svg'}
-    : {'ایرپاد':'airpod.svg','airpod':'airpod.svg','AirPods':'airpod.svg','گوشی موبایل':'mobile.svg','موبایل':'mobile.svg','گوشی':'mobile.svg','تبلت':'mobile.svg','هدفون و هندزفری':'handsfree.svg','هندزفری':'handsfree.svg','هدفون':'headphon.svg','پاوربانک':'powerbank.svg','اسپیکر':'speacker.svg','ساعت':'watch.svg','شارژر':'adaptor.svg','آداپتور':'adaptor.svg','کابل':'cable.svg','قاب':'cover.svg','کاور':'cover.svg','محافظ صفحه':'glass.svg'};
+    : {'ایرپاد':'airpod.svg','airpod':'airpod.svg','AirPods':'airpod.svg','گوشی موبایل':'mobile.svg','موبایل':'mobile.svg','گوشی':'mobile.svg','تبلت':'mobile.svg','هدفون و هندزفری':'handsfree.svg','هندزفری':'handsfree.svg','هدفون':'headphon.svg','پاوربانک':'powerbank.svg','اسپیکر':'speaker.svg','ساعت':'watch.svg','شارژر':'adapter.svg','آداپتور':'adapter.svg','کابل':'cable.svg','قاب':'cover.svg','کاور':'cover.svg','محافظ صفحه':'glass.svg','لوازم جانبی خودرو':'caracsories.svg','ماوس و کیبورد':'mouse_keyboard.svg','محصولات زیبایی':'health.svg','محصولات سلامت':'health.svg','پایه نگهدارنده گوشی و مونوپاد':'holder.svg','کابل صدا':'aux_icon.svg'};
   if(map[v]) return `<img class="chip-icon" src="assets/${folder}/${map[v]}" alt="">`;
   if(map[fallback]) return `<img class="chip-icon" src="assets/${folder}/${map[fallback]}" alt="">`;
   if(!v)return '';
