@@ -88,6 +88,9 @@ button{cursor:pointer}
 .modal.open{display:flex}.modal-box{background:#fff;border-radius:18px;padding:22px;max-width:500px;width:100%}
 .modal-box input,.modal-box textarea{width:100%;margin:7px 0;padding:12px;border:1px solid #ddd;border-radius:9px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.form-grid .full{grid-column:1/-1}
+.site-footer{margin-top:28px;background:#073f4b;color:#fff;padding:30px 6%;display:grid;grid-template-columns:1.3fr 1fr 180px;gap:28px;align-items:start}
+.footer-title{margin:0 0 14px;font-size:18px}.footer-text{margin:7px 0;color:#d9edf0;line-height:1.9;font-size:14px}.footer-logo img{width:150px;height:auto;filter:brightness(0) invert(1);opacity:.95}.enamad-box{height:115px;border:1px dashed #8bc4cc;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#d9edf0;font-size:13px;text-align:center;padding:10px}
+@media(max-width:760px){.site-footer{grid-template-columns:1fr;text-align:center}.footer-logo img{margin:auto}.enamad-box{max-width:180px;margin:auto}}
 @media(max-width:1150px){.layout{grid-template-columns:230px minmax(0,1fr)}.cart{grid-column:1/-1;position:static}.cart-empty{padding:35px}}
 @media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{position:static}.topbar-inner{grid-template-columns:1fr auto;grid-template-areas:"login logo" "search search";gap:10px;padding:10px 12px}.logo{justify-self:end}.logo img{width:128px;height:38px}.logo-tagline{font-size:8px}.topbar-inner>.btn:not(.primary){width:132px;max-width:132px}.search{max-width:none}.variant{grid-template-columns:45px 1fr}.variant .price{grid-column:2}.categories{order:2}.toolbar{flex-wrap:wrap}}
 @media(max-width:760px){.hero-slider{height:170px}.categories{gap:12px}.category-chip{min-width:92px;width:92px;min-height:84px;height:84px}.category-chip .chip-icon{width:50px;height:50px}.category-chip>span:not(.chip-icon-text){font-size:9px}}
@@ -136,6 +139,25 @@ button{cursor:pointer}
     </aside>
   </div>
 </main>
+
+<footer class="site-footer">
+  <div>
+    <h3 class="footer-title">تماس با ما</h3>
+    <p class="footer-text">شماره تماس: <a href="tel:09135006644" style="color:#fff">09135006644</a></p>
+    <p class="footer-text">آدرس: کرمان، خیابان شهید نامجو، بعد از کوچه ۹، پلاک ۱۰۹</p>
+    <p class="footer-text">کد پستی: ۷۶۱۹۷۴۴۵۶۸</p>
+  </div>
+  <div class="footer-logo">
+    <h3 class="footer-title">تماس مارکت</h3>
+    <img src="logo.png" alt="تماس مارکت">
+    <p class="footer-text">مرجع تخصصی فروش عمده کالای دیجیتال</p>
+  </div>
+  <div class="enamad-box" aria-label="نماد اعتماد الکترونیکی">
+    <a referrerpolicy="origin" target="_blank" href="https://trustseal.enamad.ir/?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw">
+      <img referrerpolicy="origin" src="https://trustseal.enamad.ir/logo.aspx?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw" alt="نماد اعتماد الکترونیکی" style="cursor:pointer;max-width:120px;max-height:95px" code="Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw">
+    </a>
+  </div>
+</footer>
 
 <div class="modal" id="registerModal"><div class="modal-box">
 <h3>ثبت نام فروشنده</h3>
