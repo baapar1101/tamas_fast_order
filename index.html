@@ -18,6 +18,9 @@ button,input{font:inherit}
 button{cursor:pointer}
 .container{max-width:1540px;margin:auto;padding:18px}
 .topbar{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20}
+.topbar-promo{height:200px;max-width:1540px;margin:0 auto;position:relative;overflow:hidden;background:linear-gradient(120deg,#00596b,#00768f,#008da8);color:#fff;padding:28px 34px}
+.topbar-promo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.22}
+.topbar-promo .promo-copy{position:relative;z-index:1}
 .topbar-inner{max-width:1540px;margin:auto;padding:10px 18px;display:grid;grid-template-columns:auto minmax(260px,600px) auto;grid-template-areas:"login search logo";direction:ltr;align-items:center;gap:18px;min-height:68px}
 .logo{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:900;color:#00768f;white-space:nowrap}
 .logo{grid-area:logo}.topbar-inner>.btn:not(.primary){grid-area:login}
@@ -74,6 +77,7 @@ button{cursor:pointer}
 </head>
 <body>
 <header class="topbar">
+  <div class="topbar-promo"><img src="promo-banner.gif" alt=""><div class="promo-copy"><span>پیشنهاد ویژه</span><strong>تجربه خرید سریع و مطمئن</strong><small>ارسال فوری برای سفارش‌های امروز</small></div></div>
   <div class="topbar-inner">
     <div class="logo" id="storeName"><img src="logo.png" alt="تماس مارکت"></div>
     <button class="btn">ورود / ثبت نام</button>
@@ -89,7 +93,6 @@ button{cursor:pointer}
     </aside>
 
     <section>
-      <div class="promo-banner"><img src="promo-banner.gif" alt=""><div class="promo-copy"><span>پیشنهاد ویژه</span><strong>تجربه خرید سریع و مطمئن</strong><small>ارسال فوری برای سفارش‌های امروز</small></div></div>
       <div class="toolbar">
         <div class="categories" id="categories">
           <button class="chip active">دسته‌بندی‌ها</button>
@@ -187,12 +190,11 @@ function filterBrand(b){selectedBrand=b;render()}
 let selectedCategory='';
 function filterCategory(c){selectedCategory=c;render()}
 function togglePromotion(){onlyPromotion=!onlyPromotion;document.getElementById('promoSwitch').classList.toggle('on',onlyPromotion);render()}
-function toggleStock(){onlyStock=!onlyStock;document.getElementById('stockSwitch').classList.toggle('on',onlyStock);render()}
 function sortPrice(){ascending=!ascending;render()}
 function render(){
   const q=document.getElementById('search').value.trim().toLowerCase();
   let list=allProducts.filter(p=>
-    (!onlyStock || Number(p.stock)>0) &&
+    Number(p.stock)>0 &&
     (!onlyPromotion || p.promotion===true || String(p.promotion).toUpperCase()==='TRUE') &&
     (!selectedBrand || p.brand===selectedBrand) &&
     (!selectedCategory || p.Category===selectedCategory || p.category===selectedCategory) &&
