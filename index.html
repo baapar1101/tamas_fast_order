@@ -42,6 +42,7 @@ button{cursor:pointer}
 .switch i{display:block;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
 .switch.on{background:#00768f}.switch.on i{transform:translateX(-19px)}
 .toolbar{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.category-toolbar{width:100%;border-radius:0;margin:0 0 18px;padding:14px 22px}
 .promo-banner{height:200px;border-radius:18px;overflow:hidden;margin-bottom:14px;background:linear-gradient(120deg,#00596b,#00768f,#008da8);box-shadow:0 10px 24px #00768f33;position:relative;color:#fff;padding:28px 34px}
 .promo-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.04}
 .promo-copy{position:relative;display:flex;flex-direction:column;gap:8px;max-width:480px}.promo-copy span{color:#ffd166;font-weight:700}.promo-copy strong{font-size:28px}.promo-copy small{opacity:.85}
@@ -88,6 +89,11 @@ button{cursor:pointer}
 </header>
 
 <main class="container">
+  <div class="toolbar category-toolbar">
+    <div class="categories" id="categories">
+      <button class="chip active">دسته‌بندی‌ها</button>
+    </div>
+  </div>
   <div class="layout">
     <aside class="sidebar">
       <h3 class="side-title">پیشنهاد ویژه</h3>
@@ -96,9 +102,6 @@ button{cursor:pointer}
 
     <section>
       <div class="toolbar">
-        <div class="categories" id="categories">
-          <button class="chip active">دسته‌بندی‌ها</button>
-        </div>
         <button class="btn" onclick="sortPrice()">لیست قیمت ↕</button>
       </div>
       <div id="products" class="products"><div class="loading">در حال دریافت محصولات از Google Sheets...</div></div>
