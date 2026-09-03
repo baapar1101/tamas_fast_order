@@ -131,7 +131,9 @@
        border-radius: 9px;
        padding: 13px 18px;
        outline: none;
-       background: #fff
+       background: #fff;
+       direction: rtl !important;
+       text-align: right !important;
    }
 
    .btn {
