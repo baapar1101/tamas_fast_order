@@ -190,7 +190,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxDY0PcZad8NPSlD_DgPrQJ
 let allProducts = [], catalog = {categories:[], brands:[]}, cart = [], onlyStock = true, onlyPromotion = false, ascending = true;
 let currentSlide=0, sliderTimer;
 
-function money(n){ return Number(n||0).toLocaleString('fa-IR') + ' ریال'; }
+function money(n){ return Number(n||0).toLocaleString('fa-IR') + ' تومان'; }
 function goToSlide(index){
   const slides=[...document.querySelectorAll('.hero-slide')],dots=[...document.querySelectorAll('.slider-dot')];
   if(!slides.length)return;
