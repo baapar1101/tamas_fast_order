@@ -1,0 +1,20 @@
+{
+  "Code.gs.js": {
+    "mtime": 1788264735.3428946,
+    "seen": 1788447867.5119376,
+    "ast_hash": "9d52c817df4e876c509f36f613245073",
+    "semantic_hash": "9d52c817df4e876c509f36f613245073"
+  },
+  "build_workbook.py": {
+    "mtime": 1788265095.098972,
+    "seen": 1788447867.511941,
+    "ast_hash": "297140dba625f0932c7b937c378ee4e5",
+    "semantic_hash": "297140dba625f0932c7b937c378ee4e5"
+  },
+  "index.html.js": {
+    "mtime": 1788447866.967356,
+    "seen": 1788447867.5119421,
+    "ast_hash": "cba69fdd83e0d6c79d4580132c2ab778",
+    "semantic_hash": "cba69fdd83e0d6c79d4580132c2ab778"
+  }
+}
