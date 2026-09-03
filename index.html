@@ -98,27 +98,89 @@
       color: #17324d;
     }
 
-    .add {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: 1px solid #66b8c7;
-      background: #e6f5f8;
-      color: var(--primary);
-      font-size: 24px;
-      flex-shrink: 0;
+    .warehouse-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
       margin-left: auto !important;
+    }
+
+    .warehouse-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #ffffff;
+      border: 1px solid #dce5ec;
+      border-radius: 8px;
+      padding: 4px 10px;
+    }
+
+    .warehouse-row.urgent-stock {
+      border-color: #f87171 !important;
+      background: #fff5f5 !important;
+    }
+
+    .wh-details {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .wh-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .wh-badge.kerman {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .wh-badge.tehran {
+      background: #f0fdf4;
+      color: #15803d;
+    }
+
+    .wh-count {
+      color: #64748b;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .stock-warn {
+      color: #dc2626;
+      font-weight: 800;
+    }
+
+    .add-wh-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid #00768f;
+      background: #00768f;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: transform 0.2s ease, background 0.2s ease;
+      flex-shrink: 0;
     }
 
-    .add:hover {
-      background: #00768f;
-      color: #ffffff;
-      border-color: #00768f;
-      transform: scale(1.08);
+    .add-wh-btn:hover {
+      background: #005a6e;
+      transform: scale(1.1);
+    }
+
+    .add {
+      display: none !important;
     }
   </style>
 </head>
@@ -448,14 +510,19 @@
     function togglePromotion() { onlyPromotion = !onlyPromotion; document.getElementById('promoSwitch').classList.toggle('on', onlyPromotion); render() }
     function sortPrice() { ascending = !ascending; render() }
 
-    function getProductStock(p) {
-      if (p.stock !== undefined && p.stock !== '' && p.stock !== null) {
-        return Number(p.stock);
+    function getWarehouseStocks(p) {
+      const kerman = Math.max(0, parseInt(p.kerman_stock || 0, 10));
+      const tehran = Math.max(0, parseInt(p.tehran_stock || 0, 10));
+
+      if (kerman > 0 || tehran > 0) {
+        return { kerman, tehran, total: kerman + tehran };
       }
-      const kerman = Number(p.kerman_stock || 0);
-      const tehran = Number(p.tehran_stock || 0);
-      if (kerman > 0 || tehran > 0) return kerman + tehran;
-      return 1;
+      const globalStock = Math.max(0, parseInt(p.stock !== undefined && p.stock !== '' ? p.stock : 1, 10));
+      return { kerman: globalStock, tehran: 0, total: globalStock };
+    }
+
+    function getProductStock(p) {
+      return getWarehouseStocks(p).total;
     }
 
     function render() {
@@ -477,9 +544,9 @@
       });
       list.sort((a, b) => ascending ? Number(a.price) - Number(b.price) : Number(b.price) - Number(a.price));
 
-      // Group by model/title
+      // Group by title/model
       const groups = {};
-      list.forEach(p => { const k = p.model || p.title || p.product_id; (groups[k] ??= []).push(p) });
+      list.forEach(p => { const k = p.title || p.model || p.product_id; (groups[k] ??= []).push(p) });
       document.getElementById('products').innerHTML = Object.entries(groups).map(([title, items]) => `
     <article class="product">
       <div class="product-head">
@@ -559,6 +626,49 @@
     function variantHTML(p) {
       const dot = getColorHex(p);
       const discountVal = p['discount%'] || p.discount;
+      const stocks = getWarehouseStocks(p);
+      const jsonStr = JSON.stringify(p).replace(/'/g, "&#39;");
+
+      const warehouseBtns = [];
+
+      if (stocks.kerman > 0) {
+        const isOne = stocks.kerman === 1;
+        warehouseBtns.push(`
+          <div class="warehouse-row ${isOne ? 'urgent-stock' : ''}">
+            <div class="wh-details">
+              <span class="wh-badge kerman">انبار کرمان</span>
+              <span class="wh-count">${isOne ? '<b class="stock-warn">تنها ۱ عدد در سایت باقیست!</b>' : `موجودی: ${stocks.kerman} عدد`}</span>
+            </div>
+            <button class="add-wh-btn" onclick='addToCart(${jsonStr}, "kerman")' title="افزودن از انبار کرمان">+</button>
+          </div>
+        `);
+      }
+
+      if (stocks.tehran > 0) {
+        const isOne = stocks.tehran === 1;
+        warehouseBtns.push(`
+          <div class="warehouse-row ${isOne ? 'urgent-stock' : ''}">
+            <div class="wh-details">
+              <span class="wh-badge tehran">انبار تهران</span>
+              <span class="wh-count">${isOne ? '<b class="stock-warn">تنها ۱ عدد در سایت باقیست!</b>' : `موجودی: ${stocks.tehran} عدد`}</span>
+            </div>
+            <button class="add-wh-btn" onclick='addToCart(${jsonStr}, "tehran")' title="افزودن از انبار تهران">+</button>
+          </div>
+        `);
+      }
+
+      if (!warehouseBtns.length && stocks.total > 0) {
+        const isOne = stocks.total === 1;
+        warehouseBtns.push(`
+          <div class="warehouse-row ${isOne ? 'urgent-stock' : ''}">
+            <div class="wh-details">
+              <span class="wh-badge kerman">موجودی سایت</span>
+              <span class="wh-count">${isOne ? '<b class="stock-warn">تنها ۱ عدد در سایت باقیست!</b>' : `موجودی: ${stocks.total} عدد`}</span>
+            </div>
+            <button class="add-wh-btn" onclick='addToCart(${jsonStr}, "kerman")' title="افزودن به سبد">+</button>
+          </div>
+        `);
+      }
 
       return `<div class="variant">
     <div class="variant-info">
@@ -570,30 +680,77 @@
       ${discountVal ? `<span class="discount">${esc(discountVal)}٪</span>` : ''}
       <div class="current-price">${money(p.price)}</div>
     </div>
-    <button class="add" onclick='addToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})' title="افزودن به سبد">+</button>
+    <div class="warehouse-section">
+      ${warehouseBtns.join('')}
+    </div>
   </div>`;
     }
 
+    function addToCart(p, warehouse = 'kerman') {
+      const stocks = getWarehouseStocks(p);
+      const maxStock = stocks[warehouse] || stocks.total || 1;
+      const cartKey = (p.product_id || p.sku || p.title) + '_' + warehouse;
+      const existing = cart.find(i => i.cart_key === cartKey);
 
-
-
-    function addToCart(p) {
-      const x = cart.find(i => i.product_id === p.product_id);
-      if (x) x.qty++; else cart.push({ ...p, qty: 1 });
+      if (existing) {
+        if (existing.qty >= maxStock) {
+          alert(`موجودی ${warehouse === 'kerman' ? 'انبار کرمان' : 'انبار تهران'} حداکثر ${maxStock} عدد می‌باشد.`);
+          return;
+        }
+        existing.qty++;
+      } else {
+        if (maxStock < 1) {
+          alert('موجودی این انبار به اتمام رسیده است.');
+          return;
+        }
+        cart.push({
+          ...p,
+          warehouse: warehouse,
+          warehouse_name: warehouse === 'kerman' ? 'انبار کرمان' : (warehouse === 'tehran' ? 'انبار تهران' : 'موجودی سایت'),
+          max_stock: maxStock,
+          qty: 1,
+          cart_key: cartKey
+        });
+      }
       renderCart();
     }
-    function changeQty(id, d) {
-      const x = cart.find(i => i.product_id === id); if (!x) return;
-      x.qty += d; if (x.qty <= 0) cart = cart.filter(i => i.product_id !== id); renderCart();
+
+    function changeQty(cartKey, d) {
+      const item = cart.find(i => i.cart_key === cartKey);
+      if (!item) return;
+
+      if (d > 0 && item.qty + d > item.max_stock) {
+        alert(`موجودی ${item.warehouse_name} حداکثر ${item.max_stock} عدد می‌باشد.`);
+        return;
+      }
+
+      item.qty += d;
+      if (item.qty <= 0) {
+        cart = cart.filter(i => i.cart_key !== cartKey);
+      }
+      renderCart();
     }
+
     function renderCart() {
       const el = document.getElementById('cartItems');
       if (!cart.length) { el.className = 'cart-empty'; el.innerHTML = 'لیست خرید شما خالی است'; return }
       el.className = '';
       const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-      el.innerHTML = cart.map(i => `<div class="cart-item"><b>${esc(i.title || i.model || 'محصول')}</b>${i.model && i.model !== i.title ? `<div class="meta">مدل: ${esc(i.model)}</div>` : ''}${i.color ? `<div class="meta">رنگ: ${esc(i.color)}</div>` : ''}
-    <div class="qty"><button onclick="changeQty('${i.product_id}',-1)">−</button>${i.qty}<button onclick="changeQty('${i.product_id}',1)">+</button>
-    <span>${money(i.price * i.qty)}</span></div></div>`).join('') +
+      el.innerHTML = cart.map(i => {
+        const isMax = i.qty >= i.max_stock;
+        return `<div class="cart-item">
+          <b>${esc(i.title || i.model || 'محصول')}</b>
+          ${i.color ? `<div class="meta">رنگ: ${esc(i.color)}</div>` : ''}
+          <div class="meta" style="color:#0369a1;font-weight:700;margin-top:2px">📍 ${esc(i.warehouse_name)} <span style="color:#64748b;font-weight:400">(سقف: ${i.max_stock})</span></div>
+          <div class="qty">
+            <button onclick="changeQty('${i.cart_key}', -1)">−</button>
+            <span style="font-weight:800;padding:0 4px">${i.qty}</span>
+            <button onclick="changeQty('${i.cart_key}', 1)" ${isMax ? 'disabled style="opacity:0.3;cursor:not-allowed" title="حداکثر موجودی"' : ''}>+</button>
+            <span>${money(i.price * i.qty)}</span>
+          </div>
+          ${isMax ? `<div style="font-size:11px;color:#dc2626;margin-top:3px;font-weight:700">⚠️ حداکثر موجودی (${i.max_stock} عدد) انتخاب شده</div>` : ''}
+        </div>`;
+      }).join('') +
         `<div class="total"><span>مجموع</span><span>${money(total)}</span></div>
      <button class="btn primary checkout" onclick="openModal()">ادامه و ثبت سفارش</button>`;
     }
