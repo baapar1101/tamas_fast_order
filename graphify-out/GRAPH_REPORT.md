@@ -4,12 +4,12 @@
 - cluster-only mode — file stats not available
 
 ## Summary
-- 81 nodes · 156 edges · 12 communities
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.85)
+- 74 nodes · 135 edges · 14 communities
+- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7dacd40d`
+- Built from commit: `ad0be0b8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -25,92 +25,102 @@
 - Community 8
 - Community 9
 - Community 10
+- Community 11
+- Community 12
 
 ## God Nodes (most connected - your core abstractions)
-1. `render()` - 10 edges
-2. `doPost()` - 8 edges
+1. `doPost()` - 8 edges
+2. `main()` - 7 edges
 3. `buildBrands()` - 7 edges
-4. `esc()` - 7 edges
-5. `main()` - 7 edges
-6. `doGet()` - 6 edges
-7. `getCatalog_()` - 6 edges
-8. `getSheet_()` - 6 edges
-9. `renderCart()` - 6 edges
-10. `cmd_push()` - 6 edges
+4. `getSheet_()` - 6 edges
+5. `doGet()` - 6 edges
+6. `getCatalog_()` - 6 edges
+7. `cmd_pull()` - 6 edges
+8. `cmd_push()` - 6 edges
+9. `cmd_diff()` - 6 edges
+10. `esc()` - 5 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `doPost()` --calls--> `createOrder_()`  [EXTRACTED]
+  Code.gs → Code.gs  _Bridges community 1 → community 4_
+- `getSettings_()` --calls--> `getSheet_()`  [EXTRACTED]
+  Code.gs → Code.gs  _Bridges community 1 → community 3_
+- `buildBrands()` --calls--> `assetIcon_()`  [EXTRACTED]
+  index.html → index.html  _Bridges community 10 → community 8_
+- `load()` --calls--> `buildCategories()`  [EXTRACTED]
+  index.html → index.html  _Bridges community 10 → community 12_
 - `renderCart()` --calls--> `esc()`  [EXTRACTED]
-  index.html → index.html  _Bridges community 1 → community 2_
-- `renderCart()` --calls--> `money()`  [EXTRACTED]
-  index.html → index.html  _Bridges community 1 → community 10_
-- `render()` --calls--> `variantHTML()`  [EXTRACTED]
-  index.html → index.html  _Bridges community 10 → community 6_
-- `variantHTML()` --calls--> `esc()`  [EXTRACTED]
-  index.html → index.html  _Bridges community 10 → community 2_
-- `load()` --calls--> `buildBrands()`  [EXTRACTED]
-  index.html → index.html  _Bridges community 2 → community 9_
+  index.html → index.html  _Bridges community 10 → community 7_
 
 ## Import Cycles
 - None detected.
 
-## Communities (12 total, 0 thin omitted)
+## Communities (14 total, 0 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.24
-Nodes (19): createOrder_(), DEFAULT_HEADERS, doGet(), doPost(), exportAll_(), getCatalog_(), getSettings_(), getSheet_() (+11 more)
+Cohesion: 0.22
+Nodes (6): allProducts, cart, catalog, closeRegister(), selectedBrands, submitRegistration()
 
 ### Community 1 - "Community 1"
-Cohesion: 0.20
-Nodes (10): addToCart(), allProducts, cart, catalog, changeQty(), closeModal(), closeRegister(), renderCart() (+2 more)
+Cohesion: 0.39
+Nodes (7): createOrder_(), DEFAULT_HEADERS, getSheet_(), headers_(), registerUser_(), SHEETS, updateStock_()
 
 ### Community 2 - "Community 2"
-Cohesion: 0.70
-Nodes (5): assetIcon_(), buildBrands(), buildCategories(), esc(), filterCategory()
-
-### Community 3 - "Community 3"
-Cohesion: 0.33
-Nodes (6): cmd_push(), cmd_watch(), push_to_web_app(), Upload catalog data to Google Apps Script Web App., Push local Excel data to Google Sheets via Apps Script Web App., Watch local Excel file for modifications and push automatically.
-
-### Community 4 - "Community 4"
-Cohesion: 0.33
-Nodes (6): cmd_diff(), fetch_from_web_app(), Fetch data from deployed Google Apps Script Web App endpoint., Compare local Excel data against remote Google Sheet data., Read local Excel workbook and return dictionary of sheets with rows., read_excel_catalog()
-
-### Community 5 - "Community 5"
-Cohesion: 0.38
-Nodes (6): cmd_pull(), fetch_csv_from_gss(), Write catalog data (dict of lists) to Excel workbook., Fetch sheet content via Google Sheets CSV export URL (no API key required if…, Pull data from Google Sheets / Apps Script and update local Excel and JSON…, write_excel_catalog()
-
-### Community 6 - "Community 6"
-Cohesion: 0.40
-Nodes (5): filterBrand(), getProductStock(), render(), sortPrice(), togglePromotion()
-
-### Community 7 - "Community 7"
 Cohesion: 0.40
 Nodes (5): load_config(), main(), Load configuration from sync_config.json if it exists., Save current configuration to sync_config.json., save_config()
 
+### Community 3 - "Community 3"
+Cohesion: 0.67
+Nodes (6): doGet(), exportAll_(), getCatalog_(), getSettings_(), read_(), setupSheets_()
+
+### Community 4 - "Community 4"
+Cohesion: 0.40
+Nodes (6): doPost(), json_(), output_(), syncCatalog_(), syncSheet_(), writeSheetObjects_()
+
+### Community 5 - "Community 5"
+Cohesion: 0.33
+Nodes (6): cmd_pull(), fetch_from_web_app(), Write catalog data (dict of lists) to Excel workbook., Fetch data from deployed Google Apps Script Web App endpoint., Pull data from Google Sheets / Apps Script and update local Excel and JSON…, write_excel_catalog()
+
+### Community 6 - "Community 6"
+Cohesion: 0.38
+Nodes (6): cmd_push(), cmd_watch(), push_to_web_app(), Upload catalog data to Google Apps Script Web App., Push local Excel data to Google Sheets via Apps Script Web App., Watch local Excel file for modifications and push automatically.
+
+### Community 7 - "Community 7"
+Cohesion: 0.40
+Nodes (5): changeQty(), closeModal(), money(), renderCart(), submitOrder()
+
 ### Community 8 - "Community 8"
+Cohesion: 0.83
+Nodes (4): buildBrands(), categoryBrandNames_(), filterBrand(), normalizeFilterValue_()
+
+### Community 9 - "Community 9"
+Cohesion: 0.33
+Nodes (6): cmd_diff(), fetch_csv_from_gss(), Fetch sheet content via Google Sheets CSV export URL (no API key required if…, Compare local Excel data against remote Google Sheet data., Read local Excel workbook and return dictionary of sheets with rows., read_excel_catalog()
+
+### Community 10 - "Community 10"
+Cohesion: 1.00
+Nodes (3): assetIcon_(), buildCategories(), esc()
+
+### Community 11 - "Community 11"
 Cohesion: 1.00
 Nodes (3): changeSlide(), goToSlide(), resetSliderTimer()
 
-### Community 9 - "Community 9"
+### Community 12 - "Community 12"
 Cohesion: 0.67
 Nodes (3): demoProducts(), jsonp(), load()
 
-### Community 10 - "Community 10"
-Cohesion: 0.40
-Nodes (5): categoryBrandNames_(), getColorHex(), money(), normalizeFilterValue_(), variantHTML()
-
 ## Knowledge Gaps
-- **5 isolated node(s):** `DEFAULT_HEADERS`, `SHEETS`, `allProducts`, `cart`, `catalog`
+- **6 isolated node(s):** `allProducts`, `cart`, `catalog`, `selectedBrands`, `DEFAULT_HEADERS` (+1 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cmd_push()` connect `Community 3` to `Community 4`, `Community 5`, `Community 7`?**
-  _High betweenness centrality (0.009) - this node is a cross-community bridge._
-- **Why does `cmd_pull()` connect `Community 5` to `Community 4`, `Community 7`?**
-  _High betweenness centrality (0.009) - this node is a cross-community bridge._
-- **Why does `cmd_diff()` connect `Community 4` to `Community 5`, `Community 7`?**
-  _High betweenness centrality (0.009) - this node is a cross-community bridge._
-- **What connects `DEFAULT_HEADERS`, `SHEETS`, `allProducts` to the rest of the system?**
-  _5 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `cmd_push()` connect `Community 6` to `Community 9`, `Community 2`?**
+  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+- **Why does `cmd_pull()` connect `Community 5` to `Community 9`, `Community 2`, `Community 6`?**
+  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+- **Why does `cmd_diff()` connect `Community 9` to `Community 2`, `Community 5`, `Community 6`?**
+  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+- **What connects `allProducts`, `cart`, `catalog` to the rest of the system?**
+  _6 weakly-connected nodes found - possible documentation gaps or missing edges._

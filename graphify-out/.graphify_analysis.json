@@ -1,51 +1,60 @@
 {
   "communities": {
     "0": [
-      "code_gs",
-      "code_gs_createorder",
-      "code_gs_default_headers",
-      "code_gs_doget",
-      "code_gs_dopost",
-      "code_gs_exportall",
-      "code_gs_getcatalog",
-      "code_gs_getsettings",
-      "code_gs_getsheet",
-      "code_gs_headers",
-      "code_gs_json",
-      "code_gs_output",
-      "code_gs_read",
-      "code_gs_registeruser",
-      "code_gs_setupsheets",
-      "code_gs_sheets",
-      "code_gs_synccatalog",
-      "code_gs_syncsheet",
-      "code_gs_updatestock",
-      "code_gs_writesheetobjects"
-    ],
-    "1": [
       "index_html",
-      "index_html_addtocart",
       "index_html_allproducts",
       "index_html_cart",
       "index_html_catalog",
-      "index_html_changeqty",
-      "index_html_closemodal",
       "index_html_closeregister",
       "index_html_openmodal",
       "index_html_openregister",
-      "index_html_rendercart",
       "index_html_scrolltocart",
-      "index_html_submitorder",
+      "index_html_selectedbrands",
       "index_html_submitregistration"
     ],
+    "1": [
+      "code_gs",
+      "code_gs_createorder",
+      "code_gs_default_headers",
+      "code_gs_getsheet",
+      "code_gs_headers",
+      "code_gs_registeruser",
+      "code_gs_sheets",
+      "code_gs_updatestock"
+    ],
     "2": [
-      "index_html_asseticon",
-      "index_html_buildbrands",
-      "index_html_buildcategories",
-      "index_html_esc",
-      "index_html_filtercategory"
+      "sync_spreadsheet_load_config",
+      "sync_spreadsheet_main",
+      "sync_spreadsheet_rationale_44",
+      "sync_spreadsheet_rationale_62",
+      "sync_spreadsheet_save_config"
     ],
     "3": [
+      "code_gs_doget",
+      "code_gs_exportall",
+      "code_gs_getcatalog",
+      "code_gs_getsettings",
+      "code_gs_read",
+      "code_gs_setupsheets"
+    ],
+    "4": [
+      "code_gs_dopost",
+      "code_gs_json",
+      "code_gs_output",
+      "code_gs_synccatalog",
+      "code_gs_syncsheet",
+      "code_gs_writesheetobjects"
+    ],
+    "5": [
+      "sync_spreadsheet_cmd_pull",
+      "sync_spreadsheet_fetch_from_web_app",
+      "sync_spreadsheet_rationale_120",
+      "sync_spreadsheet_rationale_176",
+      "sync_spreadsheet_rationale_202",
+      "sync_spreadsheet_write_excel_catalog"
+    ],
+    "6": [
+      "sync_spreadsheet",
       "sync_spreadsheet_cmd_push",
       "sync_spreadsheet_cmd_watch",
       "sync_spreadsheet_push_to_web_app",
@@ -53,83 +62,73 @@
       "sync_spreadsheet_rationale_236",
       "sync_spreadsheet_rationale_312"
     ],
-    "4": [
+    "7": [
+      "index_html_changeqty",
+      "index_html_closemodal",
+      "index_html_money",
+      "index_html_rendercart",
+      "index_html_submitorder"
+    ],
+    "8": [
+      "index_html_buildbrands",
+      "index_html_categorybrandnames",
+      "index_html_filterbrand",
+      "index_html_normalizefiltervalue"
+    ],
+    "9": [
       "sync_spreadsheet_cmd_diff",
-      "sync_spreadsheet_fetch_from_web_app",
-      "sync_spreadsheet_rationale_176",
+      "sync_spreadsheet_fetch_csv_from_gss",
+      "sync_spreadsheet_rationale_152",
       "sync_spreadsheet_rationale_251",
       "sync_spreadsheet_rationale_68",
       "sync_spreadsheet_read_excel_catalog"
     ],
-    "5": [
-      "sync_spreadsheet",
-      "sync_spreadsheet_cmd_pull",
-      "sync_spreadsheet_fetch_csv_from_gss",
-      "sync_spreadsheet_rationale_120",
-      "sync_spreadsheet_rationale_152",
-      "sync_spreadsheet_rationale_202",
-      "sync_spreadsheet_write_excel_catalog"
+    "10": [
+      "index_html_asseticon",
+      "index_html_buildcategories",
+      "index_html_esc"
     ],
-    "6": [
-      "index_html_filterbrand",
-      "index_html_getproductstock",
-      "index_html_render",
-      "index_html_sortprice",
-      "index_html_togglepromotion"
-    ],
-    "7": [
-      "sync_spreadsheet_load_config",
-      "sync_spreadsheet_main",
-      "sync_spreadsheet_rationale_44",
-      "sync_spreadsheet_rationale_62",
-      "sync_spreadsheet_save_config"
-    ],
-    "8": [
+    "11": [
       "index_html_changeslide",
       "index_html_gotoslide",
       "index_html_resetslidertimer"
     ],
-    "9": [
+    "12": [
       "index_html_demoproducts",
       "index_html_jsonp",
       "index_html_load"
     ],
-    "10": [
-      "index_html_categorybrandnames",
-      "index_html_getcolorhex",
-      "index_html_money",
-      "index_html_normalizefiltervalue",
-      "index_html_varianthtml"
-    ],
-    "11": [
+    "13": [
       "build_workbook",
       "build_workbook_build"
     ]
   },
   "cohesion": {
-    "0": 0.24210526315789474,
-    "1": 0.1978021978021978,
-    "2": 0.7,
-    "3": 0.3333333333333333,
-    "4": 0.3333333333333333,
-    "5": 0.38095238095238093,
-    "6": 0.4,
+    "0": 0.2222222222222222,
+    "1": 0.39285714285714285,
+    "2": 0.4,
+    "3": 0.6666666666666666,
+    "4": 0.4,
+    "5": 0.3333333333333333,
+    "6": 0.38095238095238093,
     "7": 0.4,
-    "8": 1.0,
-    "9": 0.6666666666666666,
-    "10": 0.4,
-    "11": 1.0
+    "8": 0.8333333333333334,
+    "9": 0.3333333333333333,
+    "10": 1.0,
+    "11": 1.0,
+    "12": 0.6666666666666666,
+    "13": 1.0
   },
   "gods": [
-    {
-      "id": "index_html_render",
-      "label": "render()",
-      "degree": 10
-    },
     {
       "id": "code_gs_dopost",
       "label": "doPost()",
       "degree": 8
+    },
+    {
+      "id": "sync_spreadsheet_main",
+      "label": "main()",
+      "degree": 7
     },
     {
       "id": "index_html_buildbrands",
@@ -137,14 +136,9 @@
       "degree": 7
     },
     {
-      "id": "index_html_esc",
-      "label": "esc()",
-      "degree": 7
-    },
-    {
-      "id": "sync_spreadsheet_main",
-      "label": "main()",
-      "degree": 7
+      "id": "code_gs_getsheet",
+      "label": "getSheet_()",
+      "degree": 6
     },
     {
       "id": "code_gs_doget",
@@ -157,98 +151,103 @@
       "degree": 6
     },
     {
-      "id": "code_gs_getsheet",
-      "label": "getSheet_()",
-      "degree": 6
-    },
-    {
-      "id": "index_html_rendercart",
-      "label": "renderCart()",
+      "id": "sync_spreadsheet_cmd_pull",
+      "label": "cmd_pull()",
       "degree": 6
     },
     {
       "id": "sync_spreadsheet_cmd_push",
       "label": "cmd_push()",
       "degree": 6
+    },
+    {
+      "id": "sync_spreadsheet_cmd_diff",
+      "label": "cmd_diff()",
+      "degree": 6
+    },
+    {
+      "id": "index_html_esc",
+      "label": "esc()",
+      "degree": 5
     }
   ],
   "surprises": [
     {
-      "source": "renderCart()",
-      "target": "esc()",
+      "source": "doPost()",
+      "target": "createOrder_()",
       "source_files": [
-        "index.html",
-        "index.html"
+        "Code.gs",
+        "Code.gs"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 1 → community 2"
+      "note": "Bridges community 1 → community 4"
     },
     {
-      "source": "renderCart()",
-      "target": "money()",
+      "source": "getSettings_()",
+      "target": "getSheet_()",
       "source_files": [
-        "index.html",
-        "index.html"
+        "Code.gs",
+        "Code.gs"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 1 → community 10"
+      "note": "Bridges community 1 → community 3"
     },
     {
-      "source": "render()",
-      "target": "variantHTML()",
+      "source": "buildBrands()",
+      "target": "assetIcon_()",
       "source_files": [
         "index.html",
         "index.html"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 10 → community 6"
-    },
-    {
-      "source": "variantHTML()",
-      "target": "esc()",
-      "source_files": [
-        "index.html",
-        "index.html"
-      ],
-      "confidence": "EXTRACTED",
-      "relation": "calls",
-      "note": "Bridges community 10 → community 2"
+      "note": "Bridges community 10 → community 8"
     },
     {
       "source": "load()",
-      "target": "buildBrands()",
+      "target": "buildCategories()",
       "source_files": [
         "index.html",
         "index.html"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 2 → community 9"
+      "note": "Bridges community 10 → community 12"
+    },
+    {
+      "source": "renderCart()",
+      "target": "esc()",
+      "source_files": [
+        "index.html",
+        "index.html"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "note": "Bridges community 10 → community 7"
     }
   ],
   "questions": [
     {
       "type": "bridge_node",
-      "question": "Why does `cmd_push()` connect `Community 3` to `Community 4`, `Community 5`, `Community 7`?",
-      "why": "High betweenness centrality (0.009) - this node is a cross-community bridge."
+      "question": "Why does `cmd_push()` connect `Community 6` to `Community 9`, `Community 2`?",
+      "why": "High betweenness centrality (0.011) - this node is a cross-community bridge."
     },
     {
       "type": "bridge_node",
-      "question": "Why does `cmd_pull()` connect `Community 5` to `Community 4`, `Community 7`?",
-      "why": "High betweenness centrality (0.009) - this node is a cross-community bridge."
+      "question": "Why does `cmd_pull()` connect `Community 5` to `Community 9`, `Community 2`, `Community 6`?",
+      "why": "High betweenness centrality (0.011) - this node is a cross-community bridge."
     },
     {
       "type": "bridge_node",
-      "question": "Why does `cmd_diff()` connect `Community 4` to `Community 5`, `Community 7`?",
-      "why": "High betweenness centrality (0.009) - this node is a cross-community bridge."
+      "question": "Why does `cmd_diff()` connect `Community 9` to `Community 2`, `Community 5`, `Community 6`?",
+      "why": "High betweenness centrality (0.011) - this node is a cross-community bridge."
     },
     {
       "type": "isolated_nodes",
-      "question": "What connects `DEFAULT_HEADERS`, `SHEETS`, `allProducts` to the rest of the system?",
-      "why": "5 weakly-connected nodes found - possible documentation gaps or missing edges."
+      "question": "What connects `allProducts`, `cart`, `catalog` to the rest of the system?",
+      "why": "6 weakly-connected nodes found - possible documentation gaps or missing edges."
     }
   ]
 }
