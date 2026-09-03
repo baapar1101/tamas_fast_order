@@ -1,0 +1,146 @@
+[
+  {
+    "category_name": "Mobile phones",
+    "category_fa_name": "گوشی موبایل",
+    "icon_url": "mobile.svg",
+    "Brand": "Apple, Samsung, Xiaomi, hanofer, NOKIA, honor"
+  },
+  {
+    "category_name": "Bondle",
+    "category_fa_name": "سبد ها",
+    "icon_url": "bondle.svg",
+    "Brand": ""
+  },
+  {
+    "category_name": "Airpod",
+    "category_fa_name": "ایرپاد",
+    "icon_url": "airpod.svg",
+    "Brand": "QCY, YESIDO, ANKER, MCDODO, EARLDOM, BOROFONE, HOKO, OXIGEN, OTHER, Apple, Samsung, Xiaomi, honor, HAYLOU, REDMI, GLORIMI"
+  },
+  {
+    "category_name": "Smart Watch",
+    "category_fa_name": "ساعت هوشمند",
+    "icon_url": "watch.svg",
+    "Brand": "Apple, Samsung, Xiaomi, QCY, REDMI, HAYLOU, GLORIMI, YESIDO, BOROFONE, HOKO, OTHER, HK, PROMATE, OXIGEN"
+  },
+  {
+    "category_name": "Car Accessories",
+    "category_fa_name": "لوازم جانبی خودرو",
+    "icon_url": "caracsesories.svg",
+    "Brand": "OTHER, YESIDO, BOROFONE, ANKER, Hadron, MCDODO, EARLDOM, HOKO, OXIGEN"
+  },
+  {
+    "category_name": "Beauty",
+    "category_fa_name": "محصولات زیبایی",
+    "icon_url": "beauty.svg",
+    "Brand": "YESIDO, HOKO"
+  },
+  {
+    "category_name": "Tools",
+    "category_fa_name": "ابزار",
+    "icon_url": "tools.svg",
+    "Brand": "YESIDO, MCDODO, ANKER, HOKO, OTHER"
+  },
+  {
+    "category_name": "Health",
+    "category_fa_name": "محصولات سلامت",
+    "icon_url": "health.svg",
+    "Brand": "OTHER, ANKER, YESIDO, HOKO"
+  },
+  {
+    "category_name": "Speaker ",
+    "category_fa_name": "اسپیکر",
+    "icon_url": "speaker.svg",
+    "Brand": "ANKER, YESIDO, BOROFONE, HOKO, OTHER, OXIGEN"
+  },
+  {
+    "category_name": "Powerbank",
+    "category_fa_name": "پاوربانک",
+    "icon_url": "powerbank.svg",
+    "Brand": "OXIGEN, HOKO, BOROFONE, EARLDOM, MCDODO, YESIDO, ANKER, HAYLOU, REDMI, honor"
+  },
+  {
+    "category_name": "Cable",
+    "category_fa_name": "کابل",
+    "icon_url": "cable.svg",
+    "Brand": "Apple, Samsung, Xiaomi, QCY, YESIDO, ANKER, Hadron, MCDODO, EARLDOM, BOROFONE, HOKO, OXIGEN, OTHER"
+  },
+  {
+    "category_name": "Adapter",
+    "category_fa_name": "شارژر",
+    "icon_url": "adapter.svg",
+    "Brand": "Apple, Samsung, Xiaomi, ANKER, YESIDO, Hadron, MCDODO, EARLDOM, BOROFONE, HOKO, OXIGEN, OTHER"
+  },
+  {
+    "category_name": "Handsfree",
+    "category_fa_name": "هندزفری سیم دار",
+    "icon_url": "handsfree.svg",
+    "Brand": "MCDODO, EARLDOM, BOROFONE, HOKO, OXIGEN, OTHER, YESIDO"
+  },
+  {
+    "category_name": "Dongle",
+    "category_fa_name": "دانگل",
+    "icon_url": "dongle.svg",
+    "Brand": "YESIDO, MCDODO, EARLDOM, BOROFONE, HOKO, OXIGEN, OTHER"
+  },
+  {
+    "category_name": "Gaming",
+    "category_fa_name": "لوازم جانبی گیمینگ",
+    "icon_url": "gaming.svg",
+    "Brand": "ANKER, OTHER, OXIGEN, BOROFONE, HOKO, YESIDO, EARLDOM, MCDODO"
+  },
+  {
+    "category_name": "Screen Protector",
+    "category_fa_name": "محافظ صفحه ",
+    "icon_url": "glass.svg",
+    "Brand": "TOKIN, OG SUPER X, UMBOS, OG OVOG, BAIKO, OTHER"
+  },
+  {
+    "category_name": "Cover",
+    "category_fa_name": "کاور",
+    "icon_url": "cover.svg",
+    "Brand": "OTHER"
+  },
+  {
+    "category_name": "Headphone",
+    "category_fa_name": "هدفون و هدست",
+    "icon_url": "headphon.svg",
+    "Brand": "HAYLOU, ANKER, YESIDO, MCDODO, BOROFONE, EARLDOM, OXIGEN, OTHER"
+  },
+  {
+    "category_name": "Holder & Monopod",
+    "category_fa_name": "هولدر و دسته سلفی",
+    "icon_url": "holder.svg",
+    "Brand": ""
+  },
+  {
+    "category_name": "Mouse & Keyboard",
+    "category_fa_name": "ماوس و کیبورد",
+    "icon_url": "mouse_keyboard.svg",
+    "Brand": "YESIDO, MCDODO, BOROFONE, HOKO, OTHER"
+  },
+  {
+    "category_name": "Watch Glass",
+    "category_fa_name": "محافظ صفحه ساعت",
+    "icon_url": "watch_glass.svg",
+    "Brand": "OTHER, TOKIN"
+  },
+  {
+    "category_name": "Microphone",
+    "category_fa_name": "میکروفون محتوا",
+    "icon_url": "microphone.svg",
+    "Brand": "ANKER, YESIDO, MCDODO, EARLDOM, BOROFONE, HOKO, OTHER"
+  },
+  {
+    "category_name": "Aux Cable",
+    "category_fa_name": "کابل صدا",
+    "icon_url": "aux_icon.svg",
+    "Brand": "ANKER, YESIDO, MCDODO, EARLDOM, BOROFONE, HOKO, OXIGEN, OTHER"
+  },
+  {
+    "category_name": "Convertor",
+    "category_fa_name": "مبدل",
+    "icon_url": "convertor.svg",
+    "Brand": "ANKER, YESIDO, MCDODO, EARLDOM, BOROFONE, HOKO, OXIGEN, OTHER"
+  }
+]

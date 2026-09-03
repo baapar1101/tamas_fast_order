@@ -431,85 +431,99 @@
 
     .category-chip {
       position: relative;
-      min-width: 104px;
-      min-height: 96px;
-      width: 104px;
-      height: 96px;
-      padding: 0;
+      min-width: 96px;
+      width: 96px;
+      min-height: 94px;
+      height: 94px;
+      padding: 8px 4px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
-      line-height: 1.25;
-      overflow: hidden;
       background: transparent;
-      border: 0;
+      border: 1px solid transparent;
+      border-radius: 16px;
       outline: none;
       cursor: pointer;
+      gap: 6px;
+      transition: all 0.25s ease;
+      box-shadow: none;
+    }
+
+    .category-chip .chip-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.25s ease;
     }
 
     .category-chip .chip-icon {
-      width: 60px;
-      height: 60px;
+      width: 44px;
+      height: 44px;
       display: block;
       object-fit: contain;
-      border-radius: 50%;
-      padding: 2px;
-      background: transparent;
       transition: all 0.25s ease;
+      filter: none;
     }
 
     .category-chip .chip-icon-text {
-      font-size: 42px;
+      font-size: 28px;
       line-height: 1;
-      width: 60px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      color: var(--primary);
+      color: #00768f;
       transition: all 0.25s ease;
     }
 
-    .category-chip > span:not(.chip-icon-text) {
-      position: absolute;
-      right: 0;
-      left: 0;
-      bottom: 4px;
-      padding: 3px;
-      color: #17324d;
+    .category-chip span {
+      font-size: 11px;
       font-weight: 600;
-      font-size: 10px;
+      color: #17324d;
       white-space: nowrap;
       transition: all 0.25s ease;
     }
 
-    /* Active/Selected category styling: Fill circle with green/cyan and invert vectors to pure white */
+    /* Active / Selected Category State: Green Fill + White Icon & White Text */
+    .category-chip.active {
+      background: #00768f !important;
+      border-color: #00768f !important;
+      border-radius: 16px !important;
+      box-shadow: 0 4px 14px rgba(0, 118, 143, 0.35) !important;
+      transform: translateY(-2px);
+    }
+
+    .category-chip.active .chip-icon-wrap {
+      background: transparent !important;
+      border: 0 !important;
+    }
+
     .category-chip.active .chip-icon {
-      background: var(--primary);
-      filter: brightness(0) invert(1);
-      box-shadow: 0 4px 14px rgba(0, 118, 143, 0.35);
-      transform: scale(1.08);
+      filter: brightness(0) invert(1) !important;
+      /* Turns cyan/green SVG vectors to solid crisp WHITE */
     }
 
     .category-chip.active .chip-icon-text {
-      background: var(--primary);
-      color: #ffffff;
-      box-shadow: 0 4px 14px rgba(0, 118, 143, 0.35);
-      transform: scale(1.08);
+      color: #ffffff !important;
     }
 
-    .category-chip.active > span:not(.chip-icon-text) {
-      color: var(--primary);
-      font-weight: 800;
+    .category-chip.active span {
+      color: #ffffff !important;
+      font-weight: 700 !important;
     }
 
-    .category-chip:hover .chip-icon {
-      transform: scale(1.05);
+    .category-chip:hover:not(.active) {
+      background: #f0f7f9;
+      border-color: #d0e7ed;
+      border-radius: 16px;
     }
+
+
+
+
+
 
 
     .products {
@@ -1019,11 +1033,37 @@
       ];
     }
 
+    function normalizeFilterValue_(value) {
+      return String(value || '').trim().toLocaleLowerCase('fa-IR');
+    }
+    function categoryBrandNames_(categoryName) {
+      if (!categoryName) return null;
+      const category = (catalog.categories || []).find(c =>
+        normalizeFilterValue_(c.category_fa_name || c.category_name) === normalizeFilterValue_(categoryName)
+      );
+      if (!category) return [];
+      const value = category.Brand ?? category.brand ?? category.brands ?? '';
+      const values = Array.isArray(value) ? value : String(value).split(/[,،;\n]+/);
+      return new Set(values.map(normalizeFilterValue_).filter(Boolean));
+    }
     function buildBrands() {
-      const brands = catalog.brands.length ? catalog.brands : [...new Set(allProducts.map(p => p.Brand || p.brand).filter(Boolean))].map(name => ({ brand_fa_name: name, icon: '' }));
+      const allBrands = catalog.brands.length
+        ? catalog.brands
+        : [...new Set(allProducts.map(p => p.Brand || p.brand).filter(Boolean))]
+          .map(name => ({ brand_fa_name: name, brand_name: name, icon: '' }));
+      const allowedBrands = categoryBrandNames_(selectedCategory);
+      const brands = allowedBrands === null ? allBrands : allBrands.filter(b =>
+        allowedBrands.has(normalizeFilterValue_(b.brand_name || b.brand_fa_name || b.name)) ||
+        allowedBrands.has(normalizeFilterValue_(b.brand_fa_name || b.brand_name || b.name))
+      );
       const el = document.getElementById('brands'); if (!el) return;
-      el.innerHTML = `<button class="brand-icon-btn active" title="همه" aria-label="همه" onclick="filterBrand('')">⌂</button>` +
-        brands.map(b => { const name = b.brand_fa_name || b.brand_name || b.name; const icon = assetIcon_(b.icon_url || b.icon, 'brand', name); return `<button class="brand-icon-btn" title="${esc(name)}" aria-label="${esc(name)}" onclick="filterBrand('${String(name).replace(/'/g, "\\'")}')">${icon || '<span class="chip-icon-text">•</span>'}</button>` }).join('');
+      el.innerHTML = `<button class="brand-icon-btn ${selectedBrand ? '' : 'active'}" title="همه" aria-label="همه" onclick="filterBrand('')">⌂</button>` +
+        brands.map(b => {
+          const name = b.brand_fa_name || b.brand_name || b.name;
+          const icon = assetIcon_(b.icon_url || b.icon, 'brand', name);
+          const isActive = normalizeFilterValue_(selectedBrand) === normalizeFilterValue_(name);
+          return `<button class="brand-icon-btn ${isActive ? 'active' : ''}" title="${esc(name)}" aria-label="${esc(name)}" onclick="filterBrand('${String(name).replace(/'/g, "\\'")}')">${icon || '<span class="chip-icon-text">•</span>'}</button>`;
+        }).join('');
     }
     function buildCategories() {
       const cats = catalog.categories || [];
@@ -1032,21 +1072,85 @@
         const name = c.category_fa_name || c.category_name;
         const icon = assetIcon_(c.icon_url || c.icon, 'category', name);
         const isActive = selectedCategory === name;
-        return `<button class="chip category-chip ${isActive ? 'active' : ''}" data-category="${esc(name)}" onclick="filterCategory('${String(name).replace(/'/g, "\\'")}')">${icon}<span>${esc(name)}</span></button>`;
+        return `<button class="category-chip ${isActive ? 'active' : ''}" data-category="${esc(name)}" onclick="filterCategory('${String(name).replace(/'/g, "\\'")}')">${icon}<span>${esc(name)}</span></button>`;
       }).join('');
     }
+
     function assetIcon_(value, folder, fallbackName) {
       const v = String(value || '').trim();
       const fallback = String(fallbackName || '').trim();
-      const map = folder === 'brand'
-        ? { 'hoco': 'hoco.svg', 'حُوکو': 'hoco.svg', 'هوکو': 'hoco.svg', 'HOCO': 'hoco.svg', 'macdodo': 'macdodo.svg', 'yesido': 'yesido.svg', 'qcy': 'qcy.svg', 'oxygen': 'oxygen.svg', 'hadron': 'hadron.svg' }
-        : { 'ایرپاد': 'airpod.svg', 'airpod': 'airpod.svg', 'AirPods': 'airpod.svg', 'گوشی موبایل': 'mobile.svg', 'موبایل': 'mobile.svg', 'گوشی': 'mobile.svg', 'تبلت': 'mobile.svg', 'هدفون و هندزفری': 'handsfree.svg', 'هندزفری': 'handsfree.svg', 'هدفون': 'headphon.svg', 'پاوربانک': 'powerbank.svg', 'اسپیکر': 'speaker.svg', 'ساعت': 'watch.svg', 'شارژر': 'adapter.svg', 'آداپتور': 'adapter.svg', 'کابل': 'cable.svg', 'قاب': 'cover.svg', 'کاور': 'cover.svg', 'محافظ صفحه': 'glass.svg', 'لوازم جانبی خودرو': 'caracsories.svg', 'ماوس و کیبورد': 'mouse_keyboard.svg', 'محصولات زیبایی': 'health.svg', 'محصولات سلامت': 'health.svg', 'پایه نگهدارنده گوشی و مونوپاد': 'holder.svg', 'کابل صدا': 'aux_icon.svg' };
-      if (map[v]) return `<img class="chip-icon" src="assets/${folder}/${map[v]}" alt="">`;
-      if (map[fallback]) return `<img class="chip-icon" src="assets/${folder}/${map[fallback]}" alt="">`;
-      if (!v) return '';
-      if (/\.(svg|png|jpg|jpeg|webp)$/i.test(v)) return `<img class="chip-icon" src="assets/${folder}/${esc(v)}" alt="">`;
-      return `<span class="chip-icon-text">${esc(v)}</span>`;
+
+      const catMap = {
+        'mobile.svg': 'mobile.svg', 'گوشی موبایل': 'mobile.svg', 'mobile phones': 'mobile.svg',
+        'bondle.svg': 'bondle.svg', 'سبد ها': 'bondle.svg', 'bondle': 'bondle.svg',
+        'airpod.svg': 'airpod.svg', 'ایرپاد': 'airpod.svg', 'airpod': 'airpod.svg',
+        'watch.svg': 'watch.svg', 'ساعت هوشمند': 'watch.svg', 'ساعت': 'watch.svg', 'smart watch': 'watch.svg',
+        'caracsesories.svg': 'caracsories.svg', 'caracsories.svg': 'caracsories.svg', 'لوازم جانبی خودرو': 'caracsories.svg', 'car accessories': 'caracsories.svg',
+        'beauty.svg': 'beauty.svg', 'محصولات زیبایی': 'beauty.svg', 'beauty': 'beauty.svg',
+        'tools.svg': 'tools.svg', 'ابزار': 'tools.svg', 'tools': 'tools.svg',
+        'health.svg': 'health.svg', 'محصولات سلامت': 'health.svg', 'health': 'health.svg',
+        'speaker.svg': 'speaker.svg', 'اسپیکر': 'speaker.svg', 'speaker': 'speaker.svg',
+        'powerbank.svg': 'powerbank.svg', 'پاوربانک': 'powerbank.svg', 'powerbank': 'powerbank.svg',
+        'cable.svg': 'cable.svg', 'کابل': 'cable.svg', 'cable': 'cable.svg',
+        'adapter.svg': 'adapter.svg', 'شارژر': 'adapter.svg', 'adapter': 'adapter.svg',
+        'handsfree.svg': 'handsfree.svg', 'هندزفری سیم دار': 'handsfree.svg', 'هندزفری': 'handsfree.svg', 'handsfree': 'handsfree.svg',
+        'dongle.svg': 'dongle.svg', 'دانگل': 'dongle.svg', 'dongle': 'dongle.svg',
+        'gaming.svg': 'gaming.svg', 'لوازم جانبی گیمینگ': 'gaming.svg', 'گیمینگ': 'gaming.svg', 'gaming': 'gaming.svg',
+        'glass.svg': 'glass.svg', 'محافظ صفحه ': 'glass.svg', 'محافظ صفحه': 'glass.svg', 'screen protector': 'glass.svg',
+        'cover.svg': 'cover.svg', 'کاور': 'cover.svg', 'قاب': 'cover.svg', 'cover': 'cover.svg',
+        'headphon.svg': 'headphon.svg', 'هدفون و هدست': 'headphon.svg', 'هدفون': 'headphon.svg', 'headphone': 'headphon.svg',
+        'holder.svg': 'holder.svg', 'هولدر و دسته سلفی': 'holder.svg', 'هولدر': 'holder.svg', 'holder & monopod': 'holder.svg',
+        'mouse_keyboard.svg': 'mouse_keyboard.svg', 'ماوس و کیبورد': 'mouse_keyboard.svg', 'mouse & keyboard': 'mouse_keyboard.svg',
+        'watch_glass.svg': 'watch_glass.svg', 'محافظ صفحه ساعت': 'watch_glass.svg', 'watch glass': 'watch_glass.svg',
+        'microphone.svg': 'microphone.svg', 'میکروفون محتوا': 'microphone.svg', 'میکروفون': 'microphone.svg', 'microphone': 'microphone.svg',
+        'aux_icon.svg': 'aux_icon.svg', 'کابل صدا': 'aux_icon.svg', 'aux cable': 'aux_icon.svg',
+        'convertor.svg': 'convertor.svg', 'مبدل': 'convertor.svg', 'convertor': 'convertor.svg'
+      };
+
+      const brandMap = {
+        'hoco': 'hoco.svg', 'حُوکو': 'hoco.svg', 'هوکو': 'hoco.svg', 'HOCO': 'hoco.svg', 'HOKO': 'hoco.svg',
+        'macdodo': 'macdodo.svg', 'MCDODO': 'macdodo.svg',
+        'yesido': 'yesido.svg', 'YESIDO': 'yesido.svg',
+        'qcy': 'qcy.svg', 'QCY': 'qcy.svg',
+        'oxygen': 'oxygen.svg', 'OXIGEN': 'oxygen.svg',
+        'hadron': 'hadron.svg', 'Hadron': 'hadron.svg',
+        'anker': 'anker.svg', 'ANKER': 'anker.svg',
+        'apple': 'apple.svg', 'Apple': 'apple.svg',
+        'samsung': 'samsung.svg', 'Samsung': 'samsung.svg',
+        'xiaomi': 'xiaomi.svg', 'Xiaomi': 'xiaomi.svg',
+        'redmi': 'redmi.svg', 'REDMI': 'redmi.svg',
+        'haylou': 'haylou.svg', 'HAYLOU': 'haylou.svg',
+        'nokia': 'nokia.svg', 'NOKIA': 'nokia.svg',
+        'honor': 'honor.svg', 'HONOR': 'honor.svg',
+        'baiko': 'baiko.svg', 'BAIKO': 'baiko.svg',
+        'earldom': 'earldom.svg', 'EARLDOM': 'earldom.svg',
+        'borofone': 'borofone.svg', 'BOROFONE': 'borofone.svg'
+      };
+
+      let fileName = '';
+      if (folder === 'category') {
+        const keyV = v.toLowerCase();
+        const keyF = fallback.toLowerCase();
+        fileName = catMap[keyV] || catMap[v] || catMap[keyF] || catMap[fallback];
+        if (!fileName && /\.(svg|png|jpg|jpeg|webp)$/i.test(v)) fileName = v;
+      } else {
+        fileName = brandMap[v] || brandMap[fallback] || (/\.(svg|png|jpg|jpeg|webp)$/i.test(v) ? v : '');
+      }
+
+      let content = '';
+      if (fileName) {
+        content = `<img class="chip-icon" src="assets/${folder}/${esc(fileName)}" alt="">`;
+      } else {
+        content = `<span class="chip-icon-text">${esc(v || fallback)}</span>`;
+      }
+
+      if (folder === 'category') {
+        return `<div class="chip-icon-wrap">${content}</div>`;
+      }
+      return content;
     }
+
+
     let selectedBrand = '';
     function filterBrand(b) {
       selectedBrand = b;
@@ -1060,12 +1164,12 @@
       } else {
         selectedCategory = c;
       }
-      document.querySelectorAll('.category-chip').forEach(btn => {
-        const catName = btn.getAttribute('data-category') || '';
-        btn.classList.toggle('active', selectedCategory !== '' && selectedCategory === catName);
-      });
+      selectedBrand = '';
+      buildBrands();
+      buildCategories();
       render();
     }
+
 
     function togglePromotion() { onlyPromotion = !onlyPromotion; document.getElementById('promoSwitch').classList.toggle('on', onlyPromotion); render() }
     function sortPrice() { ascending = !ascending; render() }
@@ -1090,8 +1194,8 @@
 
         return (stock > 0) &&
           (!onlyPromotion || promo) &&
-          (!selectedBrand || brand === selectedBrand) &&
-          (!selectedCategory || category === selectedCategory) &&
+          (!selectedBrand || normalizeFilterValue_(brand) === normalizeFilterValue_(selectedBrand)) &&
+          (!selectedCategory || normalizeFilterValue_(category) === normalizeFilterValue_(selectedCategory)) &&
           (!q || JSON.stringify(p).toLowerCase().includes(q));
       });
       list.sort((a, b) => ascending ? Number(a.price) - Number(b.price) : Number(b.price) - Number(a.price));
@@ -1105,7 +1209,7 @@
         <div class="product-title">${esc(title)}</div>
         <img class="product-thumb" src="${esc(items[0].image_url || '')}" onerror="this.style.visibility='hidden'">
       </div>
-      <div class="variant-head">رنگ‌بندی و بهترین پیشنهاد</div>
+      <!-- <div class="variant-head">رنگ‌بندی و بهترین پیشنهاد</div> -->
       ${items.map(p => variantHTML(p)).join('')}
     </article>`).join('') || '<div class="loading">محصولی پیدا نشد.</div>';
     }
