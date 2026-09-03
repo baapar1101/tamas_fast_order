@@ -5,20 +5,23 @@
       "index_html_allproducts",
       "index_html_cart",
       "index_html_catalog",
+      "index_html_closemodal",
       "index_html_closeregister",
       "index_html_openmodal",
       "index_html_openregister",
       "index_html_scrolltocart",
+      "index_html_submitorder",
       "index_html_submitregistration"
     ],
     "1": [
       "code_gs",
-      "code_gs_dopost",
+      "code_gs_createorder",
+      "code_gs_default_headers",
+      "code_gs_getsheet",
       "code_gs_headers",
-      "code_gs_json",
-      "code_gs_output",
       "code_gs_registeruser",
-      "code_gs_sheets"
+      "code_gs_sheets",
+      "code_gs_updatestock"
     ],
     "2": [
       "index_html_asseticon",
@@ -30,65 +33,97 @@
       "index_html_load"
     ],
     "3": [
-      "index_html_addtocart",
-      "index_html_changeqty",
-      "index_html_closemodal",
-      "index_html_rendercart",
-      "index_html_submitorder"
+      "sync_spreadsheet",
+      "sync_spreadsheet_cmd_push",
+      "sync_spreadsheet_cmd_watch",
+      "sync_spreadsheet_push_to_web_app",
+      "sync_spreadsheet_rationale_175",
+      "sync_spreadsheet_rationale_224",
+      "sync_spreadsheet_rationale_300"
     ],
     "4": [
+      "code_gs_doget",
+      "code_gs_exportall",
+      "code_gs_getcatalog",
+      "code_gs_getsettings",
+      "code_gs_read",
+      "code_gs_setupsheets"
+    ],
+    "5": [
+      "code_gs_dopost",
+      "code_gs_json",
+      "code_gs_output",
+      "code_gs_synccatalog",
+      "code_gs_syncsheet",
+      "code_gs_writesheetobjects"
+    ],
+    "6": [
+      "sync_spreadsheet_cmd_diff",
+      "sync_spreadsheet_fetch_csv_from_gss",
+      "sync_spreadsheet_rationale_140",
+      "sync_spreadsheet_rationale_239",
+      "sync_spreadsheet_rationale_56",
+      "sync_spreadsheet_read_excel_catalog"
+    ],
+    "7": [
+      "sync_spreadsheet_cmd_pull",
+      "sync_spreadsheet_fetch_from_web_app",
+      "sync_spreadsheet_rationale_108",
+      "sync_spreadsheet_rationale_164",
+      "sync_spreadsheet_rationale_190",
+      "sync_spreadsheet_write_excel_catalog"
+    ],
+    "8": [
+      "index_html_addtocart",
+      "index_html_changeqty",
+      "index_html_money",
+      "index_html_rendercart",
+      "index_html_varianthtml"
+    ],
+    "9": [
       "index_html_filterbrand",
       "index_html_filtercategory",
       "index_html_render",
       "index_html_sortprice",
       "index_html_togglepromotion"
     ],
-    "5": [
-      "code_gs_doget",
-      "code_gs_getcatalog",
-      "code_gs_getsettings",
-      "code_gs_read"
+    "10": [
+      "sync_spreadsheet_load_config",
+      "sync_spreadsheet_main",
+      "sync_spreadsheet_rationale_32",
+      "sync_spreadsheet_rationale_50",
+      "sync_spreadsheet_save_config"
     ],
-    "6": [
+    "11": [
       "index_html_changeslide",
       "index_html_gotoslide",
       "index_html_resetslidertimer"
     ],
-    "7": [
+    "12": [
       "build_workbook",
       "build_workbook_build"
-    ],
-    "8": [
-      "code_gs_createorder",
-      "code_gs_getsheet"
-    ],
-    "9": [
-      "index_html_money",
-      "index_html_varianthtml"
     ]
   },
   "cohesion": {
-    "0": 0.25,
-    "1": 0.47619047619047616,
+    "0": 0.21818181818181817,
+    "1": 0.39285714285714285,
     "2": 0.42857142857142855,
-    "3": 0.4,
-    "4": 0.4,
-    "5": 0.8333333333333334,
-    "6": 1.0,
-    "7": 1.0,
-    "8": 1.0,
-    "9": 1.0
+    "3": 0.38095238095238093,
+    "4": 0.6666666666666666,
+    "5": 0.4,
+    "6": 0.3333333333333333,
+    "7": 0.3333333333333333,
+    "8": 0.4,
+    "9": 0.4,
+    "10": 0.4,
+    "11": 1.0,
+    "12": 1.0
   },
   "gods": [
     {
-      "id": "index_html",
-      "label": "index.html.js",
-      "degree": 30
-    },
-    {
-      "id": "code_gs",
-      "label": "Code.gs.js",
-      "degree": 12
+      "id": "code_gs_dopost",
+      "label": "doPost()",
+      "degree": 8
     },
     {
       "id": "index_html_render",
@@ -96,9 +131,19 @@
       "degree": 8
     },
     {
+      "id": "sync_spreadsheet_main",
+      "label": "main()",
+      "degree": 7
+    },
+    {
       "id": "index_html_esc",
       "label": "esc()",
       "degree": 7
+    },
+    {
+      "id": "code_gs_getsheet",
+      "label": "getSheet_()",
+      "degree": 6
     },
     {
       "id": "index_html_load",
@@ -106,42 +151,37 @@
       "degree": 6
     },
     {
-      "id": "index_html_rendercart",
-      "label": "renderCart()",
+      "id": "sync_spreadsheet_cmd_push",
+      "label": "cmd_push()",
       "degree": 6
     },
     {
       "id": "code_gs_doget",
       "label": "doGet()",
-      "degree": 5
+      "degree": 6
     },
     {
-      "id": "code_gs_getsheet",
-      "label": "getSheet_()",
-      "degree": 5
+      "id": "code_gs_getcatalog",
+      "label": "getCatalog_()",
+      "degree": 6
     },
     {
-      "id": "code_gs_dopost",
-      "label": "doPost()",
-      "degree": 4
-    },
-    {
-      "id": "code_gs_registeruser",
-      "label": "registerUser_()",
-      "degree": 4
+      "id": "sync_spreadsheet_cmd_diff",
+      "label": "cmd_diff()",
+      "degree": 6
     }
   ],
   "surprises": [
     {
-      "source": "index.html.js",
-      "target": "render()",
+      "source": "submitOrder()",
+      "target": "renderCart()",
       "source_files": [
         "index.html",
         "index.html"
       ],
-      "confidence": "INFERRED",
-      "relation": "indirect_call",
-      "note": "Bridges community 4 → community 0"
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "note": "Bridges community 0 → community 8"
     },
     {
       "source": "doPost()",
@@ -152,62 +192,62 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 1 → community 8"
+      "note": "Bridges community 1 → community 5"
     },
     {
-      "source": "doGet()",
-      "target": "output_()",
+      "source": "getSettings_()",
+      "target": "getSheet_()",
       "source_files": [
         "Code.gs",
         "Code.gs"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 1 → community 5"
+      "note": "Bridges community 1 → community 4"
     },
     {
-      "source": "render()",
-      "target": "esc()",
+      "source": "main()",
+      "target": "cmd_diff()",
       "source_files": [
-        "index.html",
-        "index.html"
+        "sync_spreadsheet.py",
+        "sync_spreadsheet.py"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 2 → community 4"
+      "note": "Bridges community 10 → community 6"
     },
     {
-      "source": "renderCart()",
-      "target": "esc()",
+      "source": "main()",
+      "target": "cmd_pull()",
       "source_files": [
-        "index.html",
-        "index.html"
+        "sync_spreadsheet.py",
+        "sync_spreadsheet.py"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 2 → community 3"
+      "note": "Bridges community 10 → community 7"
     }
   ],
   "questions": [
     {
       "type": "bridge_node",
-      "question": "Why does `index.html.js` connect `Community 0` to `Community 2`, `Community 3`, `Community 4`, `Community 6`, `Community 9`?",
-      "why": "High betweenness centrality (0.384) - this node is a cross-community bridge."
+      "question": "Why does `cmd_push()` connect `Community 3` to `Community 10`, `Community 6`?",
+      "why": "High betweenness centrality (0.010) - this node is a cross-community bridge."
     },
     {
       "type": "bridge_node",
-      "question": "Why does `Code.gs.js` connect `Community 1` to `Community 8`, `Community 5`?",
-      "why": "High betweenness centrality (0.041) - this node is a cross-community bridge."
+      "question": "Why does `cmd_pull()` connect `Community 7` to `Community 10`, `Community 3`, `Community 6`?",
+      "why": "High betweenness centrality (0.010) - this node is a cross-community bridge."
     },
     {
       "type": "bridge_node",
-      "question": "Why does `render()` connect `Community 4` to `Community 0`, `Community 9`, `Community 2`?",
+      "question": "Why does `cmd_diff()` connect `Community 6` to `Community 10`, `Community 3`, `Community 7`?",
       "why": "High betweenness centrality (0.010) - this node is a cross-community bridge."
     },
     {
       "type": "isolated_nodes",
       "question": "What connects `allProducts`, `cart`, `catalog` to the rest of the system?",
-      "why": "4 weakly-connected nodes found - possible documentation gaps or missing edges."
+      "why": "5 weakly-connected nodes found - possible documentation gaps or missing edges."
     }
   ]
 }
