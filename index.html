@@ -69,13 +69,13 @@
     }
 
     .variant {
-      width: calc(100% - 150px) !important;
-      margin-left: auto !important;
+      width: 100% !important;
+      margin-left: 0 !important;
       margin-right: 0 !important;
       border: 1px solid #dce5ec !important;
       border-radius: 12px !important;
       margin-top: 10px !important;
-      padding: 12px 18px !important;
+      padding: 14px 18px !important;
       display: flex !important;
       align-items: center !important;
       justify-content: space-between !important;
@@ -101,16 +101,21 @@
       flex-direction: column;
       gap: 5px;
       flex: 1 1 auto;
-      min-width: 220px;
+      min-width: 200px;
     }
 
-    .meta {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
+    .warranty-text {
       font-size: 12px;
       color: #64748b;
+      font-weight: 500;
+    }
+
+    .sell-badges-col {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      align-items: flex-start;
+      margin-top: 4px;
     }
 
     .color-title {
@@ -644,7 +649,7 @@
       if (!sellTypeStr || !String(sellTypeStr).trim()) return '';
       const types = String(sellTypeStr).split(/[,،;]+/).map(s => s.trim()).filter(Boolean);
 
-      return types.map(t => {
+      const badgesHTML = types.map(t => {
         const norm = normalizeFilterValue_(t);
         if (norm.includes('نقد')) {
           return `<span class="sell-badge cash" title="فروش نقدی">💵 ${esc(t)}</span>`;
@@ -654,7 +659,9 @@
           return `<span class="sell-badge cheque" title="فروش چکی">📄 ${esc(t)}</span>`;
         }
         return `<span class="sell-badge default">🏷️ ${esc(t)}</span>`;
-      }).join(' ');
+      }).join('');
+
+      return `<div class="sell-badges-col">${badgesHTML}</div>`;
     }
 
     function render() {
@@ -810,7 +817,8 @@
       return `<div class="variant">
     <div class="variant-info">
       <div class="color-title"><span class="color-dot" style="background:${dot}"></span>${esc(p.color || 'اصلی')}</div>
-      <div class="meta"><span>♧ ${esc(p.warranty || '18 ماه گارانتی')}</span>${renderSellTypeBadges(p.sell_type)}</div>
+      <div class="warranty-text">♧ ${esc(p.warranty || '18 ماه گارانتی')}</div>
+      ${renderSellTypeBadges(p.sell_type)}
     </div>
     <div class="price">
       ${p.old_price && Number(p.old_price) > 0 ? `<span class="old">${money(p.old_price)}</span>` : ''}
