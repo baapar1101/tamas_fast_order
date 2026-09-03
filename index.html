@@ -437,28 +437,44 @@
       height: 96px;
       padding: 0;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
       line-height: 1.25;
       overflow: hidden;
       background: transparent;
-      border-color: transparent
+      border: 0;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
     }
 
     .category-chip .chip-icon {
       width: 60px;
       height: 60px;
       display: block;
-      object-fit: contain
+      object-fit: contain;
+      border-radius: 50%;
+      padding: 2px;
+      background: transparent;
+      transition: all 0.25s ease;
     }
 
     .category-chip .chip-icon-text {
       font-size: 42px;
-      line-height: 1
+      line-height: 1;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: var(--primary);
+      transition: all 0.25s ease;
     }
 
-    .category-chip>span:not(.chip-icon-text) {
+    .category-chip > span:not(.chip-icon-text) {
       position: absolute;
       right: 0;
       left: 0;
@@ -467,14 +483,34 @@
       color: #17324d;
       font-weight: 600;
       font-size: 10px;
-      white-space: nowrap
+      white-space: nowrap;
+      transition: all 0.25s ease;
     }
 
-    .category-chip.active,
-    .category-chip:hover {
-      border-color: transparent;
-      background: transparent
+    /* Active/Selected category styling: Fill circle with green/cyan and invert vectors to pure white */
+    .category-chip.active .chip-icon {
+      background: var(--primary);
+      filter: brightness(0) invert(1);
+      box-shadow: 0 4px 14px rgba(0, 118, 143, 0.35);
+      transform: scale(1.08);
     }
+
+    .category-chip.active .chip-icon-text {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(0, 118, 143, 0.35);
+      transform: scale(1.08);
+    }
+
+    .category-chip.active > span:not(.chip-icon-text) {
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .category-chip:hover .chip-icon {
+      transform: scale(1.05);
+    }
+
 
     .products {
       display: flex;
@@ -992,7 +1028,12 @@
     function buildCategories() {
       const cats = catalog.categories || [];
       if (!cats.length) return;
-      document.getElementById('categories').innerHTML = cats.map(c => { const name = c.category_fa_name || c.category_name; const icon = assetIcon_(c.icon_url || c.icon, 'category', name); return `<button class="chip category-chip" onclick="filterCategory('${String(name).replace(/'/g, "\\'")}')">${icon}<span>${esc(name)}</span></button>` }).join('');
+      document.getElementById('categories').innerHTML = cats.map(c => {
+        const name = c.category_fa_name || c.category_name;
+        const icon = assetIcon_(c.icon_url || c.icon, 'category', name);
+        const isActive = selectedCategory === name;
+        return `<button class="chip category-chip ${isActive ? 'active' : ''}" data-category="${esc(name)}" onclick="filterCategory('${String(name).replace(/'/g, "\\'")}')">${icon}<span>${esc(name)}</span></button>`;
+      }).join('');
     }
     function assetIcon_(value, folder, fallbackName) {
       const v = String(value || '').trim();
@@ -1013,7 +1054,19 @@
       render();
     }
     let selectedCategory = '';
-    function filterCategory(c) { selectedCategory = c; render() }
+    function filterCategory(c) {
+      if (selectedCategory === c) {
+        selectedCategory = '';
+      } else {
+        selectedCategory = c;
+      }
+      document.querySelectorAll('.category-chip').forEach(btn => {
+        const catName = btn.getAttribute('data-category') || '';
+        btn.classList.toggle('active', selectedCategory !== '' && selectedCategory === catName);
+      });
+      render();
+    }
+
     function togglePromotion() { onlyPromotion = !onlyPromotion; document.getElementById('promoSwitch').classList.toggle('on', onlyPromotion); render() }
     function sortPrice() { ascending = !ascending; render() }
 
