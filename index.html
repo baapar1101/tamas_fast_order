@@ -38,6 +38,27 @@
       position: relative !important;
       z-index: 2 !important;
     }
+      flex-shrink: 0 !important;
+      position: relative;
+      z-index: 2;
+      overflow: visible !important;
+    }
+
+    .product-thumb {
+      width: 220px !important;
+      height: 220px !important;
+      border-radius: 16px !important;
+      object-fit: contain !important;
+      background: #ffffff !important;
+      border: 1.5px solid #d5e1ea !important;
+      padding: 6px !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, border-color 0.35s ease !important;
+      cursor: zoom-in !important;
+      display: block !important;
+      position: relative !important;
+      z-index: 2 !important;
+    }
 
     .product-thumb:hover {
       transform: scale(1.6) !important;
@@ -57,10 +78,11 @@
       padding: 12px 18px !important;
       display: flex !important;
       align-items: center !important;
-      justify-content: flex-start !important;
-      gap: 32px !important;
+      justify-content: space-between !important;
+      gap: 16px !important;
       position: relative;
       background: #fafcfd !important;
+      flex-wrap: wrap !important;
     }
 
     .variant:last-child {
@@ -78,7 +100,17 @@
       display: flex;
       flex-direction: column;
       gap: 5px;
-      flex-shrink: 0;
+      flex: 1 1 auto;
+      min-width: 220px;
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: #64748b;
     }
 
     .color-title {
@@ -95,11 +127,13 @@
       display: flex;
       flex-direction: column;
       align-items: flex-start !important;
+      justify-content: center;
       gap: 2px;
       margin: 0 !important;
       margin-left: 0 !important;
       margin-right: 0 !important;
       flex-shrink: 0;
+      padding: 0 10px;
     }
 
     .current-price {
@@ -112,7 +146,9 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      margin-left: auto !important;
+      flex-shrink: 0;
+      margin-right: auto !important;
+      margin-left: 0 !important;
     }
 
     .warehouse-row {
