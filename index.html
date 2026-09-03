@@ -312,11 +312,14 @@
         allowedBrands.has(normalizeFilterValue_(b.brand_fa_name || b.brand_name || b.name))
       );
       const el = document.getElementById('brands'); if (!el) return;
-      el.innerHTML = `<button class="brand-icon-btn ${selectedBrand ? '' : 'active'}" title="همه" aria-label="همه" onclick="filterBrand('')">⌂</button>` +
+      const isAllActive = selectedBrands.size === 0;
+
+      el.innerHTML = `<button class="brand-icon-btn ${isAllActive ? 'active' : ''}" title="همه" aria-label="همه" onclick="filterBrand('')">⌂</button>` +
         brands.map(b => {
           const name = b.brand_fa_name || b.brand_name || b.name;
           const icon = assetIcon_(b.icon_url || b.icon, 'brand', name);
-          const isActive = normalizeFilterValue_(selectedBrand) === normalizeFilterValue_(name);
+          const normName = normalizeFilterValue_(name);
+          const isActive = Array.from(selectedBrands).some(sb => normalizeFilterValue_(sb) === normName);
           return `<button class="brand-icon-btn ${isActive ? 'active' : ''}" title="${esc(name)}" aria-label="${esc(name)}" onclick="filterBrand('${String(name).replace(/'/g, "\\'")}')">${icon || '<span class="chip-icon-text">•</span>'}</button>`;
         }).join('');
     }
@@ -406,10 +409,26 @@
     }
 
 
-    let selectedBrand = '';
+    let selectedBrands = new Set();
     function filterBrand(b) {
-      selectedBrand = b;
-      document.querySelectorAll('.brand-icon-btn').forEach(btn => btn.classList.toggle('active', b && btn.getAttribute('title') === b ? true : !b && btn.getAttribute('title') === 'همه'));
+      if (!b) {
+        selectedBrands.clear();
+      } else {
+        const normB = normalizeFilterValue_(b);
+        let foundKey = null;
+        for (const item of selectedBrands) {
+          if (normalizeFilterValue_(item) === normB) {
+            foundKey = item;
+            break;
+          }
+        }
+        if (foundKey !== null) {
+          selectedBrands.delete(foundKey);
+        } else {
+          selectedBrands.add(b);
+        }
+      }
+      buildBrands();
       render();
     }
     let selectedCategory = '';
@@ -419,7 +438,7 @@
       } else {
         selectedCategory = c;
       }
-      selectedBrand = '';
+      selectedBrands.clear();
       buildBrands();
       buildCategories();
       render();
@@ -447,9 +466,12 @@
         const category = p.Category || p.category || '';
         const promo = p.promotion === true || String(p.promotion).toUpperCase() === 'TRUE';
 
+        const normBrand = normalizeFilterValue_(brand);
+        const matchesBrand = selectedBrands.size === 0 || Array.from(selectedBrands).some(sb => normalizeFilterValue_(sb) === normBrand);
+
         return (stock > 0) &&
           (!onlyPromotion || promo) &&
-          (!selectedBrand || normalizeFilterValue_(brand) === normalizeFilterValue_(selectedBrand)) &&
+          matchesBrand &&
           (!selectedCategory || normalizeFilterValue_(category) === normalizeFilterValue_(selectedCategory)) &&
           (!q || JSON.stringify(p).toLowerCase().includes(q));
       });
