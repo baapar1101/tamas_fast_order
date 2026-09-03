@@ -584,7 +584,7 @@
           const hex = String(c.color_code || '').trim();
           if (hex) {
             if ((fa && (targetNorm === fa || targetNorm.includes(fa) || fa.includes(targetNorm))) ||
-                (en && (targetNorm === en || targetNorm.includes(en) || en.includes(targetNorm)))) {
+              (en && (targetNorm === en || targetNorm.includes(en) || en.includes(targetNorm)))) {
               return hex.startsWith('#') ? hex : '#' + hex;
             }
           }
@@ -673,7 +673,7 @@
       return `<div class="variant">
     <div class="variant-info">
       <div class="color-title"><span class="color-dot" style="background:${dot}"></span>${esc(p.color || 'اصلی')}</div>
-      <div class="meta"><span>◉ اصلی</span><span>♧ ${esc(p.warranty || '18 ماه گارانتی')}</span><span>▣ ${esc(p.seller || 'تماس مارکت')}</span></div>
+      <div class="meta"><span>♧ ${esc(p.warranty || '18 ماه گارانتی')}</span></div>
     </div>
     <div class="price">
       ${p.old_price && Number(p.old_price) > 0 ? `<span class="old">${money(p.old_price)}</span>` : ''}
