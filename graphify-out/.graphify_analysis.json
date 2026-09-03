@@ -23,11 +23,12 @@
       "code_gs_updatestock"
     ],
     "2": [
-      "sync_spreadsheet_load_config",
-      "sync_spreadsheet_main",
-      "sync_spreadsheet_rationale_44",
-      "sync_spreadsheet_rationale_62",
-      "sync_spreadsheet_save_config"
+      "sync_spreadsheet_cmd_push",
+      "sync_spreadsheet_push_to_web_app",
+      "sync_spreadsheet_rationale_187",
+      "sync_spreadsheet_rationale_236",
+      "sync_spreadsheet_rationale_68",
+      "sync_spreadsheet_read_excel_catalog"
     ],
     "3": [
       "code_gs_doget",
@@ -46,21 +47,18 @@
       "code_gs_writesheetobjects"
     ],
     "5": [
+      "sync_spreadsheet_cmd_diff",
+      "sync_spreadsheet_fetch_csv_from_gss",
+      "sync_spreadsheet_rationale_152",
+      "sync_spreadsheet_rationale_251"
+    ],
+    "6": [
       "sync_spreadsheet_cmd_pull",
       "sync_spreadsheet_fetch_from_web_app",
       "sync_spreadsheet_rationale_120",
       "sync_spreadsheet_rationale_176",
       "sync_spreadsheet_rationale_202",
       "sync_spreadsheet_write_excel_catalog"
-    ],
-    "6": [
-      "sync_spreadsheet",
-      "sync_spreadsheet_cmd_push",
-      "sync_spreadsheet_cmd_watch",
-      "sync_spreadsheet_push_to_web_app",
-      "sync_spreadsheet_rationale_187",
-      "sync_spreadsheet_rationale_236",
-      "sync_spreadsheet_rationale_312"
     ],
     "7": [
       "index_html_changeqty",
@@ -70,18 +68,20 @@
       "index_html_submitorder"
     ],
     "8": [
+      "sync_spreadsheet",
+      "sync_spreadsheet_cmd_watch",
+      "sync_spreadsheet_load_config",
+      "sync_spreadsheet_main",
+      "sync_spreadsheet_rationale_312",
+      "sync_spreadsheet_rationale_44",
+      "sync_spreadsheet_rationale_62",
+      "sync_spreadsheet_save_config"
+    ],
+    "9": [
       "index_html_buildbrands",
       "index_html_categorybrandnames",
       "index_html_filterbrand",
       "index_html_normalizefiltervalue"
-    ],
-    "9": [
-      "sync_spreadsheet_cmd_diff",
-      "sync_spreadsheet_fetch_csv_from_gss",
-      "sync_spreadsheet_rationale_152",
-      "sync_spreadsheet_rationale_251",
-      "sync_spreadsheet_rationale_68",
-      "sync_spreadsheet_read_excel_catalog"
     ],
     "10": [
       "index_html_asseticon",
@@ -106,14 +106,14 @@
   "cohesion": {
     "0": 0.2222222222222222,
     "1": 0.39285714285714285,
-    "2": 0.4,
+    "2": 0.3333333333333333,
     "3": 0.6666666666666666,
     "4": 0.4,
-    "5": 0.3333333333333333,
-    "6": 0.38095238095238093,
+    "5": 0.5,
+    "6": 0.3333333333333333,
     "7": 0.4,
-    "8": 0.8333333333333334,
-    "9": 0.3333333333333333,
+    "8": 0.35714285714285715,
+    "9": 0.8333333333333334,
     "10": 1.0,
     "11": 1.0,
     "12": 0.6666666666666666,
@@ -141,6 +141,11 @@
       "degree": 6
     },
     {
+      "id": "sync_spreadsheet_cmd_push",
+      "label": "cmd_push()",
+      "degree": 6
+    },
+    {
       "id": "code_gs_doget",
       "label": "doGet()",
       "degree": 6
@@ -151,18 +156,13 @@
       "degree": 6
     },
     {
-      "id": "sync_spreadsheet_cmd_pull",
-      "label": "cmd_pull()",
-      "degree": 6
-    },
-    {
-      "id": "sync_spreadsheet_cmd_push",
-      "label": "cmd_push()",
-      "degree": 6
-    },
-    {
       "id": "sync_spreadsheet_cmd_diff",
       "label": "cmd_diff()",
+      "degree": 6
+    },
+    {
+      "id": "sync_spreadsheet_cmd_pull",
+      "label": "cmd_pull()",
       "degree": 6
     },
     {
@@ -203,7 +203,7 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 10 → community 8"
+      "note": "Bridges community 10 → community 9"
     },
     {
       "source": "load()",
@@ -231,17 +231,17 @@
   "questions": [
     {
       "type": "bridge_node",
-      "question": "Why does `cmd_push()` connect `Community 6` to `Community 9`, `Community 2`?",
+      "question": "Why does `cmd_push()` connect `Community 2` to `Community 8`?",
       "why": "High betweenness centrality (0.011) - this node is a cross-community bridge."
     },
     {
       "type": "bridge_node",
-      "question": "Why does `cmd_pull()` connect `Community 5` to `Community 9`, `Community 2`, `Community 6`?",
+      "question": "Why does `cmd_pull()` connect `Community 6` to `Community 8`, `Community 5`?",
       "why": "High betweenness centrality (0.011) - this node is a cross-community bridge."
     },
     {
       "type": "bridge_node",
-      "question": "Why does `cmd_diff()` connect `Community 9` to `Community 2`, `Community 5`, `Community 6`?",
+      "question": "Why does `cmd_diff()` connect `Community 5` to `Community 8`, `Community 2`, `Community 6`?",
       "why": "High betweenness centrality (0.011) - this node is a cross-community bridge."
     },
     {

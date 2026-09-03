@@ -320,6 +320,7 @@
       <p class="footer-text">شماره تماس: <a href="tel:09135006644" style="color:#fff">09135006644</a></p>
       <p class="footer-text">آدرس: کرمان، خیابان شهید نامجو، بعد از کوچه ۹، پلاک ۱۰۹</p>
       <p class="footer-text">کد پستی: ۷۶۱۹۷۴۴۵۶۸</p>
+      <p class="footer-text"><a href="terms.html" style="color:#fff;text-underline-offset:4px">شرایط و قوانین همکاری</a></p>
     </div>
     <div class="footer-logo">
       <h3 class="footer-title">تماس مارکت</h3>
@@ -417,9 +418,9 @@
 
     function demoProducts() {
       return [
-        { product_id: '1', title: 'Apple iPhone 17 Pro Max 512/12GB ZA/A', model: 'iPhone 17 Pro Max 512/12GB ZA/A', color: 'نارنجی (Cosmic Orange)', color_en: 'Cosmic Orange', price: 450000000, old_price: 455000000, discount: 1, stock: 5, warranty: '18 ماه گارانتی شرکتی', seller: 'تماس مارکت', status: 'Not Active', image_url: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd8?auto=format&fit=crop&w=400&q=80', brand: 'اپل' },
-        { product_id: '2', title: 'Apple iPhone 17 Pro Max 512/12GB ZA/A', model: 'iPhone 17 Pro Max 512/12GB ZA/A', color: 'سرمه‌ای (Deep Blue)', color_en: 'Deep Blue', price: 477900000, old_price: 482000000, discount: 1, stock: 3, warranty: '18 ماه گارانتی شرکتی', seller: 'تماس مارکت', status: 'Not Active', image_url: 'https://images.unsplash.com/photo-1592286927505-2fd0f9d7c6f4?auto=format&fit=crop&w=400&q=80', brand: 'اپل' },
-        { product_id: '3', title: 'Apple iPhone 17 256/8GB CH/A', model: 'iPhone 17 256/8GB CH/A', color: 'مشکی (Black)', color_en: 'Black', price: 302590000, old_price: 0, discount: 0, stock: 7, warranty: '18 ماه گارانتی شرکتی', seller: 'تماس مارکت', status: 'Not Active', image_url: 'https://images.unsplash.com/photo-1591337676887-a217a6970a8a?auto=format&fit=crop&w=400&q=80', brand: 'اپل' }
+        { product_id: '1', title: 'Apple iPhone 17 Pro Max 512/12GB ZA/A', model: 'iPhone 17 Pro Max 512/12GB ZA/A', color: 'نارنجی (Cosmic Orange)', color_en: 'Cosmic Orange', price: 450000000, old_price: 455000000, discount: 1, stock: 5, kerman_stock: 3, tehran_stock: 2, sell_type: 'نقدی, اعتباری', promotion: true, warranty: '18 ماه گارانتی شرکتی', seller: 'تماس مارکت', status: 'Not Active', image_url: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd8?auto=format&fit=crop&w=400&q=80', brand: 'اپل' },
+        { product_id: '2', title: 'Apple iPhone 17 Pro Max 512/12GB ZA/A', model: 'iPhone 17 Pro Max 512/12GB ZA/A', color: 'سرمه‌ای (Deep Blue)', color_en: 'Deep Blue', price: 477900000, old_price: 482000000, discount: 1, stock: 3, kerman_stock: 1, tehran_stock: 2, sell_type: 'چکی تا دوماه', promotion: false, warranty: '18 ماه گارانتی شرکتی', seller: 'تماس مارکت', status: 'Not Active', image_url: 'https://images.unsplash.com/photo-1592286927505-2fd0f9d7c6f4?auto=format&fit=crop&w=400&q=80', brand: 'اپل' },
+        { product_id: '3', title: 'Apple iPhone 17 256/8GB CH/A', model: 'iPhone 17 256/8GB CH/A', color: 'مشکی (Black)', color_en: 'Black', price: 302590000, old_price: 0, discount: 0, stock: 7, kerman_stock: 5, tehran_stock: 2, sell_type: 'نقدی', promotion: true, warranty: '18 ماه گارانتی شرکتی', seller: 'تماس مارکت', status: 'Not Active', image_url: 'https://images.unsplash.com/photo-1591337676887-a217a6970a8a?auto=format&fit=crop&w=400&q=80', brand: 'اپل' }
       ];
     }
 
@@ -455,6 +456,377 @@
       const isAllActive = selectedBrands.size === 0;
 
       el.innerHTML = `<button class="brand-icon-btn ${isAllActive ? 'active' : ''}" title="همه" aria-label="همه" onclick="filterBrand('')">⌂</button>` +
+        brands.map(b => {
+          const name = b.brand_fa_name || b.brand_name || b.name;
+          const icon = assetIcon_(b.icon_url || b.icon, 'brand', name);
+          const normName = normalizeFilterValue_(name);
+          const isActive = Array.from(selectedBrands).some(sb => normalizeFilterValue_(sb) === normName);
+          return `<button class="brand-icon-btn ${isActive ? 'active' : ''}" title="${esc(name)}" aria-label="${esc(name)}" onclick="filterBrand('${String(name).replace(/'/g, "\\'")}')">${icon || '<span class="chip-icon-text">•</span>'}</button>`;
+        }).join('');
+    }
+    function buildCategories() {
+      const cats = catalog.categories || [];
+      if (!cats.length) return;
+      document.getElementById('categories').innerHTML = cats.map(c => {
+        const name = c.category_fa_name || c.category_name;
+        const icon = assetIcon_(c.icon_url || c.icon, 'category', name);
+        const isActive = selectedCategory === name;
+        return `<button class="category-chip ${isActive ? 'active' : ''}" data-category="${esc(name)}" onclick="filterCategory('${String(name).replace(/'/g, "\\'")}')">${icon}<span>${esc(name)}</span></button>`;
+      }).join('');
+    }
+
+    function assetIcon_(value, folder, fallbackName) {
+      const v = String(value || '').trim();
+      const fallback = String(fallbackName || '').trim();
+
+      const catMap = {
+        'mobile.svg': 'mobile.svg', 'گوشی موبایل': 'mobile.svg', 'mobile phones': 'mobile.svg',
+        'bondle.svg': 'bondle.svg', 'سبد ها': 'bondle.svg', 'bondle': 'bondle.svg',
+        'airpod.svg': 'airpod.svg', 'ایرپاد': 'airpod.svg', 'airpod': 'airpod.svg',
+        'watch.svg': 'watch.svg', 'ساعت هوشمند': 'watch.svg', 'ساعت': 'watch.svg', 'smart watch': 'watch.svg',
+        'caracsesories.svg': 'caracsories.svg', 'caracsories.svg': 'caracsories.svg', 'لوازم جانبی خودرو': 'caracsories.svg', 'car accessories': 'caracsories.svg',
+        'beauty.svg': 'beauty.svg', 'محصولات زیبایی': 'beauty.svg', 'beauty': 'beauty.svg',
+        'tools.svg': 'tools.svg', 'ابزار': 'tools.svg', 'tools': 'tools.svg',
+        'health.svg': 'health.svg', 'محصولات سلامت': 'health.svg', 'health': 'health.svg',
+        'speaker.svg': 'speaker.svg', 'اسپیکر': 'speaker.svg', 'speaker': 'speaker.svg',
+        'powerbank.svg': 'powerbank.svg', 'پاوربانک': 'powerbank.svg', 'powerbank': 'powerbank.svg',
+        'cable.svg': 'cable.svg', 'کابل': 'cable.svg', 'cable': 'cable.svg',
+        'adapter.svg': 'adapter.svg', 'شارژر': 'adapter.svg', 'adapter': 'adapter.svg',
+        'handsfree.svg': 'handsfree.svg', 'هندزفری سیم دار': 'handsfree.svg', 'هندزفری': 'handsfree.svg', 'handsfree': 'handsfree.svg',
+        'dongle.svg': 'dongle.svg', 'دانگل': 'dongle.svg', 'dongle': 'dongle.svg',
+        'gaming.svg': 'gaming.svg', 'لوازم جانبی گیمینگ': 'gaming.svg', 'گیمینگ': 'gaming.svg', 'gaming': 'gaming.svg',
+        'glass.svg': 'glass.svg', 'محافظ صفحه ': 'glass.svg', 'محافظ صفحه': 'glass.svg', 'screen protector': 'glass.svg',
+        'cover.svg': 'cover.svg', 'کاور': 'cover.svg', 'قاب': 'cover.svg', 'cover': 'cover.svg',
+        'headphon.svg': 'headphon.svg', 'هدفون و هدست': 'headphon.svg', 'هدفون': 'headphon.svg', 'headphone': 'headphon.svg',
+        'holder.svg': 'holder.svg', 'هولدر و دسته سلفی': 'holder.svg', 'هولدر': 'holder.svg', 'holder & monopod': 'holder.svg',
+        'mouse_keyboard.svg': 'mouse_keyboard.svg', 'ماوس و کیبورد': 'mouse_keyboard.svg', 'mouse & keyboard': 'mouse_keyboard.svg',
+        'watch_glass.svg': 'watch_glass.svg', 'محافظ صفحه ساعت': 'watch_glass.svg', 'watch glass': 'watch_glass.svg',
+        'microphone.svg': 'microphone.svg', 'میکروفون محتوا': 'microphone.svg', 'میکروفون': 'microphone.svg', 'microphone': 'microphone.svg',
+        'aux_icon.svg': 'aux_icon.svg', 'کابل صدا': 'aux_icon.svg', 'aux cable': 'aux_icon.svg',
+        'convertor.svg': 'convertor.svg', 'مبدل': 'convertor.svg', 'convertor': 'convertor.svg'
+      };
+
+      const brandMap = {
+        'hoco': 'hoco.svg', 'حُوکو': 'hoco.svg', 'هوکو': 'hoco.svg', 'HOCO': 'hoco.svg', 'HOKO': 'hoco.svg',
+        'macdodo': 'macdodo.svg', 'MCDODO': 'macdodo.svg',
+        'yesido': 'yesido.svg', 'YESIDO': 'yesido.svg',
+        'qcy': 'qcy.svg', 'QCY': 'qcy.svg',
+        'oxygen': 'oxygen.svg', 'OXIGEN': 'oxygen.svg',
+        'hadron': 'hadron.svg', 'Hadron': 'hadron.svg',
+        'anker': 'anker.svg', 'ANKER': 'anker.svg',
+        'apple': 'apple.svg', 'Apple': 'apple.svg',
+        'samsung': 'samsung.svg', 'Samsung': 'samsung.svg',
+        'xiaomi': 'xiaomi.svg', 'Xiaomi': 'xiaomi.svg',
+        'redmi': 'redmi.svg', 'REDMI': 'redmi.svg',
+        'haylou': 'haylou.svg', 'HAYLOU': 'haylou.svg',
+        'nokia': 'nokia.svg', 'NOKIA': 'nokia.svg',
+        'honor': 'honor.svg', 'HONOR': 'honor.svg',
+        'baiko': 'baiko.svg', 'BAIKO': 'baiko.svg',
+        'earldom': 'earldom.svg', 'EARLDOM': 'earldom.svg',
+        'borofone': 'borofone.svg', 'BOROFONE': 'borofone.svg'
+      };
+
+      let fileName = '';
+      if (folder === 'category') {
+        const keyV = v.toLowerCase();
+        const keyF = fallback.toLowerCase();
+        fileName = catMap[keyV] || catMap[v] || catMap[keyF] || catMap[fallback];
+        if (!fileName && /\.(svg|png|jpg|jpeg|webp)$/i.test(v)) fileName = v;
+      } else {
+        fileName = brandMap[v] || brandMap[fallback] || (/\.(svg|png|jpg|jpeg|webp)$/i.test(v) ? v : '');
+      }
+
+      let content = '';
+      if (fileName) {
+        content = `<img class="chip-icon" src="assets/${folder}/${esc(fileName)}" alt="">`;
+      } else {
+        content = `<span class="chip-icon-text">${esc(v || fallback)}</span>`;
+      }
+
+      if (folder === 'category') {
+        return `<div class="chip-icon-wrap">${content}</div>`;
+      }
+      return content;
+    }
+
+
+    let selectedBrands = new Set();
+    function filterBrand(b) {
+      if (!b) {
+        selectedBrands.clear();
+      } else {
+        const normB = normalizeFilterValue_(b);
+        let foundKey = null;
+        for (const item of selectedBrands) {
+          if (normalizeFilterValue_(item) === normB) {
+            foundKey = item;
+            break;
+          }
+        }
+        if (foundKey !== null) {
+          selectedBrands.delete(foundKey);
+        } else {
+          selectedBrands.add(b);
+        }
+      }
+      buildBrands();
+      render();
+    }
+    let selectedCategory = '';
+    function filterCategory(c) {
+      if (selectedCategory === c) {
+        selectedCategory = '';
+      } else {
+        selectedCategory = c;
+      }
+      selectedBrands.clear();
+      buildBrands();
+      buildCategories();
+      render();
+    }
+
+
+    function togglePromotion() { onlyPromotion = !onlyPromotion; document.getElementById('promoSwitch').classList.toggle('on', onlyPromotion); render() }
+    function sortPrice() { ascending = !ascending; render() }
+
+    function getWarehouseStocks(p) {
+      const kerman = Math.max(0, parseInt(p.kerman_stock || 0, 10));
+      const tehran = Math.max(0, parseInt(p.tehran_stock || 0, 10));
+
+      if (kerman > 0 || tehran > 0) {
+        return { kerman, tehran, total: kerman + tehran };
+      }
+      const globalStock = Math.max(0, parseInt(p.stock !== undefined && p.stock !== '' ? p.stock : 1, 10));
+      return { kerman: globalStock, tehran: 0, total: globalStock };
+    }
+
+    function getProductStock(p) {
+      return getWarehouseStocks(p).total;
+    }
+
+    function renderSellTypeBadges(sellTypeStr) {
+      if (!sellTypeStr || !String(sellTypeStr).trim()) return '';
+      const types = String(sellTypeStr).split(/[,،;]+/).map(s => s.trim()).filter(Boolean);
+
+      return types.map(t => {
+        const norm = normalizeFilterValue_(t);
+        if (norm.includes('نقد')) {
+          return `<span class="sell-badge cash" title="فروش نقدی">💵 ${esc(t)}</span>`;
+        } else if (norm.includes('اعتبار')) {
+          return `<span class="sell-badge credit" title="فروش اعتباری">💳 ${esc(t)}</span>`;
+        } else if (norm.includes('چک')) {
+          return `<span class="sell-badge cheque" title="فروش چکی">📄 ${esc(t)}</span>`;
+        }
+        return `<span class="sell-badge default">🏷️ ${esc(t)}</span>`;
+      }).join(' ');
+    }
+
+    function render() {
+      const q = document.getElementById('search').value.trim().toLowerCase();
+      let list = allProducts.filter(p => {
+        const stock = getProductStock(p);
+        const brand = p.Brand || p.brand || '';
+        const category = p.Category || p.category || '';
+        const promo = p.promotion === true || String(p.promotion).toUpperCase() === 'TRUE';
+
+        const normBrand = normalizeFilterValue_(brand);
+        const matchesBrand = selectedBrands.size === 0 || Array.from(selectedBrands).some(sb => normalizeFilterValue_(sb) === normBrand);
+
+        return (stock > 0) &&
+          (!onlyPromotion || promo) &&
+          matchesBrand &&
+          (!selectedCategory || normalizeFilterValue_(category) === normalizeFilterValue_(selectedCategory)) &&
+          (!q || JSON.stringify(p).toLowerCase().includes(q));
+      });
+      list.sort((a, b) => ascending ? Number(a.price) - Number(b.price) : Number(b.price) - Number(a.price));
+
+      // Group by title/model
+      const groups = {};
+      list.forEach(p => { const k = p.title || p.model || p.product_id; (groups[k] ??= []).push(p) });
+      document.getElementById('products').innerHTML = Object.entries(groups).map(([title, items]) => {
+        const isPromoGroup = items.some(p => p.promotion === true || String(p.promotion).toUpperCase() === 'TRUE');
+        return `
+    <article class="product ${isPromoGroup ? 'is-promotion' : ''}">
+      ${isPromoGroup ? '<div class="promo-star-tag"><span class="star-icon">⭐</span> پیشنهاد ویژه</div>' : ''}
+      <div class="product-head">
+        <div class="product-title">${isPromoGroup ? '<span class="title-star">⭐</span>' : ''}${esc(title)}</div>
+        <div class="thumb-box"><img class="product-thumb" src="${esc(items[0].image_url || '')}" alt="" onerror="this.src='logo.png'"></div>
+      </div>
+      ${items.map(p => variantHTML(p)).join('')}
+    </article>`;
+      }).join('') || '<div class="loading">محصولی پیدا نشد.</div>';
+    }
+
+    function getColorHex(p) {
+      if (!p) return '#00768f';
+
+      // 1. Direct color_code column on product row if specified in Google Sheets
+      let directCode = p.color_code || p.color_hex || p.hex;
+      if (directCode && String(directCode).trim()) {
+        let c = String(directCode).trim();
+        if (!c.startsWith('#') && /^[0-9A-Fa-f]{3,8}$/.test(c)) c = '#' + c;
+        return c;
+      }
+
+      // Extract raw color string from p.color, p.color_en, or p.title
+      let rawColor = String(p.color || p.color_en || '').trim();
+      if (!rawColor && p.title) {
+        const match = p.title.match(/رنگ\s+([^\s]+)/);
+        if (match) rawColor = match[1];
+      }
+
+      const targetNorm = normalizeFilterValue_(rawColor);
+
+      // 2. Check catalog.colors dictionary loaded from Google Sheets (Colors tab)
+      if (catalog && Array.isArray(catalog.colors) && catalog.colors.length) {
+        for (const c of catalog.colors) {
+          const fa = normalizeFilterValue_(c.color_fa_name);
+          const en = normalizeFilterValue_(c.color_name);
+          const hex = String(c.color_code || '').trim();
+          if (hex) {
+            if ((fa && (targetNorm === fa || targetNorm.includes(fa) || fa.includes(targetNorm))) ||
+              (en && (targetNorm === en || targetNorm.includes(en) || en.includes(targetNorm)))) {
+              return hex.startsWith('#') ? hex : '#' + hex;
+            }
+          }
+        }
+      }
+
+      // 3. Exact & Partial Fallback Dictionary for all Persian & English colors
+      const colorMap = [
+        { keys: ['سفید طلایی', 'gold & white', 'white gold'], hex: '#f5e050' },
+        { keys: ['سفید', 'white', 'صدفی', 'شفاف', 'clear'], hex: '#ffffff' },
+        { keys: ['مشکی', 'مشكی', 'مشكي', 'black', 'دودی'], hex: '#000000' },
+        { keys: ['سرمه‌ای', 'سرمه ای', 'deep blue', 'navy'], hex: '#12273b' },
+        { keys: ['آبی', 'ابی', 'blue', 'cyan'], hex: '#0000ff' },
+        { keys: ['یاسی', 'ياسي', 'lilac', 'lavender'], hex: '#c8a2c8' },
+        { keys: ['خاکستری', 'خاكستري', 'طوسی', 'توسی', 'gray', 'grey'], hex: '#808080' },
+        { keys: ['نارنجی', 'نارنجي', 'orange'], hex: '#ffa500' },
+        { keys: ['سبز', 'green'], hex: '#008000' },
+        { keys: ['قرمز', 'red'], hex: '#ff0000' },
+        { keys: ['طلایی', 'طلايي', 'gold'], hex: '#ffd700' },
+        { keys: ['روز گلد', 'rose gold'], hex: '#b76e79' },
+        { keys: ['نقره ای', 'نقره‌ای', 'نقره اي', 'silver'], hex: '#c0c0c0' },
+        { keys: ['بنفش', 'purple'], hex: '#800080' },
+        { keys: ['زرد', 'yellow'], hex: '#ffff00' },
+        { keys: ['صورتی', 'صورتي', 'pink'], hex: '#ffc0cb' },
+        { keys: ['کرم', 'کرمی', 'كرم', 'cream'], hex: '#fffdd0' },
+        { keys: ['قهوه‌ای', 'قهوه ای', 'brown'], hex: '#795548' },
+        { keys: ['رنگی', 'رنگي', 'mix'], hex: '#808080' }
+      ];
+
+      for (const item of colorMap) {
+        if (item.keys.some(k => targetNorm.includes(normalizeFilterValue_(k)))) {
+          return item.hex;
+        }
+      }
+
+      return '#00768f';
+    }
+
+    function variantHTML(p) {
+      const dot = getColorHex(p);
+      const discountVal = p['discount%'] || p.discount;
+      const stocks = getWarehouseStocks(p);
+      const jsonStr = JSON.stringify(p).replace(/'/g, "&#39;");
+
+      const warehouseBtns = [];
+
+      if (stocks.kerman > 0) {
+        const isOne = stocks.kerman === 1;
+        warehouseBtns.push(`
+          <div class="warehouse-row ${isOne ? 'urgent-stock' : ''}">
+            <div class="wh-details">
+              <span class="wh-badge kerman">انبار کرمان</span>
+              <span class="wh-count">${isOne ? '<b class="stock-warn">تنها ۱ عدد در سایت باقیست!</b>' : `موجودی: ${stocks.kerman} عدد`}</span>
+            </div>
+            <button class="add-wh-btn" onclick='addToCart(${jsonStr}, "kerman")' title="افزودن از انبار کرمان">+</button>
+          </div>
+        `);
+      }
+
+      if (stocks.tehran > 0) {
+        const isOne = stocks.tehran === 1;
+        warehouseBtns.push(`
+          <div class="warehouse-row ${isOne ? 'urgent-stock' : ''}">
+            <div class="wh-details">
+              <span class="wh-badge tehran">انبار تهران</span>
+              <span class="wh-count">${isOne ? '<b class="stock-warn">تنها ۱ عدد در سایت باقیست!</b>' : `موجودی: ${stocks.tehran} عدد`}</span>
+            </div>
+            <button class="add-wh-btn" onclick='addToCart(${jsonStr}, "tehran")' title="افزودن از انبار تهران">+</button>
+          </div>
+        `);
+      }
+
+      if (!warehouseBtns.length && stocks.total > 0) {
+        const isOne = stocks.total === 1;
+        warehouseBtns.push(`
+          <div class="warehouse-row ${isOne ? 'urgent-stock' : ''}">
+            <div class="wh-details">
+              <span class="wh-badge kerman">موجودی سایت</span>
+              <span class="wh-count">${isOne ? '<b class="stock-warn">تنها ۱ عدد در سایت باقیست!</b>' : `موجودی: ${stocks.total} عدد`}</span>
+            </div>
+            <button class="add-wh-btn" onclick='addToCart(${jsonStr}, "kerman")' title="افزودن به سبد">+</button>
+          </div>
+        `);
+      }
+
+      return `<div class="variant">
+    <div class="variant-info">
+      <div class="color-title"><span class="color-dot" style="background:${dot}"></span>${esc(p.color || 'اصلی')}</div>
+      <div class="meta"><span>♧ ${esc(p.warranty || '18 ماه گارانتی')}</span>${renderSellTypeBadges(p.sell_type)}</div>
+    </div>
+    <div class="price">
+      ${p.old_price && Number(p.old_price) > 0 ? `<span class="old">${money(p.old_price)}</span>` : ''}
+      ${discountVal ? `<span class="discount">${esc(discountVal)}٪</span>` : ''}
+      <div class="current-price">${money(p.price)}</div>
+    </div>
+    <div class="warehouse-section">
+      ${warehouseBtns.join('')}
+    </div>
+  </div>`;
+    }
+
+    function addToCart(p, warehouse = 'kerman') {
+      const stocks = getWarehouseStocks(p);
+      const maxStock = stocks[warehouse] || stocks.total || 1;
+      const cartKey = (p.product_id || p.sku || p.title) + '_' + warehouse;
+      const existing = cart.find(i => i.cart_key === cartKey);
+
+      if (existing) {
+        if (existing.qty >= maxStock) {
+          alert(`موجودی ${warehouse === 'kerman' ? 'انبار کرمان' : 'انبار تهران'} حداکثر ${maxStock} عدد می‌باشد.`);
+          return;
+        }
+        existing.qty++;
+      } else {
+        if (maxStock < 1) {
+          alert('موجودی این انبار به اتمام رسیده است.');
+          return;
+        }
+        cart.push({
+          ...p,
+          warehouse: warehouse,
+          warehouse_name: warehouse === 'kerman' ? 'انبار کرمان' : (warehouse === 'tehran' ? 'انبار تهران' : 'موجودی سایت'),
+          max_stock: maxStock,
+          qty: 1,
+          cart_key: cartKey
+        });
+      }
+      renderCart();
+    }
+
+    function changeQty(cartKey, d) {
+      const item = cart.find(i => i.cart_key === cartKey);
+      if (!item) return;
+
+      if (d > 0 && item.qty + d > item.max_stock) {
+        alert(`موجودی ${item.warehouse_name} حداکثر ${item.max_stock} عدد می‌باشد.`);
+        return;
+      }
+
+      item.qty += d;
+      if (item.qty <= 0) {
         cart = cart.filter(i => i.cart_key !== cartKey);
       }
       renderCart();
