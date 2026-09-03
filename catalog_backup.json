@@ -281,87 +281,87 @@
     {
       "color_name": "Black",
       "color_fa_name": "مشکی",
-      "color_code": ""
+      "color_code": "#000000"
     },
     {
       "color_name": "White",
       "color_fa_name": "سفید",
-      "color_code": ""
+      "color_code": "#FFFFFF"
     },
     {
       "color_name": "Blue",
       "color_fa_name": "آبی",
-      "color_code": ""
+      "color_code": "#0000FF"
     },
     {
       "color_name": "Orange",
       "color_fa_name": "نارنجی",
-      "color_code": ""
+      "color_code": "#FFA500"
     },
     {
       "color_name": "Green",
       "color_fa_name": "سبز",
-      "color_code": ""
+      "color_code": "#008000"
     },
     {
       "color_name": "Silver",
       "color_fa_name": "نقره ای",
-      "color_code": ""
+      "color_code": "#C0C0C0"
     },
     {
       "color_name": "Red",
       "color_fa_name": "قرمز",
-      "color_code": ""
+      "color_code": "#FF0000"
     },
     {
       "color_name": "Green",
       "color_fa_name": "سبز",
-      "color_code": ""
+      "color_code": "#008000"
     },
     {
       "color_name": "Clear",
       "color_fa_name": "شفاف",
-      "color_code": ""
+      "color_code": "#FFFFFF"
     },
     {
       "color_name": "Lilac",
       "color_fa_name": "یاسی",
-      "color_code": ""
+      "color_code": "#C8A2C8"
     },
     {
       "color_name": "Gray",
       "color_fa_name": "خاکستری",
-      "color_code": ""
+      "color_code": "#808080"
     },
     {
       "color_name": "Gold",
       "color_fa_name": "طلایی",
-      "color_code": ""
+      "color_code": "#FFD700"
     },
     {
       "color_name": "Gold & White",
       "color_fa_name": "سفید طلایی",
-      "color_code": ""
+      "color_code": "#F5E050"
     },
     {
       "color_name": "Mix",
       "color_fa_name": "رنگی",
-      "color_code": ""
+      "color_code": "#808080"
     },
     {
       "color_name": "yellow",
       "color_fa_name": "زرد",
-      "color_code": ""
+      "color_code": "#FFFF00"
     },
     {
       "color_name": "Pink",
       "color_fa_name": "صورتی",
-      "color_code": ""
+      "color_code": "#FFC0CB"
     },
     {
       "color_name": "Cream",
       "color_fa_name": "کرم",
-      "color_code": ""
+      "color_code": "#FFFDD0"
     }
   ],
   "products": [

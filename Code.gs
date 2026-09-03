@@ -10,10 +10,10 @@ const SHEETS = {
 };
 
 const DEFAULT_HEADERS = {
-  Products: ['product_id', 'Category', 'Brand', 'title', 'model', 'color', 'color_en', 'sku', 'price', 'old_price', 'discount', 'stock', 'warranty', 'promotion', 'status', 'image_url', 'attribute_key', 'attribute_value'],
+  Products: ['product_id', 'Category', 'Brand', 'title', 'model', 'color', 'color_en', 'color_code', 'sku', 'price', 'old_price', 'discount', 'stock', 'warranty', 'promotion', 'status', 'image_url', 'attribute_key', 'attribute_value'],
   Categories: ['category_name', 'category_fa_name', 'icon_url', 'Brand'],
   Brands: ['brand_name', 'brand_fa_name', 'icon_url'],
-  Colors: ['color_name', 'color_fa_name'],
+  Colors: ['color_code', 'color_fa_name', 'color_name'],
   Users: ['name', 'last_name', 'Store_name', 'phone_number', 'mobile_number', 'address', 'postal_code', 'certificate_file_url', 'actived'],
   Orders: ['order_id', 'date', 'customer_name', 'phone', 'address', 'items_json', 'total_price', 'status'],
   Settings: ['key', 'value']
@@ -266,4 +266,3 @@ function output_(o, c) {
 function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 }
-

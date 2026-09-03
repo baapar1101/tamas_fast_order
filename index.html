@@ -149,14 +149,14 @@
         try {
           const data = await jsonp(API_URL + '?action=catalog');
           allProducts = data.products || [];
-          catalog = { categories: data.categories || [], brands: data.brands || [] };
+          catalog = { categories: data.categories || [], brands: data.brands || [], colors: data.colors || [] };
         } catch (e) {
           console.warn('Google Apps Script fetch warning:', e);
           try {
             const res = await fetch('catalog_backup.json');
             const data = await res.json();
             allProducts = data.products || [];
-            catalog = { categories: data.categories || [], brands: data.brands || [] };
+            catalog = { categories: data.categories || [], brands: data.brands || [], colors: data.colors || [] };
           } catch (ex) {
             allProducts = demoProducts();
           }
@@ -174,8 +174,13 @@
     }
 
     function normalizeFilterValue_(value) {
-      return String(value || '').trim().toLocaleLowerCase('fa-IR');
+      return String(value || '').trim()
+        .replace(/[كک]/g, 'ک')
+        .replace(/[يىی]/g, 'ی')
+        .replace(/\u200c/g, ' ')
+        .toLocaleLowerCase('fa-IR');
     }
+
     function categoryBrandNames_(categoryName) {
       if (!categoryName) return null;
       const category = (catalog.categories || []).find(c =>
@@ -353,8 +358,75 @@
       ${items.map(p => variantHTML(p)).join('')}
     </article>`).join('') || '<div class="loading">محصولی پیدا نشد.</div>';
     }
+    function getColorHex(p) {
+      if (!p) return '#00768f';
+
+      // 1. Direct color_code column on product row if specified in Google Sheets
+      let directCode = p.color_code || p.color_hex || p.hex;
+      if (directCode && String(directCode).trim()) {
+        let c = String(directCode).trim();
+        if (!c.startsWith('#') && /^[0-9A-Fa-f]{3,8}$/.test(c)) c = '#' + c;
+        return c;
+      }
+
+      // Extract raw color string from p.color, p.color_en, or p.title
+      let rawColor = String(p.color || p.color_en || '').trim();
+      if (!rawColor && p.title) {
+        const match = p.title.match(/رنگ\s+([^\s]+)/);
+        if (match) rawColor = match[1];
+      }
+
+      const targetNorm = normalizeFilterValue_(rawColor);
+
+      // 2. Check catalog.colors dictionary loaded from Google Sheets (Colors tab)
+      if (catalog && Array.isArray(catalog.colors) && catalog.colors.length) {
+        for (const c of catalog.colors) {
+          const fa = normalizeFilterValue_(c.color_fa_name);
+          const en = normalizeFilterValue_(c.color_name);
+          const hex = String(c.color_code || '').trim();
+          if (hex) {
+            if ((fa && (targetNorm === fa || targetNorm.includes(fa) || fa.includes(targetNorm))) ||
+                (en && (targetNorm === en || targetNorm.includes(en) || en.includes(targetNorm)))) {
+              return hex.startsWith('#') ? hex : '#' + hex;
+            }
+          }
+        }
+      }
+
+      // 3. Exact & Partial Fallback Dictionary for all Persian & English colors
+      const colorMap = [
+        { keys: ['سفید طلایی', 'gold & white', 'white gold'], hex: '#f5e050' },
+        { keys: ['سفید', 'white', 'صدفی', 'شفاف', 'clear'], hex: '#ffffff' },
+        { keys: ['مشکی', 'مشكی', 'مشكي', 'black', 'دودی'], hex: '#000000' },
+        { keys: ['سرمه‌ای', 'سرمه ای', 'deep blue', 'navy'], hex: '#12273b' },
+        { keys: ['آبی', 'ابی', 'blue', 'cyan'], hex: '#0000ff' },
+        { keys: ['یاسی', 'ياسي', 'lilac', 'lavender'], hex: '#c8a2c8' },
+        { keys: ['خاکستری', 'خاكستري', 'طوسی', 'توسی', 'gray', 'grey'], hex: '#808080' },
+        { keys: ['نارنجی', 'نارنجي', 'orange'], hex: '#ffa500' },
+        { keys: ['سبز', 'green'], hex: '#008000' },
+        { keys: ['قرمز', 'red'], hex: '#ff0000' },
+        { keys: ['طلایی', 'طلايي', 'gold'], hex: '#ffd700' },
+        { keys: ['روز گلد', 'rose gold'], hex: '#b76e79' },
+        { keys: ['نقره ای', 'نقره‌ای', 'نقره اي', 'silver'], hex: '#c0c0c0' },
+        { keys: ['بنفش', 'purple'], hex: '#800080' },
+        { keys: ['زرد', 'yellow'], hex: '#ffff00' },
+        { keys: ['صورتی', 'صورتي', 'pink'], hex: '#ffc0cb' },
+        { keys: ['کرم', 'کرمی', 'كرم', 'cream'], hex: '#fffdd0' },
+        { keys: ['قهوه‌ای', 'قهوه ای', 'brown'], hex: '#795548' },
+        { keys: ['رنگی', 'رنگي', 'mix'], hex: '#808080' }
+      ];
+
+      for (const item of colorMap) {
+        if (item.keys.some(k => targetNorm.includes(normalizeFilterValue_(k)))) {
+          return item.hex;
+        }
+      }
+
+      return '#00768f';
+    }
+
     function variantHTML(p) {
-      const dot = p.color_en === 'Deep Blue' ? '#12273b' : (p.color_en === 'Black' ? '#111' : (p.color_en === 'White' ? '#fff' : '#e7792b'));
+      const dot = getColorHex(p);
       const discountVal = p['discount%'] || p.discount;
       return `<div class="variant">
     <button class="add" onclick='addToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})'>+</button>
@@ -365,6 +437,7 @@
     <div class="price">${p.old_price && Number(p.old_price) > 0 ? `<span class="old">${money(p.old_price)}</span>` : ''}${discountVal ? `<span class="discount">${esc(discountVal)}٪</span>` : ''}<br>${money(p.price)}</div>
   </div>`;
     }
+
 
     function addToCart(p) {
       const x = cart.find(i => i.product_id === p.product_id);
