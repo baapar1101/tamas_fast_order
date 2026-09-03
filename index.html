@@ -11,6 +11,116 @@
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
+  <style>
+    .thumb-box {
+      width: 160px !important;
+      height: 160px !important;
+      min-width: 160px !important;
+      min-height: 160px !important;
+      flex-shrink: 0 !important;
+      position: relative;
+      z-index: 2;
+      overflow: visible !important;
+    }
+
+    .product-thumb {
+      width: 160px !important;
+      height: 160px !important;
+      border-radius: 16px !important;
+      object-fit: contain !important;
+      background: #ffffff !important;
+      border: 1.5px solid #d5e1ea !important;
+      padding: 6px !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, border-color 0.35s ease !important;
+      cursor: zoom-in !important;
+      display: block !important;
+      position: relative !important;
+      z-index: 2 !important;
+    }
+
+    .product-thumb:hover {
+      transform: scale(1.6) !important;
+      z-index: 9999 !important;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.32) !important;
+      border-color: #00768f !important;
+      background: #ffffff !important;
+    }
+
+    .variant {
+      border: 1px solid #dce5ec !important;
+      border-radius: 12px !important;
+      margin-top: 10px !important;
+      padding: 12px 18px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 32px !important;
+      position: relative;
+      background: #fafcfd !important;
+    }
+
+    .variant:last-child {
+      border-radius: 12px !important;
+    }
+
+    .variant-info {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .color-title {
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    .price {
+      font-weight: 900;
+      font-size: 16px;
+      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start !important;
+      gap: 2px;
+      margin: 0 !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      flex-shrink: 0;
+    }
+
+    .current-price {
+      font-size: 16px;
+      font-weight: 900;
+      color: #17324d;
+    }
+
+    .add {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid #66b8c7;
+      background: #e6f5f8;
+      color: var(--primary);
+      font-size: 24px;
+      flex-shrink: 0;
+      margin-left: auto !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .add:hover {
+      background: #00768f;
+      color: #ffffff;
+      border-color: #00768f;
+      transform: scale(1.08);
+    }
+  </style>
 </head>
 
 <body>
@@ -352,9 +462,8 @@
     <article class="product">
       <div class="product-head">
         <div class="product-title">${esc(title)}</div>
-        <img class="product-thumb" src="${esc(items[0].image_url || '')}" onerror="this.style.visibility='hidden'">
+        <div class="thumb-box"><img class="product-thumb" src="${esc(items[0].image_url || '')}" alt="" onerror="this.src='logo.png'"></div>
       </div>
-      <!-- <div class="variant-head">رنگ‌بندی و بهترین پیشنهاد</div> -->
       ${items.map(p => variantHTML(p)).join('')}
     </article>`).join('') || '<div class="loading">محصولی پیدا نشد.</div>';
     }
@@ -428,15 +537,22 @@
     function variantHTML(p) {
       const dot = getColorHex(p);
       const discountVal = p['discount%'] || p.discount;
+
       return `<div class="variant">
-    <button class="add" onclick='addToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})'>+</button>
-    <div>
-      <div><span class="color-dot" style="background:${dot}"></span>${esc(p.color || '')}</div>
+    <div class="variant-info">
+      <div class="color-title"><span class="color-dot" style="background:${dot}"></span>${esc(p.color || 'اصلی')}</div>
       <div class="meta"><span>◉ اصلی</span><span>♧ ${esc(p.warranty || '18 ماه گارانتی')}</span><span>▣ ${esc(p.seller || 'تماس مارکت')}</span></div>
     </div>
-    <div class="price">${p.old_price && Number(p.old_price) > 0 ? `<span class="old">${money(p.old_price)}</span>` : ''}${discountVal ? `<span class="discount">${esc(discountVal)}٪</span>` : ''}<br>${money(p.price)}</div>
+    <div class="price">
+      ${p.old_price && Number(p.old_price) > 0 ? `<span class="old">${money(p.old_price)}</span>` : ''}
+      ${discountVal ? `<span class="discount">${esc(discountVal)}٪</span>` : ''}
+      <div class="current-price">${money(p.price)}</div>
+    </div>
+    <button class="add" onclick='addToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})' title="افزودن به سبد">+</button>
   </div>`;
     }
+
+
 
 
     function addToCart(p) {

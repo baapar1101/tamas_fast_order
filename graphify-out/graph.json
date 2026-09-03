@@ -4,108 +4,84 @@
   "graph": {},
   "nodes": [
     {
-      "id": "index_html_closemodal",
-      "label": "closeModal()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "Community 0",
-      "file_type": "code",
-      "norm_label": "closemodal()",
-      "source_file": "index.html",
-      "source_location": "L328"
-    },
-    {
-      "id": "index_html_closeregister",
-      "label": "closeRegister()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "Community 0",
-      "file_type": "code",
-      "norm_label": "closeregister()",
-      "source_file": "index.html",
-      "source_location": "L330"
-    },
-    {
-      "id": "index_html_openmodal",
-      "label": "openModal()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "Community 0",
-      "file_type": "code",
-      "norm_label": "openmodal()",
-      "source_file": "index.html",
-      "source_location": "L327"
-    },
-    {
-      "id": "index_html_openregister",
-      "label": "openRegister()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "Community 0",
-      "file_type": "code",
-      "norm_label": "openregister()",
-      "source_file": "index.html",
-      "source_location": "L329"
-    },
-    {
-      "id": "index_html_scrolltocart",
-      "label": "scrollToCart()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "Community 0",
-      "file_type": "code",
-      "norm_label": "scrolltocart()",
-      "source_file": "index.html",
-      "source_location": "L356"
-    },
-    {
-      "id": "index_html_submitorder",
-      "label": "submitOrder()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "Community 0",
-      "file_type": "code",
-      "norm_label": "submitorder()",
-      "source_file": "index.html",
-      "source_location": "L348"
-    },
-    {
-      "id": "index_html_submitregistration",
-      "label": "submitRegistration()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "Community 0",
-      "file_type": "code",
-      "norm_label": "submitregistration()",
-      "source_file": "index.html",
-      "source_location": "L331"
-    },
-    {
       "id": "code_gs_createorder",
       "label": "createOrder_()",
       "_callable": true,
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Community 1",
+      "community": 0,
+      "community_name": "Community 0",
       "file_type": "code",
       "norm_label": "createorder_()",
       "source_file": "Code.gs",
       "source_location": "L187"
     },
     {
+      "id": "code_gs_doget",
+      "label": "doGet()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Community 0",
+      "file_type": "code",
+      "norm_label": "doget()",
+      "source_file": "Code.gs",
+      "source_location": "L22"
+    },
+    {
+      "id": "code_gs_dopost",
+      "label": "doPost()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Community 0",
+      "file_type": "code",
+      "norm_label": "dopost()",
+      "source_file": "Code.gs",
+      "source_location": "L43"
+    },
+    {
+      "id": "code_gs_exportall",
+      "label": "exportAll_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Community 0",
+      "file_type": "code",
+      "norm_label": "exportall_()",
+      "source_file": "Code.gs",
+      "source_location": "L71"
+    },
+    {
+      "id": "code_gs_getcatalog",
+      "label": "getCatalog_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Community 0",
+      "file_type": "code",
+      "norm_label": "getcatalog_()",
+      "source_file": "Code.gs",
+      "source_location": "L59"
+    },
+    {
+      "id": "code_gs_getsettings",
+      "label": "getSettings_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Community 0",
+      "file_type": "code",
+      "norm_label": "getsettings_()",
+      "source_file": "Code.gs",
+      "source_location": "L81"
+    },
+    {
       "id": "code_gs_getsheet",
       "label": "getSheet_()",
       "_callable": true,
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Community 1",
+      "community": 0,
+      "community_name": "Community 0",
       "file_type": "code",
       "norm_label": "getsheet_()",
       "source_file": "Code.gs",
@@ -116,116 +92,308 @@
       "label": "headers_()",
       "_callable": true,
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Community 1",
+      "community": 0,
+      "community_name": "Community 0",
       "file_type": "code",
       "norm_label": "headers_()",
       "source_file": "Code.gs",
       "source_location": "L208"
     },
     {
+      "id": "code_gs_json",
+      "label": "json_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Community 0",
+      "file_type": "code",
+      "norm_label": "json_()",
+      "source_file": "Code.gs",
+      "source_location": "L266"
+    },
+    {
+      "id": "code_gs_output",
+      "label": "output_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Community 0",
+      "file_type": "code",
+      "norm_label": "output_()",
+      "source_file": "Code.gs",
+      "source_location": "L261"
+    },
+    {
+      "id": "code_gs_read",
+      "label": "read_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Community 0",
+      "file_type": "code",
+      "norm_label": "read_()",
+      "source_file": "Code.gs",
+      "source_location": "L212"
+    },
+    {
       "id": "code_gs_registeruser",
       "label": "registerUser_()",
       "_callable": true,
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Community 1",
+      "community": 0,
+      "community_name": "Community 0",
       "file_type": "code",
       "norm_label": "registeruser_()",
       "source_file": "Code.gs",
       "source_location": "L170"
     },
     {
+      "id": "code_gs_setupsheets",
+      "label": "setupSheets_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Community 0",
+      "file_type": "code",
+      "norm_label": "setupsheets_()",
+      "source_file": "Code.gs",
+      "source_location": "L157"
+    },
+    {
+      "id": "code_gs_synccatalog",
+      "label": "syncCatalog_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Community 0",
+      "file_type": "code",
+      "norm_label": "synccatalog_()",
+      "source_file": "Code.gs",
+      "source_location": "L93"
+    },
+    {
+      "id": "code_gs_syncsheet",
+      "label": "syncSheet_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Community 0",
+      "file_type": "code",
+      "norm_label": "syncsheet_()",
+      "source_file": "Code.gs",
+      "source_location": "L117"
+    },
+    {
       "id": "code_gs_updatestock",
       "label": "updateStock_()",
       "_callable": true,
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Community 1",
+      "community": 0,
+      "community_name": "Community 0",
       "file_type": "code",
       "norm_label": "updatestock_()",
       "source_file": "Code.gs",
       "source_location": "L126"
     },
     {
-      "id": "sync_spreadsheet_load_config",
-      "label": "load_config()",
+      "id": "code_gs_writesheetobjects",
+      "label": "writeSheetObjects_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "Community 0",
+      "file_type": "code",
+      "norm_label": "writesheetobjects_()",
+      "source_file": "Code.gs",
+      "source_location": "L227"
+    },
+    {
+      "id": "index_html_addtocart",
+      "label": "addToCart()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "addtocart()",
+      "source_file": "index.html",
+      "source_location": "L554"
+    },
+    {
+      "id": "index_html_changeqty",
+      "label": "changeQty()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "changeqty()",
+      "source_file": "index.html",
+      "source_location": "L559"
+    },
+    {
+      "id": "index_html_closemodal",
+      "label": "closeModal()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "closemodal()",
+      "source_file": "index.html",
+      "source_location": "L575"
+    },
+    {
+      "id": "index_html_closeregister",
+      "label": "closeRegister()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "closeregister()",
+      "source_file": "index.html",
+      "source_location": "L577"
+    },
+    {
+      "id": "index_html_openmodal",
+      "label": "openModal()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "openmodal()",
+      "source_file": "index.html",
+      "source_location": "L574"
+    },
+    {
+      "id": "index_html_openregister",
+      "label": "openRegister()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "openregister()",
+      "source_file": "index.html",
+      "source_location": "L576"
+    },
+    {
+      "id": "index_html_rendercart",
+      "label": "renderCart()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "rendercart()",
+      "source_file": "index.html",
+      "source_location": "L563"
+    },
+    {
+      "id": "index_html_scrolltocart",
+      "label": "scrollToCart()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "scrolltocart()",
+      "source_file": "index.html",
+      "source_location": "L605"
+    },
+    {
+      "id": "index_html_submitorder",
+      "label": "submitOrder()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "submitorder()",
+      "source_file": "index.html",
+      "source_location": "L597"
+    },
+    {
+      "id": "index_html_submitregistration",
+      "label": "submitRegistration()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "submitregistration()",
+      "source_file": "index.html",
+      "source_location": "L578"
+    },
+    {
+      "id": "index_html_categorybrandnames",
+      "label": "categoryBrandNames_()",
       "_callable": true,
       "_origin": "ast",
       "community": 10,
       "community_name": "Community 10",
       "file_type": "code",
-      "norm_label": "load_config()",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L31"
+      "norm_label": "categorybrandnames_()",
+      "source_file": "index.html",
+      "source_location": "L290"
     },
     {
-      "id": "sync_spreadsheet_main",
-      "label": "main()",
+      "id": "index_html_getcolorhex",
+      "label": "getColorHex()",
       "_callable": true,
       "_origin": "ast",
       "community": 10,
       "community_name": "Community 10",
       "file_type": "code",
-      "norm_label": "main()",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L321"
+      "norm_label": "getcolorhex()",
+      "source_file": "index.html",
+      "source_location": "L466"
     },
     {
-      "id": "sync_spreadsheet_save_config",
-      "label": "save_config()",
+      "id": "index_html_money",
+      "label": "money()",
       "_callable": true,
       "_origin": "ast",
       "community": 10,
       "community_name": "Community 10",
       "file_type": "code",
-      "norm_label": "save_config()",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L49"
+      "norm_label": "money()",
+      "source_file": "index.html",
+      "source_location": "L229"
     },
     {
-      "id": "index_html_changeslide",
-      "label": "changeSlide()",
+      "id": "index_html_normalizefiltervalue",
+      "label": "normalizeFilterValue_()",
       "_callable": true,
       "_origin": "ast",
-      "community": 11,
-      "community_name": "Community 11",
+      "community": 10,
+      "community_name": "Community 10",
       "file_type": "code",
-      "norm_label": "changeslide()",
+      "norm_label": "normalizefiltervalue_()",
       "source_file": "index.html",
-      "source_location": "L202"
+      "source_location": "L282"
     },
     {
-      "id": "index_html_gotoslide",
-      "label": "goToSlide()",
+      "id": "index_html_varianthtml",
+      "label": "variantHTML()",
       "_callable": true,
       "_origin": "ast",
-      "community": 11,
-      "community_name": "Community 11",
+      "community": 10,
+      "community_name": "Community 10",
       "file_type": "code",
-      "norm_label": "gotoslide()",
+      "norm_label": "varianthtml()",
       "source_file": "index.html",
-      "source_location": "L195"
-    },
-    {
-      "id": "index_html_resetslidertimer",
-      "label": "resetSliderTimer()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "Community 11",
-      "file_type": "code",
-      "norm_label": "resetslidertimer()",
-      "source_file": "index.html",
-      "source_location": "L203"
+      "source_location": "L533"
     },
     {
       "id": "build_workbook_build",
       "label": "build()",
       "_callable": true,
       "_origin": "ast",
-      "community": 12,
-      "community_name": "Community 12",
+      "community": 11,
+      "community_name": "Community 11",
       "file_type": "code",
       "norm_label": "build()",
       "source_file": "build_workbook.py",
@@ -241,7 +409,7 @@
       "file_type": "code",
       "norm_label": "asseticon_()",
       "source_file": "index.html",
-      "source_location": "L250"
+      "source_location": "L330"
     },
     {
       "id": "index_html_buildbrands",
@@ -253,7 +421,7 @@
       "file_type": "code",
       "norm_label": "buildbrands()",
       "source_file": "index.html",
-      "source_location": "L239"
+      "source_location": "L300"
     },
     {
       "id": "index_html_buildcategories",
@@ -265,19 +433,7 @@
       "file_type": "code",
       "norm_label": "buildcategories()",
       "source_file": "index.html",
-      "source_location": "L245"
-    },
-    {
-      "id": "index_html_demoproducts",
-      "label": "demoProducts()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "Community 2",
-      "file_type": "code",
-      "norm_label": "demoproducts()",
-      "source_file": "index.html",
-      "source_location": "L231"
+      "source_location": "L319"
     },
     {
       "id": "index_html_esc",
@@ -289,31 +445,19 @@
       "file_type": "code",
       "norm_label": "esc()",
       "source_file": "index.html",
-      "source_location": "L357"
+      "source_location": "L606"
     },
     {
-      "id": "index_html_jsonp",
-      "label": "jsonp()",
+      "id": "index_html_filtercategory",
+      "label": "filterCategory()",
       "_callable": true,
       "_origin": "ast",
       "community": 2,
       "community_name": "Community 2",
       "file_type": "code",
-      "norm_label": "jsonp()",
+      "norm_label": "filtercategory()",
       "source_file": "index.html",
-      "source_location": "L205"
-    },
-    {
-      "id": "index_html_load",
-      "label": "load()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "Community 2",
-      "file_type": "code",
-      "norm_label": "load()",
-      "source_file": "index.html",
-      "source_location": "L216"
+      "source_location": "L412"
     },
     {
       "id": "sync_spreadsheet_cmd_push",
@@ -325,7 +469,7 @@
       "file_type": "code",
       "norm_label": "cmd_push()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L223"
+      "source_location": "L235"
     },
     {
       "id": "sync_spreadsheet_cmd_watch",
@@ -337,7 +481,7 @@
       "file_type": "code",
       "norm_label": "cmd_watch()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L299"
+      "source_location": "L311"
     },
     {
       "id": "sync_spreadsheet_push_to_web_app",
@@ -349,394 +493,254 @@
       "file_type": "code",
       "norm_label": "push_to_web_app()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L174"
-    },
-    {
-      "id": "code_gs_doget",
-      "label": "doGet()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "Community 4",
-      "file_type": "code",
-      "norm_label": "doget()",
-      "source_file": "Code.gs",
-      "source_location": "L22"
-    },
-    {
-      "id": "code_gs_exportall",
-      "label": "exportAll_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "Community 4",
-      "file_type": "code",
-      "norm_label": "exportall_()",
-      "source_file": "Code.gs",
-      "source_location": "L71"
-    },
-    {
-      "id": "code_gs_getcatalog",
-      "label": "getCatalog_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "Community 4",
-      "file_type": "code",
-      "norm_label": "getcatalog_()",
-      "source_file": "Code.gs",
-      "source_location": "L59"
-    },
-    {
-      "id": "code_gs_getsettings",
-      "label": "getSettings_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "Community 4",
-      "file_type": "code",
-      "norm_label": "getsettings_()",
-      "source_file": "Code.gs",
-      "source_location": "L81"
-    },
-    {
-      "id": "code_gs_read",
-      "label": "read_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "Community 4",
-      "file_type": "code",
-      "norm_label": "read_()",
-      "source_file": "Code.gs",
-      "source_location": "L212"
-    },
-    {
-      "id": "code_gs_setupsheets",
-      "label": "setupSheets_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "Community 4",
-      "file_type": "code",
-      "norm_label": "setupsheets_()",
-      "source_file": "Code.gs",
-      "source_location": "L157"
-    },
-    {
-      "id": "code_gs_dopost",
-      "label": "doPost()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Community 5",
-      "file_type": "code",
-      "norm_label": "dopost()",
-      "source_file": "Code.gs",
-      "source_location": "L43"
-    },
-    {
-      "id": "code_gs_json",
-      "label": "json_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Community 5",
-      "file_type": "code",
-      "norm_label": "json_()",
-      "source_file": "Code.gs",
-      "source_location": "L266"
-    },
-    {
-      "id": "code_gs_output",
-      "label": "output_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Community 5",
-      "file_type": "code",
-      "norm_label": "output_()",
-      "source_file": "Code.gs",
-      "source_location": "L261"
-    },
-    {
-      "id": "code_gs_synccatalog",
-      "label": "syncCatalog_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Community 5",
-      "file_type": "code",
-      "norm_label": "synccatalog_()",
-      "source_file": "Code.gs",
-      "source_location": "L93"
-    },
-    {
-      "id": "code_gs_syncsheet",
-      "label": "syncSheet_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Community 5",
-      "file_type": "code",
-      "norm_label": "syncsheet_()",
-      "source_file": "Code.gs",
-      "source_location": "L117"
-    },
-    {
-      "id": "code_gs_writesheetobjects",
-      "label": "writeSheetObjects_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Community 5",
-      "file_type": "code",
-      "norm_label": "writesheetobjects_()",
-      "source_file": "Code.gs",
-      "source_location": "L227"
+      "source_location": "L186"
     },
     {
       "id": "sync_spreadsheet_cmd_diff",
       "label": "cmd_diff()",
       "_callable": true,
       "_origin": "ast",
-      "community": 6,
-      "community_name": "Community 6",
+      "community": 4,
+      "community_name": "Community 4",
       "file_type": "code",
       "norm_label": "cmd_diff()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L238"
-    },
-    {
-      "id": "sync_spreadsheet_fetch_csv_from_gss",
-      "label": "fetch_csv_from_gss()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "Community 6",
-      "file_type": "code",
-      "norm_label": "fetch_csv_from_gss()",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L139"
-    },
-    {
-      "id": "sync_spreadsheet_read_excel_catalog",
-      "label": "read_excel_catalog()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "Community 6",
-      "file_type": "code",
-      "norm_label": "read_excel_catalog()",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L55"
-    },
-    {
-      "id": "sync_spreadsheet_cmd_pull",
-      "label": "cmd_pull()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "Community 7",
-      "file_type": "code",
-      "norm_label": "cmd_pull()",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L189"
+      "source_location": "L250"
     },
     {
       "id": "sync_spreadsheet_fetch_from_web_app",
       "label": "fetch_from_web_app()",
       "_callable": true,
       "_origin": "ast",
-      "community": 7,
-      "community_name": "Community 7",
+      "community": 4,
+      "community_name": "Community 4",
       "file_type": "code",
       "norm_label": "fetch_from_web_app()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L163"
+      "source_location": "L175"
+    },
+    {
+      "id": "sync_spreadsheet_read_excel_catalog",
+      "label": "read_excel_catalog()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "Community 4",
+      "file_type": "code",
+      "norm_label": "read_excel_catalog()",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L67"
+    },
+    {
+      "id": "sync_spreadsheet_cmd_pull",
+      "label": "cmd_pull()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "Community 5",
+      "file_type": "code",
+      "norm_label": "cmd_pull()",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L201"
+    },
+    {
+      "id": "sync_spreadsheet_fetch_csv_from_gss",
+      "label": "fetch_csv_from_gss()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "Community 5",
+      "file_type": "code",
+      "norm_label": "fetch_csv_from_gss()",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L151"
     },
     {
       "id": "sync_spreadsheet_write_excel_catalog",
       "label": "write_excel_catalog()",
       "_callable": true,
       "_origin": "ast",
-      "community": 7,
-      "community_name": "Community 7",
+      "community": 5,
+      "community_name": "Community 5",
       "file_type": "code",
       "norm_label": "write_excel_catalog()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L107"
-    },
-    {
-      "id": "index_html_addtocart",
-      "label": "addToCart()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "Community 8",
-      "file_type": "code",
-      "norm_label": "addtocart()",
-      "source_file": "index.html",
-      "source_location": "L307"
-    },
-    {
-      "id": "index_html_changeqty",
-      "label": "changeQty()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "Community 8",
-      "file_type": "code",
-      "norm_label": "changeqty()",
-      "source_file": "index.html",
-      "source_location": "L312"
-    },
-    {
-      "id": "index_html_money",
-      "label": "money()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "Community 8",
-      "file_type": "code",
-      "norm_label": "money()",
-      "source_file": "index.html",
-      "source_location": "L194"
-    },
-    {
-      "id": "index_html_rendercart",
-      "label": "renderCart()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "Community 8",
-      "file_type": "code",
-      "norm_label": "rendercart()",
-      "source_file": "index.html",
-      "source_location": "L316"
-    },
-    {
-      "id": "index_html_varianthtml",
-      "label": "variantHTML()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "Community 8",
-      "file_type": "code",
-      "norm_label": "varianthtml()",
-      "source_file": "index.html",
-      "source_location": "L296"
+      "source_location": "L119"
     },
     {
       "id": "index_html_filterbrand",
       "label": "filterBrand()",
       "_callable": true,
       "_origin": "ast",
-      "community": 9,
-      "community_name": "Community 9",
+      "community": 6,
+      "community_name": "Community 6",
       "file_type": "code",
       "norm_label": "filterbrand()",
       "source_file": "index.html",
-      "source_location": "L263"
+      "source_location": "L406"
     },
     {
-      "id": "index_html_filtercategory",
-      "label": "filterCategory()",
+      "id": "index_html_getproductstock",
+      "label": "getProductStock()",
       "_callable": true,
       "_origin": "ast",
-      "community": 9,
-      "community_name": "Community 9",
+      "community": 6,
+      "community_name": "Community 6",
       "file_type": "code",
-      "norm_label": "filtercategory()",
+      "norm_label": "getproductstock()",
       "source_file": "index.html",
-      "source_location": "L269"
+      "source_location": "L428"
     },
     {
       "id": "index_html_render",
       "label": "render()",
       "_callable": true,
       "_origin": "ast",
-      "community": 9,
-      "community_name": "Community 9",
+      "community": 6,
+      "community_name": "Community 6",
       "file_type": "code",
       "norm_label": "render()",
       "source_file": "index.html",
-      "source_location": "L272"
+      "source_location": "L438"
     },
     {
       "id": "index_html_sortprice",
       "label": "sortPrice()",
       "_callable": true,
       "_origin": "ast",
-      "community": 9,
-      "community_name": "Community 9",
+      "community": 6,
+      "community_name": "Community 6",
       "file_type": "code",
       "norm_label": "sortprice()",
       "source_file": "index.html",
-      "source_location": "L271"
+      "source_location": "L426"
     },
     {
       "id": "index_html_togglepromotion",
       "label": "togglePromotion()",
       "_callable": true,
       "_origin": "ast",
-      "community": 9,
-      "community_name": "Community 9",
+      "community": 6,
+      "community_name": "Community 6",
       "file_type": "code",
       "norm_label": "togglepromotion()",
       "source_file": "index.html",
-      "source_location": "L270"
+      "source_location": "L425"
     },
     {
-      "id": "index_html",
-      "label": "index.html",
+      "id": "sync_spreadsheet_load_config",
+      "label": "load_config()",
+      "_callable": true,
       "_origin": "ast",
-      "community": 0,
-      "community_name": "Community 0",
+      "community": 7,
+      "community_name": "Community 7",
       "file_type": "code",
-      "norm_label": "index.html",
-      "source_file": "index.html",
-      "source_location": "L187"
+      "norm_label": "load_config()",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L43"
     },
     {
-      "id": "index_html_allproducts",
-      "label": "allProducts",
+      "id": "sync_spreadsheet_main",
+      "label": "main()",
+      "_callable": true,
       "_origin": "ast",
-      "community": 0,
-      "community_name": "Community 0",
+      "community": 7,
+      "community_name": "Community 7",
       "file_type": "code",
-      "norm_label": "allproducts",
-      "source_file": "index.html",
-      "source_location": "L191"
+      "norm_label": "main()",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L333"
     },
     {
-      "id": "index_html_cart",
-      "label": "cart",
+      "id": "sync_spreadsheet_save_config",
+      "label": "save_config()",
+      "_callable": true,
       "_origin": "ast",
-      "community": 0,
-      "community_name": "Community 0",
+      "community": 7,
+      "community_name": "Community 7",
       "file_type": "code",
-      "norm_label": "cart",
-      "source_file": "index.html",
-      "source_location": "L191"
+      "norm_label": "save_config()",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L61"
     },
     {
-      "id": "index_html_catalog",
-      "label": "catalog",
+      "id": "index_html_changeslide",
+      "label": "changeSlide()",
+      "_callable": true,
       "_origin": "ast",
-      "community": 0,
-      "community_name": "Community 0",
+      "community": 8,
+      "community_name": "Community 8",
       "file_type": "code",
-      "norm_label": "catalog",
+      "norm_label": "changeslide()",
       "source_file": "index.html",
-      "source_location": "L191"
+      "source_location": "L237"
+    },
+    {
+      "id": "index_html_gotoslide",
+      "label": "goToSlide()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "Community 8",
+      "file_type": "code",
+      "norm_label": "gotoslide()",
+      "source_file": "index.html",
+      "source_location": "L230"
+    },
+    {
+      "id": "index_html_resetslidertimer",
+      "label": "resetSliderTimer()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "Community 8",
+      "file_type": "code",
+      "norm_label": "resetslidertimer()",
+      "source_file": "index.html",
+      "source_location": "L238"
+    },
+    {
+      "id": "index_html_demoproducts",
+      "label": "demoProducts()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "Community 9",
+      "file_type": "code",
+      "norm_label": "demoproducts()",
+      "source_file": "index.html",
+      "source_location": "L274"
+    },
+    {
+      "id": "index_html_jsonp",
+      "label": "jsonp()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "Community 9",
+      "file_type": "code",
+      "norm_label": "jsonp()",
+      "source_file": "index.html",
+      "source_location": "L240"
+    },
+    {
+      "id": "index_html_load",
+      "label": "load()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "Community 9",
+      "file_type": "code",
+      "norm_label": "load()",
+      "source_file": "index.html",
+      "source_location": "L251"
     },
     {
       "id": "code_gs",
       "label": "Code.gs",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Community 1",
+      "community": 0,
+      "community_name": "Community 0",
       "file_type": "code",
       "norm_label": "code.gs",
       "source_file": "Code.gs",
@@ -746,8 +750,8 @@
       "id": "code_gs_default_headers",
       "label": "DEFAULT_HEADERS",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Community 1",
+      "community": 0,
+      "community_name": "Community 0",
       "file_type": "code",
       "norm_label": "default_headers",
       "source_file": "Code.gs",
@@ -757,59 +761,70 @@
       "id": "code_gs_sheets",
       "label": "SHEETS",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Community 1",
+      "community": 0,
+      "community_name": "Community 0",
       "file_type": "code",
       "norm_label": "sheets",
       "source_file": "Code.gs",
       "source_location": "L2"
     },
     {
-      "id": "sync_spreadsheet_rationale_32",
-      "label": "Load configuration from sync_config.json if it exists.",
+      "id": "index_html",
+      "label": "index.html",
       "_origin": "ast",
-      "community": 10,
-      "community_name": "Community 10",
-      "file_type": "rationale",
-      "norm_label": "load configuration from sync_config.json if it exists.",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L32"
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "index.html",
+      "source_file": "index.html",
+      "source_location": "L222"
     },
     {
-      "id": "sync_spreadsheet_rationale_50",
-      "label": "Save current configuration to sync_config.json.",
+      "id": "index_html_allproducts",
+      "label": "allProducts",
       "_origin": "ast",
-      "community": 10,
-      "community_name": "Community 10",
-      "file_type": "rationale",
-      "norm_label": "save current configuration to sync_config.json.",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L50"
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "allproducts",
+      "source_file": "index.html",
+      "source_location": "L226"
+    },
+    {
+      "id": "index_html_cart",
+      "label": "cart",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "cart",
+      "source_file": "index.html",
+      "source_location": "L226"
+    },
+    {
+      "id": "index_html_catalog",
+      "label": "catalog",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "catalog",
+      "source_file": "index.html",
+      "source_location": "L226"
     },
     {
       "id": "build_workbook",
       "label": "build_workbook.py",
       "_origin": "ast",
-      "community": 12,
-      "community_name": "Community 12",
+      "community": 11,
+      "community_name": "Community 11",
       "file_type": "code",
       "norm_label": "build_workbook.py",
       "source_file": "build_workbook.py",
       "source_location": "L1"
     },
     {
-      "id": "sync_spreadsheet",
-      "label": "sync_spreadsheet.py",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Community 3",
-      "file_type": "code",
-      "norm_label": "sync_spreadsheet.py",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "sync_spreadsheet_rationale_175",
+      "id": "sync_spreadsheet_rationale_187",
       "label": "Upload catalog data to Google Apps Script Web App.",
       "_origin": "ast",
       "community": 3,
@@ -817,10 +832,10 @@
       "file_type": "rationale",
       "norm_label": "upload catalog data to google apps script web app.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L175"
+      "source_location": "L187"
     },
     {
-      "id": "sync_spreadsheet_rationale_224",
+      "id": "sync_spreadsheet_rationale_236",
       "label": "Push local Excel data to Google Sheets via Apps Script Web App.",
       "_origin": "ast",
       "community": 3,
@@ -828,10 +843,10 @@
       "file_type": "rationale",
       "norm_label": "push local excel data to google sheets via apps script web app.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L224"
+      "source_location": "L236"
     },
     {
-      "id": "sync_spreadsheet_rationale_300",
+      "id": "sync_spreadsheet_rationale_312",
       "label": "Watch local Excel file for modifications and push automatically.",
       "_origin": "ast",
       "community": 3,
@@ -839,73 +854,106 @@
       "file_type": "rationale",
       "norm_label": "watch local excel file for modifications and push automatically.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L300"
+      "source_location": "L312"
     },
     {
-      "id": "sync_spreadsheet_rationale_140",
-      "label": "Fetch sheet content via Google Sheets CSV export URL (no API key required if\u2026",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "Community 6",
-      "file_type": "rationale",
-      "norm_label": "fetch sheet content via google sheets csv export url (no api key required if...",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L140"
-    },
-    {
-      "id": "sync_spreadsheet_rationale_239",
-      "label": "Compare local Excel data against remote Google Sheet data.",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "Community 6",
-      "file_type": "rationale",
-      "norm_label": "compare local excel data against remote google sheet data.",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L239"
-    },
-    {
-      "id": "sync_spreadsheet_rationale_56",
-      "label": "Read local Excel workbook and return dictionary of sheets with rows.",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "Community 6",
-      "file_type": "rationale",
-      "norm_label": "read local excel workbook and return dictionary of sheets with rows.",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L56"
-    },
-    {
-      "id": "sync_spreadsheet_rationale_108",
-      "label": "Write catalog data (dict of lists) to Excel workbook.",
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "Community 7",
-      "file_type": "rationale",
-      "norm_label": "write catalog data (dict of lists) to excel workbook.",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L108"
-    },
-    {
-      "id": "sync_spreadsheet_rationale_164",
+      "id": "sync_spreadsheet_rationale_176",
       "label": "Fetch data from deployed Google Apps Script Web App endpoint.",
       "_origin": "ast",
-      "community": 7,
-      "community_name": "Community 7",
+      "community": 4,
+      "community_name": "Community 4",
       "file_type": "rationale",
       "norm_label": "fetch data from deployed google apps script web app endpoint.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L164"
+      "source_location": "L176"
     },
     {
-      "id": "sync_spreadsheet_rationale_190",
+      "id": "sync_spreadsheet_rationale_251",
+      "label": "Compare local Excel data against remote Google Sheet data.",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "Community 4",
+      "file_type": "rationale",
+      "norm_label": "compare local excel data against remote google sheet data.",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L251"
+    },
+    {
+      "id": "sync_spreadsheet_rationale_68",
+      "label": "Read local Excel workbook and return dictionary of sheets with rows.",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "Community 4",
+      "file_type": "rationale",
+      "norm_label": "read local excel workbook and return dictionary of sheets with rows.",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L68"
+    },
+    {
+      "id": "sync_spreadsheet",
+      "label": "sync_spreadsheet.py",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "Community 5",
+      "file_type": "code",
+      "norm_label": "sync_spreadsheet.py",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "sync_spreadsheet_rationale_120",
+      "label": "Write catalog data (dict of lists) to Excel workbook.",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "Community 5",
+      "file_type": "rationale",
+      "norm_label": "write catalog data (dict of lists) to excel workbook.",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L120"
+    },
+    {
+      "id": "sync_spreadsheet_rationale_152",
+      "label": "Fetch sheet content via Google Sheets CSV export URL (no API key required if\u2026",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "Community 5",
+      "file_type": "rationale",
+      "norm_label": "fetch sheet content via google sheets csv export url (no api key required if...",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L152"
+    },
+    {
+      "id": "sync_spreadsheet_rationale_202",
       "label": "Pull data from Google Sheets / Apps Script and update local Excel and JSON\u2026",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "Community 5",
+      "file_type": "rationale",
+      "norm_label": "pull data from google sheets / apps script and update local excel and json...",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L202"
+    },
+    {
+      "id": "sync_spreadsheet_rationale_44",
+      "label": "Load configuration from sync_config.json if it exists.",
       "_origin": "ast",
       "community": 7,
       "community_name": "Community 7",
       "file_type": "rationale",
-      "norm_label": "pull data from google sheets / apps script and update local excel and json...",
+      "norm_label": "load configuration from sync_config.json if it exists.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L190"
+      "source_location": "L44"
+    },
+    {
+      "id": "sync_spreadsheet_rationale_62",
+      "label": "Save current configuration to sync_config.json.",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "Community 7",
+      "file_type": "rationale",
+      "norm_label": "save current configuration to sync_config.json.",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L62"
     }
   ],
   "links": [
@@ -1242,7 +1290,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L310",
+      "source_location": "L557",
       "weight": 1.0
     },
     {
@@ -1254,7 +1302,31 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L259",
+      "source_location": "L393",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html_buildbrands",
+      "target": "index_html_categorybrandnames",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "index.html",
+      "source_location": "L305",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html_buildbrands",
+      "target": "index_html_normalizefiltervalue",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "index.html",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -1266,7 +1338,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L243",
+      "source_location": "L314",
       "weight": 1.0
     },
     {
@@ -1278,7 +1350,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L243",
+      "source_location": "L316",
       "weight": 1.0
     },
     {
@@ -1290,7 +1362,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L248",
+      "source_location": "L324",
       "weight": 1.0
     },
     {
@@ -1302,7 +1374,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L248",
+      "source_location": "L326",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html_categorybrandnames",
+      "target": "index_html_normalizefiltervalue",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "index.html",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -1314,7 +1398,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L314",
+      "source_location": "L561",
       "weight": 1.0
     },
     {
@@ -1326,7 +1410,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L202",
+      "source_location": "L237",
       "weight": 1.0
     },
     {
@@ -1338,7 +1422,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L202",
+      "source_location": "L237",
       "weight": 1.0
     },
     {
@@ -1350,7 +1434,31 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L266",
+      "source_location": "L409",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html_filtercategory",
+      "target": "index_html_buildbrands",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "index.html",
+      "source_location": "L419",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html_filtercategory",
+      "target": "index_html_buildcategories",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "index.html",
+      "source_location": "L420",
       "weight": 1.0
     },
     {
@@ -1362,7 +1470,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L269",
+      "source_location": "L421",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html_getcolorhex",
+      "target": "index_html_normalizefiltervalue",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "index.html",
+      "source_location": "L484",
       "weight": 1.0
     },
     {
@@ -1374,7 +1494,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L218",
+      "source_location": "L253",
       "weight": 1.0
     },
     {
@@ -1386,7 +1506,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L221",
+      "source_location": "L256",
       "weight": 1.0
     },
     {
@@ -1398,7 +1518,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L228",
+      "source_location": "L271",
       "weight": 1.0
     },
     {
@@ -1410,7 +1530,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L228",
+      "source_location": "L271",
       "weight": 1.0
     },
     {
@@ -1422,7 +1542,31 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L228",
+      "source_location": "L271",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html_render",
+      "target": "index_html_getproductstock",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "index.html",
+      "source_location": "L441",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html_render",
+      "target": "index_html_normalizefiltervalue",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "index.html",
+      "source_location": "L448",
       "weight": 1.0
     },
     {
@@ -1434,7 +1578,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L289",
+      "source_location": "L460",
       "weight": 1.0
     },
     {
@@ -1446,7 +1590,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L293",
+      "source_location": "L463",
       "weight": 1.0
     },
     {
@@ -1458,7 +1602,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L321",
+      "source_location": "L568",
       "weight": 1.0
     },
     {
@@ -1470,7 +1614,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L323",
+      "source_location": "L570",
       "weight": 1.0
     },
     {
@@ -1482,7 +1626,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L203",
+      "source_location": "L238",
       "weight": 1.0
     },
     {
@@ -1494,7 +1638,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L271",
+      "source_location": "L426",
       "weight": 1.0
     },
     {
@@ -1506,7 +1650,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L354",
+      "source_location": "L603",
       "weight": 1.0
     },
     {
@@ -1518,7 +1662,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L354",
+      "source_location": "L603",
       "weight": 1.0
     },
     {
@@ -1530,7 +1674,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L345",
+      "source_location": "L594",
       "weight": 1.0
     },
     {
@@ -1542,7 +1686,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L270",
+      "source_location": "L425",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html_varianthtml",
+      "target": "index_html_getcolorhex",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "index.html",
+      "source_location": "L534",
       "weight": 1.0
     },
     {
@@ -1554,7 +1710,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L301",
+      "source_location": "L539",
       "weight": 1.0
     },
     {
@@ -1566,7 +1722,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "index.html",
-      "source_location": "L304",
+      "source_location": "L543",
       "weight": 1.0
     },
     {
@@ -1578,7 +1734,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L241",
+      "source_location": "L253",
       "weight": 1.0
     },
     {
@@ -1590,7 +1746,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L246",
+      "source_location": "L258",
       "weight": 1.0
     },
     {
@@ -1602,7 +1758,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L254",
+      "source_location": "L266",
       "weight": 1.0
     },
     {
@@ -1614,7 +1770,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L197",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -1626,7 +1782,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L206",
+      "source_location": "L218",
       "weight": 1.0
     },
     {
@@ -1638,7 +1794,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L220",
+      "source_location": "L232",
       "weight": 1.0
     },
     {
@@ -1650,7 +1806,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L231",
+      "source_location": "L243",
       "weight": 1.0
     },
     {
@@ -1662,7 +1818,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L234",
+      "source_location": "L246",
       "weight": 1.0
     },
     {
@@ -1674,7 +1830,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L311",
+      "source_location": "L323",
       "weight": 1.0
     },
     {
@@ -1686,7 +1842,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L322",
+      "source_location": "L334",
       "weight": 1.0
     },
     {
@@ -1698,7 +1854,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L339",
+      "source_location": "L351",
       "weight": 1.0
     },
     {
@@ -1710,7 +1866,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L351",
+      "source_location": "L363",
       "weight": 1.0
     },
     {
@@ -1722,7 +1878,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L353",
+      "source_location": "L365",
       "weight": 1.0
     },
     {
@@ -1734,7 +1890,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L355",
+      "source_location": "L367",
       "weight": 1.0
     },
     {
@@ -1746,7 +1902,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L357",
+      "source_location": "L369",
       "weight": 1.0
     },
     {
@@ -1977,7 +2133,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L191",
+      "source_location": "L226",
       "weight": 1.0
     },
     {
@@ -1988,7 +2144,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L191",
+      "source_location": "L226",
       "weight": 1.0
     },
     {
@@ -1999,7 +2155,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L191",
+      "source_location": "L226",
       "weight": 1.0
     },
     {
@@ -2010,7 +2166,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L194",
+      "source_location": "L229",
       "weight": 1.0
     },
     {
@@ -2021,7 +2177,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L195",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -2032,7 +2188,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L202",
+      "source_location": "L237",
       "weight": 1.0
     },
     {
@@ -2043,7 +2199,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L203",
+      "source_location": "L238",
       "weight": 1.0
     },
     {
@@ -2054,7 +2210,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L205",
+      "source_location": "L240",
       "weight": 1.0
     },
     {
@@ -2065,7 +2221,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L216",
+      "source_location": "L251",
       "weight": 1.0
     },
     {
@@ -2076,7 +2232,29 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L231",
+      "source_location": "L274",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html",
+      "target": "index_html_normalizefiltervalue",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": "L282",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html",
+      "target": "index_html_categorybrandnames",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": "L290",
       "weight": 1.0
     },
     {
@@ -2087,7 +2265,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L239",
+      "source_location": "L300",
       "weight": 1.0
     },
     {
@@ -2098,7 +2276,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L245",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -2109,7 +2287,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L250",
+      "source_location": "L330",
       "weight": 1.0
     },
     {
@@ -2120,7 +2298,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L263",
+      "source_location": "L406",
       "weight": 1.0
     },
     {
@@ -2131,7 +2309,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L269",
+      "source_location": "L412",
       "weight": 1.0
     },
     {
@@ -2142,7 +2320,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L270",
+      "source_location": "L425",
       "weight": 1.0
     },
     {
@@ -2153,7 +2331,29 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L271",
+      "source_location": "L426",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html",
+      "target": "index_html_getproductstock",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": "L428",
+      "weight": 1.0
+    },
+    {
+      "source": "index_html",
+      "target": "index_html_getcolorhex",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": "L466",
       "weight": 1.0
     },
     {
@@ -2164,7 +2364,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L296",
+      "source_location": "L533",
       "weight": 1.0
     },
     {
@@ -2175,7 +2375,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L307",
+      "source_location": "L554",
       "weight": 1.0
     },
     {
@@ -2186,7 +2386,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L312",
+      "source_location": "L559",
       "weight": 1.0
     },
     {
@@ -2197,7 +2397,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L316",
+      "source_location": "L563",
       "weight": 1.0
     },
     {
@@ -2208,7 +2408,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L327",
+      "source_location": "L574",
       "weight": 1.0
     },
     {
@@ -2219,7 +2419,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L328",
+      "source_location": "L575",
       "weight": 1.0
     },
     {
@@ -2230,7 +2430,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L329",
+      "source_location": "L576",
       "weight": 1.0
     },
     {
@@ -2241,7 +2441,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L330",
+      "source_location": "L577",
       "weight": 1.0
     },
     {
@@ -2252,7 +2452,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L331",
+      "source_location": "L578",
       "weight": 1.0
     },
     {
@@ -2263,7 +2463,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L348",
+      "source_location": "L597",
       "weight": 1.0
     },
     {
@@ -2274,7 +2474,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L356",
+      "source_location": "L605",
       "weight": 1.0
     },
     {
@@ -2285,7 +2485,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "index.html",
-      "source_location": "L357",
+      "source_location": "L606",
       "weight": 1.0
     },
     {
@@ -2296,7 +2496,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L107",
+      "source_location": "L119",
       "weight": 1.0
     },
     {
@@ -2307,7 +2507,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L139",
+      "source_location": "L151",
       "weight": 1.0
     },
     {
@@ -2318,7 +2518,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L163",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -2329,7 +2529,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L174",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -2340,7 +2540,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L189",
+      "source_location": "L201",
       "weight": 1.0
     },
     {
@@ -2351,7 +2551,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L223",
+      "source_location": "L235",
       "weight": 1.0
     },
     {
@@ -2362,7 +2562,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L238",
+      "source_location": "L250",
       "weight": 1.0
     },
     {
@@ -2373,18 +2573,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L299",
-      "weight": 1.0
-    },
-    {
-      "source": "sync_spreadsheet",
-      "target": "sync_spreadsheet_load_config",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L31",
+      "source_location": "L311",
       "weight": 1.0
     },
     {
@@ -2395,7 +2584,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L321",
+      "source_location": "L333",
+      "weight": 1.0
+    },
+    {
+      "source": "sync_spreadsheet",
+      "target": "sync_spreadsheet_load_config",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -2406,7 +2606,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L49",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -2417,128 +2617,128 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L55",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_108",
+      "source": "sync_spreadsheet_rationale_120",
       "target": "sync_spreadsheet_write_excel_catalog",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L108",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_140",
+      "source": "sync_spreadsheet_rationale_152",
       "target": "sync_spreadsheet_fetch_csv_from_gss",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L140",
+      "source_location": "L152",
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_164",
+      "source": "sync_spreadsheet_rationale_176",
       "target": "sync_spreadsheet_fetch_from_web_app",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L164",
+      "source_location": "L176",
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_175",
+      "source": "sync_spreadsheet_rationale_187",
       "target": "sync_spreadsheet_push_to_web_app",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L175",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_190",
+      "source": "sync_spreadsheet_rationale_202",
       "target": "sync_spreadsheet_cmd_pull",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L190",
+      "source_location": "L202",
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_224",
+      "source": "sync_spreadsheet_rationale_236",
       "target": "sync_spreadsheet_cmd_push",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L224",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_239",
+      "source": "sync_spreadsheet_rationale_251",
       "target": "sync_spreadsheet_cmd_diff",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L239",
+      "source_location": "L251",
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_300",
+      "source": "sync_spreadsheet_rationale_312",
       "target": "sync_spreadsheet_cmd_watch",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L300",
+      "source_location": "L312",
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_32",
+      "source": "sync_spreadsheet_rationale_44",
       "target": "sync_spreadsheet_load_config",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L32",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_50",
+      "source": "sync_spreadsheet_rationale_62",
       "target": "sync_spreadsheet_save_config",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L50",
+      "source_location": "L62",
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_56",
+      "source": "sync_spreadsheet_rationale_68",
       "target": "sync_spreadsheet_read_excel_catalog",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L56",
+      "source_location": "L68",
       "weight": 1.0
     },
     {
@@ -2550,10 +2750,10 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "index.html",
-      "source_location": "L358",
+      "source_location": "L607",
       "weight": 1.0
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "59b7868daef864685c2aebb55a9c114635da7c74"
+  "built_at_commit": "7dacd40d67cfa5d9b1dc2ba567047dc60d9ae6ad"
 }
