@@ -408,8 +408,12 @@
       top: 135px;
     }
 
-    /* The filter panel is always open on desktop; the toggle is mobile-only. */
-    .sidebar-toggle {
+    /* The filter panel is always open on desktop; the toggle is mobile-only.
+       The app shell (bottom tab bar + support FAB) is phone-only too — both are
+       switched on inside the max-width:768px block. */
+    .sidebar-toggle,
+    .tabbar,
+    .fab-support {
       display: none;
     }
 
