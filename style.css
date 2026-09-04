@@ -781,6 +781,200 @@
        grid-column: 1/-1
    }
 
+   /* ---------- OTP login / registration ---------- */
+
+   .auth-box {
+       position: relative;
+       max-width: 460px
+   }
+
+   .auth-box h3 {
+       margin: 0 0 8px
+   }
+
+   .auth-close {
+       position: absolute;
+       top: 12px;
+       left: 14px;
+       width: 32px;
+       height: 32px;
+       border: 0;
+       border-radius: 50%;
+       background: #f1f5f7;
+       color: #56707a;
+       font-size: 20px;
+       line-height: 1
+   }
+
+   .auth-close:hover {
+       background: #e2ebef
+   }
+
+   .auth-hint {
+       margin: 0 0 12px;
+       color: var(--muted);
+       font-size: 13px;
+       line-height: 1.9
+   }
+
+   .link-btn {
+       border: 0;
+       background: none;
+       padding: 0;
+       color: var(--primary);
+       font-weight: 700;
+       font-size: 13px;
+       text-decoration: underline;
+       text-underline-offset: 4px
+   }
+
+   .ltr-field {
+       direction: ltr;
+       text-align: left
+   }
+
+   .ltr-inline {
+       direction: ltr;
+       display: inline-block;
+       unicode-bidi: isolate
+   }
+
+   .otp-field {
+       text-align: center !important;
+       letter-spacing: 12px;
+       font-size: 22px;
+       font-weight: 800
+   }
+
+   .modal-box input.invalid,
+   .modal-box textarea.invalid {
+       border-color: #e53935;
+       background: #fff7f7
+   }
+
+   .auth-msg {
+       min-height: 18px;
+       font-size: 13px;
+       line-height: 1.7;
+       margin: 4px 2px 0
+   }
+
+   .auth-msg.error {
+       color: #d32f2f
+   }
+
+   .auth-msg.ok {
+       color: var(--success)
+   }
+
+   .auth-phone-chip {
+       background: #e6f5f8;
+       border: 1px solid #bfe2ea;
+       border-radius: 9px;
+       padding: 9px 12px;
+       margin-bottom: 10px;
+       font-size: 13px;
+       color: #0d5a6b
+   }
+
+   .account-card {
+       border: 1px solid var(--border);
+       border-radius: 12px;
+       padding: 4px 14px;
+       margin-top: 6px
+   }
+
+   .account-status {
+       margin: 12px 0 4px;
+       font-size: 13px;
+       font-weight: 700
+   }
+
+   .account-status.active {
+       color: var(--success)
+   }
+
+   .account-status.pending {
+       color: #c2410c
+   }
+
+   .account-row {
+       display: flex;
+       justify-content: space-between;
+       align-items: baseline;
+       gap: 14px;
+       padding: 10px 0;
+       border-top: 1px solid #f0f2f5;
+       font-size: 13px
+   }
+
+   .account-row span {
+       color: var(--muted);
+       flex-shrink: 0
+   }
+
+   .account-row b {
+       text-align: left
+   }
+
+   .profile-notice {
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       flex-wrap: wrap;
+       gap: 14px;
+       background: #fff4e5;
+       border-bottom: 1px solid #f5d9b0;
+       color: #8a5300;
+       padding: 11px 18px;
+       font-size: 13px;
+       font-weight: 600
+   }
+
+   .profile-notice[hidden] {
+       display: none
+   }
+
+   .profile-notice .btn {
+       background: #b45309;
+       border-color: #b45309;
+       color: #fff;
+       padding: 7px 15px;
+       font-size: 13px
+   }
+
+   #toastBox {
+       position: fixed;
+       bottom: 22px;
+       left: 22px;
+       z-index: 80;
+       display: flex;
+       flex-direction: column;
+       gap: 9px
+   }
+
+   .toast {
+       background: #17324d;
+       color: #fff;
+       border-radius: 11px;
+       padding: 13px 18px;
+       font-size: 13.5px;
+       max-width: 340px;
+       box-shadow: 0 10px 26px #0000002e;
+       animation: toast-in .25s ease
+   }
+
+   .toast.error {
+       background: #c62828
+   }
+
+   @keyframes toast-in {
+       from {
+           opacity: 0;
+           transform: translateY(10px)
+       }
+   }
+
    .site-footer {
        margin-top: 28px;
        background: #073f4b;

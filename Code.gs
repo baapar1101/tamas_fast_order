@@ -6,7 +6,8 @@ const SHEETS = {
   colors: 'Colors',
   users: 'Users',
   orders: 'Orders',
-  settings: 'Settings'
+  settings: 'Settings',
+  sessions: 'Sessions'
 };
 
 const DEFAULT_HEADERS = {
@@ -16,8 +17,20 @@ const DEFAULT_HEADERS = {
   Colors: ['color_code', 'color_fa_name', 'color_name'],
   Users: ['name', 'last_name', 'Store_name', 'phone_number', 'mobile_number', 'address', 'postal_code', 'certificate_file_url', 'actived'],
   Orders: ['order_id', 'date', 'customer_name', 'phone', 'address', 'items_json', 'total_price', 'status'],
-  Settings: ['key', 'value']
+  Settings: ['key', 'value'],
+  Sessions: ['token', 'mobile_number', 'created_at', 'expires_at']
 };
+
+/* --- Authentication configuration ---
+ * The OTP itself is sent and verified by the browser against
+ * https://otp.eldery.ir; this script only issues the session that follows.
+ * Apps Script has no network route to that host, so it must not proxy it. */
+const SESSION_TTL_DAYS = 30;
+const SESSION_MAX_PER_HOUR = 10;
+/* Columns the user is allowed to fill in themselves (never 'mobile_number' or 'actived'). */
+const PROFILE_FIELDS = ['name', 'last_name', 'Store_name', 'phone_number', 'address', 'postal_code', 'certificate_file_url'];
+/* Columns that must be filled before the profile counts as complete. */
+const REQUIRED_USER_FIELDS = ['name', 'last_name', 'Store_name', 'address'];
 
 function doGet(e) {
   const p = e && e.parameter ? e.parameter : {};
@@ -30,9 +43,9 @@ function doGet(e) {
     else if (a === 'categories') d = { ok: true, categories: read_(SHEETS.categories) };
     else if (a === 'brands') d = { ok: true, brands: read_(SHEETS.brands) };
     else if (a === 'colors') d = { ok: true, colors: read_(SHEETS.colors) };
-    else if (a === 'orders') d = { ok: true, orders: read_(SHEETS.orders) };
-    else if (a === 'users') d = { ok: true, users: read_(SHEETS.users) };
-    else if (a === 'exportAll') d = exportAll_();
+    else if (a === 'orders') { requireAdmin_(p); d = { ok: true, orders: read_(SHEETS.orders) }; }
+    else if (a === 'users') { requireAdmin_(p); d = { ok: true, users: read_(SHEETS.users) }; }
+    else if (a === 'exportAll') { requireAdmin_(p); d = exportAll_(); }
     else d = { ok: false, error: 'Unknown action: ' + a };
   } catch (x) {
     d = { ok: false, error: String(x) };
@@ -44,6 +57,10 @@ function doPost(e) {
   try {
     const p = JSON.parse(e && e.postData ? e.postData.contents : '{}');
     const a = p.action || '';
+    if (a === 'startSession') return json_(startSession_(p));
+    if (a === 'getProfile') return json_(getProfile_(p));
+    if (a === 'saveProfile') return json_(saveProfile_(p));
+    if (a === 'logout') return json_(logout_(p));
     if (a === 'registerUser') return json_(registerUser_(p));
     if (a === 'createOrder') return json_(createOrder_(p));
     if (a === 'syncCatalog') return json_(syncCatalog_(p));
@@ -167,6 +184,234 @@ function setupSheets_() {
   return { ok: true, message: 'All required sheets exist' };
 }
 
+/* ============================== AUTHENTICATION ==============================
+ * The page sends and verifies the OTP directly against https://otp.eldery.ir
+ * (this script has no network route to that host). Once the browser has a
+ * `verified: true` response it calls startSession, which issues the token that
+ * every later profile read/write is keyed to — a client can only ever reach
+ * the row for the phone number stored with its own token.
+ * ========================================================================== */
+
+function startSession_(p) {
+  const phone = normalizePhone_(p.phone);
+  if (!isValidPhone_(phone)) return { ok: false, error: 'شماره موبایل معتبر نیست.' };
+
+  /* The OTP check happened in the browser, so this call is only as trustworthy
+   * as the client making it. Cap how fast one number can mint sessions. */
+  const cache = CacheService.getScriptCache();
+  const countKey = 'session_count_' + phone;
+  const started = Number(cache.get(countKey) || 0);
+  if (started >= SESSION_MAX_PER_HOUR) {
+    return { ok: false, error: 'تعداد ورود بیش از حد مجاز است. یک ساعت دیگر تلاش کنید.' };
+  }
+  cache.put(countKey, String(started + 1), 3600);
+
+  const payload = profilePayload_(phone);
+  payload.ok = true;
+  payload.token = createSession_(phone);
+  payload.message = payload.isNew ? 'ثبت نام انجام شد. لطفاً اطلاعات خود را تکمیل کنید.' : 'با موفقیت وارد شدید.';
+  return payload;
+}
+
+function getProfile_(p) {
+  const s = getSession_(p.token);
+  if (!s) return { ok: false, error: 'نشست شما منقضی شده است. دوباره وارد شوید.', expired: true };
+  const payload = profilePayload_(s.phone);
+  payload.ok = true;
+  return payload;
+}
+
+function saveProfile_(p) {
+  const s = getSession_(p.token);
+  if (!s) return { ok: false, error: 'نشست شما منقضی شده است. دوباره وارد شوید.', expired: true };
+
+  const values = {};
+  PROFILE_FIELDS.forEach(f => { values[f] = String(p[f] == null ? '' : p[f]).trim(); });
+  if (values.phone_number) values.phone_number = toAsciiDigits_(values.phone_number);
+  if (values.postal_code) values.postal_code = toAsciiDigits_(values.postal_code).replace(/\D/g, '');
+
+  const missing = REQUIRED_USER_FIELDS.filter(f => !String(values[f] || '').trim());
+  if (missing.length) {
+    return {
+      ok: false,
+      complete: false,
+      missing: missing,
+      error: 'لطفاً فیلدهای الزامی را تکمیل کنید: ' + missing.map(fieldLabel_).join('، ')
+    };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = getSheet_(SHEETS.users);
+    const found = findUserRow_(sh, s.phone);
+    const h = found.headers;
+
+    if (found.row) {
+      const row = found.values.slice();
+      h.forEach((col, i) => { if (values.hasOwnProperty(col)) row[i] = values[col]; });
+      sh.getRange(found.row, 1, 1, h.length).setValues([row]);
+    } else {
+      sh.appendRow(h.map(col => {
+        if (col === 'mobile_number') return s.phone;
+        if (col === 'actived') return false;
+        return values.hasOwnProperty(col) ? values[col] : '';
+      }));
+    }
+  } finally {
+    lock.releaseLock();
+  }
+
+  const payload = profilePayload_(s.phone);
+  payload.ok = true;
+  payload.message = 'اطلاعات شما ذخیره شد.';
+  return payload;
+}
+
+function logout_(p) {
+  const s = getSession_(p.token);
+  if (s) getSheet_(SHEETS.sessions).deleteRow(s.row);
+  return { ok: true, message: 'از حساب خود خارج شدید.' };
+}
+
+/* --- profile helpers --- */
+
+function profilePayload_(phone) {
+  const sh = getSheet_(SHEETS.users);
+  const found = findUserRow_(sh, phone);
+  const user = found.row ? userObject_(found.headers, found.values, phone) : emptyUser_(phone);
+  const missing = REQUIRED_USER_FIELDS.filter(f => !String(user[f] || '').trim());
+  return {
+    isNew: !found.row,
+    user: user,
+    complete: !missing.length,
+    missing: missing,
+    requiredFields: REQUIRED_USER_FIELDS,
+    profileFields: PROFILE_FIELDS
+  };
+}
+
+function findUserRow_(sh, phone) {
+  const data = sh.getDataRange().getValues();
+  const h = (data[0] || []).map(x => String(x).trim());
+  const mi = h.indexOf('mobile_number');
+  if (mi < 0) throw Error('Users header not found: mobile_number');
+  for (let r = 1; r < data.length; r++) {
+    if (normalizePhone_(data[r][mi]) === phone) return { row: r + 1, headers: h, values: data[r] };
+  }
+  return { row: 0, headers: h, values: null };
+}
+
+function userObject_(headers, values, phone) {
+  const o = {};
+  headers.forEach((k, i) => {
+    let v = values[i];
+    if (k === 'actived') v = v === true || String(v).toUpperCase() === 'TRUE';
+    else v = typeof v === 'string' ? v.trim() : (v === null || v === undefined ? '' : String(v).trim());
+    o[k] = v;
+  });
+  o.mobile_number = phone;
+  return o;
+}
+
+function emptyUser_(phone) {
+  const o = {};
+  DEFAULT_HEADERS.Users.forEach(k => { o[k] = k === 'actived' ? false : ''; });
+  o.mobile_number = phone;
+  return o;
+}
+
+function fieldLabel_(f) {
+  const labels = {
+    name: 'نام',
+    last_name: 'نام خانوادگی',
+    Store_name: 'نام فروشگاه',
+    phone_number: 'تلفن ثابت',
+    address: 'آدرس',
+    postal_code: 'کد پستی',
+    certificate_file_url: 'لینک جواز کسب'
+  };
+  return labels[f] || f;
+}
+
+/* --- sessions --- */
+
+function createSession_(phone) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = getSheet_(SHEETS.sessions);
+    pruneSessions_(sh);
+    const token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+    const now = new Date();
+    sh.appendRow([token, phone, now, new Date(now.getTime() + SESSION_TTL_DAYS * 86400000)]);
+    return token;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function getSession_(token) {
+  const t = String(token || '').trim();
+  if (!t) return null;
+  const sh = getSheet_(SHEETS.sessions);
+  const data = sh.getDataRange().getValues();
+  const h = (data[0] || []).map(x => String(x).trim());
+  const ti = h.indexOf('token'), mi = h.indexOf('mobile_number'), ei = h.indexOf('expires_at');
+  if (ti < 0 || mi < 0 || ei < 0) return null;
+  for (let r = 1; r < data.length; r++) {
+    if (String(data[r][ti] || '').trim() !== t) continue;
+    const exp = data[r][ei] instanceof Date ? data[r][ei] : new Date(data[r][ei]);
+    if (!exp || isNaN(exp.getTime()) || exp.getTime() < Date.now()) {
+      sh.deleteRow(r + 1);
+      return null;
+    }
+    return { row: r + 1, phone: normalizePhone_(data[r][mi]) };
+  }
+  return null;
+}
+
+function pruneSessions_(sh) {
+  const data = sh.getDataRange().getValues();
+  const h = (data[0] || []).map(x => String(x).trim());
+  const ei = h.indexOf('expires_at');
+  if (ei < 0) return;
+  const now = Date.now();
+  for (let r = data.length - 1; r >= 1; r--) {
+    const exp = data[r][ei] instanceof Date ? data[r][ei] : new Date(data[r][ei]);
+    if (!exp || isNaN(exp.getTime()) || exp.getTime() < now) sh.deleteRow(r + 1);
+  }
+}
+
+/* --- phone numbers --- */
+
+function toAsciiDigits_(v) {
+  return String(v == null ? '' : v)
+    .replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 0x06F0))
+    .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 0x0660));
+}
+
+function normalizePhone_(v) {
+  let s = toAsciiDigits_(v).replace(/\D/g, '');
+  if (s.indexOf('0098') === 0) s = s.slice(4);
+  else if (s.length === 12 && s.indexOf('98') === 0) s = s.slice(2);
+  if (s.length === 10 && s.charAt(0) === '9') s = '0' + s;
+  return s;
+}
+
+function isValidPhone_(s) {
+  return /^09\d{9}$/.test(s);
+}
+
+/* --- admin gate for the endpoints that expose personal data ---
+ * Set an `admin_key` row in the Settings sheet to lock down
+ * ?action=users / orders / exportAll. Left open when unset. */
+function requireAdmin_(p) {
+  const key = String(getSettings_().settings.admin_key || '').trim();
+  if (!key) return;
+  if (String((p && p.key) || '').trim() !== key) throw Error('Unauthorized');
+}
+
 function registerUser_(p) {
   const sh = getSheet_(SHEETS.users);
   const h = headers_(sh);
@@ -185,9 +430,34 @@ function registerUser_(p) {
 }
 
 function createOrder_(p) {
+  /* When a session token is supplied, the verified phone number and the saved
+   * profile win over whatever the client typed into the checkout form. */
+  const s = getSession_(p.token);
+  let name = String(p.customer_name || '').trim();
+  let phone = String(p.phone || '').trim();
+  let address = String(p.address || '').trim();
+
+  if (s) {
+    const status = profilePayload_(s.phone);
+    if (!status.complete) {
+      return {
+        ok: false,
+        complete: false,
+        missing: status.missing,
+        error: 'برای ثبت سفارش ابتدا اطلاعات حساب خود را تکمیل کنید: ' + status.missing.map(fieldLabel_).join('، ')
+      };
+    }
+    const u = status.user;
+    phone = s.phone;
+    name = [u.name, u.last_name].filter(Boolean).join(' ') + (u.Store_name ? ' (' + u.Store_name + ')' : '');
+    address = address || u.address;
+  }
+
+  if (!name || !phone) return { ok: false, error: 'نام و شماره موبایل الزامی است.' };
+
   const sh = getSheet_(SHEETS.orders);
   const id = 'KP-' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd-HHmmss') + '-' + Math.floor(Math.random() * 1000);
-  sh.appendRow([id, new Date(), p.customer_name || '', p.phone || '', p.address || '', JSON.stringify(p.items || []), Number(p.total || 0), 'new']);
+  sh.appendRow([id, new Date(), name, phone, address, JSON.stringify(p.items || []), Number(p.total || 0), 'new']);
   return { ok: true, order_id: id };
 }
 
