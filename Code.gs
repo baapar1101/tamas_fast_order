@@ -247,17 +247,22 @@ function saveProfile_(p) {
     const found = findUserRow_(sh, s.phone);
     const h = found.headers;
 
+    let row;
     if (found.row) {
-      const row = found.values.slice();
-      h.forEach((col, i) => { if (values.hasOwnProperty(col)) row[i] = values[col]; });
-      sh.getRange(found.row, 1, 1, h.length).setValues([row]);
+      const updated = found.values.slice();
+      h.forEach((col, i) => { if (values.hasOwnProperty(col)) updated[i] = values[col]; });
+      sh.getRange(found.row, 1, 1, h.length).setValues([updated]);
+      row = found.row;
     } else {
-      sh.appendRow(h.map(col => {
+      row = writeRow_(sh, h.map(col => {
         if (col === 'mobile_number') return s.phone;
         if (col === 'actived') return false;
         return values.hasOwnProperty(col) ? values[col] : '';
       }));
     }
+    /* Keep the leading zero: without a text format Sheets stores 09... as the
+       number 9... and the zero is lost on the way back out. */
+    forceTextCells_(sh, h, row, ['mobile_number', 'phone_number', 'postal_code']);
   } finally {
     lock.releaseLock();
   }
@@ -344,7 +349,8 @@ function createSession_(phone) {
     pruneSessions_(sh);
     const token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
     const now = new Date();
-    sh.appendRow([token, phone, now, new Date(now.getTime() + SESSION_TTL_DAYS * 86400000)]);
+    const row = writeRow_(sh, [token, phone, now, new Date(now.getTime() + SESSION_TTL_DAYS * 86400000)]);
+    forceTextCells_(sh, headers_(sh), row, ['mobile_number']);
     return token;
   } finally {
     lock.releaseLock();
@@ -425,7 +431,8 @@ function registerUser_(p) {
   if (sh.getDataRange().getValues().slice(1).some(r => String(r[mi] || '').trim() === m)) {
     return { ok: false, error: 'این شماره موبایل قبلاً ثبت شده است.' };
   }
-  sh.appendRow(h.map(x => x === 'actived' ? false : String(p[x] || '').trim()));
+  const row = writeRow_(sh, h.map(x => x === 'actived' ? false : String(p[x] || '').trim()));
+  forceTextCells_(sh, h, row, ['mobile_number', 'phone_number', 'postal_code']);
   return { ok: true, message: 'User registered', user: { name: p.name, last_name: p.last_name, mobile_number: m, actived: false } };
 }
 
@@ -457,7 +464,8 @@ function createOrder_(p) {
 
   const sh = getSheet_(SHEETS.orders);
   const id = 'KP-' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd-HHmmss') + '-' + Math.floor(Math.random() * 1000);
-  sh.appendRow([id, new Date(), name, phone, address, JSON.stringify(p.items || []), Number(p.total || 0), 'new']);
+  const row = writeRow_(sh, [id, new Date(), name, phone, address, JSON.stringify(p.items || []), Number(p.total || 0), 'new']);
+  forceTextCells_(sh, headers_(sh), row, ['phone']);
   return { ok: true, order_id: id };
 }
 
@@ -479,11 +487,45 @@ function headers_(s) {
   return s.getRange(1, 1, 1, s.getLastColumn()).getValues()[0].map(x => String(x).trim());
 }
 
+/* A row holding nothing but unticked checkboxes still counts as empty. The
+   Users sheet is a Sheets Table whose blank rows already carry `actived`
+   = FALSE, and without this they read back as phantom users. */
+function isBlankRow_(values) {
+  return !values.some(x => x !== '' && x !== null && x !== undefined && x !== false);
+}
+
+/* Fills the first blank row inside the used range instead of appending after
+   it. appendRow() would jump past a Table's pre-made empty rows and drop the
+   record outside the Table. Returns the row number written. */
+function writeRow_(sh, values) {
+  const data = sh.getDataRange().getValues();
+  for (let r = 1; r < data.length; r++) {
+    if (isBlankRow_(data[r])) {
+      sh.getRange(r + 1, 1, 1, values.length).setValues([values]);
+      return r + 1;
+    }
+  }
+  sh.appendRow(values);
+  return sh.getLastRow();
+}
+
+/* Re-applies the plain-text format to columns that must keep a leading zero. */
+function forceTextCells_(sh, headers, row, cols) {
+  cols.forEach(col => {
+    const i = headers.indexOf(col);
+    if (i < 0) return;
+    const cell = sh.getRange(row, i + 1);
+    const v = cell.getValue();
+    cell.setNumberFormat('@');
+    if (v !== '' && v !== null) cell.setValue(String(v));
+  });
+}
+
 function read_(n) {
   const v = getSheet_(n).getDataRange().getValues();
   if (v.length < 2) return [];
   const h = v[0].map(x => String(x).trim());
-  return v.slice(1).filter(r => r.some(x => x !== '' && x !== null)).map(r => {
+  return v.slice(1).filter(r => !isBlankRow_(r)).map(r => {
     const o = {};
     h.forEach((k, i) => {
       let x = r[i];
