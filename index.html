@@ -1339,6 +1339,170 @@
       background: #fff;
     }
 
+    /* ---- Order history ---- */
+
+    .orders-list {
+      max-height: 46vh;
+      overflow-y: auto;
+      margin: 4px 0 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .orders-empty {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      padding: 32px 10px;
+    }
+
+    .order-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 14px;
+      background: #fbfdfe;
+    }
+
+    .order-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .order-id {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .order-status {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .order-status.new {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .order-status.processing {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    .order-status.sent {
+      background: #ede9fe;
+      color: #6d28d9;
+    }
+
+    .order-status.done {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .order-status.canceled {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .order-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .order-items {
+      margin-top: 9px;
+    }
+
+    .order-items summary {
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      list-style: none;
+    }
+
+    .order-items summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .order-items summary::before {
+      content: '▾ ';
+      display: inline-block;
+      transition: transform .2s ease;
+    }
+
+    .order-items[open] summary::before {
+      transform: rotate(180deg);
+    }
+
+    .order-item {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 12.5px;
+    }
+
+    .order-item:last-child {
+      border-bottom: 0;
+    }
+
+    .order-item-name {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .order-item-name i {
+      color: var(--text-muted);
+      font-style: normal;
+    }
+
+    .order-item-wh {
+      color: #0369a1;
+      font-size: 11px;
+    }
+
+    .order-item-qty {
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .order-item-price {
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
+    .order-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-top: 10px;
+      padding-top: 9px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .order-total span {
+      color: var(--text-muted);
+    }
+
+    .order-total b {
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
     /* ---- Phone + OTP entry fields ---- */
 
     .phone-field {
@@ -1441,33 +1605,114 @@
 
     /* Footer */
     .site-footer {
-      margin-top: 40px;
-      background: #063c47;
+      margin-top: 50px;
+      background: linear-gradient(180deg, #063c47 0%, #042931 100%);
       color: #fff;
-      padding: 40px 6%;
+      padding: 48px 6% 24px;
+      border-top: 3px solid var(--primary, #00768f);
+    }
+
+    .footer-container {
       display: grid;
-      grid-template-columns: 1.4fr 1fr 180px;
+      grid-template-columns: 1.2fr 1.5fr 1.3fr 170px;
       gap: 32px;
+      align-items: start;
+    }
+
+    .footer-logo {
+      height: 44px;
+      filter: brightness(0) invert(1);
+      margin-bottom: 12px;
     }
 
     .footer-title {
-      margin: 0 0 14px;
-      font-size: 18px;
+      margin: 0 0 16px;
+      font-size: 17px;
       font-weight: 800;
+      color: #ffffff;
+      position: relative;
+      padding-bottom: 8px;
+    }
+
+    .footer-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 36px;
+      height: 3px;
+      background: var(--primary, #00768f);
+      border-radius: 2px;
     }
 
     .footer-text {
       color: #cbd5e1;
-      line-height: 1.8;
+      line-height: 1.85;
       font-size: 13.5px;
-      margin: 6px 0;
+      margin: 8px 0;
+    }
+
+    .footer-text strong {
+      color: #ffffff;
+    }
+
+    .footer-phone {
+      color: #38bdf8;
+      font-weight: 700;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-phone:hover {
+      color: #7dd3fc;
+      text-decoration: underline;
     }
 
     .enamad-box {
-      border: 1px dashed rgba(255, 255, 255, 0.3);
-      border-radius: 12px;
-      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed rgba(255, 255, 255, 0.25);
+      border-radius: 14px;
+      padding: 16px;
       text-align: center;
+      transition: border-color 0.3s, background 0.3s;
+    }
+
+    .enamad-box:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .enamad-box img {
+      cursor: pointer;
+      max-width: 120px;
+      max-height: 95px;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));
+    }
+
+    .footer-bottom {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    @media(max-width: 1100px) {
+      .footer-container {
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+      }
+    }
+
+    @media(max-width: 640px) {
+      .footer-container {
+        grid-template-columns: 1fr;
+        text-align: right;
+      }
+      .footer-title::after {
+        right: 0;
+      }
     }
 
     /* Floating Cart button mobile */
@@ -1521,9 +1766,8 @@
         gap: 8px;
       }
 
-      .site-footer {
+      .footer-container {
         grid-template-columns: 1fr;
-        text-align: center;
       }
 
       .brand-icons {
@@ -1742,28 +1986,44 @@
   </main>
 
   <footer class="site-footer">
-    <div>
-      <h3 class="footer-title">تماس با ما</h3>
-      <p class="footer-text">شماره تماس: <a href="tel:09135006644" style="color:#fff;font-weight:700">09135006644</a>
-      </p>
-      <p class="footer-text">آدرس: کرمان، خیابان شهید نامجو، بعد از کوچه ۹، پلاک ۱۰۹</p>
-      <p class="footer-text">کد پستی: ۷۶۱۹۷۴۴۵۶۸</p>
-      <p class="footer-text">ساعات کاری: شنبه تا پنجشنبه از ساعت ۹:۰۰ الی ۲۱:۰۰</p>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <img src="logo.png" alt="تماس مارکت" class="footer-logo">
+        <h3 class="footer-title">تماس مارکت</h3>
+        <p class="footer-text">بزرگترین مرجع پخش عمده لوازم جانبی و گوشی تلفن همراه در جنوب شرق کشور با بهترین قیمت و گارانتی معتبر.</p>
+      </div>
+
+      <div class="footer-benefits">
+        <h3 class="footer-title">چرا همکاری با ما؟</h3>
+        <p class="footer-text">💰 <strong>قیمتهای استثنایی:</strong> دسترسی مستقیم به قیمتهای عمده و لحظهای.</p>
+        <p class="footer-text">⚡ <strong>سرعت در سفارش:</strong> فرآیند ثبت و تأیید سریع برای اینکه وقت شما تلف نشود.</p>
+        <p class="footer-text">📊 <strong>پنل کاربری هوشمند:</strong> مدیریت آسان فاکتورها، موجودی و سفارشات در یکجا.</p>
+        <p class="footer-text">🤝 <strong>پشتیبانی همیشگی:</strong> تیم ما همیشه کنار شماست تا در مسیر کسبوکارتان کمکی کنید.</p>
+      </div>
+
+      <div class="footer-contact">
+        <h3 class="footer-title">تماس با ما</h3>
+        <p class="footer-text">📞 <strong>شماره تماس:</strong> <a href="tel:09135006644" class="footer-phone">۰۹۱۳۵۰۰۶۶۴۴</a></p>
+        <p class="footer-text">📍 <strong>آدرس:</strong> کرمان، خیابان شهید نامجو، بعد از کوچه ۹، پلاک ۱۰۹</p>
+        <p class="footer-text">📮 <strong>کد پستی:</strong> ۷۶۱۹۷۴۴۵۶۸</p>
+        <p class="footer-text">🕒 <strong>ساعات کاری:</strong> شنبه تا پنجشنبه از ساعت ۹:۰۰ الی ۲۱:۰۰</p>
+      </div>
+
+      <div class="footer-enamad">
+        <h3 class="footer-title">نماد اعتماد</h3>
+        <div class="enamad-box">
+          <a referrerpolicy="origin" target="_blank"
+            href="https://trustseal.enamad.ir/?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw">
+            <img referrerpolicy="origin"
+              src="https://trustseal.enamad.ir/logo.aspx?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw"
+              alt="نماد اعتماد الکترونیکی"
+              code="Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw">
+          </a>
+        </div>
+      </div>
     </div>
-    <div>
-      <h3 class="footer-title">تماس مارکت</h3>
-      <img src="logo.png" alt="تماس مارکت" style="height:40px;filter:brightness(0) invert(1);margin-bottom:10px">
-      <p class="footer-text">بزرگترین مرجع پخش عمده لوازم جانبی و گوشی تلفن همراه در جنوب شرق کشور با بهترین قیمت و
-        گارانتی معتبر.</p>
-    </div>
-    <div class="enamad-box">
-      <a referrerpolicy="origin" target="_blank"
-        href="https://trustseal.enamad.ir/?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw">
-        <img referrerpolicy="origin"
-          src="https://trustseal.enamad.ir/logo.aspx?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw"
-          alt="نماد اعتماد الکترونیکی" style="cursor:pointer;max-width:120px;max-height:95px"
-          code="Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw">
-      </a>
+    <div class="footer-bottom">
+      <p>© تمامی حقوق برای تماس مارکت محفوظ است.</p>
     </div>
   </footer>
 
@@ -1878,8 +2138,16 @@
       <section class="auth-step" id="authStepAccount" hidden>
         <h3>حساب کاربری</h3>
         <div class="account-card" id="authAccountCard"></div>
-        <button class="btn primary checkout" onclick="showAuthStep('profile')">ویرایش اطلاعات</button>
+        <button class="btn primary checkout" onclick="showAuthStep('orders')">🧾 سوابق سفارش</button>
+        <button class="btn checkout" onclick="showAuthStep('profile')">ویرایش اطلاعات</button>
         <button class="btn checkout" onclick="logout()">خروج از حساب</button>
+      </section>
+
+      <section class="auth-step" id="authStepOrders" hidden>
+        <h3>سوابق سفارش</h3>
+        <p class="auth-hint">سفارش‌های ثبت‌شده با شماره <b class="ltr-inline" id="ordersPhone"></b></p>
+        <div id="ordersList" class="orders-list"></div>
+        <button class="btn checkout" onclick="showAuthStep('account')">بازگشت به حساب کاربری</button>
       </section>
     </div>
   </div>
@@ -2268,7 +2536,7 @@
         <div class="warehouse-row ${count === 1 ? 'urgent-stock' : ''}">
           <div class="wh-details">
             <span class="wh-badge ${key}">${label}</span>
-            ${count === 1 ? '<span class="wh-count"><b class="stock-warn">تنها ۱ عدد باقیست!</b></span>' : `<span class="wh-count">${count} عدد</span>`}
+            ${count === 1 ? '<span class="wh-count"><b class="stock-warn">تنها ۱ عدد باقیست!</b></span>' : ''}
           </div>
           <button class="add-wh-btn" onclick='addToCart(${json}, "${key}")' title="افزودن از ${label}">+</button>
         </div>`;
@@ -2465,7 +2733,7 @@
     }
 
     function showAuthStep(step) {
-      ['phone', 'code', 'profile', 'account'].forEach(s => {
+      ['phone', 'code', 'profile', 'account', 'orders'].forEach(s => {
         document.getElementById('authStep' + s[0].toUpperCase() + s.slice(1)).hidden = (s !== step);
       });
       if (step === 'phone') {
@@ -2479,6 +2747,8 @@
         fillProfileForm();
       } else if (step === 'account') {
         renderAccount();
+      } else if (step === 'orders') {
+        loadOrders();
       }
     }
 
@@ -2671,6 +2941,87 @@
       document.getElementById('authAccountCard').innerHTML =
         `<div class="account-status ${u.actived ? 'active' : 'pending'}">${u.actived ? '✔ حساب شما تایید شده است' : '⏳ حساب شما در انتظار تایید مدیر است'}</div>` +
         rows.map(([k, v]) => `<div class="account-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+    }
+
+    /* --- order history --- */
+
+    const ORDER_STATUS = {
+      new: { label: 'ثبت شده', cls: 'new' },
+      pending: { label: 'در انتظار بررسی', cls: 'new' },
+      processing: { label: 'در حال آماده‌سازی', cls: 'processing' },
+      sent: { label: 'ارسال شده', cls: 'sent' },
+      shipped: { label: 'ارسال شده', cls: 'sent' },
+      done: { label: 'تکمیل شده', cls: 'done' },
+      completed: { label: 'تکمیل شده', cls: 'done' },
+      canceled: { label: 'لغو شده', cls: 'canceled' },
+      cancelled: { label: 'لغو شده', cls: 'canceled' }
+    };
+
+    function orderStatus(raw) {
+      return ORDER_STATUS[String(raw || '').trim().toLowerCase()]
+        || { label: String(raw || '').trim() || 'نامشخص', cls: 'new' };
+    }
+
+    function orderDate(value) {
+      const d = new Date(value);
+      if (!value || isNaN(d.getTime())) return '';
+      try {
+        return new Intl.DateTimeFormat('fa-IR', {
+          year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        }).format(d);
+      } catch (e) { return d.toLocaleString('fa-IR'); }
+    }
+
+    async function loadOrders() {
+      const el = document.getElementById('ordersList');
+      document.getElementById('ordersPhone').textContent = (auth.user && auth.user.mobile_number) || '';
+      el.innerHTML = '<div class="orders-empty">در حال دریافت سفارش‌ها...</div>';
+      try {
+        const data = await apiPost({ action: 'myOrders', token: auth.token });
+        if (!data.ok) {
+          if (data.expired) { handleExpiredSession(); return; }
+          el.innerHTML = `<div class="orders-empty">${esc(data.error || 'دریافت سوابق ناموفق بود.')}</div>`;
+          return;
+        }
+        renderOrders(data.orders || []);
+      } catch (err) {
+        el.innerHTML = `<div class="orders-empty">${esc(err.message)}</div>`;
+      }
+    }
+
+    function renderOrders(orders) {
+      const el = document.getElementById('ordersList');
+      if (!orders.length) {
+        el.innerHTML = '<div class="orders-empty">هنوز سفارشی ثبت نکرده‌اید.</div>';
+        return;
+      }
+      el.innerHTML = orders.map(o => {
+        const st = orderStatus(o.status);
+        const items = Array.isArray(o.items) ? o.items : [];
+        const count = items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+        return `
+      <article class="order-card">
+        <div class="order-head">
+          <span class="order-id ltr-inline">${esc(o.order_id)}</span>
+          <span class="order-status ${st.cls}">${esc(st.label)}</span>
+        </div>
+        <div class="order-meta">
+          <span>🗓 ${esc(orderDate(o.date))}</span>
+          <span>📦 ${count.toLocaleString('fa-IR')} عدد در ${items.length.toLocaleString('fa-IR')} ردیف</span>
+        </div>
+        ${items.length ? `
+        <details class="order-items">
+          <summary>مشاهده اقلام سفارش</summary>
+          ${items.map(i => `
+            <div class="order-item">
+              <span class="order-item-name">${esc(i.title || i.model || 'محصول')}${i.color ? ` <i>(${esc(i.color)})</i>` : ''}${i.warehouse_name ? ` <b class="order-item-wh">${esc(i.warehouse_name)}</b>` : ''}</span>
+              <span class="order-item-qty">${Number(i.qty || 0).toLocaleString('fa-IR')} ×</span>
+              <span class="order-item-price">${money(i.price)}</span>
+            </div>`).join('')}
+        </details>` : ''}
+        <div class="order-total"><span>مبلغ کل</span><b>${money(o.total_price)}</b></div>
+      </article>`;
+      }).join('');
     }
 
     function applyAuth(data, token) {
@@ -3020,7 +3371,7 @@
           <span>دسته‌بندی: ${esc(p.category || '-')}</span>
           <span>رنگ: ${esc(p.color || '-')}</span>
           <span>گارانتی: ${esc(p.warranty || 'اصالت کالا')}</span>
-          <span>موجودی انبار: ${p.stock} عدد</span>
+          ${p.stock === 1 ? '<span><b class="stock-warn">تنها ۱ عدد در سایت باقیست!</b></span>' : ''}
         </div>
         <div style="margin-top:16px;">
           <div class="card-price" style="font-size:20px;">${money(p.price)}</div>

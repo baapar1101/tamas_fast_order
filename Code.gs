@@ -59,6 +59,7 @@ function doPost(e) {
     const a = p.action || '';
     if (a === 'startSession') return json_(startSession_(p));
     if (a === 'getProfile') return json_(getProfile_(p));
+    if (a === 'myOrders') return json_(myOrders_(p));
     if (a === 'saveProfile') return json_(saveProfile_(p));
     if (a === 'logout') return json_(logout_(p));
     if (a === 'registerUser') return json_(registerUser_(p));
@@ -271,6 +272,49 @@ function saveProfile_(p) {
   payload.ok = true;
   payload.message = 'اطلاعات شما ذخیره شد.';
   return payload;
+}
+
+/* Order history for the signed-in caller only: rows are matched against the
+   phone number stored with the token, never one supplied by the client. */
+function myOrders_(p) {
+  const s = getSession_(p.token);
+  if (!s) return { ok: false, error: 'نشست شما منقضی شده است. دوباره وارد شوید.', expired: true };
+
+  const sh = getSheet_(SHEETS.orders);
+  const data = sh.getDataRange().getValues();
+  if (data.length < 2) return { ok: true, orders: [] };
+
+  const h = data[0].map(x => String(x).trim());
+  const iPhone = h.indexOf('phone');
+  if (iPhone < 0) throw Error('Orders header not found: phone');
+  const at = k => h.indexOf(k);
+  const val = (row, k) => { const i = at(k); return i < 0 ? '' : row[i]; };
+
+  const rows = [];
+  for (let r = 1; r < data.length; r++) {
+    const row = data[r];
+    if (isBlankRow_(row)) continue;
+    if (normalizePhone_(row[iPhone]) !== s.phone) continue;
+
+    let items = [];
+    try { items = JSON.parse(val(row, 'items_json') || '[]') || []; } catch (x) { items = []; }
+    if (!Array.isArray(items)) items = [];
+
+    const d = val(row, 'date');
+    const stamp = d instanceof Date ? d.getTime() : (Date.parse(d) || 0);
+    rows.push({
+      stamp: stamp,
+      order_id: String(val(row, 'order_id') || ''),
+      date: d instanceof Date ? d.toISOString() : String(d || ''),
+      address: String(val(row, 'address') || ''),
+      total_price: Number(val(row, 'total_price') || 0),
+      status: String(val(row, 'status') || '').trim(),
+      items: items
+    });
+  }
+
+  rows.sort((a, b) => b.stamp - a.stamp);
+  return { ok: true, orders: rows.slice(0, 50).map(o => { delete o.stamp; return o; }) };
 }
 
 function logout_(p) {
