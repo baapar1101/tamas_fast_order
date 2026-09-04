@@ -315,10 +315,15 @@
     <div class="topbar-inner">
       <div class="logo" id="storeName"><img src="logo.png" alt="تماس مارکت"><span class="logo-tagline">مرجع تخصصی فروش
           عمده کالای دیجیتال</span></div>
-      <button class="btn" onclick="openRegister()">ورود / ثبت نام</button>
+      <button class="btn" id="authBtn" onclick="openAuth()">ورود / ثبت نام</button>
       <div class="search"><input id="search" placeholder="جستجو کنید، برند، مدل و..."></div>
     </div>
   </header>
+
+  <div class="profile-notice" id="profileNotice" hidden>
+    <span>اطلاعات حساب کاربری شما کامل نیست. برای ثبت سفارش لطفاً آن را تکمیل کنید.</span>
+    <button class="btn" type="button" onclick="openProfileEditor()">تکمیل اطلاعات</button>
+  </div>
 
   <main class="container">
     <div class="hero-slider" id="heroSlider">
@@ -384,18 +389,55 @@
     </div>
   </footer>
 
-  <div class="modal" id="registerModal">
-    <div class="modal-box">
-      <h3>ثبت نام فروشنده</h3>
-      <div class="form-grid">
-        <input id="regName" placeholder="نام *"><input id="regLastName" placeholder="نام خانوادگی *">
-        <input id="regStoreName" placeholder="نام فروشگاه"><input id="regPhone" placeholder="تلفن ثابت">
-        <input id="regMobile" placeholder="شماره موبایل *"><input id="regPostalCode" placeholder="کد پستی">
-        <textarea id="regAddress" class="full" rows="3" placeholder="آدرس"></textarea>
-        <input id="regCertificate" class="full" placeholder="لینک فایل جواز / گواهی">
-      </div>
-      <button class="btn primary checkout" onclick="submitRegistration()">ثبت نام</button>
-      <button class="btn checkout" onclick="closeRegister()">انصراف</button>
+  <div class="modal" id="authModal">
+    <div class="modal-box auth-box">
+      <button type="button" class="auth-close" onclick="closeAuth()" aria-label="بستن">×</button>
+
+      <section class="auth-step" id="authStepPhone" hidden>
+        <h3>ورود / ثبت نام</h3>
+        <p class="auth-hint">شماره موبایل خود را وارد کنید تا کد تایید برایتان پیامک شود.</p>
+        <input id="authPhone" class="ltr-field" type="tel" inputmode="numeric" maxlength="13"
+          autocomplete="tel" placeholder="09xxxxxxxxx">
+        <div class="auth-msg" id="authPhoneMsg"></div>
+        <button class="btn primary checkout" id="authSendBtn" onclick="requestOtp(false)">ارسال کد تایید</button>
+      </section>
+
+      <section class="auth-step" id="authStepCode" hidden>
+        <h3>کد تایید</h3>
+        <p class="auth-hint">کد پیامک‌شده به <b class="ltr-inline" id="authPhoneLabel"></b> را وارد کنید.
+          <button type="button" class="link-btn" onclick="showAuthStep('phone')">ویرایش شماره</button>
+        </p>
+        <input id="authCode" class="ltr-field otp-field" inputmode="numeric" maxlength="6"
+          autocomplete="one-time-code" placeholder="- - - - - -">
+        <div class="auth-msg" id="authCodeMsg"></div>
+        <button class="btn primary checkout" id="authVerifyBtn" onclick="verifyOtp()">تایید و ورود</button>
+        <button class="btn checkout" id="authResendBtn" onclick="requestOtp(true)">ارسال مجدد کد</button>
+      </section>
+
+      <section class="auth-step" id="authStepProfile" hidden>
+        <h3 id="authProfileTitle">تکمیل اطلاعات</h3>
+        <p class="auth-hint" id="authProfileHint">برای ثبت سفارش، اطلاعات زیر را کامل کنید.</p>
+        <div class="auth-phone-chip">شماره تایید‌شده: <b class="ltr-inline" id="authProfilePhone"></b></div>
+        <div class="form-grid">
+          <input id="regName" data-field="name" placeholder="نام *">
+          <input id="regLastName" data-field="last_name" placeholder="نام خانوادگی *">
+          <input id="regStoreName" data-field="Store_name" class="full" placeholder="نام فروشگاه *">
+          <input id="regPhone" data-field="phone_number" class="ltr-field" inputmode="numeric" placeholder="تلفن ثابت">
+          <input id="regPostalCode" data-field="postal_code" class="ltr-field" inputmode="numeric" maxlength="10" placeholder="کد پستی">
+          <textarea id="regAddress" data-field="address" class="full" rows="3" placeholder="آدرس *"></textarea>
+          <input id="regCertificate" data-field="certificate_file_url" class="full" placeholder="لینک فایل جواز / گواهی">
+        </div>
+        <div class="auth-msg" id="authProfileMsg"></div>
+        <button class="btn primary checkout" id="authSaveBtn" onclick="saveProfile()">ذخیره اطلاعات</button>
+        <button class="btn checkout" id="authProfileCancelBtn" onclick="closeAuth()">بعداً</button>
+      </section>
+
+      <section class="auth-step" id="authStepAccount" hidden>
+        <h3>حساب کاربری</h3>
+        <div class="account-card" id="authAccountCard"></div>
+        <button class="btn primary checkout" onclick="showAuthStep('profile')">ویرایش اطلاعات</button>
+        <button class="btn checkout" onclick="logout()">خروج از حساب</button>
+      </section>
     </div>
   </div>
 
@@ -403,7 +445,7 @@
     <div class="modal-box">
       <h3>ثبت سفارش</h3>
       <input id="customerName" placeholder="نام و نام خانوادگی">
-      <input id="phone" placeholder="شماره موبایل">
+      <input id="phone" class="ltr-field" inputmode="numeric" placeholder="شماره موبایل">
       <textarea id="address" rows="3" placeholder="آدرس"></textarea>
       <button class="btn primary checkout" onclick="submitOrder()">ثبت سفارش</button>
       <button class="btn checkout" onclick="closeModal()">انصراف</button>
@@ -904,42 +946,404 @@
         `<div class="total"><span>مجموع</span><span>${money(total)}</span></div>
      <button class="btn primary checkout" onclick="openModal()">ادامه و ثبت سفارش</button>`;
     }
-    function openModal() { document.getElementById('checkoutModal').classList.add('open') }
-    function closeModal() { document.getElementById('checkoutModal').classList.remove('open') }
-    function openRegister() { document.getElementById('registerModal').classList.add('open') }
-    function closeRegister() { document.getElementById('registerModal').classList.remove('open') }
-    async function submitRegistration() {
-      const payload = {
-        action: 'registerUser',
-        name: document.getElementById('regName').value.trim(),
-        last_name: document.getElementById('regLastName').value.trim(),
-        Store_name: document.getElementById('regStoreName').value.trim(),
-        phone_number: document.getElementById('regPhone').value.trim(),
-        mobile_number: document.getElementById('regMobile').value.trim(),
-        address: document.getElementById('regAddress').value.trim(),
-        postal_code: document.getElementById('regPostalCode').value.trim(),
-        certificate_file_url: document.getElementById('regCertificate').value.trim()
-      };
-      if (!payload.name || !payload.last_name || !payload.mobile_number) { alert('نام، نام خانوادگی و شماره موبایل را وارد کنید.'); return }
+    /* ======================= OTP LOGIN / REGISTRATION =======================
+     * The browser only ever talks to the Apps Script endpoint; that script is
+     * what calls the SMS service and hands back a session token, which we keep
+     * in localStorage so the visitor stays signed in between visits.
+     * ====================================================================== */
+
+    const AUTH_TOKEN_KEY = 'tamas_auth_token';
+    const REQUIRED_PROFILE_FIELDS = ['name', 'last_name', 'Store_name', 'address'];
+    const FIELD_LABELS = {
+      name: 'نام', last_name: 'نام خانوادگی', Store_name: 'نام فروشگاه',
+      phone_number: 'تلفن ثابت', address: 'آدرس', postal_code: 'کد پستی',
+      certificate_file_url: 'لینک جواز کسب'
+    };
+
+    let auth = { token: '', user: null, complete: false, missing: [] };
+    let otpPhone = '', resendTimer = null, resendLeft = 0, pendingCheckout = false;
+
+    async function apiPost(payload) {
+      let res;
       try {
-        const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-        const data = await res.json(); if (!data.ok) throw new Error(data.error || 'ثبت نام ناموفق بود');
-        alert('ثبت نام با موفقیت انجام شد و پس از بررسی فعال می‌شود.'); closeRegister();
-      } catch (err) { alert(err.message || 'خطا در ثبت نام'); }
+        res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+      } catch (e) { throw new Error('ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.'); }
+      if (!res.ok) throw new Error('پاسخی از سرور دریافت نشد. دوباره تلاش کنید.');
+      try { return await res.json(); } catch (e) { throw new Error('پاسخ سرور نامعتبر بود.'); }
     }
-    function submitOrder() {
-      const payload = { action: 'createOrder', customer_name: document.getElementById('customerName').value, phone: document.getElementById('phone').value, address: document.getElementById('address').value, items: cart.map(({ product_id, title, color, price, qty }) => ({ product_id, title, color, price, qty })), total: cart.reduce((s, i) => s + i.price * i.qty, 0) };
+
+    function toEnglishDigits(v) {
+      return String(v ?? '')
+        .replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 0x06F0))
+        .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 0x0660));
+    }
+    function normalizePhone(v) {
+      let s = toEnglishDigits(v).replace(/\D/g, '');
+      if (s.startsWith('0098')) s = s.slice(4);
+      else if (s.length === 12 && s.startsWith('98')) s = s.slice(2);
+      if (s.length === 10 && s[0] === '9') s = '0' + s;
+      return s;
+    }
+    const isValidPhone = s => /^09\d{9}$/.test(s);
+
+    function toast(message, kind = 'ok') {
+      let box = document.getElementById('toastBox');
+      if (!box) { box = document.createElement('div'); box.id = 'toastBox'; document.body.appendChild(box); }
+      const t = document.createElement('div');
+      t.className = 'toast ' + kind;
+      t.textContent = message;
+      box.appendChild(t);
+      setTimeout(() => t.remove(), 4500);
+    }
+
+    function setMsg(id, text, kind = 'error') {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text || '';
+      el.className = 'auth-msg' + (text ? ' ' + kind : '');
+    }
+
+    function busy(btnId, isBusy, busyLabel) {
+      const b = document.getElementById(btnId);
+      if (!b) return;
+      if (isBusy) {
+        if (!b.dataset.label) b.dataset.label = b.textContent;
+        b.disabled = true; b.textContent = busyLabel || 'لطفاً صبر کنید...';
+      } else {
+        b.disabled = false;
+        if (b.dataset.label) b.textContent = b.dataset.label;
+      }
+    }
+
+    /* --- modal / step handling --- */
+
+    function openAuth() {
+      if (auth.token && auth.user) showAuthStep(auth.complete ? 'account' : 'profile');
+      else showAuthStep('phone');
+      document.getElementById('authModal').classList.add('open');
+    }
+    function closeAuth() {
+      document.getElementById('authModal').classList.remove('open');
+      pendingCheckout = false;
+    }
+    function openProfileEditor() {
+      if (!auth.token) { openAuth(); return; }
+      showAuthStep('profile');
+      document.getElementById('authModal').classList.add('open');
+    }
+
+    function showAuthStep(step) {
+      ['phone', 'code', 'profile', 'account'].forEach(s => {
+        document.getElementById('authStep' + s[0].toUpperCase() + s.slice(1)).hidden = (s !== step);
+      });
+      if (step === 'phone') {
+        setMsg('authPhoneMsg', '');
+        setTimeout(() => document.getElementById('authPhone').focus(), 50);
+      } else if (step === 'code') {
+        setMsg('authCodeMsg', '');
+        document.getElementById('authCode').value = '';
+        setTimeout(() => document.getElementById('authCode').focus(), 50);
+      } else if (step === 'profile') {
+        fillProfileForm();
+      } else if (step === 'account') {
+        renderAccount();
+      }
+    }
+
+    /* --- step 1: send the code --- */
+
+    async function requestOtp(isResend) {
+      const msgId = isResend ? 'authCodeMsg' : 'authPhoneMsg';
+      const btnId = isResend ? 'authResendBtn' : 'authSendBtn';
+      const phone = isResend ? otpPhone : normalizePhone(document.getElementById('authPhone').value);
+
+      if (!isValidPhone(phone)) {
+        setMsg(msgId, 'شماره موبایل را به صورت ۱۱ رقمی و با ۰۹ شروع کنید.');
+        return;
+      }
+      setMsg(msgId, '');
+      busy(btnId, true, 'در حال ارسال...');
+
+      let data = null;
+      try {
+        data = await apiPost({ action: 'otpSend', phone });
+      } catch (err) {
+        setMsg(msgId, err.message);
+      }
+      /* Release the button before the countdown takes it over, otherwise the
+         restored label would overwrite the timer text. */
+      busy(btnId, false);
+      if (!data) return;
+      if (!data.ok) { setMsg(msgId, data.error || 'ارسال کد ناموفق بود.'); return; }
+
+      otpPhone = phone;
+      document.getElementById('authPhoneLabel').textContent = phone;
+      if (!isResend) showAuthStep('code');
+      setMsg('authCodeMsg', 'کد تایید پیامک شد.', 'ok');
+      startResendCountdown(Number(data.resendAfter) || 60);
+    }
+
+    function startResendCountdown(seconds) {
+      clearInterval(resendTimer);
+      resendLeft = seconds;
+      const btn = document.getElementById('authResendBtn');
+      const tick = () => {
+        if (resendLeft <= 0) {
+          clearInterval(resendTimer);
+          btn.disabled = false;
+          btn.textContent = 'ارسال مجدد کد';
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = `ارسال مجدد کد (${String(resendLeft).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])} ثانیه)`;
+        resendLeft--;
+      };
+      tick();
+      resendTimer = setInterval(tick, 1000);
+    }
+
+    /* --- step 2: verify the code --- */
+
+    async function verifyOtp() {
+      const code = toEnglishDigits(document.getElementById('authCode').value).replace(/\D/g, '');
+      if (code.length < 4) { setMsg('authCodeMsg', 'کد تایید را کامل وارد کنید.'); return; }
+      setMsg('authCodeMsg', '');
+      busy('authVerifyBtn', true, 'در حال بررسی...');
+      try {
+        const data = await apiPost({ action: 'otpVerify', phone: otpPhone, code });
+        if (!data.ok || !data.verified) { setMsg('authCodeMsg', data.error || 'کد وارد شده صحیح نیست.'); return; }
+        applyAuth(data, data.token);
+        clearInterval(resendTimer);
+        if (!auth.complete) {
+          toast(data.isNew ? 'ثبت نام انجام شد. لطفاً اطلاعات خود را تکمیل کنید.' : 'خوش آمدید! اطلاعات حساب شما کامل نیست.');
+          showAuthStep('profile');
+        } else if (pendingCheckout) {
+          closeAuth(); openModal();
+        } else {
+          toast('با موفقیت وارد شدید.');
+          showAuthStep('account');
+        }
+      } catch (err) {
+        setMsg('authCodeMsg', err.message);
+      } finally {
+        busy('authVerifyBtn', false);
+      }
+    }
+
+    /* --- step 3: complete the profile in the Users sheet --- */
+
+    function profileInputs() {
+      return [...document.querySelectorAll('#authStepProfile [data-field]')];
+    }
+
+    function fillProfileForm() {
+      const u = auth.user || {};
+      profileInputs().forEach(el => {
+        el.value = u[el.dataset.field] || '';
+        el.classList.remove('invalid');
+      });
+      document.getElementById('authProfilePhone').textContent = auth.user?.mobile_number || otpPhone;
+      const isComplete = auth.complete;
+      document.getElementById('authProfileTitle').textContent = isComplete ? 'ویرایش اطلاعات' : 'تکمیل اطلاعات';
+      document.getElementById('authProfileHint').textContent = isComplete
+        ? 'می‌توانید اطلاعات حساب خود را به‌روزرسانی کنید.'
+        : 'اطلاعات حساب شما کامل نیست. لطفاً فیلدهای ستاره‌دار را پر کنید.';
+      document.getElementById('authProfileCancelBtn').textContent = isComplete ? 'بستن' : 'بعداً';
+      if (!isComplete && (auth.missing || []).length) {
+        markMissing(auth.missing);
+        setMsg('authProfileMsg', 'تکمیل این موارد الزامی است: ' + auth.missing.map(f => FIELD_LABELS[f] || f).join('، '));
+      } else {
+        setMsg('authProfileMsg', '');
+      }
+    }
+
+    function markMissing(missing) {
+      const set = new Set(missing || []);
+      profileInputs().forEach(el => el.classList.toggle('invalid', set.has(el.dataset.field)));
+    }
+
+    async function saveProfile() {
+      const payload = { action: 'saveProfile', token: auth.token };
+      profileInputs().forEach(el => { payload[el.dataset.field] = el.value.trim(); });
+
+      const missing = REQUIRED_PROFILE_FIELDS.filter(f => !payload[f]);
+      if (missing.length) {
+        markMissing(missing);
+        setMsg('authProfileMsg', 'تکمیل این موارد الزامی است: ' + missing.map(f => FIELD_LABELS[f] || f).join('، '));
+        return;
+      }
+      setMsg('authProfileMsg', '');
+      busy('authSaveBtn', true, 'در حال ذخیره...');
+      try {
+        const data = await apiPost(payload);
+        if (!data.ok) {
+          if (data.expired) { handleExpiredSession(); return; }
+          markMissing(data.missing);
+          setMsg('authProfileMsg', data.error || 'ذخیره اطلاعات ناموفق بود.');
+          return;
+        }
+        applyAuth(data, auth.token);
+        toast('اطلاعات شما در گوگل شیت ذخیره شد.');
+        if (pendingCheckout) { closeAuth(); openModal(); }
+        else showAuthStep('account');
+      } catch (err) {
+        setMsg('authProfileMsg', err.message);
+      } finally {
+        busy('authSaveBtn', false);
+      }
+    }
+
+    /* --- account panel & session state --- */
+
+    function renderAccount() {
+      const u = auth.user || {};
+      const fullName = [u.name, u.last_name].filter(Boolean).join(' ');
+      const rows = [
+        ['نام و نام خانوادگی', fullName],
+        ['نام فروشگاه', u.Store_name],
+        ['شماره موبایل', u.mobile_number],
+        ['تلفن ثابت', u.phone_number],
+        ['آدرس', u.address],
+        ['کد پستی', u.postal_code]
+      ].filter(([, v]) => String(v || '').trim());
+
+      document.getElementById('authAccountCard').innerHTML =
+        `<div class="account-status ${u.actived ? 'active' : 'pending'}">${u.actived ? '✔ حساب شما تایید شده است' : '⏳ حساب شما در انتظار تایید مدیر است'}</div>` +
+        rows.map(([k, v]) => `<div class="account-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+    }
+
+    function applyAuth(data, token) {
+      auth = {
+        token: token || auth.token,
+        user: data.user || null,
+        complete: !!data.complete,
+        missing: data.missing || []
+      };
+      try { localStorage.setItem(AUTH_TOKEN_KEY, auth.token); } catch (e) { }
+      updateAuthUI();
+    }
+
+    function clearAuth() {
+      auth = { token: '', user: null, complete: false, missing: [] };
+      try { localStorage.removeItem(AUTH_TOKEN_KEY); } catch (e) { }
+      updateAuthUI();
+    }
+
+    function handleExpiredSession() {
+      clearAuth();
+      otpPhone = '';
+      showAuthStep('phone');
+      setMsg('authPhoneMsg', 'نشست شما منقضی شده است. دوباره وارد شوید.');
+      document.getElementById('authModal').classList.add('open');
+    }
+
+    function updateAuthUI() {
+      const btn = document.getElementById('authBtn');
+      const notice = document.getElementById('profileNotice');
+      if (auth.token && auth.user) {
+        const label = [auth.user.name, auth.user.last_name].filter(Boolean).join(' ')
+          || auth.user.Store_name || auth.user.mobile_number;
+        btn.textContent = '👤 ' + label;
+        btn.title = 'حساب کاربری';
+        notice.hidden = auth.complete;
+      } else {
+        btn.textContent = 'ورود / ثبت نام';
+        btn.title = '';
+        notice.hidden = true;
+      }
+    }
+
+    async function logout() {
+      const token = auth.token;
+      clearAuth();
+      closeAuth();
+      toast('از حساب خود خارج شدید.');
+      if (token) { try { await apiPost({ action: 'logout', token }); } catch (e) { } }
+    }
+
+    async function restoreAuth() {
+      let token = '';
+      try { token = localStorage.getItem(AUTH_TOKEN_KEY) || ''; } catch (e) { }
+      if (!token) return;
+      try {
+        const data = await apiPost({ action: 'getProfile', token });
+        if (!data.ok) { clearAuth(); return; }
+        applyAuth(data, token);
+        if (!auth.complete) toast('اطلاعات حساب شما کامل نیست. لطفاً آن را تکمیل کنید.');
+      } catch (e) {
+        /* offline or endpoint unreachable: keep the token, retry next load */
+      }
+    }
+
+    /* --- checkout --- */
+
+    function openModal() {
+      if (!auth.token) {
+        pendingCheckout = true;
+        toast('برای ثبت سفارش ابتدا وارد شوید.');
+        openAuth();
+        return;
+      }
+      if (!auth.complete) {
+        pendingCheckout = true;
+        openProfileEditor();
+        return;
+      }
+      const u = auth.user || {};
+      document.getElementById('customerName').value = [u.name, u.last_name].filter(Boolean).join(' ');
+      document.getElementById('phone').value = u.mobile_number || '';
+      document.getElementById('address').value = u.address || '';
+      document.getElementById('checkoutModal').classList.add('open');
+    }
+    function closeModal() { document.getElementById('checkoutModal').classList.remove('open') }
+
+    async function submitOrder() {
+      const payload = {
+        action: 'createOrder',
+        token: auth.token,
+        customer_name: document.getElementById('customerName').value.trim(),
+        phone: normalizePhone(document.getElementById('phone').value),
+        address: document.getElementById('address').value.trim(),
+        items: cart.map(({ product_id, sku, title, color, price, qty, warehouse }) => ({ product_id, sku, title, color, price, qty, warehouse })),
+        total: cart.reduce((s, i) => s + i.price * i.qty, 0)
+      };
+      if (!cart.length) { alert('سبد خرید شما خالی است.'); return }
       if (!payload.customer_name || !payload.phone) { alert('نام و شماره موبایل را وارد کنید.'); return }
-      if (API_URL.startsWith('PASTE_')) { alert('دمو: سفارش آماده است. ابتدا API_URL را تنظیم کنید.'); return }
-      fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-      alert('سفارش شما ثبت شد.');
-      cart = []; renderCart(); closeModal();
+      try {
+        const data = await apiPost(payload);
+        if (!data.ok) {
+          if (data.expired) { closeModal(); handleExpiredSession(); return; }
+          if (data.missing) { closeModal(); pendingCheckout = true; openProfileEditor(); return; }
+          alert(data.error || 'ثبت سفارش ناموفق بود.');
+          return;
+        }
+        toast('سفارش شما با شماره ' + data.order_id + ' ثبت شد.');
+        cart = []; renderCart(); closeModal();
+      } catch (err) {
+        alert(err.message || 'خطا در ثبت سفارش');
+      }
     }
     function scrollToCart() { document.getElementById('cart').scrollIntoView({ behavior: 'smooth' }) }
     function esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
     document.getElementById('search').addEventListener('input', render);
+
+    /* Keep the numeric auth fields ASCII-only so a Persian keyboard still works. */
+    ['authPhone', 'authCode', 'regPhone', 'regPostalCode'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', () => { el.value = toEnglishDigits(el.value).replace(/\D/g, ''); });
+    });
+    document.getElementById('authPhone').addEventListener('keydown', e => { if (e.key === 'Enter') requestOtp(false) });
+    document.getElementById('authCode').addEventListener('keydown', e => { if (e.key === 'Enter') verifyOtp() });
+    document.getElementById('authModal').addEventListener('click', e => { if (e.target.id === 'authModal') closeAuth() });
+
     resetSliderTimer();
     load();
+    updateAuthUI();
+    restoreAuth();
   </script>
 </body>
 

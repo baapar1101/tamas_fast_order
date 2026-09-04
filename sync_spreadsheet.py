@@ -17,6 +17,7 @@ import os
 import sys
 import time
 from datetime import datetime, date
+from urllib.parse import quote
 import requests
 import openpyxl
 
@@ -45,6 +46,9 @@ def load_config():
     config = {
         "spreadsheet_id": DEFAULT_SPREADSHEET_ID,
         "web_app_url": os.environ.get("GAS_WEB_APP_URL", ""),
+        # Matches the `admin_key` row in the Settings sheet. Required only once
+        # that row exists, which locks down the users/orders/exportAll actions.
+        "web_app_key": os.environ.get("GAS_WEB_APP_KEY", ""),
         "excel_file": DEFAULT_EXCEL_FILE,
         "backup_file": DEFAULT_BACKUP_FILE
     }
@@ -172,9 +176,11 @@ def fetch_csv_from_gss(spreadsheet_id, sheet_name):
     return result
 
 
-def fetch_from_web_app(web_app_url, action="exportAll"):
+def fetch_from_web_app(web_app_url, action="exportAll", key=""):
     """Fetch data from deployed Google Apps Script Web App endpoint."""
     url = f"{web_app_url}?action={action}"
+    if key:
+        url += f"&key={quote(key)}"
     resp = requests.get(url, timeout=15)
     resp.raise_for_status()
     data = resp.json()
@@ -206,7 +212,7 @@ def cmd_pull(config, args):
     if config["web_app_url"]:
         try:
             print(f"Connecting to Web App URL: {config['web_app_url']}")
-            res = fetch_from_web_app(config["web_app_url"], action="exportAll")
+            res = fetch_from_web_app(config["web_app_url"], action="exportAll", key=config.get("web_app_key", ""))
             data = res.get("catalog", res)
             print("✅ Successfully pulled catalog via Web API")
         except Exception as e:
