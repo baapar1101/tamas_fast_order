@@ -21,11 +21,12 @@ const DEFAULT_HEADERS = {
   Sessions: ['token', 'mobile_number', 'created_at', 'expires_at']
 };
 
-/* --- OTP / authentication configuration --- */
-const OTP_API_URL = 'https://otp.eldery.ir';
+/* --- Authentication configuration ---
+ * The OTP itself is sent and verified by the browser against
+ * https://otp.eldery.ir; this script only issues the session that follows.
+ * Apps Script has no network route to that host, so it must not proxy it. */
 const SESSION_TTL_DAYS = 30;
-const OTP_RESEND_COOLDOWN_SEC = 60;
-const OTP_MAX_SENDS_PER_HOUR = 5;
+const SESSION_MAX_PER_HOUR = 10;
 /* Columns the user is allowed to fill in themselves (never 'mobile_number' or 'actived'). */
 const PROFILE_FIELDS = ['name', 'last_name', 'Store_name', 'phone_number', 'address', 'postal_code', 'certificate_file_url'];
 /* Columns that must be filled before the profile counts as complete. */
@@ -56,8 +57,7 @@ function doPost(e) {
   try {
     const p = JSON.parse(e && e.postData ? e.postData.contents : '{}');
     const a = p.action || '';
-    if (a === 'otpSend') return json_(otpSend_(p));
-    if (a === 'otpVerify') return json_(otpVerify_(p));
+    if (a === 'startSession') return json_(startSession_(p));
     if (a === 'getProfile') return json_(getProfile_(p));
     if (a === 'saveProfile') return json_(saveProfile_(p));
     if (a === 'logout') return json_(logout_(p));
@@ -184,57 +184,30 @@ function setupSheets_() {
   return { ok: true, message: 'All required sheets exist' };
 }
 
-/* ============================ OTP AUTHENTICATION ============================
- * The browser never talks to the SMS service directly: it posts here, this
- * script calls https://otp.eldery.ir, and on a successful verification it
- * hands back an opaque session token. Every profile read/write is keyed to the
- * phone number stored with that token, so a client cannot touch another row.
+/* ============================== AUTHENTICATION ==============================
+ * The page sends and verifies the OTP directly against https://otp.eldery.ir
+ * (this script has no network route to that host). Once the browser has a
+ * `verified: true` response it calls startSession, which issues the token that
+ * every later profile read/write is keyed to — a client can only ever reach
+ * the row for the phone number stored with its own token.
  * ========================================================================== */
 
-function otpSend_(p) {
+function startSession_(p) {
   const phone = normalizePhone_(p.phone);
   if (!isValidPhone_(phone)) return { ok: false, error: 'شماره موبایل معتبر نیست.' };
 
+  /* The OTP check happened in the browser, so this call is only as trustworthy
+   * as the client making it. Cap how fast one number can mint sessions. */
   const cache = CacheService.getScriptCache();
-  const cooldownKey = 'otp_cooldown_' + phone;
-  const countKey = 'otp_count_' + phone;
-
-  if (cache.get(cooldownKey)) {
-    return { ok: false, error: 'کد قبلاً ارسال شده است. کمی صبر کنید و دوباره تلاش کنید.', resendAfter: OTP_RESEND_COOLDOWN_SEC };
+  const countKey = 'session_count_' + phone;
+  const started = Number(cache.get(countKey) || 0);
+  if (started >= SESSION_MAX_PER_HOUR) {
+    return { ok: false, error: 'تعداد ورود بیش از حد مجاز است. یک ساعت دیگر تلاش کنید.' };
   }
-  const sent = Number(cache.get(countKey) || 0);
-  if (sent >= OTP_MAX_SENDS_PER_HOUR) {
-    return { ok: false, error: 'تعداد درخواست کد بیش از حد مجاز است. یک ساعت دیگر تلاش کنید.' };
-  }
+  cache.put(countKey, String(started + 1), 3600);
 
-  const res = otpFetch_('/otp/send', { phone: phone });
-  if (!res.success) {
-    /* Upstream messages are English; show Persian and keep the original for the log. */
-    console.warn('otp/send failed for ' + phone + ': ' + res.message);
-    return { ok: false, error: 'ارسال کد تایید ناموفق بود. کمی بعد دوباره تلاش کنید.' };
-  }
-
-  cache.put(cooldownKey, '1', OTP_RESEND_COOLDOWN_SEC);
-  cache.put(countKey, String(sent + 1), 3600);
-  return { ok: true, message: 'کد تایید ارسال شد.', resendAfter: OTP_RESEND_COOLDOWN_SEC };
-}
-
-function otpVerify_(p) {
-  const phone = normalizePhone_(p.phone);
-  const code = toAsciiDigits_(p.code).replace(/\D/g, '');
-  if (!isValidPhone_(phone)) return { ok: false, verified: false, error: 'شماره موبایل معتبر نیست.' };
-  if (!code) return { ok: false, verified: false, error: 'کد تایید را وارد کنید.' };
-
-  const res = otpFetch_('/otp/verify', { phone: phone, code: code });
-  if (!res.success || !res.verified) {
-    console.warn('otp/verify failed for ' + phone + ': ' + res.message);
-    return { ok: false, verified: false, error: 'کد وارد شده صحیح نیست یا منقضی شده است.' };
-  }
-
-  CacheService.getScriptCache().remove('otp_cooldown_' + phone);
   const payload = profilePayload_(phone);
   payload.ok = true;
-  payload.verified = true;
   payload.token = createSession_(phone);
   payload.message = payload.isNew ? 'ثبت نام انجام شد. لطفاً اطلاعات خود را تکمیل کنید.' : 'با موفقیت وارد شدید.';
   return payload;
@@ -299,27 +272,6 @@ function logout_(p) {
   const s = getSession_(p.token);
   if (s) getSheet_(SHEETS.sessions).deleteRow(s.row);
   return { ok: true, message: 'از حساب خود خارج شدید.' };
-}
-
-function otpFetch_(path, body) {
-  let r;
-  try {
-    r = UrlFetchApp.fetch(OTP_API_URL + path, {
-      method: 'post',
-      contentType: 'application/json',
-      payload: JSON.stringify(body),
-      muteHttpExceptions: true
-    });
-  } catch (x) {
-    return { success: false, message: 'ارتباط با سرویس پیامک برقرار نشد.' };
-  }
-  const code = r.getResponseCode();
-  let data = {};
-  try { data = JSON.parse(r.getContentText()) || {}; } catch (x) { data = {}; }
-  if (code < 200 || code >= 300) {
-    return { success: false, message: data.message || data.error || ('خطای سرویس پیامک (' + code + ')') };
-  }
-  return data;
 }
 
 /* --- profile helpers --- */
