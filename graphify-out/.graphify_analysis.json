@@ -23,12 +23,13 @@
       "code_gs_updatestock"
     ],
     "2": [
+      "sync_spreadsheet",
       "sync_spreadsheet_cmd_push",
+      "sync_spreadsheet_cmd_watch",
       "sync_spreadsheet_push_to_web_app",
       "sync_spreadsheet_rationale_187",
       "sync_spreadsheet_rationale_236",
-      "sync_spreadsheet_rationale_68",
-      "sync_spreadsheet_read_excel_catalog"
+      "sync_spreadsheet_rationale_312"
     ],
     "3": [
       "code_gs_doget",
@@ -50,7 +51,9 @@
       "sync_spreadsheet_cmd_diff",
       "sync_spreadsheet_fetch_csv_from_gss",
       "sync_spreadsheet_rationale_152",
-      "sync_spreadsheet_rationale_251"
+      "sync_spreadsheet_rationale_251",
+      "sync_spreadsheet_rationale_68",
+      "sync_spreadsheet_read_excel_catalog"
     ],
     "6": [
       "sync_spreadsheet_cmd_pull",
@@ -68,11 +71,8 @@
       "index_html_submitorder"
     ],
     "8": [
-      "sync_spreadsheet",
-      "sync_spreadsheet_cmd_watch",
       "sync_spreadsheet_load_config",
       "sync_spreadsheet_main",
-      "sync_spreadsheet_rationale_312",
       "sync_spreadsheet_rationale_44",
       "sync_spreadsheet_rationale_62",
       "sync_spreadsheet_save_config"
@@ -106,13 +106,13 @@
   "cohesion": {
     "0": 0.2222222222222222,
     "1": 0.39285714285714285,
-    "2": 0.3333333333333333,
+    "2": 0.38095238095238093,
     "3": 0.6666666666666666,
     "4": 0.4,
-    "5": 0.5,
+    "5": 0.3333333333333333,
     "6": 0.3333333333333333,
     "7": 0.4,
-    "8": 0.35714285714285715,
+    "8": 0.4,
     "9": 0.8333333333333334,
     "10": 1.0,
     "11": 1.0,
@@ -136,13 +136,23 @@
       "degree": 7
     },
     {
-      "id": "code_gs_getsheet",
-      "label": "getSheet_()",
+      "id": "sync_spreadsheet_cmd_pull",
+      "label": "cmd_pull()",
       "degree": 6
     },
     {
       "id": "sync_spreadsheet_cmd_push",
       "label": "cmd_push()",
+      "degree": 6
+    },
+    {
+      "id": "sync_spreadsheet_cmd_diff",
+      "label": "cmd_diff()",
+      "degree": 6
+    },
+    {
+      "id": "code_gs_getsheet",
+      "label": "getSheet_()",
       "degree": 6
     },
     {
@@ -156,16 +166,6 @@
       "degree": 6
     },
     {
-      "id": "sync_spreadsheet_cmd_diff",
-      "label": "cmd_diff()",
-      "degree": 6
-    },
-    {
-      "id": "sync_spreadsheet_cmd_pull",
-      "label": "cmd_pull()",
-      "degree": 6
-    },
-    {
       "id": "index_html_esc",
       "label": "esc()",
       "degree": 5
@@ -173,70 +173,70 @@
   ],
   "surprises": [
     {
-      "source": "doPost()",
-      "target": "createOrder_()",
+      "source": "cmd_push()",
+      "target": "read_excel_catalog()",
       "source_files": [
-        "Code.gs",
-        "Code.gs"
+        "sync_spreadsheet.py",
+        "sync_spreadsheet.py"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 1 → community 4"
+      "note": "Bridges community 5 → community 2"
     },
     {
-      "source": "getSettings_()",
-      "target": "getSheet_()",
+      "source": "cmd_pull()",
+      "target": "fetch_csv_from_gss()",
       "source_files": [
-        "Code.gs",
-        "Code.gs"
+        "sync_spreadsheet.py",
+        "sync_spreadsheet.py"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 1 → community 3"
+      "note": "Bridges community 5 → community 6"
     },
     {
-      "source": "buildBrands()",
-      "target": "assetIcon_()",
+      "source": "main()",
+      "target": "cmd_pull()",
       "source_files": [
-        "index.html",
-        "index.html"
+        "sync_spreadsheet.py",
+        "sync_spreadsheet.py"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 10 → community 9"
+      "note": "Bridges community 6 → community 8"
     },
     {
-      "source": "load()",
-      "target": "buildCategories()",
+      "source": "main()",
+      "target": "cmd_push()",
       "source_files": [
-        "index.html",
-        "index.html"
+        "sync_spreadsheet.py",
+        "sync_spreadsheet.py"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 10 → community 12"
+      "note": "Bridges community 2 → community 8"
     },
     {
-      "source": "renderCart()",
-      "target": "esc()",
+      "source": "main()",
+      "target": "cmd_diff()",
       "source_files": [
-        "index.html",
-        "index.html"
+        "sync_spreadsheet.py",
+        "sync_spreadsheet.py"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 10 → community 7"
+      "note": "Bridges community 5 → community 8"
     }
   ],
   "questions": [
     {
       "type": "bridge_node",
-      "question": "Why does `cmd_push()` connect `Community 2` to `Community 8`?",
+      "question": "Why does `cmd_push()` connect `Community 2` to `Community 8`, `Community 5`?",
       "why": "High betweenness centrality (0.011) - this node is a cross-community bridge."
     },
     {
       "type": "bridge_node",
-      "question": "Why does `cmd_pull()` connect `Community 6` to `Community 8`, `Community 5`?",
+      "question": "Why does `cmd_pull()` connect `Community 6` to `Community 8`, `Community 2`, `Community 5`?",
       "why": "High betweenness centrality (0.011) - this node is a cross-community bridge."
     },
     {

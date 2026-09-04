@@ -1,4 +1,4 @@
-# Graph Report - tamas_fast_order  (2026-09-03)
+# Graph Report - tamas_fast_order  (2026-09-04)
 
 ## Corpus Check
 - cluster-only mode — file stats not available
@@ -9,7 +9,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b4329ab3`
+- Built from commit: `5248bf28`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,25 +32,25 @@
 1. `doPost()` - 8 edges
 2. `main()` - 7 edges
 3. `buildBrands()` - 7 edges
-4. `getSheet_()` - 6 edges
+4. `cmd_pull()` - 6 edges
 5. `cmd_push()` - 6 edges
-6. `doGet()` - 6 edges
-7. `getCatalog_()` - 6 edges
-8. `cmd_diff()` - 6 edges
-9. `cmd_pull()` - 6 edges
+6. `cmd_diff()` - 6 edges
+7. `getSheet_()` - 6 edges
+8. `doGet()` - 6 edges
+9. `getCatalog_()` - 6 edges
 10. `esc()` - 5 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `doPost()` --calls--> `createOrder_()`  [EXTRACTED]
-  Code.gs → Code.gs  _Bridges community 1 → community 4_
-- `getSettings_()` --calls--> `getSheet_()`  [EXTRACTED]
-  Code.gs → Code.gs  _Bridges community 1 → community 3_
-- `buildBrands()` --calls--> `assetIcon_()`  [EXTRACTED]
-  index.html → index.html  _Bridges community 10 → community 9_
-- `load()` --calls--> `buildCategories()`  [EXTRACTED]
-  index.html → index.html  _Bridges community 10 → community 12_
-- `renderCart()` --calls--> `esc()`  [EXTRACTED]
-  index.html → index.html  _Bridges community 10 → community 7_
+- `cmd_push()` --calls--> `read_excel_catalog()`  [EXTRACTED]
+  sync_spreadsheet.py → sync_spreadsheet.py  _Bridges community 5 → community 2_
+- `cmd_pull()` --calls--> `fetch_csv_from_gss()`  [EXTRACTED]
+  sync_spreadsheet.py → sync_spreadsheet.py  _Bridges community 5 → community 6_
+- `main()` --calls--> `cmd_pull()`  [EXTRACTED]
+  sync_spreadsheet.py → sync_spreadsheet.py  _Bridges community 6 → community 8_
+- `main()` --calls--> `cmd_push()`  [EXTRACTED]
+  sync_spreadsheet.py → sync_spreadsheet.py  _Bridges community 2 → community 8_
+- `main()` --calls--> `cmd_diff()`  [EXTRACTED]
+  sync_spreadsheet.py → sync_spreadsheet.py  _Bridges community 5 → community 8_
 
 ## Import Cycles
 - None detected.
@@ -66,8 +66,8 @@ Cohesion: 0.39
 Nodes (7): createOrder_(), DEFAULT_HEADERS, getSheet_(), headers_(), registerUser_(), SHEETS, updateStock_()
 
 ### Community 2 - "Community 2"
-Cohesion: 0.33
-Nodes (6): cmd_push(), push_to_web_app(), Upload catalog data to Google Apps Script Web App., Push local Excel data to Google Sheets via Apps Script Web App., Read local Excel workbook and return dictionary of sheets with rows., read_excel_catalog()
+Cohesion: 0.38
+Nodes (6): cmd_push(), cmd_watch(), push_to_web_app(), Upload catalog data to Google Apps Script Web App., Push local Excel data to Google Sheets via Apps Script Web App., Watch local Excel file for modifications and push automatically.
 
 ### Community 3 - "Community 3"
 Cohesion: 0.67
@@ -78,8 +78,8 @@ Cohesion: 0.40
 Nodes (6): doPost(), json_(), output_(), syncCatalog_(), syncSheet_(), writeSheetObjects_()
 
 ### Community 5 - "Community 5"
-Cohesion: 0.50
-Nodes (4): cmd_diff(), fetch_csv_from_gss(), Fetch sheet content via Google Sheets CSV export URL (no API key required if…, Compare local Excel data against remote Google Sheet data.
+Cohesion: 0.33
+Nodes (6): cmd_diff(), fetch_csv_from_gss(), Fetch sheet content via Google Sheets CSV export URL (no API key required if…, Compare local Excel data against remote Google Sheet data., Read local Excel workbook and return dictionary of sheets with rows., read_excel_catalog()
 
 ### Community 6 - "Community 6"
 Cohesion: 0.33
@@ -90,8 +90,8 @@ Cohesion: 0.40
 Nodes (5): changeQty(), closeModal(), money(), renderCart(), submitOrder()
 
 ### Community 8 - "Community 8"
-Cohesion: 0.36
-Nodes (7): cmd_watch(), load_config(), main(), Watch local Excel file for modifications and push automatically., Load configuration from sync_config.json if it exists., Save current configuration to sync_config.json., save_config()
+Cohesion: 0.40
+Nodes (5): load_config(), main(), Load configuration from sync_config.json if it exists., Save current configuration to sync_config.json., save_config()
 
 ### Community 9 - "Community 9"
 Cohesion: 0.83
@@ -116,9 +116,9 @@ Nodes (3): demoProducts(), jsonp(), load()
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cmd_push()` connect `Community 2` to `Community 8`?**
+- **Why does `cmd_push()` connect `Community 2` to `Community 8`, `Community 5`?**
   _High betweenness centrality (0.011) - this node is a cross-community bridge._
-- **Why does `cmd_pull()` connect `Community 6` to `Community 8`, `Community 5`?**
+- **Why does `cmd_pull()` connect `Community 6` to `Community 8`, `Community 2`, `Community 5`?**
   _High betweenness centrality (0.011) - this node is a cross-community bridge._
 - **Why does `cmd_diff()` connect `Community 5` to `Community 8`, `Community 2`, `Community 6`?**
   _High betweenness centrality (0.011) - this node is a cross-community bridge._

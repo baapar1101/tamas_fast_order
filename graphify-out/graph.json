@@ -256,6 +256,18 @@
       "source_location": "L235"
     },
     {
+      "id": "sync_spreadsheet_cmd_watch",
+      "label": "cmd_watch()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "cmd_watch()",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L311"
+    },
+    {
       "id": "sync_spreadsheet_push_to_web_app",
       "label": "push_to_web_app()",
       "_callable": true,
@@ -266,18 +278,6 @@
       "norm_label": "push_to_web_app()",
       "source_file": "sync_spreadsheet.py",
       "source_location": "L186"
-    },
-    {
-      "id": "sync_spreadsheet_read_excel_catalog",
-      "label": "read_excel_catalog()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "Community 2",
-      "file_type": "code",
-      "norm_label": "read_excel_catalog()",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L67"
     },
     {
       "id": "code_gs_doget",
@@ -448,6 +448,18 @@
       "source_location": "L151"
     },
     {
+      "id": "sync_spreadsheet_read_excel_catalog",
+      "label": "read_excel_catalog()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "Community 5",
+      "file_type": "code",
+      "norm_label": "read_excel_catalog()",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L67"
+    },
+    {
       "id": "sync_spreadsheet_cmd_pull",
       "label": "cmd_pull()",
       "_callable": true,
@@ -542,18 +554,6 @@
       "norm_label": "submitorder()",
       "source_file": "index.html",
       "source_location": "L688"
-    },
-    {
-      "id": "sync_spreadsheet_cmd_watch",
-      "label": "cmd_watch()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "Community 8",
-      "file_type": "code",
-      "norm_label": "cmd_watch()",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L311"
     },
     {
       "id": "sync_spreadsheet_load_config",
@@ -739,6 +739,17 @@
       "source_location": "L1"
     },
     {
+      "id": "sync_spreadsheet",
+      "label": "sync_spreadsheet.py",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "sync_spreadsheet.py",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L1"
+    },
+    {
       "id": "sync_spreadsheet_rationale_187",
       "label": "Upload catalog data to Google Apps Script Web App.",
       "_origin": "ast",
@@ -761,15 +772,15 @@
       "source_location": "L236"
     },
     {
-      "id": "sync_spreadsheet_rationale_68",
-      "label": "Read local Excel workbook and return dictionary of sheets with rows.",
+      "id": "sync_spreadsheet_rationale_312",
+      "label": "Watch local Excel file for modifications and push automatically.",
       "_origin": "ast",
       "community": 2,
       "community_name": "Community 2",
       "file_type": "rationale",
-      "norm_label": "read local excel workbook and return dictionary of sheets with rows.",
+      "norm_label": "watch local excel file for modifications and push automatically.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L68"
+      "source_location": "L312"
     },
     {
       "id": "sync_spreadsheet_rationale_152",
@@ -792,6 +803,17 @@
       "norm_label": "compare local excel data against remote google sheet data.",
       "source_file": "sync_spreadsheet.py",
       "source_location": "L251"
+    },
+    {
+      "id": "sync_spreadsheet_rationale_68",
+      "label": "Read local Excel workbook and return dictionary of sheets with rows.",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "Community 5",
+      "file_type": "rationale",
+      "norm_label": "read local excel workbook and return dictionary of sheets with rows.",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L68"
     },
     {
       "id": "sync_spreadsheet_rationale_120",
@@ -825,28 +847,6 @@
       "norm_label": "pull data from google sheets / apps script and update local excel and json...",
       "source_file": "sync_spreadsheet.py",
       "source_location": "L202"
-    },
-    {
-      "id": "sync_spreadsheet",
-      "label": "sync_spreadsheet.py",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "Community 8",
-      "file_type": "code",
-      "norm_label": "sync_spreadsheet.py",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "sync_spreadsheet_rationale_312",
-      "label": "Watch local Excel file for modifications and push automatically.",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "Community 8",
-      "file_type": "rationale",
-      "norm_label": "watch local excel file for modifications and push automatically.",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L312"
     },
     {
       "id": "sync_spreadsheet_rationale_44",
@@ -2424,5 +2424,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "b4329ab3650feaa37d43383f8f12b1b8ccfc57a1"
+  "built_at_commit": "5248bf28f6c03aebfa6ed418c679c6d3c4604916"
 }
