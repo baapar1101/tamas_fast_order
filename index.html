@@ -923,6 +923,14 @@ a { color: inherit; text-decoration: none; }
   </div>
 </div>
 
+<!-- Image Zoom Modal -->
+<div class="modal" id="imageZoomModal" onclick="closeImageZoom(event)">
+  <div style="position: relative; max-width: 90vw; max-height: 90vh;">
+    <button style="position: absolute; top: -15px; right: -15px; background: #fff; border-radius: 50%; width: 36px; height: 36px; box-shadow: var(--shadow); font-size: 20px; font-weight: bold; color: var(--danger); z-index: 10; display: flex; align-items: center; justify-content: center;" onclick="closeImageZoom()">✕</button>
+    <img id="zoomImage" src="" style="max-width: 100%; max-height: 90vh; border-radius: 12px; object-fit: contain; background: #fff; box-shadow: var(--shadow-lg);">
+  </div>
+</div>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbxDY0PcZad8NPSlD_DgPrQJRGJj8kn0swETF0x4Q2lQhhPMAdgCuzsGZghC2bkmuietZQ/exec";
 const MIN_WHOLESALE = 5000000;
@@ -1189,7 +1197,7 @@ function render() {
           <button class="card-fav-btn ${isFav?'active':''}" onclick="toggleFav('${p.product_id}')">
             ${isFav?'❤️':'🤍'}
           </button>
-          <img class="card-thumb" src="${esc(p.image_url||'')}" alt="${esc(p.title)}" onerror="this.src='logo.png'">
+          <img class="card-thumb" src="${esc(p.image_url||'')}" alt="${esc(p.title)}" onerror="this.src='logo.png'" onclick="openImageZoom('${esc(p.image_url||'')}')" style="cursor: zoom-in;">
           <div>
             <div class="card-title">${esc(p.title)}</div>
             <div class="card-meta">
@@ -1225,7 +1233,7 @@ function render() {
       <article class="product-accordion">
         <div class="product-head">
           <div class="product-title">${esc(title)}</div>
-          <img class="product-thumb" src="${esc(items[0].image_url||'')}" alt="" onerror="this.src='logo.png'">
+          <img class="product-thumb" src="${esc(items[0].image_url||'')}" alt="" onerror="this.src='logo.png'" onclick="openImageZoom('${esc(items[0].image_url||'')}')" style="cursor: zoom-in;">
         </div>
         <div class="variant-head">رنگ‌بندی و لیست قیمت عمده</div>
         ${items.map(p => `
@@ -1546,6 +1554,17 @@ function openPrintInvoice() {
   document.getElementById('printModal').classList.add('open');
 }
 function closePrintModal() { document.getElementById('printModal').classList.remove('open'); }
+
+// Image Zoom Modal
+function openImageZoom(url) {
+  if (!url) return;
+  document.getElementById('zoomImage').src = url;
+  document.getElementById('imageZoomModal').classList.add('open');
+}
+function closeImageZoom(e) {
+  if (e && e.target && e.target.id !== 'imageZoomModal' && e.target.tagName !== 'BUTTON') return;
+  document.getElementById('imageZoomModal').classList.remove('open');
+}
 
 // Keyboard shortcut listener
 document.addEventListener('keydown', e => {
