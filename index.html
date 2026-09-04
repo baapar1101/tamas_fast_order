@@ -638,6 +638,22 @@
       z-index: 2;
     }
 
+    .card-top-badges {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      pointer-events: none;
+    }
+
+    .card-top-badges .card-badge {
+      position: static;
+    }
+
     .card-fav-btn {
       position: absolute;
       top: 12px;
@@ -962,9 +978,8 @@
     .sell-badges-col {
       display: flex;
       flex-direction: column;
-      gap: 5px;
-      align-items: flex-start;
-      margin-top: 4px;
+      gap: 4px;
+      align-items: flex-end;
     }
 
     .color-title {
@@ -1201,6 +1216,14 @@
       display: inline-block;
     }
 
+    .field-hint small {
+      display: block;
+      margin: 5px 2px 0;
+      font-size: 11.5px;
+      line-height: 1.8;
+      color: #b45309;
+    }
+
     .auth-phone-chip {
       background: #e0f2fe;
       color: #0369a1;
@@ -1337,6 +1360,237 @@
       z-index: 9999;
       box-shadow: 0 16px 40px rgba(0, 0, 0, .32);
       background: #fff;
+    }
+
+    /* ---- Payment method, bank details & receipt ---- */
+
+    .pay-block {
+      margin-top: 6px;
+      border-top: 1px dashed var(--border);
+      padding-top: 14px;
+    }
+
+    .pay-label {
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 9px;
+    }
+
+    .pay-methods {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .pay-method {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #f8fafc;
+      transition: border-color .18s ease, background .18s ease, color .18s ease;
+    }
+
+    .pay-method input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .pay-method:has(input:checked) {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .pay-method:has(input:focus-visible) {
+      box-shadow: 0 0 0 4px rgba(0, 118, 143, .13);
+    }
+
+    .pay-info:empty {
+      display: none;
+    }
+
+    .pay-info {
+      margin-top: 12px;
+    }
+
+    .pay-note {
+      margin: 0;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 11px 13px;
+      font-size: 12.5px;
+      line-height: 2;
+      color: #78500a;
+    }
+
+    .bank-card {
+      border: 1.5px solid #bfe2ea;
+      background: var(--primary-light);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .bank-head {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0d5a6b;
+      margin-bottom: 4px;
+    }
+
+    .bank-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-top: 1px solid #cfe8ef;
+      font-size: 12.5px;
+    }
+
+    .bank-row span {
+      color: var(--text-muted);
+      flex-shrink: 0;
+      min-width: 74px;
+    }
+
+    .bank-row b {
+      flex: 1;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      border: 1px solid var(--primary);
+      background: #fff;
+      color: var(--primary);
+      border-radius: 8px;
+      padding: 4px 11px;
+      font-size: 11.5px;
+      font-weight: 700;
+      transition: background .18s ease, color .18s ease;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .copy-btn.copied {
+      background: var(--success);
+      border-color: var(--success);
+      color: #fff;
+    }
+
+    .receipt-box {
+      margin-top: 12px;
+      border: 1.5px dashed #bfe2ea;
+      border-radius: 12px;
+      padding: 13px 14px;
+      background: #fbfeff;
+    }
+
+    .receipt-box[hidden] {
+      display: none;
+    }
+
+    .receipt-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0d5a6b;
+    }
+
+    .receipt-hint {
+      margin: 6px 0 10px;
+      font-size: 12px;
+      line-height: 1.9;
+      color: var(--text-muted);
+    }
+
+    .receipt-box .form-control+.form-control {
+      margin-top: 8px;
+    }
+
+    .pay-terms-link {
+      display: inline-block;
+      margin-top: 12px;
+      font-size: 12.5px;
+    }
+
+    /* ---- Payment terms modal ---- */
+
+    .terms-box {
+      position: relative;
+      max-width: 640px;
+    }
+
+    .terms-section {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      background: #fbfdfe;
+    }
+
+    .terms-section summary {
+      cursor: pointer;
+      font-size: 13.5px;
+      font-weight: 800;
+      list-style: none;
+      color: var(--text);
+    }
+
+    .terms-section summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .terms-section summary::after {
+      content: '▾';
+      float: left;
+      transition: transform .2s ease;
+      color: var(--primary);
+    }
+
+    .terms-section[open] summary::after {
+      transform: rotate(180deg);
+    }
+
+    .terms-section p,
+    .terms-section li {
+      font-size: 12.5px;
+      line-height: 2.1;
+      color: #3f5560;
+    }
+
+    .terms-section h4 {
+      margin: 14px 0 6px;
+      font-size: 13px;
+      color: var(--primary);
+    }
+
+    .terms-section ol,
+    .terms-section ul {
+      margin: 0;
+      padding-inline-start: 20px;
+    }
+
+    .terms-section li {
+      margin-bottom: 6px;
+    }
+
+    .terms-note {
+      margin-bottom: 0;
+      color: var(--text-muted) !important;
     }
 
     /* ---- Order history ---- */
@@ -1803,6 +2057,19 @@
         grid-template-columns: 1fr;
       }
 
+      .pay-methods {
+        grid-template-columns: 1fr;
+      }
+
+      .bank-row {
+        flex-wrap: wrap;
+      }
+
+      .bank-row b {
+        flex-basis: 100%;
+        order: 3;
+      }
+
       .auth-box .phone-input {
         height: 54px;
         font-size: 18px;
@@ -2068,11 +2335,129 @@
           <option value="پیک شهری">نحوه ارسال: پیک شهری (کرمان)</option>
           <option value="پست پیشتاز">نحوه ارسال: پست پیشتاز</option>
         </select>
+
+        <div class="pay-block full">
+          <div class="pay-label">روش پرداخت</div>
+          <div class="pay-methods">
+            <label class="pay-method">
+              <input type="radio" name="payMethod" value="cash" checked onchange="onPayMethod()">
+              <span>💵 نقدی</span>
+            </label>
+            <label class="pay-method">
+              <input type="radio" name="payMethod" value="credit" onchange="onPayMethod()">
+              <span>💳 اعتباری هفتگی</span>
+            </label>
+            <label class="pay-method">
+              <input type="radio" name="payMethod" value="cheque" onchange="onPayMethod()">
+              <span>📄 چک صیادی</span>
+            </label>
+          </div>
+
+          <div id="payInfo" class="pay-info"></div>
+
+          <div id="payReceipt" class="receipt-box">
+            <div class="receipt-title">🧾 رسید پرداخت</div>
+            <p class="receipt-hint">پس از واریز، شماره پیگیری فیش را وارد کنید تا سفارش سریع‌تر تأیید شود.
+              این مورد اختیاری است و می‌توانید بعداً هم اعلام کنید.</p>
+            <input id="receiptRef" class="form-control ltr-field" inputmode="numeric"
+              placeholder="شماره پیگیری / شماره فیش">
+            <input id="receiptLink" class="form-control ltr-field" type="url"
+              placeholder="لینک تصویر رسید (اختیاری)">
+          </div>
+
+          <button type="button" class="link-btn pay-terms-link" onclick="openPaymentTerms()">
+            📘 مشاهده کامل شرایط و قوانین پرداخت
+          </button>
+        </div>
       </div>
       <div style="display:flex;gap:10px;margin-top:18px;">
         <button class="btn primary" style="flex:1" onclick="submitOrder()">ارسال نهائی سفارش</button>
         <button class="btn" style="width:100px" onclick="closeModal()">انصراف</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Payment Terms Modal -->
+  <div class="modal" id="paymentTermsModal">
+    <div class="modal-box terms-box">
+      <button type="button" class="auth-close" onclick="closePaymentTerms()" aria-label="بستن">×</button>
+      <div class="modal-title">شرایط و روش‌های پرداخت</div>
+
+      <details class="terms-section" open>
+        <summary>💵 پرداخت نقدی (واریز مستقیم به حساب)</summary>
+        <p>شما می‌توانید مبلغ سفارش خود را به‌صورت نقدی از طریق واریز مستقیم به یکی از شماره حساب‌های رسمی مجموعه
+          تماس مارکت پرداخت نمایید:</p>
+        <div class="bank-card">
+          <div class="bank-head">🏦 بانک ملت — به نام حمید قاسم زاده</div>
+          <div class="bank-row">
+            <span>شماره حساب</span>
+            <b class="ltr-inline" id="bankAccount">7697 5854 63</b>
+            <button type="button" class="copy-btn" onclick="copyValue('bankAccount', this)">کپی</button>
+          </div>
+          <div class="bank-row">
+            <span>شماره کارت</span>
+            <b class="ltr-inline" id="bankCard">6104-3311-4877-4871</b>
+            <button type="button" class="copy-btn" onclick="copyValue('bankCard', this)">کپی</button>
+          </div>
+          <div class="bank-row">
+            <span>شماره شبا</span>
+            <b class="ltr-inline" id="bankSheba">IR980120010000007697585463</b>
+            <button type="button" class="copy-btn" onclick="copyValue('bankSheba', this)">کپی</button>
+          </div>
+        </div>
+        <p class="terms-note">پس از واریز، شماره پیگیری فیش را در بخش «رسید پرداخت» هنگام ثبت سفارش وارد کنید.</p>
+      </details>
+
+      <details class="terms-section">
+        <summary>💳 اعتبار هفتگی با سررسید منظم</summary>
+        <p>برای تسهیل فرآیند خرید و مدیریت بهتر جریان نقدینگی شما، امکان دریافت اعتبار با سررسیدهای منظم هفتگی
+          (پس از تأیید واحد مالی) فراهم شده است.</p>
+        <h4>شرایط و فرآیند دریافت اعتبار</h4>
+        <ol>
+          <li><b>تکمیل فرم درخواست اعتبار:</b> جهت درخواست اعتبار، لطفاً فرم مربوطه را در پنل همکاری تکمیل فرمایید.</li>
+          <li><b>بررسی توسط واحد مالی:</b> پس از ارسال درخواست، واحد مالی مجموعه تماس مارکت درخواست شما را بر اساس
+            معیارهای اعتبارسنجی بررسی خواهد کرد.</li>
+          <li><b>تعیین سقف و سررسید اعتبار:</b> در صورت تأیید، سقف اعتبار قابل اعطا و تاریخ سررسید پرداخت‌ها (هفتگی)
+            به شما اعلام خواهد شد.</li>
+          <li><b>ثبت سفارش با اعتبار:</b> پس از تخصیص اعتبار، امکان ثبت سفارش با کسر از اعتبار موجود فراهم می‌شود.</li>
+          <li><b>تسویه هفتگی:</b> موظف هستید در تاریخ سررسید هفتگی تعیین‌شده، مبلغ اعتبار مصرف‌شده را تسویه فرمایید.</li>
+        </ol>
+        <h4>نکات مهم در خصوص اعتبار هفتگی</h4>
+        <ul>
+          <li><b>تأیید نهایی:</b> تخصیص و تمدید اعتبار منوط به تأیید نهایی واحد مالی و رعایت منظم سررسیدهای پرداختی است.</li>
+          <li><b>رعایت سررسید:</b> عدم رعایت تاریخ سررسید پرداخت‌ها ممکن است منجر به تعلیق اعتبار و یا جریمه دیرکرد
+            (در صورت وجود) شود.</li>
+          <li><b>شفافیت در پنل:</b> تمامی گردش اعتبار، مبالغ مصرف‌شده و تاریخ سررسیدها در پنل کاربری شما قابل مشاهده
+            خواهد بود.</li>
+        </ul>
+      </details>
+
+      <details class="terms-section">
+        <summary>📄 خرید به صورت چک</summary>
+        <p>جهت رفاه حال همکاران قدیمی و باسابقه، امکان خرید اعتباری با چک صیادی (بنفش) با سررسیدهای مشخص فراهم شده
+          است. این روش تنها برای همکارانی که در لیست «مشتریان اعتباری» مجموعه ثبت شده باشند، فعال است.</p>
+        <h4>مراحل درخواست و پرداخت</h4>
+        <ol>
+          <li><b>استعلام و تایید اعتبار:</b> ابتدا درخواست خود را از طریق پنل «درخواست خرید چکی» ثبت کنید. واحد مالی
+            مجموعه پس از بررسی سوابق خرید و رتبه اعتباری، با شما تماس گرفته و سقف خرید چکی را اعلام خواهد کرد.</li>
+          <li><b>تحویل چک:</b> چک صیادی (ثبت شده در سامانه) باید به صورت فیزیکی به دفتر مرکزی تحویل داده شود و یا از
+            طریق پیک/پست ارسال گردد.</li>
+          <li><b>ثبت در سامانه:</b> پس از دریافت فیزیکی چک و تأیید آن در سامانه صیاد توسط واحد مالی، سفارش شما نهایی
+            و آماده ارسال خواهد شد.</li>
+        </ol>
+        <h4>شرایط و قوانین الزامی</h4>
+        <ul>
+          <li><b>نوع چک:</b> صرفاً چک‌های صیادی (بنفش) مورد پذیرش است. چک‌های قدیمی یا دارای وضعیت سفید (غیر صیادی)
+            پذیرفته نمی‌شوند.</li>
+          <li><b>مطابقت اطلاعات:</b> چک باید دقیقاً به نام صاحب پنل کاربری یا فروشگاه ثبت‌شده در سیستم باشد (چک اشخاص
+            ثالث با تایید کتبی و قبلی واحد مالی قابل بررسی است).</li>
+          <li><b>عدم برگشت چک:</b> در صورت برگشت خوردن چک یا عدم تأمین موجودی در سررسید، کلیه خدمات اعتباری همکار
+            به‌صورت خودکار تعلیق شده و پیگیری قانونی (طبق قوانین چک برگشتی) انجام خواهد شد.</li>
+          <li><b>سقف اعتبار:</b> سقف خرید چکی بر اساس حجم خرید ماهانه و سابقه همکاری شما توسط واحد مالی تعیین می‌شود.</li>
+        </ul>
+      </details>
+
+      <button class="btn" style="width:100%;margin-top:14px;" onclick="closePaymentTerms()">بستن</button>
     </div>
   </div>
 
@@ -2125,6 +2510,17 @@
             placeholder="تلفن ثابت">
           <input id="authPostalCode" data-field="postal_code" class="form-control ltr-field" inputmode="numeric"
             maxlength="10" placeholder="کد پستی">
+          <select id="authActivity" data-field="activity" class="form-control full">
+            <option value="">نوع فعالیت *</option>
+            <option value="آنلاین‌شاپ">آنلاین‌شاپ</option>
+            <option value="مغازه‌دار">مغازه‌دار</option>
+            <option value="عمده‌فروش">عمده‌فروش</option>
+          </select>
+          <div class="field-hint full">
+            <input id="authPageWebsite" data-field="page_website" class="form-control"
+              placeholder="آدرس صفحه اینستاگرام یا وب‌سایت">
+            <small>⚡ تکمیل این مورد بررسی و تأیید حساب شما را بسیار سریع‌تر می‌کند.</small>
+          </div>
           <textarea id="authAddress" data-field="address" class="form-control full" rows="3"
             placeholder="آدرس *"></textarea>
           <input id="authCertificate" data-field="certificate_file_url" class="form-control full"
@@ -2440,7 +2836,10 @@
           return `
         <article class="product-card ${isPromo ? 'is-promotion' : ''}">
           ${isPromo ? '<div class="promo-star-tag"><span class="star-icon">⭐</span> پیشنهاد ویژه</div>' : ''}
-          ${p.discount ? `<span class="card-badge">${p.discount}٪ تخفیف</span>` : ''}
+          <div class="card-top-badges">
+            ${p.discount ? `<span class="card-badge">${p.discount}٪ تخفیف</span>` : ''}
+            ${renderSellTypeBadges(p.sell_type)}
+          </div>
           <button class="card-fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${p.product_id}')">
             ${isFav ? '❤️' : '🤍'}
           </button>
@@ -2451,7 +2850,6 @@
               <span>برند: <b>${esc(p.brand || 'متفرقه')}</b></span>
               <span>رنگ: ${esc(p.color || '-')}</span>
             </div>
-            ${renderSellTypeBadges(p.sell_type)}
           </div>
           <div class="card-price-box">
             <div style="margin-bottom:8px">
@@ -2604,11 +3002,12 @@
     const AUTH_TOKEN_KEY = 'tamas_auth_token';
     const OTP_SENT_KEY = 'tamas_otp_sent_';
     const OTP_RESEND_SECONDS = 60;
-    const REQUIRED_PROFILE_FIELDS = ['name', 'last_name', 'Store_name', 'address'];
+    const REQUIRED_PROFILE_FIELDS = ['name', 'last_name', 'Store_name', 'address', 'activity'];
     const FIELD_LABELS = {
       name: 'نام', last_name: 'نام خانوادگی', Store_name: 'نام فروشگاه',
       phone_number: 'تلفن ثابت', address: 'آدرس', postal_code: 'کد پستی',
-      certificate_file_url: 'لینک جواز کسب'
+      certificate_file_url: 'لینک جواز کسب', activity: 'نوع فعالیت',
+      page_website: 'صفحه اینستاگرام یا وب‌سایت'
     };
 
     let auth = { token: '', user: null, complete: false, missing: [] };
@@ -2932,6 +3331,8 @@
       const rows = [
         ['نام و نام خانوادگی', fullName],
         ['نام فروشگاه', u.Store_name],
+        ['نوع فعالیت', u.activity],
+        ['اینستاگرام / وب‌سایت', u.page_website],
         ['شماره موبایل', u.mobile_number],
         ['تلفن ثابت', u.phone_number],
         ['آدرس', u.address],
@@ -2942,6 +3343,64 @@
         `<div class="account-status ${u.actived ? 'active' : 'pending'}">${u.actived ? '✔ حساب شما تایید شده است' : '⏳ حساب شما در انتظار تایید مدیر است'}</div>` +
         rows.map(([k, v]) => `<div class="account-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
     }
+
+    /* --- payment method, bank details & receipt --- */
+
+    /* SHEBA is the checksum-valid form of the stated account 7697585463. */
+    const BANK_ACCOUNT = {
+      bank: 'بانک ملت',
+      holder: 'حمید قاسم زاده',
+      account: '7697 5854 63',
+      card: '6104-3311-4877-4871',
+      sheba: 'IR980120010000007697585463'
+    };
+
+    const PAY_INFO = {
+      cash: `<div class="bank-card">
+          <div class="bank-head">🏦 ${BANK_ACCOUNT.bank} — به نام ${BANK_ACCOUNT.holder}</div>
+          <div class="bank-row"><span>شماره کارت</span><b class="ltr-inline" id="payCard">${BANK_ACCOUNT.card}</b>
+            <button type="button" class="copy-btn" onclick="copyValue('payCard', this)">کپی</button></div>
+          <div class="bank-row"><span>شماره شبا</span><b class="ltr-inline" id="paySheba">${BANK_ACCOUNT.sheba}</b>
+            <button type="button" class="copy-btn" onclick="copyValue('paySheba', this)">کپی</button></div>
+          <div class="bank-row"><span>شماره حساب</span><b class="ltr-inline" id="payAccount">${BANK_ACCOUNT.account}</b>
+            <button type="button" class="copy-btn" onclick="copyValue('payAccount', this)">کپی</button></div>
+        </div>`,
+      credit: `<p class="pay-note">پرداخت با اعتبار هفتگی پس از <b>تأیید واحد مالی</b> و تعیین سقف اعتبار امکان‌پذیر است.
+        تسویه در تاریخ سررسید هفتگی الزامی است و عدم رعایت آن موجب تعلیق اعتبار می‌شود.</p>`,
+      cheque: `<p class="pay-note">تنها <b>چک صیادی (بنفش)</b> به نام صاحب پنل پذیرفته می‌شود و باید به صورت فیزیکی
+        تحویل دفتر مرکزی گردد. این روش فقط برای همکاران ثبت‌شده در لیست «مشتریان اعتباری» فعال است.</p>`
+    };
+
+    function selectedPayMethod() {
+      const el = document.querySelector('input[name="payMethod"]:checked');
+      return el ? el.value : 'cash';
+    }
+
+    function onPayMethod() {
+      const m = selectedPayMethod();
+      document.getElementById('payInfo').innerHTML = PAY_INFO[m] || '';
+      /* A receipt only exists for a direct deposit. */
+      document.getElementById('payReceipt').hidden = (m !== 'cash');
+    }
+
+    async function copyValue(id, btn) {
+      const text = (document.getElementById(id).textContent || '').replace(/[\s-]/g, '');
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch (x) { }
+        ta.remove();
+      }
+      const old = btn.textContent;
+      btn.textContent = '✓ کپی شد';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = old; btn.classList.remove('copied'); }, 1600);
+    }
+
+    function openPaymentTerms() { document.getElementById('paymentTermsModal').classList.add('open'); }
+    function closePaymentTerms() { document.getElementById('paymentTermsModal').classList.remove('open'); }
 
     /* --- order history --- */
 
@@ -3008,6 +3467,7 @@
         <div class="order-meta">
           <span>🗓 ${esc(orderDate(o.date))}</span>
           <span>📦 ${count.toLocaleString('fa-IR')} عدد در ${items.length.toLocaleString('fa-IR')} ردیف</span>
+          ${o.payment ? `<span>💳 ${esc(o.payment)}</span>` : ''}
         </div>
         ${items.length ? `
         <details class="order-items">
@@ -3321,6 +3781,7 @@
         [u.name, u.last_name].filter(Boolean).join(' ') + (u.Store_name ? ` (${u.Store_name})` : '');
       document.getElementById('phone').value = u.mobile_number || '';
       document.getElementById('address').value = u.address || '';
+      onPayMethod();
       document.getElementById('checkoutModal').classList.add('open');
     }
     function closeModal() { document.getElementById('checkoutModal').classList.remove('open'); }
@@ -3333,6 +3794,9 @@
         phone: normalizePhone(document.getElementById('phone').value),
         address: document.getElementById('address').value.trim(),
         shipping_method: document.getElementById('shippingMethod').value,
+        payment_method: selectedPayMethod(),
+        payment_ref: toEnglishDigits(document.getElementById('receiptRef').value).trim(),
+        payment_link: document.getElementById('receiptLink').value.trim(),
         items: cart.map(({ product_id, sku, title, color, price, qty, warehouse, warehouse_name }) =>
           ({ product_id, sku, title, color, price, qty, warehouse, warehouse_name })),
         total: cart.reduce((s, i) => s + i.price * i.qty, 0)
@@ -3352,6 +3816,8 @@
         toast('سفارش شما با شماره ' + data.order_id + ' ثبت شد. جهت هماهنگی با شما تماس گرفته می‌شود.');
         cart = [];
         renderCart();
+        document.getElementById('receiptRef').value = '';
+        document.getElementById('receiptLink').value = '';
         closeModal();
       } catch (err) {
         alert(err.message || 'خطا در ثبت سفارش');

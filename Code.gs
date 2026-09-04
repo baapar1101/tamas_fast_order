@@ -15,8 +15,8 @@ const DEFAULT_HEADERS = {
   Categories: ['category_name', 'category_fa_name', 'icon_url', 'Brand'],
   Brands: ['brand_name', 'brand_fa_name', 'icon_url'],
   Colors: ['color_code', 'color_fa_name', 'color_name'],
-  Users: ['name', 'last_name', 'Store_name', 'phone_number', 'mobile_number', 'address', 'postal_code', 'certificate_file_url', 'actived'],
-  Orders: ['order_id', 'date', 'customer_name', 'phone', 'address', 'items_json', 'total_price', 'status'],
+  Users: ['name', 'last_name', 'Store_name', 'phone_number', 'mobile_number', 'address', 'postal_code', 'certificate_file_url', 'activity', 'page_website', 'actived'],
+  Orders: ['order_id', 'created_at', 'customer_name', 'phone', 'address', 'items_json', 'total', 'payment', 'status'],
   Settings: ['key', 'value'],
   Sessions: ['token', 'mobile_number', 'created_at', 'expires_at']
 };
@@ -28,9 +28,21 @@ const DEFAULT_HEADERS = {
 const SESSION_TTL_DAYS = 30;
 const SESSION_MAX_PER_HOUR = 10;
 /* Columns the user is allowed to fill in themselves (never 'mobile_number' or 'actived'). */
-const PROFILE_FIELDS = ['name', 'last_name', 'Store_name', 'phone_number', 'address', 'postal_code', 'certificate_file_url'];
-/* Columns that must be filled before the profile counts as complete. */
-const REQUIRED_USER_FIELDS = ['name', 'last_name', 'Store_name', 'address'];
+const PROFILE_FIELDS = ['name', 'last_name', 'Store_name', 'phone_number', 'address', 'postal_code', 'certificate_file_url', 'activity', 'page_website'];
+/* Columns that must be filled before the profile counts as complete.
+   `page_website` is deliberately not here: it speeds up approval but a
+   shopkeeper with no page must still be able to register. Add it to require it. */
+const REQUIRED_USER_FIELDS = ['name', 'last_name', 'Store_name', 'address', 'activity'];
+/* Allowed values for the activity column, so the sheet stays consistent. */
+const ACTIVITY_TYPES = ['آنلاین‌شاپ', 'مغازه‌دار', 'عمده‌فروش'];
+
+/* Accepted payment methods. The client sends the key; the sheet gets the label
+   so the Orders tab stays readable without a lookup. */
+const PAYMENT_METHODS = {
+  cash: 'نقدی (واریز به حساب)',
+  credit: 'اعتباری هفتگی',
+  cheque: 'چک صیادی'
+};
 
 function doGet(e) {
   const p = e && e.parameter ? e.parameter : {};
@@ -230,6 +242,10 @@ function saveProfile_(p) {
   PROFILE_FIELDS.forEach(f => { values[f] = String(p[f] == null ? '' : p[f]).trim(); });
   if (values.phone_number) values.phone_number = toAsciiDigits_(values.phone_number);
   if (values.postal_code) values.postal_code = toAsciiDigits_(values.postal_code).replace(/\D/g, '');
+  /* Only the offered activity types are accepted; anything else is discarded
+     so the column stays reportable. */
+  if (values.activity && ACTIVITY_TYPES.indexOf(values.activity) < 0) values.activity = '';
+  if (values.page_website) values.page_website = values.page_website.slice(0, 300);
 
   const missing = REQUIRED_USER_FIELDS.filter(f => !String(values[f] || '').trim());
   if (missing.length) {
@@ -274,6 +290,18 @@ function saveProfile_(p) {
   return payload;
 }
 
+/* Builds the single `payment` cell: chosen method plus, for a direct deposit,
+   whatever receipt reference the buyer supplied. */
+function paymentCell_(p) {
+  const label = PAYMENT_METHODS[String(p.payment_method || '').trim()] || PAYMENT_METHODS.cash;
+  const ref = toAsciiDigits_(p.payment_ref || '').replace(/[^\w-]/g, '').slice(0, 40);
+  const link = String(p.payment_link || '').trim().slice(0, 300);
+  const parts = [label];
+  if (ref) parts.push('کد پیگیری: ' + ref);
+  if (/^https?:\/\//i.test(link)) parts.push('رسید: ' + link);
+  return parts.join(' | ');
+}
+
 /* Order history for the signed-in caller only: rows are matched against the
    phone number stored with the token, never one supplied by the client. */
 function myOrders_(p) {
@@ -300,14 +328,16 @@ function myOrders_(p) {
     try { items = JSON.parse(val(row, 'items_json') || '[]') || []; } catch (x) { items = []; }
     if (!Array.isArray(items)) items = [];
 
-    const d = val(row, 'date');
+    /* Column names differ between older and current sheets, so accept both. */
+    const d = val(row, 'created_at') || val(row, 'date');
     const stamp = d instanceof Date ? d.getTime() : (Date.parse(d) || 0);
     rows.push({
       stamp: stamp,
       order_id: String(val(row, 'order_id') || ''),
       date: d instanceof Date ? d.toISOString() : String(d || ''),
       address: String(val(row, 'address') || ''),
-      total_price: Number(val(row, 'total_price') || 0),
+      total_price: Number(val(row, 'total') || val(row, 'total_price') || 0),
+      payment: String(val(row, 'payment') || '').trim(),
       status: String(val(row, 'status') || '').trim(),
       items: items
     });
@@ -378,7 +408,9 @@ function fieldLabel_(f) {
     phone_number: 'تلفن ثابت',
     address: 'آدرس',
     postal_code: 'کد پستی',
-    certificate_file_url: 'لینک جواز کسب'
+    certificate_file_url: 'لینک جواز کسب',
+    activity: 'نوع فعالیت',
+    page_website: 'صفحه اینستاگرام یا وب‌سایت'
   };
   return labels[f] || f;
 }
@@ -507,9 +539,29 @@ function createOrder_(p) {
   if (!name || !phone) return { ok: false, error: 'نام و شماره موبایل الزامی است.' };
 
   const sh = getSheet_(SHEETS.orders);
+  const h = headers_(sh);
   const id = 'KP-' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd-HHmmss') + '-' + Math.floor(Math.random() * 1000);
-  const row = writeRow_(sh, [id, new Date(), name, phone, address, JSON.stringify(p.items || []), Number(p.total || 0), 'new']);
-  forceTextCells_(sh, headers_(sh), row, ['phone']);
+  const now = new Date();
+
+  /* Written by header name, not by position: the Orders tab has gained columns
+     (payment) and renamed others (date→created_at, total_price→total), and a
+     positional write would silently shift every value one column across. */
+  const record = {
+    order_id: id,
+    created_at: now,
+    date: now,
+    customer_name: name,
+    phone: phone,
+    address: address,
+    items_json: JSON.stringify(p.items || []),
+    total: Number(p.total || 0),
+    total_price: Number(p.total || 0),
+    payment: paymentCell_(p),
+    status: 'new'
+  };
+
+  const row = writeRow_(sh, h.map(col => record.hasOwnProperty(col) ? record[col] : ''));
+  forceTextCells_(sh, h, row, ['phone']);
   return { ok: true, order_id: id };
 }
 
