@@ -211,8 +211,10 @@
 
     .logo {
       display: flex;
-      align-items: center;
-      gap: 12px;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      cursor: pointer;
     }
 
     .logo img {
@@ -237,6 +239,8 @@
       font-size: 10px;
       font-weight: 600;
       color: var(--text-muted);
+      white-space: nowrap;
+      margin-top: 3px;
     }
 
     /* Search bar */
@@ -1694,6 +1698,52 @@
       color: var(--text-muted) !important;
     }
 
+    /* ---- Icon system ---- */
+
+    .ic {
+      width: 1.15em;
+      height: 1.15em;
+      flex-shrink: 0;
+      vertical-align: -.22em;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Without this the stroke scales with the icon, so an 11px badge icon draws
+       a sub-pixel line and looks washed out beside a 32px one. */
+    .ic path,
+    .ic circle,
+    .ic rect {
+      vector-effect: non-scaling-stroke;
+    }
+
+    .ic-lg { width: 1.5em; height: 1.5em; vertical-align: -.34em; }
+    .ic-xl { width: 2.1em; height: 2.1em; vertical-align: -.45em; }
+    .ic-muted { opacity: .7; }
+
+    .footer-text .ic {
+      color: var(--primary);
+      width: 17px;
+      height: 17px;
+      margin-left: 7px;
+      vertical-align: -.28em;
+    }
+
+    .sell-badge .ic { width: 12.5px; height: 12.5px; vertical-align: -.2em; }
+    .search-icon .ic { width: 18px; height: 18px; }
+    .order-meta .ic { width: 14px; height: 14px; margin-left: 4px; }
+    .bank-head .ic,
+    .receipt-title .ic { width: 16px; height: 16px; margin-left: 5px; }
+    .terms-section summary .ic { width: 17px; height: 17px; margin-left: 6px; }
+    .promo-star-tag .ic { width: 13px; height: 13px; }
+    .title-star .ic { width: 16px; height: 16px; }
+    .cart-item-wh .ic,
+    .cart-item-max .ic { width: 13px; height: 13px; }
+    .account-status .ic { width: 15px; height: 15px; margin-left: 4px; }
+
     /* ---- Order history ---- */
 
     .orders-list {
@@ -2239,6 +2289,43 @@
 
 <body>
 
+  <!-- Icon sprite: outline set in the brand style, inheriting currentColor
+       so each icon picks up the colour of the badge or button it sits in. -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.6l2.6 5.27 5.82.85-4.21 4.1.99 5.79L12 16.87l-5.2 2.74.99-5.79-4.21-4.1 5.82-.85z"/></symbol>
+    <symbol id="i-star-fill" viewBox="0 0 24 24"><path d="M12 3.6l2.6 5.27 5.82.85-4.21 4.1.99 5.79L12 16.87l-5.2 2.74.99-5.79-4.21-4.1 5.82-.85z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.6"/><path d="M15.9 15.9l4.6 4.6"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.3l-1.35-1.23C6.1 14.96 3.2 12.33 3.2 9.1A4.4 4.4 0 0 1 7.6 4.7c1.5 0 2.94.7 3.9 1.8a5.2 5.2 0 0 1 3.9-1.8 4.4 4.4 0 0 1 4.4 4.4c0 3.23-2.9 5.86-7.45 9.98z"/></symbol>
+    <symbol id="i-heart-fill" viewBox="0 0 24 24"><path d="M12 20.3l-1.35-1.23C6.1 14.96 3.2 12.33 3.2 9.1A4.4 4.4 0 0 1 7.6 4.7c1.5 0 2.94.7 3.9 1.8a5.2 5.2 0 0 1 3.9-1.8 4.4 4.4 0 0 1 4.4 4.4c0 3.23-2.9 5.86-7.45 9.98z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5.6 7.8h12.8l1 12.7H4.6z"/><path d="M9 7.8V6.4a3 3 0 0 1 6 0v1.4"/></symbol>
+    <symbol id="i-mobile" viewBox="0 0 24 24"><rect x="6.8" y="2.6" width="10.4" height="18.8" rx="2.6"/><path d="M10.4 18.4h3.2"/></symbol>
+    <symbol id="i-money" viewBox="0 0 24 24"><rect x="2.6" y="6.2" width="18.8" height="11.6" rx="1.9"/><circle cx="12" cy="12" r="2.6"/><path d="M5.8 12h.01M18.2 12h.01"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.6 2.6L5.6 13.4h5l-.6 8 8-11h-5z"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20.2h16"/><path d="M6.6 17.4v-5.6M11.4 17.4V7.6M16.2 17.4v-3.4"/></symbol>
+    <symbol id="i-handshake" viewBox="0 0 24 24"><path d="M2.8 12.6l3.4-3.4a2 2 0 0 1 2.8 0l1.6 1.6 1.6-1.6a2 2 0 0 1 2.8 0l3.4 3.4"/><path d="M7.6 14.6l2.8 2.8a2 2 0 0 0 2.8 0l2.8-2.8"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.4 3.6h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a1.6 1.6 0 0 1-1.7 1.6A15.6 15.6 0 0 1 4.8 5.2 1.6 1.6 0 0 1 6.4 3.6z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21.2s6.6-5.7 6.6-10.4A6.6 6.6 0 0 0 5.4 10.8C5.4 15.5 12 21.2 12 21.2z"/><circle cx="12" cy="10.6" r="2.4"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2.8" y="5.4" width="18.4" height="13.2" rx="2"/><path d="M3.4 7l8.6 6 8.6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 7v5.2l3.3 2"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 7.4a3.6 3.6 0 0 0-3.6-2.8H3.2v13h5.6a3.2 3.2 0 0 1 3.2 2.4 3.2 3.2 0 0 1 3.2-2.4h5.6v-13h-5.2A3.6 3.6 0 0 0 12 7.4z"/><path d="M12 7.4v12.6"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2-2.4 3.6"/><path d="M12 17.3h.01"/></symbol>
+    <symbol id="i-cash" viewBox="0 0 24 24"><rect x="2.6" y="6.4" width="18.8" height="11.2" rx="1.8"/><circle cx="12" cy="12" r="2.5"/><path d="M5.6 9.6h.01M18.4 14.4h.01"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><rect x="2.6" y="5" width="18.8" height="14" rx="2.4"/><path d="M2.6 9.8h18.8"/><path d="M6 15h4.2"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M13.6 3.4H7.2a2 2 0 0 0-2 2v13.2a2 2 0 0 0 2 2h9.6a2 2 0 0 0 2-2V8.8z"/><path d="M13.6 3.4v5.4h5.2"/><path d="M8.4 13h7.2M8.4 16.4h4.6"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M3.6 8L12 3.6 20.4 8v8L12 20.4 3.6 16z"/><path d="M3.6 8l8.4 4.4L20.4 8M12 12.4v8"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3.4h12v17.2l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4z"/><path d="M9 8.4h6M9 12.4h6"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3.4 9.4L12 4l8.6 5.4"/><path d="M5.6 9.8v7.8M9.6 9.8v7.8M14.4 9.8v7.8M18.4 9.8v7.8"/><path d="M3.4 20.4h17.2"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.4" y="5.4" width="17.2" height="15.2" rx="2"/><path d="M3.4 10.4h17.2M8 3.4v4M16 3.4v4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.6 12S6.2 5.9 12 5.9 21.4 12 21.4 12 17.8 18.1 12 18.1 2.6 12 2.6 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.2l7 2.8v5.4c0 4.3-3 7.6-7 9.4-4-1.8-7-5.1-7-9.4V6z"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M11.4 3.4H5.2a1.8 1.8 0 0 0-1.8 1.8v6.2a2 2 0 0 0 .6 1.4l7.6 7.6a2 2 0 0 0 2.8 0l6.2-6.2a2 2 0 0 0 0-2.8L12.8 4a2 2 0 0 0-1.4-.6z"/><circle cx="7.9" cy="7.9" r="1.3"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3.8l9 15.7H3z"/><path d="M12 9.6v4.2M12 16.9h.01"/></symbol>
+    <symbol id="i-printer" viewBox="0 0 24 24"><path d="M7 8.4V3.4h10v5"/><rect x="3.4" y="8.4" width="17.2" height="8" rx="2"/><path d="M7 13.4h10v7.2H7z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.6 12.6l5 5 9.8-11"/></symbol>
+  </svg>
+
+
   <header class="topbar">
     <div class="topbar-promo" id="topPromo">
       <div class="promo-sheen" aria-hidden="true"></div>
@@ -2253,15 +2340,12 @@
     </div>
     <div class="topbar-inner">
       <div class="logo" id="storeLogo">
-        <img src="logo.png" alt="تماس مارکت">
-        <div class="logo-text-box">
-          <span class="logo-title">تماس مارکت</span>
-          <span class="logo-tagline">مرجع تخصصی فروش عمده کالای دیجیتال</span>
-        </div>
+        <img src="logo.png" alt="تماس مارکت" style="height:42px;width:auto;object-fit:contain;">
+        <span class="logo-tagline">مرجع تخصصی فروش عمده کالای دیجیتال</span>
       </div>
 
       <div class="search-wrapper">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon"><svg class="ic" aria-hidden="true"><use href="#i-search"></use></svg></span>
         <input id="search" class="search-input" placeholder="جستجو بر اساس نام محصول، مدل، برند...">
         <span id="searchClear" class="search-clear" onclick="clearSearch()">✕</span>
         <span class="search-shortcut">Ctrl + /</span>
@@ -2269,11 +2353,11 @@
 
       <div class="user-actions">
         <button class="btn btn-icon-only" onclick="toggleWishlistView()" title="علاقه‌مندی‌ها">
-          🤍
+          <svg class="ic ic-lg" aria-hidden="true"><use href="#i-heart"></use></svg>
           <span id="favBadge" class="badge-count" style="display:none">0</span>
         </button>
         <button id="authBtn" class="btn primary" onclick="openAuth()">
-          👤 ورود / ثبت‌نام همکار
+          <svg class="ic" aria-hidden="true"><use href="#i-user"></use></svg> ورود / ثبت‌نام همکار
         </button>
       </div>
     </div>
@@ -2352,7 +2436,7 @@
       <!-- Cart Sidebar -->
       <aside class="cart" id="cart">
         <div class="cart-header">
-          <h3 style="margin:0;font-size:17px;font-weight:800;">سبد خرید عمده 🛍</h3>
+          <h3 style="margin:0;font-size:17px;font-weight:800;">سبد خرید عمده <svg class="ic" aria-hidden="true"><use href="#i-bag"></use></svg></h3>
           <button onclick="clearCart()" style="font-size:12px;color:var(--danger)">پاکسازی</button>
         </div>
 
@@ -2382,9 +2466,9 @@
           <input id="cartNote" class="form-control" placeholder="توضیحات سفارش (اختیاری)..." style="margin-bottom:12px">
           <button class="btn primary" style="width:100%;margin-bottom:8px" onclick="openCheckout()">ثبت سفارش
             نهائی</button>
-          <button class="btn success" style="width:100%;margin-bottom:8px" onclick="exportWhatsAppOrder()">📱 ارسال
+          <button class="btn success" style="width:100%;margin-bottom:8px" onclick="exportWhatsAppOrder()"><svg class="ic" aria-hidden="true"><use href="#i-mobile"></use></svg> ارسال
             سفارش در واتساپ</button>
-          <button class="btn" style="width:100%" onclick="openPrintInvoice()">🖨 پیش‌فاکتور چاپی</button>
+          <button class="btn" style="width:100%" onclick="openPrintInvoice()"><svg class="ic" aria-hidden="true"><use href="#i-printer"></use></svg> پیش‌فاکتور چاپی</button>
         </div>
       </aside>
     </div>
@@ -2400,20 +2484,20 @@
 
       <div class="footer-benefits">
         <h3 class="footer-title">چرا همکاری با ما؟</h3>
-        <p class="footer-text">💰 <strong>قیمتهای استثنایی:</strong> دسترسی مستقیم به قیمتهای عمده و لحظهای.</p>
-        <p class="footer-text">⚡ <strong>سرعت در سفارش:</strong> فرآیند ثبت و تأیید سریع برای اینکه وقت شما تلف نشود.</p>
-        <p class="footer-text">📊 <strong>پنل کاربری هوشمند:</strong> مدیریت آسان فاکتورها، موجودی و سفارشات در یکجا.</p>
-        <p class="footer-text">🤝 <strong>پشتیبانی همیشگی:</strong> تیم ما همیشه کنار شماست تا در مسیر کسبوکارتان کمکی کنید.</p>
+        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-money"></use></svg> <strong>قیمتهای استثنایی:</strong> دسترسی مستقیم به قیمتهای عمده و لحظهای.</p>
+        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-bolt"></use></svg> <strong>سرعت در سفارش:</strong> فرآیند ثبت و تأیید سریع برای اینکه وقت شما تلف نشود.</p>
+        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-chart"></use></svg> <strong>پنل کاربری هوشمند:</strong> مدیریت آسان فاکتورها، موجودی و سفارشات در یکجا.</p>
+        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-handshake"></use></svg> <strong>پشتیبانی همیشگی:</strong> تیم ما همیشه کنار شماست تا در مسیر کسبوکارتان کمکی کنید.</p>
       </div>
 
       <div class="footer-contact">
         <h3 class="footer-title">تماس با ما</h3>
-        <p class="footer-text">📞 <strong>شماره تماس:</strong> <a href="tel:09135006644" class="footer-phone">۰۹۱۳۵۰۰۶۶۴۴</a></p>
-        <p class="footer-text">📍 <strong>آدرس:</strong> کرمان، خیابان شهید نامجو، بعد از کوچه ۹، پلاک ۱۰۹</p>
-        <p class="footer-text">📮 <strong>کد پستی:</strong> ۷۶۱۹۷۴۴۵۶۸</p>
-        <p class="footer-text">🕒 <strong>ساعات کاری:</strong> شنبه تا پنجشنبه از ساعت ۹:۰۰ الی ۲۱:۰۰</p>
-        <p class="footer-text">📘 <a href="terms.html" class="footer-phone">شرایط و قوانین همکاری</a></p>
-        <p class="footer-text">❓ <a href="faq.html" class="footer-phone">سؤالات متداول همکاری</a></p>
+        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-phone"></use></svg> <strong>شماره تماس:</strong> <a href="tel:09135006644" class="footer-phone">۰۹۱۳۵۰۰۶۶۴۴</a></p>
+        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-pin"></use></svg> <strong>آدرس:</strong> کرمان، خیابان شهید نامجو، بعد از کوچه ۹، پلاک ۱۰۹</p>
+        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-mail"></use></svg> <strong>کد پستی:</strong> ۷۶۱۹۷۴۴۵۶۸</p>
+        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-clock"></use></svg> <strong>ساعات کاری:</strong> شنبه تا پنجشنبه از ساعت ۹:۰۰ الی ۲۱:۰۰</p>
+        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-book"></use></svg> <a href="terms.html" class="footer-phone">شرایط و قوانین همکاری</a></p>
+        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-help"></use></svg> <a href="faq.html" class="footer-phone">سؤالات متداول همکاری</a></p>
       </div>
 
       <div class="footer-enamad">
@@ -2436,7 +2520,7 @@
 
   <!-- Floating Mobile Cart Button -->
   <button class="mobile-cart-float" onclick="scrollToCart()">
-    🛍 سبد خرید (<span id="mobileCartCount">0</span>)
+    <svg class="ic" aria-hidden="true"><use href="#i-bag"></use></svg> سبد خرید (<span id="mobileCartCount">0</span>)
   </button>
 
   <!-- Register Modal -->
@@ -2481,22 +2565,22 @@
           <div class="pay-methods">
             <label class="pay-method">
               <input type="radio" name="payMethod" value="cash" checked onchange="onPayMethod()">
-              <span>💵 نقدی</span>
+              <span><svg class="ic" aria-hidden="true"><use href="#i-cash"></use></svg> نقدی</span>
             </label>
             <label class="pay-method">
               <input type="radio" name="payMethod" value="credit" onchange="onPayMethod()">
-              <span>💳 اعتباری هفتگی</span>
+              <span><svg class="ic" aria-hidden="true"><use href="#i-card"></use></svg> اعتباری هفتگی</span>
             </label>
             <label class="pay-method">
               <input type="radio" name="payMethod" value="cheque" onchange="onPayMethod()">
-              <span>📄 چک صیادی</span>
+              <span><svg class="ic" aria-hidden="true"><use href="#i-doc"></use></svg> چک صیادی</span>
             </label>
           </div>
 
           <div id="payInfo" class="pay-info"></div>
 
           <div id="payReceipt" class="receipt-box">
-            <div class="receipt-title">🧾 رسید پرداخت</div>
+            <div class="receipt-title"><svg class="ic" aria-hidden="true"><use href="#i-receipt"></use></svg> رسید پرداخت</div>
             <p class="receipt-hint">پس از واریز، شماره پیگیری فیش را وارد کنید تا سفارش سریع‌تر تأیید شود.
               این مورد اختیاری است و می‌توانید بعداً هم اعلام کنید.</p>
             <input id="receiptRef" class="form-control ltr-field" inputmode="numeric"
@@ -2506,7 +2590,7 @@
           </div>
 
           <button type="button" class="link-btn pay-terms-link" onclick="openPaymentTerms()">
-            📘 مشاهده کامل شرایط و قوانین پرداخت
+            <svg class="ic" aria-hidden="true"><use href="#i-book"></use></svg> مشاهده کامل شرایط و قوانین پرداخت
           </button>
         </div>
       </div>
@@ -2524,11 +2608,11 @@
       <div class="modal-title">شرایط و روش‌های پرداخت</div>
 
       <details class="terms-section" open>
-        <summary>💵 پرداخت نقدی (واریز مستقیم به حساب)</summary>
+        <summary><svg class="ic" aria-hidden="true"><use href="#i-cash"></use></svg> پرداخت نقدی (واریز مستقیم به حساب)</summary>
         <p>شما می‌توانید مبلغ سفارش خود را به‌صورت نقدی از طریق واریز مستقیم به یکی از شماره حساب‌های رسمی مجموعه
           تماس مارکت پرداخت نمایید:</p>
         <div class="bank-card">
-          <div class="bank-head">🏦 بانک ملت — به نام حمید قاسم زاده</div>
+          <div class="bank-head"><svg class="ic" aria-hidden="true"><use href="#i-bank"></use></svg> بانک ملت — به نام حمید قاسم زاده</div>
           <div class="bank-row">
             <span>شماره حساب</span>
             <b class="ltr-inline" id="bankAccount">7697 5854 63</b>
@@ -2549,7 +2633,7 @@
       </details>
 
       <details class="terms-section">
-        <summary>💳 اعتبار هفتگی با سررسید منظم</summary>
+        <summary><svg class="ic" aria-hidden="true"><use href="#i-card"></use></svg> اعتبار هفتگی با سررسید منظم</summary>
         <p>برای تسهیل فرآیند خرید و مدیریت بهتر جریان نقدینگی شما، امکان دریافت اعتبار با سررسیدهای منظم هفتگی
           (پس از تأیید واحد مالی) فراهم شده است.</p>
         <h4>شرایط و فرآیند دریافت اعتبار</h4>
@@ -2573,7 +2657,7 @@
       </details>
 
       <details class="terms-section">
-        <summary>📄 خرید به صورت چک</summary>
+        <summary><svg class="ic" aria-hidden="true"><use href="#i-doc"></use></svg> خرید به صورت چک</summary>
         <p>جهت رفاه حال همکاران قدیمی و باسابقه، امکان خرید اعتباری با چک صیادی (بنفش) با سررسیدهای مشخص فراهم شده
           است. این روش تنها برای همکارانی که در لیست «مشتریان اعتباری» مجموعه ثبت شده باشند، فعال است.</p>
         <h4>مراحل درخواست و پرداخت</h4>
@@ -2617,7 +2701,7 @@
         <h3>ورود / ثبت نام</h3>
         <p class="auth-hint">شماره موبایل خود را وارد کنید تا کد تایید برایتان پیامک شود.</p>
         <div class="phone-field">
-          <span class="phone-field-icon" aria-hidden="true">📱</span>
+          <span class="phone-field-icon" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-mobile"></use></svg></span>
           <input id="authPhone" class="form-control ltr-field phone-input" type="tel" inputmode="numeric"
             maxlength="13" autocomplete="tel" enterkeyhint="send" aria-label="شماره موبایل"
             placeholder="09xxxxxxxxx">
@@ -2659,7 +2743,7 @@
           <div class="field-hint full">
             <input id="authPageWebsite" data-field="page_website" class="form-control"
               placeholder="آدرس صفحه اینستاگرام یا وب‌سایت">
-            <small>⚡ تکمیل این مورد بررسی و تأیید حساب شما را بسیار سریع‌تر می‌کند.</small>
+            <small><svg class="ic" aria-hidden="true"><use href="#i-bolt"></use></svg> تکمیل این مورد بررسی و تأیید حساب شما را بسیار سریع‌تر می‌کند.</small>
           </div>
           <textarea id="authAddress" data-field="address" class="form-control full" rows="3"
             placeholder="آدرس *"></textarea>
@@ -2674,7 +2758,7 @@
       <section class="auth-step" id="authStepAccount" hidden>
         <h3>حساب کاربری</h3>
         <div class="account-card" id="authAccountCard"></div>
-        <button class="btn primary checkout" onclick="showAuthStep('orders')">🧾 سوابق سفارش</button>
+        <button class="btn primary checkout" onclick="showAuthStep('orders')"><svg class="ic" aria-hidden="true"><use href="#i-receipt"></use></svg> سوابق سفارش</button>
         <button class="btn checkout" onclick="showAuthStep('profile')">ویرایش اطلاعات</button>
         <button class="btn checkout" onclick="logout()">خروج از حساب</button>
       </section>
@@ -2695,7 +2779,7 @@
         <!-- Dynamic Invoice content -->
       </div>
       <div style="display:flex;gap:10px;margin-top:16px;">
-        <button class="btn primary" style="flex:1" onclick="window.print()">🖨 چاپ پیش‌فاکتور</button>
+        <button class="btn primary" style="flex:1" onclick="window.print()"><svg class="ic" aria-hidden="true"><use href="#i-printer"></use></svg> چاپ پیش‌فاکتور</button>
         <button class="btn" style="width:100px" onclick="closePrintModal()">بستن</button>
       </div>
     </div>
@@ -2721,6 +2805,9 @@
     let selectedBrand = '', selectedCategory = '';
     let ascending = true, viewMode = 'grid';
     let currentSlide = 0, sliderTimer;
+
+    /* Inline icon for template strings. */
+    function ic(name, cls) { return `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"></use></svg>`; }
 
     function money(n) { return Number(n || 0).toLocaleString('fa-IR') + ' تومان'; }
     function esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -2776,7 +2863,7 @@
       const fileName = map[v] || map[fallback];
       if (fileName) return `<img class="chip-icon" src="assets/${folder}/${fileName}" alt="${esc(fallbackName || value)}">`;
       if (/\.(svg|png|jpg|jpeg|webp)$/i.test(value)) return `<img class="chip-icon" src="assets/${folder}/${esc(value)}" alt="">`;
-      return `<span style="font-size:18px">📦</span>`;
+      return `<svg class="ic ic-xl ic-muted" aria-hidden="true"><use href="#i-box"></use></svg>`;
     }
 
     // Hero Slider Functions
@@ -2878,7 +2965,7 @@
       if (!el) return;
 
       el.innerHTML = `<button class="category-chip ${!selectedCategory ? 'active' : ''}" onclick="filterCategory('')">
-    <span style="font-size:28px">📱</span>
+    <svg class="ic ic-xl ic-muted" aria-hidden="true"><use href="#i-mobile"></use></svg>
     <span class="chip-title">همه کالاها</span>
   </button>` + catList.map(c => `
     <button class="category-chip ${selectedCategory === c.name ? 'active' : ''}" onclick="filterCategory('${c.name}')">
@@ -2975,14 +3062,14 @@
           const isPromo = p.promotion === true || String(p.promotion).toUpperCase() === 'TRUE';
           return `
         <article class="product-card ${isPromo ? 'is-promotion' : ''}">
-          ${isPromo ? '<div class="promo-star-tag"><span class="star-icon">⭐</span> پیشنهاد ویژه</div>' : ''}
+          ${isPromo ? '<div class="promo-star-tag"><span class="star-icon">' + ic('star-fill') + '</span> پیشنهاد ویژه</div>' : ''}
           ${p.discount ? `<span class="card-badge">${p.discount}٪ تخفیف</span>` : ''}
           <button class="card-fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${p.product_id}')">
-            ${isFav ? '❤️' : '🤍'}
+            ${isFav ? ic('heart-fill') : ic('heart')}
           </button>
           <img class="card-thumb" src="${esc(p.image_url || '')}" alt="${esc(p.title)}" onerror="this.src='logo.png'">
           <div>
-            <div class="card-title">${isPromo ? '<span class="title-star">⭐</span>' : ''}${esc(p.title)}</div>
+            <div class="card-title">${isPromo ? '<span class="title-star">' + ic('star-fill') + '</span>' : ''}${esc(p.title)}</div>
             <div class="card-meta-row">
               <div class="card-meta">
                 <span>برند: <b>${esc(p.brand || 'متفرقه')}</b></span>
@@ -2998,7 +3085,7 @@
             </div>
             <div class="warehouse-section" style="margin-bottom:8px">${warehouseRows(p)}</div>
             <button class="btn" style="width:100%;font-size:11.5px;padding:5px;" onclick='openQuickView(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
-              👁 مشاهده جزئیات
+              ${ic('eye')} مشاهده جزئیات
             </button>
           </div>
         </article>
@@ -3014,9 +3101,9 @@
           const isPromoGroup = items.some(isPromo_);
           return `
       <article class="product-accordion ${isPromoGroup ? 'is-promotion' : ''}">
-        ${isPromoGroup ? '<div class="promo-star-tag"><span class="star-icon">⭐</span> پیشنهاد ویژه</div>' : ''}
+        ${isPromoGroup ? '<div class="promo-star-tag"><span class="star-icon">' + ic('star-fill') + '</span> پیشنهاد ویژه</div>' : ''}
         <div class="product-head">
-          <div class="product-title">${isPromoGroup ? '<span class="title-star">⭐</span>' : ''}${esc(title)}</div>
+          <div class="product-title">${isPromoGroup ? '<span class="title-star">' + ic('star-fill') + '</span>' : ''}${esc(title)}</div>
           <img class="product-thumb" src="${esc(items[0].image_url || '')}" alt="" onerror="this.src='logo.png'" onclick="openImageZoom('${esc(items[0].image_url || '')}')" style="cursor: zoom-in;">
         </div>
         <div class="variant-head">رنگ‌بندی و لیست قیمت عمده</div>
@@ -3027,7 +3114,7 @@
                 <span class="color-dot" style="background:${getColorHex(p)}"></span>
                 ${esc(p.color || 'مشکی')}
               </div>
-              <div class="warranty-text">🛡 ${esc(p.warranty || 'شرکتی')}</div>
+              <div class="warranty-text">${ic('shield')} ${esc(p.warranty || 'شرکتی')}</div>
               ${renderSellTypeBadges(p.sell_type)}
             </div>
             <div style="text-align:left">
@@ -3089,10 +3176,10 @@
       if (!sellTypeStr || !String(sellTypeStr).trim()) return '';
       const types = String(sellTypeStr).split(/[,،;]+/).map(s => s.trim()).filter(Boolean);
       const badgesHTML = types.map(t => {
-        if (t.includes('نقد')) return `<span class="sell-badge cash" title="فروش نقدی">💵 ${esc(t)}</span>`;
-        if (t.includes('اعتبار')) return `<span class="sell-badge credit" title="فروش اعتباری">💳 ${esc(t)}</span>`;
-        if (t.includes('چک')) return `<span class="sell-badge cheque" title="فروش چکی">📄 ${esc(t)}</span>`;
-        return `<span class="sell-badge default">🏷️ ${esc(t)}</span>`;
+        if (t.includes('نقد')) return `<span class="sell-badge cash" title="فروش نقدی">${ic('cash')} ${esc(t)}</span>`;
+        if (t.includes('اعتبار')) return `<span class="sell-badge credit" title="فروش اعتباری">${ic('card')} ${esc(t)}</span>`;
+        if (t.includes('چک')) return `<span class="sell-badge cheque" title="فروش چکی">${ic('doc')} ${esc(t)}</span>`;
+        return `<span class="sell-badge default">${ic('tag')} ${esc(t)}</span>`;
       }).join('');
       return `<div class="sell-badges-col">${badgesHTML}</div>`;
     }
@@ -3480,7 +3567,7 @@
       ].filter(([, v]) => String(v || '').trim());
 
       document.getElementById('authAccountCard').innerHTML =
-        `<div class="account-status ${u.actived ? 'active' : 'pending'}">${u.actived ? '✔ حساب شما تایید شده است' : '⏳ حساب شما در انتظار تایید مدیر است'}</div>` +
+        `<div class="account-status ${u.actived ? 'active' : 'pending'}">${u.actived ? ic('check') + ' حساب شما تایید شده است' : ic('clock') + ' حساب شما در انتظار تایید مدیر است'}</div>` +
         rows.map(([k, v]) => `<div class="account-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
     }
 
@@ -3497,7 +3584,7 @@
 
     const PAY_INFO = {
       cash: `<div class="bank-card">
-          <div class="bank-head">🏦 ${BANK_ACCOUNT.bank} — به نام ${BANK_ACCOUNT.holder}</div>
+          <div class="bank-head">${ic('bank')} ${BANK_ACCOUNT.bank} — به نام ${BANK_ACCOUNT.holder}</div>
           <div class="bank-row"><span>شماره کارت</span><b class="ltr-inline" id="payCard">${BANK_ACCOUNT.card}</b>
             <button type="button" class="copy-btn" onclick="copyValue('payCard', this)">کپی</button></div>
           <div class="bank-row"><span>شماره شبا</span><b class="ltr-inline" id="paySheba">${BANK_ACCOUNT.sheba}</b>
@@ -3605,9 +3692,9 @@
           <span class="order-status ${st.cls}">${esc(st.label)}</span>
         </div>
         <div class="order-meta">
-          <span>🗓 ${esc(orderDate(o.date))}</span>
-          <span>📦 ${count.toLocaleString('fa-IR')} عدد در ${items.length.toLocaleString('fa-IR')} ردیف</span>
-          ${o.payment ? `<span>💳 ${esc(o.payment)}</span>` : ''}
+          <span>${ic('calendar')} ${esc(orderDate(o.date))}</span>
+          <span>${ic('box')} ${count.toLocaleString('fa-IR')} عدد در ${items.length.toLocaleString('fa-IR')} ردیف</span>
+          ${o.payment ? `<span>${ic('card')} ${esc(o.payment)}</span>` : ''}
         </div>
         ${items.length ? `
         <details class="order-items">
@@ -3655,11 +3742,11 @@
       if (auth.token && auth.user) {
         const label = [auth.user.name, auth.user.last_name].filter(Boolean).join(' ')
           || auth.user.Store_name || auth.user.mobile_number;
-        btn.textContent = '👤 ' + label;
+        btn.innerHTML = ic('user') + ' ' + esc(label);
         btn.title = 'حساب کاربری';
         notice.hidden = auth.complete;
       } else {
-        btn.textContent = '👤 ورود / ثبت‌نام همکار';
+        btn.innerHTML = ic('user') + ' ورود / ثبت‌نام همکار';
         btn.title = '';
         notice.hidden = true;
       }
@@ -3794,7 +3881,7 @@
     <div class="cart-item">
       <div class="cart-item-title">${esc(i.title || i.model)}</div>
       <div class="cart-item-meta">رنگ: ${esc(i.color || 'مشکی')} | فی: ${money(i.price)}</div>
-      ${i.warehouse_name ? `<div class="cart-item-wh">📍 ${esc(i.warehouse_name)}</div>` : ''}
+      ${i.warehouse_name ? `<div class="cart-item-wh">${ic('pin')} ${esc(i.warehouse_name)}</div>` : ''}
       <div class="cart-item-qty">
         <div class="qty-controls">
           <button class="qty-btn" onclick="changeQty('${key}', -1)">−</button>
@@ -3803,7 +3890,7 @@
         </div>
         <span style="font-weight:900;color:var(--primary)">${money(i.price * i.qty)}</span>
       </div>
-      ${isMax ? `<div class="cart-item-max">⚠️ حداکثر موجودی (${i.max_stock} عدد) انتخاب شده است</div>` : ''}
+      ${isMax ? `<div class="cart-item-max">${ic('warn')} حداکثر موجودی (${i.max_stock} عدد) انتخاب شده است</div>` : ''}
     </div>
   `;
       }).join('');
@@ -3851,7 +3938,7 @@
       const user = getSavedUser();
       const btn = document.getElementById('userBtn');
       if (user && user.name) {
-        btn.innerText = `👤 ${user.name} (${user.Store_name || 'همکار'})`;
+        btn.innerHTML = ic('user') + ` ${esc(user.name)} (${esc(user.Store_name || 'همکار')})`;
       }
     }
     function getSavedUser() {
