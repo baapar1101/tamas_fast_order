@@ -400,6 +400,11 @@
       top: 135px;
     }
 
+    /* The filter panel is always open on desktop; the toggle is mobile-only. */
+    .sidebar-toggle {
+      display: none;
+    }
+
     .cart {
       padding: 20px;
       position: sticky;
@@ -2153,22 +2158,367 @@
 
       .sidebar {
         position: static;
+        padding: 0;
+      }
+
+      /* The whole header used to be sticky — promo strip included — pinning
+         368px (45% of the screen) for the entire session. Now the header sticks
+         at minus the promo's height, so the promo scrolls up out of view and
+         only the compact logo/search bar stays pinned. --promo-h is measured in
+         JS because the promo wraps to different heights.
+         (Making .topbar-inner itself sticky does not work: a sticky child can
+         only stick within its parent's box, and .topbar scrolls away.) */
+      .topbar {
+        top: calc(-1 * var(--promo-h, 170px));
       }
 
       .topbar-inner {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "logo actions"
+          "search search";
+        align-items: center;
+        gap: 8px 10px;
+        padding: 8px 14px;
+        background: rgba(255, 255, 255, .97);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .05);
+      }
+
+      .logo { grid-area: logo; }
+      .search-wrapper { grid-area: search; max-width: none; }
+      .user-actions { grid-area: actions; }
+
+      .logo img { height: 34px !important; }
+
+      /* Long strapline and the Ctrl+/ hint are desktop-only affordances. */
+      .logo-tagline,
+      .search-shortcut {
+        display: none;
+      }
+
+      #authBtn {
+        font-size: 12px;
+        padding: 9px 12px;
+        min-height: 40px;
+      }
+
+      .btn-icon-only {
+        min-width: 40px;
+        min-height: 40px;
+      }
+
+      /* ---- app shell: bottom tab bar + support FAB ---- */
+
+      .tabbar {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        position: fixed;
+        inset: auto 0 0 0;
+        z-index: 120;
+        background: rgba(255, 255, 255, .98);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -2px 14px rgba(0, 0, 0, .06);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      .tab {
+        display: flex;
         flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        min-height: 58px;
+        padding: 7px 2px;
+        background: none;
+        border: 0;
+        color: var(--text-muted);
+        font-size: 10.5px;
+        font-weight: 700;
+        transition: color .18s ease;
       }
 
-      .search-wrapper {
-        max-width: none;
+      .tab .ic {
+        width: 22px;
+        height: 22px;
+        transition: transform .18s ease;
       }
 
-      .mobile-cart-float {
+      .tab.active {
+        color: var(--primary);
+      }
+
+      .tab.active .ic {
+        transform: translateY(-1px);
+      }
+
+      .tab-icon-wrap {
+        position: relative;
+        display: inline-flex;
+      }
+
+      .tab-badge {
+        position: absolute;
+        top: -6px;
+        left: -10px;
+        min-width: 17px;
+        height: 17px;
+        padding: 0 4px;
+        border-radius: 9px;
+        background: var(--accent);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 800;
+        line-height: 17px;
+        text-align: center;
+      }
+
+      .tab-badge[hidden] { display: none; }
+
+      .fab-support {
         display: flex;
         align-items: center;
+        justify-content: center;
+        position: fixed;
+        left: 16px;
+        bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+        width: 50px;
+        height: 50px;
+        z-index: 110;
+        border-radius: 50%;
+        background: var(--primary);
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(0, 118, 143, .38);
+      }
+
+      .fab-support .ic { width: 24px; height: 24px; }
+
+      /* Clear the fixed tab bar. */
+      main.container,
+      .site-footer {
+        padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+      }
+
+      /* ---- filter chips: one horizontally scrolling row under the header ---- */
+      .toolbar {
+        position: sticky;
+        top: 117px;
+        z-index: 60;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
         gap: 8px;
+        padding: 10px 14px;
+        border-radius: 0;
+        border-inline: 0;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .toolbar::-webkit-scrollbar { display: none; }
+
+      .toolbar-left,
+      .toolbar-right {
+        display: contents;
+      }
+
+      .toolbar .btn,
+      .toolbar .view-btn {
+        flex: 0 0 auto;
+        min-height: 38px;
+        padding: 8px 14px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: #fff;
+        font-size: 12.5px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .toolbar .view-btn.active {
+        border-color: var(--primary);
+        background: var(--primary-light);
+        color: var(--primary);
+      }
+
+      .results-count {
+        order: 9;
+        flex: 0 0 auto;
+        align-self: center;
+        font-size: 11.5px;
+        white-space: nowrap;
+      }
+
+      /* --- collapsible filter panel --- */
+      .sidebar-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        width: 100%;
+        min-height: 48px;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--card);
+        color: var(--text);
+        font-size: 13.5px;
+        font-weight: 800;
+      }
+
+      .sidebar-toggle .chev {
+        color: var(--primary);
+        transition: transform .22s ease;
+      }
+
+      .sidebar.open .sidebar-toggle .chev {
+        transform: rotate(180deg);
+      }
+
+      .sidebar.open .sidebar-toggle {
+        border-radius: 14px 14px 0 0;
+        border-bottom-color: transparent;
+      }
+
+      .sidebar-body {
+        display: none;
+        border: 1px solid var(--border);
+        border-top: 0;
+        border-radius: 0 0 14px 14px;
+        padding: 4px 16px 16px;
+        background: var(--card);
+      }
+
+      .sidebar.open .sidebar-body {
+        display: block;
+      }
+
+      /* --- comfortable tap targets (44px guideline) --- */
+      .add-wh-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 24px;
+      }
+
+      .card-fav-btn {
+        width: 40px;
+        height: 40px;
+      }
+
+      .product-card .btn,
+      .toolbar .btn {
+        min-height: 42px;
+      }
+
+      .qty-btn {
+        width: 36px;
+        height: 36px;
+      }
+
+      .side-title button,
+      .cart-header button {
+        min-height: 36px;
+        padding: 4px 12px;
+      }
+
+      /* Enlarge the slider dots' hit area without changing how they look. */
+      .slider-dot {
+        position: relative;
+      }
+
+      .slider-dot::after {
+        content: '';
+        position: absolute;
+        inset: -14px -6px;
+      }
+
+      /* --- compact list rows: thumbnail beside the copy, actions beneath,
+             so three or four products fit per screen instead of one --- */
+      .products-grid {
+        gap: 0;
+        grid-template-columns: 1fr;
+      }
+
+      .product-card {
+        display: grid;
+        grid-template-columns: 104px minmax(0, 1fr);
+        grid-template-areas:
+          "thumb body"
+          "actions actions";
+        align-items: start;
+        column-gap: 12px;
+        padding: 14px 12px;
+        border: 0;
+        border-bottom: 1px solid var(--border);
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .product-card.is-promotion {
+        border-radius: 14px;
+        margin-bottom: 8px;
+      }
+
+      .card-thumb {
+        grid-area: thumb;
+        width: 104px;
+        height: 104px;
+        margin: 0;
+        border-radius: 12px;
+      }
+
+      .product-card > div:not(.card-price-box) {
+        grid-area: body;
+        min-width: 0;
+      }
+
+      .card-price-box {
+        grid-area: actions;
+        margin-top: 10px;
+        padding-top: 10px;
+      }
+
+      .card-title {
+        font-size: 13px;
+        line-height: 1.9;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .card-meta {
+        font-size: 11.5px;
+        gap: 2px 10px;
+      }
+
+      .card-fav-btn {
+        top: 10px;
+        left: 10px;
+      }
+
+      /* Everything in the row must be allowed to shrink. Without min-width:0 a
+         grid/flex child floors at its min-content width — the nowrap warehouse
+         badges alone measured 532px and pushed the whole page sideways. */
+      .product-card,
+      .product-card > div,
+      .card-price-box,
+      .card-price-box .warehouse-section,
+      .warehouse-row,
+      .wh-details {
+        min-width: 0;
+      }
+
+      .warehouse-row {
+        padding: 6px 9px;
+      }
+
+      .wh-badge {
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .footer-container {
@@ -2323,6 +2673,12 @@
     <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3.8l9 15.7H3z"/><path d="M12 9.6v4.2M12 16.9h.01"/></symbol>
     <symbol id="i-printer" viewBox="0 0 24 24"><path d="M7 8.4V3.4h10v5"/><rect x="3.4" y="8.4" width="17.2" height="8" rx="2"/><path d="M7 13.4h10v7.2H7z"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.6 12.6l5 5 9.8-11"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.6 10.4L12 3.6l8.4 6.8v9a1.6 1.6 0 0 1-1.6 1.6H5.2a1.6 1.6 0 0 1-1.6-1.6z"/><path d="M9.4 21v-7.2h5.2V21"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.6" y="3.6" width="7" height="7" rx="1.8"/><rect x="13.4" y="3.6" width="7" height="7" rx="1.8"/><rect x="3.6" y="13.4" width="7" height="7" rx="1.8"/><rect x="13.4" y="13.4" width="7" height="7" rx="1.8"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M3.6 6.4h16.8M6.8 12h10.4M10 17.6h4"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 4.6v14.8M7 19.4l-3-3M7 4.6l3 3M17 19.4V4.6M17 4.6l3 3M17 19.4l-3-3"/></symbol>
+    <symbol id="i-support" viewBox="0 0 24 24"><path d="M4.6 14.2v-2.4a7.4 7.4 0 0 1 14.8 0v2.4"/><rect x="2.8" y="12.8" width="4" height="6" rx="2"/><rect x="17.2" y="12.8" width="4" height="6" rx="2"/><path d="M19.4 18.8v.6a2.6 2.6 0 0 1-2.6 2.6H13"/></symbol>
   </svg>
 
 
@@ -2394,7 +2750,15 @@
 
     <div class="layout">
       <!-- Sidebar -->
-      <aside class="sidebar">
+      <aside class="sidebar" id="sidebar">
+        <!-- Collapsed by default on phones so products are reachable without
+             scrolling past the whole filter panel. Always open on desktop. -->
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="false"
+          aria-controls="sidebarBody" onclick="toggleSidebar()">
+          <span>برندها و فیلترها</span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chevron"></use></svg>
+        </button>
+        <div class="sidebar-body" id="sidebarBody">
         <div class="side-title">
           <span>برندها</span>
           <button onclick="filterBrand('')" style="font-size:12px;color:var(--primary)">همه</button>
@@ -2411,6 +2775,7 @@
         <div class="switch-row">
           <span>پیشنهاد ویژه</span>
           <span id="promoSwitch" class="switch" onclick="togglePromotion()"><i></i></span>
+        </div>
         </div>
       </aside>
 
@@ -2519,9 +2884,37 @@
   </footer>
 
   <!-- Floating Mobile Cart Button -->
-  <button class="mobile-cart-float" onclick="scrollToCart()">
-    <svg class="ic" aria-hidden="true"><use href="#i-bag"></use></svg> سبد خرید (<span id="mobileCartCount">0</span>)
-  </button>
+  <!-- Support FAB: sits above the tab bar, phone-only. -->
+  <a class="fab-support" href="tel:09135006644" aria-label="تماس با پشتیبانی">
+    <svg class="ic" aria-hidden="true"><use href="#i-support"></use></svg>
+  </a>
+
+  <!-- App-style bottom tab bar (phones only). -->
+  <nav class="tabbar" id="tabbar" aria-label="ناوبری اصلی">
+    <button type="button" class="tab active" data-tab="home" onclick="goTab('home', this)">
+      <svg class="ic" aria-hidden="true"><use href="#i-home"></use></svg>
+      <span>خانه</span>
+    </button>
+    <button type="button" class="tab" data-tab="cats" onclick="goTab('cats', this)">
+      <svg class="ic" aria-hidden="true"><use href="#i-grid"></use></svg>
+      <span>دسته‌بندی</span>
+    </button>
+    <button type="button" class="tab" data-tab="cart" onclick="goTab('cart', this)">
+      <span class="tab-icon-wrap">
+        <svg class="ic" aria-hidden="true"><use href="#i-bag"></use></svg>
+        <span id="tabCartCount" class="tab-badge" hidden>0</span>
+      </span>
+      <span>سبد خرید</span>
+    </button>
+    <button type="button" class="tab" data-tab="orders" onclick="goTab('orders', this)">
+      <svg class="ic" aria-hidden="true"><use href="#i-receipt"></use></svg>
+      <span>سفارش‌ها</span>
+    </button>
+    <button type="button" class="tab" data-tab="account" onclick="goTab('account', this)">
+      <svg class="ic" aria-hidden="true"><use href="#i-user"></use></svg>
+      <span>حساب من</span>
+    </button>
+  </nav>
 
   <!-- Register Modal -->
   <div class="modal" id="registerModal">
@@ -2805,6 +3198,36 @@
     let selectedBrand = '', selectedCategory = '';
     let ascending = true, viewMode = 'grid';
     let currentSlide = 0, sliderTimer;
+
+    /* Publishes the promo strip's real height so the mobile header can stick
+       just below it. Re-measured on resize because the copy rewraps. */
+    function trackPromoHeight() {
+      const promo = document.getElementById('topPromo');
+      if (!promo) return;
+      const apply = () => document.documentElement.style
+        .setProperty('--promo-h', Math.round(promo.getBoundingClientRect().height) + 'px');
+      apply();
+      if (window.ResizeObserver) new ResizeObserver(apply).observe(promo);
+      else window.addEventListener('resize', apply);
+    }
+
+    /* Bottom tab bar. Each tab either scrolls to a section or opens the
+       matching panel — same code paths the desktop UI already uses. */
+    function goTab(tab, btn) {
+      document.querySelectorAll('.tabbar .tab').forEach(t => t.classList.toggle('active', t === btn));
+      const to = el => el && el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (tab === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
+      else if (tab === 'cats') to(document.getElementById('categories'));
+      else if (tab === 'cart') to(document.getElementById('cart'));
+      else if (tab === 'orders') { openAuth(); if (auth.token) showAuthStep('orders'); }
+      else if (tab === 'account') openAuth();
+    }
+
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      const open = sb.classList.toggle('open');
+      document.getElementById('sidebarToggle').setAttribute('aria-expanded', String(open));
+    }
 
     /* Inline icon for template strings. */
     function ic(name, cls) { return `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"></use></svg>`; }
@@ -3858,10 +4281,13 @@
     function renderCart() {
       const el = document.getElementById('cartItems');
       const summaryEl = document.getElementById('cartSummary');
-      const mobileCount = document.getElementById('mobileCartCount');
+      const tabCount = document.getElementById('tabCartCount');
 
       const totalQty = cart.reduce((s, i) => s + i.qty, 0);
-      mobileCount.innerText = totalQty;
+      if (tabCount) {
+        tabCount.textContent = totalQty.toLocaleString('fa-IR');
+        tabCount.hidden = totalQty === 0;
+      }
 
       if (!cart.length) {
         el.className = 'cart-empty';
@@ -4162,8 +4588,16 @@
     document.getElementById('search').addEventListener('input', render);
 
     // Auto-run on startup
+    trackPromoHeight();
     resetSliderTimer();
     loadData();
+
+    // Register PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
   </script>
 </body>
 
