@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="سؤالات متداول همکاری، عضویت، فعال‌سازی حساب، ارسال سفارش و پشتیبانی تماس مارکت">
+  <title>سؤالات متداول همکاری | تماس مارکت</title>
+  <link rel="shortcut icon" href="logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00768f;
+      --primary-dark: #00596b;
+      --primary-light: #e6f5f8;
+      --bg: #f4f6f9;
+      --card: #fff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 8px 30px rgba(0, 118, 143, .09);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Vazirmatn", Tahoma, sans-serif;
+      line-height: 1.9;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .page-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, .96);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+
+    .header-inner {
+      max-width: 1120px;
+      min-height: 76px;
+      margin: auto;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .brand img {
+      width: 145px;
+      height: 42px;
+      object-fit: contain;
+    }
+
+    .brand span { color: var(--muted); font-size: 10px; }
+
+    .back-link {
+      padding: 10px 16px;
+      color: #fff;
+      background: var(--primary);
+      border-radius: 10px;
+      font-weight: 800;
+    }
+
+    .page-main {
+      max-width: 1060px;
+      margin: 32px auto 60px;
+      padding: 0 18px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 42px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary-dark), #008da8);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "؟";
+      position: absolute;
+      left: 34px;
+      top: -54px;
+      color: rgba(255, 255, 255, .11);
+      font-size: 210px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .hero-label { margin: 0 0 7px; color: #bfeaf2; font-weight: 700; }
+
+    .hero h1 {
+      position: relative;
+      z-index: 1;
+      margin: 0 0 10px;
+      font-size: clamp(28px, 5vw, 42px);
+    }
+
+    .hero p:last-child {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin: 0;
+      color: #e2f6fa;
+      font-size: 16px;
+    }
+
+    .faq-list {
+      display: grid;
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .faq-item {
+      overflow: hidden;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, .035);
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .faq-item[open] {
+      border-color: #9dd4df;
+      box-shadow: var(--shadow);
+    }
+
+    .faq-question {
+      position: relative;
+      padding: 21px 64px 21px 50px;
+      cursor: pointer;
+      list-style: none;
+      color: #123b48;
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .faq-question::-webkit-details-marker { display: none; }
+
+    .faq-question::before {
+      content: "؟";
+      position: absolute;
+      right: 18px;
+      top: 17px;
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      color: var(--primary);
+      background: var(--primary-light);
+      border-radius: 10px;
+      font-weight: 900;
+    }
+
+    .faq-question::after {
+      content: "+";
+      position: absolute;
+      left: 22px;
+      top: 18px;
+      color: var(--primary);
+      font-size: 24px;
+      line-height: 1;
+      transition: transform .2s;
+    }
+
+    .faq-item[open] .faq-question::after { transform: rotate(45deg); }
+
+    .faq-answer {
+      margin: 0;
+      padding: 0 64px 23px 24px;
+      color: #475569;
+      font-size: 15px;
+    }
+
+    .shipping-section {
+      margin-top: 24px;
+      padding: 28px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .shipping-section h2 {
+      margin: 0 0 8px;
+      color: #123b48;
+      font-size: 22px;
+    }
+
+    .shipping-intro { margin: 0 0 19px; color: var(--muted); }
+
+    .shipping-rule {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .shipping-card {
+      position: relative;
+      padding: 20px 55px 20px 18px;
+      background: #f7fcfd;
+      border: 1px solid #cce8ed;
+      border-radius: 15px;
+    }
+
+    .shipping-card::before {
+      position: absolute;
+      right: 16px;
+      top: 18px;
+      font-size: 25px;
+    }
+
+    .shipping-card.same-day::before { content: "🚀"; }
+    .shipping-card.next-day::before { content: "📦"; }
+
+    .shipping-card strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--primary-dark);
+    }
+
+    .shipping-card p { margin: 0; color: #475569; font-size: 14px; }
+
+    .support-box {
+      margin-top: 24px;
+      padding: 30px;
+      text-align: center;
+      color: #fff;
+      background: linear-gradient(135deg, #073f4b, #005f73);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .support-box h2 { margin: 0 0 7px; font-size: 23px; }
+    .support-box p { margin: 0; color: #d7eef2; }
+
+    .support-actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .support-btn {
+      min-width: 190px;
+      padding: 12px 18px;
+      color: #073f4b;
+      background: #fff;
+      border-radius: 11px;
+      font-weight: 900;
+      transition: transform .2s;
+    }
+
+    .support-btn.chat { color: #fff; background: #10a56a; }
+    .support-btn:hover { transform: translateY(-2px); }
+
+    .page-footer {
+      padding: 26px 18px;
+      text-align: center;
+      color: #cce7ec;
+      background: #042f38;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-bottom: 8px;
+    }
+
+    .footer-links a { color: #fff; font-weight: 700; }
+
+    @media (max-width: 700px) {
+      .header-inner { min-height: 66px; padding: 9px 13px; }
+      .brand img { width: 118px; }
+      .brand span { display: none; }
+      .back-link { padding: 9px 12px; font-size: 13px; }
+      .page-main { margin-top: 17px; padding: 0 11px; }
+      .hero { padding: 28px 21px; border-radius: 18px; }
+      .shipping-rule { grid-template-columns: 1fr; }
+      .faq-question { padding-left: 48px; font-size: 14px; }
+      .faq-answer { padding-right: 20px; padding-left: 20px; }
+      .shipping-section, .support-box { padding: 22px 17px; }
+      .support-btn { width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="page-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html" aria-label="تماس مارکت">
+        <img src="logo.png" alt="تماس مارکت">
+        <span>مرجع تخصصی فروش عمده کالای دیجیتال</span>
+      </a>
+      <a class="back-link" href="index.html">⌂ بازگشت به فروشگاه</a>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <section class="hero">
+      <p class="hero-label">راهنمای همکاری با تماس مارکت</p>
+      <h1>سؤالات متداول</h1>
+      <p>پاسخ پرسش‌های پرتکرار درباره عضویت همکاران، فعال‌سازی حساب، قیمت‌های ویژه، ارسال سفارش و پشتیبانی را
+        اینجا ببینید.</p>
+    </section>
+
+    <section class="faq-list" aria-label="سؤالات متداول همکاری">
+      <details class="faq-item" open>
+        <summary class="faq-question">شرایط اصلی برای عضویت در پنل همکاری چیست؟</summary>
+        <p class="faq-answer">خیلی ساده است! کافی است فرم ثبت‌نام را با اطلاعات معتبر، مانند نام، شماره تماس و
+          حوزه فعالیت، تکمیل کنید. همکاران ما اطلاعات شما را بررسی می‌کنند و در کوتاه‌ترین زمان حساب کاربری
+          ویژه‌تان را فعال خواهند کرد.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">فعال‌سازی حساب کاربری همکار چقدر طول می‌کشد؟</summary>
+        <p class="faq-answer">بررسی و تأیید حساب معمولاً بین ۲ تا ۲۴ ساعت کاری زمان می‌برد. به‌محض فعال‌سازی، از
+          طریق پیامک به شما اطلاع می‌دهیم تا بتوانید با قیمت‌های ویژه همکار خرید کنید.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">نحوه ارسال سفارش‌های عمده و همکاری چگونه است؟</summary>
+        <p class="faq-answer">سفارش‌های همکاران در اولویت ارسال قرار دارند. بسته به حجم سفارش و شهر شما، ارسال
+          از طریق باربری، تیپاکس، پست یا پیک اختصاصی انجام می‌شود تا مرسوله در سریع‌ترین زمان به دستتان برسد.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">چطور می‌توانم موجودی و قیمت‌های ویژه همکار را ببینم؟</summary>
+        <p class="faq-answer">به‌محض ورود به حساب کاربری تأییدشده، قیمت‌های ویژه همکار و موجودی واقعی محصولات
+          به‌صورت خودکار در سایت نمایش داده می‌شود و نیازی به استعلام تلفنی نخواهید داشت.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">اگر درباره یک محصول یا سفارش نیازمند راهنمایی باشم، با چه کسی تماس بگیرم؟</summary>
+        <p class="faq-answer">شما یک پشتیبان اختصاصی خواهید داشت. از طریق گفتگوی آنلاین یا شماره
+          <a href="tel:09135006644"><strong>۰۹۱۳۵۰۰۶۶۴۴</strong></a> بخش همکاران می‌توانید سریعاً با پشتیبان
+          خود در ارتباط باشید.</p>
+      </details>
+    </section>
+
+    <section class="shipping-section">
+      <h2>قانون طلایی ارسال</h2>
+      <p class="shipping-intro">ما می‌دانیم زمان برای شما و مشتریانتان چقدر حیاتی است؛ بنابراین فرآیند ارسال به
+        شکلی تنظیم شده است که همیشه برای فروش آماده باشید.</p>
+      <div class="shipping-rule">
+        <article class="shipping-card same-day">
+          <strong>ثبت سفارش تا ساعت ۱۷:۰۰</strong>
+          <p>سفارش شما در همان روز پردازش و به شرکت حمل‌ونقل تحویل داده می‌شود.</p>
+        </article>
+        <article class="shipping-card next-day">
+          <strong>ثبت سفارش بعد از ساعت ۱۷:۰۰</strong>
+          <p>سفارش شما اولین اولویت ارسال در نخستین روز کاری بعد خواهد بود.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="support-box">
+      <h2>سؤالتان را اینجا پیدا نکردید؟</h2>
+      <p>نگران نباشید! تیم پشتیبانی ما آماده پاسخگویی به شماست.</p>
+      <div class="support-actions">
+        <a class="support-btn" href="tel:09135006644">📞 تماس با پشتیبانی همکاران</a>
+        <a class="support-btn chat" href="https://wa.me/989135006644" target="_blank" rel="noopener">💬 گفتگوی آنلاین</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="page-footer">
+    <nav class="footer-links" aria-label="پیوندهای راهنما">
+      <a href="index.html">فروشگاه</a>
+      <a href="terms.html">شرایط و قوانین همکاری</a>
+      <a href="tel:09135006644">تماس با پشتیبانی</a>
+    </nav>
+    <small>© تمامی حقوق برای تماس مارکت محفوظ است.</small>
+  </footer>
+</body>
+
+</html>

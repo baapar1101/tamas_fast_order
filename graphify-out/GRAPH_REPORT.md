@@ -4,12 +4,12 @@
 - cluster-only mode — file stats not available
 
 ## Summary
-- 74 nodes · 135 edges · 14 communities
+- 75 nodes · 135 edges · 15 communities
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3b53fb35`
+- Built from commit: `01929d54`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -55,7 +55,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (14 total, 0 thin omitted)
+## Communities (15 total, 0 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.22
