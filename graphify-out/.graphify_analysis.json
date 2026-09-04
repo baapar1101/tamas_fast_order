@@ -27,9 +27,9 @@
       "sync_spreadsheet_cmd_push",
       "sync_spreadsheet_cmd_watch",
       "sync_spreadsheet_push_to_web_app",
-      "sync_spreadsheet_rationale_187",
-      "sync_spreadsheet_rationale_236",
-      "sync_spreadsheet_rationale_312"
+      "sync_spreadsheet_rationale_193",
+      "sync_spreadsheet_rationale_242",
+      "sync_spreadsheet_rationale_318"
     ],
     "3": [
       "code_gs_doget",
@@ -50,17 +50,17 @@
     "5": [
       "sync_spreadsheet_cmd_diff",
       "sync_spreadsheet_fetch_csv_from_gss",
-      "sync_spreadsheet_rationale_152",
-      "sync_spreadsheet_rationale_251",
-      "sync_spreadsheet_rationale_68",
+      "sync_spreadsheet_rationale_156",
+      "sync_spreadsheet_rationale_257",
+      "sync_spreadsheet_rationale_72",
       "sync_spreadsheet_read_excel_catalog"
     ],
     "6": [
       "sync_spreadsheet_cmd_pull",
       "sync_spreadsheet_fetch_from_web_app",
-      "sync_spreadsheet_rationale_120",
-      "sync_spreadsheet_rationale_176",
-      "sync_spreadsheet_rationale_202",
+      "sync_spreadsheet_rationale_124",
+      "sync_spreadsheet_rationale_180",
+      "sync_spreadsheet_rationale_208",
       "sync_spreadsheet_write_excel_catalog"
     ],
     "7": [
@@ -73,8 +73,8 @@
     "8": [
       "sync_spreadsheet_load_config",
       "sync_spreadsheet_main",
-      "sync_spreadsheet_rationale_44",
-      "sync_spreadsheet_rationale_62",
+      "sync_spreadsheet_rationale_45",
+      "sync_spreadsheet_rationale_66",
       "sync_spreadsheet_save_config"
     ],
     "9": [
