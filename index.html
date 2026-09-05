@@ -1719,6 +1719,15 @@
       color: var(--text-muted) !important;
     }
 
+    .brands-empty {
+      grid-column: 1 / -1;
+      padding: 14px 6px;
+      color: var(--text-muted);
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.9;
+    }
+
     /* ---- Colour variant picker ---- */
 
     .color-picker {
@@ -3559,67 +3568,115 @@
       ];
     }
 
-    function buildBrands() {
-      const brandList = [
-        { name: 'اپل', key: 'apple' },
-        { name: 'سامسونگ', key: 'samsung' },
-        { name: 'شیائومی', key: 'xiaomi' },
-        { name: 'انکر', key: 'anker' },
-        { name: 'هوکو', key: 'hoco' },
-        { name: 'مک‌دودو', key: 'macdodo' },
-        { name: 'یسیدو', key: 'yesido' },
-        { name: 'کیو‌سی‌وای', key: 'qcy' },
-        { name: 'اکسیژن', key: 'oxygen' },
-        { name: 'هادرون', key: 'hadron' },
-        { name: 'برافون', key: 'borofone' },
-        { name: 'هایلو', key: 'haylou' }
-      ];
+    /* ---- categories & brands, driven by the sheet ------------------------
+     * Categories sheet: category_name (EN) | category_fa_name (FA) | icon_url |
+     *                   Brand  ← comma-separated ENGLISH brand names
+     * Brands sheet:     brand_name (EN) | brand_fa_name (FA) | icon_url
+     * Products sheet:   Brand / Category hold the PERSIAN names.
+     * So the category→brand link is matched in English, while the panel shows
+     * Persian names and products are filtered by the Persian name.
+     * -------------------------------------------------------------------- */
 
+    function normName(v) {
+      return String(v == null ? '' : v)
+        .replace(/[كک]/g, 'ک')
+        .replace(/[يىی]/g, 'ی')
+        .replace(/‌/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+    }
+
+    let visibleBrands = [];   // parallel to the rendered brand buttons
+
+    /* English brand names allowed for the selected category.
+       null = no restriction (nothing selected, unknown category, or the row's
+       Brand cell is still empty — better to show every brand than an empty
+       panel). */
+    function categoryBrandNames() {
+      if (!selectedCategory) return null;
+      const row = (catalog.categories || []).find(c =>
+        normName(c.category_fa_name) === normName(selectedCategory) ||
+        normName(c.category_name) === normName(selectedCategory));
+      if (!row) return null;
+      const raw = row.Brand ?? row.brand ?? row.brands ?? '';
+      const names = (Array.isArray(raw) ? raw : String(raw).split(/[,،;|\n]+/))
+        .map(normName).filter(Boolean);
+      return names.length ? new Set(names) : null;
+    }
+
+    function buildBrands() {
       const el = document.getElementById('brands');
       if (!el) return;
 
-      el.innerHTML = brandList.map(b => `
-    <button class="brand-icon-btn ${selectedBrand === b.name ? 'active' : ''}" title="${esc(b.name)}" onclick="filterBrand('${b.name}')">
-      ${assetIcon(b.key, 'brand', b.name)}
-    </button>
-  `).join('');
+      const all = (catalog.brands || []).filter(b => b.brand_name || b.brand_fa_name);
+      const allowed = categoryBrandNames();
+      visibleBrands = allowed
+        ? all.filter(b => allowed.has(normName(b.brand_name)) || allowed.has(normName(b.brand_fa_name)))
+        : all;
+
+      if (!visibleBrands.length) {
+        el.innerHTML = '<div class="brands-empty">برندی برای این دسته‌بندی ثبت نشده است</div>';
+        return;
+      }
+
+      el.innerHTML = visibleBrands.map((b, i) => {
+        const label = b.brand_fa_name || b.brand_name;
+        const active = selectedBrand && normName(selectedBrand) === normName(label);
+        return `<button class="brand-icon-btn ${active ? 'active' : ''}" title="${esc(label)}"
+          aria-label="${esc(label)}" onclick="filterBrandAt(${i})">
+          ${assetIcon(b.icon_url || b.brand_name || label, 'brand', label)}
+        </button>`;
+      }).join('');
     }
 
     function buildCategories() {
-      const catList = [
-        { name: 'گوشی موبایل', key: 'گوشی موبایل' },
-        { name: 'هدفون و هندزفری', key: 'هدفون و هندزفری' },
-        { name: 'پاوربانک', key: 'پاوربانک' },
-        { name: 'شارژر و آداپتور', key: 'شارژر و آداپتور' },
-        { name: 'کابل و تبدیل', key: 'کابل و تبدیل' },
-        { name: 'قاب و کاور', key: 'قاب و کاور' },
-        { name: 'محافظ صفحه', key: 'محافظ صفحه' },
-        { name: 'اسپیکر', key: 'اسپیکر' },
-        { name: 'ساعت و مچ‌بند', key: 'ساعت و مچ‌بند' }
-      ];
-
       const el = document.getElementById('categories');
       if (!el) return;
 
+      /* Every row of the sheet gets a chip, including categories that have no
+         products yet. */
+      const cats = (catalog.categories || []).filter(c => c.category_fa_name || c.category_name);
+
       el.innerHTML = `<button class="category-chip ${!selectedCategory ? 'active' : ''}" onclick="filterCategory('')">
-    <svg class="ic ic-xl ic-muted" aria-hidden="true"><use href="#i-mobile"></use></svg>
+    <svg class="ic ic-xl ic-muted" aria-hidden="true"><use href="#i-grid"></use></svg>
     <span class="chip-title">همه کالاها</span>
-  </button>` + catList.map(c => `
-    <button class="category-chip ${selectedCategory === c.name ? 'active' : ''}" onclick="filterCategory('${c.name}')">
-      ${assetIcon(c.key, 'category', c.name)}
-      <span class="chip-title">${esc(c.name)}</span>
-    </button>
-  `).join('');
+  </button>` + cats.map((c, i) => {
+        const label = c.category_fa_name || c.category_name;
+        const active = selectedCategory && normName(selectedCategory) === normName(label);
+        return `<button class="category-chip ${active ? 'active' : ''}" title="${esc(label)}"
+      onclick="filterCategoryAt(${i})">
+      ${assetIcon(c.icon_url || label, 'category', label)}
+      <span class="chip-title">${esc(label)}</span>
+    </button>`;
+      }).join('');
+    }
+
+    /* Index-based so brand and category names can contain any punctuation. */
+    function filterBrandAt(i) {
+      const b = visibleBrands[i];
+      filterBrand(b ? (b.brand_fa_name || b.brand_name) : '');
+    }
+
+    function filterCategoryAt(i) {
+      const cats = (catalog.categories || []).filter(c => c.category_fa_name || c.category_name);
+      const c = cats[i];
+      filterCategory(c ? (c.category_fa_name || c.category_name) : '');
     }
 
     function filterBrand(b) {
-      selectedBrand = selectedBrand === b ? '' : b;
+      selectedBrand = normName(selectedBrand) === normName(b) ? '' : b;
       buildBrands();
       render();
     }
+
     function filterCategory(c) {
-      selectedCategory = selectedCategory === c ? '' : c;
+      selectedCategory = normName(selectedCategory) === normName(c) ? '' : c;
+      /* The previous brand may not belong to the new category, so drop it —
+         otherwise the two filters combine into an empty result. */
+      selectedBrand = '';
       buildCategories();
+      buildBrands();
       render();
     }
     function toggleStock() {
@@ -3673,8 +3730,11 @@
       let list = allProducts.filter(p => {
         const isStockOk = !onlyStock || getProductStock(p) > 0;
         const isPromoOk = !onlyPromotion || p.promotion === true || String(p.promotion).toUpperCase() === 'TRUE';
-        const isBrandOk = !selectedBrand || p.brand === selectedBrand;
-        const isCatOk = !selectedCategory || p.category === selectedCategory || p.Category === selectedCategory;
+        /* Products carry `Brand`/`Category` (capitalised, from the sheet
+           headers); `p.brand` is undefined there, so the old strict compare
+           against it never matched and the brand filter returned nothing. */
+        const isBrandOk = !selectedBrand || normName(p.Brand || p.brand) === normName(selectedBrand);
+        const isCatOk = !selectedCategory || normName(p.Category || p.category) === normName(selectedCategory);
         const isFavOk = !onlyFavorites || favorites.includes(p.product_id);
         const isQueryOk = !q || JSON.stringify(p).toLowerCase().includes(q);
         return isStockOk && isPromoOk && isBrandOk && isCatOk && isFavOk && isQueryOk;
@@ -3853,7 +3913,7 @@
             <div class="card-title">${isPromo ? '<span class="title-star">' + ic('star-fill') + '</span>' : ''}${esc(p.title)}</div>
             <div class="card-meta-row">
               <div class="card-meta">
-                <span>برند: <b>${esc(p.brand || 'متفرقه')}</b></span>
+                <span>برند: <b>${esc(p.Brand || p.brand || 'متفرقه')}</b></span>
                 ${colorPicker(gi, g, p, idx)}
                 ${p.sku ? `<span class="card-sku">کد: <b class="ltr-inline">${esc(p.sku)}</b></span>` : ''}
               </div>
@@ -4783,8 +4843,8 @@
       <div>
         <h3 style="margin:0 0 10px;font-size:17px;">${esc(p.title)}</h3>
         <div class="card-meta" style="font-size:13px;gap:8px;">
-          <span>برند: <b>${esc(p.brand || 'متفرقه')}</b></span>
-          <span>دسته‌بندی: ${esc(p.category || '-')}</span>
+          <span>برند: <b>${esc(p.Brand || p.brand || 'متفرقه')}</b></span>
+          <span>دسته‌بندی: ${esc(p.Category || p.category || '-')}</span>
           <span>رنگ: ${esc(p.color || '-')}</span>
           <span>گارانتی: ${esc(p.warranty || 'اصالت کالا')}</span>
           ${p.stock === 1 ? '<span><b class="stock-warn">تنها ۱ عدد در سایت باقیست!</b></span>' : ''}
