@@ -1719,6 +1719,55 @@
       color: var(--text-muted) !important;
     }
 
+    /* ---- Colour variant picker ---- */
+
+    .color-picker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 100%;
+    }
+
+    .color-select {
+      max-width: 130px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .color-select:hover {
+      border-color: var(--primary);
+    }
+
+    .color-select:focus-visible {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 118, 143, .13);
+    }
+
+    .color-count {
+      flex-shrink: 0;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 10.5px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .card-sku {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
     /* ---- Icon system ---- */
 
     .ic {
@@ -2509,6 +2558,26 @@
       .card-meta {
         font-size: 11.5px;
         gap: 2px 10px;
+      }
+
+      /* A <select> reports the width of its widest option as its min-content
+         size, so it has to be told explicitly that it may shrink. */
+      .card-meta-row,
+      .card-meta,
+      .card-meta > span,
+      .color-picker {
+        min-width: 0;
+        flex-wrap: wrap;
+      }
+
+      .color-picker {
+        width: 100%;
+      }
+
+      .color-select {
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: 100%;
       }
 
       .card-fav-btn {
@@ -3625,40 +3694,11 @@
 
       if (viewMode === 'grid') {
         container.className = 'products-grid';
-        container.innerHTML = list.map(p => {
-          const isFav = favorites.includes(p.product_id);
-          const isPromo = p.promotion === true || String(p.promotion).toUpperCase() === 'TRUE';
-          return `
-        <article class="product-card ${isPromo ? 'is-promotion' : ''}">
-          ${isPromo ? '<div class="promo-star-tag"><span class="star-icon">' + ic('star-fill') + '</span> پیشنهاد ویژه</div>' : ''}
-          ${p.discount ? `<span class="card-badge">${p.discount}٪ تخفیف</span>` : ''}
-          <button class="card-fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${p.product_id}')">
-            ${isFav ? ic('heart-fill') : ic('heart')}
-          </button>
-          <img class="card-thumb" src="${esc(p.image_url || '')}" alt="${esc(p.title)}" onerror="this.src='logo.png'">
-          <div>
-            <div class="card-title">${isPromo ? '<span class="title-star">' + ic('star-fill') + '</span>' : ''}${esc(p.title)}</div>
-            <div class="card-meta-row">
-              <div class="card-meta">
-                <span>برند: <b>${esc(p.brand || 'متفرقه')}</b></span>
-                <span>رنگ: ${esc(p.color || '-')}</span>
-              </div>
-              ${renderSellTypeBadges(p.sell_type)}
-            </div>
-          </div>
-          <div class="card-price-box">
-            <div style="margin-bottom:8px">
-              ${p.old_price ? `<span class="card-old-price">${money(p.old_price)}</span>` : ''}
-              <div class="card-price">${money(p.price)}</div>
-            </div>
-            <div class="warehouse-section" style="margin-bottom:8px">${warehouseRows(p)}</div>
-            <button class="btn" style="width:100%;font-size:11.5px;padding:5px;" onclick='openQuickView(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
-              ${ic('eye')} مشاهده جزئیات
-            </button>
-          </div>
-        </article>
-      `;
-        }).join('');
+        /* One card per title; colours become a dropdown inside the card. */
+        buildGroups(list);
+        container.innerHTML = productGroups.map((g, gi) =>
+          `<article class="product-card ${g.items.some(isPromo_) ? 'is-promotion' : ''}" data-gi="${gi}">${productCardInner(gi)}</article>`
+        ).join('');
       } else {
         // Accordion List View grouped by model
         container.className = 'products-list';
@@ -3718,6 +3758,118 @@
 
     function isPromo_(p) {
       return p.promotion === true || String(p.promotion).toUpperCase() === 'TRUE';
+    }
+
+    /* ---- colour variants -------------------------------------------------
+     * Rows sharing a title but differing by colour/SKU are one product. They
+     * collapse into a single card with a colour dropdown; picking a colour
+     * swaps the SKU, price, stock and image of that card only.
+     * -------------------------------------------------------------------- */
+
+    let productGroups = [];   // [{ key, items }] rebuilt on every render
+    let variantChoice = {};   // group key -> chosen index, survives re-renders
+
+    function groupKeyOf(p) {
+      return String(p.title || p.model || p.product_id || '')
+        .replace(/[كک]/g, 'ک')
+        .replace(/[يىی]/g, 'ی')
+        .replace(/‌/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+    }
+
+    function buildGroups(list) {
+      const map = new Map();
+      list.forEach(p => {
+        const k = groupKeyOf(p);
+        if (!map.has(k)) map.set(k, []);
+        map.get(k).push(p);
+      });
+      productGroups = [...map.entries()].map(([key, items]) => ({ key, items }));
+      return productGroups;
+    }
+
+    function chosenIndex(g) {
+      return Math.min(Math.max(0, variantChoice[g.key] || 0), g.items.length - 1);
+    }
+
+    /* Re-renders just the one card rather than the whole grid, so the page
+       does not jump while the buyer is comparing colours. */
+    function selectVariant(gi, idx) {
+      const g = productGroups[gi];
+      if (!g) return;
+      variantChoice[g.key] = Math.min(Math.max(0, Number(idx) || 0), g.items.length - 1);
+      const el = document.querySelector(`.product-card[data-gi="${gi}"]`);
+      if (el) el.innerHTML = productCardInner(gi);
+    }
+
+    function colorPicker(gi, g, p, idx) {
+      if (g.items.length < 2) {
+        return `<span>رنگ: ${esc(p.color || '-')}</span>`;
+      }
+      /* Two rows can share a title AND a colour but differ in SKU and price.
+         Show the price whenever it varies, and fall back to the SKU when the
+         colour name alone cannot tell two options apart. */
+      const seen = {};
+      g.items.forEach(it => {
+        const c = String(it.color || 'اصلی').trim();
+        seen[c] = (seen[c] || 0) + 1;
+      });
+      const priceVaries = new Set(g.items.map(it => Number(it.price) || 0)).size > 1;
+
+      const label = it => {
+        const c = String(it.color || 'اصلی').trim();
+        let out = c;
+        if (priceVaries) out += ' — ' + money(it.price);
+        if (seen[c] > 1 && it.sku) out += ' (' + it.sku + ')';
+        return out;
+      };
+
+      return `<span class="color-picker">
+          <span class="color-dot" style="background:${getColorHex(p)}"></span>
+          <select class="color-select" aria-label="انتخاب رنگ" onchange="selectVariant(${gi}, this.value)">
+            ${g.items.map((it, i) =>
+        `<option value="${i}"${i === idx ? ' selected' : ''}>${esc(label(it))}</option>`).join('')}
+          </select>
+          <span class="color-count">${g.items.length.toLocaleString('fa-IR')} گزینه</span>
+        </span>`;
+    }
+
+    function productCardInner(gi) {
+      const g = productGroups[gi];
+      const idx = chosenIndex(g);
+      const p = g.items[idx];
+      const isFav = favorites.includes(p.product_id);
+      const isPromo = g.items.some(isPromo_);
+      return `
+          ${isPromo ? '<div class="promo-star-tag"><span class="star-icon">' + ic('star-fill') + '</span> پیشنهاد ویژه</div>' : ''}
+          ${p.discount ? `<span class="card-badge">${esc(p.discount)}٪ تخفیف</span>` : ''}
+          <button class="card-fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${p.product_id}')">
+            ${isFav ? ic('heart-fill') : ic('heart')}
+          </button>
+          <img class="card-thumb" src="${esc(p.image_url || '')}" alt="${esc(p.title)}" onerror="this.src='logo.png'">
+          <div>
+            <div class="card-title">${isPromo ? '<span class="title-star">' + ic('star-fill') + '</span>' : ''}${esc(p.title)}</div>
+            <div class="card-meta-row">
+              <div class="card-meta">
+                <span>برند: <b>${esc(p.brand || 'متفرقه')}</b></span>
+                ${colorPicker(gi, g, p, idx)}
+                ${p.sku ? `<span class="card-sku">کد: <b class="ltr-inline">${esc(p.sku)}</b></span>` : ''}
+              </div>
+              ${renderSellTypeBadges(p.sell_type)}
+            </div>
+          </div>
+          <div class="card-price-box">
+            <div style="margin-bottom:8px">
+              ${p.old_price ? `<span class="card-old-price">${money(p.old_price)}</span>` : ''}
+              <div class="card-price">${money(p.price)}</div>
+            </div>
+            <div class="warehouse-section" style="margin-bottom:8px">${warehouseRows(p)}</div>
+            <button class="btn" style="width:100%;font-size:11.5px;padding:5px;" onclick='openQuickView(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
+              ${ic('eye')} مشاهده جزئیات
+            </button>
+          </div>`;
     }
 
     /* One row per warehouse that actually has stock, each with its own add
