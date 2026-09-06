@@ -7,7 +7,8 @@ const SHEETS = {
   users: 'Users',
   orders: 'Orders',
   settings: 'Settings',
-  sessions: 'Sessions'
+  sessions: 'Sessions',
+  admins: 'Admins'
 };
 
 const DEFAULT_HEADERS = {
@@ -18,7 +19,21 @@ const DEFAULT_HEADERS = {
   Users: ['name', 'last_name', 'Store_name', 'phone_number', 'mobile_number', 'address', 'postal_code', 'certificate_file_url', 'activity', 'page_website', 'actived'],
   Orders: ['order_id', 'created_at', 'customer_name', 'phone', 'address', 'items_json', 'total', 'payment', 'status'],
   Settings: ['key', 'value'],
-  Sessions: ['token', 'mobile_number', 'created_at', 'expires_at']
+  Sessions: ['token', 'mobile_number', 'created_at', 'expires_at'],
+  Admins: ['phone', 'name', 'role', 'active']
+};
+
+/* Sheets the admin panel may edit, and the column that identifies a row.
+   Anything not listed here is unreachable from the panel. */
+const ADMIN_SHEETS = {
+  Products: { key: 'product_id', label: 'محصولات' },
+  Categories: { key: 'category_name', label: 'دسته‌بندی‌ها' },
+  Brands: { key: 'brand_name', label: 'برندها' },
+  Colors: { key: 'color_code', label: 'رنگ‌ها' },
+  Orders: { key: 'order_id', label: 'سفارش‌ها', noCreate: true },
+  Users: { key: 'mobile_number', label: 'کاربران', noCreate: true, noDelete: true },
+  Admins: { key: 'phone', label: 'مدیران', ownerOnly: true },
+  Settings: { key: 'key', label: 'تنظیمات' }
 };
 
 /* --- Authentication configuration ---
@@ -72,6 +87,10 @@ function doPost(e) {
     if (a === 'startSession') return json_(startSession_(p));
     if (a === 'getProfile') return json_(getProfile_(p));
     if (a === 'myOrders') return json_(myOrders_(p));
+    if (a === 'adminSummary') return json_(adminSummary_(p));
+    if (a === 'adminList') return json_(adminList_(p));
+    if (a === 'adminSave') return json_(adminSave_(p));
+    if (a === 'adminDelete') return json_(adminDelete_(p));
     if (a === 'saveProfile') return json_(saveProfile_(p));
     if (a === 'logout') return json_(logout_(p));
     if (a === 'registerUser') return json_(registerUser_(p));
@@ -353,6 +372,241 @@ function logout_(p) {
   return { ok: true, message: 'از حساب خود خارج شدید.' };
 }
 
+/* ============================== ADMIN PANEL =================================
+ * An admin signs in with the same OTP flow as a buyer. What makes them an
+ * admin is a row in the Admins sheet matching their verified phone number, so
+ * nothing here trusts a flag sent by the client.
+ *
+ * Bootstrap: the Admins sheet is created empty. Add your own phone as the first
+ * row (role = owner) by hand — the panel deliberately has no self-enrolment.
+ * ========================================================================== */
+
+function adminFor_(phone) {
+  const sh = getSheet_(SHEETS.admins);
+  const data = sh.getDataRange().getValues();
+  if (data.length < 2) return null;
+  const h = data[0].map(x => String(x).trim());
+  const pi = h.indexOf('phone');
+  if (pi < 0) return null;
+  const ni = h.indexOf('name'), ri = h.indexOf('role'), ai = h.indexOf('active');
+
+  for (let r = 1; r < data.length; r++) {
+    if (isBlankRow_(data[r])) continue;
+    if (normalizePhone_(data[r][pi]) !== phone) continue;
+    /* A blank `active` cell counts as active so a freshly typed row works. */
+    const raw = ai < 0 ? '' : data[r][ai];
+    const active = raw === '' || raw === null || raw === true || String(raw).toUpperCase() === 'TRUE';
+    if (!active) return null;
+    return {
+      phone: phone,
+      name: ni < 0 ? '' : String(data[r][ni] || '').trim(),
+      role: (ri < 0 ? '' : String(data[r][ri] || '').trim().toLowerCase()) || 'editor'
+    };
+  }
+  return null;
+}
+
+/* Resolves the caller to an admin or returns the error payload to send back. */
+function adminGate_(p) {
+  const s = getSession_(p.token);
+  if (!s) return { err: { ok: false, expired: true, error: 'نشست شما منقضی شده است. دوباره وارد شوید.' } };
+  const a = adminFor_(s.phone);
+  if (!a) return { err: { ok: false, error: 'شما دسترسی مدیریت ندارید.' } };
+  return { admin: a };
+}
+
+function adminSheetDef_(name) {
+  const def = ADMIN_SHEETS[String(name || '').trim()];
+  if (!def) throw Error('Sheet not allowed: ' + name);
+  return def;
+}
+
+function adminSummary_(p) {
+  const gate = adminGate_(p);
+  if (gate.err) return gate.err;
+
+  const count = n => {
+    try { return read_(n).length; } catch (x) { return 0; }
+  };
+  const orders = read_(SHEETS.orders);
+  const users = read_(SHEETS.users);
+  const byStatus = {};
+  orders.forEach(o => {
+    const k = String(o.status || '').trim() || 'unknown';
+    byStatus[k] = (byStatus[k] || 0) + 1;
+  });
+
+  return {
+    ok: true,
+    admin: gate.admin,
+    sheets: Object.keys(ADMIN_SHEETS).map(k => ({ name: k, label: ADMIN_SHEETS[k].label })),
+    stats: {
+      products: count(SHEETS.products),
+      categories: count(SHEETS.categories),
+      brands: count(SHEETS.brands),
+      orders: orders.length,
+      users: users.length,
+      pendingUsers: users.filter(u => !u.actived).length,
+      newOrders: byStatus['new'] || 0,
+      revenue: orders.reduce((s, o) => s + (Number(o.total || o.total_price) || 0), 0)
+    },
+    ordersByStatus: byStatus
+  };
+}
+
+function adminList_(p) {
+  const gate = adminGate_(p);
+  if (gate.err) return gate.err;
+  const name = String(p.sheet || '').trim();
+  const def = adminSheetDef_(name);
+  if (def.ownerOnly && gate.admin.role !== 'owner') {
+    return { ok: false, error: 'فقط مدیر ارشد به این بخش دسترسی دارد.' };
+  }
+
+  const sh = getSheet_(name);
+  const data = sh.getDataRange().getValues();
+  const headers = (data[0] || []).map(x => String(x).trim());
+
+  const q = normalizeSearch_(p.q);
+  const rows = [];
+  for (let r = 1; r < data.length; r++) {
+    if (isBlankRow_(data[r])) continue;
+    const o = {};
+    headers.forEach((k, i) => {
+      let v = data[r][i];
+      if (v instanceof Date) v = v.toISOString();
+      else if (typeof v === 'boolean') { /* keep */ }
+      else v = v === null || v === undefined ? '' : String(v).trim();
+      o[k] = v;
+    });
+    if (q && normalizeSearch_(headers.map(k => o[k]).join(' ')).indexOf(q) < 0) continue;
+    o.__row = r + 1;
+    rows.push(o);
+  }
+
+  const offset = Math.max(0, Number(p.offset) || 0);
+  const limit = Math.min(500, Math.max(1, Number(p.limit) || 100));
+  return {
+    ok: true,
+    sheet: name,
+    label: def.label,
+    keyField: def.key,
+    canCreate: !def.noCreate,
+    canDelete: !def.noDelete,
+    headers: headers,
+    total: rows.length,
+    offset: offset,
+    rows: rows.slice(offset, offset + limit)
+  };
+}
+
+function normalizeSearch_(v) {
+  return toAsciiDigits_(v == null ? '' : v)
+    .replace(/[كک]/g, 'ک')
+    .replace(/[يىی]/g, 'ی')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function adminSave_(p) {
+  const gate = adminGate_(p);
+  if (gate.err) return gate.err;
+  const name = String(p.sheet || '').trim();
+  const def = adminSheetDef_(name);
+  if (def.ownerOnly && gate.admin.role !== 'owner') {
+    return { ok: false, error: 'فقط مدیر ارشد به این بخش دسترسی دارد.' };
+  }
+
+  const values = p.row && typeof p.row === 'object' ? p.row : {};
+  const keyVal = String(values[def.key] == null ? '' : values[def.key]).trim();
+  if (!keyVal) return { ok: false, error: 'مقدار ستون کلید (' + def.key + ') الزامی است.' };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = getSheet_(name);
+    const data = sh.getDataRange().getValues();
+    const h = (data[0] || []).map(x => String(x).trim());
+    const ki = h.indexOf(def.key);
+    if (ki < 0) throw Error('Key column not found: ' + def.key);
+
+    /* Booleans must stay booleans so checkbox columns keep working. */
+    const cell = col => {
+      if (!values.hasOwnProperty(col)) return null;
+      const v = values[col];
+      if (typeof v === 'boolean') return v;
+      const s = String(v == null ? '' : v).trim();
+      if (s === 'TRUE') return true;
+      if (s === 'FALSE') return false;
+      return s;
+    };
+
+    let found = 0;
+    for (let r = 1; r < data.length; r++) {
+      if (String(data[r][ki] || '').trim() === keyVal) { found = r + 1; break; }
+    }
+
+    if (found) {
+      const row = data[found - 1].slice();
+      h.forEach((col, i) => { const v = cell(col); if (v !== null) row[i] = v; });
+      sh.getRange(found, 1, 1, h.length).setValues([row]);
+    } else {
+      if (def.noCreate) return { ok: false, error: 'در این بخش امکان افزودن ردیف جدید وجود ندارد.' };
+      found = writeRow_(sh, h.map(col => {
+        const v = cell(col);
+        return v === null ? '' : v;
+      }));
+    }
+
+    if (name === 'Users') forceTextCells_(sh, h, found, ['mobile_number', 'phone_number', 'postal_code']);
+    if (name === 'Admins') forceTextCells_(sh, h, found, ['phone']);
+    if (name === 'Orders') forceTextCells_(sh, h, found, ['phone']);
+
+    return { ok: true, message: 'ذخیره شد.', row: found, sheet: name };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function adminDelete_(p) {
+  const gate = adminGate_(p);
+  if (gate.err) return gate.err;
+  const name = String(p.sheet || '').trim();
+  const def = adminSheetDef_(name);
+  if (def.noDelete) return { ok: false, error: 'حذف در این بخش مجاز نیست.' };
+  if (def.ownerOnly && gate.admin.role !== 'owner') {
+    return { ok: false, error: 'فقط مدیر ارشد به این بخش دسترسی دارد.' };
+  }
+
+  const keyVal = String(p.id == null ? '' : p.id).trim();
+  if (!keyVal) return { ok: false, error: 'شناسه ردیف مشخص نیست.' };
+
+  /* An admin must not be able to delete their own access and lock everyone out. */
+  if (name === 'Admins' && normalizePhone_(keyVal) === gate.admin.phone) {
+    return { ok: false, error: 'حذف دسترسی خودتان امکان‌پذیر نیست.' };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = getSheet_(name);
+    const data = sh.getDataRange().getValues();
+    const h = (data[0] || []).map(x => String(x).trim());
+    const ki = h.indexOf(def.key);
+    if (ki < 0) throw Error('Key column not found: ' + def.key);
+    for (let r = 1; r < data.length; r++) {
+      if (String(data[r][ki] || '').trim() === keyVal) {
+        sh.deleteRow(r + 1);
+        return { ok: true, message: 'ردیف حذف شد.' };
+      }
+    }
+    return { ok: false, error: 'ردیف پیدا نشد.' };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 /* --- profile helpers --- */
 
 function profilePayload_(phone) {
@@ -360,13 +614,17 @@ function profilePayload_(phone) {
   const found = findUserRow_(sh, phone);
   const user = found.row ? userObject_(found.headers, found.values, phone) : emptyUser_(phone);
   const missing = REQUIRED_USER_FIELDS.filter(f => !String(user[f] || '').trim());
+  const admin = adminFor_(phone);
   return {
     isNew: !found.row,
     user: user,
     complete: !missing.length,
     missing: missing,
     requiredFields: REQUIRED_USER_FIELDS,
-    profileFields: PROFILE_FIELDS
+    profileFields: PROFILE_FIELDS,
+    /* Only a hint for the UI — every admin action re-checks the sheet. */
+    isAdmin: !!admin,
+    adminRole: admin ? admin.role : ''
   };
 }
 

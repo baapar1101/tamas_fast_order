@@ -1719,6 +1719,211 @@
       color: var(--text-muted) !important;
     }
 
+    /* ---- Admin panel ---- */
+
+    .admin-modal .admin-box {
+      max-width: 1100px;
+      width: 100%;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .admin-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-who {
+      margin-inline-end: auto;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-light);
+      border-radius: 20px;
+      padding: 5px 12px;
+    }
+
+    .admin-entry {
+      background: #17324d;
+      border-color: #17324d;
+      color: #fff;
+    }
+
+    .admin-entry[hidden] { display: none; }
+
+    .admin-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .admin-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fbfdfe;
+    }
+
+    .admin-stat b { font-size: 18px; font-weight: 900; }
+    .admin-stat span:last-child { font-size: 11.5px; color: var(--text-muted); }
+    .admin-stat-icon { color: var(--primary); }
+
+    .admin-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+    }
+
+    .admin-tab {
+      flex: 0 0 auto;
+      padding: 9px 16px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .admin-tab.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .admin-toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .admin-toolbar .form-control { flex: 1; }
+    .admin-toolbar .btn { flex-shrink: 0; white-space: nowrap; }
+    .admin-toolbar .btn[hidden] { display: none; }
+
+    .admin-msg {
+      min-height: 16px;
+      font-size: 12.5px;
+    }
+
+    .admin-msg.error { color: var(--danger); }
+    .admin-msg.ok { color: var(--text-muted); }
+
+    .admin-table-wrap {
+      flex: 1;
+      min-height: 120px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .admin-table th,
+    .admin-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+      white-space: nowrap;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .admin-table thead th {
+      position: sticky;
+      top: 0;
+      background: #f1f5f9;
+      font-weight: 800;
+      z-index: 1;
+    }
+
+    .admin-table tbody tr:hover { background: #f8fafc; }
+    .admin-empty { padding: 28px; text-align: center; color: var(--text-muted); }
+    .admin-yes { color: var(--success); font-weight: 900; }
+    .admin-no { color: #cbd5e1; }
+
+    .admin-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .admin-actions .btn {
+      padding: 5px 10px;
+      font-size: 11.5px;
+      min-height: 30px;
+    }
+
+    .admin-del {
+      border-color: #fecaca;
+      color: var(--danger);
+    }
+
+    .admin-del:hover { background: var(--danger); color: #fff; }
+
+    .admin-pager {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .admin-pager .btn { padding: 6px 14px; font-size: 12px; }
+    .admin-pager .btn[disabled] { opacity: .4; cursor: not-allowed; }
+
+    .admin-edit-box {
+      position: relative;
+      max-width: 720px;
+    }
+
+    .admin-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .admin-field > span {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .admin-check {
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .admin-check input { width: 18px; height: 18px; }
+
+    #adminEditFields {
+      max-height: 58vh;
+      overflow-y: auto;
+      padding-inline-end: 4px;
+    }
+
+    @media(max-width: 768px) {
+      .admin-stats { grid-template-columns: repeat(2, 1fr); }
+      .admin-toolbar { flex-wrap: wrap; }
+      .admin-toolbar .form-control { flex: 1 1 100%; }
+      .admin-table th, .admin-table td { max-width: 140px; }
+    }
+
     .brands-empty {
       grid-column: 1 / -1;
       padding: 14px 6px;
@@ -3217,6 +3422,46 @@
     </div>
   </div>
 
+  <!-- Admin Panel -->
+  <div class="modal admin-modal" id="adminModal">
+    <div class="modal-box admin-box">
+      <div class="admin-head">
+        <div class="modal-title" style="margin:0">پنل مدیریت</div>
+        <span class="admin-who" id="adminWho"></span>
+        <button type="button" class="auth-close" style="position:static" onclick="closeAdmin()" aria-label="بستن">×</button>
+      </div>
+
+      <div class="admin-stats" id="adminStats"></div>
+
+      <div class="admin-tabs" id="adminTabs"></div>
+
+      <div class="admin-toolbar">
+        <input id="adminSearch" class="form-control" placeholder="جستجو در این بخش..."
+          oninput="adminSearchDebounced()">
+        <button class="btn primary" id="adminAddBtn" onclick="adminEdit(null)">+ افزودن</button>
+        <button class="btn" onclick="adminReload()">بارگذاری مجدد</button>
+      </div>
+
+      <div class="admin-msg" id="adminMsg"></div>
+      <div class="admin-table-wrap"><table class="admin-table" id="adminTable"></table></div>
+      <div class="admin-pager" id="adminPager"></div>
+
+      <button class="btn checkout" onclick="closeAdmin()">بستن پنل</button>
+    </div>
+  </div>
+
+  <!-- Admin row editor -->
+  <div class="modal" id="adminEditModal">
+    <div class="modal-box admin-edit-box">
+      <button type="button" class="auth-close" onclick="closeAdminEdit()" aria-label="بستن">×</button>
+      <div class="modal-title" id="adminEditTitle">ویرایش ردیف</div>
+      <div class="form-grid" id="adminEditFields"></div>
+      <div class="admin-msg" id="adminEditMsg"></div>
+      <button class="btn primary checkout" id="adminSaveBtn" onclick="adminSaveRow()">ذخیره</button>
+      <button class="btn checkout" onclick="closeAdminEdit()">انصراف</button>
+    </div>
+  </div>
+
   <!-- Payment Terms Modal -->
   <div class="modal" id="paymentTermsModal">
     <div class="modal-box terms-box">
@@ -3374,6 +3619,9 @@
       <section class="auth-step" id="authStepAccount" hidden>
         <h3>حساب کاربری</h3>
         <div class="account-card" id="authAccountCard"></div>
+        <button class="btn admin-entry checkout" id="adminEntryBtn" hidden onclick="closeAuth(); openAdmin()">
+          <svg class="ic" aria-hidden="true"><use href="#i-grid"></use></svg> پنل مدیریت
+        </button>
         <button class="btn primary checkout" onclick="showAuthStep('orders')"><svg class="ic" aria-hidden="true"><use href="#i-receipt"></use></svg> سوابق سفارش</button>
         <button class="btn checkout" onclick="showAuthStep('profile')">ویرایش اطلاعات</button>
         <button class="btn checkout" onclick="logout()">خروج از حساب</button>
@@ -4351,6 +4599,218 @@
         rows.map(([k, v]) => `<div class="account-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
     }
 
+    /* ======================== ADMIN PANEL (front end) =======================
+     * Every call carries the session token and the server re-checks the Admins
+     * sheet, so hiding the button is only cosmetic — not the access control.
+     * ====================================================================== */
+
+    let adminState = { sheet: '', label: '', headers: [], rows: [], keyField: '', canCreate: false, canDelete: false, offset: 0, total: 0, q: '' };
+    let adminSearchTimer = null;
+
+    async function openAdmin() {
+      if (!auth.token) { openAuth(); return; }
+      document.getElementById('adminModal').classList.add('open');
+      adminMsg('در حال بارگذاری...', 'ok');
+      try {
+        const data = await apiPost({ action: 'adminSummary', token: auth.token });
+        if (!data.ok) {
+          if (data.expired) { closeAdmin(); handleExpiredSession(); return; }
+          adminMsg(data.error || 'دسترسی مدیریت ندارید.');
+          document.getElementById('adminTabs').innerHTML = '';
+          return;
+        }
+        adminMsg('');
+        document.getElementById('adminWho').textContent =
+          (data.admin.name || 'مدیر') + (data.admin.role === 'owner' ? ' (مدیر ارشد)' : '');
+        renderAdminStats(data.stats);
+        renderAdminTabs(data.sheets);
+        adminOpenSheet(data.sheets[0].name);
+      } catch (err) {
+        adminMsg(err.message);
+      }
+    }
+
+    function closeAdmin() { document.getElementById('adminModal').classList.remove('open'); }
+    function adminMsg(t, kind = 'error') {
+      const el = document.getElementById('adminMsg');
+      el.textContent = t || '';
+      el.className = 'admin-msg' + (t ? ' ' + kind : '');
+    }
+
+    function renderAdminStats(s) {
+      const tiles = [
+        ['محصولات', s.products, 'box'],
+        ['سفارش‌های جدید', s.newOrders, 'receipt'],
+        ['کاربران در انتظار تأیید', s.pendingUsers, 'user'],
+        ['مجموع فروش', money(s.revenue), 'money']
+      ];
+      document.getElementById('adminStats').innerHTML = tiles.map(([label, val, icon]) => `
+        <div class="admin-stat">
+          <span class="admin-stat-icon">${ic(icon)}</span>
+          <b>${typeof val === 'number' ? val.toLocaleString('fa-IR') : val}</b>
+          <span>${label}</span>
+        </div>`).join('');
+    }
+
+    function renderAdminTabs(sheets) {
+      document.getElementById('adminTabs').innerHTML = sheets.map(s =>
+        `<button type="button" class="admin-tab" data-sheet="${esc(s.name)}"
+          onclick="adminOpenSheet('${esc(s.name)}')">${esc(s.label)}</button>`).join('');
+    }
+
+    async function adminOpenSheet(sheet, offset = 0) {
+      adminState.sheet = sheet;
+      adminState.offset = offset;
+      document.querySelectorAll('.admin-tab').forEach(t =>
+        t.classList.toggle('active', t.dataset.sheet === sheet));
+      await adminReload();
+    }
+
+    async function adminReload() {
+      if (!adminState.sheet) return;
+      adminMsg('در حال بارگذاری...', 'ok');
+      try {
+        const data = await apiPost({
+          action: 'adminList', token: auth.token, sheet: adminState.sheet,
+          q: adminState.q, offset: adminState.offset, limit: 50
+        });
+        if (!data.ok) {
+          if (data.expired) { closeAdmin(); handleExpiredSession(); return; }
+          adminMsg(data.error || 'خطا در دریافت اطلاعات.');
+          document.getElementById('adminTable').innerHTML = '';
+          document.getElementById('adminPager').innerHTML = '';
+          return;
+        }
+        adminMsg('');
+        Object.assign(adminState, data);
+        document.getElementById('adminAddBtn').hidden = !data.canCreate;
+        renderAdminTable();
+      } catch (err) {
+        adminMsg(err.message);
+      }
+    }
+
+    function adminSearchDebounced() {
+      clearTimeout(adminSearchTimer);
+      adminSearchTimer = setTimeout(() => {
+        adminState.q = document.getElementById('adminSearch').value.trim();
+        adminState.offset = 0;
+        adminReload();
+      }, 350);
+    }
+
+    function renderAdminTable() {
+      const { headers, rows, keyField, canDelete } = adminState;
+      const cols = headers.slice(0, 7);   // keep the table readable; the editor shows every field
+      const table = document.getElementById('adminTable');
+
+      if (!rows.length) {
+        table.innerHTML = `<tbody><tr><td class="admin-empty">ردیفی یافت نشد.</td></tr></tbody>`;
+      } else {
+        table.innerHTML =
+          `<thead><tr>${cols.map(c => `<th>${esc(c)}</th>`).join('')}<th></th></tr></thead>` +
+          `<tbody>${rows.map((r, i) => `<tr>
+            ${cols.map(c => `<td title="${esc(String(r[c] ?? ''))}">${adminCellText(r[c])}</td>`).join('')}
+            <td class="admin-actions">
+              <button type="button" class="btn" onclick="adminEdit(${i})">ویرایش</button>
+              ${canDelete ? `<button type="button" class="btn admin-del" onclick="adminDeleteRow(${i})">حذف</button>` : ''}
+            </td></tr>`).join('')}</tbody>`;
+      }
+
+      const { total, offset } = adminState;
+      const from = total ? offset + 1 : 0;
+      const to = Math.min(offset + rows.length, total);
+      document.getElementById('adminPager').innerHTML = `
+        <button class="btn" ${offset <= 0 ? 'disabled' : ''} onclick="adminOpenSheet('${esc(adminState.sheet)}', ${Math.max(0, offset - 50)})">قبلی</button>
+        <span>${from.toLocaleString('fa-IR')} تا ${to.toLocaleString('fa-IR')} از ${total.toLocaleString('fa-IR')}</span>
+        <button class="btn" ${to >= total ? 'disabled' : ''} onclick="adminOpenSheet('${esc(adminState.sheet)}', ${offset + 50})">بعدی</button>`;
+    }
+
+    function adminCellText(v) {
+      if (v === true) return '<span class="admin-yes">✔</span>';
+      if (v === false) return '<span class="admin-no">—</span>';
+      const s = String(v ?? '').trim();
+      if (!s) return '<span class="admin-no">—</span>';
+      return esc(s.length > 42 ? s.slice(0, 42) + '…' : s);
+    }
+
+    /* idx === null -> new row */
+    function adminEdit(idx) {
+      const { headers, rows, keyField } = adminState;
+      const row = idx === null ? {} : rows[idx];
+      document.getElementById('adminEditTitle').textContent =
+        (idx === null ? 'افزودن به ' : 'ویرایش ') + (adminState.label || adminState.sheet);
+      document.getElementById('adminEditMsg').textContent = '';
+
+      document.getElementById('adminEditFields').innerHTML = headers.map(h => {
+        const val = row[h];
+        const isBool = typeof val === 'boolean';
+        const isLong = /address|items_json|description|title/i.test(h);
+        const isKey = h === keyField;
+        const locked = isKey && idx !== null;   // never re-key an existing row
+        if (isBool) {
+          return `<label class="admin-field full admin-check">
+            <input type="checkbox" data-col="${esc(h)}" ${val ? 'checked' : ''}>
+            <span>${esc(h)}</span></label>`;
+        }
+        return `<label class="admin-field ${isLong ? 'full' : ''}">
+          <span>${esc(h)}${isKey ? ' *' : ''}</span>
+          ${isLong
+            ? `<textarea class="form-control" rows="2" data-col="${esc(h)}">${esc(String(val ?? ''))}</textarea>`
+            : `<input class="form-control" data-col="${esc(h)}" value="${esc(String(val ?? ''))}" ${locked ? 'readonly' : ''}>`}
+        </label>`;
+      }).join('');
+
+      document.getElementById('adminEditModal').classList.add('open');
+    }
+
+    function closeAdminEdit() { document.getElementById('adminEditModal').classList.remove('open'); }
+
+    async function adminSaveRow() {
+      const row = {};
+      document.querySelectorAll('#adminEditFields [data-col]').forEach(el => {
+        row[el.dataset.col] = el.type === 'checkbox' ? el.checked : el.value.trim();
+      });
+      const msg = document.getElementById('adminEditMsg');
+      msg.textContent = '';
+      busy('adminSaveBtn', true, 'در حال ذخیره...');
+      try {
+        const data = await apiPost({ action: 'adminSave', token: auth.token, sheet: adminState.sheet, row });
+        if (!data.ok) {
+          if (data.expired) { closeAdminEdit(); closeAdmin(); handleExpiredSession(); return; }
+          msg.textContent = data.error || 'ذخیره ناموفق بود.';
+          msg.className = 'admin-msg error';
+          return;
+        }
+        closeAdminEdit();
+        toast('تغییرات در گوگل شیت ذخیره شد.');
+        await adminReload();
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.className = 'admin-msg error';
+      } finally {
+        busy('adminSaveBtn', false);
+      }
+    }
+
+    async function adminDeleteRow(idx) {
+      const row = adminState.rows[idx];
+      const id = row[adminState.keyField];
+      if (!confirm(`حذف «${id}» قطعی است و قابل بازگشت نیست. مطمئن هستید؟`)) return;
+      try {
+        const data = await apiPost({ action: 'adminDelete', token: auth.token, sheet: adminState.sheet, id });
+        if (!data.ok) {
+          if (data.expired) { closeAdmin(); handleExpiredSession(); return; }
+          adminMsg(data.error || 'حذف ناموفق بود.');
+          return;
+        }
+        toast('ردیف حذف شد.');
+        await adminReload();
+      } catch (err) {
+        adminMsg(err.message);
+      }
+    }
+
     /* --- payment method, bank details & receipt --- */
 
     /* SHEBA is the checksum-valid form of the stated account 7697585463. */
@@ -4496,14 +4956,16 @@
         token: token || auth.token,
         user: data.user || null,
         complete: !!data.complete,
-        missing: data.missing || []
+        missing: data.missing || [],
+        isAdmin: !!data.isAdmin,
+        adminRole: data.adminRole || ''
       };
       try { localStorage.setItem(AUTH_TOKEN_KEY, auth.token); } catch (e) { }
       updateAuthUI();
     }
 
     function clearAuth() {
-      auth = { token: '', user: null, complete: false, missing: [] };
+      auth = { token: '', user: null, complete: false, missing: [], isAdmin: false, adminRole: '' };
       try { localStorage.removeItem(AUTH_TOKEN_KEY); } catch (e) { }
       updateAuthUI();
     }
@@ -4519,6 +4981,8 @@
     function updateAuthUI() {
       const btn = document.getElementById('authBtn');
       const notice = document.getElementById('profileNotice');
+      const adminBtn = document.getElementById('adminEntryBtn');
+      if (adminBtn) adminBtn.hidden = !auth.isAdmin;
       if (auth.token && auth.user) {
         const label = [auth.user.name, auth.user.last_name].filter(Boolean).join(' ')
           || auth.user.Store_name || auth.user.mobile_number;
