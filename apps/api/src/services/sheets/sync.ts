@@ -17,6 +17,18 @@ import {
 } from './mapping.js';
 
 /**
+ * How the engine reaches the spreadsheet. Kept behind an interface so the
+ * merge logic can be exercised against an in-memory sheet in tests without a
+ * live Google account.
+ */
+export interface SheetTransport {
+  read(tab: string): Promise<string[][]>;
+  write(tab: string, rows: string[][]): Promise<void>;
+}
+
+const googleTransport: SheetTransport = { read: readTab, write: writeTab };
+
+/**
  * Two-way sync between Postgres and Google Sheets.
  *
  * A pass over one tab does this:
@@ -121,7 +133,12 @@ interface EntityResult {
   error?: string;
 }
 
-async function syncEntity(entity: SyncEntity, direction: SyncRun['direction'], dryRun: boolean): Promise<EntityResult> {
+async function syncEntity(
+  entity: SyncEntity,
+  direction: SyncRun['direction'],
+  dryRun: boolean,
+  transport: SheetTransport,
+): Promise<EntityResult> {
   const mapping = MAPPINGS[entity];
   const result: EntityResult = { entity, pulled: 0, pushed: 0, created: 0, updated: 0, conflicts: 0, skipped: 0 };
 
@@ -130,7 +147,7 @@ async function syncEntity(entity: SyncEntity, direction: SyncRun['direction'], d
     return result;
   }
 
-  const [sheetRaw, dbRows] = await Promise.all([readTab(mapping.tab), mapping.loadDbRows()]);
+  const [sheetRaw, dbRows] = await Promise.all([transport.read(mapping.tab), mapping.loadDbRows()]);
   const { items: sheetRows } = parseSheet(mapping, sheetRaw);
 
   const sheetByKey = new Map(sheetRows.map((r) => [r.key, r]));
@@ -241,7 +258,7 @@ async function syncEntity(entity: SyncEntity, direction: SyncRun['direction'], d
     }
 
     if (!dryRun) {
-      await writeTab(mapping.tab, out);
+      await transport.write(mapping.tab, out);
       // Only after the write lands does the new baseline become true.
       await markSynced(mapping, marks);
     }
@@ -250,8 +267,8 @@ async function syncEntity(entity: SyncEntity, direction: SyncRun['direction'], d
   return result;
 }
 
-export async function runSync(options: SyncRun): Promise<SyncReport> {
-  if (!env.SHEETS_ENABLED) {
+export async function runSync(options: SyncRun, transport: SheetTransport = googleTransport): Promise<SyncReport> {
+  if (transport === googleTransport && !env.SHEETS_ENABLED) {
     throw new Error('همگام‌سازی گوگل شیت غیرفعال است (SHEETS_ENABLED=false).');
   }
   if (running) {
@@ -267,7 +284,7 @@ export async function runSync(options: SyncRun): Promise<SyncReport> {
 
     for (const entity of wanted) {
       try {
-        const res = await syncEntity(entity, options.direction, options.dryRun);
+        const res = await syncEntity(entity, options.direction, options.dryRun, transport);
         entities.push(res);
         if (!options.dryRun) {
           await db
