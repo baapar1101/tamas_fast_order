@@ -9,7 +9,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d39d70a1`
+- Built from commit: `1c7cb561`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -35,10 +35,10 @@
 4. `cmd_pull()` - 6 edges
 5. `cmd_push()` - 6 edges
 6. `cmd_diff()` - 6 edges
-7. `getSheet_()` - 6 edges
-8. `doGet()` - 6 edges
-9. `getCatalog_()` - 6 edges
-10. `esc()` - 5 edges
+7. `doGet()` - 6 edges
+8. `getCatalog_()` - 6 edges
+9. `getSheet_()` - 6 edges
+10. `exportAll_()` - 5 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `cmd_push()` --calls--> `read_excel_catalog()`  [EXTRACTED]

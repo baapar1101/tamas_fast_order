@@ -169,11 +169,6 @@
       "degree": 6
     },
     {
-      "id": "code_gs_getsheet",
-      "label": "getSheet_()",
-      "degree": 6
-    },
-    {
       "id": "code_gs_doget",
       "label": "doGet()",
       "degree": 6
@@ -184,8 +179,13 @@
       "degree": 6
     },
     {
-      "id": "index_html_esc",
-      "label": "esc()",
+      "id": "code_gs_getsheet",
+      "label": "getSheet_()",
+      "degree": 6
+    },
+    {
+      "id": "code_gs_exportall",
+      "label": "exportAll_()",
       "degree": 5
     }
   ],

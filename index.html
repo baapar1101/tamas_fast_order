@@ -190,6 +190,12 @@
       color: #fff;
     }
 
+    .btn.is-disabled,
+    .btn[disabled] {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
     /* Readers who ask for less motion get a static strip. */
     @media (prefers-reduced-motion: reduce) {
       .promo-sheen,
@@ -336,15 +342,17 @@
       color: var(--primary);
     }
 
+    /* Primary actions use the brand's second colour; teal stays for
+       navigation and selected states so the two do not compete. */
     .btn.primary {
-      background: var(--primary);
+      background: var(--accent);
       color: #fff;
-      border-color: var(--primary);
-      box-shadow: 0 4px 12px rgba(0, 118, 143, 0.25);
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(217, 122, 90, .28);
     }
 
     .btn.primary:hover {
-      background: var(--primary-hover);
+      background: #c76848;
     }
 
     .btn.success {
@@ -1659,6 +1667,38 @@
       margin-top: 8px;
     }
 
+    .terms-agree {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      margin-top: 14px;
+      padding: 12px 13px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fbfdfe;
+      font-size: 12.5px;
+      line-height: 2;
+      cursor: pointer;
+    }
+
+    .terms-agree input {
+      width: 18px;
+      height: 18px;
+      margin-top: 4px;
+      flex-shrink: 0;
+      accent-color: var(--accent);
+    }
+
+    .terms-agree a {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .terms-agree.missing {
+      border-color: var(--danger);
+      background: #fff7f7;
+    }
+
     .pay-terms-link {
       display: inline-block;
       margin-top: 12px;
@@ -1935,6 +1975,36 @@
       .admin-toolbar .form-control { flex: 1 1 100%; }
       .admin-table th, .admin-table td { max-width: 140px; }
     }
+
+    /* Wholesale prices are for signed-in partners only. One body-level class
+       covers every template instead of touching each one. */
+    body.prices-locked .card-price,
+    body.prices-locked .card-old-price,
+    body.prices-locked .variant-price,
+    body.prices-locked .order-item-price,
+    body.prices-locked #cartTotalAmount {
+      filter: blur(6px);
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .price-lock-note {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 11px 16px;
+      border: 1px solid #f1d5c9;
+      border-radius: 12px;
+      background: #fdf4f0;
+      color: #8a4a30;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    body.prices-locked .price-lock-note { display: flex; }
 
     .toman {
       height: 1em;
@@ -2362,6 +2432,71 @@
 
     .footer-text strong {
       color: #ffffff;
+    }
+
+    .footer-about {
+      margin-top: 8px;
+    }
+
+    .footer-about h4 {
+      margin: 0 0 10px;
+      color: #ffffff;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .footer-about p {
+      margin: 0 0 10px;
+      color: #cbd5e1;
+      font-size: 12.5px;
+      line-height: 1.9;
+    }
+
+    .footer-about p:last-child {
+      margin-bottom: 0;
+    }
+
+    .footer-socials {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0 10px;
+    }
+
+    .footer-social-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      color: #d9edf0;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: color .2s, border-color .2s, background .2s, transform .2s;
+    }
+
+    .footer-social-link:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .footer-social-link.whatsapp:hover {
+      color: #25d366;
+      border-color: #25d366;
+    }
+
+    .footer-social-link.instagram:hover {
+      color: #f9a8d4;
+      border-color: #f9a8d4;
+    }
+
+    .footer-social-icon {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      fill: currentColor;
     }
 
     .footer-phone {
@@ -3242,6 +3377,11 @@
           </div>
         </div>
 
+        <div class="price-lock-note">
+          <span>قیمت‌های عمده فقط برای همکاران ثبت‌نام‌شده نمایش داده می‌شود.</span>
+          <button type="button" class="btn primary" onclick="openAuth()">ورود / ثبت‌نام</button>
+        </div>
+
         <div id="productsContainer">
           <!-- Dynamic Products grid or list populated by JS -->
         </div>
@@ -3293,7 +3433,12 @@
       <div class="footer-brand">
         <img src="logo.png" alt="تماس مارکت" class="footer-logo">
         <h3 class="footer-title">تماس مارکت</h3>
-        <p class="footer-text">بزرگترین مرجع پخش عمده لوازم جانبی و گوشی تلفن همراه در جنوب شرق کشور با بهترین قیمت و گارانتی معتبر.</p>
+        <div class="footer-about">
+          <h4>درباره تماس مارکت (از سال ۱۳۹۰)</h4>
+          <p>داستان ما در تماس مارکت از سال ۱۳۹۰ با نام تجاری «موبایل تماس» آغاز شد. در ابتدا، تمرکز ما بر ارائه خدمات در حوزه موبایل بود، اما با شناخت عمیق‌تر نیازهای بازار و رشد چشمگیر صنعت، از سال ۱۳۹۴ مسیر فعالیتمان را به سمت فروش عمده لوازم جانبی موبایل سوق دادیم.</p>
+          <p>در سال ۱۳۹۸، با هدف گسترش دامنه خدمات، بازار و ایجاد یک هویت تجاری مدرن‌تر، نام تجاری خود را به «تماس مارکت» تغییر دادیم. از سال ۱۳۹۹، با افتخار و تمرکز بر ارتقاء تجربه مشتریان، بستری جامع برای فروش آنلاین فراهم آورده‌ایم تا بتوانیم به صورت گسترده‌تر و کارآمدتر در خدمت شما عزیزان باشیم.</p>
+          <p>امروز، تماس مارکت با پشتوانه سال‌ها تجربه و دانش تخصصی در حوزه فروش عمده کالای دیجیتال، به عنوان یکی از نام‌های شناخته شده در این صنعت، آماده ارائه بهترین خدمات و محصولات به شما همکاران گرامی است.</p>
+        </div>
       </div>
 
       <div class="footer-benefits">
@@ -3310,6 +3455,20 @@
         <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-pin"></use></svg> <strong>آدرس:</strong> کرمان، خیابان شهید نامجو، بعد از کوچه ۹، پلاک ۱۰۹</p>
         <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-mail"></use></svg> <strong>کد پستی:</strong> ۷۶۱۹۷۴۴۵۶۸</p>
         <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-clock"></use></svg> <strong>ساعات کاری:</strong> شنبه تا پنجشنبه از ساعت ۹:۰۰ الی ۲۱:۰۰</p>
+        <div class="footer-socials" aria-label="شبکه‌های اجتماعی">
+          <a class="footer-social-link whatsapp" href="https://whatsapp.com/channel/0029Vb4s4DUJf05jmXNTbq1q" target="_blank" rel="noopener noreferrer" aria-label="کانال واتس‌اپ تماس مارکت">
+            <svg class="footer-social-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2.5a9.5 9.5 0 0 0-8.2 14.3L2.5 21.5l4.9-1.3A9.5 9.5 0 1 0 12 2.5Zm0 2a7.5 7.5 0 0 1 6.5 11.2 7.5 7.5 0 0 1-8.7 3.3l-.7-.2-2.5.7.7-2.4-.4-.7A7.5 7.5 0 0 1 12 4.5Zm-2.1 3.1c-.2 0-.5.1-.7.4-.2.3-.8.8-.8 2s.8 2.3.9 2.4c.1.2 1.6 2.6 4 3.5 2 .8 2.4.6 2.8.6.4 0 1.3-.5 1.5-1 .2-.5.2-.9.1-1-.1-.1-.3-.2-.6-.3l-1.5-.7c-.2-.1-.4-.1-.6.1l-.6.8c-.1.2-.3.2-.5.1-.3-.1-1.1-.4-1.8-1.1-.7-.6-1.1-1.4-1.2-1.7-.1-.2 0-.4.1-.5l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.6-1.5c-.2-.4-.4-.5-.7-.5Z"/>
+            </svg>
+            <span>واتس‌اپ</span>
+          </a>
+          <a class="footer-social-link instagram" href="https://www.instagram.com/tamasmarket.ir?stkn=MXV3enBoZHhpcHRrdQ==" target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام تماس مارکت">
+            <svg class="footer-social-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7.4 2.5h9.2A4.9 4.9 0 0 1 21.5 7.4v9.2a4.9 4.9 0 0 1-4.9 4.9H7.4a4.9 4.9 0 0 1-4.9-4.9V7.4a4.9 4.9 0 0 1 4.9-4.9Zm0 2A2.9 2.9 0 0 0 4.5 7.4v9.2a2.9 2.9 0 0 0 2.9 2.9h9.2a2.9 2.9 0 0 0 2.9-2.9V7.4a2.9 2.9 0 0 0-2.9-2.9H7.4Zm9.8 1.5a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/>
+            </svg>
+            <span>اینستاگرام</span>
+          </a>
+        </div>
         <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-book"></use></svg> <a href="terms.html" class="footer-phone">شرایط و قوانین همکاری</a></p>
         <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-help"></use></svg> <a href="faq.html" class="footer-phone">سؤالات متداول همکاری</a></p>
         <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-receipt"></use></svg> <a href="payment.html" class="footer-phone">روش‌های پرداخت و تسویه‌حساب</a></p>
@@ -3431,6 +3590,12 @@
             <input id="receiptLink" class="form-control ltr-field" type="url"
               placeholder="لینک تصویر رسید (اختیاری)">
           </div>
+
+          <label class="terms-agree" for="agreeTerms">
+            <input type="checkbox" id="agreeTerms" onchange="updateOrderButton()">
+            <span>قوانین و مقررات همکاری و مرزهای مسئولیت در حمل‌ونقل و گارانتی را
+              مطالعه کرده و می‌پذیرم. <a href="terms.html" target="_blank" rel="noopener">مطالعه قوانین</a></span>
+          </label>
 
           <button type="button" class="link-btn pay-terms-link" onclick="openPaymentTerms()">
             <svg class="ic" aria-hidden="true"><use href="#i-book"></use></svg> مشاهده کامل شرایط و قوانین پرداخت
@@ -3979,8 +4144,10 @@
     function syncUrl(replace) {
       if (!urlReady) return;
       const p = new URLSearchParams();
-      if (selectedCategory) p.set('cat', selectedCategory);
-      if (selectedBrand) p.set('brand', selectedBrand);
+      /* English names keep the link readable and short — a Persian value turns
+         into 40+ characters of percent-encoding when shared. */
+      if (selectedCategory) p.set('cat', catalogSlug(selectedCategory, catalog.categories, 'category_name', ['category_fa_name', 'category_name']));
+      if (selectedBrand) p.set('brand', catalogSlug(selectedBrand, catalog.brands, 'brand_name', ['brand_fa_name', 'brand_name']));
       const q = (document.getElementById('search') || {}).value || '';
       if (q.trim()) p.set('q', q.trim());
       if (viewMode && viewMode !== 'grid') p.set('view', viewMode);
@@ -3993,6 +4160,17 @@
          typing in the search box replaces to avoid a history entry per key. */
       if (replace) history.replaceState(null, '', url);
       else history.pushState(null, '', url);
+    }
+
+    /* Persian display name -> the sheet's English name, for the URL. */
+    function catalogSlug(value, rows, enField, matchFields) {
+      const want = normName(value);
+      for (const row of rows || []) {
+        for (const f of matchFields) {
+          if (row[f] && normName(row[f]) === want) return row[enField] || value;
+        }
+      }
+      return value;
     }
 
     /* Matches a URL value against the sheet regardless of ک/ی spelling or
@@ -5098,6 +5276,7 @@
       const notice = document.getElementById('profileNotice');
       const adminBtn = document.getElementById('adminEntryBtn');
       if (adminBtn) adminBtn.hidden = !auth.isAdmin;
+      document.body.classList.toggle('prices-locked', !auth.token);
       if (auth.token && auth.user) {
         const label = [auth.user.name, auth.user.last_name].filter(Boolean).join(' ')
           || auth.user.Store_name || auth.user.mobile_number;
@@ -5365,6 +5544,10 @@
         return;
       }
 
+      const agree = document.getElementById('agreeTerms');
+      if (agree) agree.checked = false;      // must be re-confirmed per order
+      updateOrderButton();
+
       const u = auth.user || {};
       document.getElementById('customerName').value =
         [u.name, u.last_name].filter(Boolean).join(' ') + (u.Store_name ? ` (${u.Store_name})` : '');
@@ -5377,6 +5560,17 @@
 
     let orderSubmitting = false;
     let checkoutKey = '';
+
+    /* The order button stays disabled until the partner accepts the terms. */
+    function updateOrderButton() {
+      const agree = document.getElementById('agreeTerms');
+      const btn = document.getElementById('submitOrderBtn');
+      if (!agree || !btn) return;
+      btn.disabled = !agree.checked;
+      btn.classList.toggle('is-disabled', !agree.checked);
+      const box = agree.closest('.terms-agree');
+      if (box && agree.checked) box.classList.remove('missing');
+    }
 
     function newCheckoutKey() {
       try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) { }
@@ -5407,6 +5601,13 @@
 
       if (!cart.length) return alert('سبد خرید خالی است.');
       if (!payload.customer_name || !payload.phone) return alert('نام و شماره موبایل الزامی است.');
+
+      const agree = document.getElementById('agreeTerms');
+      if (agree && !agree.checked) {
+        agree.closest('.terms-agree').classList.add('missing');
+        agree.focus();
+        return alert('برای ثبت سفارش، پذیرش قوانین و مقررات همکاری الزامی است.');
+      }
 
       orderSubmitting = true;
       busy('submitOrderBtn', true, 'در حال ثبت سفارش...');

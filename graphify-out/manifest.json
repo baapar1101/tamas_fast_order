@@ -12,9 +12,9 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1788766886.4181135,
-    "seen": 1788766990.3036938,
-    "ast_hash": "577c577b9a4f0b7be6688a0b2b870e76",
+    "mtime": 1788769921.802138,
+    "seen": 1788769965.5512915,
+    "ast_hash": "14b50395af46a127c0fe42808620690a",
     "semantic_hash": ""
   },
   "terms.html": {
@@ -405,6 +405,18 @@
     "mtime": 1788535598.6235235,
     "seen": 1788766990.3095396,
     "ast_hash": "a9b34684f19e140bcfc3cd1cb37b499e",
+    "semantic_hash": ""
+  },
+  "assets/category/gadget.svg": {
+    "mtime": 1788768704.9037905,
+    "seen": 1788769503.8290982,
+    "ast_hash": "b0bb8fb65324cfcb81c19488e492800d",
+    "semantic_hash": ""
+  },
+  "toman.svg": {
+    "mtime": 1788767273.1274204,
+    "seen": 1788769503.8305295,
+    "ast_hash": "923342b70d5043763ede3c0dcbc1decd",
     "semantic_hash": ""
   }
 }
