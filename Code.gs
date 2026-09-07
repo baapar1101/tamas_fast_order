@@ -796,6 +796,34 @@ function createOrder_(p) {
 
   if (!name || !phone) return { ok: false, error: 'نام و شماره موبایل الزامی است.' };
 
+  /* Idempotency: the browser sends one key per checkout attempt. A repeated
+     click, a retry or a refresh replays the same key, so we hand back the order
+     that already exists instead of writing a second row. The whole check-and-
+     write runs under a lock, otherwise two clicks a few hundred ms apart could
+     both miss the cache and both insert. */
+  const cache = CacheService.getScriptCache();
+  const key = String(p.client_order_id || '').trim().slice(0, 64);
+  const cacheKey = key ? 'order_key_' + key : '';
+
+  if (cacheKey) {
+    const seen = cache.get(cacheKey);
+    if (seen) return { ok: true, order_id: seen, duplicate: true, message: 'این سفارش قبلاً ثبت شده است.' };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    if (cacheKey) {
+      const seen = cache.get(cacheKey);
+      if (seen) return { ok: true, order_id: seen, duplicate: true, message: 'این سفارش قبلاً ثبت شده است.' };
+    }
+    return writeOrder_(p, name, phone, address, cache, cacheKey);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function writeOrder_(p, name, phone, address, cache, cacheKey) {
   const sh = getSheet_(SHEETS.orders);
   const h = headers_(sh);
   const id = 'KP-' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd-HHmmss') + '-' + Math.floor(Math.random() * 1000);
@@ -820,6 +848,8 @@ function createOrder_(p) {
 
   const row = writeRow_(sh, h.map(col => record.hasOwnProperty(col) ? record[col] : ''));
   forceTextCells_(sh, h, row, ['phone']);
+  /* Two hours covers a double click, a retry and an accidental refresh. */
+  if (cacheKey) cache.put(cacheKey, id, 7200);
   return { ok: true, order_id: id };
 }
 

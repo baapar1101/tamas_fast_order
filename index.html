@@ -3291,6 +3291,7 @@
         <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-clock"></use></svg> <strong>ساعات کاری:</strong> شنبه تا پنجشنبه از ساعت ۹:۰۰ الی ۲۱:۰۰</p>
         <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-book"></use></svg> <a href="terms.html" class="footer-phone">شرایط و قوانین همکاری</a></p>
         <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-help"></use></svg> <a href="faq.html" class="footer-phone">سؤالات متداول همکاری</a></p>
+        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-receipt"></use></svg> <a href="payment.html" class="footer-phone">روش‌های پرداخت و تسویه‌حساب</a></p>
       </div>
 
       <div class="footer-enamad">
@@ -3416,7 +3417,7 @@
         </div>
       </div>
       <div style="display:flex;gap:10px;margin-top:18px;">
-        <button class="btn primary" style="flex:1" onclick="submitOrder()">ارسال نهائی سفارش</button>
+        <button class="btn primary" style="flex:1" id="submitOrderBtn" onclick="submitOrder()">ارسال نهائی سفارش</button>
         <button class="btn" style="width:100px" onclick="closeModal()">انصراف</button>
       </div>
     </div>
@@ -3916,6 +3917,7 @@
       selectedBrand = normName(selectedBrand) === normName(b) ? '' : b;
       buildBrands();
       render();
+      syncUrl();
     }
 
     function filterCategory(c) {
@@ -3926,6 +3928,79 @@
       buildCategories();
       buildBrands();
       render();
+      syncUrl();
+    }
+
+    /* ---- shareable filter state in the URL -------------------------------
+     * ?cat=…&brand=…&q=…&view=list&promo=1  — the address bar always reflects
+     * what is on screen, and opening that address restores it.
+     * -------------------------------------------------------------------- */
+
+    let urlReady = false;   // set once the catalog has loaded
+
+    function syncUrl(replace) {
+      if (!urlReady) return;
+      const p = new URLSearchParams();
+      if (selectedCategory) p.set('cat', selectedCategory);
+      if (selectedBrand) p.set('brand', selectedBrand);
+      const q = (document.getElementById('search') || {}).value || '';
+      if (q.trim()) p.set('q', q.trim());
+      if (viewMode && viewMode !== 'grid') p.set('view', viewMode);
+      if (onlyPromotion) p.set('promo', '1');
+      if (onlyFavorites) p.set('fav', '1');
+
+      const qs = p.toString();
+      const url = location.pathname + (qs ? '?' + qs : '') + location.hash;
+      /* Category/brand clicks push, so Back steps through the filters;
+         typing in the search box replaces to avoid a history entry per key. */
+      if (replace) history.replaceState(null, '', url);
+      else history.pushState(null, '', url);
+    }
+
+    /* Matches a URL value against the sheet regardless of ک/ی spelling or
+       spacing, and returns the sheet's own wording. */
+    function resolveFromCatalog(value, rows, fields) {
+      const want = normName(value);
+      if (!want) return '';
+      for (const row of rows || []) {
+        for (const f of fields) {
+          if (row[f] && normName(row[f]) === want) return row[fields[0]] || row[f];
+        }
+      }
+      return value;
+    }
+
+    function applyUrlFilters() {
+      const p = new URLSearchParams(location.search);
+
+      const cat = p.get('cat') || '';
+      selectedCategory = cat
+        ? resolveFromCatalog(cat, catalog.categories, ['category_fa_name', 'category_name'])
+        : '';
+
+      const brand = p.get('brand') || '';
+      selectedBrand = brand
+        ? resolveFromCatalog(brand, catalog.brands, ['brand_fa_name', 'brand_name'])
+        : '';
+
+      const q = p.get('q') || '';
+      const searchEl = document.getElementById('search');
+      if (searchEl) searchEl.value = q;
+
+      const view = p.get('view');
+      if (view === 'list' || view === 'grid') viewMode = view;
+
+      onlyPromotion = p.get('promo') === '1';
+      onlyFavorites = p.get('fav') === '1';
+
+      const promoSwitch = document.getElementById('promoSwitch');
+      if (promoSwitch) promoSwitch.classList.toggle('on', onlyPromotion);
+      const gridBtn = document.getElementById('viewGridBtn');
+      const listBtn = document.getElementById('viewListBtn');
+      if (gridBtn && listBtn) {
+        gridBtn.classList.toggle('active', viewMode === 'grid');
+        listBtn.classList.toggle('active', viewMode === 'list');
+      }
     }
     function toggleStock() {
       onlyStock = !onlyStock;
@@ -5260,10 +5335,24 @@
     }
     function closeModal() { document.getElementById('checkoutModal').classList.remove('open'); }
 
+    let orderSubmitting = false;
+    let checkoutKey = '';
+
+    function newCheckoutKey() {
+      try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) { }
+      return 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+    }
+
     async function submitOrder() {
+      /* Apps Script takes several seconds to answer. Without this guard an
+         impatient second click fires a second createOrder. */
+      if (orderSubmitting) return;
+
+      if (!checkoutKey) checkoutKey = newCheckoutKey();
       const payload = {
         action: 'createOrder',
         token: auth.token,
+        client_order_id: checkoutKey,
         customer_name: document.getElementById('customerName').value.trim(),
         phone: normalizePhone(document.getElementById('phone').value),
         address: document.getElementById('address').value.trim(),
@@ -5279,6 +5368,8 @@
       if (!cart.length) return alert('سبد خرید خالی است.');
       if (!payload.customer_name || !payload.phone) return alert('نام و شماره موبایل الزامی است.');
 
+      orderSubmitting = true;
+      busy('submitOrderBtn', true, 'در حال ثبت سفارش...');
       try {
         const data = await apiPost(payload);
         if (!data.ok) {
@@ -5287,14 +5378,20 @@
           alert(data.error || 'ثبت سفارش ناموفق بود.');
           return;
         }
-        toast('سفارش شما با شماره ' + data.order_id + ' ثبت شد. جهت هماهنگی با شما تماس گرفته می‌شود.');
+        toast(data.duplicate
+          ? 'این سفارش قبلاً با شماره ' + data.order_id + ' ثبت شده بود.'
+          : 'سفارش شما با شماره ' + data.order_id + ' ثبت شد. جهت هماهنگی با شما تماس گرفته می‌شود.');
         cart = [];
         renderCart();
         document.getElementById('receiptRef').value = '';
         document.getElementById('receiptLink').value = '';
+        checkoutKey = '';           // the next order gets a fresh key
         closeModal();
       } catch (err) {
         alert(err.message || 'خطا در ثبت سفارش');
+      } finally {
+        orderSubmitting = false;
+        busy('submitOrderBtn', false);
       }
     }
 

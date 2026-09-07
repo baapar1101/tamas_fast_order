@@ -16,13 +16,39 @@
       "code_gs",
       "code_gs_createorder",
       "code_gs_default_headers",
+      "code_gs_doget",
+      "code_gs_dopost",
+      "code_gs_exportall",
+      "code_gs_getcatalog",
+      "code_gs_getsettings",
       "code_gs_getsheet",
       "code_gs_headers",
+      "code_gs_json",
+      "code_gs_output",
+      "code_gs_read",
       "code_gs_registeruser",
+      "code_gs_setupsheets",
       "code_gs_sheets",
-      "code_gs_updatestock"
+      "code_gs_synccatalog",
+      "code_gs_syncsheet",
+      "code_gs_updatestock",
+      "code_gs_writesheetobjects"
     ],
     "2": [
+      "manifest",
+      "manifest_background_color",
+      "manifest_description",
+      "manifest_dir",
+      "manifest_display",
+      "manifest_icons",
+      "manifest_lang",
+      "manifest_name",
+      "manifest_orientation",
+      "manifest_short_name",
+      "manifest_start_url",
+      "manifest_theme_color"
+    ],
+    "3": [
       "sync_spreadsheet",
       "sync_spreadsheet_cmd_push",
       "sync_spreadsheet_cmd_watch",
@@ -31,23 +57,7 @@
       "sync_spreadsheet_rationale_242",
       "sync_spreadsheet_rationale_318"
     ],
-    "3": [
-      "code_gs_doget",
-      "code_gs_exportall",
-      "code_gs_getcatalog",
-      "code_gs_getsettings",
-      "code_gs_read",
-      "code_gs_setupsheets"
-    ],
     "4": [
-      "code_gs_dopost",
-      "code_gs_json",
-      "code_gs_output",
-      "code_gs_synccatalog",
-      "code_gs_syncsheet",
-      "code_gs_writesheetobjects"
-    ],
-    "5": [
       "sync_spreadsheet_cmd_diff",
       "sync_spreadsheet_fetch_csv_from_gss",
       "sync_spreadsheet_rationale_156",
@@ -55,13 +65,20 @@
       "sync_spreadsheet_rationale_72",
       "sync_spreadsheet_read_excel_catalog"
     ],
-    "6": [
+    "5": [
       "sync_spreadsheet_cmd_pull",
       "sync_spreadsheet_fetch_from_web_app",
       "sync_spreadsheet_rationale_124",
       "sync_spreadsheet_rationale_180",
       "sync_spreadsheet_rationale_208",
       "sync_spreadsheet_write_excel_catalog"
+    ],
+    "6": [
+      "sync_spreadsheet_load_config",
+      "sync_spreadsheet_main",
+      "sync_spreadsheet_rationale_45",
+      "sync_spreadsheet_rationale_66",
+      "sync_spreadsheet_save_config"
     ],
     "7": [
       "index_html_changeqty",
@@ -71,11 +88,8 @@
       "index_html_submitorder"
     ],
     "8": [
-      "sync_spreadsheet_load_config",
-      "sync_spreadsheet_main",
-      "sync_spreadsheet_rationale_45",
-      "sync_spreadsheet_rationale_66",
-      "sync_spreadsheet_save_config"
+      "build_workbook",
+      "build_workbook_build"
     ],
     "9": [
       "index_html_buildbrands",
@@ -99,8 +113,8 @@
       "index_html_load"
     ],
     "13": [
-      "build_workbook",
-      "build_workbook_build"
+      "sw",
+      "sw_assets_to_cache"
     ],
     "14": [
       "merge_features"
@@ -108,14 +122,14 @@
   },
   "cohesion": {
     "0": 0.2222222222222222,
-    "1": 0.39285714285714285,
-    "2": 0.38095238095238093,
-    "3": 0.6666666666666666,
-    "4": 0.4,
+    "1": 0.24210526315789474,
+    "2": 0.16666666666666666,
+    "3": 0.38095238095238093,
+    "4": 0.3333333333333333,
     "5": 0.3333333333333333,
-    "6": 0.3333333333333333,
+    "6": 0.4,
     "7": 0.4,
-    "8": 0.4,
+    "8": 1.0,
     "9": 0.8333333333333334,
     "10": 1.0,
     "11": 1.0,
@@ -185,7 +199,7 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 5 → community 2"
+      "note": "Bridges community 4 → community 3"
     },
     {
       "source": "cmd_pull()",
@@ -196,7 +210,7 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 5 → community 6"
+      "note": "Bridges community 4 → community 5"
     },
     {
       "source": "main()",
@@ -207,7 +221,7 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 6 → community 8"
+      "note": "Bridges community 5 → community 6"
     },
     {
       "source": "main()",
@@ -218,7 +232,7 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 2 → community 8"
+      "note": "Bridges community 3 → community 6"
     },
     {
       "source": "main()",
@@ -229,29 +243,29 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "note": "Bridges community 5 → community 8"
+      "note": "Bridges community 4 → community 6"
     }
   ],
   "questions": [
     {
       "type": "bridge_node",
-      "question": "Why does `cmd_push()` connect `Community 2` to `Community 8`, `Community 5`?",
-      "why": "High betweenness centrality (0.011) - this node is a cross-community bridge."
+      "question": "Why does `cmd_push()` connect `Community 3` to `Community 4`, `Community 6`?",
+      "why": "High betweenness centrality (0.008) - this node is a cross-community bridge."
     },
     {
       "type": "bridge_node",
-      "question": "Why does `cmd_pull()` connect `Community 6` to `Community 8`, `Community 2`, `Community 5`?",
-      "why": "High betweenness centrality (0.011) - this node is a cross-community bridge."
+      "question": "Why does `cmd_pull()` connect `Community 5` to `Community 3`, `Community 4`, `Community 6`?",
+      "why": "High betweenness centrality (0.008) - this node is a cross-community bridge."
     },
     {
       "type": "bridge_node",
-      "question": "Why does `cmd_diff()` connect `Community 5` to `Community 8`, `Community 2`, `Community 6`?",
-      "why": "High betweenness centrality (0.011) - this node is a cross-community bridge."
+      "question": "Why does `cmd_diff()` connect `Community 4` to `Community 3`, `Community 5`, `Community 6`?",
+      "why": "High betweenness centrality (0.008) - this node is a cross-community bridge."
     },
     {
       "type": "isolated_nodes",
-      "question": "What connects `allProducts`, `cart`, `catalog` to the rest of the system?",
-      "why": "6 weakly-connected nodes found - possible documentation gaps or missing edges."
+      "question": "What connects `name`, `short_name`, `description` to the rest of the system?",
+      "why": "18 weakly-connected nodes found - possible documentation gaps or missing edges."
     }
   ]
 }

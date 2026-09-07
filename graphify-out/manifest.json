@@ -12,15 +12,15 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1788534847.099511,
-    "seen": 1788534870.304371,
-    "ast_hash": "46ab9e208352c0b3a6fd428259782ac8",
+    "mtime": 1788766886.4181135,
+    "seen": 1788766990.3036938,
+    "ast_hash": "577c577b9a4f0b7be6688a0b2b870e76",
     "semantic_hash": ""
   },
   "terms.html": {
-    "mtime": 1788534847.1010473,
-    "seen": 1788534870.3043723,
-    "ast_hash": "439ea3f6df15257528f55b7ebe4fdc6f",
+    "mtime": 1788766727.4511888,
+    "seen": 1788766990.3037004,
+    "ast_hash": "d5074ee0d50d6285bb758c9ff14f89a8",
     "semantic_hash": ""
   },
   "unique_colors.txt": {
@@ -378,9 +378,33 @@
     "semantic_hash": ""
   },
   "faq.html": {
-    "mtime": 1788534836.3133762,
-    "seen": 1788534870.3043694,
-    "ast_hash": "e6c18888b038232ed76cd466f62d3f05",
+    "mtime": 1788766727.4511888,
+    "seen": 1788766990.3036911,
+    "ast_hash": "c36690358df777061133695fbccd5f55",
+    "semantic_hash": ""
+  },
+  "manifest.json": {
+    "mtime": 1788539937.5305471,
+    "seen": 1788766990.3030255,
+    "ast_hash": "2c606453b25f6cba3f1842af0b3fb150",
+    "semantic_hash": ""
+  },
+  "sw.js": {
+    "mtime": 1788539955.3768063,
+    "seen": 1788766990.303243,
+    "ast_hash": "f8fc55544d9c6f9ce4137d8c448ea186",
+    "semantic_hash": ""
+  },
+  "payment.html": {
+    "mtime": 1788766727.448447,
+    "seen": 1788766990.3036954,
+    "ast_hash": "9362c806824428d6a55c07fb09b1c9b2",
+    "semantic_hash": ""
+  },
+  "promo-banner-new.gif": {
+    "mtime": 1788535598.6235235,
+    "seen": 1788766990.3095396,
+    "ast_hash": "a9b34684f19e140bcfc3cd1cb37b499e",
     "semantic_hash": ""
   }
 }
