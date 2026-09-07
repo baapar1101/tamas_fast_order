@@ -1,0 +1,34 @@
+{
+  "name": "tamas-fast-order",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm-run-all --parallel dev:shared dev:api dev:web",
+    "dev:api": "npm run dev -w @tamas/api",
+    "dev:web": "npm run dev -w @tamas/web",
+    "build": "npm run build -w @tamas/shared && npm run build -w @tamas/api && npm run build -w @tamas/web",
+    "typecheck": "npm run build -w @tamas/shared && npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "db:generate": "npm run db:generate -w @tamas/api",
+    "db:migrate": "npm run db:migrate -w @tamas/api",
+    "db:seed": "npm run db:seed -w @tamas/api",
+    "import:legacy": "npm run import:legacy -w @tamas/api",
+    "sync:pull": "npm run sync:pull -w @tamas/api",
+    "sync:push": "npm run sync:push -w @tamas/api",
+    "start": "npm run start -w @tamas/api",
+    "dev:shared": "npm run dev -w @tamas/shared"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "npm-run-all2": "^7.0.2",
+    "typescript": "^5.7.3"
+  }
+}

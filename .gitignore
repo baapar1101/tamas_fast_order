@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.local
+.DS_Store
+npm-debug.log*
+storage/
+!storage/.gitkeep
+apps/api/drizzle/meta/_journal.json.bak
+coverage/
+.vite/
+*.tsbuildinfo
+sync_config.json
+service-account.json
