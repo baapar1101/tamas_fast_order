@@ -2399,8 +2399,6 @@
       grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.15fr) minmax(0, 1.15fr) 200px;
       gap: 26px 40px;
       align-items: start;
-      max-width: 1400px;
-      margin: 0 auto;
     }
 
     .footer-logo {
@@ -2460,8 +2458,58 @@
 
     .footer-about {
       margin-top: 8px;
-      max-width: 46ch;          /* comfortable reading measure */
     }
+
+    /* Collapsed by default so this column is no taller than its neighbours. */
+    .footer-about-text {
+      position: relative;
+      max-height: 128px;
+      overflow: hidden;
+      transition: max-height .35s ease;
+    }
+
+    .footer-about-text::after {
+      content: '';
+      position: absolute;
+      inset-inline: 0;
+      bottom: 0;
+      height: 46px;
+      background: linear-gradient(180deg, transparent, #05323b);
+      transition: opacity .25s ease;
+      pointer-events: none;
+    }
+
+    .footer-about.open .footer-about-text { max-height: 720px; }
+    .footer-about.open .footer-about-text::after { opacity: 0; }
+
+    .footer-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 7px 14px;
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 20px;
+      background: transparent;
+      color: #e8f4f7;
+      font-size: 12px;
+      font-weight: 700;
+      transition: border-color .2s, color .2s, background .2s;
+    }
+
+    .footer-more:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .footer-more .chev {
+      width: 15px;
+      height: 15px;
+      color: var(--accent);
+      transition: transform .3s ease;
+    }
+
+    .footer-about.open .footer-more .chev { transform: rotate(180deg); }
 
     .footer-about h4 {
       margin: 0 0 10px;
@@ -2589,8 +2637,7 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 14px 26px;
-      max-width: 1400px;
-      margin: 36px auto 0;
+      margin: 36px 0 0;
       padding-top: 20px;
       border-top: 1px solid rgba(255, 255, 255, .1);
       font-size: 12.5px;
@@ -3519,11 +3566,17 @@
     <div class="footer-container">
       <div class="footer-brand">
         <img src="logo.png" alt="تماس مارکت" class="footer-logo">
-        <div class="footer-about">
+        <div class="footer-about" id="footerAbout">
           <h4>درباره تماس مارکت (از سال ۱۳۹۰)</h4>
+          <div class="footer-about-text">
           <p>داستان ما در تماس مارکت از سال ۱۳۹۰ با نام تجاری «موبایل تماس» آغاز شد. در ابتدا، تمرکز ما بر ارائه خدمات در حوزه موبایل بود، اما با شناخت عمیق‌تر نیازهای بازار و رشد چشمگیر صنعت، از سال ۱۳۹۴ مسیر فعالیتمان را به سمت فروش عمده لوازم جانبی موبایل سوق دادیم.</p>
           <p>در سال ۱۳۹۸، با هدف گسترش دامنه خدمات، بازار و ایجاد یک هویت تجاری مدرن‌تر، نام تجاری خود را به «تماس مارکت» تغییر دادیم. از سال ۱۳۹۹، با افتخار و تمرکز بر ارتقاء تجربه مشتریان، بستری جامع برای فروش آنلاین فراهم آورده‌ایم تا بتوانیم به صورت گسترده‌تر و کارآمدتر در خدمت شما عزیزان باشیم.</p>
           <p>امروز، تماس مارکت با پشتوانه سال‌ها تجربه و دانش تخصصی در حوزه فروش عمده کالای دیجیتال، به عنوان یکی از نام‌های شناخته شده در این صنعت، آماده ارائه بهترین خدمات و محصولات به شما همکاران گرامی است.</p>
+          </div>
+          <button type="button" class="footer-more" onclick="toggleFooterAbout(this)">
+            <span>مشاهده بیشتر</span>
+            <svg class="ic chev" aria-hidden="true"><use href="#i-chevron"></use></svg>
+          </button>
         </div>
       </div>
 
@@ -3969,6 +4022,13 @@
       else if (tab === 'cart') to(document.getElementById('cart'));
       else if (tab === 'orders') { openAuth(); if (auth.token) showAuthStep('orders'); }
       else if (tab === 'account') openAuth();
+    }
+
+    function toggleFooterAbout(btn) {
+      const box = document.getElementById('footerAbout');
+      const open = box.classList.toggle('open');
+      btn.querySelector('span').textContent = open ? 'بستن' : 'مشاهده بیشتر';
+      btn.setAttribute('aria-expanded', String(open));
     }
 
     function toggleSidebar() {
