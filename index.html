@@ -3906,9 +3906,13 @@
       el.innerHTML = visibleBrands.map((b, i) => {
         const label = b.brand_fa_name || b.brand_name;
         const active = selectedBrand && normName(selectedBrand) === normName(label);
+        /* Persian name in the tooltip, English underneath — the logos alone
+           are hard to tell apart at this size. */
+        const en = b.brand_name || label;
         return `<button class="brand-icon-btn ${active ? 'active' : ''}" title="${esc(label)}"
           aria-label="${esc(label)}" onclick="filterBrandAt(${i})">
           ${assetIcon(b.icon_url || b.brand_name || label, 'brand', label)}
+          <span class="brand-name">${esc(en)}</span>
         </button>`;
       }).join('');
     }
