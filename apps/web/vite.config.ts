@@ -1,0 +1,36 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+    // Dev talks to the API on the same origin, so cookies and uploads behave
+    // exactly as they do in production behind nginx.
+    proxy: {
+      '/api': { target: 'http://localhost:3001', changeOrigin: true },
+      '/uploads': { target: 'http://localhost:3001', changeOrigin: true },
+    },
+  },
+  build: {
+    target: 'es2022',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        // The admin panel is a separate chunk: a shopper never downloads it.
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react-router')) return 'router';
+            // `scheduler` belongs with react-dom: splitting them makes the two
+            // chunks import each other in a cycle.
+            if (id.includes('react-dom') || id.includes('/react/') || id.includes('/scheduler/')) return 'react';
+            if (id.includes('@tanstack')) return 'query';
+            return 'vendor';
+          }
+          if (id.includes('/src/admin/')) return 'admin';
+          return undefined;
+        },
+      },
+    },
+  },
+});
