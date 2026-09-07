@@ -2393,9 +2393,14 @@
 
     .footer-container {
       display: grid;
-      grid-template-columns: 1.2fr 1.5fr 1.3fr 170px;
-      gap: 32px;
+      /* The about column is wider because it holds prose; the seal only needs
+         its own width. A max-width stops the lines running the full width of a
+         large monitor. */
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.15fr) minmax(0, 1.15fr) 200px;
+      gap: 26px 40px;
       align-items: start;
+      max-width: 1400px;
+      margin: 0 auto;
     }
 
     .footer-logo {
@@ -2406,11 +2411,23 @@
 
     .footer-title {
       margin: 0 0 16px;
-      font-size: 17px;
+      font-size: 15px;
       font-weight: 800;
       color: #ffffff;
       position: relative;
-      padding-bottom: 8px;
+      padding-bottom: 10px;
+    }
+
+    /* Short accent rule under each heading ties the columns together. */
+    .footer-title::after {
+      content: '';
+      position: absolute;
+      inset-inline-start: 0;
+      bottom: 0;
+      width: 30px;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--accent);
     }
 
     .footer-title::after {
@@ -2425,11 +2442,17 @@
     }
 
     .footer-text {
-      color: #cbd5e1;
-      line-height: 1.85;
-      font-size: 13.5px;
-      margin: 8px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: #b9ccd3;
+      line-height: 2;
+      font-size: 12.5px;
+      margin: 0 0 11px;
     }
+
+    .footer-text strong { color: #e8f4f7; font-weight: 700; }
+    .footer-text .ic { margin-top: 5px; color: var(--accent); opacity: .9; }
 
     .footer-text strong {
       color: #ffffff;
@@ -2437,6 +2460,21 @@
 
     .footer-about {
       margin-top: 8px;
+      max-width: 46ch;          /* comfortable reading measure */
+    }
+
+    .footer-about h4 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #e8f4f7;
+    }
+
+    .footer-about p {
+      color: #a9c2c9;
+      font-size: 12.5px;
+      line-height: 2.1;
+      margin: 0 0 10px;
     }
 
     .footer-about h4 {
@@ -2461,7 +2499,9 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin: 14px 0 10px;
+      margin: 16px 0 0;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, .08);
     }
 
     .footer-social-link {
@@ -2501,11 +2541,13 @@
     }
 
     .footer-phone {
-      color: #38bdf8;
+      color: #e8f4f7;
       font-weight: 700;
       text-decoration: none;
-      transition: color 0.2s;
+      transition: color .2s;
     }
+
+    .footer-phone:hover { color: var(--accent); }
 
     .footer-phone:hover {
       color: #7dd3fc;
@@ -2513,13 +2555,21 @@
     }
 
     .enamad-box {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px dashed rgba(255, 255, 255, 0.25);
+      background: #fff;
+      border: 1px solid rgba(255, 255, 255, .18);
       border-radius: 14px;
-      padding: 16px;
+      padding: 12px;
       text-align: center;
-      transition: border-color 0.3s, background 0.3s;
+      line-height: 0;
+      transition: transform .25s ease, box-shadow .25s ease;
     }
+
+    .enamad-box:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .25);
+    }
+
+    .enamad-box img { max-width: 100%; height: auto; }
 
     .enamad-box:hover {
       background: rgba(255, 255, 255, 0.1);
@@ -2534,12 +2584,48 @@
     }
 
     .footer-bottom {
-      margin-top: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px 26px;
+      max-width: 1400px;
+      margin: 36px auto 0;
       padding-top: 20px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      text-align: center;
-      font-size: 13px;
-      color: #94a3b8;
+      border-top: 1px solid rgba(255, 255, 255, .1);
+      font-size: 12.5px;
+      color: #8fa8b0;
+    }
+
+    .footer-copy { margin: 0; }
+
+    .footer-legal {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 22px;
+    }
+
+    .footer-legal a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #b9ccd3;
+      font-weight: 600;
+      text-decoration: none;
+      transition: color .2s;
+    }
+
+    .footer-legal a:hover { color: var(--accent); }
+    .footer-legal .ic { width: 15px; height: 15px; color: var(--accent); opacity: .85; }
+
+    @media(max-width: 760px) {
+      .footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: right;
+      }
+
+      .footer-legal { gap: 10px 18px; }
     }
 
     @media(max-width: 1100px) {
@@ -3469,9 +3555,6 @@
             <span>اینستاگرام</span>
           </a>
         </div>
-        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-book"></use></svg> <a href="terms.html" class="footer-phone">شرایط و قوانین همکاری</a></p>
-        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-help"></use></svg> <a href="faq.html" class="footer-phone">سؤالات متداول همکاری</a></p>
-        <p class="footer-text"><svg class="ic" aria-hidden="true"><use href="#i-receipt"></use></svg> <a href="payment.html" class="footer-phone">روش‌های پرداخت و تسویه‌حساب</a></p>
       </div>
 
       <div class="footer-enamad">
@@ -3488,7 +3571,12 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© تمامی حقوق برای تماس مارکت محفوظ است.</p>
+      <nav class="footer-legal" aria-label="پیوندهای مهم">
+        <a href="terms.html"><svg class="ic" aria-hidden="true"><use href="#i-book"></use></svg> شرایط و قوانین همکاری</a>
+        <a href="faq.html"><svg class="ic" aria-hidden="true"><use href="#i-help"></use></svg> سؤالات متداول</a>
+        <a href="payment.html"><svg class="ic" aria-hidden="true"><use href="#i-receipt"></use></svg> روش‌های پرداخت و تسویه‌حساب</a>
+      </nav>
+      <p class="footer-copy">© تمامی حقوق برای تماس مارکت محفوظ است.</p>
     </div>
   </footer>
 
