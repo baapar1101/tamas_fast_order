@@ -22,7 +22,7 @@
       --primary: #00768f;
       --primary-hover: #006075;
       --primary-light: #e6f5f8;
-      --accent: #ff6b35;
+      --accent: #d97a5a;
       --bg: #f4f6f9;
       --card: #ffffff;
       --text: #1e293b;
@@ -579,23 +579,40 @@
 
     .brand-icons {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
       margin-bottom: 22px;
     }
 
     .brand-icon-btn {
-      height: 52px;
-      padding: 6px;
+      min-height: 74px;
+      padding: 8px 4px;
       border: 1px solid var(--border);
       background: #f8fafc;
       border-radius: 12px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 5px;
       transition: all 0.2s ease;
       position: relative;
     }
+
+    .brand-icon-btn .brand-name {
+      font-size: 9.5px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text-muted);
+      text-align: center;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      direction: ltr;
+    }
+
+    .brand-icon-btn.active .brand-name { color: var(--primary); }
 
     .brand-icon-btn:hover,
     .brand-icon-btn.active {
@@ -876,8 +893,8 @@
     }
 
     .product-thumb {
-      width: 60px;
-      height: 60px;
+      width: 92px;
+      height: 92px;
       border-radius: 10px;
       object-fit: contain;
       background: #fff;
@@ -885,17 +902,9 @@
       padding: 4px;
     }
 
-    .variant-head {
-      margin-top: 14px;
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-bottom: 0;
-      border-radius: 12px 12px 0 0;
-      padding: 12px 16px;
-      font-weight: 800;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
+    /* The "رنگ‌بندی و لیست قیمت عمده" strip added a line of chrome to every
+       card without saying anything, so it is gone. */
+    .variant-head { display: none; }
 
     .variant {
       border: 1px solid var(--border);
@@ -1100,10 +1109,10 @@
 
     .sell-badges-col {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
-      align-items: flex-end;
-      margin-inline-start: auto;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
     }
 
     .color-title {
@@ -1158,14 +1167,12 @@
       white-space: nowrap;
     }
 
-    .wh-badge.kerman {
-      background: #e0f2fe;
-      color: #0369a1;
-    }
-
+    /* Warehouses read as plain labels; the add button is the coloured element. */
+    .wh-badge.kerman,
     .wh-badge.tehran {
-      background: #f0fdf4;
-      color: #15803d;
+      background: #f8fafc;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
     }
 
     .wh-count {
@@ -1256,18 +1263,6 @@
     }
 
     .sell-badge .ic { opacity: .55; }
-
-    .sell-badge.cheque {
-      background: #f3e8ff;
-      color: #7e22ce;
-      border: 1px solid #e9d5ff;
-    }
-
-    .sell-badge.default {
-      background: #f1f5f9;
-      color: #475569;
-      border: 1px solid #e2e8f0;
-    }
 
     /* Auth Modal CSS */
     .auth-box {
@@ -1939,6 +1934,13 @@
       .admin-toolbar { flex-wrap: wrap; }
       .admin-toolbar .form-control { flex: 1 1 100%; }
       .admin-table th, .admin-table td { max-width: 140px; }
+    }
+
+    .toman {
+      height: 1em;
+      width: auto;
+      vertical-align: -.12em;
+      margin-inline-start: 2px;
     }
 
     .brands-empty {
@@ -2892,8 +2894,8 @@
       }
 
       .products-list .product-thumb {
-        width: 64px;
-        height: 64px;
+        width: 78px;
+        height: 78px;
         border-radius: 10px;
       }
 
@@ -3726,6 +3728,13 @@
     function ic(name, cls) { return `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"></use></svg>`; }
 
     function money(n) { return Number(n || 0).toLocaleString('fa-IR') + ' تومان'; }
+    /* HTML form of a price: the currency is the brand's toman mark. money()
+       stays plain text for alerts, <option> labels and the WhatsApp export,
+       where markup would show up literally. */
+    function moneyHtml(n) {
+      return Number(n || 0).toLocaleString('fa-IR') +
+        ' <img class="toman" src="toman.svg" alt="تومان">';
+    }
     function esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
     // Brand & Category asset mapper supporting all SVGs in assets directory
@@ -4125,7 +4134,6 @@
           <div class="product-title">${isPromoGroup ? '<span class="title-star">' + ic('star-fill') + '</span>' : ''}${esc(title)}</div>
           <img class="product-thumb" src="${esc(items[0].image_url || '')}" alt="" onerror="this.src='logo.png'" onclick="openImageZoom('${esc(items[0].image_url || '')}')" style="cursor: zoom-in;">
         </div>
-        <div class="variant-head">رنگ‌بندی و لیست قیمت عمده</div>
         ${items.map(p => `
           <div class="variant">
             <div class="variant-info">
@@ -4133,12 +4141,12 @@
                 <span class="color-dot" style="background:${getColorHex(p)}"></span>
                 ${esc(p.color || 'مشکی')}
               </div>
-              <div class="warranty-text">${ic('shield')} ${esc(p.warranty || 'شرکتی')}</div>
               ${renderSellTypeBadges(p.sell_type)}
+              <div class="warranty-text">${ic('shield')} ${esc(p.warranty || 'شرکتی')}</div>
             </div>
             <div class="variant-price">
-              ${p.old_price ? `<span class="card-old-price">${money(p.old_price)}</span>` : ''}
-              <div class="card-price">${money(p.price)}</div>
+              ${p.old_price ? `<span class="card-old-price">${moneyHtml(p.old_price)}</span>` : ''}
+              <div class="card-price">${moneyHtml(p.price)}</div>
             </div>
             <div class="warehouse-section">${warehouseRows(p)}</div>
           </div>
@@ -4273,8 +4281,8 @@
           </div>
           <div class="card-price-box">
             <div style="margin-bottom:8px">
-              ${p.old_price ? `<span class="card-old-price">${money(p.old_price)}</span>` : ''}
-              <div class="card-price">${money(p.price)}</div>
+              ${p.old_price ? `<span class="card-old-price">${moneyHtml(p.old_price)}</span>` : ''}
+              <div class="card-price">${moneyHtml(p.price)}</div>
             </div>
             <div class="warehouse-section" style="margin-bottom:8px">${warehouseRows(p)}</div>
             <button class="btn" style="width:100%;font-size:11.5px;padding:5px;" onclick='openQuickView(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
@@ -4745,7 +4753,7 @@
         ['محصولات', s.products, 'box'],
         ['سفارش‌های جدید', s.newOrders, 'receipt'],
         ['کاربران در انتظار تأیید', s.pendingUsers, 'user'],
-        ['مجموع فروش', money(s.revenue), 'money']
+        ['مجموع فروش', moneyHtml(s.revenue), 'money']
       ];
       document.getElementById('adminStats').innerHTML = tiles.map(([label, val, icon]) => `
         <div class="admin-stat">
@@ -5046,10 +5054,10 @@
             <div class="order-item">
               <span class="order-item-name">${esc(i.title || i.model || 'محصول')}${i.color ? ` <i>(${esc(i.color)})</i>` : ''}${i.warehouse_name ? ` <b class="order-item-wh">${esc(i.warehouse_name)}</b>` : ''}</span>
               <span class="order-item-qty">${Number(i.qty || 0).toLocaleString('fa-IR')} ×</span>
-              <span class="order-item-price">${money(i.price)}</span>
+              <span class="order-item-price">${moneyHtml(i.price)}</span>
             </div>`).join('')}
         </details>` : ''}
-        <div class="order-total"><span>مبلغ کل</span><b>${money(o.total_price)}</b></div>
+        <div class="order-total"><span>مبلغ کل</span><b>${moneyHtml(o.total_price)}</b></div>
       </article>`;
       }).join('');
     }
@@ -5230,7 +5238,7 @@
         return `
     <div class="cart-item">
       <div class="cart-item-title">${esc(i.title || i.model)}</div>
-      <div class="cart-item-meta">رنگ: ${esc(i.color || 'مشکی')} | فی: ${money(i.price)}</div>
+      <div class="cart-item-meta">رنگ: ${esc(i.color || 'مشکی')} | فی: ${moneyHtml(i.price)}</div>
       ${i.warehouse_name ? `<div class="cart-item-wh">${ic('pin')} ${esc(i.warehouse_name)}</div>` : ''}
       <div class="cart-item-qty">
         <div class="qty-controls">
@@ -5238,14 +5246,14 @@
           <span style="font-weight:800;font-size:14px">${i.qty}</span>
           <button class="qty-btn" onclick="changeQty('${key}', 1)" ${isMax ? 'disabled title="حداکثر موجودی" style="opacity:.35;cursor:not-allowed"' : ''}>+</button>
         </div>
-        <span style="font-weight:900;color:var(--primary)">${money(i.price * i.qty)}</span>
+        <span style="font-weight:900;color:var(--primary)">${moneyHtml(i.price * i.qty)}</span>
       </div>
       ${isMax ? `<div class="cart-item-max">${ic('warn')} حداکثر موجودی (${i.max_stock} عدد) انتخاب شده است</div>` : ''}
     </div>
   `;
       }).join('');
 
-      document.getElementById('cartTotalAmount').innerText = money(totalAmount);
+      document.getElementById('cartTotalAmount').innerHTML = moneyHtml(totalAmount);
       summaryEl.style.display = 'block';
 
       updateWholesaleProgress(totalAmount);
@@ -5439,7 +5447,7 @@
           ${p.stock === 1 ? '<span><b class="stock-warn">تنها ۱ عدد در سایت باقیست!</b></span>' : ''}
         </div>
         <div style="margin-top:16px;">
-          <div class="card-price" style="font-size:20px;">${money(p.price)}</div>
+          <div class="card-price" style="font-size:20px;">${moneyHtml(p.price)}</div>
           <button class="btn primary" style="margin-top:10px;" onclick='addToCart(${JSON.stringify(p).replace(/'/g, "&#39;")});closeQuickView();'>
             + افزودن به سبد خرید
           </button>
@@ -5494,8 +5502,8 @@
               <td>${esc(item.title)}</td>
               <td align="center">${esc(item.color || 'مشکی')}</td>
               <td align="center">${item.qty}</td>
-              <td align="left">${money(item.price)}</td>
-              <td align="left">${money(item.price * item.qty)}</td>
+              <td align="left">${moneyHtml(item.price)}</td>
+              <td align="left">${moneyHtml(item.price * item.qty)}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -5503,7 +5511,7 @@
 
       <div style="display:flex;justify-content:space-between;margin-top:20px;font-size:16px;font-weight:900">
         <span>مبلغ قابل پرداخت:</span>
-        <span style="color:#00768f">${money(total)}</span>
+        <span style="color:#00768f">${moneyHtml(total)}</span>
       </div>
     </div>
   `;
