@@ -70,20 +70,24 @@ export async function markSynced(
   rows: Array<{ key: string; hash: string }>,
 ): Promise<void> {
   if (rows.length === 0) return;
-  const now = new Date();
   // Table and column names come from the constants in this file, never input.
   const table = sql.raw(`"${mapping.tableName}"`);
   const keyCol = sql.raw(`"${mapping.keyDbColumn}"`);
 
   for (const part of chunk(rows, 500)) {
+    // Both columns are cast explicitly: without a type, Postgres cannot infer
+    // one for a parameter inside a VALUES list. The timestamp comes from
+    // now() rather than a bound Date — drizzle's raw-SQL path cannot serialise
+    // a Date, and silently failing here would leave every row without a
+    // baseline, which quietly turns every later sheet edit into a conflict.
     const tuples = sql.join(
-      part.map((r) => sql`(${r.key}, ${r.hash})`),
+      part.map((r) => sql`(${r.key}::text, ${r.hash}::text)`),
       sql`, `,
     );
     await db.execute(sql`
       update ${table} as t
          set sheet_hash = v.hash,
-             sheet_synced_at = ${now}
+             sheet_synced_at = now()
         from (values ${tuples}) as v(key, hash)
        where t.${keyCol} = v.key
     `);
