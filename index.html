@@ -831,11 +831,19 @@
       color: var(--text);
       line-height: 1.4;
       margin-bottom: 8px;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      height: 40px;
+      min-height: 40px;
+      overflow-wrap: anywhere;
+    }
+
+    /* Long product names stay complete; only their type size is reduced. */
+    .card-title.title-long {
+      font-size: 11.25px;
+      line-height: 1.45;
+    }
+
+    .card-title.title-very-long {
+      font-size: 10px;
+      line-height: 1.5;
     }
 
     .card-meta-row {
@@ -3052,10 +3060,17 @@
       .card-title {
         font-size: 11px;
         line-height: 1.7;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        min-height: 0;
+      }
+
+      .card-title.title-long {
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .card-title.title-very-long {
+        font-size: 9px;
+        line-height: 1.55;
       }
 
       .card-meta {
@@ -4569,6 +4584,13 @@
         .toLowerCase();
     }
 
+    function productTitleClass(title) {
+      const length = Array.from(String(title || '').trim()).length;
+      if (length > 105) return 'title-very-long';
+      if (length > 65) return 'title-long';
+      return '';
+    }
+
     function buildGroups(list) {
       const map = new Map();
       list.forEach(p => {
@@ -4640,7 +4662,7 @@
           </button>
           <img class="card-thumb" src="${esc(p.image_url || '')}" alt="${esc(p.title)}" onerror="this.src='logo.png'">
           <div>
-            <div class="card-title">${isPromo ? '<span class="title-star">' + ic('star-fill') + '</span>' : ''}${esc(p.title)}</div>
+            <div class="card-title ${productTitleClass(p.title)}">${isPromo ? '<span class="title-star">' + ic('star-fill') + '</span>' : ''}${esc(p.title)}</div>
             <div class="card-meta-row">
               <div class="card-meta">
                 <span>برند: <b class="ltr-inline">${esc(brandEn(p))}</b></span>
