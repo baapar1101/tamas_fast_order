@@ -885,14 +885,27 @@
     .products-list {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
 
     .product-accordion {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 18px;
+      padding: 10px;
+    }
+
+    .products-list .product-accordion {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 180px;
+      grid-template-areas: "content image";
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .list-product-content {
+      grid-area: content;
+      min-width: 0;
     }
 
     .product-head {
@@ -900,6 +913,11 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
+    }
+
+    .products-list .product-head {
+      min-height: 30px;
+      padding: 0 4px 5px;
     }
 
     .product-title {
@@ -918,6 +936,19 @@
       padding: 4px;
     }
 
+    .products-list .product-thumb {
+      grid-area: image;
+      width: 180px;
+      height: 180px;
+      align-self: center;
+      border-radius: 14px;
+      padding: 8px;
+    }
+
+    .list-variants {
+      min-width: 0;
+    }
+
     /* The "رنگ‌بندی و لیست قیمت عمده" strip added a line of chrome to every
        card without saying anything, so it is gone. */
     .variant-head { display: none; }
@@ -931,6 +962,14 @@
       align-items: center;
       gap: 16px;
       background: #fff;
+    }
+
+    .products-list .variant {
+      min-height: 68px;
+      padding: 4px;
+      border: 0;
+      border-top: 1px solid var(--border);
+      background: transparent;
     }
 
     .variant:last-child {
@@ -1466,18 +1505,40 @@
       padding: 13px;
     }
 
-    /* Variant row: info | price | warehouse picker. */
+    /* Compact list row: product info | price | one/two warehouse controls. */
     .products-list .variant {
-      grid-template-columns: minmax(170px, 1fr) auto auto;
-      gap: 18px;
+      grid-template-columns: minmax(145px, 1fr) auto 170px;
+      gap: 10px;
     }
 
     .variant-price {
       text-align: left;
     }
 
-    .warehouse-section {
-      min-width: 190px;
+    .products-list .variant-price {
+      min-width: 82px;
+      white-space: nowrap;
+    }
+
+    .products-list .warehouse-section {
+      width: 170px;
+      min-width: 170px;
+      height: 66px;
+      justify-content: center;
+      align-self: center;
+      justify-self: center;
+      margin: 0;
+    }
+
+    .products-list .warehouse-row {
+      min-height: 30px;
+      padding: 1px 7px;
+    }
+
+    .products-list .add-wh-btn {
+      width: 27px;
+      height: 27px;
+      font-size: 18px;
     }
 
     .cart-item-wh {
@@ -1511,7 +1572,7 @@
     }
 
     .products-list .product-thumb:hover {
-      transform: scale(2.6);
+      transform: scale(1.45);
       z-index: 9999;
       box-shadow: 0 16px 40px rgba(0, 0, 0, .32);
       background: #fff;
@@ -2725,6 +2786,25 @@
         grid-column: 1 / -1;
         position: static;
       }
+
+      .products-list .product-accordion {
+        grid-template-columns: minmax(0, 1fr) 150px;
+      }
+
+      .products-list .product-thumb {
+        width: 150px;
+        height: 150px;
+      }
+
+      .products-list .variant {
+        grid-template-columns: minmax(125px, 1fr) auto 155px;
+        gap: 8px;
+      }
+
+      .products-list .warehouse-section {
+        width: 155px;
+        min-width: 155px;
+      }
     }
 
     @media(max-width: 768px) {
@@ -3158,14 +3238,24 @@
         border-radius: 14px;
       }
 
-      /* Thumbnail leads the row on the right, matching the grid rows. The
-         markup is title-then-image, so reverse it visually. */
+      .products-list .product-accordion {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 78px;
+        grid-template-areas:
+          "head image"
+          "variants variants";
+        gap: 8px 10px;
+      }
+
+      .products-list .list-product-content {
+        display: contents;
+      }
+
       .products-list .product-head {
-        flex-direction: row-reverse;
-        justify-content: flex-end;
+        grid-area: head;
+        justify-content: flex-start;
         align-items: center;
-        gap: 10px;
-        padding-bottom: 6px;
+        padding: 0;
       }
 
       .products-list .product-title {
@@ -3179,9 +3269,14 @@
       }
 
       .products-list .product-thumb {
+        grid-area: image;
         width: 78px;
         height: 78px;
         border-radius: 10px;
+      }
+
+      .products-list .list-variants {
+        grid-area: variants;
       }
 
       .variant-head {
@@ -3215,6 +3310,8 @@
         grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
         gap: 8px;
         width: 100%;
+        min-width: 0;
+        height: auto;
         margin: 0 !important;
       }
 
@@ -4493,27 +4590,31 @@
           return `
       <article class="product-accordion ${isPromoGroup ? 'is-promotion' : ''}">
         ${isPromoGroup ? '<div class="promo-star-tag"><span class="star-icon">' + ic('star-fill') + '</span> پیشنهاد ویژه</div>' : ''}
-        <div class="product-head">
-          <div class="product-title">${isPromoGroup ? '<span class="title-star">' + ic('star-fill') + '</span>' : ''}${esc(title)}</div>
-          <img class="product-thumb" src="${esc(items[0].image_url || '')}" alt="" onerror="this.src='logo.png'" onclick="openImageZoom('${esc(items[0].image_url || '')}')" style="cursor: zoom-in;">
-        </div>
-        ${items.map(p => `
-          <div class="variant">
-            <div class="variant-info">
-              <div class="color-title">
-                <span class="color-dot" style="background:${getColorHex(p)}"></span>
-                ${esc(p.color || 'مشکی')}
-              </div>
-              ${renderSellTypeBadges(p.sell_type)}
-              <div class="warranty-text">${ic('shield')} ${esc(p.warranty || 'شرکتی')}</div>
-            </div>
-            <div class="variant-price">
-              ${p.old_price ? `<span class="card-old-price">${moneyHtml(p.old_price)}</span>` : ''}
-              <div class="card-price">${moneyHtml(p.price)}</div>
-            </div>
-            <div class="warehouse-section">${warehouseRows(p)}</div>
+        <img class="product-thumb" src="${esc(items[0].image_url || '')}" alt="${esc(title)}" onerror="this.src='logo.png'" onclick="openImageZoom('${esc(items[0].image_url || '')}')" style="cursor: zoom-in;">
+        <div class="list-product-content">
+          <div class="product-head">
+            <div class="product-title">${isPromoGroup ? '<span class="title-star">' + ic('star-fill') + '</span>' : ''}${esc(title)}</div>
           </div>
-        `).join('')}
+          <div class="list-variants">
+            ${items.map(p => `
+              <div class="variant">
+                <div class="variant-info">
+                  <div class="color-title">
+                    <span class="color-dot" style="background:${getColorHex(p)}"></span>
+                    ${esc(p.color || 'مشکی')}
+                  </div>
+                  ${renderSellTypeBadges(p.sell_type)}
+                  <div class="warranty-text">${ic('shield')} ${esc(p.warranty || 'شرکتی')}</div>
+                </div>
+                <div class="variant-price">
+                  ${p.old_price ? `<span class="card-old-price">${moneyHtml(p.old_price)}</span>` : ''}
+                  <div class="card-price">${moneyHtml(p.price)}</div>
+                </div>
+                <div class="warehouse-section">${warehouseRows(p)}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
       </article>
     `;
         }).join('');
