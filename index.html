@@ -5927,7 +5927,15 @@
         const data = await apiPost(payload);
         if (!data.ok) {
           if (data.expired) { closeModal(); handleExpiredSession(); return; }
-          if (data.missing) { closeModal(); pendingCheckout = true; openProfileEditor(); return; }
+          if (data.missing) {
+            /* Say why before swapping the dialog, otherwise the form just
+               reappears with no explanation. */
+            closeModal();
+            pendingCheckout = true;
+            toast(data.error || 'برای ثبت سفارش، اطلاعات حساب باید کامل باشد.', 'error');
+            openProfileEditor();
+            return;
+          }
           alert(data.error || 'ثبت سفارش ناموفق بود.');
           return;
         }
@@ -5957,7 +5965,7 @@
       <div>
         <h3 style="margin:0 0 10px;font-size:17px;">${esc(p.title)}</h3>
         <div class="card-meta" style="font-size:13px;gap:8px;">
-          <span>برند: <b>${esc(p.Brand || p.brand || 'متفرقه')}</b></span>
+          <span>برند: <b class="ltr-inline">${esc(brandEn(p))}</b></span>
           <span>دسته‌بندی: ${esc(p.Category || p.category || '-')}</span>
           <span>رنگ: ${esc(p.color || '-')}</span>
           <span>گارانتی: ${esc(p.warranty || 'اصالت کالا')}</span>

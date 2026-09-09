@@ -211,9 +211,44 @@ function setupSheets_() {
       sh = ss.insertSheet(name);
       sh.appendRow(DEFAULT_HEADERS[name]);
       sh.getRange(1, 1, 1, DEFAULT_HEADERS[name].length).setFontWeight('bold');
+    } else {
+      repairHeaders_(sh, name);
     }
   });
   return { ok: true, message: 'All required sheets exist' };
+}
+
+/* Restores a header cell that has been blanked or replaced by Sheets' own
+   "Column N" placeholder — which is exactly what happened to Users!A1 ("name"
+   became "Column 1"), and it silently broke every profile: user.name came back
+   undefined, so no profile ever counted as complete and no order could be
+   placed. Only blank/placeholder cells are touched; a header the shop has
+   deliberately renamed is left alone. */
+function repairHeaders_(sh, name) {
+  const expected = DEFAULT_HEADERS[name];
+  if (!expected || !expected.length) return 0;
+
+  const width = Math.max(sh.getLastColumn(), expected.length);
+  const row = sh.getRange(1, 1, 1, width).getValues()[0];
+  const present = row.map(x => String(x == null ? '' : x).trim());
+
+  let fixed = 0;
+  expected.forEach((want, i) => {
+    const got = present[i] || '';
+    if (got === want) return;
+    const isPlaceholder = got === '' || /^column\s*\d+$/i.test(got);
+    /* Never overwrite a real header, and never create a duplicate. */
+    if (!isPlaceholder || present.indexOf(want) >= 0) return;
+    sh.getRange(1, i + 1).setValue(want);
+    present[i] = want;
+    fixed++;
+  });
+
+  if (fixed) {
+    sh.getRange(1, 1, 1, width).setFontWeight('bold');
+    console.warn('Repaired ' + fixed + ' header cell(s) on sheet ' + name);
+  }
+  return fixed;
 }
 
 /* ============================== AUTHENTICATION ==============================
