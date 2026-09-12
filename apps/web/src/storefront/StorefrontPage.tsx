@@ -25,15 +25,32 @@ const HERO_SLIDES = [
   '/assets/slides/slide-03.jpg',
 ];
 
-function ProductSkeletons() {
+function ProductSkeletons({ viewMode }: { viewMode: 'list' | 'grid' }) {
+  if (viewMode === 'grid') {
+    return (
+      <div className="products-grid">
+        {Array.from({ length: 6 }, (_, i) => (
+          <div key={i} className="product-card">
+            <div className="skeleton" style={{ width: '100%', height: 160, marginBottom: 12 }} />
+            <div className="skeleton" style={{ height: 18, width: '75%', marginBottom: 10 }} />
+            <div className="skeleton" style={{ height: 14, width: '40%', marginBottom: 16 }} />
+            <div className="skeleton" style={{ height: 38, width: '100%' }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="products-grid">
-      {Array.from({ length: 6 }, (_, i) => (
-        <div key={i} className="product-card">
-          <div className="skeleton" style={{ width: '100%', height: 180, marginBottom: 12 }} />
-          <div className="skeleton" style={{ height: 18, width: '75%', marginBottom: 10 }} />
-          <div className="skeleton" style={{ height: 14, width: '40%', marginBottom: 16 }} />
-          <div className="skeleton" style={{ height: 38, width: '100%' }} />
+    <div className="products-list">
+      {Array.from({ length: 4 }, (_, i) => (
+        <div key={i} className="product" style={{ display: 'flex', gap: 14 }}>
+          <div className="skeleton" style={{ width: 200, height: 200, flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div className="skeleton" style={{ height: 18, width: '70%', marginBottom: 12 }} />
+            <div className="skeleton" style={{ height: 14, width: '40%', marginBottom: 16 }} />
+            <div className="skeleton" style={{ height: 40, width: '100%' }} />
+          </div>
         </div>
       ))}
     </div>
@@ -53,6 +70,7 @@ export function StorefrontPage() {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sort, setSort] = useState<CatalogFilters['sort']>('price_asc');
   const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const [activeSlide, setActiveSlide] = useState(0);
 
@@ -386,7 +404,22 @@ export function StorefrontPage() {
           <section className="main-content">
             <div className="toolbar">
               <div className="toolbar-left">
-                <label htmlFor="sort" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>
+                <button
+                  type="button"
+                  className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
+                  onClick={() => setViewMode('list')}
+                >
+                  ≡ لیستی (عمده)
+                </button>
+                <button
+                  type="button"
+                  className={`view-btn${viewMode === 'grid' ? ' active' : ''}`}
+                  onClick={() => setViewMode('grid')}
+                >
+                  ▦ شبکه‌ای
+                </button>
+
+                <label htmlFor="sort" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginInlineStart: 8 }}>
                   مرتب‌سازی:
                 </label>
                 <select
@@ -428,7 +461,7 @@ export function StorefrontPage() {
             </div>
 
             {products.isLoading ? (
-              <ProductSkeletons />
+              <ProductSkeletons viewMode={viewMode} />
             ) : products.isError ? (
               <div className="card" style={{ textAlign: 'center', color: 'var(--danger)', padding: 32 }}>
                 دریافت کالاها ناموفق بود. صفحه را دوباره بارگذاری کنید.
@@ -439,7 +472,7 @@ export function StorefrontPage() {
               </div>
             ) : (
               <>
-                <div className="products" style={{ opacity: products.isFetching ? 0.65 : 1, transition: 'opacity .15s' }}>
+                <div className={viewMode === 'grid' ? 'products-grid' : 'products-list'} style={{ opacity: products.isFetching ? 0.65 : 1, transition: 'opacity .15s' }}>
                   {groups.map((g) => (
                     <ProductCard key={g.key} group={g} colorMap={colorMap} onAdd={handleAdd} onPreview={setPreview} />
                   ))}
