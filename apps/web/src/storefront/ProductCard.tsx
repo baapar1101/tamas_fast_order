@@ -21,7 +21,7 @@ function swatchColor(product: ProductDTO, colorMap: Map<string, string>): string
     const hit = colorMap.get(key);
     if (hit) return hit;
   }
-  return 'var(--brand)';
+  return 'var(--primary)';
 }
 
 /** The sheet keeps sell types as a free-text list: "نقدی, اعتباری". */
@@ -51,15 +51,15 @@ function VariantRow({
 
   return (
     <div className="variant">
-      <div className="variant-color">
-        <span className="swatch" style={{ background: swatchColor(product, colorMap) }} aria-hidden />
+      <div className="variant-info">
+        <span className="color-dot" style={{ background: swatchColor(product, colorMap) }} aria-hidden />
         <span>{product.color || product.colorEn || 'بدون رنگ'}</span>
       </div>
 
       <div className="variant-price">
-        <span className="price-now">{formatMoney(product.price)}</span>
+        <span className="current-price">{formatMoney(product.price)}</span>
         {hasRealDiscount(product.price, product.oldPrice) && (
-          <span className="price-old">{formatNumber(product.oldPrice!)}</span>
+          <span className="old">{formatNumber(product.oldPrice!)}</span>
         )}
       </div>
 
@@ -105,17 +105,20 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, onAdd, o
       {group.promotion && <div className="promo-tag">⭐ پیشنهاد ویژه</div>}
 
       <div className="product-head">
-        <img
-          className="thumb"
-          src={image}
-          alt={group.title}
-          loading="lazy"
-          decoding="async"
-          onClick={() => onPreview(image)}
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = '/logo.png';
-          }}
-        />
+        <div className="thumb-box">
+          <img
+            className="product-thumb"
+            src={image}
+            alt={group.title}
+            loading="lazy"
+            decoding="async"
+            onClick={() => onPreview(image)}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src = '/logo.png';
+            }}
+          />
+        </div>
+
         <div style={{ minWidth: 0, flex: 1 }}>
           <h3 className="product-title">{group.title}</h3>
           <div className="product-meta">
