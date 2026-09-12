@@ -7,7 +7,8 @@ const SHEETS = {
   users: 'Users',
   orders: 'Orders',
   settings: 'Settings',
-  sessions: 'Sessions'
+  sessions: 'Sessions',
+  admins: 'Admins'
 };
 
 const DEFAULT_HEADERS = {
@@ -15,10 +16,24 @@ const DEFAULT_HEADERS = {
   Categories: ['category_name', 'category_fa_name', 'icon_url', 'Brand'],
   Brands: ['brand_name', 'brand_fa_name', 'icon_url'],
   Colors: ['color_code', 'color_fa_name', 'color_name'],
-  Users: ['name', 'last_name', 'Store_name', 'phone_number', 'mobile_number', 'address', 'postal_code', 'certificate_file_url', 'actived'],
-  Orders: ['order_id', 'date', 'customer_name', 'phone', 'address', 'items_json', 'total_price', 'status'],
+  Users: ['name', 'last_name', 'Store_name', 'phone_number', 'mobile_number', 'address', 'postal_code', 'certificate_file_url', 'activity', 'page_website', 'actived'],
+  Orders: ['order_id', 'created_at', 'customer_name', 'phone', 'address', 'items_json', 'total', 'payment', 'status'],
   Settings: ['key', 'value'],
-  Sessions: ['token', 'mobile_number', 'created_at', 'expires_at']
+  Sessions: ['token', 'mobile_number', 'created_at', 'expires_at'],
+  Admins: ['phone', 'name', 'role', 'active']
+};
+
+/* Sheets the admin panel may edit, and the column that identifies a row.
+   Anything not listed here is unreachable from the panel. */
+const ADMIN_SHEETS = {
+  Products: { key: 'product_id', label: 'محصولات' },
+  Categories: { key: 'category_name', label: 'دسته‌بندی‌ها' },
+  Brands: { key: 'brand_name', label: 'برندها' },
+  Colors: { key: 'color_code', label: 'رنگ‌ها' },
+  Orders: { key: 'order_id', label: 'سفارش‌ها', noCreate: true },
+  Users: { key: 'mobile_number', label: 'کاربران', noCreate: true, noDelete: true },
+  Admins: { key: 'phone', label: 'مدیران', ownerOnly: true },
+  Settings: { key: 'key', label: 'تنظیمات' }
 };
 
 /* --- Authentication configuration ---
@@ -28,9 +43,21 @@ const DEFAULT_HEADERS = {
 const SESSION_TTL_DAYS = 30;
 const SESSION_MAX_PER_HOUR = 10;
 /* Columns the user is allowed to fill in themselves (never 'mobile_number' or 'actived'). */
-const PROFILE_FIELDS = ['name', 'last_name', 'Store_name', 'phone_number', 'address', 'postal_code', 'certificate_file_url'];
-/* Columns that must be filled before the profile counts as complete. */
-const REQUIRED_USER_FIELDS = ['name', 'last_name', 'Store_name', 'address'];
+const PROFILE_FIELDS = ['name', 'last_name', 'Store_name', 'phone_number', 'address', 'postal_code', 'certificate_file_url', 'activity', 'page_website'];
+/* Columns that must be filled before the profile counts as complete.
+   `page_website` is deliberately not here: it speeds up approval but a
+   shopkeeper with no page must still be able to register. Add it to require it. */
+const REQUIRED_USER_FIELDS = ['name', 'last_name', 'Store_name', 'address', 'activity'];
+/* Allowed values for the activity column, so the sheet stays consistent. */
+const ACTIVITY_TYPES = ['آنلاین‌شاپ', 'مغازه‌دار', 'عمده‌فروش'];
+
+/* Accepted payment methods. The client sends the key; the sheet gets the label
+   so the Orders tab stays readable without a lookup. */
+const PAYMENT_METHODS = {
+  cash: 'نقدی (واریز به حساب)',
+  credit: 'اعتباری هفتگی',
+  cheque: 'چک صیادی'
+};
 
 function doGet(e) {
   const p = e && e.parameter ? e.parameter : {};
@@ -59,6 +86,11 @@ function doPost(e) {
     const a = p.action || '';
     if (a === 'startSession') return json_(startSession_(p));
     if (a === 'getProfile') return json_(getProfile_(p));
+    if (a === 'myOrders') return json_(myOrders_(p));
+    if (a === 'adminSummary') return json_(adminSummary_(p));
+    if (a === 'adminList') return json_(adminList_(p));
+    if (a === 'adminSave') return json_(adminSave_(p));
+    if (a === 'adminDelete') return json_(adminDelete_(p));
     if (a === 'saveProfile') return json_(saveProfile_(p));
     if (a === 'logout') return json_(logout_(p));
     if (a === 'registerUser') return json_(registerUser_(p));
@@ -179,9 +211,44 @@ function setupSheets_() {
       sh = ss.insertSheet(name);
       sh.appendRow(DEFAULT_HEADERS[name]);
       sh.getRange(1, 1, 1, DEFAULT_HEADERS[name].length).setFontWeight('bold');
+    } else {
+      repairHeaders_(sh, name);
     }
   });
   return { ok: true, message: 'All required sheets exist' };
+}
+
+/* Restores a header cell that has been blanked or replaced by Sheets' own
+   "Column N" placeholder — which is exactly what happened to Users!A1 ("name"
+   became "Column 1"), and it silently broke every profile: user.name came back
+   undefined, so no profile ever counted as complete and no order could be
+   placed. Only blank/placeholder cells are touched; a header the shop has
+   deliberately renamed is left alone. */
+function repairHeaders_(sh, name) {
+  const expected = DEFAULT_HEADERS[name];
+  if (!expected || !expected.length) return 0;
+
+  const width = Math.max(sh.getLastColumn(), expected.length);
+  const row = sh.getRange(1, 1, 1, width).getValues()[0];
+  const present = row.map(x => String(x == null ? '' : x).trim());
+
+  let fixed = 0;
+  expected.forEach((want, i) => {
+    const got = present[i] || '';
+    if (got === want) return;
+    const isPlaceholder = got === '' || /^column\s*\d+$/i.test(got);
+    /* Never overwrite a real header, and never create a duplicate. */
+    if (!isPlaceholder || present.indexOf(want) >= 0) return;
+    sh.getRange(1, i + 1).setValue(want);
+    present[i] = want;
+    fixed++;
+  });
+
+  if (fixed) {
+    sh.getRange(1, 1, 1, width).setFontWeight('bold');
+    console.warn('Repaired ' + fixed + ' header cell(s) on sheet ' + name);
+  }
+  return fixed;
 }
 
 /* ============================== AUTHENTICATION ==============================
@@ -229,6 +296,10 @@ function saveProfile_(p) {
   PROFILE_FIELDS.forEach(f => { values[f] = String(p[f] == null ? '' : p[f]).trim(); });
   if (values.phone_number) values.phone_number = toAsciiDigits_(values.phone_number);
   if (values.postal_code) values.postal_code = toAsciiDigits_(values.postal_code).replace(/\D/g, '');
+  /* Only the offered activity types are accepted; anything else is discarded
+     so the column stays reportable. */
+  if (values.activity && ACTIVITY_TYPES.indexOf(values.activity) < 0) values.activity = '';
+  if (values.page_website) values.page_website = values.page_website.slice(0, 300);
 
   const missing = REQUIRED_USER_FIELDS.filter(f => !String(values[f] || '').trim());
   if (missing.length) {
@@ -247,17 +318,22 @@ function saveProfile_(p) {
     const found = findUserRow_(sh, s.phone);
     const h = found.headers;
 
+    let row;
     if (found.row) {
-      const row = found.values.slice();
-      h.forEach((col, i) => { if (values.hasOwnProperty(col)) row[i] = values[col]; });
-      sh.getRange(found.row, 1, 1, h.length).setValues([row]);
+      const updated = found.values.slice();
+      h.forEach((col, i) => { if (values.hasOwnProperty(col)) updated[i] = values[col]; });
+      sh.getRange(found.row, 1, 1, h.length).setValues([updated]);
+      row = found.row;
     } else {
-      sh.appendRow(h.map(col => {
+      row = writeRow_(sh, h.map(col => {
         if (col === 'mobile_number') return s.phone;
         if (col === 'actived') return false;
         return values.hasOwnProperty(col) ? values[col] : '';
       }));
     }
+    /* Keep the leading zero: without a text format Sheets stores 09... as the
+       number 9... and the zero is lost on the way back out. */
+    forceTextCells_(sh, h, row, ['mobile_number', 'phone_number', 'postal_code']);
   } finally {
     lock.releaseLock();
   }
@@ -268,10 +344,302 @@ function saveProfile_(p) {
   return payload;
 }
 
+/* Builds the single `payment` cell: chosen method plus, for a direct deposit,
+   whatever receipt reference the buyer supplied. */
+function paymentCell_(p) {
+  const label = PAYMENT_METHODS[String(p.payment_method || '').trim()] || PAYMENT_METHODS.cash;
+  const ref = toAsciiDigits_(p.payment_ref || '').replace(/[^\w-]/g, '').slice(0, 40);
+  const link = String(p.payment_link || '').trim().slice(0, 300);
+  const parts = [label];
+  if (ref) parts.push('کد پیگیری: ' + ref);
+  if (/^https?:\/\//i.test(link)) parts.push('رسید: ' + link);
+  return parts.join(' | ');
+}
+
+/* Order history for the signed-in caller only: rows are matched against the
+   phone number stored with the token, never one supplied by the client. */
+function myOrders_(p) {
+  const s = getSession_(p.token);
+  if (!s) return { ok: false, error: 'نشست شما منقضی شده است. دوباره وارد شوید.', expired: true };
+
+  const sh = getSheet_(SHEETS.orders);
+  const data = sh.getDataRange().getValues();
+  if (data.length < 2) return { ok: true, orders: [] };
+
+  const h = data[0].map(x => String(x).trim());
+  const iPhone = h.indexOf('phone');
+  if (iPhone < 0) throw Error('Orders header not found: phone');
+  const at = k => h.indexOf(k);
+  const val = (row, k) => { const i = at(k); return i < 0 ? '' : row[i]; };
+
+  const rows = [];
+  for (let r = 1; r < data.length; r++) {
+    const row = data[r];
+    if (isBlankRow_(row)) continue;
+    if (normalizePhone_(row[iPhone]) !== s.phone) continue;
+
+    let items = [];
+    try { items = JSON.parse(val(row, 'items_json') || '[]') || []; } catch (x) { items = []; }
+    if (!Array.isArray(items)) items = [];
+
+    /* Column names differ between older and current sheets, so accept both. */
+    const d = val(row, 'created_at') || val(row, 'date');
+    const stamp = d instanceof Date ? d.getTime() : (Date.parse(d) || 0);
+    rows.push({
+      stamp: stamp,
+      order_id: String(val(row, 'order_id') || ''),
+      date: d instanceof Date ? d.toISOString() : String(d || ''),
+      address: String(val(row, 'address') || ''),
+      total_price: Number(val(row, 'total') || val(row, 'total_price') || 0),
+      payment: String(val(row, 'payment') || '').trim(),
+      status: String(val(row, 'status') || '').trim(),
+      items: items
+    });
+  }
+
+  rows.sort((a, b) => b.stamp - a.stamp);
+  return { ok: true, orders: rows.slice(0, 50).map(o => { delete o.stamp; return o; }) };
+}
+
 function logout_(p) {
   const s = getSession_(p.token);
   if (s) getSheet_(SHEETS.sessions).deleteRow(s.row);
   return { ok: true, message: 'از حساب خود خارج شدید.' };
+}
+
+/* ============================== ADMIN PANEL =================================
+ * An admin signs in with the same OTP flow as a buyer. What makes them an
+ * admin is a row in the Admins sheet matching their verified phone number, so
+ * nothing here trusts a flag sent by the client.
+ *
+ * Bootstrap: the Admins sheet is created empty. Add your own phone as the first
+ * row (role = owner) by hand — the panel deliberately has no self-enrolment.
+ * ========================================================================== */
+
+function adminFor_(phone) {
+  const sh = getSheet_(SHEETS.admins);
+  const data = sh.getDataRange().getValues();
+  if (data.length < 2) return null;
+  const h = data[0].map(x => String(x).trim());
+  const pi = h.indexOf('phone');
+  if (pi < 0) return null;
+  const ni = h.indexOf('name'), ri = h.indexOf('role'), ai = h.indexOf('active');
+
+  for (let r = 1; r < data.length; r++) {
+    if (isBlankRow_(data[r])) continue;
+    if (normalizePhone_(data[r][pi]) !== phone) continue;
+    /* A blank `active` cell counts as active so a freshly typed row works. */
+    const raw = ai < 0 ? '' : data[r][ai];
+    const active = raw === '' || raw === null || raw === true || String(raw).toUpperCase() === 'TRUE';
+    if (!active) return null;
+    return {
+      phone: phone,
+      name: ni < 0 ? '' : String(data[r][ni] || '').trim(),
+      role: (ri < 0 ? '' : String(data[r][ri] || '').trim().toLowerCase()) || 'editor'
+    };
+  }
+  return null;
+}
+
+/* Resolves the caller to an admin or returns the error payload to send back. */
+function adminGate_(p) {
+  const s = getSession_(p.token);
+  if (!s) return { err: { ok: false, expired: true, error: 'نشست شما منقضی شده است. دوباره وارد شوید.' } };
+  const a = adminFor_(s.phone);
+  if (!a) return { err: { ok: false, error: 'شما دسترسی مدیریت ندارید.' } };
+  return { admin: a };
+}
+
+function adminSheetDef_(name) {
+  const def = ADMIN_SHEETS[String(name || '').trim()];
+  if (!def) throw Error('Sheet not allowed: ' + name);
+  return def;
+}
+
+function adminSummary_(p) {
+  const gate = adminGate_(p);
+  if (gate.err) return gate.err;
+
+  const count = n => {
+    try { return read_(n).length; } catch (x) { return 0; }
+  };
+  const orders = read_(SHEETS.orders);
+  const users = read_(SHEETS.users);
+  const byStatus = {};
+  orders.forEach(o => {
+    const k = String(o.status || '').trim() || 'unknown';
+    byStatus[k] = (byStatus[k] || 0) + 1;
+  });
+
+  return {
+    ok: true,
+    admin: gate.admin,
+    sheets: Object.keys(ADMIN_SHEETS).map(k => ({ name: k, label: ADMIN_SHEETS[k].label })),
+    stats: {
+      products: count(SHEETS.products),
+      categories: count(SHEETS.categories),
+      brands: count(SHEETS.brands),
+      orders: orders.length,
+      users: users.length,
+      pendingUsers: users.filter(u => !u.actived).length,
+      newOrders: byStatus['new'] || 0,
+      revenue: orders.reduce((s, o) => s + (Number(o.total || o.total_price) || 0), 0)
+    },
+    ordersByStatus: byStatus
+  };
+}
+
+function adminList_(p) {
+  const gate = adminGate_(p);
+  if (gate.err) return gate.err;
+  const name = String(p.sheet || '').trim();
+  const def = adminSheetDef_(name);
+  if (def.ownerOnly && gate.admin.role !== 'owner') {
+    return { ok: false, error: 'فقط مدیر ارشد به این بخش دسترسی دارد.' };
+  }
+
+  const sh = getSheet_(name);
+  const data = sh.getDataRange().getValues();
+  const headers = (data[0] || []).map(x => String(x).trim());
+
+  const q = normalizeSearch_(p.q);
+  const rows = [];
+  for (let r = 1; r < data.length; r++) {
+    if (isBlankRow_(data[r])) continue;
+    const o = {};
+    headers.forEach((k, i) => {
+      let v = data[r][i];
+      if (v instanceof Date) v = v.toISOString();
+      else if (typeof v === 'boolean') { /* keep */ }
+      else v = v === null || v === undefined ? '' : String(v).trim();
+      o[k] = v;
+    });
+    if (q && normalizeSearch_(headers.map(k => o[k]).join(' ')).indexOf(q) < 0) continue;
+    o.__row = r + 1;
+    rows.push(o);
+  }
+
+  const offset = Math.max(0, Number(p.offset) || 0);
+  const limit = Math.min(500, Math.max(1, Number(p.limit) || 100));
+  return {
+    ok: true,
+    sheet: name,
+    label: def.label,
+    keyField: def.key,
+    canCreate: !def.noCreate,
+    canDelete: !def.noDelete,
+    headers: headers,
+    total: rows.length,
+    offset: offset,
+    rows: rows.slice(offset, offset + limit)
+  };
+}
+
+function normalizeSearch_(v) {
+  return toAsciiDigits_(v == null ? '' : v)
+    .replace(/[كک]/g, 'ک')
+    .replace(/[يىی]/g, 'ی')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function adminSave_(p) {
+  const gate = adminGate_(p);
+  if (gate.err) return gate.err;
+  const name = String(p.sheet || '').trim();
+  const def = adminSheetDef_(name);
+  if (def.ownerOnly && gate.admin.role !== 'owner') {
+    return { ok: false, error: 'فقط مدیر ارشد به این بخش دسترسی دارد.' };
+  }
+
+  const values = p.row && typeof p.row === 'object' ? p.row : {};
+  const keyVal = String(values[def.key] == null ? '' : values[def.key]).trim();
+  if (!keyVal) return { ok: false, error: 'مقدار ستون کلید (' + def.key + ') الزامی است.' };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = getSheet_(name);
+    const data = sh.getDataRange().getValues();
+    const h = (data[0] || []).map(x => String(x).trim());
+    const ki = h.indexOf(def.key);
+    if (ki < 0) throw Error('Key column not found: ' + def.key);
+
+    /* Booleans must stay booleans so checkbox columns keep working. */
+    const cell = col => {
+      if (!values.hasOwnProperty(col)) return null;
+      const v = values[col];
+      if (typeof v === 'boolean') return v;
+      const s = String(v == null ? '' : v).trim();
+      if (s === 'TRUE') return true;
+      if (s === 'FALSE') return false;
+      return s;
+    };
+
+    let found = 0;
+    for (let r = 1; r < data.length; r++) {
+      if (String(data[r][ki] || '').trim() === keyVal) { found = r + 1; break; }
+    }
+
+    if (found) {
+      const row = data[found - 1].slice();
+      h.forEach((col, i) => { const v = cell(col); if (v !== null) row[i] = v; });
+      sh.getRange(found, 1, 1, h.length).setValues([row]);
+    } else {
+      if (def.noCreate) return { ok: false, error: 'در این بخش امکان افزودن ردیف جدید وجود ندارد.' };
+      found = writeRow_(sh, h.map(col => {
+        const v = cell(col);
+        return v === null ? '' : v;
+      }));
+    }
+
+    if (name === 'Users') forceTextCells_(sh, h, found, ['mobile_number', 'phone_number', 'postal_code']);
+    if (name === 'Admins') forceTextCells_(sh, h, found, ['phone']);
+    if (name === 'Orders') forceTextCells_(sh, h, found, ['phone']);
+
+    return { ok: true, message: 'ذخیره شد.', row: found, sheet: name };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function adminDelete_(p) {
+  const gate = adminGate_(p);
+  if (gate.err) return gate.err;
+  const name = String(p.sheet || '').trim();
+  const def = adminSheetDef_(name);
+  if (def.noDelete) return { ok: false, error: 'حذف در این بخش مجاز نیست.' };
+  if (def.ownerOnly && gate.admin.role !== 'owner') {
+    return { ok: false, error: 'فقط مدیر ارشد به این بخش دسترسی دارد.' };
+  }
+
+  const keyVal = String(p.id == null ? '' : p.id).trim();
+  if (!keyVal) return { ok: false, error: 'شناسه ردیف مشخص نیست.' };
+
+  /* An admin must not be able to delete their own access and lock everyone out. */
+  if (name === 'Admins' && normalizePhone_(keyVal) === gate.admin.phone) {
+    return { ok: false, error: 'حذف دسترسی خودتان امکان‌پذیر نیست.' };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = getSheet_(name);
+    const data = sh.getDataRange().getValues();
+    const h = (data[0] || []).map(x => String(x).trim());
+    const ki = h.indexOf(def.key);
+    if (ki < 0) throw Error('Key column not found: ' + def.key);
+    for (let r = 1; r < data.length; r++) {
+      if (String(data[r][ki] || '').trim() === keyVal) {
+        sh.deleteRow(r + 1);
+        return { ok: true, message: 'ردیف حذف شد.' };
+      }
+    }
+    return { ok: false, error: 'ردیف پیدا نشد.' };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /* --- profile helpers --- */
@@ -281,13 +649,17 @@ function profilePayload_(phone) {
   const found = findUserRow_(sh, phone);
   const user = found.row ? userObject_(found.headers, found.values, phone) : emptyUser_(phone);
   const missing = REQUIRED_USER_FIELDS.filter(f => !String(user[f] || '').trim());
+  const admin = adminFor_(phone);
   return {
     isNew: !found.row,
     user: user,
     complete: !missing.length,
     missing: missing,
     requiredFields: REQUIRED_USER_FIELDS,
-    profileFields: PROFILE_FIELDS
+    profileFields: PROFILE_FIELDS,
+    /* Only a hint for the UI — every admin action re-checks the sheet. */
+    isAdmin: !!admin,
+    adminRole: admin ? admin.role : ''
   };
 }
 
@@ -329,7 +701,9 @@ function fieldLabel_(f) {
     phone_number: 'تلفن ثابت',
     address: 'آدرس',
     postal_code: 'کد پستی',
-    certificate_file_url: 'لینک جواز کسب'
+    certificate_file_url: 'لینک جواز کسب',
+    activity: 'نوع فعالیت',
+    page_website: 'صفحه اینستاگرام یا وب‌سایت'
   };
   return labels[f] || f;
 }
@@ -344,7 +718,8 @@ function createSession_(phone) {
     pruneSessions_(sh);
     const token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
     const now = new Date();
-    sh.appendRow([token, phone, now, new Date(now.getTime() + SESSION_TTL_DAYS * 86400000)]);
+    const row = writeRow_(sh, [token, phone, now, new Date(now.getTime() + SESSION_TTL_DAYS * 86400000)]);
+    forceTextCells_(sh, headers_(sh), row, ['mobile_number']);
     return token;
   } finally {
     lock.releaseLock();
@@ -425,7 +800,8 @@ function registerUser_(p) {
   if (sh.getDataRange().getValues().slice(1).some(r => String(r[mi] || '').trim() === m)) {
     return { ok: false, error: 'این شماره موبایل قبلاً ثبت شده است.' };
   }
-  sh.appendRow(h.map(x => x === 'actived' ? false : String(p[x] || '').trim()));
+  const row = writeRow_(sh, h.map(x => x === 'actived' ? false : String(p[x] || '').trim()));
+  forceTextCells_(sh, h, row, ['mobile_number', 'phone_number', 'postal_code']);
   return { ok: true, message: 'User registered', user: { name: p.name, last_name: p.last_name, mobile_number: m, actived: false } };
 }
 
@@ -455,9 +831,60 @@ function createOrder_(p) {
 
   if (!name || !phone) return { ok: false, error: 'نام و شماره موبایل الزامی است.' };
 
+  /* Idempotency: the browser sends one key per checkout attempt. A repeated
+     click, a retry or a refresh replays the same key, so we hand back the order
+     that already exists instead of writing a second row. The whole check-and-
+     write runs under a lock, otherwise two clicks a few hundred ms apart could
+     both miss the cache and both insert. */
+  const cache = CacheService.getScriptCache();
+  const key = String(p.client_order_id || '').trim().slice(0, 64);
+  const cacheKey = key ? 'order_key_' + key : '';
+
+  if (cacheKey) {
+    const seen = cache.get(cacheKey);
+    if (seen) return { ok: true, order_id: seen, duplicate: true, message: 'این سفارش قبلاً ثبت شده است.' };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    if (cacheKey) {
+      const seen = cache.get(cacheKey);
+      if (seen) return { ok: true, order_id: seen, duplicate: true, message: 'این سفارش قبلاً ثبت شده است.' };
+    }
+    return writeOrder_(p, name, phone, address, cache, cacheKey);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function writeOrder_(p, name, phone, address, cache, cacheKey) {
   const sh = getSheet_(SHEETS.orders);
+  const h = headers_(sh);
   const id = 'KP-' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd-HHmmss') + '-' + Math.floor(Math.random() * 1000);
-  sh.appendRow([id, new Date(), name, phone, address, JSON.stringify(p.items || []), Number(p.total || 0), 'new']);
+  const now = new Date();
+
+  /* Written by header name, not by position: the Orders tab has gained columns
+     (payment) and renamed others (date→created_at, total_price→total), and a
+     positional write would silently shift every value one column across. */
+  const record = {
+    order_id: id,
+    created_at: now,
+    date: now,
+    customer_name: name,
+    phone: phone,
+    address: address,
+    items_json: JSON.stringify(p.items || []),
+    total: Number(p.total || 0),
+    total_price: Number(p.total || 0),
+    payment: paymentCell_(p),
+    status: 'new'
+  };
+
+  const row = writeRow_(sh, h.map(col => record.hasOwnProperty(col) ? record[col] : ''));
+  forceTextCells_(sh, h, row, ['phone']);
+  /* Two hours covers a double click, a retry and an accidental refresh. */
+  if (cacheKey) cache.put(cacheKey, id, 7200);
   return { ok: true, order_id: id };
 }
 
@@ -479,11 +906,45 @@ function headers_(s) {
   return s.getRange(1, 1, 1, s.getLastColumn()).getValues()[0].map(x => String(x).trim());
 }
 
+/* A row holding nothing but unticked checkboxes still counts as empty. The
+   Users sheet is a Sheets Table whose blank rows already carry `actived`
+   = FALSE, and without this they read back as phantom users. */
+function isBlankRow_(values) {
+  return !values.some(x => x !== '' && x !== null && x !== undefined && x !== false);
+}
+
+/* Fills the first blank row inside the used range instead of appending after
+   it. appendRow() would jump past a Table's pre-made empty rows and drop the
+   record outside the Table. Returns the row number written. */
+function writeRow_(sh, values) {
+  const data = sh.getDataRange().getValues();
+  for (let r = 1; r < data.length; r++) {
+    if (isBlankRow_(data[r])) {
+      sh.getRange(r + 1, 1, 1, values.length).setValues([values]);
+      return r + 1;
+    }
+  }
+  sh.appendRow(values);
+  return sh.getLastRow();
+}
+
+/* Re-applies the plain-text format to columns that must keep a leading zero. */
+function forceTextCells_(sh, headers, row, cols) {
+  cols.forEach(col => {
+    const i = headers.indexOf(col);
+    if (i < 0) return;
+    const cell = sh.getRange(row, i + 1);
+    const v = cell.getValue();
+    cell.setNumberFormat('@');
+    if (v !== '' && v !== null) cell.setValue(String(v));
+  });
+}
+
 function read_(n) {
   const v = getSheet_(n).getDataRange().getValues();
   if (v.length < 2) return [];
   const h = v[0].map(x => String(x).trim());
-  return v.slice(1).filter(r => r.some(x => x !== '' && x !== null)).map(r => {
+  return v.slice(1).filter(r => !isBlankRow_(r)).map(r => {
     const o = {};
     h.forEach((k, i) => {
       let x = r[i];
