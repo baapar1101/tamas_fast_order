@@ -4,7 +4,11 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '0.0.0.0',
     port: 5173,
+    allowedHosts: [
+      'shop.tamasmarket.com',
+    ],
     // Dev talks to the API on the same origin, so cookies and uploads behave
     // exactly as they do in production behind nginx.
     proxy: {
