@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ColorDTO, ProductGroupDTO } from '@tamas/shared';
 import { api } from '../lib/api';
+import { getFallbackBootstrap, getFallbackProducts } from './fallbackData';
 
 export interface BootstrapData {
   categories: CategoryDTO[];
@@ -13,7 +14,14 @@ export interface BootstrapData {
 export function useBootstrap() {
   return useQuery({
     queryKey: ['bootstrap'],
-    queryFn: () => api.get<BootstrapData>('/catalog/bootstrap'),
+    queryFn: async () => {
+      try {
+        return await api.get<BootstrapData>('/catalog/bootstrap');
+      } catch (err) {
+        console.warn('API bootstrap failed, falling back to legacy catalog snapshot:', err);
+        return getFallbackBootstrap();
+      }
+    },
     staleTime: 5 * 60_000,
   });
 }
@@ -37,20 +45,26 @@ interface ProductsResponse {
 export function useProducts(filters: CatalogFilters) {
   return useQuery({
     queryKey: ['products', filters],
-    queryFn: ({ signal }) =>
-      api.get<ProductsResponse>(
-        '/catalog/products',
-        {
-          q: filters.q || undefined,
-          category: filters.category ?? undefined,
-          brands: filters.brands,
-          promotion: filters.promotion || undefined,
-          sort: filters.sort,
-          page: filters.page,
-          perPage: 24,
-        },
-        signal,
-      ),
+    queryFn: async ({ signal }) => {
+      try {
+        return await api.get<ProductsResponse>(
+          '/catalog/products',
+          {
+            q: filters.q || undefined,
+            category: filters.category ?? undefined,
+            brands: filters.brands,
+            promotion: filters.promotion || undefined,
+            sort: filters.sort,
+            page: filters.page,
+            perPage: 24,
+          },
+          signal,
+        );
+      } catch (err) {
+        console.warn('API products failed, falling back to legacy catalog snapshot:', err);
+        return getFallbackProducts(filters);
+      }
+    },
     placeholderData: (previous) => previous,
   });
 }
