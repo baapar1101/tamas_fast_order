@@ -76,6 +76,66 @@
       "source_location": "L187"
     },
     {
+      "id": "code_gs_doget",
+      "label": "doGet()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "doget()",
+      "source_file": "Code.gs",
+      "source_location": "L22"
+    },
+    {
+      "id": "code_gs_dopost",
+      "label": "doPost()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "dopost()",
+      "source_file": "Code.gs",
+      "source_location": "L43"
+    },
+    {
+      "id": "code_gs_exportall",
+      "label": "exportAll_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "exportall_()",
+      "source_file": "Code.gs",
+      "source_location": "L71"
+    },
+    {
+      "id": "code_gs_getcatalog",
+      "label": "getCatalog_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "getcatalog_()",
+      "source_file": "Code.gs",
+      "source_location": "L59"
+    },
+    {
+      "id": "code_gs_getsettings",
+      "label": "getSettings_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "getsettings_()",
+      "source_file": "Code.gs",
+      "source_location": "L81"
+    },
+    {
       "id": "code_gs_getsheet",
       "label": "getSheet_()",
       "_callable": true,
@@ -100,6 +160,42 @@
       "source_location": "L208"
     },
     {
+      "id": "code_gs_json",
+      "label": "json_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "json_()",
+      "source_file": "Code.gs",
+      "source_location": "L266"
+    },
+    {
+      "id": "code_gs_output",
+      "label": "output_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "output_()",
+      "source_file": "Code.gs",
+      "source_location": "L261"
+    },
+    {
+      "id": "code_gs_read",
+      "label": "read_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "read_()",
+      "source_file": "Code.gs",
+      "source_location": "L212"
+    },
+    {
       "id": "code_gs_registeruser",
       "label": "registerUser_()",
       "_callable": true,
@@ -112,6 +208,42 @@
       "source_location": "L170"
     },
     {
+      "id": "code_gs_setupsheets",
+      "label": "setupSheets_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "setupsheets_()",
+      "source_file": "Code.gs",
+      "source_location": "L157"
+    },
+    {
+      "id": "code_gs_synccatalog",
+      "label": "syncCatalog_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "synccatalog_()",
+      "source_file": "Code.gs",
+      "source_location": "L93"
+    },
+    {
+      "id": "code_gs_syncsheet",
+      "label": "syncSheet_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "syncsheet_()",
+      "source_file": "Code.gs",
+      "source_location": "L117"
+    },
+    {
       "id": "code_gs_updatestock",
       "label": "updateStock_()",
       "_callable": true,
@@ -122,6 +254,18 @@
       "norm_label": "updatestock_()",
       "source_file": "Code.gs",
       "source_location": "L126"
+    },
+    {
+      "id": "code_gs_writesheetobjects",
+      "label": "writeSheetObjects_()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "Community 1",
+      "file_type": "code",
+      "norm_label": "writesheetobjects_()",
+      "source_file": "Code.gs",
+      "source_location": "L227"
     },
     {
       "id": "index_html_asseticon",
@@ -232,268 +376,148 @@
       "source_location": "L396"
     },
     {
-      "id": "build_workbook_build",
-      "label": "build()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "Community 13",
-      "file_type": "code",
-      "norm_label": "build()",
-      "source_file": "build_workbook.py",
-      "source_location": "L8"
-    },
-    {
       "id": "sync_spreadsheet_cmd_push",
       "label": "cmd_push()",
       "_callable": true,
       "_origin": "ast",
-      "community": 2,
-      "community_name": "Community 2",
+      "community": 3,
+      "community_name": "Community 3",
       "file_type": "code",
       "norm_label": "cmd_push()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L235"
+      "source_location": "L241"
     },
     {
       "id": "sync_spreadsheet_cmd_watch",
       "label": "cmd_watch()",
       "_callable": true,
       "_origin": "ast",
-      "community": 2,
-      "community_name": "Community 2",
+      "community": 3,
+      "community_name": "Community 3",
       "file_type": "code",
       "norm_label": "cmd_watch()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L311"
+      "source_location": "L317"
     },
     {
       "id": "sync_spreadsheet_push_to_web_app",
       "label": "push_to_web_app()",
       "_callable": true,
       "_origin": "ast",
-      "community": 2,
-      "community_name": "Community 2",
+      "community": 3,
+      "community_name": "Community 3",
       "file_type": "code",
       "norm_label": "push_to_web_app()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L186"
-    },
-    {
-      "id": "code_gs_doget",
-      "label": "doGet()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Community 3",
-      "file_type": "code",
-      "norm_label": "doget()",
-      "source_file": "Code.gs",
-      "source_location": "L22"
-    },
-    {
-      "id": "code_gs_exportall",
-      "label": "exportAll_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Community 3",
-      "file_type": "code",
-      "norm_label": "exportall_()",
-      "source_file": "Code.gs",
-      "source_location": "L71"
-    },
-    {
-      "id": "code_gs_getcatalog",
-      "label": "getCatalog_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Community 3",
-      "file_type": "code",
-      "norm_label": "getcatalog_()",
-      "source_file": "Code.gs",
-      "source_location": "L59"
-    },
-    {
-      "id": "code_gs_getsettings",
-      "label": "getSettings_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Community 3",
-      "file_type": "code",
-      "norm_label": "getsettings_()",
-      "source_file": "Code.gs",
-      "source_location": "L81"
-    },
-    {
-      "id": "code_gs_read",
-      "label": "read_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Community 3",
-      "file_type": "code",
-      "norm_label": "read_()",
-      "source_file": "Code.gs",
-      "source_location": "L212"
-    },
-    {
-      "id": "code_gs_setupsheets",
-      "label": "setupSheets_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "Community 3",
-      "file_type": "code",
-      "norm_label": "setupsheets_()",
-      "source_file": "Code.gs",
-      "source_location": "L157"
-    },
-    {
-      "id": "code_gs_dopost",
-      "label": "doPost()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "Community 4",
-      "file_type": "code",
-      "norm_label": "dopost()",
-      "source_file": "Code.gs",
-      "source_location": "L43"
-    },
-    {
-      "id": "code_gs_json",
-      "label": "json_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "Community 4",
-      "file_type": "code",
-      "norm_label": "json_()",
-      "source_file": "Code.gs",
-      "source_location": "L266"
-    },
-    {
-      "id": "code_gs_output",
-      "label": "output_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "Community 4",
-      "file_type": "code",
-      "norm_label": "output_()",
-      "source_file": "Code.gs",
-      "source_location": "L261"
-    },
-    {
-      "id": "code_gs_synccatalog",
-      "label": "syncCatalog_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "Community 4",
-      "file_type": "code",
-      "norm_label": "synccatalog_()",
-      "source_file": "Code.gs",
-      "source_location": "L93"
-    },
-    {
-      "id": "code_gs_syncsheet",
-      "label": "syncSheet_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "Community 4",
-      "file_type": "code",
-      "norm_label": "syncsheet_()",
-      "source_file": "Code.gs",
-      "source_location": "L117"
-    },
-    {
-      "id": "code_gs_writesheetobjects",
-      "label": "writeSheetObjects_()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "Community 4",
-      "file_type": "code",
-      "norm_label": "writesheetobjects_()",
-      "source_file": "Code.gs",
-      "source_location": "L227"
+      "source_location": "L192"
     },
     {
       "id": "sync_spreadsheet_cmd_diff",
       "label": "cmd_diff()",
       "_callable": true,
       "_origin": "ast",
-      "community": 5,
-      "community_name": "Community 5",
+      "community": 4,
+      "community_name": "Community 4",
       "file_type": "code",
       "norm_label": "cmd_diff()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L250"
+      "source_location": "L256"
     },
     {
       "id": "sync_spreadsheet_fetch_csv_from_gss",
       "label": "fetch_csv_from_gss()",
       "_callable": true,
       "_origin": "ast",
-      "community": 5,
-      "community_name": "Community 5",
+      "community": 4,
+      "community_name": "Community 4",
       "file_type": "code",
       "norm_label": "fetch_csv_from_gss()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L151"
+      "source_location": "L155"
     },
     {
       "id": "sync_spreadsheet_read_excel_catalog",
       "label": "read_excel_catalog()",
       "_callable": true,
       "_origin": "ast",
-      "community": 5,
-      "community_name": "Community 5",
+      "community": 4,
+      "community_name": "Community 4",
       "file_type": "code",
       "norm_label": "read_excel_catalog()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L67"
+      "source_location": "L71"
     },
     {
       "id": "sync_spreadsheet_cmd_pull",
       "label": "cmd_pull()",
       "_callable": true,
       "_origin": "ast",
-      "community": 6,
-      "community_name": "Community 6",
+      "community": 5,
+      "community_name": "Community 5",
       "file_type": "code",
       "norm_label": "cmd_pull()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L201"
+      "source_location": "L207"
     },
     {
       "id": "sync_spreadsheet_fetch_from_web_app",
       "label": "fetch_from_web_app()",
       "_callable": true,
       "_origin": "ast",
-      "community": 6,
-      "community_name": "Community 6",
+      "community": 5,
+      "community_name": "Community 5",
       "file_type": "code",
       "norm_label": "fetch_from_web_app()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L175"
+      "source_location": "L179"
     },
     {
       "id": "sync_spreadsheet_write_excel_catalog",
       "label": "write_excel_catalog()",
       "_callable": true,
       "_origin": "ast",
-      "community": 6,
-      "community_name": "Community 6",
+      "community": 5,
+      "community_name": "Community 5",
       "file_type": "code",
       "norm_label": "write_excel_catalog()",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L119"
+      "source_location": "L123"
+    },
+    {
+      "id": "sync_spreadsheet_load_config",
+      "label": "load_config()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Community 6",
+      "file_type": "code",
+      "norm_label": "load_config()",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L44"
+    },
+    {
+      "id": "sync_spreadsheet_main",
+      "label": "main()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Community 6",
+      "file_type": "code",
+      "norm_label": "main()",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L339"
+    },
+    {
+      "id": "sync_spreadsheet_save_config",
+      "label": "save_config()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Community 6",
+      "file_type": "code",
+      "norm_label": "save_config()",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L65"
     },
     {
       "id": "index_html_changeqty",
@@ -556,40 +580,16 @@
       "source_location": "L688"
     },
     {
-      "id": "sync_spreadsheet_load_config",
-      "label": "load_config()",
+      "id": "build_workbook_build",
+      "label": "build()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
       "community_name": "Community 8",
       "file_type": "code",
-      "norm_label": "load_config()",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L43"
-    },
-    {
-      "id": "sync_spreadsheet_main",
-      "label": "main()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "Community 8",
-      "file_type": "code",
-      "norm_label": "main()",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L333"
-    },
-    {
-      "id": "sync_spreadsheet_save_config",
-      "label": "save_config()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "Community 8",
-      "file_type": "code",
-      "norm_label": "save_config()",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L61"
+      "norm_label": "build()",
+      "source_file": "build_workbook.py",
+      "source_location": "L8"
     },
     {
       "id": "index_html_buildbrands",
@@ -728,147 +728,312 @@
       "source_location": "L2"
     },
     {
-      "id": "build_workbook",
-      "label": "build_workbook.py",
+      "id": "sw",
+      "label": "sw.js",
       "_origin": "ast",
       "community": 13,
       "community_name": "Community 13",
       "file_type": "code",
-      "norm_label": "build_workbook.py",
-      "source_file": "build_workbook.py",
+      "norm_label": "sw.js",
+      "source_file": "sw.js",
       "source_location": "L1"
+    },
+    {
+      "id": "sw_assets_to_cache",
+      "label": "ASSETS_TO_CACHE",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "Community 13",
+      "file_type": "code",
+      "norm_label": "assets_to_cache",
+      "source_file": "sw.js",
+      "source_location": "L2"
+    },
+    {
+      "id": "merge_features",
+      "label": "merge_features.py",
+      "_origin": "ast",
+      "community": 14,
+      "community_name": "Community 14",
+      "file_type": "code",
+      "norm_label": "merge_features.py",
+      "source_file": "merge_features.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "manifest",
+      "label": "manifest.json",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "manifest.json",
+      "source_file": "manifest.json",
+      "source_location": "L1"
+    },
+    {
+      "id": "manifest_background_color",
+      "label": "background_color",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "background_color",
+      "source_file": "manifest.json",
+      "source_location": "L7"
+    },
+    {
+      "id": "manifest_description",
+      "label": "description",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "description",
+      "source_file": "manifest.json",
+      "source_location": "L4"
+    },
+    {
+      "id": "manifest_dir",
+      "label": "dir",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "dir",
+      "source_file": "manifest.json",
+      "source_location": "L10"
+    },
+    {
+      "id": "manifest_display",
+      "label": "display",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "display",
+      "source_file": "manifest.json",
+      "source_location": "L6"
+    },
+    {
+      "id": "manifest_icons",
+      "label": "icons",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "icons",
+      "source_file": "manifest.json",
+      "source_location": "L12"
+    },
+    {
+      "id": "manifest_lang",
+      "label": "lang",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "lang",
+      "source_file": "manifest.json",
+      "source_location": "L11"
+    },
+    {
+      "id": "manifest_name",
+      "label": "name",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "name",
+      "source_file": "manifest.json",
+      "source_location": "L2"
+    },
+    {
+      "id": "manifest_orientation",
+      "label": "orientation",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "orientation",
+      "source_file": "manifest.json",
+      "source_location": "L9"
+    },
+    {
+      "id": "manifest_short_name",
+      "label": "short_name",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "short_name",
+      "source_file": "manifest.json",
+      "source_location": "L3"
+    },
+    {
+      "id": "manifest_start_url",
+      "label": "start_url",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "start_url",
+      "source_file": "manifest.json",
+      "source_location": "L5"
+    },
+    {
+      "id": "manifest_theme_color",
+      "label": "theme_color",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Community 2",
+      "file_type": "code",
+      "norm_label": "theme_color",
+      "source_file": "manifest.json",
+      "source_location": "L8"
     },
     {
       "id": "sync_spreadsheet",
       "label": "sync_spreadsheet.py",
       "_origin": "ast",
-      "community": 2,
-      "community_name": "Community 2",
+      "community": 3,
+      "community_name": "Community 3",
       "file_type": "code",
       "norm_label": "sync_spreadsheet.py",
       "source_file": "sync_spreadsheet.py",
       "source_location": "L1"
     },
     {
-      "id": "sync_spreadsheet_rationale_187",
+      "id": "sync_spreadsheet_rationale_193",
       "label": "Upload catalog data to Google Apps Script Web App.",
       "_origin": "ast",
-      "community": 2,
-      "community_name": "Community 2",
+      "community": 3,
+      "community_name": "Community 3",
       "file_type": "rationale",
       "norm_label": "upload catalog data to google apps script web app.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L187"
+      "source_location": "L193"
     },
     {
-      "id": "sync_spreadsheet_rationale_236",
+      "id": "sync_spreadsheet_rationale_242",
       "label": "Push local Excel data to Google Sheets via Apps Script Web App.",
       "_origin": "ast",
-      "community": 2,
-      "community_name": "Community 2",
+      "community": 3,
+      "community_name": "Community 3",
       "file_type": "rationale",
       "norm_label": "push local excel data to google sheets via apps script web app.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L236"
+      "source_location": "L242"
     },
     {
-      "id": "sync_spreadsheet_rationale_312",
+      "id": "sync_spreadsheet_rationale_318",
       "label": "Watch local Excel file for modifications and push automatically.",
       "_origin": "ast",
-      "community": 2,
-      "community_name": "Community 2",
+      "community": 3,
+      "community_name": "Community 3",
       "file_type": "rationale",
       "norm_label": "watch local excel file for modifications and push automatically.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L312"
+      "source_location": "L318"
     },
     {
-      "id": "sync_spreadsheet_rationale_152",
+      "id": "sync_spreadsheet_rationale_156",
       "label": "Fetch sheet content via Google Sheets CSV export URL (no API key required if\u2026",
       "_origin": "ast",
-      "community": 5,
-      "community_name": "Community 5",
+      "community": 4,
+      "community_name": "Community 4",
       "file_type": "rationale",
       "norm_label": "fetch sheet content via google sheets csv export url (no api key required if...",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L152"
+      "source_location": "L156"
     },
     {
-      "id": "sync_spreadsheet_rationale_251",
+      "id": "sync_spreadsheet_rationale_257",
       "label": "Compare local Excel data against remote Google Sheet data.",
       "_origin": "ast",
-      "community": 5,
-      "community_name": "Community 5",
+      "community": 4,
+      "community_name": "Community 4",
       "file_type": "rationale",
       "norm_label": "compare local excel data against remote google sheet data.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L251"
+      "source_location": "L257"
     },
     {
-      "id": "sync_spreadsheet_rationale_68",
+      "id": "sync_spreadsheet_rationale_72",
       "label": "Read local Excel workbook and return dictionary of sheets with rows.",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "Community 4",
+      "file_type": "rationale",
+      "norm_label": "read local excel workbook and return dictionary of sheets with rows.",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L72"
+    },
+    {
+      "id": "sync_spreadsheet_rationale_124",
+      "label": "Write catalog data (dict of lists) to Excel workbook.",
       "_origin": "ast",
       "community": 5,
       "community_name": "Community 5",
       "file_type": "rationale",
-      "norm_label": "read local excel workbook and return dictionary of sheets with rows.",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L68"
-    },
-    {
-      "id": "sync_spreadsheet_rationale_120",
-      "label": "Write catalog data (dict of lists) to Excel workbook.",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "Community 6",
-      "file_type": "rationale",
       "norm_label": "write catalog data (dict of lists) to excel workbook.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L120"
+      "source_location": "L124"
     },
     {
-      "id": "sync_spreadsheet_rationale_176",
+      "id": "sync_spreadsheet_rationale_180",
       "label": "Fetch data from deployed Google Apps Script Web App endpoint.",
       "_origin": "ast",
-      "community": 6,
-      "community_name": "Community 6",
+      "community": 5,
+      "community_name": "Community 5",
       "file_type": "rationale",
       "norm_label": "fetch data from deployed google apps script web app endpoint.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L176"
+      "source_location": "L180"
     },
     {
-      "id": "sync_spreadsheet_rationale_202",
+      "id": "sync_spreadsheet_rationale_208",
       "label": "Pull data from Google Sheets / Apps Script and update local Excel and JSON\u2026",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "Community 5",
+      "file_type": "rationale",
+      "norm_label": "pull data from google sheets / apps script and update local excel and json...",
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L208"
+    },
+    {
+      "id": "sync_spreadsheet_rationale_45",
+      "label": "Load configuration from sync_config.json if it exists.",
       "_origin": "ast",
       "community": 6,
       "community_name": "Community 6",
       "file_type": "rationale",
-      "norm_label": "pull data from google sheets / apps script and update local excel and json...",
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L202"
-    },
-    {
-      "id": "sync_spreadsheet_rationale_44",
-      "label": "Load configuration from sync_config.json if it exists.",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "Community 8",
-      "file_type": "rationale",
       "norm_label": "load configuration from sync_config.json if it exists.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L44"
+      "source_location": "L45"
     },
     {
-      "id": "sync_spreadsheet_rationale_62",
+      "id": "sync_spreadsheet_rationale_66",
       "label": "Save current configuration to sync_config.json.",
       "_origin": "ast",
-      "community": 8,
-      "community_name": "Community 8",
+      "community": 6,
+      "community_name": "Community 6",
       "file_type": "rationale",
       "norm_label": "save current configuration to sync_config.json.",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L62"
+      "source_location": "L66"
+    },
+    {
+      "id": "build_workbook",
+      "label": "build_workbook.py",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "Community 8",
+      "file_type": "code",
+      "norm_label": "build_workbook.py",
+      "source_file": "build_workbook.py",
+      "source_location": "L1"
     }
   ],
   "links": [
@@ -1481,7 +1646,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L253",
+      "source_location": "L259",
       "weight": 1.0
     },
     {
@@ -1493,7 +1658,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L258",
+      "source_location": "L264",
       "weight": 1.0
     },
     {
@@ -1505,7 +1670,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L266",
+      "source_location": "L272",
       "weight": 1.0
     },
     {
@@ -1517,7 +1682,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L209",
+      "source_location": "L215",
       "weight": 1.0
     },
     {
@@ -1529,7 +1694,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L218",
+      "source_location": "L224",
       "weight": 1.0
     },
     {
@@ -1541,7 +1706,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L232",
+      "source_location": "L238",
       "weight": 1.0
     },
     {
@@ -1553,7 +1718,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L243",
+      "source_location": "L249",
       "weight": 1.0
     },
     {
@@ -1565,7 +1730,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L246",
+      "source_location": "L252",
       "weight": 1.0
     },
     {
@@ -1577,7 +1742,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L323",
+      "source_location": "L329",
       "weight": 1.0
     },
     {
@@ -1589,7 +1754,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L334",
+      "source_location": "L340",
       "weight": 1.0
     },
     {
@@ -1601,7 +1766,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L351",
+      "source_location": "L357",
       "weight": 1.0
     },
     {
@@ -1613,7 +1778,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L363",
+      "source_location": "L369",
       "weight": 1.0
     },
     {
@@ -1625,7 +1790,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L365",
+      "source_location": "L371",
       "weight": 1.0
     },
     {
@@ -1637,7 +1802,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L367",
+      "source_location": "L373",
       "weight": 1.0
     },
     {
@@ -1649,7 +1814,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L369",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -2170,6 +2335,138 @@
       "weight": 1.0
     },
     {
+      "source": "manifest",
+      "target": "manifest_dir",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "manifest.json",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "manifest",
+      "target": "manifest_lang",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "manifest.json",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "manifest",
+      "target": "manifest_icons",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "manifest.json",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "manifest",
+      "target": "manifest_name",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "manifest.json",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "manifest",
+      "target": "manifest_short_name",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "manifest.json",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "manifest",
+      "target": "manifest_description",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "manifest.json",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "manifest",
+      "target": "manifest_start_url",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "manifest.json",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "manifest",
+      "target": "manifest_display",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "manifest.json",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "manifest",
+      "target": "manifest_background_color",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "manifest.json",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "manifest",
+      "target": "manifest_theme_color",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "manifest.json",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "manifest",
+      "target": "manifest_orientation",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "manifest.json",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "sw",
+      "target": "sw_assets_to_cache",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sw.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
       "source": "sync_spreadsheet",
       "target": "sync_spreadsheet_write_excel_catalog",
       "relation": "contains",
@@ -2177,7 +2474,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L119",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -2188,7 +2485,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L151",
+      "source_location": "L155",
       "weight": 1.0
     },
     {
@@ -2199,7 +2496,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L175",
+      "source_location": "L179",
       "weight": 1.0
     },
     {
@@ -2210,7 +2507,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L186",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -2221,7 +2518,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L201",
+      "source_location": "L207",
       "weight": 1.0
     },
     {
@@ -2232,7 +2529,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L235",
+      "source_location": "L241",
       "weight": 1.0
     },
     {
@@ -2243,7 +2540,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L250",
+      "source_location": "L256",
       "weight": 1.0
     },
     {
@@ -2254,7 +2551,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L311",
+      "source_location": "L317",
       "weight": 1.0
     },
     {
@@ -2265,134 +2562,13 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L333",
+      "source_location": "L339",
       "weight": 1.0
     },
     {
       "source": "sync_spreadsheet",
       "target": "sync_spreadsheet_load_config",
       "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L43",
-      "weight": 1.0
-    },
-    {
-      "source": "sync_spreadsheet",
-      "target": "sync_spreadsheet_save_config",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L61",
-      "weight": 1.0
-    },
-    {
-      "source": "sync_spreadsheet",
-      "target": "sync_spreadsheet_read_excel_catalog",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L67",
-      "weight": 1.0
-    },
-    {
-      "source": "sync_spreadsheet_rationale_120",
-      "target": "sync_spreadsheet_write_excel_catalog",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L120",
-      "weight": 1.0
-    },
-    {
-      "source": "sync_spreadsheet_rationale_152",
-      "target": "sync_spreadsheet_fetch_csv_from_gss",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L152",
-      "weight": 1.0
-    },
-    {
-      "source": "sync_spreadsheet_rationale_176",
-      "target": "sync_spreadsheet_fetch_from_web_app",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L176",
-      "weight": 1.0
-    },
-    {
-      "source": "sync_spreadsheet_rationale_187",
-      "target": "sync_spreadsheet_push_to_web_app",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L187",
-      "weight": 1.0
-    },
-    {
-      "source": "sync_spreadsheet_rationale_202",
-      "target": "sync_spreadsheet_cmd_pull",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L202",
-      "weight": 1.0
-    },
-    {
-      "source": "sync_spreadsheet_rationale_236",
-      "target": "sync_spreadsheet_cmd_push",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L236",
-      "weight": 1.0
-    },
-    {
-      "source": "sync_spreadsheet_rationale_251",
-      "target": "sync_spreadsheet_cmd_diff",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L251",
-      "weight": 1.0
-    },
-    {
-      "source": "sync_spreadsheet_rationale_312",
-      "target": "sync_spreadsheet_cmd_watch",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "sync_spreadsheet.py",
-      "source_location": "L312",
-      "weight": 1.0
-    },
-    {
-      "source": "sync_spreadsheet_rationale_44",
-      "target": "sync_spreadsheet_load_config",
-      "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -2401,28 +2577,149 @@
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_62",
+      "source": "sync_spreadsheet",
+      "target": "sync_spreadsheet_save_config",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "sync_spreadsheet",
+      "target": "sync_spreadsheet_read_excel_catalog",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "sync_spreadsheet_rationale_124",
+      "target": "sync_spreadsheet_write_excel_catalog",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "sync_spreadsheet_rationale_156",
+      "target": "sync_spreadsheet_fetch_csv_from_gss",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L156",
+      "weight": 1.0
+    },
+    {
+      "source": "sync_spreadsheet_rationale_180",
+      "target": "sync_spreadsheet_fetch_from_web_app",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L180",
+      "weight": 1.0
+    },
+    {
+      "source": "sync_spreadsheet_rationale_193",
+      "target": "sync_spreadsheet_push_to_web_app",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L193",
+      "weight": 1.0
+    },
+    {
+      "source": "sync_spreadsheet_rationale_208",
+      "target": "sync_spreadsheet_cmd_pull",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L208",
+      "weight": 1.0
+    },
+    {
+      "source": "sync_spreadsheet_rationale_242",
+      "target": "sync_spreadsheet_cmd_push",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L242",
+      "weight": 1.0
+    },
+    {
+      "source": "sync_spreadsheet_rationale_257",
+      "target": "sync_spreadsheet_cmd_diff",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L257",
+      "weight": 1.0
+    },
+    {
+      "source": "sync_spreadsheet_rationale_318",
+      "target": "sync_spreadsheet_cmd_watch",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L318",
+      "weight": 1.0
+    },
+    {
+      "source": "sync_spreadsheet_rationale_45",
+      "target": "sync_spreadsheet_load_config",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "sync_spreadsheet.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "sync_spreadsheet_rationale_66",
       "target": "sync_spreadsheet_save_config",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L62",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
-      "source": "sync_spreadsheet_rationale_68",
+      "source": "sync_spreadsheet_rationale_72",
       "target": "sync_spreadsheet_read_excel_catalog",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "sync_spreadsheet.py",
-      "source_location": "L68",
+      "source_location": "L72",
       "weight": 1.0
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "5248bf28f6c03aebfa6ed418c679c6d3c4604916"
+  "built_at_commit": "1c7cb5612c42fb23847e52a2ae133a4f90be308b"
 }
