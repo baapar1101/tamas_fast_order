@@ -22,13 +22,13 @@ const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
 function ProductSkeletons() {
   return (
     <div className="products">
-      {Array.from({ length: 5 }, (_, i) => (
-        <div key={i} className="card" style={{ padding: 14, display: 'flex', gap: 14 }}>
-          <div className="skeleton" style={{ width: 116, height: 116, flexShrink: 0 }} />
+      {Array.from({ length: 4 }, (_, i) => (
+        <div key={i} className="product" style={{ display: 'flex', gap: 14 }}>
+          <div className="skeleton" style={{ width: 180, height: 180, flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
-            <div className="skeleton" style={{ height: 16, width: '70%', marginBottom: 10 }} />
-            <div className="skeleton" style={{ height: 12, width: '40%', marginBottom: 16 }} />
-            <div className="skeleton" style={{ height: 34, width: '100%' }} />
+            <div className="skeleton" style={{ height: 18, width: '70%', marginBottom: 12 }} />
+            <div className="skeleton" style={{ height: 14, width: '40%', marginBottom: 16 }} />
+            <div className="skeleton" style={{ height: 40, width: '100%' }} />
           </div>
         </div>
       ))}
@@ -76,7 +76,7 @@ export function StorefrontPage() {
     return map;
   }, [bootstrap.data?.colors]);
 
-  /** Brands shown in the strip narrow to the selected category. */
+  /** Brands shown narrow to the selected category. */
   const visibleBrands = useMemo(() => {
     const all = bootstrap.data?.brands ?? [];
     if (!category) return all;
@@ -125,6 +125,16 @@ export function StorefrontPage() {
   return (
     <div className="shell">
       <header className="topbar">
+        <div className="topbar-promo">
+          <div className="promo-sheen" />
+          <div className="promo-inner">
+            <div className="promo-copy">
+              <span className="promo-title">تخفیف‌های شگفت‌انگیز تماس مارکت</span>
+              <span className="promo-text">مرجع تخصصی پخش و فروش عمده لوازم جانبی موبایل و دیجیتال در سراسر کشور</span>
+            </div>
+          </div>
+        </div>
+
         <div className="topbar-inner">
           <Link to="/" className="logo">
             <img src="/logo.png" alt={settings.store_name || 'تماس مارکت'} />
@@ -134,7 +144,7 @@ export function StorefrontPage() {
           <div className="search-box">
             <input
               type="search"
-              placeholder="جستجو کنید: برند، مدل، کد کالا…"
+              placeholder="جستجو در محصولات: نام، برند، کد کالا…"
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -149,13 +159,13 @@ export function StorefrontPage() {
 
           <div className="top-actions">
             {isAdmin && (
-              <Link to="/admin" className="top-btn">
+              <Link to="/admin" className="top-btn secondary">
                 پنل مدیریت
               </Link>
             )}
             {user && (
-              <Link to="/orders" className="top-btn">
-                سفارش‌ها
+              <Link to="/orders" className="top-btn secondary">
+                سفارش‌های من
               </Link>
             )}
             <button
@@ -166,7 +176,7 @@ export function StorefrontPage() {
                 setAuthOpen(true);
               }}
             >
-              {user ? `${user.name || 'حساب'} ${user.lastName}`.trim() : 'ورود / ثبت نام'}
+              {user ? `${user.name || 'حساب'} ${user.lastName}`.trim() : 'ورود / ثبت‌نام'}
             </button>
             <button type="button" className="top-btn" onClick={() => document.getElementById('cart')?.scrollIntoView({ behavior: 'smooth' })}>
               🛒
@@ -182,7 +192,7 @@ export function StorefrontPage() {
             <span>برای ثبت سفارش، اطلاعات حساب خود را کامل کنید.</span>
             <button
               type="button"
-              className="btn sm"
+              className="btn sm primary"
               onClick={() => {
                 setAuthStep('profile');
                 setAuthOpen(true);
@@ -195,100 +205,140 @@ export function StorefrontPage() {
       )}
 
       <main className="container">
-        {settings.hero_image && (
-          <div className="hero">
-            <img src={settings.hero_image} alt="" />
-          </div>
-        )}
+        <div className="layout">
+          {/* Sidebar (Right Column) */}
+          <aside className="sidebar">
+            <div className="side-title">
+              <span>برندهای برتر</span>
+            </div>
+            <div className="brand-icons">
+              {visibleBrands.slice(0, 16).map((b) => {
+                const on = brands.includes(b.name);
+                const iconSrc = b.iconUrl
+                  ? b.iconUrl.startsWith('http') || b.iconUrl.startsWith('/')
+                    ? b.iconUrl
+                    : `/assets/brand/${b.iconUrl}`
+                  : null;
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    className={`brand-icon-btn${on ? ' active' : ''}`}
+                    title={b.faName}
+                    onClick={() => {
+                      setBrands(on ? brands.filter((x) => x !== b.name) : [...brands, b.name]);
+                      resetPage();
+                    }}
+                  >
+                    {iconSrc ? <img src={iconSrc} alt={b.faName} loading="lazy" /> : <span>{b.faName.slice(0, 2)}</span>}
+                  </button>
+                );
+              })}
+            </div>
 
-        <div className="shop-grid">
-          <div style={{ minWidth: 0 }}>
-            <div className="filters">
-              <div className="chip-row" role="group" aria-label="دسته‌بندی‌ها">
-                <button type="button" className={`chip${category === null ? ' on' : ''}`} onClick={() => { setCategory(null); setBrands([]); resetPage(); }}>
-                  همه دسته‌ها
-                </button>
-                {(bootstrap.data?.categories ?? []).map((c) => (
+            <div className="side-title">
+              <span>دسته‌بندی محصولات</span>
+            </div>
+            <div className="category-list">
+              <button
+                type="button"
+                className={`category-item${category === null ? ' active' : ''}`}
+                onClick={() => {
+                  setCategory(null);
+                  setBrands([]);
+                  resetPage();
+                }}
+              >
+                <span>📦 همه دسته‌بندی‌ها</span>
+              </button>
+              {(bootstrap.data?.categories ?? []).map((c) => {
+                const iconSrc = c.iconUrl
+                  ? c.iconUrl.startsWith('http') || c.iconUrl.startsWith('/')
+                    ? c.iconUrl
+                    : `/assets/category/${c.iconUrl}`
+                  : null;
+                return (
                   <button
                     key={c.id}
                     type="button"
-                    className={`chip${category === c.name ? ' on' : ''}`}
+                    className={`category-item${category === c.name ? ' active' : ''}`}
                     onClick={() => {
                       setCategory(category === c.name ? null : c.name);
                       setBrands([]);
                       resetPage();
                     }}
                   >
-                    {c.iconUrl && <img src={c.iconUrl.startsWith('http') || c.iconUrl.startsWith('/') ? c.iconUrl : `/assets/category/${c.iconUrl}`} alt="" loading="lazy" />}
-                    {c.faName}
-                    {c.productCount ? <span className="count">({formatNumber(c.productCount)})</span> : null}
+                    {iconSrc && <img src={iconSrc} alt="" loading="lazy" />}
+                    <span style={{ flex: 1 }}>{c.faName}</span>
+                    {c.productCount ? <span style={{ opacity: 0.7, fontSize: 11 }}>({formatNumber(c.productCount)})</span> : null}
                   </button>
+                );
+              })}
+            </div>
+
+            <div className="switch-row">
+              <span>پیشنهادهای ویژه</span>
+              <button
+                type="button"
+                className={`switch${promotion ? ' on' : ''}`}
+                onClick={() => {
+                  setPromotion(!promotion);
+                  resetPage();
+                }}
+                aria-label="فقط پیشنهاد ویژه"
+              >
+                <i />
+              </button>
+            </div>
+          </aside>
+
+          {/* Main Content (Center Column) */}
+          <section className="content">
+            {settings.hero_image ? (
+              <div className="promo-banner">
+                <img src={settings.hero_image} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.2 }} />
+                <div className="promo-banner-copy" style={{ position: 'relative', zIndex: 2 }}>
+                  <strong>{settings.store_name || 'تماس مارکت'}</strong>
+                  <small>{settings.store_tagline || 'مرجع تخصصی فروش عمده لوازم جانبی موبایل'}</small>
+                </div>
+              </div>
+            ) : (
+              <div className="promo-banner">
+                <div className="promo-banner-copy">
+                  <strong>پخش عمده لوازم جانبی موبایل</strong>
+                  <small>ضمانت اصالت، بهترین قیمت همکاری و ارسال سریع به سراسر ایران</small>
+                </div>
+              </div>
+            )}
+
+            <div className="toolbar">
+              <label htmlFor="sort" style={{ fontSize: 13, color: 'var(--muted)' }}>
+                مرتب‌سازی:
+              </label>
+              <select
+                id="sort"
+                className="select"
+                value={sort}
+                onChange={(e) => {
+                  setSort(e.target.value as CatalogFilters['sort']);
+                  resetPage();
+                }}
+              >
+                {Object.entries(SORT_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
                 ))}
-              </div>
+              </select>
 
-              <div className="chip-row" role="group" aria-label="برندها">
-                {visibleBrands.map((b) => {
-                  const on = brands.includes(b.name);
-                  return (
-                    <button
-                      key={b.id}
-                      type="button"
-                      className={`chip${on ? ' on' : ''}`}
-                      onClick={() => {
-                        setBrands(on ? brands.filter((x) => x !== b.name) : [...brands, b.name]);
-                        resetPage();
-                      }}
-                    >
-                      {b.iconUrl && <img src={b.iconUrl.startsWith('http') || b.iconUrl.startsWith('/') ? b.iconUrl : `/assets/brand/${b.iconUrl}`} alt="" loading="lazy" />}
-                      {b.faName}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="toolbar">
-                <button
-                  type="button"
-                  className={`switch${promotion ? ' on' : ''}`}
-                  onClick={() => {
-                    setPromotion(!promotion);
-                    resetPage();
-                  }}
-                  aria-label="فقط پیشنهاد ویژه"
-                  aria-pressed={promotion}
-                />
-                <span>فقط پیشنهاد ویژه</span>
-
-                <span className="spacer" />
-
-                <label htmlFor="sort" className="muted">
-                  مرتب‌سازی
-                </label>
-                <select
-                  id="sort"
-                  className="select"
-                  style={{ width: 'auto' }}
-                  value={sort}
-                  onChange={(e) => {
-                    setSort(e.target.value as CatalogFilters['sort']);
-                    resetPage();
-                  }}
-                >
-                  {Object.entries(SORT_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-
-                <span className="badge">{formatNumber(total)} کالا</span>
-              </div>
+              <span style={{ marginInlineStart: 'auto', fontSize: 12.5, fontWeight: 700, color: 'var(--muted)' }}>
+                {formatNumber(total)} کالا
+              </span>
 
               {(brands.length > 0 || category || promotion || search) && (
                 <button
                   type="button"
-                  className="btn sm"
-                  style={{ alignSelf: 'flex-start' }}
+                  className="btn sm ghost"
                   onClick={() => {
                     setSearch('');
                     setCategory(null);
@@ -297,7 +347,7 @@ export function StorefrontPage() {
                     resetPage();
                   }}
                 >
-                  حذف همه فیلترها
+                  حذف فیلترها
                 </button>
               )}
             </div>
@@ -305,23 +355,27 @@ export function StorefrontPage() {
             {products.isLoading ? (
               <ProductSkeletons />
             ) : products.isError ? (
-              <div className="alert error">دریافت کالاها ناموفق بود. صفحه را دوباره بارگذاری کنید.</div>
+              <div className="product" style={{ textAlign: 'center', color: 'var(--danger)', padding: 32 }}>
+                دریافت کالاها ناموفق بود. صفحه را دوباره بارگذاری کنید.
+              </div>
             ) : groups.length === 0 ? (
-              <div className="card empty">محصولی با این مشخصات پیدا نشد.</div>
+              <div className="product" style={{ textAlign: 'center', color: 'var(--muted)', padding: 48 }}>
+                محصولی با این مشخصات پیدا نشد.
+              </div>
             ) : (
               <>
-                <div className="products" style={{ opacity: products.isFetching ? 0.6 : 1, transition: 'opacity .15s' }}>
+                <div className="products" style={{ opacity: products.isFetching ? 0.65 : 1, transition: 'opacity .15s' }}>
                   {groups.map((g) => (
                     <ProductCard key={g.key} group={g} colorMap={colorMap} onAdd={handleAdd} onPreview={setPreview} />
                   ))}
                 </div>
 
                 {pageCount > 1 && (
-                  <div className="pager">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: 24 }}>
                     <button type="button" className="btn" disabled={page <= 1} onClick={() => setPage(page - 1)}>
                       قبلی
                     </button>
-                    <span className="muted">
+                    <span style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 600 }}>
                       صفحه {formatNumber(page)} از {formatNumber(pageCount)}
                     </span>
                     <button type="button" className="btn" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
@@ -331,32 +385,39 @@ export function StorefrontPage() {
                 )}
               </>
             )}
-          </div>
+          </section>
 
+          {/* Cart Panel (Left Column) */}
           <CartPanel onCheckout={openCheckout} />
         </div>
       </main>
 
       <footer className="site-footer">
-        <div className="footer-inner">
-          <div>
-            <h4>{settings.store_name || 'تماس مارکت'}</h4>
-            <p style={{ margin: 0 }}>{settings.store_tagline || 'مرجع تخصصی فروش عمده لوازم جانبی موبایل'}</p>
-          </div>
-          <div>
-            <h4>دسترسی سریع</h4>
-            <div className="stack" style={{ gap: 5 }}>
-              <Link to="/terms">شرایط و قوانین همکاری</Link>
-              {user && <Link to="/orders">سفارش‌های من</Link>}
-            </div>
-          </div>
-          <div>
-            <h4>تماس با ما</h4>
-            {settings.support_phone && <div className="ltr">{settings.support_phone}</div>}
-            {settings.store_address && <div>{settings.store_address}</div>}
+        <div>
+          <h4 className="footer-title">{settings.store_name || 'تماس مارکت'}</h4>
+          <p className="footer-text">{settings.store_tagline || 'مرجع تخصصی پخش و فروش عمده لوازم جانبی موبایل و تبلت در سراسر کشور.'}</p>
+        </div>
+        <div>
+          <h4 className="footer-title">دسترسی سریع</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13 }}>
+            <Link to="/terms" style={{ color: '#d9edf0' }}>
+              شرایط و قوانین همکاری
+            </Link>
+            {user && (
+              <Link to="/orders" style={{ color: '#d9edf0' }}>
+                سفارش‌های من
+              </Link>
+            )}
           </div>
         </div>
-        <div className="footer-bottom">© {new Date().getFullYear()} — تمامی حقوق محفوظ است.</div>
+        <div>
+          <h4 className="footer-title">ارتباط با ما</h4>
+          {settings.support_phone && <p className="footer-text ltr">تلفن: {settings.support_phone}</p>}
+          {settings.store_address && <p className="footer-text">آدرس: {settings.store_address}</p>}
+        </div>
+        <div>
+          <div className="enamad-box">نماد اعتماد و مجوزهای رسمی پخش</div>
+        </div>
       </footer>
 
       <AuthDialog
