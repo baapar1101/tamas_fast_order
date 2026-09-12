@@ -59,7 +59,7 @@ function VariantRow({
       <div className="variant-price">
         <span className="current-price">{formatMoney(product.price)}</span>
         {hasRealDiscount(product.price, product.oldPrice) && (
-          <span className="old">{formatNumber(product.oldPrice!)}</span>
+          <span className="old">{formatNumber(product.oldPrice!)} تومان</span>
         )}
       </div>
 

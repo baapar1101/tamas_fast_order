@@ -1,10 +1,12 @@
 /*
- * Legacy-inspired Design System & Tokens
+ * Legacy Design System & Tokens
  */
 :root {
   --primary: #00768f;
   --primary-hover: #006075;
   --primary-light: #e6f5f8;
+  --accent: #d97a5a;
+  --accent-hover: #c76848;
   --brand: #00768f;
   --brand-600: #006075;
   --brand-400: #008da8;
@@ -13,7 +15,7 @@
   --bg: #f4f6f9;
   --card: #ffffff;
   --surface: #ffffff;
-  --surface-2: #fafcfd;
+  --surface-2: #f8fafc;
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
 
@@ -40,7 +42,7 @@
   --shadow: 0 4px 20px -2px rgba(0, 118, 143, 0.08);
   --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.12);
 
-  --header-h: 68px;
+  --header-h: 70px;
   --font: 'Vazirmatn', Tahoma, 'Segoe UI', sans-serif;
 
   color-scheme: light;
@@ -62,7 +64,7 @@ body {
   color: var(--text);
   font-family: var(--font);
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -99,30 +101,25 @@ img {
   display: inline-block;
 }
 
-/* Base Primitives */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
   border: 1px solid var(--border);
-  border-radius: 9px;
   background: #ffffff;
   color: var(--text);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .btn:hover:not(:disabled) {
-  background: #f8fafc;
   border-color: var(--primary);
-}
-
-.btn:active:not(:disabled) {
-  transform: translateY(1px);
+  color: var(--primary);
 }
 
 .btn:disabled {
@@ -131,25 +128,26 @@ img {
 }
 
 .btn.primary {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: var(--accent);
   color: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(217, 122, 90, 0.28);
 }
 
 .btn.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn.teal {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.btn.teal:hover:not(:disabled) {
   background: var(--primary-hover);
   border-color: var(--primary-hover);
-}
-
-.btn.danger {
-  background: var(--danger);
-  border-color: var(--danger);
-  color: #ffffff;
-}
-
-.btn.ghost {
-  background: transparent;
-  border-color: transparent;
 }
 
 .btn.sm {
@@ -167,13 +165,12 @@ img {
   background: #f1f5f9;
   color: var(--muted);
   font-size: 11.5px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .badge.brand {
   background: var(--primary-light);
   color: var(--primary);
-
 }
 
 .skeleton {
