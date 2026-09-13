@@ -78,6 +78,40 @@ async function assertUnderHourlyLimit(phone: string): Promise<void> {
   }
 }
 
+async function callRastinSms(toPhone: string, code: string): Promise<{ ok: boolean; error?: string }> {
+  const text = `کد تایید شما در تماس مارکت: ${code}`;
+  const params = new URLSearchParams({
+    Username: env.RASTIN_SMS_USERNAME,
+    Password: env.RASTIN_SMS_PASSWORD,
+    From: env.RASTIN_SMS_FROM,
+    To: toPhone,
+    Text: text,
+  });
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12_000);
+  try {
+    const res = await fetch(`${env.RASTIN_SMS_URL}?${params.toString()}`, {
+      method: 'GET',
+      signal: controller.signal,
+    });
+    const body = (await res.text()).trim();
+    // eslint-disable-next-line no-console
+    console.info(`[rastin-sms] ${toPhone} → status ${res.status}, response: ${body}`);
+    // Positive number ID or '1' indicates successful SMS delivery
+    if (res.ok && (body === '1' || Number(body) > 0)) {
+      return { ok: true };
+    }
+    return { ok: false, error: `ارسال پیامک ناموفق بود (پاسخ: ${body}).` };
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(`[rastin-sms] error sending to ${toPhone}:`, err);
+    return { ok: false, error: err instanceof Error ? err.message : 'خطا در ارتباط با سامانه پیامک' };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 const inMemoryOtp = new Map<string, { code: string; expiresAt: Date }>();
 
 export async function sendOtp(phone: string, ip: string | undefined): Promise<SendResult> {
@@ -98,6 +132,11 @@ export async function sendOtp(phone: string, ip: string | undefined): Promise<Se
       return { ok: true };
     }
 
+    if (env.OTP_PROVIDER === 'rastin') {
+      const sms = await callRastinSms(phone, code);
+      if (!sms.ok) throw badRequest(sms.error || 'ارسال پیامک ناموفق بود.');
+    }
+
     await db.insert(otpCodes).values({
       phone,
       codeHash: sha256(`${phone}:${code}`),
@@ -107,6 +146,10 @@ export async function sendOtp(phone: string, ip: string | undefined): Promise<Se
   } catch (err) {
     if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
       console.warn(`[otp] Postgres offline, falling back to in-memory code for ${phone}`);
+      if (env.OTP_PROVIDER === 'rastin') {
+        const sms = await callRastinSms(phone, code);
+        if (!sms.ok) throw badRequest(sms.error || 'ارسال پیامک ناموفق بود.');
+      }
       inMemoryOtp.set(phone, { code, expiresAt });
     } else {
       throw err;
