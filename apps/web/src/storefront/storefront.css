@@ -1588,6 +1588,11 @@
   }
 }
 
+/* Default Desktop State for Tabbar */
+.tabbar {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .promo-inner {
     padding: 8px 12px;
@@ -1864,4 +1869,74 @@
   .enamad-box {
     margin: 0 auto;
   }
+
+  /* Mobile Bottom Navigation Bar */
+  .shell {
+    padding-bottom: 68px;
+  }
+
+  .tabbar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 6px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .tabbar-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 10.5px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 6px 0;
+    text-decoration: none;
+    position: relative;
+    transition: color 0.2s ease, transform 0.15s ease;
+  }
+
+  .tabbar-item:active {
+    transform: scale(0.94);
+  }
+
+  .tabbar-item.active {
+    color: var(--primary);
+  }
+
+  .tabbar-item .tabbar-icon {
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .tabbar-item .badge-count {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    left: auto;
+    font-size: 9.5px;
+    width: 17px;
+    height: 17px;
+  }
 }
+
