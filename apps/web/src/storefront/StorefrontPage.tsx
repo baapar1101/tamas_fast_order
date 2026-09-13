@@ -68,10 +68,10 @@ export function StorefrontPage() {
   const [category, setCategory] = useState<string | null>(null);
   const [brands, setBrands] = useState<string[]>([]);
   const [promotion, setPromotion] = useState(false);
-  const [inStockOnly, setInStockOnly] = useState(false);
+  const [inStockOnly, setInStockOnly] = useState(true);
   const [sort, setSort] = useState<CatalogFilters['sort']>('price_asc');
   const [page, setPage] = useState(1);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
   const [activeSlide, setActiveSlide] = useState(0);
 
@@ -80,6 +80,7 @@ export function StorefrontPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Auto advance slide carousel
   useEffect(() => {
@@ -191,6 +192,9 @@ export function StorefrontPage() {
           </Link>
 
           <div className="search-wrapper">
+            <span className="search-icon" aria-hidden>
+              <Icon name="search" />
+            </span>
             <input
               type="search"
               className="search-input"
@@ -202,10 +206,12 @@ export function StorefrontPage() {
               }}
               aria-label="جستجو"
             />
-            <span className="search-icon" aria-hidden>
-              <Icon name="search" />
-            </span>
-            <span className="search-shortcut">/ + Ctrl</span>
+            {search && (
+              <button type="button" className="search-clear" onClick={() => setSearch('')} aria-label="پاک کردن جستجو">
+                ✕
+              </button>
+            )}
+            <span className="search-shortcut">Ctrl + /</span>
           </div>
 
           <div className="user-actions">
@@ -221,6 +227,14 @@ export function StorefrontPage() {
             )}
             <button
               type="button"
+              className="btn btn-icon-only"
+              onClick={() => document.getElementById('cart')?.scrollIntoView({ behavior: 'smooth' })}
+              title="علاقه‌مندی‌ها"
+            >
+              <Icon name="heart" />
+            </button>
+            <button
+              type="button"
               className="btn primary"
               onClick={() => {
                 setAuthStep('phone');
@@ -229,15 +243,6 @@ export function StorefrontPage() {
             >
               <Icon name="user" />
               <span>{user ? `${user.name || 'حساب'} ${user.lastName}`.trim() : 'ورود / ثبت‌نام همکار'}</span>
-            </button>
-            <button
-              type="button"
-              className="btn-icon-only"
-              onClick={() => document.getElementById('cart')?.scrollIntoView({ behavior: 'smooth' })}
-              title="سبد خرید"
-            >
-              <Icon name="bag" />
-              {lines.length > 0 && <span className="badge-count">{formatNumber(cartCount(lines))}</span>}
             </button>
           </div>
         </div>
@@ -267,6 +272,7 @@ export function StorefrontPage() {
           {HERO_SLIDES.map((src, i) => (
             <img key={src} className={`hero-slide${i === activeSlide ? ' active' : ''}`} src={src} alt={`Slide ${i + 1}`} />
           ))}
+          <div className="slider-overlay" />
           <div className="slider-nav">
             <button type="button" className="slider-arrow" onClick={() => setActiveSlide((activeSlide - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)}>
               ‹
@@ -339,11 +345,24 @@ export function StorefrontPage() {
         {/* 3-Column Layout Grid */}
         <div className="layout">
           {/* Sidebar (Right Column in RTL) */}
-          <aside className="sidebar">
-            <div className="side-title">
-              <span>برندها</span>
-            </div>
-            <div className="brand-icons">
+          <aside className={`sidebar${filtersOpen ? ' open' : ''}`}>
+            <button
+              type="button"
+              className="sidebar-toggle"
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen(!filtersOpen)}
+            >
+              <span>برندها و فیلترها</span>
+              <Icon name="chevron" className="chev" />
+            </button>
+            <div className="sidebar-body">
+              <div className="side-title">
+                <span>برندها</span>
+                <button type="button" onClick={() => setBrands([])} style={{ fontSize: 12, color: 'var(--primary)' }}>
+                  همه
+                </button>
+              </div>
+              <div className="brand-icons">
               {visibleBrands.slice(0, 18).map((b) => {
                 const on = brands.includes(b.name);
                 const iconSrc = b.iconUrl
@@ -366,38 +385,27 @@ export function StorefrontPage() {
                   </button>
                 );
               })}
-            </div>
-
-            <div className="side-title">
-              <span>فیلترهای پیشرفته</span>
-            </div>
-            <div className="switch-row">
-              <span>فقط کالا‌های موجود</span>
-              <button type="button" className={`switch${inStockOnly ? ' on' : ''}`} onClick={() => setInStockOnly(!inStockOnly)}>
-                <i />
-              </button>
-            </div>
-            <div className="switch-row">
-              <span>پیشنهاد ویژه</span>
-              <button
-                type="button"
-                className={`switch${promotion ? ' on' : ''}`}
-                onClick={() => {
-                  setPromotion(!promotion);
-                  resetPage();
-                }}
-              >
-                <i />
-              </button>
-            </div>
-
-            <div className="wholesale-bar">
-              <div className="wholesale-header">
-                <span>سقف خریده عمده:</span>
-                <span>۱۰,۰۰۰,۰۰۰ تومان</span>
               </div>
-              <div className="progress-bg">
-                <div className="progress-fill" style={{ width: `${Math.min(100, (cartCount(lines) * 15) || 10)}%` }} />
+
+              <div className="side-title" style={{ marginTop: 20 }}>فیلترهای سریع</div>
+              <div className="switch-row">
+                <span>فقط کالاهای موجود</span>
+                <button type="button" className={`switch${inStockOnly ? ' on' : ''}`} onClick={() => setInStockOnly(!inStockOnly)}>
+                  <i />
+                </button>
+              </div>
+              <div className="switch-row">
+                <span>پیشنهاد ویژه</span>
+                <button
+                  type="button"
+                  className={`switch${promotion ? ' on' : ''}`}
+                  onClick={() => {
+                    setPromotion(!promotion);
+                    resetPage();
+                  }}
+                >
+                  <i />
+                </button>
               </div>
             </div>
           </aside>
@@ -408,18 +416,20 @@ export function StorefrontPage() {
               <div className="toolbar-left">
                 <button
                   type="button"
-                  className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
-                  onClick={() => setViewMode('list')}
-                >
-                  <Icon name="filter" style={{ marginInlineEnd: 4 }} /> لیستی (عمده)
-                </button>
-                <button
-                  type="button"
                   className={`view-btn${viewMode === 'grid' ? ' active' : ''}`}
                   onClick={() => setViewMode('grid')}
                 >
                   <Icon name="grid" style={{ marginInlineEnd: 4 }} /> شبکه‌ای
                 </button>
+                <button
+                  type="button"
+                  className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
+                  onClick={() => setViewMode('list')}
+                >
+                  <Icon name="filter" style={{ marginInlineEnd: 4 }} /> لیستی (عمده)
+                </button>
+
+                <span className="results-count">تعداد {formatNumber(total)} کالا پیدا شد</span>
 
                 <label htmlFor="sort" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginInlineStart: 8 }}>
                   مرتب‌سازی:
@@ -442,7 +452,6 @@ export function StorefrontPage() {
               </div>
 
               <div className="toolbar-right">
-                <span className="results-count">تعداد {formatNumber(total)} کالا پیدا شد</span>
                 {(brands.length > 0 || category || promotion || search) && (
                   <button
                     type="button"
@@ -714,4 +723,3 @@ export function StorefrontPage() {
     </div>
   );
 }
-

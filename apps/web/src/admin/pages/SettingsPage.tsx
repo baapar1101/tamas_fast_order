@@ -120,7 +120,45 @@ export function SettingsPage() {
           </div>
 
           <div className="card" style={{ padding: 18, marginBottom: 14 }}>
+            <h3 style={{ marginTop: 0, fontSize: 14.5 }}>تست و بررسی سامانه پیامک (Rastin SMS)</h3>
+            <p className="muted" style={{ marginTop: 0, fontSize: 12.5 }}>
+              جهت اطمینان از عملکرد درست وب‌سرویس پیامک، می‌توانید یک پیامک تست یا کد ورود به شماره همراه ارسال کنید.
+            </p>
+
+            <div className="row" style={{ marginTop: 10, gap: 10 }}>
+              <input
+                className="input ltr"
+                placeholder="09130000000"
+                style={{ maxWidth: 220 }}
+                id="test-phone-input"
+              />
+              <button
+                type="button"
+                className="btn primary"
+                onClick={async () => {
+                  const input = document.getElementById('test-phone-input') as HTMLInputElement | null;
+                  const phone = input?.value.trim();
+                  if (!phone || phone.length < 10) {
+                    toast.error('شماره موبایل معتبر وارد کنید.');
+                    return;
+                  }
+                  try {
+                    const res = await api.post<{ ok: boolean }>('/auth/otp/request', { phone });
+                    if (res.ok) toast.ok(`پیامک تستی به ${phone} ارسال شد.`);
+                    else toast.error('ارسال پیامک با خطا مواجه شد.');
+                  } catch (err: any) {
+                    toast.error(err.message || 'خطا در ارتباط با وب‌سرویس پیامک.');
+                  }
+                }}
+              >
+                ارسال پیامک تست
+              </button>
+            </div>
+          </div>
+
+          <div className="card" style={{ padding: 18, marginBottom: 14 }}>
             <h3 style={{ marginTop: 0, fontSize: 14.5 }}>کلیدهای دلخواه</h3>
+
             <p className="muted" style={{ marginTop: 0, fontSize: 12.5 }}>
               این کلیدها با جدول Settings در گوگل شیت همگام می‌شوند. کلیدهایی که با <code>private_</code> شروع شوند در
               فروشگاه دیده نمی‌شوند.

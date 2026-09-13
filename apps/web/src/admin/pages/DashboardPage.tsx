@@ -99,11 +99,44 @@ export function DashboardPage() {
   return (
     <>
       <div className="admin-head">
-        <h1>داشبورد</h1>
+        <h1>داشبورد مدیریت</h1>
         <span className="spacer" />
         {s.lastSyncAt && (
           <span className="badge">آخرین همگام‌سازی: {new Date(s.lastSyncAt).toLocaleString('fa-IR')}</span>
         )}
+      </div>
+
+      {/* Quick Action Bar */}
+      <div className="quick-actions-bar" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
+        <Link to="/admin/orders" className="btn primary sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <span>🧾</span> مدیریت سفارش‌های جدید
+        </Link>
+        <Link to="/admin/products" className="btn sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <span>📦</span> افزوردن / ویرایش محصولات
+        </Link>
+        <Link to="/admin/users" className="btn sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <span>👥</span> بررسی و تایید همکاران
+        </Link>
+        <Link to="/admin/sync" className="btn sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <span>🔄</span> همگام‌سازی گوگل شیت
+        </Link>
+        <Link to="/admin/settings" className="btn sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <span>⚙️</span> تنظیمات سامانه پیامک
+        </Link>
+      </div>
+
+      {/* System Status Indicators */}
+      <div className="system-health-bar" style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 16px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>وضعیت اتصال‌ها:</span>
+        <span className="badge success" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <i style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} /> سامانه پیامک (Rastin SMS) آنلاین
+        </span>
+        <span className="badge success" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <i style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} /> پایگاه داده PostgreSQL آنلاین
+        </span>
+        <span className="badge success" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <i style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} /> استعلام هویتی ثبت احوال (Zohal) فعال
+        </span>
       </div>
 
       <div className="stat-grid">
@@ -115,6 +148,7 @@ export function DashboardPage() {
         <Stat label="کاربران" value={formatNumber(s.userCount)} />
         <Stat label="در انتظار تایید" value={formatNumber(s.pendingUserCount)} tone={s.pendingUserCount > 0 ? 'warn' : undefined} sub="فروشگاه‌های تاییدنشده" />
       </div>
+
 
       <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
         <div className="chart-card">

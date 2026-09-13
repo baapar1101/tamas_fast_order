@@ -140,6 +140,7 @@ export function UsersPage() {
                 <th>نام</th>
                 <th>فروشگاه</th>
                 <th>شهر / آدرس</th>
+                <th>استعلام هویتی</th>
                 <th>وضعیت</th>
                 <th>نقش</th>
                 <th>عضویت</th>
@@ -165,7 +166,16 @@ export function UsersPage() {
                   <td className="ltr">{u.phone}</td>
                   <td>{`${u.name} ${u.lastName}`.trim() || '—'}</td>
                   <td>{u.storeName || '—'}</td>
-                  <td className="wrap" style={{ maxWidth: 260 }}>{u.address || '—'}</td>
+                  <td className="wrap" style={{ maxWidth: 220 }}>{u.address || '—'}</td>
+                  <td>
+                    {u.isVerifiedIdentity ? (
+                      <span className="badge success" title="اطلاعات هویتی با ثبت احوال تطابق دارد">✓ هویتی تاییدشده</span>
+                    ) : u.nationalCode ? (
+                      <span className="badge warn">کد ملی ثبت‌شده</span>
+                    ) : (
+                      <span className="badge faint" style={{ opacity: 0.6 }}>ثبت‌نشده</span>
+                    )}
+                  </td>
                   <td>
                     <button
                       type="button"
@@ -206,8 +216,12 @@ export function UsersPage() {
             <div className="card" style={{ padding: 14 }}>
               <div className="stack" style={{ gap: 6, fontSize: 13 }}>
                 {[
-                  ['نام', `${detail.name} ${detail.lastName}`.trim() || '—'],
+                  ['نام و نام خانوادگی', `${detail.name} ${detail.lastName}`.trim() || '—'],
                   ['فروشگاه', detail.storeName || '—'],
+                  ['کد ملی (ثبت احوال)', detail.nationalCode || '—'],
+                  ['نام پدر', detail.fatherName || '—'],
+                  ['تاریخ تولد', detail.birthDate || '—'],
+                  ['وضعیت استعلام هویتی', detail.isVerifiedIdentity ? '✓ تاییدشده با ثبت احوال (Zohal API)' : 'تایید نشده'],
                   ['تلفن ثابت', detail.landline || '—'],
                   ['کد پستی', detail.postalCode || '—'],
                   ['آدرس', detail.address || '—'],
@@ -220,6 +234,7 @@ export function UsersPage() {
                 ))}
               </div>
             </div>
+
 
             {detail.certificateFileUrl && (
               <a className="btn block" href={detail.certificateFileUrl} target="_blank" rel="noreferrer">
