@@ -131,6 +131,8 @@ export const PROFILE_FIELDS = [
   'address',
   'postalCode',
   'certificateFileUrl',
+  'activity',
+  'pageWebsite',
 ] as const;
 
 export const REQUIRED_PROFILE_FIELDS = ['name', 'lastName', 'storeName', 'address'] as const;
@@ -143,6 +145,8 @@ export const PROFILE_FIELD_LABELS: Record<string, string> = {
   address: 'آدرس',
   postalCode: 'کد پستی',
   certificateFileUrl: 'جواز کسب',
+  activity: 'نوع فعالیت',
+  pageWebsite: 'آدرس پیج / وبسایت',
 };
 
 export const profileWriteSchema = z.object({
@@ -153,6 +157,8 @@ export const profileWriteSchema = z.object({
   address: z.string().trim().max(1000).default(''),
   postalCode: z.string().trim().max(20).default(''),
   certificateFileUrl: z.string().trim().max(1000).default(''),
+  activity: z.string().trim().max(120).default(''),
+  pageWebsite: z.string().trim().max(255).default(''),
 });
 export type ProfileWrite = z.infer<typeof profileWriteSchema>;
 
@@ -197,12 +203,14 @@ export const orderItemInputSchema = z.object({
 export const orderCreateSchema = z.object({
   items: z.array(orderItemInputSchema).min(1).max(200),
   address: z.string().trim().max(1000).optional(),
+  paymentMethod: z.string().trim().max(100).optional(),
   note: z.string().trim().max(1000).optional(),
 });
 export type OrderCreate = z.infer<typeof orderCreateSchema>;
 
 export const orderPatchSchema = z.object({
   status: z.enum(ORDER_STATUSES).optional(),
+  paymentMethod: z.string().trim().max(100).optional(),
   note: z.string().trim().max(1000).optional(),
 });
 
@@ -218,6 +226,8 @@ export const userPatchSchema = z.object({
   address: z.string().trim().max(1000).optional(),
   postalCode: z.string().trim().max(20).optional(),
   certificateFileUrl: z.string().trim().max(1000).optional(),
+  activity: z.string().trim().max(120).optional(),
+  pageWebsite: z.string().trim().max(255).optional(),
   isActive: z.boolean().optional(),
   role: z.enum(['customer', 'admin']).optional(),
 });

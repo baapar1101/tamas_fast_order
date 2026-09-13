@@ -18,6 +18,8 @@ export function toUserDTO(row: UserRow): UserDTO {
     address: row.address,
     postalCode: row.postalCode,
     certificateFileUrl: row.certificateFileUrl,
+    activity: row.activity,
+    pageWebsite: row.pageWebsite,
     isActive: row.isActive,
     role: row.role,
     createdAt: row.createdAt.toISOString(),
