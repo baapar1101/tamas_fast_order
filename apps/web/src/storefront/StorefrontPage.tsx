@@ -629,6 +629,89 @@ export function StorefrontPage() {
           <img src={preview} alt="" />
         </div>
       )}
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="tabbar" aria-label="ناوبری موبایل">
+        <button
+          type="button"
+          className="tabbar-item active"
+          onClick={() => {
+            setSearch('');
+            setCategory(null);
+            setBrands([]);
+            setPromotion(false);
+            setInStockOnly(false);
+            resetPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
+          <span className="tabbar-icon">
+            <Icon name="home" />
+          </span>
+          <span>صفحه اصلی</span>
+        </button>
+
+        <button
+          type="button"
+          className={`tabbar-item${category ? ' active' : ''}`}
+          onClick={() => {
+            const el = document.querySelector('.category-toolbar');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+        >
+          <span className="tabbar-icon">
+            <Icon name="grid" />
+          </span>
+          <span>دسته‌بندی‌ها</span>
+        </button>
+
+        <button
+          type="button"
+          className={`tabbar-item${search ? ' active' : ''}`}
+          onClick={() => {
+            const input = document.querySelector('.search-input') as HTMLInputElement | null;
+            if (input) {
+              input.scrollIntoView({ behavior: 'smooth' });
+              input.focus();
+            }
+          }}
+        >
+          <span className="tabbar-icon">
+            <Icon name="search" />
+          </span>
+          <span>جستجو</span>
+        </button>
+
+        <button
+          type="button"
+          className={`tabbar-item${lines.length > 0 ? ' active' : ''}`}
+          onClick={() => {
+            const cartEl = document.getElementById('cart');
+            if (cartEl) cartEl.scrollIntoView({ behavior: 'smooth' });
+          }}
+        >
+          <span className="tabbar-icon">
+            <Icon name="bag" />
+            {lines.length > 0 && <span className="badge-count">{formatNumber(cartCount(lines))}</span>}
+          </span>
+          <span>سبد خرید</span>
+        </button>
+
+        <button
+          type="button"
+          className={`tabbar-item${user ? ' active' : ''}`}
+          onClick={() => {
+            setAuthStep('phone');
+            setAuthOpen(true);
+          }}
+        >
+          <span className="tabbar-icon">
+            <Icon name="user" />
+          </span>
+          <span>{user ? 'حساب کاربری' : 'ورود / عضویت'}</span>
+        </button>
+      </nav>
     </div>
   );
 }
+
