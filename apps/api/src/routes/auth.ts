@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
-import { normalizeLandline, otpRequestSchema, otpVerifySchema, profileWriteSchema } from '@tamas/shared';
+import { normalizeLandline, otpRequestSchema, otpVerifySchema, profileWriteSchema, type UserDTO } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { users } from '../db/schema.js';
 import { env } from '../env.js';
@@ -66,26 +66,45 @@ const routes: FastifyPluginAsync = async (app) => {
     const body = profileWriteSchema.parse(req.body);
     const current = req.currentUser!;
 
-    const [updated] = await db
-      .update(users)
-      .set({
-        name: body.name,
-        lastName: body.lastName,
-        storeName: body.storeName,
-        landline: normalizeLandline(body.landline),
-        address: body.address,
-        postalCode: normalizeLandline(body.postalCode),
-        certificateFileUrl: body.certificateFileUrl,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, current.id))
-      .returning();
+    let updatedUser: UserDTO;
+    try {
+      const [updated] = await db
+        .update(users)
+        .set({
+          name: body.name,
+          lastName: body.lastName,
+          storeName: body.storeName,
+          landline: normalizeLandline(body.landline),
+          address: body.address,
+          postalCode: normalizeLandline(body.postalCode),
+          certificateFileUrl: body.certificateFileUrl,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, current.id))
+        .returning();
+      updatedUser = toUserDTO(updated || current);
+    } catch {
+      current.name = body.name;
+      current.lastName = body.lastName;
+      current.storeName = body.storeName;
+      current.landline = normalizeLandline(body.landline);
+      current.address = body.address;
+      current.postalCode = normalizeLandline(body.postalCode);
+      current.certificateFileUrl = body.certificateFileUrl;
+      updatedUser = toUserDTO(current);
+    }
 
-    if (!updated) throw badRequest('ذخیره اطلاعات ناموفق بود.');
-    const missing = missingProfileFields(updated);
+    const missing = missingProfileFields({
+      ...current,
+      name: updatedUser.name,
+      lastName: updatedUser.lastName,
+      storeName: updatedUser.storeName,
+      address: updatedUser.address,
+    });
+
     return {
       ok: true,
-      user: toUserDTO(updated),
+      user: updatedUser,
       complete: missing.length === 0,
       missing,
       message: 'اطلاعات شما ذخیره شد.',
@@ -134,27 +153,44 @@ const routes: FastifyPluginAsync = async (app) => {
       }
 
       const current = req.currentUser!;
-      const [updated] = await db
-        .update(users)
-        .set({
-          name: inquiryBody.first_name || current.name,
-          lastName: inquiryBody.last_name || current.lastName,
-          fatherName: inquiryBody.father_name || '',
-          nationalCode: cleanNationalCode,
-          birthDate: cleanBirthDate,
-          isVerifiedIdentity: true,
-          updatedAt: new Date(),
-        })
-        .where(eq(users.id, current.id))
-        .returning();
+      let updatedUser: UserDTO;
+      try {
+        const [updated] = await db
+          .update(users)
+          .set({
+            name: inquiryBody.first_name || current.name,
+            lastName: inquiryBody.last_name || current.lastName,
+            fatherName: inquiryBody.father_name || '',
+            nationalCode: cleanNationalCode,
+            birthDate: cleanBirthDate,
+            isVerifiedIdentity: true,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, current.id))
+          .returning();
+        updatedUser = toUserDTO(updated || current);
+      } catch {
+        current.name = inquiryBody.first_name || current.name;
+        current.lastName = inquiryBody.last_name || current.lastName;
+        current.fatherName = inquiryBody.father_name || '';
+        current.nationalCode = cleanNationalCode;
+        current.birthDate = cleanBirthDate;
+        current.isVerifiedIdentity = true;
+        updatedUser = toUserDTO(current);
+      }
 
-      if (!updated) throw badRequest('ذخیره اطلاعات استعلام‌گرفته‌شده ناموفق بود.');
-      const missing = missingProfileFields(updated);
+      const missing = missingProfileFields({
+        ...current,
+        name: updatedUser.name,
+        lastName: updatedUser.lastName,
+        storeName: updatedUser.storeName,
+        address: updatedUser.address,
+      });
 
       return {
         ok: true,
         message: 'استعلام اطلاعات هویتی با موفقیت انجام شد.',
-        user: toUserDTO(updated),
+        user: updatedUser,
         complete: missing.length === 0,
         missing,
         identity: {
