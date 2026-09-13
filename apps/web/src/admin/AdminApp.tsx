@@ -168,18 +168,50 @@ export default function AdminApp() {
 
   if (!user || !isAdmin) {
     return (
-      <div className="admin-body-shell flex items-center justify-center p-6 min-h-screen">
-        <div className="glass-card p-8 max-w-md w-full text-center">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-rose-500/15 text-rose-400 mb-4">
-            <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0 -10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.002z" />
+      <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+        {/* Background Ambient Glows */}
+        <div className="ambient-glow-container" aria-hidden="true">
+          <div className="glow-orb-1" />
+          <div className="glow-orb-2" />
+          <div className="glow-orb-3" />
+          <div className="grid-dot-pattern" />
+        </div>
+
+        <div className="glass-card-static" style={{ maxWidth: '26rem', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+          {/* Shimmer top line */}
+          <div className="shimmer-line animate-shimmer" style={{ position: 'absolute', insetInline: 0, top: 0, height: '1px' }} />
+
+          {/* Shield Icon — properly sized */}
+          <div style={{
+            margin: '0 auto 1.5rem',
+            width: '4rem',
+            height: '4rem',
+            display: 'grid',
+            placeItems: 'center',
+            borderRadius: '1rem',
+            background: 'linear-gradient(135deg, rgba(251,113,133,0.15), rgba(251,113,133,0.05))',
+          }}>
+            <svg style={{ width: '2rem', height: '2rem', color: '#fb7185' }} fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
             </svg>
           </div>
-          <h2 className="text-lg font-bold text-white mb-2">دسترسی مدیریت لازم است</h2>
-          <p className="text-xs text-slate-400 leading-6 mb-6">
-            {user ? 'حساب کاربری شما دسترسی به پنل مدیریت ندارد.' : 'برای ورود به پنل، ابتدا از فروشگاه وارد حساب خود شوید.'}
+
+          <h2 style={{ fontSize: '1.125rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
+            دسترسی مدیریت لازم است
+          </h2>
+          <p style={{ fontSize: '0.75rem', color: '#94a3b8', lineHeight: '1.75', marginBottom: '1.5rem' }}>
+            {user
+              ? 'حساب کاربری شما دسترسی به پنل مدیریت ندارد.'
+              : 'برای ورود به پنل مدیریت، ابتدا از فروشگاه وارد حساب کاربری خود شوید.'}
           </p>
-          <Link to="/" className="huma-btn-primary w-full">
+          <Link
+            to="/"
+            className="huma-btn-primary"
+            style={{ width: '100%', justifyContent: 'center' }}
+          >
+            <svg style={{ width: '1rem', height: '1rem' }} fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
             بازگشت به فروشگاه
           </Link>
         </div>
