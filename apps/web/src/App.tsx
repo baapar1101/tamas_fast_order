@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { SvgSprite } from './components/Icon';
 import { useAuth } from './store/auth';
 import { StorefrontPage } from './storefront/StorefrontPage';
 import { TermsPage } from './storefront/TermsPage';
@@ -27,19 +28,22 @@ export function App() {
   }, [restore]);
 
   return (
-    <Routes>
-      <Route path="/" element={<StorefrontPage />} />
-      <Route path="/orders" element={<OrdersPage />} />
-      <Route path="/terms" element={<TermsPage />} />
-      <Route
-        path="/admin/*"
-        element={
-          <Suspense fallback={<FullPageSpinner />}>
-            <AdminApp />
-          </Suspense>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <SvgSprite />
+      <Routes>
+        <Route path="/" element={<StorefrontPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route
+          path="/admin/*"
+          element={
+            <Suspense fallback={<FullPageSpinner />}>
+              <AdminApp />
+            </Suspense>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }

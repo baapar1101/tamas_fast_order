@@ -1,5 +1,6 @@
 import { WAREHOUSE_LABELS, formatMoney, formatNumber } from '@tamas/shared';
 import { cartCount, cartTotal, useCart } from '../store/cart';
+import { Icon } from '../components/Icon';
 
 interface Props {
   onCheckout: () => void;
@@ -17,7 +18,9 @@ export function CartPanel({ onCheckout }: Props) {
   return (
     <aside className="cart" id="cart">
       <div className="cart-title">
-        <span>🛒 سبد خرید</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <Icon name="bag" /> سبد خرید
+        </span>
         {count > 0 && <span className="badge brand">{formatNumber(count)} عدد</span>}
         {lines.length > 0 && (
           <button type="button" className="btn ghost sm" onClick={clear}>
