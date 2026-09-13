@@ -102,6 +102,8 @@ export interface UserDTO {
   address: string;
   postalCode: string;
   certificateFileUrl: string;
+  activity: string;
+  pageWebsite: string;
   isActive: boolean;
   role: 'customer' | 'admin';
   createdAt: string;
@@ -137,6 +139,7 @@ export interface OrderDTO {
   address: string;
   total: number;
   status: OrderStatus;
+  paymentMethod: string | null;
   note: string | null;
   items: OrderItemDTO[];
   createdAt: string;

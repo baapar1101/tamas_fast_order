@@ -21,6 +21,7 @@ export function toOrderDTO(row: OrderRow, items: OrderItemRow[]): OrderDTO {
     address: row.address,
     total: row.total,
     status: row.status,
+    paymentMethod: row.paymentMethod,
     note: row.note,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -137,6 +138,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
         address: (input.address || user.address).trim(),
         total,
         status: 'new',
+        paymentMethod: input.paymentMethod?.trim() || null,
         note: input.note?.trim() || null,
       })
       .returning();

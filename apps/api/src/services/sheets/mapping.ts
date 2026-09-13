@@ -311,9 +311,9 @@ export const productMapping: EntityMapping = {
       color: str(cells.color) || null,
       colorEn: str(cells.color_en) || null,
       colorCode: str(cells.color_code) || null,
-      price: num(cells.price),
+      price: num(cells.price ?? cells['RIAL PRICE']),
       oldPrice: str(cells.old_price) ? num(cells.old_price) : null,
-      discount: num(cells.discount),
+      discount: num(cells.discount ?? cells['discount%']),
       stock: num(cells.stock),
       kermanStock: num(cells.kerman_stock),
       tehranStock: num(cells.tehran_stock),
@@ -535,6 +535,8 @@ const USER_COLUMNS = [
   'address',
   'postal_code',
   'certificate_file_url',
+  'activity',
+  'page_website',
   'actived',
   'role',
   UPDATED_AT_COLUMN,
@@ -557,6 +559,8 @@ export const userMapping: EntityMapping = {
     'address',
     'postal_code',
     'certificate_file_url',
+    'activity',
+    'page_website',
     'actived',
     UPDATED_AT_COLUMN,
   ],
@@ -576,6 +580,8 @@ export const userMapping: EntityMapping = {
         address: r.address,
         postal_code: r.postalCode,
         certificate_file_url: r.certificateFileUrl,
+        activity: r.activity ?? '',
+        page_website: r.pageWebsite ?? '',
         actived: boolCell(r.isActive),
         role: r.role,
         [UPDATED_AT_COLUMN]: iso(r.updatedAt),
@@ -598,6 +604,8 @@ export const userMapping: EntityMapping = {
       address: str(cells.address),
       postalCode: str(cells.postal_code),
       certificateFileUrl: str(cells.certificate_file_url),
+      activity: str(cells.activity),
+      pageWebsite: str(cells.page_website),
       isActive: bool(cells.actived),
       updatedAt,
       deletedAt: null,
@@ -626,6 +634,7 @@ const ORDER_COLUMNS = [
   'address',
   'items_json',
   'total_price',
+  'payment',
   'status',
   'note',
   UPDATED_AT_COLUMN,
@@ -643,7 +652,7 @@ export const orderMapping: EntityMapping = {
   private: true,
   /* Orders are created by the shop, never by the sheet. Only the two columns
    * someone actually works with there come back. */
-  editableColumns: ['status', 'note', UPDATED_AT_COLUMN],
+  editableColumns: ['status', 'payment', 'note', UPDATED_AT_COLUMN],
 
   async loadDbRows() {
     const rows = await db.select().from(orders).where(isNull(orders.deletedAt));
@@ -689,6 +698,7 @@ export const orderMapping: EntityMapping = {
           })),
         ),
         total_price: String(r.total),
+        payment: r.paymentMethod ?? '',
         status: r.status,
         note: r.note ?? '',
         [UPDATED_AT_COLUMN]: iso(r.updatedAt),
@@ -703,7 +713,11 @@ export const orderMapping: EntityMapping = {
     if (!existing) return 'skipped';
 
     const rawStatus = str(cells.status).toLowerCase();
-    const patch: Record<string, unknown> = { updatedAt, note: str(cells.note) || null };
+    const patch: Record<string, unknown> = {
+      updatedAt,
+      note: str(cells.note) || null,
+      paymentMethod: str(cells.payment) || null,
+    };
     if (ORDER_STATUS_SET.has(rawStatus)) patch.status = rawStatus;
 
     await db.update(orders).set(patch).where(eq(orders.id, existing.id));
