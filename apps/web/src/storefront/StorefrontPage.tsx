@@ -10,6 +10,7 @@ import { CartPanel } from './CartPanel';
 import { CheckoutDialog } from './CheckoutDialog';
 import { ProductCard } from './ProductCard';
 import { useBootstrap, useDebounced, useProducts, type CatalogFilters } from './hooks';
+import { Icon } from '../components/Icon';
 import './storefront.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
@@ -202,7 +203,7 @@ export function StorefrontPage() {
               aria-label="جستجو"
             />
             <span className="search-icon" aria-hidden>
-              🔍
+              <Icon name="search" />
             </span>
             <span className="search-shortcut">/ + Ctrl</span>
           </div>
@@ -226,7 +227,7 @@ export function StorefrontPage() {
                 setAuthOpen(true);
               }}
             >
-              <span>👤</span>
+              <Icon name="user" />
               <span>{user ? `${user.name || 'حساب'} ${user.lastName}`.trim() : 'ورود / ثبت‌نام همکار'}</span>
             </button>
             <button
@@ -235,7 +236,7 @@ export function StorefrontPage() {
               onClick={() => document.getElementById('cart')?.scrollIntoView({ behavior: 'smooth' })}
               title="سبد خرید"
             >
-              🛒
+              <Icon name="bag" />
               {lines.length > 0 && <span className="badge-count">{formatNumber(cartCount(lines))}</span>}
             </button>
           </div>
@@ -299,8 +300,8 @@ export function StorefrontPage() {
                 resetPage();
               }}
             >
-              <span className="chip-icon" style={{ fontSize: 24, lineHeight: '44px' }}>
-                🎛️
+              <span className="chip-icon">
+                <Icon name="grid" />
               </span>
               <span className="chip-title">همه کالاها</span>
             </button>
@@ -324,8 +325,8 @@ export function StorefrontPage() {
                   {iconSrc ? (
                     <img className="chip-icon" src={iconSrc} alt="" loading="lazy" />
                   ) : (
-                    <span className="chip-icon" style={{ fontSize: 24, lineHeight: '44px' }}>
-                      📦
+                    <span className="chip-icon">
+                      <Icon name="box" />
                     </span>
                   )}
                   <span className="chip-title">{c.faName}</span>
@@ -360,7 +361,7 @@ export function StorefrontPage() {
                       resetPage();
                     }}
                   >
-                    {iconSrc ? <img src={iconSrc} alt={b.faName} loading="lazy" /> : <span style={{ fontSize: 16 }}>📱</span>}
+                    {iconSrc ? <img src={iconSrc} alt={b.faName} loading="lazy" /> : <Icon name="mobile" style={{ fontSize: 16 }} />}
                     <span className="brand-name">{b.name}</span>
                   </button>
                 );
@@ -410,14 +411,14 @@ export function StorefrontPage() {
                   className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
                   onClick={() => setViewMode('list')}
                 >
-                  ≡ لیستی (عمده)
+                  <Icon name="filter" style={{ marginInlineEnd: 4 }} /> لیستی (عمده)
                 </button>
                 <button
                   type="button"
                   className={`view-btn${viewMode === 'grid' ? ' active' : ''}`}
                   onClick={() => setViewMode('grid')}
                 >
-                  ▦ شبکه‌ای
+                  <Icon name="grid" style={{ marginInlineEnd: 4 }} /> شبکه‌ای
                 </button>
 
                 <label htmlFor="sort" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginInlineStart: 8 }}>
@@ -534,7 +535,7 @@ export function StorefrontPage() {
               </div>
               <button type="button" className="footer-more" onClick={() => setAboutOpen(!aboutOpen)}>
                 <span>{aboutOpen ? 'بستن' : 'مشاهده بیشتر'}</span>
-                <span style={{ transform: aboutOpen ? 'rotate(180deg)' : 'none', transition: 'transform .3s ease' }}>▼</span>
+                <Icon name="chevron" style={{ transform: aboutOpen ? 'rotate(180deg)' : 'none', transition: 'transform .3s ease' }} />
               </button>
             </div>
           </div>
@@ -542,40 +543,40 @@ export function StorefrontPage() {
           <div className="footer-benefits">
             <h3 className="footer-title">چرا همکاری با ما؟</h3>
             <p className="footer-text">
-              <span>💰</span> <span><strong>قیمت‌های استثنایی:</strong> دسترسی مستقیم به قیمت‌های عمده و لحظه‌ای.</span>
+              <Icon name="money" /> <span><strong>قیمت‌های استثنایی:</strong> دسترسی مستقیم به قیمت‌های عمده و لحظه‌ای.</span>
             </p>
             <p className="footer-text">
-              <span>⚡</span> <span><strong>سرعت در سفارش:</strong> فرآیند ثبت و تأیید سریع برای اینکه وقت شما تلف نشود.</span>
+              <Icon name="bolt" /> <span><strong>سرعت در سفارش:</strong> فرآیند ثبت و تأیید سریع برای اینکه وقت شما تلف نشود.</span>
             </p>
             <p className="footer-text">
-              <span>📊</span> <span><strong>پنل کاربری هوشمند:</strong> مدیریت آسان فاکتورها، موجودی و سفارشات در یک‌جا.</span>
+              <Icon name="chart" /> <span><strong>پنل کاربری هوشمند:</strong> مدیریت آسان فاکتورها، موجودی و سفارشات در یک‌جا.</span>
             </p>
             <p className="footer-text">
-              <span>🤝</span> <span><strong>پشتیبانی همیشگی:</strong> تیم ما همیشه کنار شماست تا در مسیر کسب‌وکارتان کمکی کند.</span>
+              <Icon name="handshake" /> <span><strong>پشتیبانی همیشگی:</strong> تیم ما همیشه کنار شماست تا در مسیر کسب‌وکارتان کمکی کند.</span>
             </p>
           </div>
 
           <div className="footer-contact">
             <h3 className="footer-title">ارتباط با ما</h3>
             <p className="footer-text">
-              <span>📞</span> <span><strong>شماره تماس:</strong> <a href={`tel:${settings.support_phone || '09135006644'}`} className="footer-phone">{settings.support_phone || '۰۹۱۳۵۰۰۶۶۴۴'}</a></span>
+              <Icon name="phone" /> <span><strong>شماره تماس:</strong> <a href={`tel:${settings.support_phone || '09135006644'}`} className="footer-phone">{settings.support_phone || '۰۹۱۳۵۰۰۶۶۴۴'}</a></span>
             </p>
             <p className="footer-text">
-              <span>📍</span> <span><strong>آدرس:</strong> {settings.store_address || 'کرمان، خیابان شهید نامجو، بعد از کوچه ۹، پلاک ۱۰۹'}</span>
+              <Icon name="pin" /> <span><strong>آدرس:</strong> {settings.store_address || 'کرمان، خیابان شهید نامجو، بعد از کوچه ۹، پلاک ۱۰۹'}</span>
             </p>
             <p className="footer-text">
-              <span>📮</span> <span><strong>کد پستی:</strong> ۷۶۱۹۷۴۴۵۶۸</span>
+              <Icon name="mail" /> <span><strong>کد پستی:</strong> ۷۶۱۹۷۴۴۵۶۸</span>
             </p>
             <p className="footer-text">
-              <span>🕒</span> <span><strong>ساعات کاری:</strong> شنبه تا پنجشنبه از ساعت ۹:۰۰ الی ۲۱:۰۰</span>
+              <Icon name="clock" /> <span><strong>ساعات کاری:</strong> شنبه تا پنجشنبه از ساعت ۹:۰۰ الی ۲۱:۰۰</span>
             </p>
             <div className="footer-socials" aria-label="شبکه‌های اجتماعی">
               <a className="footer-social-link whatsapp" href="https://whatsapp.com/channel/0029Vb4s4DUJf05jmXNTbq1q" target="_blank" rel="noopener noreferrer">
-                <span>💬</span>
+                <Icon name="support" />
                 <span>واتس‌اپ</span>
               </a>
               <a className="footer-social-link instagram" href="https://www.instagram.com/tamasmarket.ir?stkn=MXV3enBoZHhpcHRrdQ==" target="_blank" rel="noopener noreferrer">
-                <span>📷</span>
+                <Icon name="eye" />
                 <span>اینستاگرام</span>
               </a>
             </div>
@@ -597,9 +598,9 @@ export function StorefrontPage() {
 
         <div className="footer-bottom">
           <nav className="footer-legal" aria-label="پیوندهای مهم">
-            <Link to="/terms">📖 شرایط و قوانین همکاری</Link>
-            <Link to="/terms#faq">❓ سؤالات متداول</Link>
-            <Link to="/terms#sales-terms">🧾 روش‌های پرداخت و تسویه‌حساب</Link>
+            <Link to="/terms"><Icon name="book" style={{ marginInlineEnd: 4 }} /> شرایط و قوانین همکاری</Link>
+            <Link to="/terms#faq"><Icon name="help" style={{ marginInlineEnd: 4 }} /> سؤالات متداول</Link>
+            <Link to="/terms#sales-terms"><Icon name="receipt" style={{ marginInlineEnd: 4 }} /> روش‌های پرداخت و تسویه‌حساب</Link>
           </nav>
           <p className="footer-copy">© تمامی حقوق برای تماس مارکت محفوظ است.</p>
         </div>

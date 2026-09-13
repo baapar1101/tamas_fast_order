@@ -1,6 +1,7 @@
 import { memo, useMemo, useState } from 'react';
 import type { ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber, hasRealDiscount } from '@tamas/shared';
+import { Icon } from '../components/Icon';
 import { stockFor } from '../store/cart';
 
 interface Props {
@@ -26,13 +27,19 @@ function swatchColor(product: ProductDTO, colorMap: Map<string, string>): string
 }
 
 /** The sheet keeps sell types as a free-text list: "نقدی, اعتباری". */
-function sellTypes(raw: string | null): string[] {
+function sellTypes(raw: string | null): Array<{ label: string; icon: 'cash' | 'card' | 'doc' | 'tag' }> {
   if (!raw) return [];
   return raw
     .split(/[,،;|]+/)
     .map((s) => s.trim())
     .filter(Boolean)
-    .slice(0, 4);
+    .slice(0, 4)
+    .map((label) => {
+      if (label.includes('نقد')) return { label, icon: 'cash' as const };
+      if (label.includes('اعتبار')) return { label, icon: 'card' as const };
+      if (label.includes('چک')) return { label, icon: 'doc' as const };
+      return { label, icon: 'tag' as const };
+    });
 }
 
 const WAREHOUSE_ORDER: Warehouse[] = ['kerman', 'tehran'];
@@ -67,14 +74,14 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
       <article className={`product-accordion${isPromo ? ' is-promotion' : ''}`}>
         {isPromo && (
           <div className="promo-tag">
-            <span>⭐</span> پیشنهاد ویژه
+            <span className="star-icon"><Icon name="star-fill" /></span> پیشنهاد ویژه
           </div>
         )}
 
         <div className="list-product-content">
           <div className="product-head">
             <div className="product-title">
-              {isPromo && <span className="title-star">⭐ </span>}
+              {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
               {group.title}
             </div>
           </div>
@@ -92,12 +99,12 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
                     </div>
                     <div className="sell-types">
                       {types.map((t) => (
-                        <span key={t} className="sell-badge">
-                          {t}
+                        <span key={t.label} className="sell-badge">
+                          <Icon name={t.icon} /> {t.label}
                         </span>
                       ))}
                     </div>
-                    {v.warranty && <div className="warranty-text">🛡️ {v.warranty}</div>}
+                    {v.warranty && <div className="warranty-text"><Icon name="shield" /> {v.warranty}</div>}
                   </div>
 
                   <div className="variant-price">
@@ -154,7 +161,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
     <article className={`product-card${isPromo ? ' is-promotion' : ''}`}>
       {isPromo && (
         <div className="promo-tag">
-          <span>⭐</span> پیشنهاد ویژه
+          <span className="star-icon"><Icon name="star-fill" /></span> پیشنهاد ویژه
         </div>
       )}
 
@@ -164,7 +171,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
         onClick={() => setIsFav(!isFav)}
         aria-label="افزودن به علاقه‌مندی‌ها"
       >
-        {isFav ? '♥' : '♡'}
+        <Icon name={isFav ? 'heart-fill' : 'heart'} />
       </button>
 
       <img
@@ -181,7 +188,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
 
       <div style={{ minWidth: 0 }}>
         <div className={`card-title ${titleClass}`}>
-          {isPromo && <span className="title-star">⭐ </span>}
+          {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
           {group.title}
         </div>
 
@@ -223,8 +230,8 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
 
           <div className="sell-types">
             {sellTypes(selectedVariant.sellType).map((t) => (
-              <span key={t} className="sell-badge">
-                {t}
+              <span key={t.label} className="sell-badge">
+                <Icon name={t.icon} /> {t.label}
               </span>
             ))}
           </div>
@@ -268,7 +275,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
           style={{ width: '100%', fontSize: '11.5px', padding: '5px' }}
           onClick={() => onPreview(image)}
         >
-          👁️ مشاهده جزئیات
+          <Icon name="eye" /> مشاهده جزئیات
         </button>
       </div>
     </article>

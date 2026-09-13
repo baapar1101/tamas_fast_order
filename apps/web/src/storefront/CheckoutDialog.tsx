@@ -6,6 +6,7 @@ import { useToast } from '../components/Toast';
 import { ApiRequestError, api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { cartTotal, useCart } from '../store/cart';
+import { Icon } from '../components/Icon';
 
 interface Props {
   open: boolean;
@@ -120,7 +121,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
             onChange={(e) => setAddress(e.target.value)}
           />
           {!address.trim() && user?.address && <span className="faint" style={{ fontSize: 12 }}>خالی بماند، آدرس حساب استفاده می‌شود.</span>}
-          {!deliveryAddress && <span className="alert warn" style={{ fontSize: 12 }}>آدرسی ثبت نشده است.</span>}
+          {!deliveryAddress && <span className="alert warn" style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="warn" /> آدرسی ثبت نشده است.</span>}
         </div>
 
         <div className="field">
