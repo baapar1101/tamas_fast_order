@@ -27,6 +27,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
 
   const [address, setAddress] = useState('');
   const [note, setNote] = useState('');
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -36,6 +37,10 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
   async function submit() {
     if (lines.length === 0) {
       setError('سبد خرید شما خالی است.');
+      return;
+    }
+    if (!agreeTerms) {
+      setError('لطفاً جهت ثبت سفارش، شرایط و مفاد فاکتور را مطالعه کرده و تیک تأیید را بزنید.');
       return;
     }
     setError('');
@@ -49,6 +54,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
       clear();
       setAddress('');
       setNote('');
+      setAgreeTerms(false);
       toast.ok(res.message);
       onClose();
     } catch (err) {
@@ -71,7 +77,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
       busy={busy}
       footer={
         <>
-          <button type="button" className="btn primary" style={{ flex: 1 }} disabled={busy} onClick={() => void submit()}>
+          <button type="button" className="btn primary" style={{ flex: 1 }} disabled={busy || !agreeTerms} onClick={() => void submit()}>
             {busy ? 'در حال ثبت…' : `ثبت سفارش — ${formatMoney(total)}`}
           </button>
           <button type="button" className="btn" onClick={onClose} disabled={busy}>
@@ -147,6 +153,21 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
             </tbody>
           </table>
         </div>
+
+        <label className="card" style={{ padding: 12, display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', background: '#fffcf5', borderColor: '#f7dda5' }}>
+          <input
+            type="checkbox"
+            checked={agreeTerms}
+            onChange={(e) => setAgreeTerms(e.target.checked)}
+            style={{ marginTop: 3, width: 18, height: 18, cursor: 'pointer' }}
+          />
+          <span style={{ fontSize: 12.5, lineHeight: 1.8, color: '#4a2d00' }}>
+            با تیک زدن این گزینه، اینجانب تمامی شرایط و مفاد مندرج در این فاکتور (از جمله شرایط حفظ مالکیت کالا و تعهدات بازپرداخت) را مطالعه کرده و به عنوان «امضای دیجیتال» خود تأیید می‌نمایم. من آگاه هستم که این تأییدیه در حکم قرارداد رسمی بوده و برای من لازم‌الاجراست.{' '}
+            <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}>
+              (مشاهده کامل شرایط و قوانین)
+            </a>
+          </span>
+        </label>
 
         <p className="faint" style={{ margin: 0, fontSize: 12 }}>
           قیمت‌ها در لحظه ثبت سفارش از سرور خوانده می‌شوند و ممکن است با نمایش فعلی تفاوت جزئی داشته باشند.
