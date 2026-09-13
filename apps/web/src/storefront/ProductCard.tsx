@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import type { ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber, hasRealDiscount } from '@tamas/shared';
 import { stockFor } from '../store/cart';
@@ -6,6 +6,7 @@ import { stockFor } from '../store/cart';
 interface Props {
   group: ProductGroupDTO;
   colorMap: Map<string, string>;
+  viewMode?: 'grid' | 'list';
   onAdd: (product: ProductDTO, warehouse: Warehouse) => void;
   onPreview: (url: string) => void;
 }
@@ -36,105 +37,241 @@ function sellTypes(raw: string | null): string[] {
 
 const WAREHOUSE_ORDER: Warehouse[] = ['kerman', 'tehran'];
 
-function VariantRow({
-  product,
-  colorMap,
-  onAdd,
-}: {
-  product: ProductDTO;
-  colorMap: Map<string, string>;
-  onAdd: (product: ProductDTO, warehouse: Warehouse) => void;
-}) {
-  const split = product.kermanStock + product.tehranStock > 0;
-  const buttons: Warehouse[] = split ? WAREHOUSE_ORDER : ['site'];
-  const types = sellTypes(product.sellType);
-
-  return (
-    <div className="variant">
-      <div className="variant-info">
-        <span className="color-dot" style={{ background: swatchColor(product, colorMap) }} aria-hidden />
-        <span>{product.color || product.colorEn || 'بدون رنگ'}</span>
-      </div>
-
-      <div className="variant-price">
-        <span className="current-price">{formatMoney(product.price)}</span>
-        {hasRealDiscount(product.price, product.oldPrice) && (
-          <span className="old">{formatNumber(product.oldPrice!)} تومان</span>
-        )}
-      </div>
-
-      <div className="warehouses">
-        {buttons.map((wh) => {
-          const n = stockFor(product, wh);
-          return (
-            <button
-              key={wh}
-              type="button"
-              className="wh-btn"
-              disabled={n < 1}
-              onClick={() => onAdd(product, wh)}
-              title={n < 1 ? 'ناموجود' : `افزودن از ${WAREHOUSE_LABELS[wh]}`}
-            >
-              <span>+ {WAREHOUSE_LABELS[wh]}</span>
-              <span className="n">({formatNumber(n)})</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="sell-types">
-        {types.map((t) => (
-          <span key={t} className="badge brand">
-            {t}
-          </span>
-        ))}
-        {product.warranty && <span className="badge">{product.warranty}</span>}
-      </div>
-    </div>
-  );
+function getWarehouseButtons(product: ProductDTO): Warehouse[] {
+  const hasSplit = product.kermanStock + product.tehranStock > 0;
+  return hasSplit ? WAREHOUSE_ORDER : ['site'];
 }
 
-export const ProductCard = memo(function ProductCard({ group, colorMap, onAdd, onPreview }: Props) {
-  const first = group.variants[0];
-  const brand = first?.brandFaName || first?.brandName;
-  const image = group.imageUrl || first?.imageUrl || '/logo.png';
-  const colorCount = useMemo(() => new Set(group.variants.map((v) => v.color)).size, [group.variants]);
+function productTitleClass(title: string): string {
+  const len = Array.from(String(title || '').trim()).length;
+  if (len > 105) return 'title-very-long';
+  if (len > 65) return 'title-long';
+  return '';
+}
 
-  return (
-    <article className={`product${group.promotion ? ' is-promotion' : ''}`}>
-      {group.promotion && <div className="promo-tag">⭐ پیشنهاد ویژه</div>}
+export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode = 'grid', onAdd, onPreview }: Props) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isFav, setIsFav] = useState(false);
 
-      <div className="product-head">
-        <div className="thumb-box">
-          <img
-            className="product-thumb"
-            src={image}
-            alt={group.title}
-            loading="lazy"
-            decoding="async"
-            onClick={() => onPreview(image)}
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).src = '/logo.png';
-            }}
-          />
+  const selectedVariant = group.variants[selectedIndex] || group.variants[0];
+  if (!selectedVariant) return null;
+
+  const brand = selectedVariant.brandFaName || selectedVariant.brandName || 'متفرقه';
+  const image = group.imageUrl || selectedVariant.imageUrl || '/logo.png';
+  const isPromo = Boolean(group.promotion || selectedVariant.promotion);
+  const titleClass = productTitleClass(group.title);
+  const whButtons = getWarehouseButtons(selectedVariant);
+
+  if (viewMode === 'list') {
+    return (
+      <article className={`product-accordion${isPromo ? ' is-promotion' : ''}`}>
+        {isPromo && (
+          <div className="promo-tag">
+            <span>⭐</span> پیشنهاد ویژه
+          </div>
+        )}
+
+        <div className="list-product-content">
+          <div className="product-head">
+            <div className="product-title">
+              {isPromo && <span className="title-star">⭐ </span>}
+              {group.title}
+            </div>
+          </div>
+
+          <div className="list-variants">
+            {group.variants.map((v) => {
+              const whButtonsV = getWarehouseButtons(v);
+              const types = sellTypes(v.sellType);
+              return (
+                <div key={v.productId} className="variant">
+                  <div className="variant-info">
+                    <div className="color-title">
+                      <span className="color-dot" style={{ background: swatchColor(v, colorMap) }} aria-hidden />
+                      <span>{v.color || v.colorEn || 'مشکی'}</span>
+                    </div>
+                    <div className="sell-types">
+                      {types.map((t) => (
+                        <span key={t} className="sell-badge">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                    {v.warranty && <div className="warranty-text">🛡️ {v.warranty}</div>}
+                  </div>
+
+                  <div className="variant-price">
+                    {hasRealDiscount(v.price, v.oldPrice) && (
+                      <span className="card-old-price">{formatNumber(v.oldPrice!)} تومان</span>
+                    )}
+                    <div className="card-price">{formatMoney(v.price)}</div>
+                  </div>
+
+                  <div className="warehouse-section">
+                    {whButtonsV.map((wh) => {
+                      const n = stockFor(v, wh);
+                      return (
+                        <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
+                          <div className="wh-details">
+                            <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
+                          </div>
+                          <button
+                            type="button"
+                            className="add-wh-btn"
+                            disabled={n < 1}
+                            onClick={() => onAdd(v, wh)}
+                            title={n < 1 ? 'ناموجود' : `افزودن از ${WAREHOUSE_LABELS[wh]}`}
+                          >
+                            +
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <h3 className="product-title">{group.title}</h3>
-          <div className="product-meta">
-            {brand && <span className="badge">{brand}</span>}
-            {first?.categoryFaName && <span className="badge">{first.categoryFaName}</span>}
-            {colorCount > 1 && <span className="badge">{formatNumber(colorCount)} رنگ</span>}
-            {first?.sku && <span className="badge ltr-inline">{first.sku}</span>}
+        <img
+          className="product-thumb"
+          src={image}
+          alt={group.title}
+          loading="lazy"
+          decoding="async"
+          onClick={() => onPreview(image)}
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = '/logo.png';
+          }}
+          style={{ cursor: 'zoom-in' }}
+        />
+      </article>
+    );
+  }
+
+  return (
+    <article className={`product-card${isPromo ? ' is-promotion' : ''}`}>
+      {isPromo && (
+        <div className="promo-tag">
+          <span>⭐</span> پیشنهاد ویژه
+        </div>
+      )}
+
+      <button
+        type="button"
+        className={`card-fav-btn${isFav ? ' active' : ''}`}
+        onClick={() => setIsFav(!isFav)}
+        aria-label="افزودن به علاقه‌مندی‌ها"
+      >
+        {isFav ? '♥' : '♡'}
+      </button>
+
+      <img
+        className="card-thumb"
+        src={image}
+        alt={group.title}
+        loading="lazy"
+        decoding="async"
+        onClick={() => onPreview(image)}
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).src = '/logo.png';
+        }}
+      />
+
+      <div style={{ minWidth: 0 }}>
+        <div className={`card-title ${titleClass}`}>
+          {isPromo && <span className="title-star">⭐ </span>}
+          {group.title}
+        </div>
+
+        <div className="card-meta-row">
+          <div className="card-meta">
+            <span>
+              برند: <b className="ltr-inline">{brand}</b>
+            </span>
+
+            {group.variants.length > 1 ? (
+              <span className="color-picker">
+                <span className="color-dot" style={{ background: swatchColor(selectedVariant, colorMap) }} aria-hidden />
+                <select
+                  className="color-select"
+                  value={selectedIndex}
+                  onChange={(e) => setSelectedIndex(Number(e.target.value))}
+                  aria-label="انتخاب رنگ"
+                >
+                  {group.variants.map((v, i) => (
+                    <option key={v.productId} value={i}>
+                      {v.color || 'اصلی'}{v.price ? ` — ${formatMoney(v.price)}` : ''}{v.sku ? ` (${v.sku})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <span className="color-count">{formatNumber(group.variants.length)} گزینه</span>
+              </span>
+            ) : (
+              <span>
+                رنگ: {selectedVariant.color || '-'}
+              </span>
+            )}
+
+            {selectedVariant.sku && (
+              <span className="card-sku">
+                کد: <b className="ltr-inline">{selectedVariant.sku}</b>
+              </span>
+            )}
+          </div>
+
+          <div className="sell-types">
+            {sellTypes(selectedVariant.sellType).map((t) => (
+              <span key={t} className="sell-badge">
+                {t}
+              </span>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="variants">
-        {group.variants.map((v) => (
-          <VariantRow key={v.productId} product={v} colorMap={colorMap} onAdd={onAdd} />
-        ))}
+      <div className="card-price-box">
+        <div style={{ marginBottom: 8 }}>
+          {hasRealDiscount(selectedVariant.price, selectedVariant.oldPrice) && (
+            <span className="card-old-price">{formatNumber(selectedVariant.oldPrice!)} تومان</span>
+          )}
+          <div className="card-price">{formatMoney(selectedVariant.price)}</div>
+        </div>
+
+        <div className="warehouse-section" style={{ marginBottom: 8 }}>
+          {whButtons.map((wh) => {
+            const n = stockFor(selectedVariant, wh);
+            return (
+              <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
+                <div className="wh-details">
+                  <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
+                  {n === 1 && <span className="wh-count"><b className="stock-warn">تنها ۱ عدد باقیست!</b></span>}
+                </div>
+                <button
+                  type="button"
+                  className="add-wh-btn"
+                  disabled={n < 1}
+                  onClick={() => onAdd(selectedVariant, wh)}
+                  title={n < 1 ? 'ناموجود' : `افزودن از ${WAREHOUSE_LABELS[wh]}`}
+                >
+                  +
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          className="btn"
+          style={{ width: '100%', fontSize: '11.5px', padding: '5px' }}
+          onClick={() => onPreview(image)}
+        >
+          👁️ مشاهده جزئیات
+        </button>
       </div>
     </article>
   );
 });
+
