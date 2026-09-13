@@ -92,6 +92,86 @@ const routes: FastifyPluginAsync = async (app) => {
     };
   });
 
+  app.post('/auth/inquiry-identity', { preHandler: [app.requireUser] }, async (req) => {
+    const { national_code, birth_date } = req.body as { national_code?: string; birth_date?: string };
+    const cleanNationalCode = String(national_code || '').trim();
+    const cleanBirthDate = String(birth_date || '').trim();
+
+    if (!cleanNationalCode || !cleanBirthDate) {
+      throw badRequest('کد ملی و تاریخ تولد (شمسی) برای استعلام الزامی است.');
+    }
+
+    try {
+      const response = await fetch(
+        'https://tamastore.ir/api/v1/businesses/4952/zohal/inquiry/national_identity_inquiry',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': 'ApiKey ak_live_W6ldKkI0-IS9WiQtgX6jizFFUwBofrAtOUrI-Bky4Ts',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            national_code: cleanNationalCode,
+            birth_date: cleanBirthDate,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw badRequest(`ارتباط با سامانه استعلام هویتی ناموفق بود (${response.status})`);
+      }
+
+      const resData = await response.json();
+      const firstItem = Array.isArray(resData) ? resData[0] : resData;
+      const inquiryBody = firstItem?.data?.result?.response_body?.data;
+
+      if (!inquiryBody || !inquiryBody.matched) {
+        throw badRequest('اطلاعات هویتی با کد ملی و تاریخ تولد واردشده مطابقت ندارد.');
+      }
+
+      if (inquiryBody.is_dead || inquiryBody.alive === false) {
+        throw badRequest('امکان استعلام و تایید برای این کد ملی وجود ندارد.');
+      }
+
+      const current = req.currentUser!;
+      const [updated] = await db
+        .update(users)
+        .set({
+          name: inquiryBody.first_name || current.name,
+          lastName: inquiryBody.last_name || current.lastName,
+          fatherName: inquiryBody.father_name || '',
+          nationalCode: cleanNationalCode,
+          birthDate: cleanBirthDate,
+          isVerifiedIdentity: true,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, current.id))
+        .returning();
+
+      if (!updated) throw badRequest('ذخیره اطلاعات استعلام‌گرفته‌شده ناموفق بود.');
+      const missing = missingProfileFields(updated);
+
+      return {
+        ok: true,
+        message: 'استعلام اطلاعات هویتی با موفقیت انجام شد.',
+        user: toUserDTO(updated),
+        complete: missing.length === 0,
+        missing,
+        identity: {
+          matched: true,
+          firstName: inquiryBody.first_name,
+          lastName: inquiryBody.last_name,
+          fatherName: inquiryBody.father_name,
+          nationalCode: inquiryBody.national_code,
+          alive: inquiryBody.alive,
+        },
+      };
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('استعلام')) throw err;
+      throw badRequest(err instanceof Error ? err.message : 'خطایی در فرآیند استعلام رخ داد.');
+    }
+  });
+
   app.post('/auth/logout', async (req) => {
     await destroySession(req.sessionToken ?? undefined);
     return { ok: true, message: 'از حساب خود خارج شدید.' };

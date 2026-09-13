@@ -5,6 +5,7 @@ import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { ApiRequestError, api } from '../lib/api';
 import { useAuth } from '../store/auth';
+import { Icon } from '../components/Icon';
 
 type Step = 'phone' | 'code' | 'profile' | 'account';
 
@@ -69,8 +70,13 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [form, setForm] = useState<ProfileForm>(emptyProfile(null));
-  const [invalid, setInvalid] = useState<string[]>([]);
-  const timerRef = useRef<number | null>(null);
+  const [nationalCode, setNationalCode] = useState(user?.nationalCode ?? '');
+  const [birthDate, setBirthDate] = useState(user?.birthDate ?? '');
+  const [inquiryBusy, setInquiryBusy] = useState(false);
+  const [inquirySuccess, setInquirySuccess] = useState(Boolean(user?.isVerifiedIdentity));
+  const [verifiedInfo, setVerifiedInfo] = useState<{ firstName?: string; lastName?: string; fatherName?: string } | null>(
+    user?.isVerifiedIdentity ? { firstName: user.name, lastName: user.lastName, fatherName: user.fatherName } : null,
+  );
 
   // Reopening the dialog must not show whatever was left on screen last time.
   useEffect(() => {
@@ -80,6 +86,10 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
     setInvalid([]);
     if (user) {
       setForm(emptyProfile(user));
+      setNationalCode(user.nationalCode ?? '');
+      setBirthDate(user.birthDate ?? '');
+      setInquirySuccess(Boolean(user.isVerifiedIdentity));
+      setVerifiedInfo(user.isVerifiedIdentity ? { firstName: user.name, lastName: user.lastName, fatherName: user.fatherName } : null);
       setStep(complete ? (initialStep === 'profile' ? 'profile' : 'account') : 'profile');
       setInvalid(complete ? [] : missing);
     } else {
@@ -151,6 +161,51 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
       setBusy(false);
     }
   }, [code, phone, applyLogin, toast, onReady, onClose]);
+
+  const inquireIdentity = useCallback(async () => {
+    const cleanNational = toAsciiDigits(nationalCode).replace(/\D/g, '');
+    const cleanBirth = toAsciiDigits(birthDate).trim();
+
+    if (!cleanNational || cleanNational.length < 10) {
+      setError('کد ملی را ۱۰ رقمی و کامل وارد کنید (مثلاً 2080819925).');
+      return;
+    }
+    if (!cleanBirth || !/^\d{4}-\d{2}-\d{2}$/.test(cleanBirth)) {
+      setError('تاریخ تولد شمسی را به صورت YYYY-MM-DD (مثلاً 1377-09-30) وارد کنید.');
+      return;
+    }
+
+    setError('');
+    setInquiryBusy(true);
+    try {
+      const res = await api.post<{
+        user: UserDTO;
+        identity: { firstName: string; lastName: string; fatherName: string };
+        message: string;
+      }>('/auth/inquiry-identity', {
+        national_code: cleanNational,
+        birth_date: cleanBirth,
+      });
+
+      applyProfile({ user: res.user, complete: true, missing: [] });
+      setForm((prev) => ({
+        ...prev,
+        name: res.identity.firstName || prev.name,
+        lastName: res.identity.lastName || prev.lastName,
+      }));
+      setInquirySuccess(true);
+      setVerifiedInfo({
+        firstName: res.identity.firstName,
+        lastName: res.identity.lastName,
+        fatherName: res.identity.fatherName,
+      });
+      toast.ok(res.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'استعلام اطلاعات هویتی ناموفق بود.');
+    } finally {
+      setInquiryBusy(false);
+    }
+  }, [nationalCode, birthDate, applyProfile, toast]);
 
   const saveProfile = useCallback(async () => {
     setError('');
@@ -263,6 +318,58 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
           <div className="phone-chip">
             شماره تاییدشده: <b className="ltr-inline">{user?.phone}</b>
           </div>
+
+          {/* Advanced Validation: National Identity Inquiry */}
+          <div className="card" style={{ padding: 14, background: '#f8fafc', border: '1px solid var(--border)', borderRadius: 8 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--primary)' }}>
+              <Icon name="shield" /> <span>استعلام و تایید اطلاعات هویتی (ثبت احوال)</span>
+              {inquirySuccess && <span className="badge success" style={{ marginInlineStart: 'auto' }}>✓ هویتی تاییدشده</span>}
+            </div>
+            {inquirySuccess && verifiedInfo ? (
+              <div className="alert success" style={{ fontSize: 12.5, margin: 0 }}>
+                اطلاعات هویتی تایید شد: <b>{verifiedInfo.firstName} {verifiedInfo.lastName}</b> {verifiedInfo.fatherName ? `(فرزند ${verifiedInfo.fatherName})` : ''}
+              </div>
+            ) : (
+              <div className="stack" style={{ gap: 8 }}>
+                <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+                  جهت تایید هویت و استعلام نام و نام خانوادگی، کد ملی و تاریخ تولد شمسی را وارد کنید:
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div className="field">
+                    <label htmlFor="inquiry-national">کد ملی</label>
+                    <input
+                      id="inquiry-national"
+                      className="input ltr"
+                      maxLength={10}
+                      placeholder="2080819925"
+                      value={nationalCode}
+                      onChange={(e) => setNationalCode(toAsciiDigits(e.target.value).replace(/\D/g, ''))}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="inquiry-birth">تاریخ تولد شمسی</label>
+                    <input
+                      id="inquiry-birth"
+                      className="input ltr"
+                      placeholder="1377-09-30"
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(toAsciiDigits(e.target.value))}
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn teal sm"
+                  style={{ width: '100%', marginTop: 2 }}
+                  disabled={inquiryBusy}
+                  onClick={() => void inquireIdentity()}
+                >
+                  {inquiryBusy ? 'در حال استعلام از ثبت احوال…' : 'استعلام اطلاعات هویتی'}
+                </button>
+              </div>
+            )}
+          </div>
+
           <p className="muted" style={{ margin: 0 }}>
             {complete
               ? 'می‌توانید اطلاعات حساب خود را به‌روزرسانی کنید.'
