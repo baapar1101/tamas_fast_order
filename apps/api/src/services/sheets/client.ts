@@ -8,12 +8,15 @@ const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 let cached: sheets_v4.Sheets | null = null;
 
 async function loadCredentials(): Promise<{ client_email: string; private_key: string }> {
-  if (env.SHEETS_CREDENTIALS_JSON.trim()) {
-    return JSON.parse(env.SHEETS_CREDENTIALS_JSON);
+  const str = env.SHEETS_CREDENTIALS_JSON.trim();
+  if (str.startsWith('{')) {
+    return JSON.parse(str);
   }
-  const raw = await readFile(env.SHEETS_CREDENTIALS_FILE, 'utf8');
+  const filePath = str || env.SHEETS_CREDENTIALS_FILE;
+  const raw = await readFile(filePath, 'utf8');
   return JSON.parse(raw);
 }
+
 
 export async function sheetsClient(): Promise<sheets_v4.Sheets> {
   if (cached) return cached;
