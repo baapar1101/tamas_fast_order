@@ -104,6 +104,10 @@ export interface UserDTO {
   certificateFileUrl: string;
   activity: string;
   pageWebsite: string;
+  nationalCode?: string;
+  birthDate?: string;
+  fatherName?: string;
+  isVerifiedIdentity?: boolean;
   isActive: boolean;
   role: 'customer' | 'admin';
   createdAt: string;
