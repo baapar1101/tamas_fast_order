@@ -70,9 +70,9 @@ export function DashboardPage() {
           </div>
 
           {/* Goal Progress Ring */}
-          <div className="relative mx-auto grid place-items-center sm:mx-0">
-            <svg className="h-32 w-32 -rotate-90 sm:h-36 sm:w-36" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(148, 163, 184, 0.1)" strokeWidth="10" />
+          <div className="relative mx-auto grid place-items-center shrink-0 sm:mx-0" style={{ width: '8.5rem', height: '8.5rem' }}>
+            <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="10" />
               <circle
                 cx="60"
                 cy="60"
@@ -94,7 +94,7 @@ export function DashboardPage() {
             </svg>
             <div className="absolute text-center">
               <p className="text-xl font-extrabold text-white sm:text-2xl">۷۸٪</p>
-              <p className="mt-1 text-[10px] text-slate-500">هدف فروش ماهانه</p>
+              <p className="mt-0.5 text-[10px] text-slate-400">هدف فروش ماهانه</p>
             </div>
           </div>
         </div>
@@ -122,8 +122,15 @@ export function DashboardPage() {
             {isLoading ? '...' : formatNumber(totalRevenue)}{' '}
             <span className="text-xs font-normal text-slate-500">تومان</span>
           </p>
-          <div className="mt-4 h-10 w-full opacity-80">
-            <svg viewBox="0 0 100 30" className="h-full w-full overflow-visible">
+          <div className="mt-4 h-10 w-full overflow-hidden">
+            <svg viewBox="0 0 100 30" className="h-full w-full" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="sparkGrad1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#34d399" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path d="M 0 25 Q 15 20, 30 22 T 60 10 T 90 14 T 100 4 L 100 30 L 0 30 Z" fill="url(#sparkGrad1)" />
               <path
                 d="M 0 25 Q 15 20, 30 22 T 60 10 T 90 14 T 100 4"
                 fill="none"
@@ -155,8 +162,15 @@ export function DashboardPage() {
             {isLoading ? '...' : formatNumber(ordersCount)}{' '}
             <span className="text-xs font-normal text-slate-500">سفارش</span>
           </p>
-          <div className="mt-4 h-10 w-full opacity-80">
-            <svg viewBox="0 0 100 30" className="h-full w-full overflow-visible">
+          <div className="mt-4 h-10 w-full overflow-hidden">
+            <svg viewBox="0 0 100 30" className="h-full w-full" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="sparkGrad2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path d="M 0 20 Q 20 28, 40 18 T 70 12 T 100 6 L 100 30 L 0 30 Z" fill="url(#sparkGrad2)" />
               <path
                 d="M 0 20 Q 20 28, 40 18 T 70 12 T 100 6"
                 fill="none"
@@ -188,8 +202,15 @@ export function DashboardPage() {
             {isLoading ? '...' : formatNumber(usersCount)}{' '}
             <span className="text-xs font-normal text-slate-500">کاربر</span>
           </p>
-          <div className="mt-4 h-10 w-full opacity-80">
-            <svg viewBox="0 0 100 30" className="h-full w-full overflow-visible">
+          <div className="mt-4 h-10 w-full overflow-hidden">
+            <svg viewBox="0 0 100 30" className="h-full w-full" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="sparkGrad3" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path d="M 0 26 Q 25 15, 50 20 T 80 8 T 100 2 L 100 30 L 0 30 Z" fill="url(#sparkGrad3)" />
               <path
                 d="M 0 26 Q 25 15, 50 20 T 80 8 T 100 2"
                 fill="none"
@@ -216,8 +237,15 @@ export function DashboardPage() {
             {isLoading ? '...' : formatNumber(productsCount)}{' '}
             <span className="text-xs font-normal text-slate-500">کالا</span>
           </p>
-          <div className="mt-4 h-10 w-full opacity-80">
-            <svg viewBox="0 0 100 30" className="h-full w-full overflow-visible">
+          <div className="mt-4 h-10 w-full overflow-hidden">
+            <svg viewBox="0 0 100 30" className="h-full w-full" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="sparkGrad4" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#fb7185" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#fb7185" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path d="M 0 15 Q 30 5, 50 15 T 80 10 T 100 18 L 100 30 L 0 30 Z" fill="url(#sparkGrad4)" />
               <path
                 d="M 0 15 Q 30 5, 50 15 T 80 10 T 100 18"
                 fill="none"
@@ -251,40 +279,55 @@ export function DashboardPage() {
             </div>
           </div>
 
-          <div className="relative h-64 w-full">
-            <svg viewBox="0 0 500 200" className="h-full w-full overflow-visible">
+          <div className="relative h-60 w-full pt-2">
+            <svg viewBox="0 0 500 180" className="h-full w-full" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="chartAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
+                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
                   <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              <line x1="0" y1="40" x2="500" y2="40" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
-              <line x1="0" y1="90" x2="500" y2="90" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
-              <line x1="0" y1="140" x2="500" y2="140" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
 
+              {/* Grid Background Lines */}
+              <line x1="0" y1="30" x2="500" y2="30" stroke="rgba(255,255,255,0.06)" strokeDasharray="4 4" />
+              <line x1="0" y1="75" x2="500" y2="75" stroke="rgba(255,255,255,0.06)" strokeDasharray="4 4" />
+              <line x1="0" y1="120" x2="500" y2="120" stroke="rgba(255,255,255,0.06)" strokeDasharray="4 4" />
+              <line x1="0" y1="165" x2="500" y2="165" stroke="rgba(255,255,255,0.06)" strokeDasharray="4 4" />
+
+              {/* Filled Area Gradient */}
               <path
-                d="M 0 160 Q 100 130, 200 100 T 350 50 T 500 20 L 500 190 L 0 190 Z"
+                d="M 0 150 Q 100 120, 200 95 T 350 45 T 500 15 L 500 175 L 0 175 Z"
                 fill="url(#chartAreaGrad)"
               />
+
+              {/* Year Baseline Curve */}
               <path
-                d="M 0 160 Q 100 130, 200 100 T 350 50 T 500 20"
-                fill="none"
-                stroke="#34d399"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-              />
-              <path
-                d="M 0 180 Q 100 150, 200 130 T 350 90 T 500 70"
+                d="M 0 165 Q 100 145, 200 125 T 350 85 T 500 60"
                 fill="none"
                 stroke="#64748b"
                 strokeWidth="2"
                 strokeDasharray="6 6"
                 strokeLinecap="round"
               />
+
+              {/* Main Line Trend */}
+              <path
+                d="M 0 150 Q 100 120, 200 95 T 350 45 T 500 15"
+                fill="none"
+                stroke="#34d399"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
+
+              {/* Data Glowing Dots */}
+              <circle cx="0" cy="150" r="4" fill="#34d399" />
+              <circle cx="100" cy="130" r="4" fill="#34d399" />
+              <circle cx="200" cy="95" r="4" fill="#34d399" />
+              <circle cx="350" cy="45" r="5" fill="#34d399" stroke="#070b12" strokeWidth="2" />
+              <circle cx="500" cy="15" r="5" fill="#34d399" stroke="#070b12" strokeWidth="2" />
             </svg>
 
-            <div className="mt-3 flex justify-between text-[11px] text-slate-500">
+            <div className="mt-4 flex justify-between px-1 text-[11px] font-semibold text-slate-400">
               <span>فروردین</span>
               <span>خرداد</span>
               <span>مرداد</span>
@@ -300,64 +343,70 @@ export function DashboardPage() {
           <h3 className="text-base font-bold text-white">منابع جذب مشتری</h3>
           <p className="mt-1 text-xs text-slate-500">سهم هر کانال از سفارش‌های ثبت‌شده</p>
 
-          <div className="relative mx-auto mt-6 aspect-square w-full max-w-[200px] grid place-items-center">
-            <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="45" fill="none" stroke="#1e293b" strokeWidth="12" />
+          <div className="relative mx-auto mt-6 flex h-48 w-48 items-center justify-center">
+            <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
+              <circle cx="60" cy="60" r="45" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="11" />
+              {/* Google Segment 54% (Length 152.7, Offset 0) */}
               <circle
                 cx="60"
                 cy="60"
                 r="45"
                 fill="none"
                 stroke="#34d399"
-                strokeWidth="12"
-                strokeDasharray="282.7"
-                strokeDashoffset="130"
+                strokeWidth="11"
+                strokeLinecap="round"
+                strokeDasharray="152.7 130.1"
+                strokeDashoffset="0"
               />
+              {/* Social Segment 24% (Length 67.9, Offset -152.7) */}
               <circle
                 cx="60"
                 cy="60"
                 r="45"
                 fill="none"
                 stroke="#22d3ee"
-                strokeWidth="12"
-                strokeDasharray="282.7"
-                strokeDashoffset="214"
+                strokeWidth="11"
+                strokeLinecap="round"
+                strokeDasharray="67.9 214.9"
+                strokeDashoffset="-152.7"
               />
+              {/* SMS Segment 22% (Length 62.2, Offset -220.5) */}
               <circle
                 cx="60"
                 cy="60"
                 r="45"
                 fill="none"
                 stroke="#f59e0b"
-                strokeWidth="12"
-                strokeDasharray="282.7"
-                strokeDashoffset="245"
+                strokeWidth="11"
+                strokeLinecap="round"
+                strokeDasharray="62.2 220.5"
+                strokeDashoffset="-220.5"
               />
             </svg>
-            <div className="absolute text-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
               <p className="text-2xl font-extrabold text-white">۵۴٪</p>
-              <p className="text-[10px] text-slate-500">جستجوی مستقیم</p>
+              <p className="mt-0.5 text-[10px] font-medium text-slate-400">جستجوی مستقیم</p>
             </div>
           </div>
 
-          <div className="mt-6 space-y-2 border-t border-white/[0.06] pt-4">
+          <div className="mt-6 space-y-3 border-t border-white/[0.06] pt-4">
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-2 text-slate-300">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
                 گوگل و موتورهای جستجو
               </span>
               <span className="font-bold text-white">۵۴٪</span>
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-2 text-slate-300">
-                <span className="h-2 w-2 rounded-full bg-cyan-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" />
                 شبکه‌های اجتماعی
               </span>
               <span className="font-bold text-white">۲۴٪</span>
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-2 text-slate-300">
-                <span className="h-2 w-2 rounded-full bg-amber-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
                 پیامک و بازاریابی مستقیم
               </span>
               <span className="font-bold text-white">۲۲٪</span>

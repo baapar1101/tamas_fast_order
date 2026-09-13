@@ -32,6 +32,13 @@
   overflow-x: hidden;
 }
 
+.admin-body-shell ul,
+.admin-body-shell ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 /* Background Ambient Glows & Grid Mesh */
 .ambient-glow-container {
   pointer-events: none;
