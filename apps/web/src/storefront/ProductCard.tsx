@@ -199,22 +199,37 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
             </span>
 
             {group.variants.length > 1 ? (
-              <span className="color-picker">
-                <span className="color-dot" style={{ background: swatchColor(selectedVariant, colorMap) }} aria-hidden />
-                <select
-                  className="color-select"
-                  value={selectedIndex}
-                  onChange={(e) => setSelectedIndex(Number(e.target.value))}
-                  aria-label="انتخاب رنگ"
-                >
+              <>
+                <div className="color-swatches" aria-label="رنگ‌های موجود">
                   {group.variants.map((v, i) => (
-                    <option key={v.productId} value={i}>
-                      {v.color || 'اصلی'}{v.price ? ` — ${formatMoney(v.price)}` : ''}{v.sku ? ` (${v.sku})` : ''}
-                    </option>
+                    <button
+                      key={v.productId}
+                      type="button"
+                      className={`color-swatch-dot${i === selectedIndex ? ' active' : ''}`}
+                      style={{ background: swatchColor(v, colorMap) }}
+                      onClick={() => setSelectedIndex(i)}
+                      title={`${v.color || v.colorEn || 'رنگ'}${v.price ? ` — ${formatMoney(v.price)}` : ''}`}
+                      aria-label={`انتخاب رنگ ${v.color || v.colorEn}`}
+                    />
                   ))}
-                </select>
-                <span className="color-count">{formatNumber(group.variants.length)} گزینه</span>
-              </span>
+                </div>
+                <span className="color-picker">
+                  <span className="color-dot" style={{ background: swatchColor(selectedVariant, colorMap) }} aria-hidden />
+                  <select
+                    className="color-select"
+                    value={selectedIndex}
+                    onChange={(e) => setSelectedIndex(Number(e.target.value))}
+                    aria-label="انتخاب رنگ"
+                  >
+                    {group.variants.map((v, i) => (
+                      <option key={v.productId} value={i}>
+                        {v.color || 'اصلی'}{v.price ? ` — ${formatMoney(v.price)}` : ''}{v.sku ? ` (${v.sku})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="color-count">{formatNumber(group.variants.length)} رنگ</span>
+                </span>
+              </>
             ) : (
               <span>
                 رنگ: {selectedVariant.color || '-'}
