@@ -21,9 +21,13 @@ const envSchema = z.object({
   SESSION_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
 
   /* --- OTP --- */
-  OTP_PROVIDER: z.enum(['eldery', 'console']).default('console'),
+  OTP_PROVIDER: z.enum(['eldery', 'rastin', 'console']).default('rastin'),
   OTP_BASE_URL: z.string().default('https://otp.eldery.ir'),
   OTP_API_KEY: z.string().default(''),
+  RASTIN_SMS_USERNAME: z.string().default('09927802246'),
+  RASTIN_SMS_PASSWORD: z.string().default('Parisa7001@'),
+  RASTIN_SMS_FROM: z.string().default('9999181644'),
+  RASTIN_SMS_URL: z.string().default('https://www.rastinsms.com/APISend.aspx'),
   OTP_LENGTH: z.coerce.number().int().min(4).max(8).default(5),
   OTP_TTL_SECONDS: z.coerce.number().int().min(30).max(1800).default(180),
   OTP_RESEND_SECONDS: z.coerce.number().int().min(10).max(600).default(60),
