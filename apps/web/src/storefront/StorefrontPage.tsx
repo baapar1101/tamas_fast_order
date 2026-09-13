@@ -78,6 +78,7 @@ export function StorefrontPage() {
   const [authStep, setAuthStep] = useState<'phone' | 'profile'>('phone');
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   // Auto advance slide carousel
   useEffect(() => {
@@ -515,30 +516,92 @@ export function StorefrontPage() {
       </main>
 
       <footer className="site-footer">
-        <div>
-          <h4 className="footer-title">{settings.store_name || 'تماس مارکت'}</h4>
-          <p className="footer-text">{settings.store_tagline || 'مرجع تخصصی پخش و فروش عمده لوازم جانبی موبایل و دیجیتال در سراسر کشور.'}</p>
-        </div>
-        <div>
-          <h4 className="footer-title">دسترسی سریع</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13 }}>
-            <Link to="/terms" style={{ color: '#d9edf0' }}>
-              شرایط و قوانین همکاری
-            </Link>
-            {user && (
-              <Link to="/orders" style={{ color: '#d9edf0' }}>
-                سفارش‌های من
-              </Link>
-            )}
+        <div className="footer-container">
+          <div className="footer-brand">
+            <img src="/logo.png" alt="تماس مارکت" className="footer-logo" />
+            <div className={`footer-about${aboutOpen ? ' open' : ''}`}>
+              <h4>درباره تماس مارکت (از سال ۱۳۹۰)</h4>
+              <div className="footer-about-text">
+                <p>
+                  داستان ما در تماس مارکت از سال ۱۳۹۰ با نام تجاری «موبایل تماس» آغاز شد. در ابتدا، تمرکز ما بر ارائه خدمات در حوزه موبایل بود، اما با شناخت عمیق‌تر نیازهای بازار و رشد چشمگیر صنعت، از سال ۱۳۹۴ مسیر فعالیتمان را به سمت فروش عمده لوازم جانبی موبایل سوق دادیم.
+                </p>
+                <p>
+                  در سال ۱۳۹۸، با هدف گسترش دامنه خدمات، بازار و ایجاد یک هویت تجاری مدرن‌تر، نام تجاری خود را به «تماس مارکت» تغییر دادیم. از سال ۱۳۹۹، با افتخار و تمرکز بر ارتقاء تجربه مشتریان، بستری جامع برای فروش آنلاین فراهم آورده‌ایم تا بتوانیم به صورت گسترده‌تر و کارآمدتر در خدمت شما عزیزان باشیم.
+                </p>
+                <p>
+                  امروز، تماس مارکت با پشتوانه سال‌ها تجربه و دانش تخصصی در حوزه فروش عمده کالای دیجیتال، به عنوان یکی از نام‌های شناخته شده در این صنعت، آماده ارائه بهترین خدمات و محصولات به شما همکاران گرامی است.
+                </p>
+              </div>
+              <button type="button" className="footer-more" onClick={() => setAboutOpen(!aboutOpen)}>
+                <span>{aboutOpen ? 'بستن' : 'مشاهده بیشتر'}</span>
+                <span style={{ transform: aboutOpen ? 'rotate(180deg)' : 'none', transition: 'transform .3s ease' }}>▼</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="footer-benefits">
+            <h3 className="footer-title">چرا همکاری با ما؟</h3>
+            <p className="footer-text">
+              <span>💰</span> <span><strong>قیمت‌های استثنایی:</strong> دسترسی مستقیم به قیمت‌های عمده و لحظه‌ای.</span>
+            </p>
+            <p className="footer-text">
+              <span>⚡</span> <span><strong>سرعت در سفارش:</strong> فرآیند ثبت و تأیید سریع برای اینکه وقت شما تلف نشود.</span>
+            </p>
+            <p className="footer-text">
+              <span>📊</span> <span><strong>پنل کاربری هوشمند:</strong> مدیریت آسان فاکتورها، موجودی و سفارشات در یک‌جا.</span>
+            </p>
+            <p className="footer-text">
+              <span>🤝</span> <span><strong>پشتیبانی همیشگی:</strong> تیم ما همیشه کنار شماست تا در مسیر کسب‌وکارتان کمکی کند.</span>
+            </p>
+          </div>
+
+          <div className="footer-contact">
+            <h3 className="footer-title">ارتباط با ما</h3>
+            <p className="footer-text">
+              <span>📞</span> <span><strong>شماره تماس:</strong> <a href={`tel:${settings.support_phone || '09135006644'}`} className="footer-phone">{settings.support_phone || '۰۹۱۳۵۰۰۶۶۴۴'}</a></span>
+            </p>
+            <p className="footer-text">
+              <span>📍</span> <span><strong>آدرس:</strong> {settings.store_address || 'کرمان، خیابان شهید نامجو، بعد از کوچه ۹، پلاک ۱۰۹'}</span>
+            </p>
+            <p className="footer-text">
+              <span>📮</span> <span><strong>کد پستی:</strong> ۷۶۱۹۷۴۴۵۶۸</span>
+            </p>
+            <p className="footer-text">
+              <span>🕒</span> <span><strong>ساعات کاری:</strong> شنبه تا پنجشنبه از ساعت ۹:۰۰ الی ۲۱:۰۰</span>
+            </p>
+            <div className="footer-socials" aria-label="شبکه‌های اجتماعی">
+              <a className="footer-social-link whatsapp" href="https://whatsapp.com/channel/0029Vb4s4DUJf05jmXNTbq1q" target="_blank" rel="noopener noreferrer">
+                <span>💬</span>
+                <span>واتس‌اپ</span>
+              </a>
+              <a className="footer-social-link instagram" href="https://www.instagram.com/tamasmarket.ir?stkn=MXV3enBoZHhpcHRrdQ==" target="_blank" rel="noopener noreferrer">
+                <span>📷</span>
+                <span>اینستاگرام</span>
+              </a>
+            </div>
+          </div>
+
+          <div className="footer-enamad">
+            <h3 className="footer-title">نماد اعتماد</h3>
+            <div className="enamad-box">
+              <a referrerpolicy="origin" target="_blank" rel="noopener noreferrer" href="https://trustseal.enamad.ir/?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw">
+                <img
+                  referrerpolicy="origin"
+                  src="https://trustseal.enamad.ir/logo.aspx?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw"
+                  alt="نماد اعتماد الکترونیکی"
+                />
+              </a>
+            </div>
           </div>
         </div>
-        <div>
-          <h4 className="footer-title">ارتباط با ما</h4>
-          {settings.support_phone && <p className="footer-text ltr">تلفن: {settings.support_phone}</p>}
-          {settings.store_address && <p className="footer-text">آدرس: {settings.store_address}</p>}
-        </div>
-        <div>
-          <div className="enamad-box">نماد اعتماد و مجوزهای رسمی پخش</div>
+
+        <div className="footer-bottom">
+          <nav className="footer-legal" aria-label="پیوندهای مهم">
+            <Link to="/terms">📖 شرایط و قوانین همکاری</Link>
+            <Link to="/terms#faq">❓ سؤالات متداول</Link>
+            <Link to="/terms#sales-terms">🧾 روش‌های پرداخت و تسویه‌حساب</Link>
+          </nav>
+          <p className="footer-copy">© تمامی حقوق برای تماس مارکت محفوظ است.</p>
         </div>
       </footer>
 
