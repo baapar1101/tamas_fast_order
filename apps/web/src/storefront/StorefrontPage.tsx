@@ -460,6 +460,20 @@ export function StorefrontPage() {
               </div>
             </div>
 
+            <div className="price-lock-note">
+              <span>قیمت‌های عمده فقط برای همکاران ثبت‌نام‌شده نمایش داده می‌شوند.</span>
+              <button
+                type="button"
+                className="btn-lock-auth"
+                onClick={() => {
+                  setAuthStep('phone');
+                  setAuthOpen(true);
+                }}
+              >
+                ورود / ثبت‌نام
+              </button>
+            </div>
+
             {products.isLoading ? (
               <ProductSkeletons viewMode={viewMode} />
             ) : products.isError ? (
@@ -474,7 +488,7 @@ export function StorefrontPage() {
               <>
                 <div className={viewMode === 'grid' ? 'products-grid' : 'products-list'} style={{ opacity: products.isFetching ? 0.65 : 1, transition: 'opacity .15s' }}>
                   {groups.map((g) => (
-                    <ProductCard key={g.key} group={g} colorMap={colorMap} onAdd={handleAdd} onPreview={setPreview} />
+                    <ProductCard key={g.key} group={g} colorMap={colorMap} viewMode={viewMode} onAdd={handleAdd} onPreview={setPreview} />
                   ))}
                 </div>
 
