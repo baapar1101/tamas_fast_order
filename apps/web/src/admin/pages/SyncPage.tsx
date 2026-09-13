@@ -1,301 +1,224 @@
-import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { SyncConflictDTO, SyncEntity, SyncReport } from '@tamas/shared';
+import type { SyncEntity, SyncStateDTO } from '@tamas/shared';
 import { SYNC_ENTITIES, SYNC_ENTITY_LABELS, formatNumber } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 
-interface SyncStatus {
+interface SyncStatusResponse {
+  ok: boolean;
   enabled: boolean;
   running: boolean;
-  spreadsheetId: string;
-  intervalSeconds: number;
-  syncPrivateData: boolean;
-  entities: Array<{
-    entity: string;
-    lastPulledAt: string | null;
-    lastPushedAt: string | null;
-    rowsPulled: number;
-    rowsPushed: number;
-    lastError: string | null;
-  }>;
+  spreadsheetId?: string;
+  intervalSeconds?: number;
+  entities: SyncStateDTO[];
 }
 
-type Direction = 'pull' | 'push' | 'both';
-
-const DIRECTION_LABELS: Record<Direction, string> = {
-  both: 'دوطرفه (پیشنهادی)',
-  pull: 'فقط از شیت به دیتابیس',
-  push: 'فقط از دیتابیس به شیت',
-};
+interface ConflictItem {
+  id: number;
+  entity: string;
+  entityKey: string;
+  field: string;
+  dbValue: string;
+  sheetValue: string;
+  resolvedTo: string;
+  createdAt: string;
+}
 
 export function SyncPage() {
   const toast = useToast();
   const qc = useQueryClient();
 
-  const [direction, setDirection] = useState<Direction>('both');
-  const [entities, setEntities] = useState<SyncEntity[]>([...SYNC_ENTITIES]);
-  const [report, setReport] = useState<SyncReport | null>(null);
-  const [conflictEntity, setConflictEntity] = useState<SyncEntity | ''>('');
-
   const status = useQuery({
     queryKey: ['admin', 'sync', 'status'],
-    queryFn: () => api.get<SyncStatus>('/admin/sync/status'),
-    refetchInterval: 15_000,
+    queryFn: () => api.get<SyncStatusResponse>('/admin/sync/status'),
+    refetchInterval: 10_000,
   });
 
   const conflicts = useQuery({
-    queryKey: ['admin', 'sync', 'conflicts', conflictEntity],
-    queryFn: () =>
-      api.get<{ items: SyncConflictDTO[]; total: number }>('/admin/sync/conflicts', {
-        entity: conflictEntity || undefined,
-        perPage: 100,
-      }),
+    queryKey: ['admin', 'sync', 'conflicts'],
+    queryFn: () => api.get<{ items: ConflictItem[]; total: number }>('/admin/sync/conflicts'),
   });
 
-  const run = useMutation({
-    mutationFn: (dryRun: boolean) => api.post<{ report: SyncReport }>('/admin/sync/run', { direction, entities, dryRun }),
-    onSuccess: (res) => {
-      setReport(res.report);
-      const totals = res.report.entities.reduce(
-        (acc, e) => ({ pulled: acc.pulled + e.pulled, pushed: acc.pushed + e.pushed, conflicts: acc.conflicts + e.conflicts }),
-        { pulled: 0, pushed: 0, conflicts: 0 },
-      );
-      toast.ok(
-        res.report.dryRun
-          ? `پیش‌نمایش: ${formatNumber(totals.pulled)} ردیف از شیت و ${formatNumber(totals.pushed)} ردیف به شیت تغییر می‌کند.`
-          : `همگام‌سازی انجام شد — ${formatNumber(totals.pulled)} دریافت، ${formatNumber(totals.pushed)} ارسال.`,
-      );
-      void qc.invalidateQueries({ queryKey: ['admin'] });
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: ['admin', 'sync'] });
+  };
+
+  const runSync = useMutation({
+    mutationFn: (dryRun: boolean) =>
+      api.post<{ ok: boolean }>('/admin/sync/run', {
+        direction: 'both',
+        dryRun,
+        entities: [...SYNC_ENTITIES],
+      }),
+    onSuccess: () => {
+      toast.ok('همگام‌سازی با موفقیت انجام شد.');
+      invalidate();
     },
     onError: (err: Error) => toast.error(err.message),
   });
 
-  const clearConflicts = useMutation({
-    mutationFn: () => api.del('/admin/sync/conflicts'),
+  const clearError = useMutation({
+    mutationFn: (entity: SyncEntity) => api.post('/admin/sync/clear-error', { entity }),
     onSuccess: () => {
-      toast.ok('تاریخچه تضادها پاک شد.');
-      void qc.invalidateQueries({ queryKey: ['admin', 'sync', 'conflicts'] });
+      toast.ok('خطای همگام‌سازی پاک شد.');
+      invalidate();
     },
   });
 
-  const s = status.data;
+  const isRunning = status.data?.running ?? false;
+  const enabled = status.data?.enabled ?? false;
 
   return (
-    <>
-      <div className="admin-head">
-        <h1>همگام‌سازی گوگل شیت</h1>
-        {s && <span className={`badge ${s.enabled ? 'success' : 'warn'}`}>{s.enabled ? 'فعال' : 'غیرفعال'}</span>}
-        {s?.running && <span className="badge brand">در حال اجرا…</span>}
-      </div>
-
-      {s && !s.enabled && (
-        <div className="alert warn" style={{ marginBottom: 14 }}>
-          همگام‌سازی خاموش است. در فایل <code>.env</code> سرویس API مقدار <code>SHEETS_ENABLED=true</code> را بگذارید،
-          شناسه شیت و فایل service-account را تنظیم کنید و سرویس را دوباره راه‌اندازی کنید.
+    <div className="space-y-6">
+      {/* Header */}
+      <section className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
+        <div>
+          <h2 className="text-xl font-extrabold text-white sm:text-2xl">همگام‌سازی گوگل شیت (Google Sheets)</h2>
+          <p className="mt-1 text-xs text-slate-400">اتصال و همگام‌سازی ۲ طرفه دیتابیس و شیت گوگل</p>
         </div>
-      )}
-
-      <div className="card" style={{ padding: 16, marginBottom: 14 }}>
-        <div className="form-grid">
-          <div className="field">
-            <label htmlFor="dir">جهت همگام‌سازی</label>
-            <select id="dir" className="select" value={direction} onChange={(e) => setDirection(e.target.value as Direction)}>
-              {Object.entries(DIRECTION_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="field">
-            <label>بازه اجرای خودکار</label>
-            <div className="card" style={{ padding: '9px 12px', background: 'var(--surface-2)' }}>
-              {s?.intervalSeconds ? `هر ${formatNumber(Math.round(s.intervalSeconds / 60))} دقیقه` : 'غیرفعال'}
-            </div>
-          </div>
-
-          <div className="field full">
-            <label>جدول‌ها</label>
-            <div className="row wrap" style={{ gap: 6 }}>
-              {SYNC_ENTITIES.map((e) => {
-                const on = entities.includes(e);
-                return (
-                  <button
-                    key={e}
-                    type="button"
-                    className={`chip${on ? ' on' : ''}`}
-                    onClick={() => setEntities(on ? entities.filter((x) => x !== e) : [...entities, e])}
-                  >
-                    {SYNC_ENTITY_LABELS[e]}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        <div className="row" style={{ marginTop: 14 }}>
-          <button
-            type="button"
-            className="btn primary"
-            disabled={!s?.enabled || run.isPending || s?.running || entities.length === 0}
-            onClick={() => run.mutate(false)}
-          >
-            {run.isPending ? 'در حال اجرا…' : 'اجرای همگام‌سازی'}
-          </button>
-          <button
-            type="button"
-            className="btn"
-            disabled={!s?.enabled || run.isPending || s?.running || entities.length === 0}
-            onClick={() => run.mutate(true)}
-          >
-            پیش‌نمایش بدون تغییر
-          </button>
-          <span className="spacer" />
-          {s?.spreadsheetId && (
+        <div className="flex items-center gap-3">
+          <span className={`chip ${enabled ? 'chip-brand' : 'chip-rose'}`}>
+            {enabled ? 'فعال (Enabled)' : 'غیرفعال'}
+          </span>
+          {status.data?.spreadsheetId && (
             <a
-              className="btn"
-              href={`https://docs.google.com/spreadsheets/d/${s.spreadsheetId}`}
+              href={`https://docs.google.com/spreadsheets/d/${status.data.spreadsheetId}`}
               target="_blank"
               rel="noreferrer"
+              className="huma-btn-secondary !py-1.5 !px-3 !text-xs"
             >
               باز کردن شیت ↗
             </a>
           )}
         </div>
-      </div>
+      </section>
 
-      {report && (
-        <div className="card" style={{ padding: 16, marginBottom: 14 }}>
-          <h3 style={{ marginTop: 0, fontSize: 14.5 }}>
-            نتیجه {report.dryRun ? 'پیش‌نمایش' : 'اجرا'} — {new Date(report.finishedAt).toLocaleString('fa-IR')}
-          </h3>
-          <div className="table-wrap">
-            <table className="data">
-              <thead>
-                <tr>
-                  <th>جدول</th>
-                  <th>از شیت</th>
-                  <th>به شیت</th>
-                  <th>جدید</th>
-                  <th>به‌روز</th>
-                  <th>تضاد</th>
-                  <th>خطا</th>
-                </tr>
-              </thead>
-              <tbody>
-                {report.entities.map((e) => (
-                  <tr key={e.entity}>
-                    <td>{SYNC_ENTITY_LABELS[e.entity as SyncEntity] ?? e.entity}</td>
-                    <td>{formatNumber(e.pulled)}</td>
-                    <td>{formatNumber(e.pushed)}</td>
-                    <td>{formatNumber(e.created)}</td>
-                    <td>{formatNumber(e.updated)}</td>
-                    <td>{e.conflicts > 0 ? <span className="badge warn">{formatNumber(e.conflicts)}</span> : '—'}</td>
-                    <td className="wrap" style={{ color: 'var(--danger)' }}>{e.error ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {/* Sync Control Bar */}
+      <section className="glass-card p-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-bold text-white mb-1">اجرای دستی همگام‌سازی</h3>
+          <p className="text-xs text-slate-400">ارسال تغییرات دیتابیس به شیت و دریافت داده‌های جدید از شیت</p>
         </div>
-      )}
-
-      <h3 style={{ fontSize: 15 }}>وضعیت جدول‌ها</h3>
-      <div className="sync-grid" style={{ marginBottom: 18 }}>
-        {(s?.entities ?? []).map((e) => (
-          <div className="stat" key={e.entity}>
-            <div className="label">{SYNC_ENTITY_LABELS[e.entity as SyncEntity] ?? e.entity}</div>
-            <div style={{ fontSize: 12.5, marginTop: 4 }}>
-              <div>دریافت: {e.lastPulledAt ? new Date(e.lastPulledAt).toLocaleString('fa-IR') : '—'}</div>
-              <div>ارسال: {e.lastPushedAt ? new Date(e.lastPushedAt).toLocaleString('fa-IR') : '—'}</div>
-              <div className="faint">
-                {formatNumber(e.rowsPulled)} ردیف دریافتی · {formatNumber(e.rowsPushed)} ردیف ارسالی
-              </div>
-            </div>
-            {e.lastError && (
-              <div className="alert error" style={{ marginTop: 8, fontSize: 11.5 }}>
-                {e.lastError}
-              </div>
-            )}
-          </div>
-        ))}
-        {(s?.entities.length ?? 0) === 0 && <div className="card empty">هنوز همگام‌سازی‌ای انجام نشده است.</div>}
-      </div>
-
-      <div className="row" style={{ marginBottom: 10 }}>
-        <h3 style={{ margin: 0, fontSize: 15 }}>تضادها</h3>
-        <span className="badge">{formatNumber(conflicts.data?.total ?? 0)}</span>
-        <select
-          className="select"
-          style={{ width: 'auto' }}
-          value={conflictEntity}
-          onChange={(e) => setConflictEntity(e.target.value as SyncEntity | '')}
-        >
-          <option value="">همه جدول‌ها</option>
-          {SYNC_ENTITIES.map((e) => (
-            <option key={e} value={e}>
-              {SYNC_ENTITY_LABELS[e]}
-            </option>
-          ))}
-        </select>
-        <span className="spacer" />
-        {(conflicts.data?.total ?? 0) > 0 && (
-          <button type="button" className="btn sm" onClick={() => clearConflicts.mutate()}>
-            پاک کردن تاریخچه
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="huma-btn-secondary"
+            disabled={isRunning || runSync.isPending}
+            onClick={() => runSync.mutate(true)}
+          >
+            پیش‌نمایش (Dry Run)
           </button>
-        )}
-      </div>
+          <button
+            type="button"
+            className="huma-btn-primary"
+            disabled={isRunning || runSync.isPending}
+            onClick={() => runSync.mutate(false)}
+          >
+            {isRunning ? 'در حال همگام‌سازی...' : 'همگام‌سازی الان'}
+          </button>
+        </div>
+      </section>
 
-      <p className="muted" style={{ marginTop: 0, fontSize: 12.5 }}>
-        هر بار که یک ردیف هم در دیتابیس و هم در شیت تغییر کرده باشد، طرف با <code>updated_at</code> جدیدتر برنده می‌شود و
-        مقدار بازنده اینجا ثبت می‌گردد. مقدار سبز همان چیزی است که الان در هر دو طرف نشسته.
-      </p>
+      {/* 7 Entity Sync Status Cards Grid */}
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {SYNC_ENTITIES.map((entityKey) => {
+          const state = status.data?.entities.find((e) => e.entity === entityKey);
+          const hasErr = Boolean(state?.lastError);
 
-      {conflicts.isLoading ? (
-        <div className="skeleton" style={{ height: 200 }} />
-      ) : (conflicts.data?.items.length ?? 0) === 0 ? (
-        <div className="card empty">تضادی ثبت نشده است.</div>
-      ) : (
-        <div className="table-wrap">
-          <table className="data">
+          return (
+            <div key={entityKey} className={`glass-card p-5 ${hasErr ? 'border-rose-500/40 bg-rose-500/10' : ''}`}>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-bold text-white text-sm">{SYNC_ENTITY_LABELS[entityKey]}</h4>
+                <span className={`chip ${hasErr ? 'chip-rose' : 'chip-brand'}`}>
+                  {hasErr ? 'خطا' : 'سالم'}
+                </span>
+              </div>
+
+              {hasErr ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-rose-300 line-clamp-2">{state?.lastError}</p>
+                  <button
+                    type="button"
+                    className="text-[11px] text-rose-400 underline hover:text-white"
+                    onClick={() => clearError.mutate(entityKey)}
+                  >
+                    پاکسازی خطا
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-1 text-xs text-slate-400">
+                  <div>
+                    دریافتی:{' '}
+                    <span className="font-bold text-emerald-300">
+                      {formatNumber(state?.rowsPulled ?? 0)}
+                    </span>
+                  </div>
+                  <div>
+                    ارسالی:{' '}
+                    <span className="font-bold text-cyan-300">
+                      {formatNumber(state?.rowsPushed ?? 0)}
+                    </span>
+                  </div>
+                  {state?.lastPulledAt && (
+                    <div className="text-[10px] text-slate-500 mt-2">
+                      آخرین بروزرسانی: {new Date(state.lastPulledAt).toLocaleTimeString('fa-IR')}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </section>
+
+      {/* Conflict History Table */}
+      <section className="glass-card overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">
+          <h3 className="text-sm font-bold text-white">تاریخچه تضادها (Conflicts)</h3>
+          <span className="chip chip-slate">{formatNumber(conflicts.data?.total ?? 0)} تضاد ثبت‌شده</span>
+        </div>
+
+        <div className="huma-table-container">
+          <table className="huma-table">
             <thead>
               <tr>
-                <th>زمان</th>
                 <th>جدول</th>
-                <th>کلید</th>
-                <th>ستون</th>
+                <th>فیلد</th>
                 <th>مقدار دیتابیس</th>
-                <th>مقدار شیت</th>
-                <th>برنده</th>
+                <th>مقدار گوگل شیت</th>
+                <th>برنده تضاد</th>
+                <th>تاریخ</th>
               </tr>
             </thead>
             <tbody>
-              {conflicts.data!.items.map((c) => (
-                <tr key={c.id}>
-                  <td>{new Date(c.createdAt).toLocaleString('fa-IR')}</td>
-                  <td>{SYNC_ENTITY_LABELS[c.entity as SyncEntity] ?? c.entity}</td>
-                  <td className="ltr">{c.entityKey}</td>
-                  <td className="ltr">{c.field}</td>
-                  <td className={`diff-cell ${c.resolvedTo === 'db' ? 'win' : 'lose'}`} title={c.dbValue ?? ''}>
-                    {c.dbValue || '—'}
-                  </td>
-                  <td className={`diff-cell ${c.resolvedTo === 'sheet' ? 'win' : 'lose'}`} title={c.sheetValue ?? ''}>
-                    {c.sheetValue || '—'}
-                  </td>
-                  <td>
-                    <span className={`badge ${c.resolvedTo === 'db' ? 'brand' : 'warn'}`}>
-                      {c.resolvedTo === 'db' ? 'دیتابیس' : 'گوگل شیت'}
-                    </span>
+              {(conflicts.data?.items ?? []).length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-500">
+                    هیچ تضادی بین دیتابیس و گوگل شیت وجود ندارد.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                conflicts.data?.items.map((c) => (
+                  <tr key={c.id} className="order-row">
+                    <td className="font-bold text-white">{c.entity}</td>
+                    <td className="font-mono text-xs text-slate-300">{c.field}</td>
+                    <td className="text-xs text-slate-300">{c.dbValue || '—'}</td>
+                    <td className="text-xs text-slate-300">{c.sheetValue || '—'}</td>
+                    <td>
+                      <span className={`chip ${c.resolvedTo === 'db' ? 'chip-brand' : 'chip-aqua'}`}>
+                        {c.resolvedTo === 'db' ? 'دیتابیس' : 'گوگل شیت'}
+                      </span>
+                    </td>
+                    <td className="text-xs text-slate-500">
+                      {new Date(c.createdAt).toLocaleTimeString('fa-IR')}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
-      )}
-    </>
+      </section>
+    </div>
   );
 }

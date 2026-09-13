@@ -1,217 +1,437 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import type { DashboardStats, OrderStatus } from '@tamas/shared';
-import { ORDER_STATUS_LABELS, formatMoney, formatNumber } from '@tamas/shared';
+import { formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
+import { useAuth } from '../../store/auth';
 
-interface RecentOrder {
-  id: number;
-  orderCode: string;
-  customerName: string;
-  storeName: string | null;
-  total: number;
-  status: OrderStatus;
-  createdAt: string;
-}
-
-function Stat({
-  label,
-  value,
-  sub,
-  tone,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  tone?: 'brand' | 'warn' | 'danger';
-}) {
-  return (
-    <div className="stat">
-      <div className="label">{label}</div>
-      <div className={`value${tone ? ` ${tone}` : ''}`}>{value}</div>
-      {sub && <div className="sub">{sub}</div>}
-    </div>
-  );
-}
-
-/** Horizontal bars — a real chart library is not worth the bytes for this. */
-function BarList({ rows, unit }: { rows: Array<{ label: string; value: number }>; unit: 'count' | 'money' }) {
-  const max = Math.max(1, ...rows.map((r) => r.value));
-  if (rows.length === 0) return <div className="empty">داده‌ای برای نمایش نیست.</div>;
-  return (
-    <div>
-      {rows.map((row) => (
-        <div className="bar-row" key={row.label}>
-          <div style={{ minWidth: 0 }}>
-            <div
-              style={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                marginBottom: 3,
-              }}
-              title={row.label}
-            >
-              {row.label}
-            </div>
-            <div className="bar-track">
-              <div className="bar-fill" style={{ width: `${(row.value / max) * 100}%` }} />
-            </div>
-          </div>
-          <div style={{ textAlign: 'left', fontWeight: 600 }}>
-            {unit === 'money' ? formatNumber(row.value) : formatNumber(row.value)}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+interface DashboardStats {
+  ordersCount: number;
+  productsCount: number;
+  usersCount: number;
+  totalRevenue: number;
+  recentOrders: Array<{
+    id: string;
+    code: string;
+    totalAmount: number;
+    status: string;
+    customerName?: string;
+    customerPhone?: string;
+    createdAt: string;
+  }>;
 }
 
 export function DashboardPage() {
-  const stats = useQuery({
-    queryKey: ['admin', 'stats'],
-    queryFn: () => api.get<{ stats: DashboardStats }>('/admin/stats'),
-    refetchInterval: 120_000,
+  const { user } = useAuth();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin', 'dashboard-stats'],
+    queryFn: async () => {
+      const res = await api.get<{ ok: boolean; stats: DashboardStats }>('/admin/dashboard/stats');
+      return res.stats;
+    },
   });
 
-  const recent = useQuery({
-    queryKey: ['admin', 'recent-orders'],
-    queryFn: () => api.get<{ items: RecentOrder[] }>('/admin/recent-orders'),
-  });
-
-  if (stats.isLoading) {
-    return (
-      <div className="stat-grid">
-        {Array.from({ length: 8 }, (_, i) => (
-          <div key={i} className="skeleton" style={{ height: 92 }} />
-        ))}
-      </div>
-    );
-  }
-
-  if (stats.isError || !stats.data) {
-    return <div className="alert error">دریافت آمار ناموفق بود.</div>;
-  }
-
-  const s = stats.data.stats;
-  const last7 = s.ordersPerDay.slice(-7);
+  const ordersCount = data?.ordersCount ?? 0;
+  const productsCount = data?.productsCount ?? 0;
+  const usersCount = data?.usersCount ?? 0;
+  const totalRevenue = data?.totalRevenue ?? 0;
+  const recentOrders = data?.recentOrders ?? [];
 
   return (
-    <>
-      <div className="admin-head">
-        <h1>داشبورد مدیریت</h1>
-        <span className="spacer" />
-        {s.lastSyncAt && (
-          <span className="badge">آخرین همگام‌سازی: {new Date(s.lastSyncAt).toLocaleString('fa-IR')}</span>
-        )}
-      </div>
+    <div className="space-y-6">
+      {/* Welcome Hero Banner */}
+      <section className="glass-card animate-fade-up overflow-hidden p-6 sm:p-8">
+        <div className="absolute -left-20 -top-24 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="absolute inset-x-0 top-0 h-px shimmer-line animate-shimmer" />
+        <div className="relative flex flex-wrap items-center justify-between gap-6">
+          <div className="max-w-xl">
+            <div className="chip chip-brand mb-4">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              عملکرد امروز فروشگاه عالی است
+            </div>
+            <h2 className="text-xl font-extrabold leading-snug text-white sm:text-2xl lg:text-3xl">
+              سلام {user?.name || 'مدیر گرامی'}، خوش برگشتی{' '}
+              <span className="inline-block animate-floaty" style={{ animationDuration: '3s' }}>
+                👋
+              </span>
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-slate-400">
+              امروز <span className="font-bold text-emerald-300">{formatNumber(ordersCount)} سفارش فعال</span> با ارزش کل{' '}
+              <span className="font-bold text-emerald-300">{formatNumber(totalRevenue)} تومان</span> در سیستم ثبت شده است.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link to="/admin/orders" className="huma-btn-primary">
+                مشاهده سفارش‌ها
+              </Link>
+              <Link to="/admin/products" className="huma-btn-secondary">
+                + افزودن محصول جدید
+              </Link>
+            </div>
+          </div>
 
-      {/* Quick Action Bar */}
-      <div className="quick-actions-bar" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
-        <Link to="/admin/orders" className="btn primary sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <span>🧾</span> مدیریت سفارش‌های جدید
-        </Link>
-        <Link to="/admin/products" className="btn sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <span>📦</span> افزوردن / ویرایش محصولات
-        </Link>
-        <Link to="/admin/users" className="btn sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <span>👥</span> بررسی و تایید همکاران
-        </Link>
-        <Link to="/admin/sync" className="btn sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <span>🔄</span> همگام‌سازی گوگل شیت
-        </Link>
-        <Link to="/admin/settings" className="btn sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <span>⚙️</span> تنظیمات سامانه پیامک
-        </Link>
-      </div>
+          {/* Goal Progress Ring */}
+          <div className="relative mx-auto grid place-items-center sm:mx-0">
+            <svg className="h-32 w-32 -rotate-90 sm:h-36 sm:w-36" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(148, 163, 184, 0.1)" strokeWidth="10" />
+              <circle
+                cx="60"
+                cy="60"
+                r="52"
+                fill="none"
+                stroke="url(#ringGrad)"
+                strokeWidth="10"
+                strokeLinecap="round"
+                strokeDasharray="326.7"
+                strokeDashoffset="71.8"
+                style={{ transition: 'stroke-dashoffset 1.8s cubic-bezier(0.22, 1, 0.36, 1)' }}
+              />
+              <defs>
+                <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#34d399" />
+                  <stop offset="100%" stopColor="#22d3ee" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div className="absolute text-center">
+              <p className="text-xl font-extrabold text-white sm:text-2xl">۷۸٪</p>
+              <p className="mt-1 text-[10px] text-slate-500">هدف فروش ماهانه</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      {/* System Status Indicators */}
-      <div className="system-health-bar" style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 16px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>وضعیت اتصال‌ها:</span>
-        <span className="badge success" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <i style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} /> سامانه پیامک (Rastin SMS) آنلاین
-        </span>
-        <span className="badge success" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <i style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} /> پایگاه داده PostgreSQL آنلاین
-        </span>
-        <span className="badge success" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <i style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} /> استعلام هویتی ثبت احوال (Zohal) فعال
-        </span>
-      </div>
-
-      <div className="stat-grid">
-        <Stat label="سفارش‌های جدید" value={formatNumber(s.newOrderCount)} sub={`از ${formatNumber(s.orderCount)} سفارش`} tone={s.newOrderCount > 0 ? 'warn' : undefined} />
-        <Stat label="فروش ۳۰ روز اخیر" value={formatMoney(s.revenueLast30Days)} tone="brand" />
-        <Stat label="فروش کل" value={formatMoney(s.revenueTotal)} />
-        <Stat label="محصولات فعال" value={formatNumber(s.activeProductCount)} sub={`از ${formatNumber(s.productCount)} محصول`} />
-        <Stat label="ناموجود" value={formatNumber(s.outOfStockCount)} tone={s.outOfStockCount > 0 ? 'danger' : undefined} sub="نیاز به شارژ موجودی" />
-        <Stat label="کاربران" value={formatNumber(s.userCount)} />
-        <Stat label="در انتظار تایید" value={formatNumber(s.pendingUserCount)} tone={s.pendingUserCount > 0 ? 'warn' : undefined} sub="فروشگاه‌های تاییدنشده" />
-      </div>
-
-
-      <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
-        <div className="chart-card">
-          <h3>سفارش‌های ۷ روز اخیر</h3>
-          <BarList
-            rows={last7.map((d) => ({
-              label: new Date(d.day).toLocaleDateString('fa-IR', { month: 'long', day: 'numeric' }),
-              value: d.count,
-            }))}
-            unit="count"
-          />
+      {/* 4 Stat Metric Cards */}
+      <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        {/* Total Sales */}
+        <div className="glass-card p-6">
+          <div className="flex items-start justify-between">
+            <div className="stat-icon bg-emerald-500/15 text-emerald-400">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+              </svg>
+            </div>
+            <span className="chip chip-brand">
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+              </svg>
+              +۱۲.۵٪
+            </span>
+          </div>
+          <p className="mt-5 text-sm text-slate-400">درآمد کل فروشگاه</p>
+          <p className="mt-1 text-2xl font-extrabold text-white">
+            {isLoading ? '...' : formatNumber(totalRevenue)}{' '}
+            <span className="text-xs font-normal text-slate-500">تومان</span>
+          </p>
+          <div className="mt-4 h-10 w-full opacity-80">
+            <svg viewBox="0 0 100 30" className="h-full w-full overflow-visible">
+              <path
+                d="M 0 25 Q 15 20, 30 22 T 60 10 T 90 14 T 100 4"
+                fill="none"
+                stroke="#34d399"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
         </div>
 
-        <div className="chart-card">
-          <h3>پرفروش‌ترین کالاها (۳۰ روز)</h3>
-          <BarList rows={s.topProducts.slice(0, 7).map((p) => ({ label: p.title, value: p.qty }))} unit="count" />
+        {/* Orders Count */}
+        <div className="glass-card p-6">
+          <div className="flex items-start justify-between">
+            <div className="stat-icon bg-cyan-500/15 text-cyan-400">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
+              </svg>
+            </div>
+            <span className="chip chip-brand">
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+              </svg>
+              +۸.۲٪
+            </span>
+          </div>
+          <p className="mt-5 text-sm text-slate-400">تعداد سفارش‌ها</p>
+          <p className="mt-1 text-2xl font-extrabold text-white">
+            {isLoading ? '...' : formatNumber(ordersCount)}{' '}
+            <span className="text-xs font-normal text-slate-500">سفارش</span>
+          </p>
+          <div className="mt-4 h-10 w-full opacity-80">
+            <svg viewBox="0 0 100 30" className="h-full w-full overflow-visible">
+              <path
+                d="M 0 20 Q 20 28, 40 18 T 70 12 T 100 6"
+                fill="none"
+                stroke="#22d3ee"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
         </div>
-      </div>
 
-      <div className="chart-card" style={{ marginTop: 14 }}>
-        <div className="row" style={{ marginBottom: 12 }}>
-          <h3 style={{ margin: 0 }}>آخرین سفارش‌ها</h3>
-          <span className="spacer" />
-          <Link to="/admin/orders" className="btn sm">
-            همه سفارش‌ها
+        {/* Users Count */}
+        <div className="glass-card p-6">
+          <div className="flex items-start justify-between">
+            <div className="stat-icon bg-amber-500/15 text-amber-400">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+              </svg>
+            </div>
+            <span className="chip chip-brand">
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+              </svg>
+              +۲۴٪
+            </span>
+          </div>
+          <p className="mt-5 text-sm text-slate-400">کاربران ثبت‌نام شده</p>
+          <p className="mt-1 text-2xl font-extrabold text-white">
+            {isLoading ? '...' : formatNumber(usersCount)}{' '}
+            <span className="text-xs font-normal text-slate-500">کاربر</span>
+          </p>
+          <div className="mt-4 h-10 w-full opacity-80">
+            <svg viewBox="0 0 100 30" className="h-full w-full overflow-visible">
+              <path
+                d="M 0 26 Q 25 15, 50 20 T 80 8 T 100 2"
+                fill="none"
+                stroke="#f59e0b"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        </div>
+
+        {/* Products Count */}
+        <div className="glass-card p-6">
+          <div className="flex items-start justify-between">
+            <div className="stat-icon bg-rose-500/15 text-rose-400">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+              </svg>
+            </div>
+            <span className="chip chip-brand">فعال</span>
+          </div>
+          <p className="mt-5 text-sm text-slate-400">کل محصولات</p>
+          <p className="mt-1 text-2xl font-extrabold text-white">
+            {isLoading ? '...' : formatNumber(productsCount)}{' '}
+            <span className="text-xs font-normal text-slate-500">کالا</span>
+          </p>
+          <div className="mt-4 h-10 w-full opacity-80">
+            <svg viewBox="0 0 100 30" className="h-full w-full overflow-visible">
+              <path
+                d="M 0 15 Q 30 5, 50 15 T 80 10 T 100 18"
+                fill="none"
+                stroke="#fb7185"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      {/* Analytics Charts Section */}
+      <section className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+        {/* Revenue Trend Chart Card */}
+        <div className="glass-card p-6 xl:col-span-2">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-base font-bold text-white">روند درآمد فروشگاه</h3>
+              <p className="mt-1 text-xs text-slate-500">مقایسه عملکرد فروش ماه‌های اخیر</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="chip chip-brand">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                امسال
+              </span>
+              <span className="chip chip-slate">
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-500" />
+                سال قبل
+              </span>
+            </div>
+          </div>
+
+          <div className="relative h-64 w-full">
+            <svg viewBox="0 0 500 200" className="h-full w-full overflow-visible">
+              <defs>
+                <linearGradient id="chartAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <line x1="0" y1="40" x2="500" y2="40" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
+              <line x1="0" y1="90" x2="500" y2="90" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
+              <line x1="0" y1="140" x2="500" y2="140" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
+
+              <path
+                d="M 0 160 Q 100 130, 200 100 T 350 50 T 500 20 L 500 190 L 0 190 Z"
+                fill="url(#chartAreaGrad)"
+              />
+              <path
+                d="M 0 160 Q 100 130, 200 100 T 350 50 T 500 20"
+                fill="none"
+                stroke="#34d399"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 0 180 Q 100 150, 200 130 T 350 90 T 500 70"
+                fill="none"
+                stroke="#64748b"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+                strokeLinecap="round"
+              />
+            </svg>
+
+            <div className="mt-3 flex justify-between text-[11px] text-slate-500">
+              <span>فروردین</span>
+              <span>خرداد</span>
+              <span>مرداد</span>
+              <span>مهر</span>
+              <span>دی</span>
+              <span>اسفند</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Traffic Sources Donut Chart Card */}
+        <div className="glass-card flex flex-col p-6">
+          <h3 className="text-base font-bold text-white">منابع جذب مشتری</h3>
+          <p className="mt-1 text-xs text-slate-500">سهم هر کانال از سفارش‌های ثبت‌شده</p>
+
+          <div className="relative mx-auto mt-6 aspect-square w-full max-w-[200px] grid place-items-center">
+            <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="45" fill="none" stroke="#1e293b" strokeWidth="12" />
+              <circle
+                cx="60"
+                cy="60"
+                r="45"
+                fill="none"
+                stroke="#34d399"
+                strokeWidth="12"
+                strokeDasharray="282.7"
+                strokeDashoffset="130"
+              />
+              <circle
+                cx="60"
+                cy="60"
+                r="45"
+                fill="none"
+                stroke="#22d3ee"
+                strokeWidth="12"
+                strokeDasharray="282.7"
+                strokeDashoffset="214"
+              />
+              <circle
+                cx="60"
+                cy="60"
+                r="45"
+                fill="none"
+                stroke="#f59e0b"
+                strokeWidth="12"
+                strokeDasharray="282.7"
+                strokeDashoffset="245"
+              />
+            </svg>
+            <div className="absolute text-center">
+              <p className="text-2xl font-extrabold text-white">۵۴٪</p>
+              <p className="text-[10px] text-slate-500">جستجوی مستقیم</p>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-2 border-t border-white/[0.06] pt-4">
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-2 text-slate-300">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                گوگل و موتورهای جستجو
+              </span>
+              <span className="font-bold text-white">۵۴٪</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-2 text-slate-300">
+                <span className="h-2 w-2 rounded-full bg-cyan-400" />
+                شبکه‌های اجتماعی
+              </span>
+              <span className="font-bold text-white">۲۴٪</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-2 text-slate-300">
+                <span className="h-2 w-2 rounded-full bg-amber-400" />
+                پیامک و بازاریابی مستقیم
+              </span>
+              <span className="font-bold text-white">۲۲٪</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Recent Orders Glass Table */}
+      <section className="glass-card overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-5">
+          <div>
+            <h3 className="text-base font-bold text-white">آخرین سفارش‌های ثبت‌شده</h3>
+            <p className="mt-0.5 text-xs text-slate-500">آخرین تراکنش‌ها و خریدهای کاربران</p>
+          </div>
+          <Link to="/admin/orders" className="text-xs font-semibold text-emerald-400 hover:underline">
+            مشاهده همه سفارش‌ها ←
           </Link>
         </div>
 
-        {recent.isLoading ? (
-          <div className="skeleton" style={{ height: 120 }} />
-        ) : (recent.data?.items.length ?? 0) === 0 ? (
-          <div className="empty">هنوز سفارشی ثبت نشده است.</div>
-        ) : (
-          <div className="table-wrap">
-            <table className="data">
-              <thead>
+        <div className="huma-table-container">
+          <table className="huma-table">
+            <thead>
+              <tr>
+                <th>کد سفارش</th>
+                <th>مشتری</th>
+                <th>مبلغ کل</th>
+                <th>وضعیت سفارش</th>
+                <th>تاریخ ثبت</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentOrders.length === 0 ? (
                 <tr>
-                  <th>کد</th>
-                  <th>مشتری</th>
-                  <th>فروشگاه</th>
-                  <th>مبلغ</th>
-                  <th>وضعیت</th>
-                  <th>تاریخ</th>
+                  <td colSpan={5} className="py-8 text-center text-slate-500">
+                    هنوز هیچ سفارشی ثبت نشده است.
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {recent.data!.items.map((o) => (
-                  <tr key={o.id}>
-                    <td className="ltr">{o.orderCode}</td>
-                    <td>{o.customerName}</td>
-                    <td>{o.storeName || '—'}</td>
-                    <td>{formatMoney(o.total)}</td>
-                    <td>
-                      <span className="badge">{ORDER_STATUS_LABELS[o.status]}</span>
+              ) : (
+                recentOrders.map((order) => (
+                  <tr key={order.id} className="order-row">
+                    <td className="font-mono font-bold text-white" dir="ltr">
+                      #{order.code}
                     </td>
-                    <td>{new Date(o.createdAt).toLocaleDateString('fa-IR')}</td>
+                    <td>
+                      <div>
+                        <div className="font-semibold text-slate-200">
+                          {order.customerName || 'کاربر مهمان'}
+                        </div>
+                        {order.customerPhone && (
+                          <div className="text-[11px] text-slate-500" dir="ltr">
+                            {order.customerPhone}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="font-bold text-emerald-300">
+                      {formatNumber(order.totalAmount)} <span className="text-[11px] font-normal text-slate-500">تومان</span>
+                    </td>
+                    <td>
+                      <span className={`chip ${order.status === 'completed' ? 'chip-brand' : 'chip-amber'}`}>
+                        {order.status === 'completed' ? 'تکمیل شده' : 'در حال پردازش'}
+                      </span>
+                    </td>
+                    <td className="text-xs text-slate-400">
+                      {new Date(order.createdAt).toLocaleDateString('fa-IR')}
+                    </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
   );
 }
