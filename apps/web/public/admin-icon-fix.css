@@ -1,0 +1,38 @@
+/* Admin SVG icon safety fallback.
+   Some SVGs in the admin panel do not have Tailwind h-/w- classes or explicit
+   width/height attributes, which can make them expand to their container. */
+.admin-body-shell svg:not([width]):not([height]) {
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  max-width: 100%;
+  max-height: 100%;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+
+.admin-body-shell .nav-item .icon-svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  min-width: 1.25rem;
+  min-height: 1.25rem;
+  max-width: 1.25rem;
+  max-height: 1.25rem;
+  flex: 0 0 1.25rem;
+}
+
+.admin-body-shell .stat-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  max-width: 1.5rem;
+  max-height: 1.5rem;
+  flex: 0 0 1.5rem;
+}
+
+.admin-body-shell .chip svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  max-width: 0.75rem;
+  max-height: 0.75rem;
+  flex: 0 0 0.75rem;
+}
