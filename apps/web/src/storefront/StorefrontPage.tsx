@@ -584,9 +584,9 @@ export function StorefrontPage() {
           <div className="footer-enamad">
             <h3 className="footer-title">نماد اعتماد</h3>
             <div className="enamad-box">
-              <a referrerpolicy="origin" target="_blank" rel="noopener noreferrer" href="https://trustseal.enamad.ir/?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw">
+              <a referrerPolicy="origin" target="_blank" rel="noopener noreferrer" href="https://trustseal.enamad.ir/?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw">
                 <img
-                  referrerpolicy="origin"
+                  referrerPolicy="origin"
                   src="https://trustseal.enamad.ir/logo.aspx?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw"
                   alt="نماد اعتماد الکترونیکی"
                 />
