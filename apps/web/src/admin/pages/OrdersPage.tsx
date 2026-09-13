@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { OrderDTO, OrderStatus } from '@tamas/shared';
-import { ORDER_STATUSES, ORDER_STATUS_LABELS, WAREHOUSE_LABELS, formatMoney, formatNumber } from '@tamas/shared';
+import { ORDER_STATUSES, ORDER_STATUS_LABELS, formatMoney, formatNumber } from '@tamas/shared';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
@@ -12,13 +12,13 @@ interface OrdersResponse {
   total: number;
 }
 
-const TONE: Record<OrderStatus, string> = {
-  new: 'brand',
-  confirmed: 'brand',
-  preparing: 'warn',
-  shipped: 'warn',
-  delivered: 'success',
-  cancelled: 'danger',
+const CHIP_TONE: Record<OrderStatus, string> = {
+  new: 'chip-brand',
+  confirmed: 'chip-brand',
+  preparing: 'chip-amber',
+  shipped: 'chip-aqua',
+  delivered: 'chip-brand',
+  cancelled: 'chip-rose',
 };
 
 export function OrdersPage() {
@@ -33,13 +33,13 @@ export function OrdersPage() {
   const [note, setNote] = useState('');
 
   const debounced = useDebounced(search);
-  const query = useMemo(() => ({ q: debounced, status, page, perPage: 40 }), [debounced, status, page]);
+  const query = useMemo(() => ({ q: debounced, status, page, perPage: 30 }), [debounced, status, page]);
 
   const orders = useQuery({
     queryKey: ['admin', 'orders', query],
     queryFn: () => api.get<OrdersResponse>('/admin/orders', query),
     placeholderData: (prev) => prev,
-    refetchInterval: 60_000,
+    refetchInterval: 30_000,
   });
 
   const counts = useQuery({
@@ -57,7 +57,7 @@ export function OrdersPage() {
     mutationFn: ({ id, body }: { id: number; body: { status?: OrderStatus; note?: string } }) =>
       api.patch<{ order: OrderDTO }>(`/admin/orders/${id}`, body),
     onSuccess: (res) => {
-      toast.ok('سفارش به‌روزرسانی شد.');
+      toast.ok('سفارش به روزرسانی شد.');
       setDetail(res.order);
       refresh();
     },
@@ -67,7 +67,7 @@ export function OrdersPage() {
   const bulkStatus = useMutation({
     mutationFn: (body: { ids: number[]; status: OrderStatus }) => api.post<{ changed: number }>('/admin/orders/bulk-status', body),
     onSuccess: (res) => {
-      toast.ok(`${formatNumber(res.changed)} سفارش به‌روزرسانی شد.`);
+      toast.ok(`${formatNumber(res.changed)} سفارش تغییر یافت.`);
       setSelected(new Set());
       refresh();
     },
@@ -76,36 +76,50 @@ export function OrdersPage() {
 
   const items = orders.data?.items ?? [];
   const total = orders.data?.total ?? 0;
-  const pageCount = Math.max(1, Math.ceil(total / 40));
+  const pageCount = Math.max(1, Math.ceil(total / 30));
 
   return (
-    <>
-      <div className="admin-head">
-        <h1>سفارش‌ها</h1>
-        <span className="badge">{formatNumber(total)} مورد</span>
-        <span className="spacer" />
+    <div className="space-y-6">
+      {/* Header */}
+      <section className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
+        <div>
+          <h2 className="text-xl font-extrabold text-white sm:text-2xl">مدیریت سفارش‌ها</h2>
+          <p className="mt-1 text-xs text-slate-400">بررسی، تایید و تغییر وضعیت سفارش‌های فروشگاه</p>
+        </div>
         <button
           type="button"
-          className="btn"
+          className="huma-btn-secondary"
           onClick={() =>
             void api
               .download('/admin/orders/export', { status, q: debounced }, `orders-${Date.now()}.csv`)
               .catch((err: Error) => toast.error(err.message))
           }
         >
-          خروجی CSV
+          خروجی اکسل / CSV
         </button>
-      </div>
+      </section>
 
-      <div className="tabs">
-        <button type="button" className={`tab${status === 'all' ? ' on' : ''}`} onClick={() => { setStatus('all'); setPage(1); }}>
+      {/* Status Filter Tabs */}
+      <section className="glass-card p-2 flex flex-wrap gap-1">
+        <button
+          type="button"
+          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+            status === 'all' ? 'bg-emerald-500/15 text-emerald-300 shadow-glow' : 'text-slate-400 hover:text-white'
+          }`}
+          onClick={() => {
+            setStatus('all');
+            setPage(1);
+          }}
+        >
           همه ({formatNumber(counts.data?.total ?? 0)})
         </button>
         {ORDER_STATUSES.map((s) => (
           <button
             key={s}
             type="button"
-            className={`tab${status === s ? ' on' : ''}`}
+            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+              status === s ? 'bg-emerald-500/15 text-emerald-300 shadow-glow' : 'text-slate-400 hover:text-white'
+            }`}
             onClick={() => {
               setStatus(s);
               setPage(1);
@@ -114,224 +128,213 @@ export function OrdersPage() {
             {ORDER_STATUS_LABELS[s]} ({formatNumber(counts.data?.counts[s] ?? 0)})
           </button>
         ))}
-      </div>
+      </section>
 
-      <div className="filters-bar">
+      {/* Search Input */}
+      <section className="glass-card p-4">
         <input
-          className="input grow"
-          placeholder="جستجو در کد سفارش، نام، موبایل، فروشگاه…"
+          className="huma-input"
+          placeholder="جستجو در کد سفارش، نام مشتری، شماره همراه..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
             setPage(1);
           }}
         />
-      </div>
+      </section>
 
+      {/* Bulk Operations */}
       {selected.size > 0 && (
-        <div className="bulk-bar">
-          <b>{formatNumber(selected.size)} سفارش انتخاب شده</b>
-          <span>تغییر وضعیت به:</span>
+        <section className="glass-card bg-emerald-500/10 border-emerald-500/30 p-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-bold text-emerald-300">{formatNumber(selected.size)} سفارش انتخاب شده:</span>
           {ORDER_STATUSES.map((s) => (
             <button
               key={s}
               type="button"
-              className="btn sm"
+              className="huma-btn-secondary !py-1 !px-2.5 !text-xs"
               onClick={() => bulkStatus.mutate({ ids: [...selected], status: s })}
             >
-              {ORDER_STATUS_LABELS[s]}
+              به {ORDER_STATUS_LABELS[s]}
             </button>
           ))}
-          <span className="spacer" />
-          <button type="button" className="btn ghost sm" onClick={() => setSelected(new Set())}>لغو انتخاب</button>
-        </div>
+          <button type="button" className="text-xs text-slate-400 underline mr-auto" onClick={() => setSelected(new Set())}>
+            لغو انتخاب
+          </button>
+        </section>
       )}
 
-      {orders.isLoading ? (
-        <div className="skeleton" style={{ height: 340 }} />
-      ) : items.length === 0 ? (
-        <div className="card empty">سفارشی پیدا نشد.</div>
-      ) : (
-        <div className="table-wrap">
-          <table className="data">
-            <thead>
-              <tr>
-                <th style={{ width: 34 }}>
-                  <input
-                    type="checkbox"
-                    checked={items.length > 0 && items.every((o) => selected.has(o.id))}
-                    onChange={(e) => {
-                      const next = new Set(selected);
-                      for (const o of items) {
-                        if (e.target.checked) next.add(o.id);
-                        else next.delete(o.id);
-                      }
-                      setSelected(next);
-                    }}
-                    aria-label="انتخاب همه"
-                  />
-                </th>
-                <th>کد</th>
-                <th>مشتری</th>
-                <th>فروشگاه</th>
-                <th>موبایل</th>
-                <th>اقلام</th>
-                <th>مبلغ</th>
-                <th>وضعیت</th>
-                <th>تاریخ</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((o) => (
-                <tr key={o.id}>
-                  <td>
+      {/* Orders Glass Table */}
+      <section className="glass-card overflow-hidden">
+        {orders.isLoading ? (
+          <div className="p-12 text-center text-slate-400">در حال دریافت لیست سفارش‌ها...</div>
+        ) : items.length === 0 ? (
+          <div className="p-12 text-center text-slate-500">هیچ سفارشی یافت نشد.</div>
+        ) : (
+          <div className="huma-table-container">
+            <table className="huma-table">
+              <thead>
+                <tr>
+                  <th style={{ width: 36 }}>
                     <input
                       type="checkbox"
-                      checked={selected.has(o.id)}
-                      onChange={() => {
+                      checked={items.length > 0 && items.every((o) => selected.has(o.id))}
+                      onChange={(e) => {
                         const next = new Set(selected);
-                        if (next.has(o.id)) next.delete(o.id);
-                        else next.add(o.id);
+                        for (const o of items) {
+                          if (e.target.checked) next.add(o.id);
+                          else next.delete(o.id);
+                        }
                         setSelected(next);
                       }}
-                      aria-label={o.orderCode}
                     />
-                  </td>
-                  <td className="ltr">{o.orderCode}</td>
-                  <td>{o.customerName}</td>
-                  <td>{o.storeName || '—'}</td>
-                  <td className="ltr">{o.phone}</td>
-                  <td>{formatNumber(o.items.length)}</td>
-                  <td>{formatMoney(o.total)}</td>
-                  <td>
-                    <select
-                      className="select"
-                      style={{ width: 'auto', padding: '4px 8px', fontSize: 12 }}
-                      value={o.status}
-                      onChange={(e) => patch.mutate({ id: o.id, body: { status: e.target.value as OrderStatus } })}
-                    >
-                      {ORDER_STATUSES.map((s) => (
-                        <option key={s} value={s}>
-                          {ORDER_STATUS_LABELS[s]}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>{new Date(o.createdAt).toLocaleDateString('fa-IR')}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="btn sm"
-                      onClick={() => {
-                        setDetail(o);
-                        setNote(o.note ?? '');
-                      }}
-                    >
-                      جزئیات
-                    </button>
-                  </td>
+                  </th>
+                  <th>کد سفارش</th>
+                  <th>خریدار</th>
+                  <th>مبلغ کل</th>
+                  <th>وضعیت سفارش</th>
+                  <th>روش پرداخت</th>
+                  <th>تاریخ</th>
+                  <th>جزئیات</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {pageCount > 1 && (
-        <div className="pager">
-          <button type="button" className="btn" disabled={page <= 1} onClick={() => setPage(page - 1)}>قبلی</button>
-          <span className="muted">صفحه {formatNumber(page)} از {formatNumber(pageCount)}</span>
-          <button type="button" className="btn" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>بعدی</button>
-        </div>
-      )}
-
-      <Modal
-        open={detail !== null}
-        wide
-        title={detail ? `سفارش ${detail.orderCode}` : ''}
-        onClose={() => setDetail(null)}
-        footer={
-          detail ? (
-            <>
-              <button
-                type="button"
-                className="btn primary"
-                style={{ flex: 1 }}
-                onClick={() => patch.mutate({ id: detail.id, body: { note } })}
-                disabled={patch.isPending}
-              >
-                ذخیره یادداشت
-              </button>
-              <button type="button" className="btn" onClick={() => setDetail(null)}>بستن</button>
-            </>
-          ) : null
-        }
-      >
-        {detail && (
-          <div className="stack">
-            <div className="stat-grid" style={{ marginBottom: 0 }}>
-              <div className="stat">
-                <div className="label">مشتری</div>
-                <div style={{ fontWeight: 600 }}>{detail.customerName}</div>
-                <div className="sub ltr">{detail.phone}</div>
-              </div>
-              <div className="stat">
-                <div className="label">فروشگاه</div>
-                <div style={{ fontWeight: 600 }}>{detail.storeName || '—'}</div>
-              </div>
-              <div className="stat">
-                <div className="label">مبلغ کل</div>
-                <div className="value brand" style={{ fontSize: 17 }}>{formatMoney(detail.total)}</div>
-              </div>
-              <div className="stat">
-                <div className="label">وضعیت</div>
-                <span className={`badge ${TONE[detail.status]}`}>{ORDER_STATUS_LABELS[detail.status]}</span>
-                <div className="sub">{new Date(detail.createdAt).toLocaleString('fa-IR')}</div>
-              </div>
-            </div>
-
-            <div className="field">
-              <label>آدرس تحویل</label>
-              <div className="card" style={{ padding: 10 }}>{detail.address || '—'}</div>
-            </div>
-
-            <div className="table-wrap">
-              <table className="data">
-                <thead>
-                  <tr>
-                    <th>کالا</th>
-                    <th>کد</th>
-                    <th>رنگ</th>
-                    <th>انبار</th>
-                    <th>تعداد</th>
-                    <th>قیمت واحد</th>
-                    <th>جمع</th>
+              </thead>
+              <tbody>
+                {items.map((o) => (
+                  <tr key={o.id} className="order-row">
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selected.has(o.id)}
+                        onChange={() => {
+                          const next = new Set(selected);
+                          if (next.has(o.id)) next.delete(o.id);
+                          else next.add(o.id);
+                          setSelected(next);
+                        }}
+                      />
+                    </td>
+                    <td className="font-mono font-bold text-white" dir="ltr">
+                      #{o.orderCode}
+                    </td>
+                    <td>
+                      <div className="font-bold text-white">{o.customerName || 'کاربر مهمان'}</div>
+                      <div className="text-[11px] text-slate-500 font-mono" dir="ltr">
+                        {o.phone || '—'}
+                      </div>
+                    </td>
+                    <td className="font-bold text-emerald-300">{formatMoney(o.total)}</td>
+                    <td>
+                      <span className={`chip ${CHIP_TONE[o.status]}`}>
+                        {ORDER_STATUS_LABELS[o.status]}
+                      </span>
+                    </td>
+                    <td className="text-xs text-slate-400">
+                      {o.paymentMethod === 'card_to_card' ? 'کارت به کارت' : 'آنلاین / نقدی'}
+                    </td>
+                    <td className="text-xs text-slate-400">
+                      {new Date(o.createdAt).toLocaleDateString('fa-IR')}
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="huma-btn-secondary !py-1 !px-3 !text-xs"
+                        onClick={() => {
+                          setDetail(o);
+                          setNote(o.note ?? '');
+                        }}
+                      >
+                        بررسی و ویرایش
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {detail.items.map((i) => (
-                    <tr key={i.id}>
-                      <td className="wrap">{i.title}</td>
-                      <td className="ltr">{i.productId}</td>
-                      <td>{i.color || '—'}</td>
-                      <td>{WAREHOUSE_LABELS[i.warehouse]}</td>
-                      <td>{formatNumber(i.qty)}</td>
-                      <td>{formatMoney(i.price)}</td>
-                      <td>{formatMoney(i.price * i.qty)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="field">
-              <label htmlFor="o-note">یادداشت داخلی</label>
-              <textarea id="o-note" className="textarea" rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
-      </Modal>
-    </>
+      </section>
+
+      {/* Pagination */}
+      {pageCount > 1 && (
+        <section className="flex items-center justify-between glass-card p-4">
+          <button type="button" className="huma-btn-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+            صفحه قبلی
+          </button>
+          <span className="text-xs text-slate-400 font-semibold">
+            صفحه {formatNumber(page)} از {formatNumber(pageCount)}
+          </span>
+          <button type="button" className="huma-btn-secondary" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
+            صفحه بعدی
+          </button>
+        </section>
+      )}
+
+      {/* Details Modal */}
+      {detail && (
+        <Modal
+          open={true}
+          title={`جزئیات سفارش #${detail.orderCode}`}
+          onClose={() => setDetail(null)}
+          footer={
+            <button type="button" className="huma-btn-secondary" onClick={() => setDetail(null)}>
+              بستن
+            </button>
+          }
+        >
+          <div className="space-y-4">
+            <div className="glass-card p-4 grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <span className="text-slate-400">نام خریدار:</span>{' '}
+                <strong className="text-white">{detail.customerName || 'مهمان'}</strong>
+              </div>
+              <div>
+                <span className="text-slate-400">شماره همراه:</span>{' '}
+                <strong className="text-white" dir="ltr">{detail.phone || '—'}</strong>
+              </div>
+              <div className="col-span-2">
+                <span className="text-slate-400">آدرس تحویل:</span>{' '}
+                <span className="text-slate-200">{detail.address || '—'}</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 mb-2">تغییر وضعیت سفارش:</label>
+              <div className="flex flex-wrap gap-2">
+                {ORDER_STATUSES.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      detail.status === s ? 'bg-emerald-500 text-slate-950 shadow-glow' : 'huma-btn-secondary'
+                    }`}
+                    onClick={() => patch.mutate({ id: detail.id, body: { status: s } })}
+                  >
+                    {ORDER_STATUS_LABELS[s]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-white/[0.06] pt-4">
+              <label className="block text-xs font-semibold text-slate-400 mb-1">یادداشت مدیریت:</label>
+              <div className="flex gap-2">
+                <input
+                  className="huma-input flex-1"
+                  placeholder="یادداشت یا پیگیری..."
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="huma-btn-primary"
+                  onClick={() => patch.mutate({ id: detail.id, body: { note } })}
+                >
+                  ذخیره
+                </button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </div>
   );
 }
