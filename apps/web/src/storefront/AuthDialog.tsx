@@ -69,7 +69,8 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
-  const [form, setForm] = useState<ProfileForm>(emptyProfile(null));
+  const [invalid, setInvalid] = useState<string[]>([]);
+  const timerRef = useRef<number | null>(null);
   const [nationalCode, setNationalCode] = useState(user?.nationalCode ?? '');
   const [birthDate, setBirthDate] = useState(user?.birthDate ?? '');
   const [inquiryBusy, setInquiryBusy] = useState(false);
@@ -190,8 +191,8 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
       applyProfile({ user: res.user, complete: true, missing: [] });
       setForm((prev) => ({
         ...prev,
-        name: res.identity.firstName || prev.name,
-        lastName: res.identity.lastName || prev.lastName,
+        name: res.identity.firstName || prev.name || '',
+        lastName: res.identity.lastName || prev.lastName || '',
       }));
       setInquirySuccess(true);
       setVerifiedInfo({
