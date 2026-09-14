@@ -1,6 +1,45 @@
-/* ==========================================================================
+/* ===========================================================================
    Huma Admin Panel Design System & Glassmorphism Theme
    ========================================================================== */
+
+/* React admin compatibility layer. The complete reference utility bundle is
+   loaded from reference.css before this file. Keep overrides scoped to the
+   admin shell so the storefront remains visually independent. */
+
+@font-face {
+  font-family: 'Vazirmatn FD';
+  src: url('../fonts/Vazirmatn-FD-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazirmatn FD';
+  src: url('../fonts/Vazirmatn-FD-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazirmatn FD';
+  src: url('../fonts/Vazirmatn-FD-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazirmatn FD';
+  src: url('../fonts/Vazirmatn-FD-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazirmatn FD';
+  src: url('../fonts/Vazirmatn-FD-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+}
 
 :root {
   --ink-950: #070b12;
@@ -30,6 +69,23 @@
   direction: rtl;
   position: relative;
   overflow-x: hidden;
+  isolation: isolate;
+}
+
+.admin-body-shell button,
+.admin-body-shell input,
+.admin-body-shell select,
+.admin-body-shell textarea {
+  font: inherit;
+}
+
+.admin-body-shell button:focus-visible,
+.admin-body-shell a:focus-visible,
+.admin-body-shell input:focus-visible,
+.admin-body-shell select:focus-visible,
+.admin-body-shell textarea:focus-visible {
+  outline: 2px solid rgba(52, 211, 153, 0.8);
+  outline-offset: 2px;
 }
 
 .admin-body-shell ul,
@@ -110,6 +166,13 @@
   transform: translateY(-0.25rem);
   border-color: rgba(16, 185, 129, 0.25);
   box-shadow: 0 20px 45px -15px rgba(2, 8, 20, 0.85);
+}
+
+/* Data-heavy forms and tables should stay stable while the dashboard cards
+   retain the lifted interaction used by the reference UI. */
+.huma-table-container.glass-card:hover,
+form.glass-card:hover {
+  transform: none;
 }
 
 .glass-card-static {
@@ -467,18 +530,18 @@
 }
 
 /* Custom Scrollbar for Huma Dark Theme */
-::-webkit-scrollbar {
+.admin-body-shell ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
-::-webkit-scrollbar-track {
+.admin-body-shell ::-webkit-scrollbar-track {
   background: transparent;
 }
-::-webkit-scrollbar-thumb {
+.admin-body-shell ::-webkit-scrollbar-thumb {
   border-radius: 9999px;
   background-color: #243149;
 }
-::-webkit-scrollbar-thumb:hover {
+.admin-body-shell ::-webkit-scrollbar-thumb:hover {
   background-color: #059669;
 }
 
@@ -487,7 +550,7 @@
    ========================================================================== */
 
 /* Universal SVG safety bounds to prevent full-screen expansion */
-svg {
+.admin-body-shell svg {
   max-width: 100%;
   box-sizing: border-box;
   vertical-align: middle;
@@ -666,3 +729,117 @@ svg.w-full, .w-full { width: 100%; }
 .font-bold { font-weight: 700; }
 .font-extrabold { font-weight: 800; }
 
+/* Utilities used by the React-only admin pages. The static reference bundle
+   does not contain these because its original HTML never requested them. */
+.admin-body-shell .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.admin-body-shell .col-span-2 { grid-column: span 2 / span 2; }
+.admin-body-shell .form-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 1rem; }
+.admin-body-shell .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+.admin-body-shell .p-3 { padding: 0.75rem; }
+.admin-body-shell .p-8 { padding: 2rem; }
+.admin-body-shell .p-12 { padding: 3rem; }
+.admin-body-shell .pb-3 { padding-bottom: 0.75rem; }
+.admin-body-shell .pt-4 { padding-top: 1rem; }
+.admin-body-shell .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+.admin-body-shell .py-12 { padding-top: 3rem; padding-bottom: 3rem; }
+.admin-body-shell .mb-1 { margin-bottom: 0.25rem; }
+.admin-body-shell .mb-3 { margin-bottom: 0.75rem; }
+.admin-body-shell .ml-2 { margin-left: 0.5rem; }
+.admin-body-shell .w-48 { width: 12rem; }
+.admin-body-shell .w-80 { width: 20rem; }
+.admin-body-shell .h-44 { height: 11rem; }
+.admin-body-shell .h-48 { height: 12rem; }
+.admin-body-shell .h-60 { height: 15rem; }
+.admin-body-shell .max-h-96 { max-height: 24rem; }
+.admin-body-shell .max-h-full { max-height: 100%; }
+.admin-body-shell .max-w-full { max-width: 100%; }
+.admin-body-shell .min-w-\[200px\] { min-width: 200px; }
+.admin-body-shell .object-contain { object-fit: contain; }
+.admin-body-shell .cursor-pointer { cursor: pointer; }
+.admin-body-shell .opacity-25 { opacity: 0.25; }
+.admin-body-shell .opacity-75 { opacity: 0.75; }
+.admin-body-shell .text-left { text-align: left; }
+.admin-body-shell .underline,
+.admin-body-shell .hover\:underline:hover { text-decoration-line: underline; }
+.admin-body-shell .line-clamp-2 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.admin-body-shell .border-2 { border-width: 2px; }
+.admin-body-shell .border-dashed { border-style: dashed; }
+.admin-body-shell .border-emerald-500\/20 { border-color: rgba(16, 185, 129, 0.2); }
+.admin-body-shell .border-emerald-500\/30 { border-color: rgba(16, 185, 129, 0.3); }
+.admin-body-shell .bg-\[\#070b12\] { background-color: #070b12; }
+.admin-body-shell .bg-\[\#070b12\]\/75 { background-color: rgba(7, 11, 18, 0.75); }
+.admin-body-shell .bg-\[\#0e1626\]\/80 { background-color: rgba(14, 22, 38, 0.8); }
+.admin-body-shell .bg-\[\#131c2e\] { background-color: #131c2e; }
+.admin-body-shell .bg-\[\#131c2e\]\/40 { background-color: rgba(19, 28, 46, 0.4); }
+.admin-body-shell .bg-\[\#131c2e\]\/60 { background-color: rgba(19, 28, 46, 0.6); }
+.admin-body-shell .bg-white\/\[0\.02\] { background-color: rgba(255, 255, 255, 0.02); }
+.admin-body-shell .bg-emerald-400\/20 { background-color: rgba(52, 211, 153, 0.2); }
+.admin-body-shell .bg-emerald-500\/10 { background-color: rgba(16, 185, 129, 0.1); }
+.admin-body-shell .bg-emerald-500\/15 { background-color: rgba(16, 185, 129, 0.15); }
+.admin-body-shell .bg-cyan-400 { background-color: #22d3ee; }
+.admin-body-shell .bg-cyan-500\/15 { background-color: rgba(6, 182, 212, 0.15); }
+.admin-body-shell .bg-amber-500\/15 { background-color: rgba(245, 158, 11, 0.15); }
+.admin-body-shell .bg-rose-500\/15 { background-color: rgba(244, 63, 94, 0.15); }
+.admin-body-shell .bg-slate-800 { background-color: #1e293b; }
+.admin-body-shell .text-cyan-300 { color: #67e8f9; }
+.admin-body-shell .text-cyan-400 { color: #22d3ee; }
+.admin-body-shell .text-rose-300 { color: #fda4af; }
+.admin-body-shell .ring-slate-950 { --tw-ring-color: #020617; }
+.admin-body-shell .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55); }
+.admin-body-shell .accent-emerald-500 { accent-color: #10b981; }
+.admin-body-shell .from-emerald-500 { --tw-gradient-from: #10b981; --tw-gradient-to: rgba(16, 185, 129, 0); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.admin-body-shell .from-emerald-500\/15 { --tw-gradient-from: rgba(16, 185, 129, 0.15); --tw-gradient-to: rgba(16, 185, 129, 0); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.admin-body-shell .via-\[\#131c2e\] { --tw-gradient-stops: var(--tw-gradient-from), #131c2e, var(--tw-gradient-to); }
+.admin-body-shell .to-\[\#0e1626\] { --tw-gradient-to: #0e1626; }
+.admin-body-shell .group:hover .group-hover\:scale-105 { transform: scale(1.05); }
+.admin-body-shell .group:focus-within .group-focus-within\:text-emerald-400 { color: #34d399; }
+.admin-body-shell .hover\:bg-white\/\[0\.05\]:hover { background-color: rgba(255, 255, 255, 0.05); }
+.admin-body-shell .hover\:bg-rose-500\/10:hover { background-color: rgba(244, 63, 94, 0.1); }
+.admin-body-shell .hover\:border-emerald-500\/30:hover { border-color: rgba(16, 185, 129, 0.3); }
+.admin-body-shell .hover\:border-emerald-500\/40:hover { border-color: rgba(16, 185, 129, 0.4); }
+.admin-body-shell .hover\:border-rose-500\/40:hover { border-color: rgba(244, 63, 94, 0.4); }
+.admin-body-shell .focus\:border-emerald-500\/40:focus { border-color: rgba(16, 185, 129, 0.4); }
+.admin-body-shell .focus\:bg-\[\#131c2e\]:focus { background-color: #131c2e; }
+.admin-body-shell .animate-spin { animation: admin-spin 1s linear infinite; }
+@keyframes admin-spin { to { transform: rotate(360deg); } }
+
+.admin-body-shell .\!bg-\[\#0e1626\]\/95 { background-color: rgba(14, 22, 38, 0.95) !important; }
+.admin-body-shell .\!bg-rose-500\/15 { background-color: rgba(244, 63, 94, 0.15) !important; }
+.admin-body-shell .\!border-rose-500\/30 { border-color: rgba(244, 63, 94, 0.3) !important; }
+.admin-body-shell .\!text-rose-300 { color: #fda4af !important; }
+.admin-body-shell .\!text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+.admin-body-shell .\!w-auto { width: auto !important; }
+.admin-body-shell .\!px-1\.5 { padding-left: 0.375rem !important; padding-right: 0.375rem !important; }
+.admin-body-shell .\!px-2\.5 { padding-left: 0.625rem !important; padding-right: 0.625rem !important; }
+.admin-body-shell .\!px-3 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+.admin-body-shell .\!px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+.admin-body-shell .\!py-0\.5 { padding-top: 0.125rem !important; padding-bottom: 0.125rem !important; }
+.admin-body-shell .\!py-1 { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+.admin-body-shell .\!py-1\.5 { padding-top: 0.375rem !important; padding-bottom: 0.375rem !important; }
+
+@media (min-width: 640px) {
+  .admin-body-shell .sm\:col-span-2 { grid-column: span 2 / span 2; }
+  .admin-body-shell .sm\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .admin-body-shell .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .admin-body-shell .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-body-shell .lg\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-body-shell *,
+  .admin-body-shell *::before,
+  .admin-body-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
