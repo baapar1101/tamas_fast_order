@@ -54,34 +54,44 @@ export function OrdersPage() {
         ) : (
           <div className="stack">
             {orders.data!.orders.map((order) => (
-              <div className="card" key={order.id} style={{ padding: 16 }}>
-                <div className="row wrap" style={{ marginBottom: 12 }}>
-                  <b className="ltr-inline">{order.orderCode}</b>
-                  <span className={`badge ${STATUS_TONE[order.status] ?? ''}`}>{ORDER_STATUS_LABELS[order.status]}</span>
-                  <span className="spacer" />
-                  <span className="muted">{new Date(order.createdAt).toLocaleDateString('fa-IR')}</span>
-                  <b style={{ color: 'var(--brand-600)' }}>{formatMoney(order.total)}</b>
+              <div className="card" key={order.id} style={{ padding: 24, borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', marginBottom: 24, backgroundColor: '#fff' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: 16, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>کد پیگیری:</span>
+                    <b style={{ fontSize: 16, color: '#0f172a' }} className="ltr-inline">{order.orderCode}</b>
+                    <span className={`badge ${STATUS_TONE[order.status] ?? ''}`} style={{ fontSize: 12, padding: '4px 10px' }}>{ORDER_STATUS_LABELS[order.status]}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                      <span style={{ fontSize: 12, color: '#64748b' }}>تاریخ ثبت</span>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: '#334155' }}>{new Date(order.createdAt).toLocaleDateString('fa-IR')}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                      <span style={{ fontSize: 12, color: '#64748b' }}>مبلغ کل</span>
+                      <b style={{ fontSize: 16, color: '#0ea5e9' }}>{formatMoney(order.total)}</b>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="table-wrap">
-                  <table className="data">
-                    <thead>
+                <div className="table-wrap" style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                  <table className="data" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
+                    <thead style={{ backgroundColor: '#f8fafc' }}>
                       <tr>
-                        <th>کالا</th>
-                        <th>رنگ</th>
-                        <th>انبار</th>
-                        <th>تعداد</th>
-                        <th>مبلغ</th>
+                        <th style={{ padding: '12px 16px', fontSize: 13, color: '#475569', fontWeight: 700, borderBottom: '1px solid #e2e8f0' }}>کالا</th>
+                        <th style={{ padding: '12px 16px', fontSize: 13, color: '#475569', fontWeight: 700, borderBottom: '1px solid #e2e8f0' }}>رنگ</th>
+                        <th style={{ padding: '12px 16px', fontSize: 13, color: '#475569', fontWeight: 700, borderBottom: '1px solid #e2e8f0' }}>انبار</th>
+                        <th style={{ padding: '12px 16px', fontSize: 13, color: '#475569', fontWeight: 700, borderBottom: '1px solid #e2e8f0' }}>تعداد</th>
+                        <th style={{ padding: '12px 16px', fontSize: 13, color: '#475569', fontWeight: 700, borderBottom: '1px solid #e2e8f0' }}>مبلغ</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {order.items.map((item) => (
-                        <tr key={item.id}>
-                          <td className="wrap">{item.title}</td>
-                          <td>{item.color || '—'}</td>
-                          <td>{WAREHOUSE_LABELS[item.warehouse]}</td>
-                          <td>{formatNumber(item.qty)}</td>
-                          <td>{formatMoney(item.price * item.qty)}</td>
+                      {order.items.map((item, idx) => (
+                        <tr key={item.id} style={{ borderBottom: idx !== order.items.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                          <td style={{ padding: '12px 16px', fontSize: 14, color: '#1e293b', fontWeight: 600 }} className="wrap">{item.title}</td>
+                          <td style={{ padding: '12px 16px', fontSize: 13, color: '#64748b' }}>{item.color || '—'}</td>
+                          <td style={{ padding: '12px 16px', fontSize: 13, color: '#64748b' }}>{WAREHOUSE_LABELS[item.warehouse]}</td>
+                          <td style={{ padding: '12px 16px', fontSize: 14, color: '#334155', fontWeight: 700 }}>{formatNumber(item.qty)}</td>
+                          <td style={{ padding: '12px 16px', fontSize: 14, color: '#0ea5e9', fontWeight: 700 }}>{formatMoney(item.price * item.qty)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -89,9 +99,13 @@ export function OrdersPage() {
                 </div>
 
                 {order.address && (
-                  <p className="muted" style={{ marginBottom: 0, marginTop: 10, fontSize: 12.5 }}>
-                    آدرس: {order.address}
-                  </p>
+                  <div style={{ marginTop: 16, padding: '12px 16px', backgroundColor: '#f8fafc', borderRadius: 8, border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ color: '#64748b' }}>📍</span>
+                    <span style={{ fontSize: 13, color: '#475569', fontWeight: 500, lineHeight: 1.6 }}>
+                      <strong style={{ color: '#334155', marginLeft: 4 }}>آدرس ارسال:</strong>
+                      {order.address}
+                    </span>
+                  </div>
                 )}
               </div>
             ))}

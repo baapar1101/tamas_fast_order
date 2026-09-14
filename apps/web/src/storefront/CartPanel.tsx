@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber } from '@tamas/shared';
 import { cartCount, cartTotal, useCart } from '../store/cart';
 import { Icon } from '../components/Icon';
@@ -14,6 +15,24 @@ export function CartPanel({ onCheckout }: Props) {
 
   const total = cartTotal(lines);
   const count = cartCount(lines);
+  const [notes, setNotes] = useState('');
+
+  const WHOLESALE_THRESHOLD = 5_000_000;
+  const progressPercent = Math.min(100, Math.floor((total / WHOLESALE_THRESHOLD) * 100));
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleWhatsApp = () => {
+    let text = `سلام، درخواست ثبت سفارش دارم:\n\n`;
+    lines.forEach(l => {
+      text += `- ${l.title} (${l.color || 'بدون رنگ'} - ${WAREHOUSE_LABELS[l.warehouse]}): ${l.qty} عدد\n`;
+    });
+    text += `\nجمع کل: ${formatMoney(total)}\n`;
+    if (notes) text += `\nتوضیحات: ${notes}\n`;
+    window.open(`https://wa.me/989901046596?text=${encodeURIComponent(text)}`, '_blank');
+  };
 
   return (
     <aside className="cart" id="cart">
@@ -51,8 +70,8 @@ export function CartPanel({ onCheckout }: Props) {
                   <button type="button" onClick={() => setQty(line.key, line.qty - 1)} aria-label="کاهش">
                     −
                   </button>
-                  <span style={{ marginInlineStart: 'auto', fontWeight: 800 }}>{formatMoney(line.price * line.qty)}</span>
-                  <button type="button" className="btn ghost sm" onClick={() => remove(line.key)} aria-label="حذف">
+                  <span style={{ marginInlineStart: 'auto', fontWeight: 800, color: 'var(--primary)' }}>{formatMoney(line.price * line.qty)}</span>
+                  <button type="button" className="btn ghost sm" style={{ color: 'var(--danger)' }} onClick={() => remove(line.key)} aria-label="حذف">
                     ✕
                   </button>
                 </div>
@@ -60,14 +79,41 @@ export function CartPanel({ onCheckout }: Props) {
             ))}
           </div>
 
-          <div className="total">
-            <span>جمع کل:</span>
-            <span style={{ color: 'var(--primary)' }}>{formatMoney(total)}</span>
+          <div className="wholesale-progress" style={{ margin: '16px 0', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+              <span>حد نصاب سفارش عمده</span>
+              <span>{progressPercent}%</span>
+            </div>
+            <div style={{ height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
+              <div style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: progressPercent >= 100 ? '#10b981' : '#0ea5e9', transition: 'width 0.3s ease' }} />
+            </div>
+            <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
+              حداقل مبلغ سفارش: {formatMoney(WHOLESALE_THRESHOLD)}
+            </div>
           </div>
 
-          <button type="button" className="btn primary checkout" onClick={onCheckout}>
-            ثبت سفارش
-          </button>
+          <div className="total" style={{ borderTop: '2px dashed #e2e8f0', paddingTop: '16px', marginTop: '8px' }}>
+            <span style={{ fontWeight: 800, fontSize: '16px' }}>مجموع فاکتور</span>
+            <span style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '18px' }}>{formatMoney(total)}</span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
+            <textarea 
+              placeholder="توضیحات سفارش (اختیاری)..." 
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', resize: 'vertical', minHeight: '60px', fontFamily: 'inherit' }}
+            />
+            <button type="button" className="btn primary checkout" onClick={onCheckout} style={{ padding: '12px', fontSize: '14px', borderRadius: '8px' }}>
+              ثبت سفارش نهایی
+            </button>
+            <button type="button" className="btn" onClick={handleWhatsApp} style={{ backgroundColor: '#10b981', color: 'white', padding: '12px', fontSize: '14px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: 'none' }}>
+              ارسال سفارش در واتساپ
+            </button>
+            <button type="button" className="btn ghost" onClick={handlePrint} style={{ padding: '10px', fontSize: '13px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1px solid #cbd5e1', color: '#475569' }}>
+              پیش‌فاکتور چاپی
+            </button>
+          </div>
         </>
       )}
     </aside>
