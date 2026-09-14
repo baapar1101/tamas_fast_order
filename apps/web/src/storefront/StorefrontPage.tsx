@@ -350,7 +350,9 @@ export function StorefrontPage() {
               const iconSrc = c.iconUrl
                 ? c.iconUrl.startsWith('http') || c.iconUrl.startsWith('/')
                   ? c.iconUrl
-                  : `/assets/category/${c.iconUrl}`
+                  : c.iconUrl.startsWith('img_')
+                    ? `/uploads/${c.iconUrl}`
+                    : `/assets/category/${c.iconUrl}`
                 : null;
               return (
                 <button
@@ -394,7 +396,9 @@ export function StorefrontPage() {
                 const iconSrc = b.iconUrl
                   ? b.iconUrl.startsWith('http') || b.iconUrl.startsWith('/')
                     ? b.iconUrl
-                    : `/assets/brand/${b.iconUrl}`
+                    : b.iconUrl.startsWith('img_')
+                      ? `/uploads/${b.iconUrl}`
+                      : `/assets/brand/${b.iconUrl}`
                   : null;
                 return (
                   <button
