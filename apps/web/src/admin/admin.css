@@ -1004,3 +1004,37 @@ svg.w-full, .w-full { width: 100%; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   Admin Modal Theme Overrides
+   ========================================================================== */
+.admin-page-active .modal-panel {
+  background-color: #0e1626;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}
+
+.admin-page-active .modal-head {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: transparent;
+}
+
+.admin-page-active .modal-head h3 {
+  color: #fff;
+  font-weight: 700;
+}
+
+.admin-page-active .modal-head button.ghost {
+  color: #94a3b8;
+}
+
+.admin-page-active .modal-head button.ghost:hover {
+  color: #f87171;
+  background-color: rgba(248, 113, 113, 0.1);
+}
+
+.admin-page-active .modal-foot {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: transparent;
+}
