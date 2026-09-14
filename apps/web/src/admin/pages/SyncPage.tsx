@@ -120,13 +120,13 @@ export function SyncPage() {
       </section>
 
       {/* 7 Entity Sync Status Cards Grid */}
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {SYNC_ENTITIES.map((entityKey) => {
           const state = status.data?.entities.find((e) => e.entity === entityKey);
           const hasErr = Boolean(state?.lastError);
 
           return (
-            <div key={entityKey} className={`glass-card p-5 ${hasErr ? 'border-rose-500/40 bg-rose-500/10' : ''}`}>
+            <div key={entityKey} className={`glass-card p-5 flex flex-col ${hasErr ? 'border-rose-500/40 bg-rose-500/10' : ''}`}>
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-bold text-white text-sm">{SYNC_ENTITY_LABELS[entityKey]}</h4>
                 <span className={`chip ${hasErr ? 'chip-rose' : 'chip-brand'}`}>
@@ -135,11 +135,13 @@ export function SyncPage() {
               </div>
 
               {hasErr ? (
-                <div className="space-y-2">
-                  <p className="text-xs text-rose-300 line-clamp-2">{state?.lastError}</p>
+                <div className="flex flex-col gap-2 flex-1 mt-2">
+                  <p className="text-[11px] leading-relaxed text-rose-300 bg-black/20 p-2 rounded-lg line-clamp-3 text-left font-mono" dir="ltr">
+                    {state?.lastError}
+                  </p>
                   <button
                     type="button"
-                    className="text-[11px] text-rose-400 underline hover:text-white"
+                    className="text-xs font-bold text-rose-400 hover:text-white bg-rose-500/20 hover:bg-rose-500/40 px-3 py-2 rounded-lg mt-auto transition-colors w-full text-center"
                     onClick={() => clearError.mutate(entityKey)}
                   >
                     پاکسازی خطا
