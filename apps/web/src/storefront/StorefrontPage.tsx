@@ -381,15 +381,6 @@ export function StorefrontPage() {
         <div className="layout">
           {/* Sidebar (Right Column in RTL) */}
           <aside className={`sidebar${filtersOpen ? ' open' : ''}`}>
-            <button
-              type="button"
-              className="sidebar-toggle"
-              aria-expanded={filtersOpen}
-              onClick={() => setFiltersOpen(!filtersOpen)}
-            >
-              <span>برندها و فیلترها</span>
-              <Icon name="chevron" className="chev" />
-            </button>
             <div className="sidebar-body">
               <div className="side-title">
                 <span>برندها</span>
