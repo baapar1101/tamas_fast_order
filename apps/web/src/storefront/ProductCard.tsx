@@ -64,7 +64,12 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
   if (!selectedVariant) return null;
 
   const brand = selectedVariant.brandFaName || selectedVariant.brandName || 'متفرقه';
-  const image = group.imageUrl || selectedVariant.imageUrl || '/logo.png';
+  const rawImage = group.imageUrl || selectedVariant.imageUrl;
+  const image = rawImage
+    ? rawImage.startsWith('http') || rawImage.startsWith('/')
+      ? rawImage
+      : `/uploads/${rawImage}`
+    : '/logo.png';
   const isPromo = Boolean(group.promotion || selectedVariant.promotion);
   const titleClass = productTitleClass(group.title);
   const whButtons = getWarehouseButtons(selectedVariant);
