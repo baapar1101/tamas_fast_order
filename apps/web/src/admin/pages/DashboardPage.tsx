@@ -331,7 +331,7 @@ export function DashboardPage() {
           <h3 className="text-base font-bold text-white">منابع جذب مشتری</h3>
           <p className="mt-1 text-xs text-slate-500">سهم هر کانال از سفارش‌های ثبت‌شده</p>
 
-          <div className="relative mx-auto mt-6 flex h-48 w-48 items-center justify-center">
+          <div className="relative mx-auto mt-6 flex items-center justify-center" style={{ width: '12rem', height: '12rem' }}>
             <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
               <circle cx="60" cy="60" r="45" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="11" />
               {/* Google Segment 54% (Length 152.7, Offset 0) */}
