@@ -41,6 +41,7 @@ export const productAttributeSchema = z.object({
 
 export const productWriteSchema = z.object({
   productId: z.string().trim().min(1).max(80),
+  parentProductId: z.string().trim().max(80).optional().nullable(),
   sku: z.string().trim().max(80).optional().nullable(),
   title: z.string().trim().min(1).max(400),
   model: z.string().trim().max(400).optional().nullable(),
@@ -55,6 +56,7 @@ export const productWriteSchema = z.object({
   stock: stockSchema.default(0),
   kermanStock: stockSchema.optional().nullable(),
   tehranStock: stockSchema.optional().nullable(),
+  otherStocks: z.record(z.string(), z.number()).default({}),
   warranty: z.string().trim().max(300).optional().nullable(),
   sellType: z.string().trim().max(200).optional().nullable(),
   seller: z.string().trim().max(200).optional().nullable(),

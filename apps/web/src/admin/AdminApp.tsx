@@ -293,11 +293,8 @@ export default function AdminApp() {
       >
         {/* Brand Logo Header */}
         <div className="flex items-center gap-3 px-6 pb-6 pt-7 border-b border-white/[0.06] mb-4">
-          <div className="relative grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500 shadow-glow">
-            <svg className="h-6 w-6 text-slate-950" width="24" height="24" style={{ width: '1.5rem', height: '1.5rem', flexShrink: 0 }} fill="none" viewBox="0 0 24 24" strokeWidth="2.4" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l6.75-6.75 4.5 4.5 6.25-6.25M21 5.5V10m0-4.5h-4.5" />
-            </svg>
-            <span className="absolute inset-0 rounded-2xl animate-pulse-ring" />
+          <div className="relative grid place-items-center">
+            <img src="/admin-logo.svg" alt="Tamas Logo" className="h-11 w-11 object-contain" />
           </div>
           <div>
             <h1 className="text-lg font-extrabold text-white leading-none">تماس مارکت</h1>
