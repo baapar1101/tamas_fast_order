@@ -152,6 +152,34 @@ def write_excel_catalog(catalog_data, output_path=DEFAULT_EXCEL_FILE):
     print(f"✅ Saved catalog to Excel file: {output_path}")
 
 
+def validate_catalog_images(catalog_data):
+    """Reject obviously corrupted snapshots where one image was copied to nearly every product."""
+    products = catalog_data.get("products", [])
+    image_urls = [
+        str(product.get("image_url", "")).strip()
+        for product in products
+        if str(product.get("image_url", "")).strip()
+    ]
+    if len(image_urls) < 20:
+        return
+
+    unique_count = len(set(image_urls))
+    most_common_count = max(image_urls.count(url) for url in set(image_urls))
+    dominant_ratio = most_common_count / len(image_urls)
+    if unique_count == 1 or dominant_ratio >= 0.9:
+        raise ValueError(
+            "Image validation failed: the catalogue snapshot assigns the same "
+            f"image to {most_common_count}/{len(image_urls)} products."
+        )
+
+
+def write_json_backup(catalog_data, output_path=DEFAULT_BACKUP_FILE):
+    validate_catalog_images(catalog_data)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(catalog_data, f, ensure_ascii=False, indent=2)
+    print(f"✅ Saved local JSON backup: {output_path}")
+
+
 def fetch_csv_from_gss(spreadsheet_id, sheet_name):
     """Fetch sheet content via Google Sheets CSV export URL (no API key required if accessible)."""
     url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
@@ -229,10 +257,8 @@ def cmd_pull(config, args):
             "settings": fetch_csv_from_gss(config["spreadsheet_id"], "Settings")
         }
 
-    # Save to local backup JSON
-    with open(config["backup_file"], "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-    print(f"✅ Saved local JSON backup: {config['backup_file']}")
+    # Save to local backup JSON only after a basic data-integrity check.
+    write_json_backup(data, config["backup_file"])
 
     # Write to local Excel workbook
     write_excel_catalog(data, output_path=config["excel_file"])
@@ -251,6 +277,13 @@ def cmd_push(config, args):
     print(f"Uploading catalog ({len(catalog.get('products', []))} products, {len(catalog.get('categories', []))} categories)...")
     res = push_to_web_app(config["web_app_url"], catalog)
     print(f"✅ Sync complete! Server response: {res.get('message', 'Success')}")
+
+
+def cmd_backup(config, args):
+    """Rebuild the local JSON fallback from the local Excel workbook only."""
+    print(f"📦 Reading local Excel workbook '{config['excel_file']}'...")
+    catalog = read_excel_catalog(config["excel_file"])
+    write_json_backup(catalog, config["backup_file"])
 
 
 def cmd_diff(config, args):
@@ -346,6 +379,7 @@ def main():
     parser.add_argument("--push", action="store_true", help="Push local Excel catalog to Google Sheets")
     parser.add_argument("--diff", action="store_true", help="Check differences between local and Google Sheets")
     parser.add_argument("--watch", action="store_true", help="Auto-sync when local Excel file changes")
+    parser.add_argument("--backup", action="store_true", help="Build JSON backup from the local Excel file")
     parser.add_argument("--set-url", type=str, help="Set deployed Google Apps Script Web App URL")
     parser.add_argument("--sheet-id", type=str, help="Set Google Spreadsheet ID")
     parser.add_argument("--file", type=str, help="Specify local Excel file path")
@@ -367,6 +401,8 @@ def main():
 
     if args.pull:
         cmd_pull(config, args)
+    elif args.backup:
+        cmd_backup(config, args)
     elif args.push:
         cmd_push(config, args)
     elif args.diff:
