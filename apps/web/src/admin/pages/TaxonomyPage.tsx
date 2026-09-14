@@ -39,6 +39,24 @@ export function TaxonomyPage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const deleteCat = useMutation({
+    mutationFn: (id: number) => api.del(`/admin/categories/${id}`),
+    onSuccess: () => {
+      toast.ok('دسته‌بندی حذف شد.');
+      invalidate();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const deleteBrand = useMutation({
+    mutationFn: (id: number) => api.del(`/admin/brands/${id}`),
+    onSuccess: () => {
+      toast.ok('برند حذف شد.');
+      invalidate();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   const categories = taxonomy.data?.categories ?? [];
   const brands = taxonomy.data?.brands ?? [];
 
@@ -48,7 +66,7 @@ export function TaxonomyPage() {
       <section className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
         <div>
           <h2 className="text-xl font-extrabold text-white sm:text-2xl">مدیریت دسته‌ها و برندها</h2>
-          <p className="mt-1 text-xs text-slate-400">تعریف دسته‌بندی محصولات و برندهای سازنده</p>
+          <p className="mt-1 text-xs text-slate-400">تعریف، ویرایش و پاکسازی دسته‌بندی محصولات و برندهای سازنده</p>
         </div>
       </section>
 
@@ -93,7 +111,19 @@ export function TaxonomyPage() {
                   <div className="font-bold text-white text-xs">{c.faName}</div>
                   <div className="text-[10px] text-slate-500">{c.name}</div>
                 </div>
-                <span className="chip chip-slate">ID: #{c.id}</span>
+                <div className="flex items-center gap-2">
+                  <span className="chip chip-slate">ID: #{c.id}</span>
+                  <button
+                    type="button"
+                    className="text-xs text-rose-400 hover:text-rose-300 p-1"
+                    title="حذف دسته"
+                    onClick={() => {
+                      if (confirm(`آیا دسته‌بندی «${c.faName}» حذف شود؟`)) deleteCat.mutate(c.id);
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -139,7 +169,19 @@ export function TaxonomyPage() {
                   <div className="font-bold text-white text-xs">{b.faName}</div>
                   <div className="text-[10px] text-slate-500">{b.name}</div>
                 </div>
-                <span className="chip chip-slate">ID: #{b.id}</span>
+                <div className="flex items-center gap-2">
+                  <span className="chip chip-slate">ID: #{b.id}</span>
+                  <button
+                    type="button"
+                    className="text-xs text-rose-400 hover:text-rose-300 p-1"
+                    title="حذف برند"
+                    onClick={() => {
+                      if (confirm(`آیا برند «${b.faName}» حذف شود؟`)) deleteBrand.mutate(b.id);
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             ))}
           </div>

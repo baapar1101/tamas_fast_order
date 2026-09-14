@@ -421,7 +421,7 @@ export default function AdminApp() {
                 </button>
 
                 {notifOpen && (
-                  <div className="absolute left-0 top-14 w-80 z-50">
+                  <div className="absolute left-0 top-14 w-80 max-w-[calc(100vw-2rem)] z-50">
                     <div className="glass-card-static overflow-hidden !bg-[#0e1626]/95 p-0 shadow-2xl">
                       <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
                         <h3 className="text-sm font-bold text-white">اعلان‌ها</h3>
@@ -474,7 +474,7 @@ export default function AdminApp() {
                 </button>
 
                 {profileOpen && (
-                  <div className="absolute left-0 top-14 w-72 z-50">
+                  <div className="absolute left-0 top-14 w-72 max-w-[calc(100vw-2rem)] z-50">
                     <div className="glass-card-static overflow-hidden !bg-[#0e1626]/95 p-0 shadow-2xl">
                       <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4">
                         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 text-base font-extrabold text-slate-950">
