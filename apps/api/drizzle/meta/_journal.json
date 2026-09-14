@@ -8,6 +8,13 @@
       "when": 1788806828150,
       "tag": "0000_cuddly_pyro",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789373751129,
+      "tag": "0001_swift_doctor_spectrum",
+      "breakpoints": true
     }
   ]
 }

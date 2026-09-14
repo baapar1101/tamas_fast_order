@@ -56,6 +56,32 @@ export const uploadKindEnum = pgEnum('upload_kind', [
 export const syncSideEnum = pgEnum('sync_side', ['db', 'sheet']);
 
 /* ------------------------------------------------------------------ *
+ * Warehouses & Attributes
+ * ------------------------------------------------------------------ */
+
+export const warehouses = pgTable(
+  'warehouses',
+  {
+    id: serial('id').primaryKey(),
+    code: varchar('code', { length: 80 }).notNull(),
+    name: varchar('name', { length: 160 }).notNull(),
+    isActive: boolean('is_active').notNull().default(true),
+    ...syncColumns,
+  },
+  (t) => [uniqueIndex('warehouses_code_key').on(t.code)],
+);
+
+export const attributes = pgTable(
+  'attributes',
+  {
+    id: serial('id').primaryKey(),
+    name: varchar('name', { length: 160 }).notNull(),
+    ...syncColumns,
+  },
+  (t) => [uniqueIndex('attributes_name_key').on(t.name)],
+);
+
+/* ------------------------------------------------------------------ *
  * Taxonomy
  * ------------------------------------------------------------------ */
 
@@ -127,6 +153,7 @@ export const products = pgTable(
     sku: varchar('sku', { length: 80 }),
     title: varchar('title', { length: 400 }).notNull(),
     model: varchar('model', { length: 400 }),
+    parentProductId: varchar('parent_product_id', { length: 80 }),
     categoryId: integer('category_id').references(() => categories.id, { onDelete: 'set null' }),
     brandId: integer('brand_id').references(() => brands.id, { onDelete: 'set null' }),
     color: varchar('color', { length: 160 }),
@@ -138,6 +165,7 @@ export const products = pgTable(
     stock: integer('stock').notNull().default(0),
     kermanStock: integer('kerman_stock').notNull().default(0),
     tehranStock: integer('tehran_stock').notNull().default(0),
+    otherStocks: jsonb('other_stocks').$type<Record<string, number>>().notNull().default(sql`'{}'::jsonb`),
     warranty: varchar('warranty', { length: 300 }),
     sellType: varchar('sell_type', { length: 200 }),
     seller: varchar('seller', { length: 200 }),
@@ -155,6 +183,7 @@ export const products = pgTable(
     uniqueIndex('products_product_id_key').on(t.productId),
     index('products_category_idx').on(t.categoryId),
     index('products_brand_idx').on(t.brandId),
+    index('products_parent_idx').on(t.parentProductId),
     index('products_title_idx').on(t.title),
     index('products_status_idx').on(t.status),
     index('products_promotion_idx').on(t.promotion),
