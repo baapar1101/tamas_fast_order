@@ -43,12 +43,15 @@ export function SyncPage() {
     void qc.invalidateQueries({ queryKey: ['admin', 'sync'] });
   };
 
+  const [syncDirection, setSyncDirection] = useState<'both' | 'pull' | 'push'>('both');
+  const [syncSelectedEntities, setSyncSelectedEntities] = useState<SyncEntity[]>([...SYNC_ENTITIES]);
+
   const runSync = useMutation({
     mutationFn: (dryRun: boolean) =>
       api.post<{ ok: boolean }>('/admin/sync/run', {
-        direction: 'both',
+        direction: syncDirection,
         dryRun,
-        entities: [...SYNC_ENTITIES],
+        entities: syncSelectedEntities,
       }),
     onSuccess: () => {
       toast.ok('همگام‌سازی با موفقیت انجام شد.');
@@ -65,8 +68,24 @@ export function SyncPage() {
     },
   });
 
+  const clearConflicts = useMutation({
+    mutationFn: () => api.delete('/admin/sync/conflicts'),
+    onSuccess: () => {
+      toast.ok('تاریخچه تضادها پاک شد.');
+      invalidate();
+    },
+  });
+
   const isRunning = status.data?.running ?? false;
   const enabled = status.data?.enabled ?? false;
+
+  const toggleEntity = (e: SyncEntity) => {
+    if (syncSelectedEntities.includes(e)) {
+      setSyncSelectedEntities((prev) => prev.filter((item) => item !== e));
+    } else {
+      setSyncSelectedEntities((prev) => [...prev, e]);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -93,29 +112,96 @@ export function SyncPage() {
         </div>
       </section>
 
-      {/* Sync Control Bar */}
-      <section className="glass-card p-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h3 className="text-sm font-bold text-white mb-1">اجرای دستی همگام‌سازی</h3>
-          <p className="text-xs text-slate-400">ارسال تغییرات دیتابیس به شیت و دریافت داده‌های جدید از شیت</p>
+      {/* Sync Control Bar with Advanced Options */}
+      <section className="glass-card p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.06] pb-5 mb-5">
+          <div>
+            <h3 className="text-sm font-bold text-white mb-1">اجرای دستی همگام‌سازی (پیشرفته)</h3>
+            <p className="text-xs text-slate-400">انتخاب جهت همگام‌سازی و جداول دلخواه برای اجرا</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="huma-btn-secondary"
+              disabled={isRunning || runSync.isPending || syncSelectedEntities.length === 0}
+              onClick={() => runSync.mutate(true)}
+            >
+              پیش‌نمایش (Dry Run)
+            </button>
+            <button
+              type="button"
+              className="huma-btn-primary"
+              disabled={isRunning || runSync.isPending || syncSelectedEntities.length === 0}
+              onClick={() => runSync.mutate(false)}
+            >
+              {isRunning ? 'در حال اجرا...' : 'همگام‌سازی الان'}
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="huma-btn-secondary"
-            disabled={isRunning || runSync.isPending}
-            onClick={() => runSync.mutate(true)}
-          >
-            پیش‌نمایش (Dry Run)
-          </button>
-          <button
-            type="button"
-            className="huma-btn-primary"
-            disabled={isRunning || runSync.isPending}
-            onClick={() => runSync.mutate(false)}
-          >
-            {isRunning ? 'در حال همگام‌سازی...' : 'همگام‌سازی الان'}
-          </button>
+
+        {/* Advanced Options Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 mb-3">جهت همگام‌سازی:</label>
+            <div className="flex bg-[#0b111d] rounded-xl p-1 border border-white/[0.06]">
+              <button
+                type="button"
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                  syncDirection === 'both' ? 'bg-emerald-500 text-slate-950 shadow-glow' : 'text-slate-400 hover:text-white'
+                }`}
+                onClick={() => setSyncDirection('both')}
+              >
+                دو طرفه (Both)
+              </button>
+              <button
+                type="button"
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                  syncDirection === 'pull' ? 'bg-cyan-500 text-slate-950 shadow-glow' : 'text-slate-400 hover:text-white'
+                }`}
+                onClick={() => setSyncDirection('pull')}
+              >
+                دریافت از شیت (Pull)
+              </button>
+              <button
+                type="button"
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                  syncDirection === 'push' ? 'bg-amber-500 text-slate-950 shadow-glow' : 'text-slate-400 hover:text-white'
+                }`}
+                onClick={() => setSyncDirection('push')}
+              >
+                ارسال به شیت (Push)
+              </button>
+            </div>
+          </div>
+          
+          <div>
+            <label className="flex items-center justify-between text-xs font-semibold text-slate-400 mb-3">
+              جداول هدف:
+              <button 
+                type="button" 
+                className="text-emerald-400 hover:text-emerald-300 underline"
+                onClick={() => setSyncSelectedEntities([...SYNC_ENTITIES])}
+              >
+                انتخاب همه
+              </button>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {SYNC_ENTITIES.map((e) => (
+                <button
+                  key={e}
+                  type="button"
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                    syncSelectedEntities.includes(e) 
+                      ? 'bg-slate-700/50 border-emerald-500/30 text-emerald-300 shadow-glow' 
+                      : 'bg-transparent border-white/[0.06] text-slate-500 hover:border-slate-400/30 hover:text-slate-300'
+                  }`}
+                  onClick={() => toggleEntity(e)}
+                >
+                  {SYNC_ENTITY_LABELS[e]}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
