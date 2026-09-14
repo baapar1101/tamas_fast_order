@@ -12,6 +12,9 @@ import { UsersPage } from './pages/UsersPage';
 import { UploadsPage } from './pages/UploadsPage';
 import { SyncPage } from './pages/SyncPage';
 import { SettingsPage } from './pages/SettingsPage';
+// Load the reference admin design system first. The local stylesheet that
+// follows contains the React-specific compatibility and component overrides.
+import './reference.css';
 import './admin.css';
 
 const NAV_MAIN = [
@@ -104,6 +107,14 @@ export default function AdminApp() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState({ date: '', time: '' });
+
+  // The reference stylesheet contains a complete utility/reset layer. Mark the
+  // document while this lazy route is mounted so those rules never leak into
+  // the storefront after client-side navigation.
+  useEffect(() => {
+    document.body.classList.add('admin-page-active');
+    return () => document.body.classList.remove('admin-page-active');
+  }, []);
 
   // Live Clock & Date formatting
   useEffect(() => {
