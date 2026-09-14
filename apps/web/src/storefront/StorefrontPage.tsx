@@ -437,6 +437,7 @@ export function StorefrontPage() {
                 <select
                   id="sort"
                   className="select"
+                  style={{ minWidth: '120px', width: 'max-content' }}
                   value={sort}
                   onChange={(e) => {
                     setSort(e.target.value as CatalogFilters['sort']);
@@ -471,19 +472,21 @@ export function StorefrontPage() {
               </div>
             </div>
 
-            <div className="price-lock-note">
-              <span>قیمت‌های عمده فقط برای همکاران ثبت‌نام‌شده نمایش داده می‌شوند.</span>
-              <button
-                type="button"
-                className="btn-lock-auth"
-                onClick={() => {
-                  setAuthStep('phone');
-                  setAuthOpen(true);
-                }}
-              >
-                ورود / ثبت‌نام
-              </button>
-            </div>
+            {!user && (
+              <div className="price-lock-note">
+                <span>قیمت‌های عمده فقط برای همکاران ثبت‌نام‌شده نمایش داده می‌شوند.</span>
+                <button
+                  type="button"
+                  className="btn-lock-auth"
+                  onClick={() => {
+                    setAuthStep('phone');
+                    setAuthOpen(true);
+                  }}
+                >
+                  ورود / ثبت‌نام
+                </button>
+              </div>
+            )}
 
             {products.isLoading ? (
               <ProductSkeletons viewMode={viewMode} />
