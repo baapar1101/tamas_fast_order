@@ -46,34 +46,36 @@ export function ImagePicker({ label, value, kind, onChange }: Props) {
   }
 
   return (
-    <div className="field">
-      <label>{label}</label>
-      <div className="row" style={{ alignItems: 'flex-start' }}>
+    <div className="space-y-1.5">
+      <label className="block text-xs font-semibold text-slate-400">{label}</label>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         {value && (
           <img
             src={value}
             alt=""
-            className="thumb-cell"
-            style={{ width: 60, height: 60 }}
+            className="h-12 w-12 rounded-lg object-cover bg-slate-900 border border-white/[0.06] shrink-0 mx-auto sm:mx-0"
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).style.visibility = 'hidden';
             }}
           />
         )}
         <input
-          className="input ltr"
+          className="huma-input flex-1 w-full sm:min-w-[200px] text-left font-mono"
+          dir="ltr"
           placeholder="/uploads/… یا آدرس کامل تصویر"
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
-        <button type="button" className="btn" disabled={busy} onClick={() => inputRef.current?.click()}>
-          {busy ? '…' : 'آپلود'}
-        </button>
-        {value && (
-          <button type="button" className="btn ghost sm" onClick={() => onChange('')} aria-label="حذف تصویر">
-            ✕
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button type="button" className="huma-btn-secondary flex-1 sm:flex-none justify-center" disabled={busy} onClick={() => inputRef.current?.click()}>
+            {busy ? '…' : 'آپلود'}
           </button>
-        )}
+          {value && (
+            <button type="button" className="huma-btn-secondary !bg-rose-500/15 !text-rose-300 !px-3 shrink-0" onClick={() => onChange('')} aria-label="حذف تصویر">
+              ✕
+            </button>
+          )}
+        </div>
       </div>
       <input
         ref={inputRef}
