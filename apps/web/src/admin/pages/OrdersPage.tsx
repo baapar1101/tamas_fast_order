@@ -100,7 +100,7 @@ export function OrdersPage() {
       </section>
 
       {/* Status Filter Tabs */}
-      <section className="glass-card p-2 flex flex-wrap gap-1">
+      <section className="glass-card p-2 flex items-center gap-1 overflow-x-auto max-w-full whitespace-nowrap">
         <button
           type="button"
           className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
