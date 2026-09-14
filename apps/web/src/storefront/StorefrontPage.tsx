@@ -215,16 +215,6 @@ export function StorefrontPage() {
           </div>
 
           <div className="user-actions">
-            {isAdmin && (
-              <Link to="/admin" className="btn sm">
-                پنل مدیریت
-              </Link>
-            )}
-            {user && (
-              <Link to="/orders" className="btn sm">
-                سفارش‌های من
-              </Link>
-            )}
             <button
               type="button"
               className="btn btn-icon-only"
@@ -233,17 +223,62 @@ export function StorefrontPage() {
             >
               <Icon name="heart" />
             </button>
-            <button
-              type="button"
-              className="btn primary"
-              onClick={() => {
-                setAuthStep('phone');
-                setAuthOpen(true);
-              }}
-            >
-              <Icon name="user" />
-              <span>{user ? `${user.name || 'حساب'} ${user.lastName}`.trim() : 'ورود / ثبت‌نام همکار'}</span>
-            </button>
+            {user ? (
+              <div className="profile-dropdown-wrapper" style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  className="btn primary"
+                  onClick={(e) => {
+                    const dropdown = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (dropdown) dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+                  }}
+                >
+                  <Icon name="user" />
+                  <span>{`${user.name || 'حساب'} ${user.lastName}`.trim()}</span>
+                </button>
+                <div 
+                  className="profile-dropdown-menu" 
+                  style={{ 
+                    display: 'none', position: 'absolute', top: '110%', left: 0, 
+                    backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', 
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)', minWidth: '180px', padding: '8px', zIndex: 100,
+                    flexDirection: 'column', gap: '4px'
+                  }}
+                >
+                  <Link to="/orders" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: '#334155', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
+                    <Icon name="bag" style={{ marginInlineEnd: 8 }} /> سفارش‌های من
+                  </Link>
+                  {isAdmin && (
+                    <Link to="/admin" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: '#059669', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
+                      <Icon name="grid" style={{ marginInlineEnd: 8 }} /> پنل مدیریت
+                    </Link>
+                  )}
+                  <div style={{ height: '1px', backgroundColor: '#e2e8f0', margin: '4px 0' }} />
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      localStorage.removeItem('tamas_session');
+                      window.location.reload();
+                    }}
+                    style={{ width: '100%', textAlign: 'right', padding: '10px 16px', borderRadius: '8px', color: '#e11d48', backgroundColor: 'transparent', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    <Icon name="chevron" style={{ marginInlineEnd: 8, transform: 'rotate(180deg)' }} /> خروج از حساب
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="btn primary"
+                onClick={() => {
+                  setAuthStep('phone');
+                  setAuthOpen(true);
+                }}
+              >
+                <Icon name="user" />
+                <span>ورود / ثبت‌نام همکار</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
