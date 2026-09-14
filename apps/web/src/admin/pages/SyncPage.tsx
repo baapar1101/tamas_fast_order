@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { SyncEntity, SyncStateDTO } from '@tamas/shared';
 import { SYNC_ENTITIES, SYNC_ENTITY_LABELS, formatNumber } from '@tamas/shared';
@@ -69,7 +70,7 @@ export function SyncPage() {
   });
 
   const clearConflicts = useMutation({
-    mutationFn: () => api.delete('/admin/sync/conflicts'),
+    mutationFn: () => api.del('/admin/sync/conflicts'),
     onSuccess: () => {
       toast.ok('تاریخچه تضادها پاک شد.');
       invalidate();
@@ -81,9 +82,9 @@ export function SyncPage() {
 
   const toggleEntity = (e: SyncEntity) => {
     if (syncSelectedEntities.includes(e)) {
-      setSyncSelectedEntities((prev) => prev.filter((item) => item !== e));
+      setSyncSelectedEntities((prev: SyncEntity[]) => prev.filter((item) => item !== e));
     } else {
-      setSyncSelectedEntities((prev) => [...prev, e]);
+      setSyncSelectedEntities((prev: SyncEntity[]) => [...prev, e]);
     }
   };
 
