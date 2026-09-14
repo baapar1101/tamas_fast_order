@@ -1,24 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { formatNumber } from '@tamas/shared';
+import { formatNumber, type DashboardStats, type OrderDTO } from '@tamas/shared';
 import { api } from '../../lib/api';
 import { useAuth } from '../../store/auth';
-
-interface DashboardStats {
-  ordersCount: number;
-  productsCount: number;
-  usersCount: number;
-  totalRevenue: number;
-  recentOrders: Array<{
-    id: string;
-    code: string;
-    totalAmount: number;
-    status: string;
-    customerName?: string;
-    customerPhone?: string;
-    createdAt: string;
-  }>;
-}
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -26,25 +10,29 @@ export function DashboardPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'dashboard-stats'],
     queryFn: async () => {
-      const res = await api.get<{ ok: boolean; stats: DashboardStats }>('/admin/dashboard/stats');
-      return res.stats;
+      const [statsResult, ordersResult] = await Promise.all([
+        api.get<{ ok: boolean; stats: DashboardStats }>('/admin/stats'),
+        api.get<{ ok: boolean; items: OrderDTO[] }>('/admin/recent-orders'),
+      ]);
+      return { stats: statsResult.stats, recentOrders: ordersResult.items };
     },
   });
 
-  const ordersCount = data?.ordersCount ?? 0;
-  const productsCount = data?.productsCount ?? 0;
-  const usersCount = data?.usersCount ?? 0;
-  const totalRevenue = data?.totalRevenue ?? 0;
+  const stats = data?.stats;
+  const ordersCount = stats?.orderCount ?? 0;
+  const productsCount = stats?.productCount ?? 0;
+  const usersCount = stats?.userCount ?? 0;
+  const totalRevenue = stats?.revenueTotal ?? 0;
   const recentOrders = data?.recentOrders ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="dashboard-page space-y-6">
       {/* Welcome Hero Banner */}
-      <section className="glass-card animate-fade-up overflow-hidden p-6 sm:p-8">
+      <section className="admin-hero glass-card animate-fade-up overflow-hidden p-6 sm:p-8">
         <div className="absolute -left-20 -top-24 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
         <div className="absolute inset-x-0 top-0 h-px shimmer-line animate-shimmer" />
-        <div className="relative flex flex-wrap items-center justify-between gap-6">
-          <div className="max-w-xl">
+        <div className="admin-hero-content relative flex flex-wrap items-center justify-between gap-6">
+          <div className="admin-hero-copy max-w-xl">
             <div className="chip chip-brand mb-4">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               عملکرد امروز فروشگاه عالی است
@@ -59,7 +47,7 @@ export function DashboardPage() {
               امروز <span className="font-bold text-emerald-300">{formatNumber(ordersCount)} سفارش فعال</span> با ارزش کل{' '}
               <span className="font-bold text-emerald-300">{formatNumber(totalRevenue)} تومان</span> در سیستم ثبت شده است.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="admin-hero-actions mt-6 flex flex-wrap gap-3">
               <Link to="/admin/orders" className="huma-btn-primary">
                 مشاهده سفارش‌ها
               </Link>
@@ -70,7 +58,7 @@ export function DashboardPage() {
           </div>
 
           {/* Goal Progress Ring */}
-          <div className="relative mx-auto grid place-items-center shrink-0 sm:mx-0" style={{ width: '8.5rem', height: '8.5rem' }}>
+          <div className="admin-goal-ring relative mx-auto grid place-items-center shrink-0 sm:mx-0" style={{ width: '8.5rem', height: '8.5rem' }}>
             <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
               <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="10" />
               <circle
@@ -101,7 +89,7 @@ export function DashboardPage() {
       </section>
 
       {/* 4 Stat Metric Cards */}
-      <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="admin-stat-grid grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {/* Total Sales */}
         <div className="glass-card p-6">
           <div className="flex items-start justify-between">
@@ -259,9 +247,9 @@ export function DashboardPage() {
       </section>
 
       {/* Analytics Charts Section */}
-      <section className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+      <section className="admin-analytics-grid grid grid-cols-1 gap-5 xl:grid-cols-3">
         {/* Revenue Trend Chart Card */}
-        <div className="glass-card p-6 xl:col-span-2">
+        <div className="admin-revenue-card glass-card p-6 xl:col-span-2">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-bold text-white">روند درآمد فروشگاه</h3>
@@ -279,7 +267,7 @@ export function DashboardPage() {
             </div>
           </div>
 
-          <div className="relative h-60 w-full pt-2">
+          <div className="admin-chart-canvas relative h-60 w-full pt-2">
             <svg viewBox="0 0 500 180" className="h-full w-full" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="chartAreaGrad" x1="0" y1="0" x2="0" y2="1">
@@ -416,8 +404,8 @@ export function DashboardPage() {
       </section>
 
       {/* Recent Orders Glass Table */}
-      <section className="glass-card overflow-hidden">
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-5">
+      <section className="admin-recent-orders glass-card overflow-hidden">
+        <div className="admin-section-heading flex items-center justify-between border-b border-white/[0.06] px-6 py-5">
           <div>
             <h3 className="text-base font-bold text-white">آخرین سفارش‌های ثبت‌شده</h3>
             <p className="mt-0.5 text-xs text-slate-500">آخرین تراکنش‌ها و خریدهای کاربران</p>
@@ -449,22 +437,22 @@ export function DashboardPage() {
                 recentOrders.map((order) => (
                   <tr key={order.id} className="order-row">
                     <td className="font-mono font-bold text-white" dir="ltr">
-                      #{order.code}
+                      #{order.orderCode}
                     </td>
                     <td>
                       <div>
                         <div className="font-semibold text-slate-200">
                           {order.customerName || 'کاربر مهمان'}
                         </div>
-                        {order.customerPhone && (
-                          <div className="text-[11px] text-slate-500" dir="ltr">
-                            {order.customerPhone}
+                          {order.phone && (
+                            <div className="text-[11px] text-slate-500" dir="ltr">
+                            {order.phone}
                           </div>
                         )}
                       </div>
                     </td>
                     <td className="font-bold text-emerald-300">
-                      {formatNumber(order.totalAmount)} <span className="text-[11px] font-normal text-slate-500">تومان</span>
+                      {formatNumber(order.total)} <span className="text-[11px] font-normal text-slate-500">تومان</span>
                     </td>
                     <td>
                       <span className={`chip ${order.status === 'completed' ? 'chip-brand' : 'chip-amber'}`}>

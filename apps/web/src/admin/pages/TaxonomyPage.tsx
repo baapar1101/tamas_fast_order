@@ -48,10 +48,28 @@ export function TaxonomyPage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const editCat = useMutation({
+    mutationFn: ({ id, faName }: { id: number; faName: string }) => api.patch(`/admin/categories/${id}`, { faName }),
+    onSuccess: () => {
+      toast.ok('دسته‌بندی ویرایش شد.');
+      invalidate();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   const deleteBrand = useMutation({
     mutationFn: (id: number) => api.del(`/admin/brands/${id}`),
     onSuccess: () => {
       toast.ok('برند حذف شد.');
+      invalidate();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const editBrand = useMutation({
+    mutationFn: ({ id, faName }: { id: number; faName: string }) => api.patch(`/admin/brands/${id}`, { faName }),
+    onSuccess: () => {
+      toast.ok('برند ویرایش شد.');
       invalidate();
     },
     onError: (err: Error) => toast.error(err.message),
@@ -115,6 +133,19 @@ export function TaxonomyPage() {
                   <span className="chip chip-slate">ID: #{c.id}</span>
                   <button
                     type="button"
+                    className="text-xs text-sky-400 hover:text-sky-300 p-1"
+                    title="ویرایش دسته"
+                    onClick={() => {
+                      const newName = prompt('عنوان جدید دسته‌بندی را وارد کنید:', c.faName);
+                      if (newName && newName.trim() !== c.faName) {
+                        editCat.mutate({ id: c.id, faName: newName.trim() });
+                      }
+                    }}
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    type="button"
                     className="text-xs text-rose-400 hover:text-rose-300 p-1"
                     title="حذف دسته"
                     onClick={() => {
@@ -171,6 +202,19 @@ export function TaxonomyPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="chip chip-slate">ID: #{b.id}</span>
+                  <button
+                    type="button"
+                    className="text-xs text-sky-400 hover:text-sky-300 p-1"
+                    title="ویرایش برند"
+                    onClick={() => {
+                      const newName = prompt('نام جدید برند را وارد کنید:', b.faName);
+                      if (newName && newName.trim() !== b.faName) {
+                        editBrand.mutate({ id: b.id, faName: newName.trim() });
+                      }
+                    }}
+                  >
+                    ✏️
+                  </button>
                   <button
                     type="button"
                     className="text-xs text-rose-400 hover:text-rose-300 p-1"
