@@ -24,24 +24,26 @@ interface RawColor {
 }
 
 interface RawProduct {
-  product_id?: string;
-  title?: string;
-  model?: string;
-  category?: string;
-  brand?: string;
-  color?: string;
-  color_en?: string;
-  color_code?: string;
-  price?: number | string;
-  old_price?: number | string;
-  kerman_stock?: number | string;
-  tehran_stock?: number | string;
-  stock?: number | string;
-  image_url?: string;
-  sell_type?: string;
-  warranty?: string;
-  promotion?: boolean | string;
-  sku?: string;
+  product_id?: string | null;
+  title?: string | null;
+  model?: string | null;
+  Category?: string | null;
+  Brand?: string | null;
+  category?: string | null;
+  brand?: string | null;
+  color?: string | null;
+  color_en?: string | null;
+  color_code?: string | null;
+  price?: number | string | null;
+  old_price?: number | string | null;
+  kerman_stock?: number | string | null;
+  tehran_stock?: number | string | null;
+  stock?: number | string | null;
+  image_url?: string | null;
+  sell_type?: string | null;
+  warranty?: string | null;
+  promotion?: boolean | string | null;
+  sku?: string | null;
 }
 
 const data = (fallbackJson as unknown as { catalog?: typeof fallbackJson }).catalog ?? fallbackJson;
@@ -98,7 +100,9 @@ function parseBool(v: unknown): boolean {
   return s === 'true' || s === '1' || s === 'yes' || s === 'بله';
 }
 
-const rawProducts = (data.products as RawProduct[]) ?? [];
+const rawProducts = ((data.products as unknown as RawProduct[]) ?? []).filter(
+  (product) => Boolean(product.product_id || product.sku),
+);
 
 const allProducts: ProductDTO[] = rawProducts.map((p, i) => {
   const price = parseNum(p.price);
@@ -113,10 +117,10 @@ const allProducts: ProductDTO[] = rawProducts.map((p, i) => {
     sku: p.sku || p.product_id || `SKU-${i + 1}`,
     title: p.title || p.model || 'محصول بدون عنوان',
     model: p.model || p.title || '',
-    categoryName: p.category || null,
-    categoryFaName: p.category || null,
-    brandName: p.brand || null,
-    brandFaName: p.brand || null,
+    categoryName: p.category || p.Category || null,
+    categoryFaName: p.category || p.Category || null,
+    brandName: p.brand || p.Brand || null,
+    brandFaName: p.brand || p.Brand || null,
     color: p.color || null,
     colorEn: p.color_en || null,
     colorCode: p.color_code || null,
