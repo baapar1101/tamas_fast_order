@@ -280,14 +280,14 @@ export default function AdminApp() {
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
         <div
-          className="admin-sidebar-overlay fixed inset-0 z-30 bg-slate-950/80 backdrop-blur-sm"
+          className="admin-sidebar-overlay fixed inset-0 z-30 bg-slate-950/80 backdrop-blur-sm lg:hidden"
           onClick={() => setMobileSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar Navigation */}
       <aside
-        className={`admin-sidebar fixed right-0 top-0 z-40 flex h-screen w-72 flex-col border-l border-white/[0.06] bg-[#0b111d]/90 backdrop-blur-2xl transition-transform duration-500 ${
+        className={`admin-sidebar fixed right-0 top-0 z-40 flex h-screen w-72 flex-col border-l border-white/[0.06] bg-[#0b111d]/90 backdrop-blur-2xl transition-transform duration-500 lg:translate-x-0 ${
           mobileSidebarOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -305,7 +305,7 @@ export default function AdminApp() {
           </div>
           <button
             type="button"
-            className="admin-sidebar-close icon-btn mr-auto"
+            className="admin-sidebar-close icon-btn mr-auto lg:hidden"
             onClick={() => setMobileSidebarOpen(false)}
             aria-label="بستن منو"
           >
@@ -382,14 +382,14 @@ export default function AdminApp() {
       </aside>
 
       {/* Main Container */}
-      <div className="admin-main-shell flex min-h-screen flex-col">
+      <div className="admin-main-shell flex min-h-screen flex-col lg:mr-72">
         {/* Sticky Top Header */}
         <header className="admin-topbar sticky top-0 z-20 border-b border-white/[0.06] bg-[#070b12]/75 backdrop-blur-xl">
           <div className="flex h-[4.5rem] items-center gap-3 px-4 sm:px-6 lg:px-8">
             {/* Mobile Menu Button */}
             <button
               type="button"
-              className="admin-menu-toggle icon-btn"
+              className="admin-menu-toggle icon-btn lg:hidden"
               onClick={() => setMobileSidebarOpen(true)}
               aria-label="باز کردن منو"
             >

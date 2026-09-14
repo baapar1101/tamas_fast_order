@@ -455,8 +455,8 @@ export function DashboardPage() {
                       {formatNumber(order.total)} <span className="text-[11px] font-normal text-slate-500">تومان</span>
                     </td>
                     <td>
-                      <span className={`chip ${order.status === 'completed' ? 'chip-brand' : 'chip-amber'}`}>
-                        {order.status === 'completed' ? 'تکمیل شده' : 'در حال پردازش'}
+                      <span className={`chip ${order.status === 'delivered' ? 'chip-brand' : 'chip-amber'}`}>
+                        {order.status === 'delivered' ? 'تکمیل شده' : 'در حال پردازش'}
                       </span>
                     </td>
                     <td className="text-xs text-slate-400">
