@@ -132,9 +132,9 @@ export function SettingsPage() {
           <span className="chip chip-brand">پنل راستین‌اس‌ام‌اس فعال</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <input
-            className="huma-input w-64 text-left font-mono"
+            className="huma-input sm:w-64 text-left font-mono"
             dir="ltr"
             placeholder="09130000000"
             value={testPhone}
@@ -142,7 +142,7 @@ export function SettingsPage() {
           />
           <button
             type="button"
-            className="huma-btn-primary"
+            className="huma-btn-primary justify-center"
             onClick={async () => {
               const phone = testPhone.trim();
               if (!phone || phone.length < 10) {
@@ -170,18 +170,18 @@ export function SettingsPage() {
           کلیدهای با پیشوند <code>private_</code> فقط در سمت سرور و پنل مدیریت قابل استفاده هستند.
         </p>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {extraKeys.map((key) => (
-            <div key={key} className="flex items-center gap-2">
-              <input className="huma-input w-48 text-left font-mono" dir="ltr" value={key} readOnly />
+            <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-2 bg-slate-900/50 p-3 sm:p-0 sm:bg-transparent rounded-lg">
+              <input className="huma-input w-full sm:w-48 text-left font-mono" dir="ltr" value={key} readOnly />
               <input
-                className="huma-input flex-1"
+                className="huma-input flex-1 w-full"
                 value={form[key] ?? ''}
                 onChange={(e) => setForm({ ...form, [key]: e.target.value })}
               />
               <button
                 type="button"
-                className="huma-btn-secondary !bg-rose-500/15 !text-rose-300 !px-3"
+                className="huma-btn-secondary w-full sm:w-auto !bg-rose-500/15 !text-rose-300 justify-center"
                 onClick={() => {
                   if (!confirm(`کلید «${key}» حذف شود؟`)) return;
                   removeKey.mutate(key);
@@ -197,23 +197,23 @@ export function SettingsPage() {
           {extraKeys.length === 0 && <p className="text-xs text-slate-500 py-2">هیچ کلید دلخواهی تعریف نشده است.</p>}
         </div>
 
-        <div className="flex items-center gap-2 pt-2 border-t border-white/[0.04]">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-4 border-t border-white/[0.04] mt-4">
           <input
-            className="huma-input w-48 text-left font-mono"
+            className="huma-input w-full sm:w-48 text-left font-mono"
             dir="ltr"
             placeholder="کلید جدید"
             value={newKey}
             onChange={(e) => setNewKey(e.target.value)}
           />
           <input
-            className="huma-input flex-1"
+            className="huma-input flex-1 w-full"
             placeholder="مقدار"
             value={newValue}
             onChange={(e) => setNewValue(e.target.value)}
           />
           <button
             type="button"
-            className="huma-btn-secondary"
+            className="huma-btn-secondary w-full sm:w-auto justify-center"
             onClick={() => {
               const k = newKey.trim();
               if (!k) return;
