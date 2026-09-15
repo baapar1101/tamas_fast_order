@@ -22,6 +22,13 @@
       "when": 1789455501379,
       "tag": "0002_smooth_justin_hammer",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789489745138,
+      "tag": "0003_lazy_marten_broadcloak",
+      "breakpoints": true
     }
   ]
 }
