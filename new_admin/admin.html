@@ -27,6 +27,28 @@
 		<title>پنل مدیریت</title>
 		<script type="module" crossorigin src="/admin/assets/index-D2rJ0L9F.js"></script>
 		<link rel="stylesheet" crossorigin href="/admin/assets/index-CqtA3_3q.css">
+		<style>
+			@media (max-width: 768px) {
+				html, body {
+					overflow-y: auto !important;
+					overflow-x: hidden !important;
+					height: auto !important;
+					min-height: 100vh !important;
+					pointer-events: auto !important;
+				}
+				#root {
+					overflow-y: auto !important;
+					overflow-x: hidden !important;
+					height: auto !important;
+					min-height: 100vh !important;
+					pointer-events: auto !important;
+				}
+				/* Ensure no full-screen invisible overlay blocks clicks unless it has a high z-index and background */
+				body > *:not(#root) {
+					pointer-events: none !important;
+				}
+			}
+		</style>
 	</head>
 
 	<body>
