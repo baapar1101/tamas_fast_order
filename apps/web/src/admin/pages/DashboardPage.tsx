@@ -251,12 +251,12 @@ export function DashboardPage() {
       <section className="admin-analytics-grid grid grid-cols-1 gap-5 xl:grid-cols-3">
         {/* Revenue Trend Chart Card */}
         <div className="admin-revenue-card glass-card p-6 xl:col-span-2">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="admin-chart-header mb-6 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-bold text-white">روند درآمد فروشگاه</h3>
               <p className="mt-1 text-xs text-slate-500">مقایسه عملکرد فروش ماه‌های اخیر</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="admin-chart-legend flex items-center gap-2">
               <span className="chip chip-brand">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 امسال
@@ -268,8 +268,18 @@ export function DashboardPage() {
             </div>
           </div>
 
-          <div className="admin-chart-canvas relative h-60 w-full pt-2">
-            <svg viewBox="0 0 500 180" className="h-full w-full" preserveAspectRatio="none">
+          <div className="admin-revenue-chart" aria-label="نمودار روند درآمد فروشگاه">
+            <div className="admin-y-axis" aria-hidden="true">
+              <span>۳۰۰</span>
+              <span>۲۵۰</span>
+              <span>۲۰۰</span>
+              <span>۱۵۰</span>
+              <span>۱۰۰</span>
+              <span>۵۰</span>
+              <span>۰</span>
+            </div>
+            <div className="admin-revenue-plot">
+            <svg viewBox="0 0 1000 260" role="img" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="chartAreaGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
@@ -278,20 +288,19 @@ export function DashboardPage() {
               </defs>
 
               {/* Grid Background Lines */}
-              <line x1="0" y1="30" x2="500" y2="30" stroke="rgba(255,255,255,0.06)" strokeDasharray="4 4" />
-              <line x1="0" y1="75" x2="500" y2="75" stroke="rgba(255,255,255,0.06)" strokeDasharray="4 4" />
-              <line x1="0" y1="120" x2="500" y2="120" stroke="rgba(255,255,255,0.06)" strokeDasharray="4 4" />
-              <line x1="0" y1="165" x2="500" y2="165" stroke="rgba(255,255,255,0.06)" strokeDasharray="4 4" />
+              {[10, 50, 90, 130, 170, 210, 250].map((y) => (
+                <line key={y} x1="0" y1={y} x2="1000" y2={y} stroke="rgba(148,163,184,0.11)" strokeDasharray="4 7" />
+              ))}
 
               {/* Filled Area Gradient */}
               <path
-                d="M 0 150 Q 100 120, 200 95 T 350 45 T 500 15 L 500 175 L 0 175 Z"
+                d="M 0 205 C 90 190, 145 160, 240 155 S 385 205, 500 190 S 630 120, 735 105 S 875 80, 1000 35 L 1000 260 L 0 260 Z"
                 fill="url(#chartAreaGrad)"
               />
 
               {/* Year Baseline Curve */}
               <path
-                d="M 0 165 Q 100 145, 200 125 T 350 85 T 500 60"
+                d="M 0 232 C 120 220, 235 205, 345 220 S 510 225, 625 190 S 825 180, 1000 150"
                 fill="none"
                 stroke="#64748b"
                 strokeWidth="2"
@@ -301,84 +310,40 @@ export function DashboardPage() {
 
               {/* Main Line Trend */}
               <path
-                d="M 0 150 Q 100 120, 200 95 T 350 45 T 500 15"
+                d="M 0 205 C 90 190, 145 160, 240 155 S 385 205, 500 190 S 630 120, 735 105 S 875 80, 1000 35"
                 fill="none"
                 stroke="#34d399"
                 strokeWidth="3.5"
                 strokeLinecap="round"
               />
 
-              {/* Data Glowing Dots */}
-              <circle cx="0" cy="150" r="4" fill="#34d399" />
-              <circle cx="100" cy="130" r="4" fill="#34d399" />
-              <circle cx="200" cy="95" r="4" fill="#34d399" />
-              <circle cx="350" cy="45" r="5" fill="#34d399" stroke="#070b12" strokeWidth="2" />
-              <circle cx="500" cy="15" r="5" fill="#34d399" stroke="#070b12" strokeWidth="2" />
             </svg>
-
-            <div className="mt-4 flex justify-between px-1 text-[11px] font-semibold text-slate-400">
+            <div className="admin-x-axis">
               <span>فروردین</span>
+              <span>اردیبهشت</span>
               <span>خرداد</span>
+              <span>تیر</span>
               <span>مرداد</span>
-              <span>مهر</span>
-              <span>دی</span>
-              <span>اسفند</span>
+              <span>شهریور</span>
+            </div>
             </div>
           </div>
         </div>
 
         {/* Traffic Sources Donut Chart Card */}
-        <div className="glass-card flex flex-col p-6">
+        <div className="admin-acquisition-card glass-card flex flex-col p-6">
           <h3 className="text-base font-bold text-white">منابع جذب مشتری</h3>
           <p className="mt-1 text-xs text-slate-500">سهم هر کانال از سفارش‌های ثبت‌شده</p>
 
-          <div className="relative mx-auto mt-6 flex shrink-0 items-center justify-center" style={{ width: '12rem', height: '12rem', flexShrink: 0 }}>
-            <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
-              <circle cx="60" cy="60" r="45" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="11" />
-              {/* Google Segment 54% (Length 152.7, Offset 0) */}
-              <circle
-                cx="60"
-                cy="60"
-                r="45"
-                fill="none"
-                stroke="#34d399"
-                strokeWidth="11"
-                strokeLinecap="round"
-                strokeDasharray="152.7 130.1"
-                strokeDashoffset="0"
-              />
-              {/* Social Segment 24% (Length 67.9, Offset -152.7) */}
-              <circle
-                cx="60"
-                cy="60"
-                r="45"
-                fill="none"
-                stroke="#22d3ee"
-                strokeWidth="11"
-                strokeLinecap="round"
-                strokeDasharray="67.9 214.9"
-                strokeDashoffset="-152.7"
-              />
-              {/* SMS Segment 22% (Length 62.2, Offset -220.5) */}
-              <circle
-                cx="60"
-                cy="60"
-                r="45"
-                fill="none"
-                stroke="#f59e0b"
-                strokeWidth="11"
-                strokeLinecap="round"
-                strokeDasharray="62.2 220.5"
-                strokeDashoffset="-220.5"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+          <div className="admin-donut-wrap">
+            <div className="admin-donut" aria-label="۵۴ درصد گوگل، ۲۴ درصد شبکه‌های اجتماعی، ۱۴ درصد پیامک و ۸ درصد سایر کانال‌ها" />
+            <div className="admin-donut-label">
               <p className="text-2xl font-extrabold text-white">۵۴٪</p>
-              <p className="mt-0.5 text-[10px] font-medium text-slate-400">جستجوی مستقیم</p>
+              <p className="mt-0.5 text-[10px] font-medium text-slate-400">جستجوی گوگل</p>
             </div>
           </div>
 
-          <div className="mt-6 space-y-3 border-t border-white/[0.06] pt-4">
+          <div className="admin-donut-legend mt-6 space-y-3 border-t border-white/[0.06] pt-4">
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-2 text-slate-300">
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
@@ -396,9 +361,16 @@ export function DashboardPage() {
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-2 text-slate-300">
                 <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                پیامک و بازاریابی مستقیم
+                ایمیل مارکتینگ
               </span>
-              <span className="font-bold text-white">۲۲٪</span>
+              <span className="font-bold text-white">۱۴٪</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-2 text-slate-300">
+                <span className="admin-legend-dot admin-legend-dot-slate" />
+                سایر کانال‌ها
+              </span>
+              <span className="font-bold text-white">۸٪</span>
             </div>
           </div>
         </div>
