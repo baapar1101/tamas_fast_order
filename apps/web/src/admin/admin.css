@@ -82,7 +82,7 @@
 .admin-body-shell input:focus-visible,
 .admin-body-shell select:focus-visible,
 .admin-body-shell textarea:focus-visible {
-  outline: 2px solid rgba(0, 102, 204, 0.5);
+  outline: 2px solid rgba(16, 185, 129, 0.5);
   outline-offset: 2px;
 }
 
@@ -95,7 +95,11 @@
 
 /* Background Ambient Glows & Grid Mesh */
 .ambient-glow-container {
-  display: none;
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
 }
 
 /* Glassmorphism Cards */
@@ -195,28 +199,28 @@ form.glass-card:hover {
 }
 
 .chip-brand {
-  background-color: rgba(0, 102, 204, 0.1);
-  color: var(--brand-500);
+  background-color: rgba(16, 185, 129, 0.15);
+  color: var(--brand-300);
 }
 
 .chip-aqua {
-  background-color: rgba(0, 102, 204, 0.1);
-  color: var(--brand-500);
+  background-color: rgba(6, 182, 212, 0.15);
+  color: var(--aqua-400);
 }
 
 .chip-amber {
-  background-color: rgba(255, 149, 0, 0.1);
-  color: #ff9500;
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--amberx);
 }
 
 .chip-rose {
-  background-color: rgba(255, 59, 48, 0.1);
-  color: #ff3b30;
+  background-color: rgba(251, 113, 133, 0.1);
+  color: var(--rose);
 }
 
 .chip-slate {
-  background-color: rgba(0, 0, 0, 0.06);
-  color: var(--slate-300);
+  background-color: rgba(100, 116, 139, 0.2);
+  color: var(--slate-400);
 }
 
 /* Icon Buttons */
@@ -226,17 +230,18 @@ form.glass-card:hover {
   height: 2.5rem;
   width: 2.5rem;
   place-items: center;
-  border-radius: 50%;
-  border: none;
-  background-color: rgba(0, 0, 0, 0.04);
-  color: var(--slate-300);
+  border-radius: 0.75rem;
+  border: 1px solid hsla(0,0%,100%,.06);
+  background-color: rgba(19,28,46,.6);
+  color: var(--slate-400);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .icon-btn:hover {
-  background-color: rgba(0, 0, 0, 0.08);
-  color: var(--slate-200);
+  border-color: rgba(16,185,129,.3);
+  color: var(--brand-300);
+  box-shadow: 0 0 24px -6px rgba(16,185,129,.45);
 }
 
 /* Stat Icon Box */
@@ -264,7 +269,7 @@ form.glass-card:hover {
 }
 
 .notif-item:hover {
-  background-color: rgba(0, 0, 0, 0.03);
+  background-color: hsla(0,0%,100%,.03);
 }
 
 .notif-dot {
@@ -288,8 +293,8 @@ form.glass-card:hover {
 }
 
 .profile-menu-item:hover {
-  background-color: rgba(0, 0, 0, 0.04);
-  color: var(--slate-200);
+  background-color: hsla(0,0%,100%,.03);
+  color: #ffffff;
 }
 
 /* Table Order Rows */
@@ -298,25 +303,25 @@ form.glass-card:hover {
 }
 
 .order-row:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: hsla(0,0%,100%,.025);
 }
 
-/* Form Inputs & Selects in Apple Theme */
+/* Form Inputs & Selects */
 .huma-input {
   width: 100%;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid hsla(0,0%,100%,.06);
+  background-color: var(--ink-800);
   padding: 0.625rem 1rem;
   font-size: 0.9rem;
   color: var(--slate-200);
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 select.huma-input {
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
   background-position: left 14px center;
   background-repeat: no-repeat;
   background-size: 20px 20px;
@@ -324,12 +329,13 @@ select.huma-input {
 }
 
 .huma-input::placeholder {
-  color: var(--slate-400);
+  color: var(--slate-500);
 }
 
 .huma-input:focus {
-  border-color: var(--brand-500);
-  box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.15);
+  border-color: rgba(16,185,129,.4);
+  box-shadow: 0 0 24px -6px rgba(16,185,129,.45);
+  background-color: var(--ink-800);
 }
 
 .huma-btn-primary {
@@ -359,25 +365,26 @@ select.huma-input {
   justify-content: center;
   gap: 0.5rem;
   border-radius: 980px;
-  border: none;
-  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid hsla(0,0%,100%,.06);
+  background-color: rgba(19,28,46,.6);
   padding: 0.625rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--slate-200);
-  transition: all 0.2s ease;
+  color: var(--slate-300);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   cursor: pointer;
   text-decoration: none;
 }
 
 .huma-btn-secondary:hover {
-  background-color: rgba(0, 0, 0, 0.08);
+  border-color: rgba(16,185,129,.3);
+  color: #ffffff;
 }
 
-/* Glass Table Styling -> Apple Table Styling */
+/* Glass Table Styling */
 .huma-table-container {
   overflow-x: auto;
-  border-radius: 14px;
+  border-radius: 1rem;
 }
 
 .huma-table {
@@ -388,17 +395,15 @@ select.huma-input {
 }
 
 .huma-table th {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  background-color: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid hsla(0,0%,100%,.06);
   padding: 0.875rem 1.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--slate-400);
-  text-transform: uppercase;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--slate-500);
 }
 
 .huma-table td {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid hsla(0,0%,100%,.04);
   padding: 1rem 1.25rem;
   color: var(--slate-200);
   vertical-align: middle;
@@ -409,7 +414,7 @@ select.huma-input {
 }
 
 .huma-table tbody tr:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: hsla(0,0%,100%,.025);
 }
 
 /* Custom Scrollbar */
@@ -422,10 +427,10 @@ select.huma-input {
 }
 .admin-body-shell ::-webkit-scrollbar-thumb {
   border-radius: 9999px;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: var(--ink-700);
 }
 .admin-body-shell ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: var(--brand-500);
 }
 
 /* End of Overrides */

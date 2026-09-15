@@ -132,7 +132,7 @@ export function OrdersPage() {
                     price: i.price
                   }))}
                 />
-              </article>
+              </div>
             ))}
           </div>
         )}
