@@ -104,12 +104,12 @@ const rawProducts = ((data.products as unknown as RawProduct[]) ?? []).filter(
   (product) => Boolean(product.product_id || product.sku),
 );
 
-const allProducts: ProductDTO[] = rawProducts.map((p, i) => {
+const allProducts: ProductDTO[] = rawProducts.map<ProductDTO>((p, i) => {
   const price = parseNum(p.price);
   const oldPrice = parseNum(p.old_price);
   const kermanStock = parseNum(p.kerman_stock);
   const tehranStock = parseNum(p.tehran_stock);
-  const stock = parseNum(p.stock) || kermanStock + tehranStock || 5;
+  const stock = parseNum(p.stock) || kermanStock + tehranStock;
 
   return {
     id: i + 1,
@@ -130,8 +130,8 @@ const allProducts: ProductDTO[] = rawProducts.map((p, i) => {
     oldPrice: oldPrice > price ? oldPrice : null,
     discount: oldPrice > price ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0,
     stock,
-    kermanStock: kermanStock || (stock > 0 ? Math.ceil(stock / 2) : 0),
-    tehranStock: tehranStock || (stock > 0 ? Math.floor(stock / 2) : 0),
+    kermanStock,
+    tehranStock,
     warranty: p.warranty || null,
     sellType: p.sell_type || 'نقدی',
     seller: 'تماس مارکت',
@@ -143,7 +143,9 @@ const allProducts: ProductDTO[] = rawProducts.map((p, i) => {
     sortOrder: i,
     updatedAt: new Date().toISOString(),
   };
-});
+}).filter((product) =>
+  product.price > 0 && (product.stock > 0 || product.kermanStock > 0 || product.tehranStock > 0),
+);
 
 // Group products by title/model
 const groupedMap = new Map<string, ProductDTO[]>();

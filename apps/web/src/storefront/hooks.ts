@@ -42,12 +42,34 @@ interface ProductsResponse {
   perPage: number;
 }
 
+function sanitizeProducts(response: ProductsResponse): ProductsResponse {
+  const groups = response.groups
+    .map((group) => {
+      const variants = group.variants.filter(
+        (variant) =>
+          variant.price > 0 &&
+          (variant.stock > 0 || variant.kermanStock > 0 || variant.tehranStock > 0),
+      );
+      if (variants.length === 0) return null;
+
+      return {
+        ...group,
+        variants,
+        minPrice: Math.min(...variants.map((variant) => variant.price)),
+        promotion: variants.some((variant) => variant.promotion),
+      };
+    })
+    .filter((group): group is ProductGroupDTO => group !== null);
+
+  return { ...response, groups };
+}
+
 export function useProducts(filters: CatalogFilters) {
   return useQuery({
     queryKey: ['products', filters],
     queryFn: async ({ signal }) => {
       try {
-        return await api.get<ProductsResponse>(
+        const response = await api.get<ProductsResponse>(
           '/catalog/products',
           {
             q: filters.q || undefined,
@@ -60,9 +82,10 @@ export function useProducts(filters: CatalogFilters) {
           },
           signal,
         );
+        return sanitizeProducts(response);
       } catch (err) {
         console.warn('API products failed, falling back to legacy catalog snapshot:', err);
-        return getFallbackProducts(filters);
+        return sanitizeProducts(getFallbackProducts(filters));
       }
     },
     placeholderData: (previous) => previous,
