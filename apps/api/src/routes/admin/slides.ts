@@ -25,7 +25,7 @@ const routes: FastifyPluginAsync = async (app) => {
   app.post('/admin/slides', async (req, reply) => {
     const data = slideSchema.parse(req.body);
     const [created] = await db.insert(slides).values(data).returning();
-    await logAction(req.user!.id, 'CREATE_SLIDE', 'slides', created.id, data);
+    await logAction((req as any).user.id, 'CREATE_SLIDE', 'slides', String(created?.id), data);
     reply.code(201);
     return created;
   });
@@ -41,7 +41,7 @@ const routes: FastifyPluginAsync = async (app) => {
       .returning();
       
     if (!updated) throw notFound('Slide not found');
-    await logAction(req.user!.id, 'UPDATE_SLIDE', 'slides', id, data);
+    await logAction((req as any).user.id, 'UPDATE_SLIDE', 'slides', String(id), data);
     return updated;
   });
 
@@ -49,7 +49,7 @@ const routes: FastifyPluginAsync = async (app) => {
     const id = parseInt((req.params as { id: string }).id, 10);
     const [deleted] = await db.delete(slides).where(eq(slides.id, id)).returning();
     if (!deleted) throw notFound('Slide not found');
-    await logAction(req.user!.id, 'DELETE_SLIDE', 'slides', id);
+    await logAction((req as any).user.id, 'DELETE_SLIDE', 'slides', String(id));
     return { success: true };
   });
 };

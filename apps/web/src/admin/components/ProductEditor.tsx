@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ProductDTO } from '@tamas/shared';
+import { api } from '../../lib/api';
 import { Modal } from '../../components/Modal';
 import { ImagePicker } from './ImagePicker';
 
@@ -19,6 +21,8 @@ export interface ProductForm {
   stock: number;
   kermanStock: number;
   tehranStock: number;
+  otherStocks: Record<string, number>;
+  parentProductId: string;
   warranty: string;
   sellType: string;
   seller: string;
@@ -55,6 +59,8 @@ const blank = (): ProductForm => ({
   stock: 0,
   kermanStock: 0,
   tehranStock: 0,
+  otherStocks: {},
+  parentProductId: '',
   warranty: '',
   sellType: '',
   seller: '',
@@ -82,6 +88,8 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   stock: p.stock,
   kermanStock: p.kermanStock,
   tehranStock: p.tehranStock,
+  otherStocks: p.otherStocks ?? {},
+  parentProductId: p.parentProductId ?? '',
   warranty: p.warranty ?? '',
   sellType: p.sellType ?? '',
   seller: p.seller ?? '',
@@ -96,6 +104,20 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
 export function ProductEditor({ product, categories, brands, busy, onClose, onSave }: Props) {
   const [form, setForm] = useState<ProductForm>(product ? fromProduct(product) : blank());
   const [error, setError] = useState('');
+
+  const { data: attributesList = [] } = useQuery({
+    queryKey: ['admin', 'attributes'],
+    queryFn: async () => {
+      return api.get<{ id: string; name: string; type: string }[]>('/admin/attributes');
+    },
+  });
+
+  const { data: warehousesList = [] } = useQuery({
+    queryKey: ['admin', 'warehouses'],
+    queryFn: async () => {
+      return api.get<{ id: string; code: string; name: string; isActive: boolean }[]>('/admin/warehouses');
+    },
+  });
 
   const set = <K extends keyof ProductForm>(key: K, value: ProductForm[K]) => setForm({ ...form, [key]: value });
 
@@ -151,6 +173,12 @@ export function ProductEditor({ product, categories, brands, busy, onClose, onSa
               disabled={Boolean(product)}
             />
             {product && <span className="faint" style={{ fontSize: 11 }}>کد کالا کلید همگام‌سازی با شیت است و تغییر نمی‌کند.</span>}
+          </div>
+
+          <div className="field">
+            <label htmlFor="f-parent">کد محصول والد (parent_product_id)</label>
+            <input id="f-parent" className="input ltr" value={form.parentProductId} onChange={(e) => set('parentProductId', e.target.value)} />
+            <span className="faint" style={{ fontSize: 11 }}>برای اتصال به عنوان واریانت، کد محصول اصلی را وارد کنید.</span>
           </div>
 
           <div className="field">
@@ -274,27 +302,27 @@ export function ProductEditor({ product, categories, brands, busy, onClose, onSa
             />
           </div>
 
-          <div className="field">
-            <label htmlFor="f-kerman">موجودی کرمان</label>
-            <input
-              id="f-kerman"
-              className="input ltr"
-              inputMode="numeric"
-              value={form.kermanStock}
-              onChange={(e) => set('kermanStock', Number(e.target.value.replace(/\D/g, '')) || 0)}
-            />
-          </div>
-
-          <div className="field">
-            <label htmlFor="f-tehran">موجودی تهران</label>
-            <input
-              id="f-tehran"
-              className="input ltr"
-              inputMode="numeric"
-              value={form.tehranStock}
-              onChange={(e) => set('tehranStock', Number(e.target.value.replace(/\D/g, '')) || 0)}
-            />
-          </div>
+          {warehousesList.filter(w => w.isActive).map((w) => (
+            <div className="field" key={w.code}>
+              <label htmlFor={`f-wh-${w.code}`}>موجودی {w.name}</label>
+              <input
+                id={`f-wh-${w.code}`}
+                className="input ltr"
+                inputMode="numeric"
+                value={
+                  w.code === 'tehran' ? form.tehranStock :
+                  w.code === 'kerman' ? form.kermanStock :
+                  (form.otherStocks?.[w.code] || 0)
+                }
+                onChange={(e) => {
+                  const val = Number(e.target.value.replace(/\D/g, '')) || 0;
+                  if (w.code === 'tehran') set('tehranStock', val);
+                  else if (w.code === 'kerman') set('kermanStock', val);
+                  else set('otherStocks', { ...form.otherStocks, [w.code]: val });
+                }}
+              />
+            </div>
+          ))}
 
           <div className="field">
             <label htmlFor="f-stock">موجودی کلی (اگر انبارها صفر باشند)</label>
@@ -376,11 +404,17 @@ export function ProductEditor({ product, categories, brands, busy, onClose, onSa
           </div>
 
           <div className="stack" style={{ gap: 8 }}>
+            <datalist id="attrs-list">
+              {attributesList.map((a) => (
+                <option key={a.id} value={a.name} />
+              ))}
+            </datalist>
             {form.attributes.map((attr, i) => (
               <div className="row" key={i}>
                 <input
                   className="input"
-                  placeholder="نام ویژگی"
+                  placeholder="نام ویژگی (مثلا: وزن)"
+                  list="attrs-list"
                   value={attr.key}
                   onChange={(e) => {
                     const next = [...form.attributes];
