@@ -2127,7 +2127,8 @@
     -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid var(--border);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
-    z-index: 1000;
+    z-index: 99999 !important;
+    pointer-events: auto;
     align-items: center;
     justify-content: space-around;
     padding: 0 6px;
