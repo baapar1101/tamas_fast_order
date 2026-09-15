@@ -31,6 +31,7 @@ export interface ProductDTO {
   sku: string | null;
   title: string;
   model: string | null;
+  parentProductId: string | null;
   categoryName: string | null;
   categoryFaName: string | null;
   brandName: string | null;
@@ -44,6 +45,7 @@ export interface ProductDTO {
   stock: number;
   kermanStock: number;
   tehranStock: number;
+  otherStocks: Record<string, number>;
   warranty: string | null;
   sellType: string | null;
   seller: string | null;
