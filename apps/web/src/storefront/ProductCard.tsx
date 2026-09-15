@@ -7,6 +7,7 @@ import { stockFor } from '../store/cart';
 interface Props {
   group: ProductGroupDTO;
   colorMap: Map<string, string>;
+  canViewPrices: boolean;
   viewMode?: 'grid' | 'list';
   onAdd: (product: ProductDTO, warehouse: Warehouse) => void;
   onPreview: (url: string) => void;
@@ -56,7 +57,7 @@ function productTitleClass(title: string): string {
   return '';
 }
 
-export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode = 'grid', onAdd, onPreview }: Props) {
+export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', onAdd, onPreview }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFav, setIsFav] = useState(false);
 
@@ -112,7 +113,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
                     {v.warranty && <div className="warranty-text"><Icon name="shield" /> {v.warranty}</div>}
                   </div>
 
-                  <div className="variant-price">
+                  <div className={`variant-price${canViewPrices ? '' : ' price-obscured'}`} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
                     {hasRealDiscount(v.price, v.oldPrice) && (
                       <span className="card-old-price">{formatNumber(v.oldPrice!)} تومان</span>
                     )}
@@ -213,7 +214,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
                       className={`color-swatch-dot${i === selectedIndex ? ' active' : ''}`}
                       style={{ background: swatchColor(v, colorMap) }}
                       onClick={() => setSelectedIndex(i)}
-                      title={`${v.color || v.colorEn || 'رنگ'}${v.price ? ` — ${formatMoney(v.price)}` : ''}`}
+                      title={`${v.color || v.colorEn || 'رنگ'}${canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}`}
                       aria-label={`انتخاب رنگ ${v.color || v.colorEn}`}
                     />
                   ))}
@@ -228,7 +229,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
                   >
                     {group.variants.map((v, i) => (
                       <option key={v.productId} value={i}>
-                        {v.color || 'اصلی'}{v.price ? ` — ${formatMoney(v.price)}` : ''}{v.sku ? ` (${v.sku})` : ''}
+                        {v.color || 'اصلی'}{canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}{v.sku ? ` (${v.sku})` : ''}
                       </option>
                     ))}
                   </select>
@@ -259,7 +260,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, viewMode
       </div>
 
       <div className="card-price-box">
-        <div style={{ marginBottom: 8 }}>
+        <div className={canViewPrices ? undefined : 'price-obscured'} style={{ marginBottom: 8 }} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
           {hasRealDiscount(selectedVariant.price, selectedVariant.oldPrice) && (
             <span className="card-old-price">{formatNumber(selectedVariant.oldPrice!)} تومان</span>
           )}
