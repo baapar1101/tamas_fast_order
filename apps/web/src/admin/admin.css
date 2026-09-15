@@ -58,6 +58,10 @@
   --slate-600: #475569; /* Border */
 }
 
+body.admin-page-active {
+  overflow-x: visible !important;
+}
+
 .admin-body-shell {
   min-height: 100vh;
   background-color: var(--ink-950);
