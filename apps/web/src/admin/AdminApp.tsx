@@ -209,7 +209,8 @@ export default function AdminApp() {
   }
 
   // TEMPORARY BYPASS FOR UI PREVIEW (Localhost only)
-  if (false && (!user || !isAdmin)) {
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  if (!isLocalhost && (!user || !isAdmin)) {
     return (
       <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
         {/* Background Ambient Glows */}
