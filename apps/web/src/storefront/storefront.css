@@ -1082,6 +1082,13 @@
   color: var(--primary);
 }
 
+.price-obscured {
+  filter: blur(6px);
+  opacity: 0.72;
+  user-select: none;
+  pointer-events: none;
+}
+
 .card-old-price {
   text-decoration: line-through;
   color: #94a3b8;

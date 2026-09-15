@@ -144,6 +144,10 @@ export function StorefrontPage() {
       setAuthOpen(true);
       return;
     }
+    if (!user.isActive) {
+      toast.error('حساب همکاری شما هنوز تأیید نشده است.');
+      return;
+    }
     if (!complete) {
       setAuthStep('profile');
       setAuthOpen(true);
@@ -153,6 +157,7 @@ export function StorefrontPage() {
   }, [lines.length, user, complete, toast]);
 
   const settings = bootstrap.data?.settings ?? {};
+  const canViewPrices = Boolean(user?.isActive);
   const groups = products.data?.groups ?? [];
   const total = products.data?.total ?? 0;
   const perPage = products.data?.perPage ?? 24;
@@ -501,19 +506,21 @@ export function StorefrontPage() {
               </div>
             </div>
 
-            {!user && (
+            {!canViewPrices && (
               <div className="price-lock-note">
-                <span>قیمت‌های عمده فقط برای همکاران ثبت‌نام‌شده نمایش داده می‌شوند.</span>
-                <button
-                  type="button"
-                  className="btn-lock-auth"
-                  onClick={() => {
-                    setAuthStep('phone');
-                    setAuthOpen(true);
-                  }}
-                >
-                  ورود / ثبت‌نام
-                </button>
+                <span>{user ? 'قیمت‌ها پس از تأیید حساب همکاری شما نمایش داده می‌شوند.' : 'برای مشاهده قیمت‌های عمده وارد حساب همکار شوید.'}</span>
+                {!user && (
+                  <button
+                    type="button"
+                    className="btn-lock-auth"
+                    onClick={() => {
+                      setAuthStep('phone');
+                      setAuthOpen(true);
+                    }}
+                  >
+                    ورود / ثبت‌نام
+                  </button>
+                )}
               </div>
             )}
 
@@ -531,7 +538,7 @@ export function StorefrontPage() {
               <>
                 <div className={viewMode === 'grid' ? 'products-grid' : 'products-list'} style={{ opacity: products.isFetching ? 0.65 : 1, transition: 'opacity .15s' }}>
                   {groups.map((g) => (
-                    <ProductCard key={g.key} group={g} colorMap={colorMap} viewMode={viewMode} onAdd={handleAdd} onPreview={setPreview} />
+                    <ProductCard key={g.key} group={g} colorMap={colorMap} canViewPrices={canViewPrices} viewMode={viewMode} onAdd={handleAdd} onPreview={setPreview} />
                   ))}
                 </div>
 
@@ -553,7 +560,7 @@ export function StorefrontPage() {
           </section>
 
           {/* Cart Panel (Left Column) */}
-          <CartPanel onCheckout={openCheckout} />
+          <CartPanel onCheckout={openCheckout} canViewPrices={canViewPrices} />
         </div>
       </main>
 
