@@ -33,29 +33,29 @@
 }
 
 :root {
-  /* Mapped Apple Light Theme Colors */
-  --ink-950: #f5f5f7; /* Background */
-  --ink-900: #ffffff; /* Card Background */
-  --ink-850: #f5f5f7;
-  --ink-800: #e5e5ea;
-  --ink-700: #d1d1d6;
+  /* Huma Dark Theme Colors (from D:\admin\admin) */
+  --ink-950: #070b12; /* Background */
+  --ink-900: #0b111d; /* Card Background */
+  --ink-850: #0e1626;
+  --ink-800: #131c2e;
+  --ink-700: #1a2438;
   
-  --brand-500: #0066cc; /* Apple Blue */
-  --brand-400: #2997ff;
-  --brand-300: #4cb3ff;
+  --brand-500: #10b981; /* Emerald */
+  --brand-400: #34d399;
+  --brand-300: #6ee7b7;
   
-  --aqua-500: #0066cc;
-  --aqua-400: #2997ff;
+  --aqua-500: #06b6d4; /* Cyan */
+  --aqua-400: #22d3ee;
   
-  --amberx: #ff9500;
-  --rose: #ff3b30;
+  --amberx: #f59e0b;
+  --rose: #fb7185;
   
-  /* Text Colors (Inverted for Light Mode) */
-  --slate-200: #1d1d1f; /* Primary Text */
-  --slate-300: #424245; /* Secondary Text */
-  --slate-400: #86868b; /* Tertiary Text */
-  --slate-500: #86868b;
-  --slate-600: #d1d1d6; /* Border */
+  /* Text Colors */
+  --slate-200: #e2e8f0; /* Primary Text */
+  --slate-300: #cbd5e1; /* Secondary Text */
+  --slate-400: #94a3b8; /* Tertiary Text */
+  --slate-500: #64748b;
+  --slate-600: #475569; /* Border */
 }
 
 .admin-body-shell {
@@ -98,24 +98,29 @@
   display: none;
 }
 
-/* Glassmorphism Cards -> Apple Solid Cards */
+/* Glassmorphism Cards */
 .glass-card, .glass-card-static {
   position: relative;
-  border-radius: 18px;
-  background-color: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border-radius: 1rem;
+  border-width: 1px;
+  border-color: hsla(0,0%,100%,.06);
+  background-color: rgba(14,22,38,.7);
+  box-shadow: 0 8px 30px -12px rgba(2,8,20,.7);
+  backdrop-filter: blur(24px);
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .glass-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  transform: translateY(-0.25rem);
+  border-color: rgba(16,185,129,.25);
+  box-shadow: 0 20px 45px -15px rgba(2,8,20,.85);
 }
 
 .huma-table-container.glass-card:hover,
 form.glass-card:hover {
   transform: none;
+  border-color: hsla(0,0%,100%,.06);
+  box-shadow: 0 8px 30px -12px rgba(2,8,20,.7);
 }
 
 /* Sidebar Navigation Items */
@@ -124,28 +129,41 @@ form.glass-card:hover {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border-radius: 12px;
+  border-radius: 0.75rem;
   padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  color: var(--slate-300);
-  transition: all 0.2s ease;
+  color: var(--slate-400);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   text-decoration: none;
 }
 
 .nav-item:hover {
-  background-color: rgba(0,0,0,0.03);
-  color: var(--slate-200);
+  color: #ffffff;
 }
 
 .nav-item::before {
-  display: none;
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  height: 0;
+  width: 0.25rem;
+  transform: translateY(-50%);
+  border-radius: 9999px;
+  background-image: linear-gradient(to bottom, var(--brand-300), var(--brand-500));
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-item.active::before, .nav-item:hover::before {
+  height: 60%;
+  opacity: 1;
 }
 
 .nav-item.active {
-  background-color: rgba(0, 102, 204, 0.08);
-  color: var(--brand-500);
-  font-weight: 600;
+  background-image: linear-gradient(to left, rgba(16,185,129,.15), transparent);
+  color: var(--brand-300);
 }
 
 .nav-item .icon-svg {
@@ -410,29 +428,7 @@ select.huma-input {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-/* Overriding Tailwind Colors for Light Theme */
-.admin-body-shell .text-slate-950,
-.admin-body-shell .text-white,
-.admin-body-shell .text-slate-200,
-.admin-body-shell .text-slate-300 { color: var(--slate-200); }
-
-.admin-body-shell .text-slate-400,
-.admin-body-shell .text-slate-500 { color: var(--slate-400); }
-
-.admin-body-shell .bg-slate-800,
-.admin-body-shell .bg-slate-950\/80,
-.admin-body-shell .bg-\[\#070b12\],
-.admin-body-shell .bg-\[\#131c2e\] { background-color: #ffffff; }
-
-.admin-body-shell .border-white\/\[0\.06\],
-.admin-body-shell .border-white\/\[0\.04\] { border-color: rgba(0,0,0,0.06); }
-
-/* Remove glow shadows from tailwind utility */
-.admin-body-shell .shadow-glow,
-.admin-body-shell .shadow-glow-lg,
-.admin-body-shell .hover\:shadow-glow-lg:hover {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-}
+/* End of Overrides */
 
 /* ==========================================================================
    SVG Icon Sizing Fixes & Fallbacks for Admin Panel
