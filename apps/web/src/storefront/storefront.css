@@ -1427,6 +1427,24 @@
   margin-top: 6px;
 }
 
+.warehouse-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.warehouse-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wh-badge {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
 .add-wh-btn {
   width: 32px;
   height: 32px;
