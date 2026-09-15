@@ -708,17 +708,53 @@ export const orderMapping: EntityMapping = {
 
   async applySheetRow(key, cells, updatedAt) {
     const [existing] = await db.select({ id: orders.id }).from(orders).where(eq(orders.orderCode, key)).limit(1);
-    // An order that only exists in the sheet is not reconstructed here; the
-    // shop is the only place orders are born.
-    if (!existing) return 'skipped';
 
     const rawStatus = str(cells.status).toLowerCase();
+    const parsedStatus = ORDER_STATUS_SET.has(rawStatus) ? (rawStatus as any) : 'new';
+
+    if (!existing) {
+      let items: any[] = [];
+      try {
+        items = JSON.parse(str(cells.items_json) || '[]');
+      } catch {}
+      
+      const [created] = await db.insert(orders).values({
+        orderCode: key,
+        customerName: str(cells.customer_name) || 'مشتری نامشخص',
+        phone: str(cells.phone) || '00000000000',
+        storeName: str(cells.store_name) || null,
+        address: str(cells.address) || '',
+        total: Number(str(cells.total_price)) || 0,
+        status: parsedStatus,
+        paymentMethod: str(cells.payment) || null,
+        note: str(cells.note) || null,
+        createdAt: str(cells.date) ? new Date(str(cells.date)) : updatedAt,
+        updatedAt,
+      }).returning();
+      
+      if (created && items.length > 0) {
+        await db.insert(orderItems).values(
+          items.map(i => ({
+            orderId: created.id,
+            productId: String(i.product_id || ''),
+            sku: i.sku ? String(i.sku) : null,
+            title: String(i.title || 'محصول نامشخص'),
+            color: i.color ? String(i.color) : null,
+            price: Number(i.price) || 0,
+            qty: Number(i.qty) || 1,
+            warehouse: i.warehouse || 'kerman',
+          }))
+        );
+      }
+      return 'created';
+    }
+
     const patch: Record<string, unknown> = {
       updatedAt,
       note: str(cells.note) || null,
       paymentMethod: str(cells.payment) || null,
+      status: parsedStatus,
     };
-    if (ORDER_STATUS_SET.has(rawStatus)) patch.status = rawStatus;
 
     await db.update(orders).set(patch).where(eq(orders.id, existing.id));
     return 'updated';
