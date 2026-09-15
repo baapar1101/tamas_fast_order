@@ -44,6 +44,7 @@ export const orderStatusEnum = pgEnum('order_status', [
   'delivered',
   'cancelled',
 ]);
+export const paymentStatusEnum = pgEnum('payment_status', ['paid', 'unpaid', 'pending']);
 export const warehouseEnum = pgEnum('warehouse', ['kerman', 'tehran', 'site']);
 export const uploadKindEnum = pgEnum('upload_kind', [
   'product',
@@ -171,6 +172,15 @@ export const products = pgTable(
     seller: varchar('seller', { length: 200 }),
     promotion: boolean('promotion').notNull().default(false),
     status: productStatusEnum('status').notNull().default('active'),
+    subTitle: varchar('sub_title', { length: 400 }),
+    description: text('description'),
+    keywords: varchar('keywords', { length: 500 }),
+    slug: varchar('slug', { length: 200 }),
+    ribbon: varchar('ribbon', { length: 50 }),
+    type: varchar('type', { length: 50 }).notNull().default('physical'),
+    weight: integer('weight').notNull().default(0),
+    dimensions: varchar('dimensions', { length: 100 }),
+    tracking: boolean('tracking').notNull().default(true),
     imageUrl: varchar('image_url', { length: 1000 }),
     gallery: jsonb('gallery').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
     attributes: jsonb('attributes').$type<ProductAttribute[]>().notNull().default(sql`'[]'::jsonb`),
@@ -279,7 +289,9 @@ export const orders = pgTable(
     storeName: varchar('store_name', { length: 200 }),
     address: text('address').notNull().default(''),
     total: bigint('total', { mode: 'number' }).notNull().default(0),
+    quantity: integer('quantity').notNull().default(1),
     status: orderStatusEnum('status').notNull().default('new'),
+    paymentStatus: paymentStatusEnum('payment_status').notNull().default('unpaid'),
     paymentMethod: varchar('payment_method', { length: 100 }),
     note: text('note'),
     ...syncColumns,

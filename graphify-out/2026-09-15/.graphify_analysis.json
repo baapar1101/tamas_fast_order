@@ -998,17 +998,6 @@
   ],
   "surprises": [
     {
-      "source": "shutdown()",
-      "target": "closeDb()",
-      "source_files": [
-        "apps/api/src/index.ts",
-        "apps/api/src/db/client.ts"
-      ],
-      "confidence": "EXTRACTED",
-      "relation": "calls",
-      "why": "bridges separate communities"
-    },
-    {
       "source": "routes()",
       "target": "badRequest()",
       "source_files": [
@@ -1051,10 +1040,54 @@
       "confidence": "EXTRACTED",
       "relation": "calls",
       "why": "bridges separate communities"
+    },
+    {
+      "source": "routes()",
+      "target": "runSync()",
+      "source_files": [
+        "apps/api/src/routes/admin/sync.ts",
+        "apps/api/src/services/sheets/sync.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
     }
   ],
-  "tokens": {
-    "input": 0,
-    "output": 0
-  }
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `dependencies` connect `dependencies` to `scripts`, `web/package.json`?",
+      "why": "High betweenness centrality (0.012) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `Db` connect `app.ts` to `sheets/sync.ts`, `services/auth.ts`, `mapping.ts`, `schema.ts`, `import-legacy.ts`, `dashboard.ts`?",
+      "why": "High betweenness centrality (0.010) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `devDependencies` connect `scripts` to `scripts`?",
+      "why": "High betweenness centrality (0.009) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `PageParams`, `ProcessInput`, `OrderItemRow` to the rest of the system?",
+      "why": "346 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `app.ts` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.07533197139938713 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `sheets/sync.ts` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.05902980713033314 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `services/auth.ts` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.09830866807610994 - nodes in this community are weakly interconnected."
+    }
+  ]
 }

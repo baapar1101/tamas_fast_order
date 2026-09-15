@@ -154,6 +154,7 @@ const routes: FastifyPluginAsync = async (app) => {
         brandId,
         searchText: buildSearchText([
           body.title,
+          body.subTitle,
           body.model,
           body.brandName,
           body.color,
@@ -194,6 +195,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
     patch.searchText = buildSearchText([
       body.title ?? existing.title,
+      body.subTitle ?? existing.subTitle,
       body.model ?? existing.model,
       brandLabel,
       body.color ?? existing.color,

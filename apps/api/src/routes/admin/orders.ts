@@ -92,6 +92,7 @@ const routes: FastifyPluginAsync = async (app) => {
       .update(orders)
       .set({
         ...(body.status ? { status: body.status } : {}),
+        ...(body.paymentStatus ? { paymentStatus: body.paymentStatus } : {}),
         ...(body.note !== undefined ? { note: body.note } : {}),
         updatedAt: new Date(),
       })
