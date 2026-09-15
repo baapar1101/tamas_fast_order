@@ -377,6 +377,25 @@ export const syncConflicts = pgTable(
   (t) => [index('sync_conflicts_entity_idx').on(t.entity), index('sync_conflicts_created_idx').on(t.createdAt)],
 );
 
+/* ------------------------------------------------------------------ *
+ * Slides (Banners)
+ * ------------------------------------------------------------------ */
+
+export const slides = pgTable(
+  'slides',
+  {
+    id: serial('id').primaryKey(),
+    title: varchar('title', { length: 255 }),
+    imageUrl: varchar('image_url', { length: 1000 }).notNull(),
+    linkUrl: varchar('link_url', { length: 1000 }),
+    sortOrder: integer('sort_order').notNull().default(0),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('slides_active_sort_idx').on(t.isActive, t.sortOrder)]
+);
+
 export const auditLog = pgTable(
   'audit_log',
   {
