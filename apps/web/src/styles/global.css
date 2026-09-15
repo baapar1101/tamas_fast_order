@@ -129,6 +129,7 @@ img {
   color: var(--text);
   transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn:hover:not(:disabled) {

@@ -1310,6 +1310,7 @@
   cursor: pointer;
   transition: all 0.15s ease;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .qty button:hover {
