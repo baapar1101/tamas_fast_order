@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { OrderDTO } from '@tamas/shared';
 import { ORDER_STATUS_LABELS, WAREHOUSE_LABELS, formatMoney, formatNumber } from '@tamas/shared';
+import { Price } from '../components/Price';
 import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import './storefront.css';
@@ -68,7 +69,7 @@ export function OrdersPage() {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                       <span style={{ fontSize: 12, color: '#64748b' }}>مبلغ کل</span>
-                      <b style={{ fontSize: 16, color: '#0ea5e9' }}>{formatMoney(order.total)}</b>
+                      <b style={{ fontSize: 16, color: '#0ea5e9' }}><Price amount={order.total} /></b>
                     </div>
                   </div>
                 </div>
@@ -91,7 +92,7 @@ export function OrdersPage() {
                           <td style={{ padding: '12px 16px', fontSize: 13, color: '#64748b' }}>{item.color || '—'}</td>
                           <td style={{ padding: '12px 16px', fontSize: 13, color: '#64748b' }}>{WAREHOUSE_LABELS[item.warehouse]}</td>
                           <td style={{ padding: '12px 16px', fontSize: 14, color: '#334155', fontWeight: 700 }}>{formatNumber(item.qty)}</td>
-                          <td style={{ padding: '12px 16px', fontSize: 14, color: '#0ea5e9', fontWeight: 700 }}>{formatMoney(item.price * item.qty)}</td>
+                          <td style={{ padding: '12px 16px', fontSize: 14, color: '#0ea5e9', fontWeight: 700 }}><Price amount={item.price * item.qty} /></td>
                         </tr>
                       ))}
                     </tbody>

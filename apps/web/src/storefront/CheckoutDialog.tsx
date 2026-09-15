@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { OrderDTO } from '@tamas/shared';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber } from '@tamas/shared';
+import { Price } from '../components/Price';
 import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { ApiRequestError, api } from '../lib/api';
@@ -79,7 +80,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
       footer={
         <>
           <button type="button" className="btn primary" style={{ flex: 1 }} disabled={busy || !agreeTerms} onClick={() => void submit()}>
-            {busy ? 'در حال ثبت…' : `ثبت سفارش — ${formatMoney(total)}`}
+            {busy ? 'در حال ثبت…' : <>ثبت سفارش — <Price amount={total} /></>}
           </button>
           <button type="button" className="btn" onClick={onClose} disabled={busy}>
             انصراف
@@ -148,7 +149,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
                   </td>
                   <td>{WAREHOUSE_LABELS[l.warehouse]}</td>
                   <td>{formatNumber(l.qty)}</td>
-                  <td>{formatMoney(l.price * l.qty)}</td>
+                  <td><Price amount={l.price * l.qty} /></td>
                 </tr>
               ))}
             </tbody>

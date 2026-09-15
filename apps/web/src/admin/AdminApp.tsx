@@ -504,7 +504,7 @@ export default function AdminApp() {
                           <span className="notif-dot bg-emerald-400" />
                           <div>
                             <p className="text-xs font-semibold text-slate-200">سفارش جدید دریافت شد</p>
-                            <p className="mt-0.5 text-[11px] text-slate-500">سفارش به ارزش ۲,۴۵۰,۰۰۰ تومان · ۳ دقیقه پیش</p>
+                            <p className="mt-0.5 text-[11px] text-slate-500">سفارش به ارزش ۲,۴۵۰,۰۰۰ <img src="/toman.svg" alt="تومان" style={{ width: '1em', height: '1em', display: 'inline' }} /> · ۳ دقیقه پیش</p>
                           </div>
                         </li>
                         <li className="notif-item">

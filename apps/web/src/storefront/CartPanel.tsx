@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber } from '@tamas/shared';
+import { Price } from '../components/Price';
 import { cartCount, cartTotal, useCart } from '../store/cart';
 import { Icon } from '../components/Icon';
 
@@ -65,7 +66,7 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
               <div style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: progressPercent >= 100 ? '#10b981' : '#0ea5e9', transition: 'width 0.3s ease' }} />
             </div>
             <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
-              حداقل مبلغ سفارش: {formatMoney(WHOLESALE_THRESHOLD)}
+              حداقل مبلغ سفارش: <Price amount={WHOLESALE_THRESHOLD} />
             </div>
           </div>
 
@@ -85,7 +86,7 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
                   <button type="button" onClick={() => setQty(line.key, line.qty - 1)} aria-label="کاهش">
                     −
                   </button>
-                  <span className={canViewPrices ? undefined : 'price-obscured'} style={{ marginInlineStart: 'auto', fontWeight: 800, color: 'var(--primary)' }}>{formatMoney(line.price * line.qty)}</span>
+                  <span className={canViewPrices ? undefined : 'price-obscured'} style={{ marginInlineStart: 'auto', fontWeight: 800, color: 'var(--primary)' }}><Price amount={line.price * line.qty} /></span>
                   <button type="button" className="btn ghost sm" style={{ color: 'var(--danger)' }} onClick={() => remove(line.key)} aria-label="حذف">
                     ✕
                   </button>
@@ -96,7 +97,7 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
 
           <div className="total" style={{ borderTop: '2px dashed #e2e8f0', paddingTop: '16px', marginTop: '8px' }}>
             <span style={{ fontWeight: 800, fontSize: '16px' }}>مجموع فاکتور</span>
-            <span className={canViewPrices ? undefined : 'price-obscured'} style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '18px' }}>{formatMoney(total)}</span>
+            <span className={canViewPrices ? undefined : 'price-obscured'} style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '18px' }}><Price amount={total} /></span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
