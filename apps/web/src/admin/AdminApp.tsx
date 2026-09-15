@@ -489,12 +489,12 @@ export default function AdminApp() {
                 >
                   <span className="relative">
                     <span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-amber-500 to-rose-500 text-sm font-extrabold text-slate-950">
-                      {user.name?.[0] || 'م'}
+                      {user?.name?.[0] || 'م'}
                     </span>
                     <span className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
                   </span>
                   <span className="hidden text-right md:block">
-                    <span className="block text-xs font-bold text-white">{user.name} {user.lastName}</span>
+                    <span className="block text-xs font-bold text-white">{user?.name} {user?.lastName}</span>
                     <span className="block text-[10px] text-slate-500">مدیر سیستم</span>
                   </span>
                   <svg className="hidden h-4 w-4 text-slate-500 transition-transform duration-300 md:block" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -507,11 +507,11 @@ export default function AdminApp() {
                     <div className="glass-card-static overflow-hidden !bg-[#0e1626]/95 p-0 shadow-2xl">
                       <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4">
                         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 text-base font-extrabold text-slate-950">
-                          {user.name?.[0] || 'م'}
+                          {user?.name?.[0] || 'م'}
                         </span>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-bold text-white">{user.name} {user.lastName}</p>
-                          <p className="truncate text-[11px] text-slate-500" dir="ltr">{user.phone}</p>
+                        <div>
+                          <p className="text-sm font-bold text-white">{user?.name} {user?.lastName}</p>
+                          <p className="mt-0.5 text-xs text-slate-400">{user?.phone}</p>
                           <span className="chip chip-brand mt-1.5">مدیر ارشد</span>
                         </div>
                       </div>
