@@ -2157,6 +2157,53 @@
     transform: scale(0.94);
   }
 
+  /* Mobile Bottom Navigation Bar */
+  .shell {
+    padding-bottom: 68px;
+  }
+
+  .tabbar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 6px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .tabbar-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 10.5px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 6px 0;
+    text-decoration: none;
+    position: relative;
+    transition: color 0.2s ease, transform 0.15s ease;
+  }
+
+  .tabbar-item:active {
+    transform: scale(0.94);
+  }
+
   .tabbar-item.active {
     color: var(--primary);
   }
@@ -2177,5 +2224,54 @@
     font-size: 9.5px;
     width: 17px;
     height: 17px;
+  }
+
+  /* Native App-like Layout Rules */
+  html, body {
+    overflow: hidden; /* Lock document scrolling on mobile */
+    height: 100dvh;
+    width: 100vw;
+  }
+  
+  .shell {
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0; /* Remove old padding */
+  }
+
+  /* The main content area that holds the tabs */
+  .shell > main.container {
+    flex: 1;
+    overflow: hidden; /* Each tab manages its own scroll */
+    position: relative;
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+
+  /* Tab view containers */
+  .mobile-tab-view {
+    display: none;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 80px; /* Space for bottom tab bar */
+    width: 100%;
+  }
+
+  .mobile-tab-view.active {
+    display: block;
+    animation: fade-in 0.2s ease-out;
+  }
+}
+
+/* On Desktop, hide elements that are explicitly mobile-only tab containers */
+@media (min-width: 1025px) {
+  .mobile-tab-view {
+    display: contents; /* Strip out the wrapper behavior */
   }
 }
