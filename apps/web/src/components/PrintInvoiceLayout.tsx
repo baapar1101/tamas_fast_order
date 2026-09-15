@@ -4,7 +4,7 @@ import { Price } from './Price';
 export interface PrintInvoiceItem {
   key: string;
   title: string;
-  color?: string;
+  color?: string | null;
   warehouse: string;
   qty: number;
   price: number;
