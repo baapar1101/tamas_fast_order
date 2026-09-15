@@ -2275,3 +2275,91 @@
     display: none !important;
   }
 }
+
+/* Desktop vs Mobile component visibility */
+@media (min-width: 1025px) {
+  .mobile-only-categories,
+  .mobile-only-search,
+  .mobile-only-cart,
+  .mobile-only-profile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .desktop-only-cart {
+    display: none !important;
+  }
+  
+  /* Make mobile-only views scrollable and take up full space */
+  .mobile-only-categories,
+  .mobile-only-search,
+  .mobile-only-cart,
+  .mobile-only-profile {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    padding-bottom: 80px; /* Space for bottom nav */
+  }
+
+  /* Reset layout height for mobile so it scrolls nicely inside container */
+  .layout {
+    height: 100%;
+    overflow-y: auto;
+    padding-bottom: 80px;
+    margin-bottom: 0;
+  }
+  
+  /* Reset hero-slider margin for tab spacing */
+  .hero-slider {
+    flex-shrink: 0;
+  }
+
+  /* TABS VISIBILITY LOGIC */
+  
+  /* If NOT home */
+  main.container:not([data-mobile-tab="home"]) .hero-slider,
+  main.container:not([data-mobile-tab="home"]) .category-toolbar,
+  main.container:not([data-mobile-tab="home"]) .site-footer {
+    display: none !important;
+  }
+
+  /* layout (products grid) is visible ONLY in home and search */
+  main.container:not([data-mobile-tab="home"]):not([data-mobile-tab="search"]) .layout {
+    display: none !important;
+  }
+
+  /* categories tab */
+  main.container:not([data-mobile-tab="categories"]) .mobile-only-categories {
+    display: none !important;
+  }
+
+  /* search tab (search logic can focus input and show layout) */
+  /* If search, we can also force hide hero and footer, which is done above */
+
+  /* cart tab */
+  main.container:not([data-mobile-tab="cart"]) .mobile-only-cart {
+    display: none !important;
+  }
+
+  /* profile tab */
+  main.container:not([data-mobile-tab="profile"]) .mobile-only-profile {
+    display: none !important;
+  }
+
+  /* Remove cart sidebar fixed positioning when inline on mobile */
+  .mobile-only-cart .cart-panel {
+    position: static;
+    width: 100%;
+    height: 100%;
+    transform: none !important;
+    border-radius: 0;
+    box-shadow: none;
+    z-index: 1;
+  }
+  
+  .mobile-only-cart .cart-panel-close {
+    display: none !important; /* No close button needed for tab */
+  }
+}
