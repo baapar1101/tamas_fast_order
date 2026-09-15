@@ -331,9 +331,6 @@ export function ProductsPage() {
                   {p.promotion && (
                     <span className="absolute top-3 left-3 chip chip-amber">ویژه</span>
                   )}
-                  <span className={`absolute bottom-3 right-3 chip ${totalStock > 0 ? 'chip-brand' : 'chip-rose'}`}>
-                    {totalStock > 0 ? `${formatNumber(totalStock)} عدد` : 'ناموجود'}
-                  </span>
                 </div>
 
                 <div className="p-5 flex-1 flex flex-col justify-between">
@@ -343,6 +340,12 @@ export function ProductsPage() {
                       <span>{p.brandFaName || p.brandName || ''}</span>
                     </div>
                     <h3 className="font-bold text-white text-sm line-clamp-2">{p.title}</h3>
+                    <div className="admin-product-stock-row">
+                      <span className={`admin-product-stock chip ${totalStock > 0 ? 'chip-brand' : 'chip-rose'}`}>
+                        <span className="admin-product-stock-dot" aria-hidden="true" />
+                        {totalStock > 0 ? `موجودی: ${formatNumber(totalStock)} عدد` : 'ناموجود در انبار'}
+                      </span>
+                    </div>
                     {p.color && <p className="text-xs text-slate-400 mt-1">رنگ: {p.color}</p>}
                   </div>
 

@@ -64,6 +64,14 @@ export function buildSearchText(parts: Array<string | null | undefined>): string
 
 const liveProduct = () => and(isNull(products.deletedAt), eq(products.status, 'active'));
 
+/** Public storefront rows must have both a sellable price and available stock. */
+const sellableProduct = () =>
+  and(
+    liveProduct(),
+    gt(products.price, 0),
+    or(gt(products.stock, 0), gt(products.kermanStock, 0), gt(products.tehranStock, 0)),
+  );
+
 export async function queryProducts(q: CatalogQuery): Promise<{
   groups: ProductGroupDTO[];
   total: number;
@@ -76,13 +84,7 @@ export async function queryProducts(q: CatalogQuery): Promise<{
     | undefined;
   if (cached) return cached;
 
-  const filters = [liveProduct()];
-
-  if (q.inStock) {
-    filters.push(
-      or(gt(products.stock, 0), gt(products.kermanStock, 0), gt(products.tehranStock, 0))!,
-    );
-  }
+  const filters = [sellableProduct()];
   if (q.promotion) filters.push(eq(products.promotion, true));
   if (q.q) filters.push(sql`${products.searchText} like ${'%' + q.q.toLowerCase() + '%'}`);
   if (q.category) {
@@ -188,7 +190,7 @@ export async function listCategories(): Promise<CategoryDTO[]> {
     const counts = await db
       .select({ categoryId: products.categoryId, n: count() })
       .from(products)
-      .where(liveProduct())
+      .where(sellableProduct())
       .groupBy(products.categoryId);
 
     const countMap = new Map(counts.map((c) => [c.categoryId, Number(c.n)]));
@@ -222,7 +224,7 @@ export async function listBrands(): Promise<BrandDTO[]> {
     const counts = await db
       .select({ brandId: products.brandId, n: count() })
       .from(products)
-      .where(liveProduct())
+      .where(sellableProduct())
       .groupBy(products.brandId);
     const countMap = new Map(counts.map((c) => [c.brandId, Number(c.n)]));
 
@@ -254,7 +256,7 @@ export async function findProductByPublicId(productId: string): Promise<{ produc
     .from(products)
     .leftJoin(categories, eq(categories.id, products.categoryId))
     .leftJoin(brands, eq(brands.id, products.brandId))
-    .where(and(eq(products.productId, productId), isNull(products.deletedAt)))
+    .where(and(eq(products.productId, productId), sellableProduct()))
     .limit(1);
 
   if (!row) return null;
@@ -273,7 +275,7 @@ export async function findProductByPublicId(productId: string): Promise<{ produc
     .leftJoin(brands, eq(brands.id, products.brandId))
     .where(
       and(
-        isNull(products.deletedAt),
+        sellableProduct(),
         or(
           row.product.parentProductId
             ? eq(products.parentProductId, row.product.parentProductId)

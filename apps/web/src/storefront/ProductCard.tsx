@@ -48,7 +48,11 @@ const WAREHOUSE_ORDER: Warehouse[] = ['kerman', 'tehran'];
 
 function getWarehouseButtons(product: ProductDTO): Warehouse[] {
   const hasSplit = product.kermanStock + product.tehranStock > 0;
-  return hasSplit ? WAREHOUSE_ORDER : ['site'];
+  if (hasSplit) {
+    return WAREHOUSE_ORDER.filter((warehouse) => stockFor(product, warehouse) > 0);
+  }
+
+  return stockFor(product, 'site') > 0 ? ['site'] : [];
 }
 
 function productTitleClass(title: string): string {
@@ -121,27 +125,28 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                     <div className="card-price"><Price amount={v.price} /></div>
                   </div>
 
-                  <div className="warehouse-section">
-                    {whButtonsV.map((wh) => {
-                      const n = stockFor(v, wh);
-                      return (
-                        <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
-                          <div className="wh-details">
-                            <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
+                  {whButtonsV.length > 0 && (
+                    <div className="warehouse-section">
+                      {whButtonsV.map((wh) => {
+                        const n = stockFor(v, wh);
+                        return (
+                          <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
+                            <div className="wh-details">
+                              <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
+                            </div>
+                            <button
+                              type="button"
+                              className="add-wh-btn"
+                              onClick={() => onAdd(v, wh)}
+                              title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
+                            >
+                              +
+                            </button>
                           </div>
-                          <button
-                            type="button"
-                            className="add-wh-btn"
-                            disabled={n < 1}
-                            onClick={() => onAdd(v, wh)}
-                            title={n < 1 ? 'ناموجود' : `افزودن از ${WAREHOUSE_LABELS[wh]}`}
-                          >
-                            +
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -268,28 +273,29 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
           <div className="card-price"><Price amount={selectedVariant.price} /></div>
         </div>
 
-        <div className="warehouse-section" style={{ marginBottom: 8 }}>
-          {whButtons.map((wh) => {
-            const n = stockFor(selectedVariant, wh);
-            return (
-              <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
-                <div className="wh-details">
-                  <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
-                  {n === 1 && <span className="wh-count"><b className="stock-warn">تنها ۱ عدد باقیست!</b></span>}
+        {whButtons.length > 0 && (
+          <div className="warehouse-section" style={{ marginBottom: 8 }}>
+            {whButtons.map((wh) => {
+              const n = stockFor(selectedVariant, wh);
+              return (
+                <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
+                  <div className="wh-details">
+                    <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
+                    {n === 1 && <span className="wh-count"><b className="stock-warn">تنها ۱ عدد باقیست!</b></span>}
+                  </div>
+                  <button
+                    type="button"
+                    className="add-wh-btn"
+                    onClick={() => onAdd(selectedVariant, wh)}
+                    title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
+                  >
+                    +
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  className="add-wh-btn"
-                  disabled={n < 1}
-                  onClick={() => onAdd(selectedVariant, wh)}
-                  title={n < 1 ? 'ناموجود' : `افزودن از ${WAREHOUSE_LABELS[wh]}`}
-                >
-                  +
-                </button>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         <button
           type="button"
