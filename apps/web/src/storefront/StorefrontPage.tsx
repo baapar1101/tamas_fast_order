@@ -461,25 +461,24 @@ export function StorefrontPage() {
 
                 <span className="results-count">تعداد {formatNumber(total)} کالا پیدا شد</span>
 
-                <label htmlFor="sort" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginInlineStart: 8 }}>
-                  مرتب‌سازی:
-                </label>
-                <select
-                  id="sort"
-                  className="select"
-                  style={{ minWidth: '120px', width: 'max-content' }}
-                  value={sort}
-                  onChange={(e) => {
-                    setSort(e.target.value as CatalogFilters['sort']);
-                    resetPage();
-                  }}
-                >
-                  {Object.entries(SORT_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                <div className="sort-control">
+                  <label htmlFor="sort">مرتب‌سازی:</label>
+                  <select
+                    id="sort"
+                    className="select sort-select"
+                    value={sort}
+                    onChange={(e) => {
+                      setSort(e.target.value as CatalogFilters['sort']);
+                      resetPage();
+                    }}
+                  >
+                    {Object.entries(SORT_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="toolbar-right">

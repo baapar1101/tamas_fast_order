@@ -54,6 +54,19 @@ export function CartPanel({ onCheckout }: Props) {
         </div>
       ) : (
         <>
+          <div className="wholesale-progress" style={{ margin: '12px 0 14px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+              <span>حد نصاب سفارش عمده</span>
+              <span>{progressPercent}%</span>
+            </div>
+            <div style={{ height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
+              <div style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: progressPercent >= 100 ? '#10b981' : '#0ea5e9', transition: 'width 0.3s ease' }} />
+            </div>
+            <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
+              حداقل مبلغ سفارش: {formatMoney(WHOLESALE_THRESHOLD)}
+            </div>
+          </div>
+
           <div className="cart-items">
             {lines.map((line) => (
               <div className="cart-item" key={line.key}>
@@ -77,19 +90,6 @@ export function CartPanel({ onCheckout }: Props) {
                 </div>
               </div>
             ))}
-          </div>
-
-          <div className="wholesale-progress" style={{ margin: '16px 0', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px', fontWeight: 700, color: '#334155' }}>
-              <span>حد نصاب سفارش عمده</span>
-              <span>{progressPercent}%</span>
-            </div>
-            <div style={{ height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
-              <div style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: progressPercent >= 100 ? '#10b981' : '#0ea5e9', transition: 'width 0.3s ease' }} />
-            </div>
-            <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
-              حداقل مبلغ سفارش: {formatMoney(WHOLESALE_THRESHOLD)}
-            </div>
           </div>
 
           <div className="total" style={{ borderTop: '2px dashed #e2e8f0', paddingTop: '16px', marginTop: '8px' }}>
