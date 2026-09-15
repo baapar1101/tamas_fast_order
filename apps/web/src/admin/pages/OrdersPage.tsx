@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { OrderDTO, OrderStatus } from '@tamas/shared';
 import { ORDER_STATUSES, ORDER_STATUS_LABELS, formatMoney, formatNumber } from '@tamas/shared';
+import { Price } from '../../components/Price';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
@@ -221,7 +222,7 @@ export function OrdersPage() {
                         {o.phone || '—'}
                       </div>
                     </td>
-                    <td className="font-bold text-emerald-300">{formatMoney(o.total)}</td>
+                    <td className="font-bold text-emerald-300"><Price amount={o.total} /></td>
                     <td>
                       <span className={`chip ${CHIP_TONE[o.status]}`}>
                         {ORDER_STATUS_LABELS[o.status]}

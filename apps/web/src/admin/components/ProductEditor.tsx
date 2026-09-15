@@ -267,7 +267,7 @@ export function ProductEditor({ product, categories, brands, busy, onClose, onSa
           </div>
 
           <div className="field">
-            <label htmlFor="f-price">قیمت (تومان) *</label>
+            <label htmlFor="f-price">قیمت (<img src="/toman.svg" alt="تومان" style={{ width: '1em', height: '1em', display: 'inline' }} />) *</label>
             <input
               id="f-price"
               className="input ltr"

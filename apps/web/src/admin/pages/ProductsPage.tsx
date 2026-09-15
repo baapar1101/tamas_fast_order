@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ProductDTO } from '@tamas/shared';
 import { formatMoney, formatNumber } from '@tamas/shared';
+import { Price } from '../../components/Price';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
@@ -348,7 +349,7 @@ export function ProductsPage() {
                   <div className="mt-4 pt-4 border-t border-white/[0.06] flex items-center justify-between">
                     <div>
                       <p className="text-lg font-extrabold text-emerald-300">
-                        {formatMoney(p.price)}
+                        <Price amount={p.price} />
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
@@ -443,7 +444,7 @@ export function ProductsPage() {
                       <td className="text-xs text-slate-400">
                         {p.brandFaName || p.brandName || '—'} / {p.color || '—'}
                       </td>
-                      <td className="font-bold text-emerald-300">{formatMoney(p.price)}</td>
+                      <td className="font-bold text-emerald-300"><Price amount={p.price} /></td>
                       <td className="text-xs">{formatNumber(p.kermanStock)}</td>
                       <td className="text-xs">{formatNumber(p.tehranStock)}</td>
                       <td>

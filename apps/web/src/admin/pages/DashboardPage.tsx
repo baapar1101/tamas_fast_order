@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { formatNumber, type DashboardStats, type OrderDTO } from '@tamas/shared';
+import { Price } from '../../components/Price';
 import { api } from '../../lib/api';
 import { useAuth } from '../../store/auth';
 
@@ -45,7 +46,7 @@ export function DashboardPage() {
             </h2>
             <p className="mt-3 text-sm leading-7 text-slate-400">
               امروز <span className="font-bold text-emerald-300">{formatNumber(ordersCount)} سفارش فعال</span> با ارزش کل{' '}
-              <span className="font-bold text-emerald-300">{formatNumber(totalRevenue)} تومان</span> در سیستم ثبت شده است.
+              <span className="font-bold text-emerald-300"><Price amount={totalRevenue} /></span> در سیستم ثبت شده است.
             </p>
             <div className="admin-hero-actions mt-6 flex flex-wrap gap-3">
               <Link to="/admin/orders" className="huma-btn-primary">
@@ -108,7 +109,7 @@ export function DashboardPage() {
           <p className="mt-5 text-sm text-slate-400">درآمد کل فروشگاه</p>
           <p className="mt-1 text-2xl font-extrabold text-white">
             {isLoading ? '...' : formatNumber(totalRevenue)}{' '}
-            <span className="text-xs font-normal text-slate-500">تومان</span>
+            <span className="text-xs font-normal text-slate-500"><img src="/toman.svg" alt="تومان" style={{ width: '1em', height: '1em', display: 'inline' }} /></span>
           </p>
           <div className="mt-4 h-10 w-full overflow-hidden">
             <svg viewBox="0 0 100 30" className="h-full w-full" preserveAspectRatio="none">
@@ -452,7 +453,7 @@ export function DashboardPage() {
                       </div>
                     </td>
                     <td className="font-bold text-emerald-300">
-                      {formatNumber(order.total)} <span className="text-[11px] font-normal text-slate-500">تومان</span>
+                      <Price amount={order.total} />
                     </td>
                     <td>
                       <span className={`chip ${order.status === 'delivered' ? 'chip-brand' : 'chip-amber'}`}>

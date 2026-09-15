@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { formatNumber, type DashboardStats } from '@tamas/shared';
+import { formatNumber, type AnalyticsDTO } from '@tamas/shared';
+import { Price } from '../../components/Price';
 import { api } from '../../lib/api';
 
 export function AnalyticsPage() {
   const stats = useQuery({
     queryKey: ['admin', 'stats'],
-    queryFn: async () => (await api.get<{ stats: DashboardStats }>('/admin/stats')).stats,
+    queryFn: async () => (await api.get<{ stats: AnalyticsDTO }>('/admin/stats')).stats,
   });
 
   const data = stats.data;
@@ -23,7 +24,7 @@ export function AnalyticsPage() {
 
       <section className="admin-stat-grid grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ['فروش ۳۰ روز اخیر', data?.revenueLast30Days ?? 0, 'تومان', 'chip-brand'],
+          ['فروش ۳۰ روز اخیر', data?.revenueLast30Days ?? 0, <img src="/toman.svg" alt="تومان" style={{ width: '1.2em', height: '1.2em', display: 'inline' }} />, 'chip-brand'],
           ['سفارش جدید', data?.newOrderCount ?? 0, 'سفارش', 'chip-aqua'],
           ['کاربر در انتظار بررسی', data?.pendingUserCount ?? 0, 'کاربر', 'chip-amber'],
           ['محصول ناموجود', data?.outOfStockCount ?? 0, 'کالا', 'chip-rose'],
@@ -82,7 +83,7 @@ export function AnalyticsPage() {
                 <p className="truncate text-sm font-bold text-white">{product.title}</p>
                 <p className="mt-1 text-[11px] text-slate-500">{formatNumber(product.qty)} عدد فروش</p>
               </div>
-              <strong className="text-sm text-emerald-300">{formatNumber(product.total)} تومان</strong>
+              <strong className="text-sm text-emerald-300"><Price amount={product.total} /></strong>
             </div>
           ))}
           {!stats.isLoading && (data?.topProducts.length ?? 0) === 0 && <div className="admin-empty-state">هنوز محصول پرفروشی ثبت نشده است.</div>}

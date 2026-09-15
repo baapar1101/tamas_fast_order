@@ -1,6 +1,7 @@
 import { memo, useMemo, useState } from 'react';
 import type { ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber, hasRealDiscount } from '@tamas/shared';
+import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
 import { stockFor } from '../store/cart';
 
@@ -115,9 +116,9 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
 
                   <div className={`variant-price${canViewPrices ? '' : ' price-obscured'}`} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
                     {hasRealDiscount(v.price, v.oldPrice) && (
-                      <span className="card-old-price">{formatNumber(v.oldPrice!)} تومان</span>
+                      <span className="card-old-price"><Price amount={v.oldPrice!} /></span>
                     )}
-                    <div className="card-price">{formatMoney(v.price)}</div>
+                    <div className="card-price"><Price amount={v.price} /></div>
                   </div>
 
                   <div className="warehouse-section">
@@ -262,9 +263,9 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       <div className="card-price-box">
         <div className={canViewPrices ? undefined : 'price-obscured'} style={{ marginBottom: 8 }} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
           {hasRealDiscount(selectedVariant.price, selectedVariant.oldPrice) && (
-            <span className="card-old-price">{formatNumber(selectedVariant.oldPrice!)} تومان</span>
+            <span className="card-old-price"><Price amount={selectedVariant.oldPrice!} /></span>
           )}
-          <div className="card-price">{formatMoney(selectedVariant.price)}</div>
+          <div className="card-price"><Price amount={selectedVariant.price} /></div>
         </div>
 
         <div className="warehouse-section" style={{ marginBottom: 8 }}>
