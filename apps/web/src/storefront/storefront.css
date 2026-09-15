@@ -1274,8 +1274,28 @@
   user-select: none;
   pointer-events: none;
 }
+
+.qty {
   gap: 8px;
   margin-top: 6px;
+}
+
+.add-wh-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #d97a5a;
+  background: #d97a5a;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
 }
 
 .qty button {
@@ -1289,6 +1309,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
+  padding: 0;
 }
 
 .qty button:hover {
