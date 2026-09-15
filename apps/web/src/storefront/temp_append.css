@@ -1,0 +1,83 @@
+  .tabbar-item:active {
+    transform: scale(0.94);
+  }
+
+  .tabbar-item.active {
+    color: var(--primary);
+  }
+
+  .tabbar-item .tabbar-icon {
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .tabbar-item .badge-count {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    left: auto;
+    font-size: 9.5px;
+    width: 17px;
+    height: 17px;
+  }
+}
+
+@media (max-width: 1024px) {
+  /* Native App-like Layout Rules */
+  html, body {
+    overflow: hidden !important; /* Lock document scrolling on mobile */
+    height: 100dvh;
+    width: 100vw;
+  }
+  
+  .shell {
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0;
+  }
+
+  /* The main content area that holds the tabs */
+  .shell > main.container {
+    flex: 1;
+    overflow: hidden; /* Each tab manages its own scroll */
+    position: relative;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Tab view containers */
+  .mobile-tab-view {
+    display: none;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 80px; /* Space for bottom tab bar */
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .mobile-tab-view.active {
+    display: flex;
+    animation: fade-in 0.2s ease-out;
+  }
+}
+
+/* On Desktop, hide elements that are explicitly mobile-only tab containers */
+@media (min-width: 1025px) {
+  .mobile-tab-view {
+    display: contents; /* Strip out the wrapper behavior */
+  }
+  .desktop-hidden {
+    display: none !important;
+  }
+}
