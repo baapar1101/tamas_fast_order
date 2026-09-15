@@ -1,0 +1,1 @@
+import{j as s,c}from"./index-D2rJ0L9F.js";const x=({children:t,color:o="danger",size:a="xs",current:e,show:i=!0,className:r})=>i?s.jsxs("div",{className:"relative isolate",children:[t,s.jsx("div",{className:c("dot-notification",`color_${o}`,`size_${a}`,e&&"state_current",r)})]}):t;export{x as D};

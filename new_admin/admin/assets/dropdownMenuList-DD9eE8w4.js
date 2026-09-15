@@ -1,0 +1,1 @@
+import{r as i,a8 as l,j as r,d7 as d,d8 as s,d9 as p}from"./index-D2rJ0L9F.js";const c=i.forwardRef(({children:a,...e},o)=>{const{isMobile:t}=l();return r.jsxs(d,{type:t?"auto":"hover",dir:"rtl",children:[r.jsx(s,{ref:o,...e,children:a}),r.jsx(p,{})]})});c.displayName=s.displayName;export{c as D};

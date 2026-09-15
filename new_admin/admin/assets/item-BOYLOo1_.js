@@ -1,0 +1,1 @@
+import{r as i,j as l,c as m}from"./index-D2rJ0L9F.js";const c=i.forwardRef(({className:t,children:a,inContainer:r,isOverlay:e,...s},o)=>l.jsx("div",{ref:o,className:m(r?"sortable-flat-item-in-container":"sortable-flat-item",e&&"sortable-flat-item-overlay",t),...s,children:a}));export{c as I};

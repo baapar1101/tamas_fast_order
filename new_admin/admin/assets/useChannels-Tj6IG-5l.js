@@ -1,0 +1,1 @@
+import{b as s,r}from"./index-D2rJ0L9F.js";const c=()=>{const e=s();return{channels:r.useSyncExternalStore(n=>e.getQueryCache().subscribe(n),()=>e.getQueryData(["channels"]))?.channels??[]}};export{c as u};

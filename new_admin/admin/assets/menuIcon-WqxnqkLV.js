@@ -1,0 +1,1 @@
+import{j as r,I as c,c as u}from"./index-D2rJ0L9F.js";import{u as d}from"./menuTitle-GCeEZJ60.js";const x=({children:s,size:o="md",shape:n="square",color:a="default",className:t,...m})=>{const{disabled:e}=d();return r.jsx(c,{size:o,shape:n,color:e?"disabled":a,className:u("menu-icon",e&&"menu-icon-disabled",t),...m,children:s})};export{x as M};
