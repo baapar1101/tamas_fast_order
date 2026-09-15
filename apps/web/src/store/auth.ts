@@ -39,16 +39,8 @@ export const useAuth = create<AuthState>((set) => ({
 
   /** Called once on boot; a dead token is discarded rather than surfaced. */
   async restore() {
-    // TEMPORARY BYPASS FOR UI PREVIEW (Localhost only)
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    if (!readToken() || isLocalhost) {
-      set({
-        user: { id: 'preview-id', phone: '09123456789', role: 'admin', name: 'مدیر', lastName: 'سیستم', isActive: true } as any,
-        complete: true,
-        missing: [],
-        isAdmin: true,
-        ready: true
-      });
+    if (!readToken()) {
+      set({ user: null, complete: false, missing: [], isAdmin: false, ready: true });
       return;
     }
     try {
