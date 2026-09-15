@@ -50,7 +50,6 @@ export const productWriteSchema = z.object({
   color: z.string().trim().max(160).optional().nullable(),
   colorEn: z.string().trim().max(160).optional().nullable(),
   colorCode: z.string().trim().max(32).optional().nullable(),
-  parentProductId: z.string().trim().max(80).optional().nullable(),
   price: priceSchema.default(0),
   oldPrice: priceSchema.optional().nullable(),
   discount: z.coerce.number().int().min(0).max(100).default(0),

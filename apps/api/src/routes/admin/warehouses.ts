@@ -26,7 +26,7 @@ const routes: FastifyPluginAsync = async (app) => {
     
     try {
       const [created] = await db.insert(warehouses).values(data).returning();
-      await logAction(req.user!.id, 'CREATE_WAREHOUSE', 'warehouses', created.id, data);
+      await logAction((req as any).user.id, 'CREATE_WAREHOUSE', 'warehouses', String(created?.id), data);
       reply.code(201);
       return created;
     } catch (err: any) {
@@ -36,7 +36,7 @@ const routes: FastifyPluginAsync = async (app) => {
   });
 
   app.put('/admin/warehouses/:id', async (req) => {
-    const id = (req.params as { id: string }).id;
+    const id = Number((req.params as { id: string }).id);
     const data = warehouseSchema.parse(req.body);
     
     try {
@@ -47,7 +47,7 @@ const routes: FastifyPluginAsync = async (app) => {
         .returning();
         
       if (!updated) throw notFound('انبار یافت نشد');
-      await logAction(req.user!.id, 'UPDATE_WAREHOUSE', 'warehouses', id, data);
+      await logAction((req as any).user.id, 'UPDATE_WAREHOUSE', 'warehouses', String(id), data);
       return updated;
     } catch (err: any) {
       if (err.code === '23505') throw badRequest('کد انبار تکراری است');
@@ -56,10 +56,10 @@ const routes: FastifyPluginAsync = async (app) => {
   });
 
   app.delete('/admin/warehouses/:id', async (req) => {
-    const id = (req.params as { id: string }).id;
+    const id = Number((req.params as { id: string }).id);
     const [deleted] = await db.delete(warehouses).where(eq(warehouses.id, id)).returning();
     if (!deleted) throw notFound('انبار یافت نشد');
-    await logAction(req.user!.id, 'DELETE_WAREHOUSE', 'warehouses', id);
+    await logAction((req as any).user.id, 'DELETE_WAREHOUSE', 'warehouses', String(id));
     return { success: true };
   });
 };

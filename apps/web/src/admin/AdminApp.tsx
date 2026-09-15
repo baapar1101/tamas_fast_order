@@ -10,6 +10,8 @@ import { CategoriesPage } from './pages/CategoriesPage';
 import { BrandsPage } from './pages/BrandsPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { UsersPage } from './pages/UsersPage';
+import { AttributesPage } from './AttributesPage';
+import { WarehousesPage } from './WarehousesPage';
 import { UploadsPage } from './pages/UploadsPage';
 import { SyncPage } from './pages/SyncPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -602,6 +604,9 @@ export default function AdminApp() {
             <Route path="categories" element={<CategoriesPage />} />
             <Route path="brands" element={<BrandsPage />} />
             <Route path="taxonomy" element={<Navigate to="/admin/categories" replace />} />
+            <Route path="attributes" element={<AttributesPage />} />
+            <Route path="warehouses" element={<WarehousesPage />} />
+            <Route path="slides" element={<div>صفحه بنرها و اسلایدر در حال ساخت...</div>} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />

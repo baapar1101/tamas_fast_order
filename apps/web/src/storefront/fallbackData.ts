@@ -121,6 +121,8 @@ const allProducts: ProductDTO[] = rawProducts.map((p, i) => {
     categoryFaName: p.category || p.Category || null,
     brandName: p.brand || p.Brand || null,
     brandFaName: p.brand || p.Brand || null,
+    parentProductId: null,
+    otherStocks: {},
     color: p.color || null,
     colorEn: p.color_en || null,
     colorCode: p.color_code || null,

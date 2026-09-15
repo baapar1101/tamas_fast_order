@@ -24,7 +24,7 @@ const routes: FastifyPluginAsync = async (app) => {
     
     try {
       const [created] = await db.insert(attributes).values(data).returning();
-      await logAction(req.user!.id, 'CREATE_ATTRIBUTE', 'attributes', created.id, data);
+      await logAction((req as any).user.id, 'CREATE_ATTRIBUTE', 'attributes', String(created?.id), data);
       reply.code(201);
       return created;
     } catch (err: any) {
@@ -34,7 +34,7 @@ const routes: FastifyPluginAsync = async (app) => {
   });
 
   app.put('/admin/attributes/:id', async (req) => {
-    const id = (req.params as { id: string }).id;
+    const id = Number((req.params as { id: string }).id);
     const data = attributeSchema.parse(req.body);
     
     try {
@@ -45,7 +45,7 @@ const routes: FastifyPluginAsync = async (app) => {
         .returning();
         
       if (!updated) throw notFound('ویژگی یافت نشد');
-      await logAction(req.user!.id, 'UPDATE_ATTRIBUTE', 'attributes', id, data);
+      await logAction((req as any).user.id, 'UPDATE_ATTRIBUTE', 'attributes', String(id), data);
       return updated;
     } catch (err: any) {
       if (err.code === '23505') throw badRequest('نام ویژگی تکراری است');
@@ -54,10 +54,10 @@ const routes: FastifyPluginAsync = async (app) => {
   });
 
   app.delete('/admin/attributes/:id', async (req) => {
-    const id = (req.params as { id: string }).id;
+    const id = Number((req.params as { id: string }).id);
     const [deleted] = await db.delete(attributes).where(eq(attributes.id, id)).returning();
     if (!deleted) throw notFound('ویژگی یافت نشد');
-    await logAction(req.user!.id, 'DELETE_ATTRIBUTE', 'attributes', id);
+    await logAction((req as any).user.id, 'DELETE_ATTRIBUTE', 'attributes', String(id));
     return { success: true };
   });
 };

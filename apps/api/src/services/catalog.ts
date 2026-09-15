@@ -100,18 +100,20 @@ export async function queryProducts(q: CatalogQuery): Promise<{
    * has to count models rather than rows: page the distinct titles first, then
    * fetch every variant belonging to that page.
    */
+  const groupKeyExpr = sql<string>`COALESCE(${products.parentProductId}, ${products.title})`;
+
   const titleRows = await db
-    .selectDistinct({ title: products.title })
+    .selectDistinct({ title: groupKeyExpr })
     .from(products)
     .leftJoin(categories, eq(categories.id, products.categoryId))
     .leftJoin(brands, eq(brands.id, products.brandId))
     .where(where)
-    .orderBy(q.sort === 'title' ? asc(products.title) : asc(products.title))
+    .orderBy(q.sort === 'title' ? asc(groupKeyExpr) : asc(groupKeyExpr))
     .limit(q.perPage)
     .offset(offsetOf(q));
 
   const [totalRow] = await db
-    .select({ n: sql<number>`count(distinct ${products.title})::int` })
+    .select({ n: sql<number>`count(distinct COALESCE(${products.parentProductId}, ${products.title}))::int` })
     .from(products)
     .leftJoin(categories, eq(categories.id, products.categoryId))
     .leftJoin(brands, eq(brands.id, products.brandId))
@@ -133,16 +135,17 @@ export async function queryProducts(q: CatalogQuery): Promise<{
     .from(products)
     .leftJoin(categories, eq(categories.id, products.categoryId))
     .leftJoin(brands, eq(brands.id, products.brandId))
-    .where(and(where, inArray(products.title, titles)))
+    .where(and(where, inArray(groupKeyExpr, titles)))
     .orderBy(asc(products.sortOrder), asc(products.price));
 
   const byTitle = new Map<string, ProductGroupDTO>();
   for (const row of variantRows) {
     const dto = toProductDTO(row.product, row.category, row.brand);
-    let group = byTitle.get(dto.title);
+    const groupKey = row.product.parentProductId || dto.title;
+    let group = byTitle.get(groupKey);
     if (!group) {
       group = {
-        key: dto.title,
+        key: groupKey,
         title: dto.title,
         imageUrl: dto.imageUrl,
         promotion: false,
@@ -241,7 +244,7 @@ export async function listColors(): Promise<ColorDTO[]> {
   }) as Promise<ColorDTO[]>;
 }
 
-export async function findProductByPublicId(productId: string): Promise<ProductDTO | null> {
+export async function findProductByPublicId(productId: string): Promise<{ product: ProductDTO; variants: ProductDTO[] } | null> {
   const [row] = await db
     .select({
       product: products,
@@ -253,7 +256,38 @@ export async function findProductByPublicId(productId: string): Promise<ProductD
     .leftJoin(brands, eq(brands.id, products.brandId))
     .where(and(eq(products.productId, productId), isNull(products.deletedAt)))
     .limit(1);
-  return row ? toProductDTO(row.product, row.category, row.brand) : null;
+
+  if (!row) return null;
+
+  const mainProduct = toProductDTO(row.product, row.category, row.brand);
+  
+  // Find variants: either sharing the same parentProductId, or the same title as fallback
+  const variantRows = await db
+    .select({
+      product: products,
+      category: { name: categories.name, faName: categories.faName },
+      brand: { name: brands.name, faName: brands.faName },
+    })
+    .from(products)
+    .leftJoin(categories, eq(categories.id, products.categoryId))
+    .leftJoin(brands, eq(brands.id, products.brandId))
+    .where(
+      and(
+        isNull(products.deletedAt),
+        or(
+          row.product.parentProductId
+            ? eq(products.parentProductId, row.product.parentProductId)
+            : or(
+                eq(products.parentProductId, row.product.productId),
+                eq(products.title, row.product.title)
+              )
+        )
+      )
+    );
+
+  const variants = variantRows.map((r) => toProductDTO(r.product, r.category, r.brand));
+
+  return { product: mainProduct, variants };
 }
 
 /** Every write path calls this so the storefront never serves a stale page. */

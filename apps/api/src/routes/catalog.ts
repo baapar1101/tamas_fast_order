@@ -19,9 +19,9 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.get('/catalog/products/:productId', async (req) => {
     const { productId } = req.params as { productId: string };
-    const product = await findProductByPublicId(productId);
-    if (!product) throw notFound('این محصول پیدا نشد.');
-    return { ok: true, product };
+    const result = await findProductByPublicId(productId);
+    if (!result) throw notFound('این محصول پیدا نشد.');
+    return { ok: true, product: result.product, variants: result.variants };
   });
 
   app.get('/catalog/categories', async (_req, reply) => {
