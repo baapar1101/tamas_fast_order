@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { WAREHOUSE_LABELS, formatNumber } from '@tamas/shared';
 import { Price } from './Price';
 
@@ -18,11 +19,12 @@ interface Props {
   customerPhone?: string;
   orderId?: string;
   date?: string;
+  active?: boolean;
 }
 
-export function PrintInvoiceLayout({ title, items, total, customerName, customerPhone, orderId, date }: Props) {
-  return (
-    <div className="print-invoice-layout">
+export function PrintInvoiceLayout({ title, items, total, customerName, customerPhone, orderId, date, active = true }: Props) {
+  return createPortal(
+    <div className={`print-invoice-layout${active ? ' is-print-target' : ''}`}>
       <div className="invoice-header">
         <div className="invoice-header-right">
           <h2>{title}</h2>
@@ -83,6 +85,7 @@ export function PrintInvoiceLayout({ title, items, total, customerName, customer
           <img src="/sign.png" alt="امضا" className="sign-img" />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

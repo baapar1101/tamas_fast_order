@@ -468,18 +468,21 @@ select.select {
 }
 
 @media print {
-  /* Hide the entire page UI */
-  body > #root > *:not(.print-invoice-layout) {
+  /* Invoice layouts are rendered directly under body, outside the hidden app. */
+  body > #root {
     display: none !important;
   }
 
   .print-invoice-layout {
+    display: none !important;
+  }
+
+  .print-invoice-layout.is-print-target {
     display: block !important;
-    position: fixed;
-    left: 0;
-    top: 0;
+    position: relative;
     width: 100%;
-    height: auto;
+    min-height: 100vh;
+    box-sizing: border-box;
     padding: 24px;
     background: #fff !important;
     color: #000 !important;
@@ -489,6 +492,11 @@ select.select {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
+  .invoice-table thead { display: table-header-group; }
+  .invoice-table tr,
+  .invoice-total,
+  .invoice-signature { break-inside: avoid; page-break-inside: avoid; }
 
   .invoice-header {
     display: flex;
