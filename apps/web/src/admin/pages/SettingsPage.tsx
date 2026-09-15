@@ -52,6 +52,7 @@ export function SettingsPage() {
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [testPhone, setTestPhone] = useState('');
+  const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'logs'>('general');
 
   useEffect(() => {
     if (settings.data) setForm(settings.data.settings);
@@ -96,8 +97,39 @@ export function SettingsPage() {
         </button>
       </section>
 
-      {/* Store Info Card */}
-      <section className="glass-card p-6 space-y-4">
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-white/[0.06] mb-6">
+        <button
+          type="button"
+          className={`px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+            activeTab === 'general' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
+          }`}
+          onClick={() => setActiveTab('general')}
+        >
+          تنظیمات عمومی
+        </button>
+        <button
+          type="button"
+          className={`px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+            activeTab === 'tools' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
+          }`}
+          onClick={() => setActiveTab('tools')}
+        >
+          ابزارها و پیشرفته
+        </button>
+        <button
+          type="button"
+          className={`px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+            activeTab === 'logs' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
+          }`}
+          onClick={() => setActiveTab('logs')}
+        >
+          لاگ سیستم
+        </button>
+      </div>
+
+      {activeTab === 'general' && (
+        <section className="glass-card p-6 space-y-4 animate-fade-up">
         <h3 className="text-base font-bold text-white border-b border-white/[0.06] pb-3">اطلاعات عمومی فروشگاه</h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {KNOWN_SETTINGS.map((s) =>
@@ -133,11 +165,14 @@ export function SettingsPage() {
           )}
         </div>
       </section>
+      )}
 
-      {/* SMS Gateway Test Panel Card */}
-      <section className="glass-card p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
-          <div>
+      {activeTab === 'tools' && (
+        <div className="space-y-6 animate-fade-up">
+          {/* SMS Gateway Test Panel Card */}
+          <section className="glass-card p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-white/[0.06] pb-3 gap-3">
+              <div>
             <h3 className="text-base font-bold text-white">تست سامانه پیامک (Rastin SMS Gateway)</h3>
             <p className="text-xs text-slate-400 mt-0.5">ارسال پیامک تستی جهت اطمینان از عملکرد پترن و کد ورود</p>
           </div>
@@ -237,10 +272,14 @@ export function SettingsPage() {
             + افزودن
           </button>
         </div>
+          </button>
+        </div>
       </section>
+      </div>
+      )}
 
-      {/* Audit Log Glass Table */}
-      <section className="glass-card overflow-hidden">
+      {activeTab === 'logs' && (
+      <section className="glass-card overflow-hidden animate-fade-up">
         <div className="border-b border-white/[0.06] px-6 py-4">
           <h3 className="text-sm font-bold text-white">تاریخچه تغییرات مدیریت (Audit Log)</h3>
         </div>
@@ -284,6 +323,7 @@ export function SettingsPage() {
           </table>
         </div>
       </section>
+      )}
     </div>
   );
 }
