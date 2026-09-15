@@ -72,6 +72,7 @@ export function StorefrontPage() {
   const [sort, setSort] = useState<CatalogFilters['sort']>('price_asc');
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  const [mobileTab, setMobileTab] = useState<'home' | 'categories' | 'search' | 'cart' | 'profile'>('home');
 
   const [activeSlide, setActiveSlide] = useState(0);
 
