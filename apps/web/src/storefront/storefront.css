@@ -2258,7 +2258,8 @@
   .mobile-only-search,
   .mobile-only-cart,
   .mobile-only-profile {
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
@@ -2267,7 +2268,8 @@
 
   /* Reset layout height for mobile so it scrolls nicely inside container */
   .layout {
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding-bottom: 80px;
     margin-bottom: 0;
@@ -2280,10 +2282,14 @@
 
   /* TABS VISIBILITY LOGIC */
   
+  /* Hide the large desktop footer on native-like mobile view entirely */
+  .site-footer {
+    display: none !important;
+  }
+  
   /* If NOT home */
   main.container:not([data-mobile-tab="home"]) .hero-slider,
-  main.container:not([data-mobile-tab="home"]) .category-toolbar,
-  main.container:not([data-mobile-tab="home"]) .site-footer {
+  main.container:not([data-mobile-tab="home"]) .category-toolbar {
     display: none !important;
   }
 
