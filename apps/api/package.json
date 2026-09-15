@@ -5,6 +5,8 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
+    "predev": "node ../../scripts/fix-perms.js",
+    "prebuild": "node ../../scripts/fix-perms.js",
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
