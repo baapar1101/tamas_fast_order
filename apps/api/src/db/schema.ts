@@ -55,6 +55,9 @@ export const uploadKindEnum = pgEnum('upload_kind', [
   'other',
 ]);
 export const syncSideEnum = pgEnum('sync_side', ['db', 'sheet']);
+export const paymentGatewayEnum = pgEnum('payment_gateway', ['zarinpal', 'mellat', 'saman', 'pasargad', 'card_to_card']);
+export const paymentTransactionStatusEnum = pgEnum('payment_transaction_status', ['pending', 'success', 'failed']);
+export const commentStatusEnum = pgEnum('comment_status', ['pending', 'approved', 'rejected']);
 
 /* ------------------------------------------------------------------ *
  * Warehouses & Attributes
@@ -324,6 +327,60 @@ export const orderItems = pgTable(
 );
 
 /* ------------------------------------------------------------------ *
+ * Payments & Transactions
+ * ------------------------------------------------------------------ */
+
+export const payments = pgTable(
+  'payments',
+  {
+    id: serial('id').primaryKey(),
+    orderId: integer('order_id').references(() => orders.id, { onDelete: 'set null' }),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+    amount: bigint('amount', { mode: 'number' }).notNull().default(0),
+    gateway: paymentGatewayEnum('gateway').notNull().default('card_to_card'),
+    refId: varchar('ref_id', { length: 200 }),
+    trackingCode: varchar('tracking_code', { length: 200 }),
+    status: paymentTransactionStatusEnum('status').notNull().default('pending'),
+    cardPan: varchar('card_pan', { length: 50 }),
+    note: text('note'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('payments_order_idx').on(t.orderId),
+    index('payments_user_idx').on(t.userId),
+    index('payments_status_idx').on(t.status),
+    index('payments_created_idx').on(t.createdAt),
+  ],
+);
+
+/* ------------------------------------------------------------------ *
+ * Comments & Reviews
+ * ------------------------------------------------------------------ */
+
+export const comments = pgTable(
+  'comments',
+  {
+    id: serial('id').primaryKey(),
+    productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+    guestName: varchar('guest_name', { length: 150 }),
+    guestEmail: varchar('guest_email', { length: 150 }),
+    rating: integer('rating').notNull().default(5),
+    content: text('content').notNull(),
+    replyTo: integer('reply_to'),
+    status: commentStatusEnum('status').notNull().default('pending'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('comments_product_idx').on(t.productId),
+    index('comments_status_idx').on(t.status),
+    index('comments_created_idx').on(t.createdAt),
+  ],
+);
+
+/* ------------------------------------------------------------------ *
  * Settings, uploads
  * ------------------------------------------------------------------ */
 
@@ -449,6 +506,7 @@ export const categoryBrandsRelations = relations(categoryBrands, ({ one }) => ({
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   user: one(users, { fields: [orders.userId], references: [users.id] }),
   items: many(orderItems),
+  payments: many(payments),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
@@ -458,8 +516,22 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
 export const usersRelations = relations(users, ({ many }) => ({
   orders: many(orders),
   sessions: many(sessions),
+  payments: many(payments),
+  comments: many(comments),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  order: one(orders, { fields: [payments.orderId], references: [orders.id] }),
+  user: one(users, { fields: [payments.userId], references: [users.id] }),
+}));
+
+export const commentsRelations = relations(comments, ({ one, many }) => ({
+  product: one(products, { fields: [comments.productId], references: [products.id] }),
+  user: one(users, { fields: [comments.userId], references: [users.id] }),
+  parent: one(comments, { fields: [comments.replyTo], references: [comments.id], relationName: 'replies' }),
+  replies: many(comments, { relationName: 'replies' }),
 }));

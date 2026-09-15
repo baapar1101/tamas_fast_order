@@ -227,3 +227,32 @@ export interface DashboardStats {
   topProducts: Array<{ title: string; qty: number; total: number }>;
   lastSyncAt: string | null;
 }
+
+export interface PaymentDTO {
+  id: number;
+  orderId: number | null;
+  userId: number | null;
+  amount: number;
+  gateway: string;
+  refId: string | null;
+  trackingCode: string | null;
+  status: 'pending' | 'success' | 'failed';
+  cardPan: string | null;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CommentDTO {
+  id: number;
+  productId: number;
+  userId: number | null;
+  guestName: string | null;
+  guestEmail: string | null;
+  rating: number;
+  content: string;
+  replyTo: number | null;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
+}

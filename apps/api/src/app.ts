@@ -22,6 +22,8 @@ import adminUsers from './routes/admin/users.js';
 import adminSlides from './routes/admin/slides.js';
 import adminWarehouses from './routes/admin/warehouses.js';
 import adminAttributes from './routes/admin/attributes.js';
+import adminFinancial from './routes/admin/financial.js';
+import adminComments from './routes/admin/comments.js';
 import authRoutes from './routes/auth.js';
 import catalogRoutes from './routes/catalog.js';
 import orderRoutes from './routes/orders.js';
@@ -136,6 +138,8 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(adminSlides);
       await api.register(adminWarehouses);
       await api.register(adminAttributes);
+      await api.register(adminFinancial);
+      await api.register(adminComments);
     },
     { prefix: '/api' },
   );
