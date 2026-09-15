@@ -569,7 +569,7 @@ export function StorefrontPage() {
           <div className="footer-brand">
             <img src="/logo.png" alt="تماس مارکت" className="footer-logo" />
             <div className={`footer-about${aboutOpen ? ' open' : ''}`}>
-              <h4>درباره تماس مارکت (از سال ۱۳۹۰)</h4>
+              <h4 className="footer-title">درباره تماس مارکت (از سال ۱۳۹۰)</h4>
               <div className="footer-about-text">
                 <p>
                   داستان ما در تماس مارکت از سال ۱۳۹۰ با نام تجاری «موبایل تماس» آغاز شد. در ابتدا، تمرکز ما بر ارائه خدمات در حوزه موبایل بود، اما با شناخت عمیق‌تر نیازهای بازار و رشد چشمگیر صنعت، از سال ۱۳۹۴ مسیر فعالیتمان را به سمت فروش عمده لوازم جانبی موبایل سوق دادیم.
