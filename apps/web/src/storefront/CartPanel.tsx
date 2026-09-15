@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber } from '@tamas/shared';
 import { Price } from '../components/Price';
+import { PrintInvoiceLayout, type PrintInvoiceItem } from '../components/PrintInvoiceLayout';
 import { cartCount, cartTotal, useCart } from '../store/cart';
 import { Icon } from '../components/Icon';
 
@@ -25,6 +26,15 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
   const handlePrint = () => {
     window.print();
   };
+
+  const printItems: PrintInvoiceItem[] = lines.map(l => ({
+    key: l.key,
+    title: l.title,
+    color: l.color,
+    warehouse: l.warehouse,
+    qty: l.qty,
+    price: l.price
+  }));
 
   const handleWhatsApp = () => {
     let text = `سلام، درخواست ثبت سفارش دارم:\n\n`;
@@ -119,6 +129,13 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
           </div>
         </>
       )}
+
+      {/* Hidden print layout, revealed only during window.print() via global CSS */}
+      <PrintInvoiceLayout
+        title="پیش‌فاکتور فروش"
+        items={printItems}
+        total={total}
+      />
     </aside>
   );
 }

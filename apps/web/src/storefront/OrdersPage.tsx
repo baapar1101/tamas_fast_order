@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { OrderDTO } from '@tamas/shared';
 import { ORDER_STATUS_LABELS, WAREHOUSE_LABELS, formatMoney, formatNumber } from '@tamas/shared';
 import { Price } from '../components/Price';
+import { PrintInvoiceLayout, type PrintInvoiceItem } from '../components/PrintInvoiceLayout';
 import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import './storefront.css';
@@ -67,11 +68,17 @@ export function OrdersPage() {
                       <span style={{ fontSize: 12, color: '#64748b' }}>تاریخ ثبت</span>
                       <span style={{ fontSize: 14, fontWeight: 600, color: '#334155' }}>{new Date(order.createdAt).toLocaleDateString('fa-IR')}</span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
                       <span style={{ fontSize: 12, color: '#64748b' }}>مبلغ کل</span>
                       <b style={{ fontSize: 16, color: '#0ea5e9' }}><Price amount={order.total} /></b>
                     </div>
                   </div>
+                </div>
+                
+                <div style={{ padding: '0 20px 16px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button type="button" className="btn ghost sm" onClick={() => window.print()} style={{ border: '1px solid #cbd5e1' }}>
+                    چاپ فاکتور
+                  </button>
                 </div>
 
                 <div className="table-wrap" style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
@@ -108,7 +115,24 @@ export function OrdersPage() {
                     </span>
                   </div>
                 )}
-              </div>
+
+                <PrintInvoiceLayout
+                  title="فاکتور فروش"
+                  orderId={order.orderCode}
+                  date={new Date(order.createdAt).toLocaleDateString('fa-IR')}
+                  customerName={user?.name}
+                  customerPhone={user?.phone}
+                  total={order.total}
+                  items={order.items.map(i => ({
+                    key: i.id.toString(),
+                    title: i.title,
+                    color: i.color,
+                    warehouse: i.warehouse,
+                    qty: i.qty,
+                    price: i.price
+                  }))}
+                />
+              </article>
             ))}
           </div>
         )}
