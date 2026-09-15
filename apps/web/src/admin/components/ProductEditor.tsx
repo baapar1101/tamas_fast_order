@@ -32,6 +32,15 @@ export interface ProductForm {
   gallery: string[];
   attributes: Array<{ key: string; value: string }>;
   sortOrder: number;
+  subTitle: string;
+  description: string;
+  keywords: string;
+  slug: string;
+  ribbon: string;
+  type: string;
+  weight: number;
+  dimensions: string;
+  tracking: boolean;
 }
 
 interface Props {
@@ -70,6 +79,15 @@ const blank = (): ProductForm => ({
   gallery: [],
   attributes: [],
   sortOrder: 0,
+  subTitle: '',
+  description: '',
+  keywords: '',
+  slug: '',
+  ribbon: '',
+  type: 'physical',
+  weight: 0,
+  dimensions: '',
+  tracking: true,
 });
 
 const fromProduct = (p: ProductDTO): ProductForm => ({
@@ -99,6 +117,15 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   gallery: p.gallery,
   attributes: p.attributes,
   sortOrder: p.sortOrder,
+  subTitle: p.subTitle ?? '',
+  description: p.description ?? '',
+  keywords: p.keywords ?? '',
+  slug: p.slug ?? '',
+  ribbon: p.ribbon ?? '',
+  type: p.type ?? 'physical',
+  weight: p.weight ?? 0,
+  dimensions: p.dimensions ?? '',
+  tracking: p.tracking ?? true,
 });
 
 export function ProductEditor({ product, categories, brands, busy, onClose, onSave }: Props) {
@@ -197,6 +224,49 @@ export function ProductEditor({ product, categories, brands, busy, onClose, onSa
           <div className="field">
             <label htmlFor="f-model">مدل</label>
             <input id="f-model" className="input" value={form.model} onChange={(e) => set('model', e.target.value)} />
+          </div>
+
+          <div className="field full">
+            <label htmlFor="f-subtitle">زیرعنوان (SubTitle)</label>
+            <input id="f-subtitle" className="input" value={form.subTitle} onChange={(e) => set('subTitle', e.target.value)} />
+          </div>
+
+          <div className="field full">
+            <label htmlFor="f-desc">توضیحات (Description)</label>
+            <textarea id="f-desc" className="input" rows={4} value={form.description} onChange={(e) => set('description', e.target.value)} />
+          </div>
+
+          <div className="field">
+            <label htmlFor="f-keywords">کلمات کلیدی (با کاما جدا کنید)</label>
+            <input id="f-keywords" className="input" value={form.keywords} onChange={(e) => set('keywords', e.target.value)} />
+          </div>
+
+          <div className="field">
+            <label htmlFor="f-slug">نامک (Slug)</label>
+            <input id="f-slug" className="input ltr" value={form.slug} onChange={(e) => set('slug', e.target.value)} />
+          </div>
+
+          <div className="field">
+            <label htmlFor="f-ribbon">روبان (Ribbon)</label>
+            <input id="f-ribbon" className="input" placeholder="مثال: پرفروش" value={form.ribbon} onChange={(e) => set('ribbon', e.target.value)} />
+          </div>
+
+          <div className="field">
+            <label htmlFor="f-type">نوع محصول</label>
+            <select id="f-type" className="select" value={form.type} onChange={(e) => set('type', e.target.value)}>
+              <option value="physical">فیزیکی (ارسال پستی)</option>
+              <option value="digital">دیجیتال (دانلودی)</option>
+            </select>
+          </div>
+
+          <div className="field">
+            <label htmlFor="f-weight">وزن (گرم)</label>
+            <input id="f-weight" className="input ltr" inputMode="numeric" value={form.weight} onChange={(e) => set('weight', Number(e.target.value.replace(/\D/g, '')) || 0)} />
+          </div>
+
+          <div className="field">
+            <label htmlFor="f-dim">ابعاد</label>
+            <input id="f-dim" className="input ltr" placeholder="L x W x H" value={form.dimensions} onChange={(e) => set('dimensions', e.target.value)} />
           </div>
 
           <div className="field">
@@ -379,6 +449,18 @@ export function ProductEditor({ product, categories, brands, busy, onClose, onSa
                 style={{ marginInlineEnd: 6 }}
               />
               پیشنهاد ویژه
+            </label>
+          </div>
+
+          <div className="field full">
+            <label>
+              <input
+                type="checkbox"
+                checked={form.tracking}
+                onChange={(e) => set('tracking', e.target.checked)}
+                style={{ marginInlineEnd: 6 }}
+              />
+              پیگیری موجودی (Tracking)
             </label>
           </div>
         </div>

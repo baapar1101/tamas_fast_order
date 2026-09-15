@@ -191,7 +191,9 @@ export function OrdersPage() {
                   </th>
                   <th>کد سفارش</th>
                   <th>خریدار</th>
+                  <th>تعداد</th>
                   <th>مبلغ کل</th>
+                  <th>وضعیت پرداخت</th>
                   <th>وضعیت سفارش</th>
                   <th>روش پرداخت</th>
                   <th>تاریخ</th>
@@ -222,7 +224,15 @@ export function OrdersPage() {
                         {o.phone || '—'}
                       </div>
                     </td>
+                    <td className="text-center font-bold text-white">
+                      {formatNumber(o.quantity ?? 1)}
+                    </td>
                     <td className="font-bold text-emerald-300"><Price amount={o.total} /></td>
+                    <td>
+                      <span className={`chip ${o.paymentStatus === 'paid' ? 'chip-brand' : o.paymentStatus === 'pending' ? 'chip-amber' : 'chip-rose'}`}>
+                        {o.paymentStatus === 'paid' ? 'پرداخت شده' : o.paymentStatus === 'pending' ? 'در انتظار' : 'پرداخت نشده'}
+                      </span>
+                    </td>
                     <td>
                       <span className={`chip ${CHIP_TONE[o.status]}`}>
                         {ORDER_STATUS_LABELS[o.status]}
@@ -310,6 +320,24 @@ export function OrdersPage() {
                     onClick={() => patch.mutate({ id: detail.id, body: { status: s } })}
                   >
                     {ORDER_STATUS_LABELS[s]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-white/[0.06] pt-4">
+              <label className="block text-xs font-semibold text-slate-400 mb-2">وضعیت پرداخت:</label>
+              <div className="flex flex-wrap gap-2">
+                {['paid', 'unpaid', 'pending'].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      detail.paymentStatus === s ? 'bg-emerald-500 text-slate-950 shadow-glow' : 'huma-btn-secondary'
+                    }`}
+                    onClick={() => patch.mutate({ id: detail.id, body: { paymentStatus: s as 'paid' | 'unpaid' | 'pending' } })}
+                  >
+                    {s === 'paid' ? 'پرداخت شده' : s === 'pending' ? 'در انتظار پرداخت' : 'پرداخت نشده'}
                   </button>
                 ))}
               </div>

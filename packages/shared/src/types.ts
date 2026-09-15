@@ -51,6 +51,15 @@ export interface ProductDTO {
   seller: string | null;
   promotion: boolean;
   status: 'active' | 'inactive';
+  subTitle: string | null;
+  description: string | null;
+  keywords: string | null;
+  slug: string | null;
+  ribbon: string | null;
+  type: string;
+  weight: number;
+  dimensions: string | null;
+  tracking: boolean;
   imageUrl: string | null;
   gallery: string[];
   attributes: ProductAttribute[];
@@ -144,7 +153,9 @@ export interface OrderDTO {
   storeName: string | null;
   address: string;
   total: number;
+  quantity: number;
   status: OrderStatus;
+  paymentStatus: 'paid' | 'unpaid' | 'pending';
   paymentMethod: string | null;
   note: string | null;
   items: OrderItemDTO[];

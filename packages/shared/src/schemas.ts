@@ -62,6 +62,15 @@ export const productWriteSchema = z.object({
   seller: z.string().trim().max(200).optional().nullable(),
   promotion: sheetBool.default(false),
   status: z.enum(['active', 'inactive']).default('active'),
+  subTitle: z.string().trim().max(400).optional().nullable(),
+  description: z.string().optional().nullable(),
+  keywords: z.string().trim().max(500).optional().nullable(),
+  slug: z.string().trim().max(200).optional().nullable(),
+  ribbon: z.string().trim().max(50).optional().nullable(),
+  type: z.string().trim().max(50).default('physical'),
+  weight: z.coerce.number().int().default(0),
+  dimensions: z.string().trim().max(100).optional().nullable(),
+  tracking: z.boolean().default(true),
   imageUrl: z.string().trim().max(1000).optional().nullable(),
   gallery: z.array(z.string().max(1000)).max(12).default([]),
   attributes: z.array(productAttributeSchema).max(60).default([]),
@@ -212,6 +221,7 @@ export type OrderCreate = z.infer<typeof orderCreateSchema>;
 
 export const orderPatchSchema = z.object({
   status: z.enum(ORDER_STATUSES).optional(),
+  paymentStatus: z.enum(['paid', 'unpaid', 'pending']).optional(),
   paymentMethod: z.string().trim().max(100).optional(),
   note: z.string().trim().max(1000).optional(),
 });
