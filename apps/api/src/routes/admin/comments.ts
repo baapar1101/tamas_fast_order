@@ -2,16 +2,10 @@ import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { db } from '../../db/client.js';
 import { comments, products, users } from '../../db/schema.js';
-import { getAuth } from '../../plugins/auth.js';
 import { count, desc, eq } from 'drizzle-orm';
 
 const commentsRoutes: FastifyPluginAsync = async (app) => {
-  app.addHook('onRequest', async (req, reply) => {
-    const auth = getAuth(req);
-    if (!auth.complete || auth.user.role !== 'admin') {
-      return reply.status(403).send({ ok: false, error: 'Unauthorized' });
-    }
-  });
+  app.addHook('onRequest', app.requireAdmin);
 
   // GET /admin/comments/count
   app.get('/admin/comments/count', async () => {

@@ -55,7 +55,7 @@ export function OrdersPage() {
   };
 
   const patch = useMutation({
-    mutationFn: ({ id, body }: { id: number; body: { status?: OrderStatus; note?: string } }) =>
+    mutationFn: ({ id, body }: { id: number; body: { status?: OrderStatus; paymentStatus?: 'paid' | 'unpaid' | 'pending'; note?: string } }) =>
       api.patch<{ order: OrderDTO }>(`/admin/orders/${id}`, body),
     onSuccess: (res) => {
       toast.ok('سفارش به روزرسانی شد.');

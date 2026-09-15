@@ -58,8 +58,11 @@
   --slate-600: #475569; /* Border */
 }
 
+html:has(body.admin-page-active),
 body.admin-page-active {
-  overflow-x: visible !important;
+  overflow: visible !important;
+  height: auto !important;
+  width: auto !important;
 }
 
 .admin-body-shell {

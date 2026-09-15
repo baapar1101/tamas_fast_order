@@ -2,16 +2,10 @@ import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { db } from '../../db/client.js';
 import { payments } from '../../db/schema.js';
-import { getAuth } from '../../plugins/auth.js';
 import { count, desc } from 'drizzle-orm';
 
 const financialRoutes: FastifyPluginAsync = async (app) => {
-  app.addHook('onRequest', async (req, reply) => {
-    const auth = getAuth(req);
-    if (!auth.complete || auth.user.role !== 'admin') {
-      return reply.status(403).send({ ok: false, error: 'Unauthorized' });
-    }
-  });
+  app.addHook('onRequest', app.requireAdmin);
 
   // GET /admin/financial/payments/count
   app.get('/admin/financial/payments/count', async () => {
