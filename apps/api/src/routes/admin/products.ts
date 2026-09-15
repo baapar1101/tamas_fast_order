@@ -19,6 +19,8 @@ const listQuery = z.object({
   sort: z.enum(['updated', 'title', 'price_asc', 'price_desc', 'stock']).default('updated'),
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(200).default(50),
+  parentProductId: z.string().max(80).optional(),
+  parentOnly: z.coerce.boolean().default(false),
 });
 
 const bulkSchema = z.object({
@@ -57,6 +59,11 @@ const routes: FastifyPluginAsync = async (app) => {
     if (q.status !== 'all') filters.push(eq(products.status, q.status));
     if (q.categoryId) filters.push(eq(products.categoryId, q.categoryId));
     if (q.brandId) filters.push(eq(products.brandId, q.brandId));
+    if (q.parentProductId !== undefined) {
+      filters.push(eq(products.parentProductId, q.parentProductId));
+    } else if (q.parentOnly) {
+      filters.push(or(isNull(products.parentProductId), eq(products.parentProductId, ''))!);
+    }
     if (q.q) {
       filters.push(
         or(
