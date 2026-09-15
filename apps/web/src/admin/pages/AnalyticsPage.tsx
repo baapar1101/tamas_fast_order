@@ -1,7 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
-import { formatNumber, type AnalyticsDTO } from '@tamas/shared';
+import { formatNumber } from '@tamas/shared';
 import { Price } from '../../components/Price';
 import { api } from '../../lib/api';
+
+interface AnalyticsDTO {
+  revenueLast30Days: number;
+  newOrderCount: number;
+  pendingUserCount: number;
+  outOfStockCount: number;
+  orderCount: number;
+  productCount: number;
+  activeProductCount: number;
+  userCount: number;
+  ordersPerDay: { day: string; total: number }[];
+  topProducts: { title: string; qty: number; total: number }[];
+}
 
 export function AnalyticsPage() {
   const stats = useQuery({
