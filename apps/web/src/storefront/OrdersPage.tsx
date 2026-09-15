@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { OrderDTO } from '@tamas/shared';
@@ -19,6 +21,12 @@ const STATUS_TONE: Record<string, string> = {
 
 export function OrdersPage() {
   const { user, ready } = useAuth();
+  const [printOrderId, setPrintOrderId] = useState<number | null>(null);
+
+  const printOrder = (orderId: number) => {
+    flushSync(() => setPrintOrderId(orderId));
+    window.print();
+  };
 
   const orders = useQuery({
     queryKey: ['my-orders'],
@@ -76,7 +84,7 @@ export function OrdersPage() {
                 </div>
                 
                 <div style={{ padding: '0 20px 16px', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button type="button" className="btn ghost sm" onClick={() => window.print()} style={{ border: '1px solid #cbd5e1' }}>
+                  <button type="button" className="btn ghost sm" onClick={() => printOrder(order.id)} style={{ border: '1px solid #cbd5e1' }}>
                     چاپ فاکتور
                   </button>
                 </div>
@@ -118,6 +126,7 @@ export function OrdersPage() {
 
                 <PrintInvoiceLayout
                   title="فاکتور فروش"
+                  active={printOrderId === order.id}
                   orderId={order.orderCode}
                   date={new Date(order.createdAt).toLocaleDateString('fa-IR')}
                   customerName={user?.name}
