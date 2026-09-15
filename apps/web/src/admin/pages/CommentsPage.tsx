@@ -25,59 +25,62 @@ export function CommentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
         <div>
-          <h1 className="text-xl font-bold text-white">نظرات و فرم‌ها</h1>
-          <p className="text-sm text-slate-400">مدیریت نظرات محصولات و درخواست‌ها</p>
+          <h1 className="text-xl font-extrabold text-white sm:text-2xl">نظرات و فرم‌ها</h1>
+          <p className="mt-1 text-xs text-slate-400">مدیریت نظرات محصولات و درخواست‌های پشتیبانی</p>
         </div>
       </div>
 
       <div className="glass-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="admin-table w-full text-right text-sm">
-            <thead className="bg-[#131c2e]/60 text-xs text-slate-400">
+        <div className="huma-table-container">
+          <table className="huma-table">
+            <thead>
               <tr>
-                <th className="px-4 py-3 font-medium">نویسنده</th>
-                <th className="px-4 py-3 font-medium">محصول</th>
-                <th className="px-4 py-3 font-medium">امتیاز</th>
-                <th className="px-4 py-3 font-medium">متن نظر</th>
-                <th className="px-4 py-3 font-medium">وضعیت</th>
-                <th className="px-4 py-3 font-medium">عملیات</th>
-                <th className="px-4 py-3 font-medium">تاریخ</th>
+                <th>نویسنده</th>
+                <th>محصول</th>
+                <th>امتیاز</th>
+                <th>متن نظر</th>
+                <th>وضعیت</th>
+                <th>تاریخ</th>
+                <th>عملیات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.06]">
+            <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
-                    در حال دریافت...
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                    در حال دریافت اطلاعات...
                   </td>
                 </tr>
               ) : data?.items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
-                    نظری یافت نشد.
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                    هیچ نظری یافت نشد.
                   </td>
                 </tr>
               ) : (
                 data?.items.map((comment) => (
-                  <tr key={comment.id} className="hover:bg-white/[0.02]">
-                    <td className="px-4 py-3 text-white">{comment.guestName || `کاربر #${comment.userId}`}</td>
-                    <td className="px-4 py-3 text-slate-300">محصول #{comment.productId}</td>
-                    <td className="px-4 py-3 text-amber-400">{Array(comment.rating).fill('★').join('')}</td>
-                    <td className="px-4 py-3 text-slate-400 text-xs max-w-xs truncate">{comment.content}</td>
-                    <td className="px-4 py-3">
-                      <span className={`chip ${comment.status === 'approved' ? 'chip-success' : comment.status === 'rejected' ? 'chip-danger' : 'chip-warning'}`}>
-                        {comment.status === 'approved' ? 'تایید شده' : comment.status === 'rejected' ? 'رد شده' : 'در انتظار'}
+                  <tr key={comment.id}>
+                    <td className="font-bold text-white">{comment.guestName || `کاربر #${comment.userId}`}</td>
+                    <td className="font-mono text-slate-300">#{comment.productId}</td>
+                    <td className="text-amber-400 text-lg tracking-widest">{Array(comment.rating).fill('★').join('')}</td>
+                    <td className="text-slate-400 text-xs max-w-xs truncate" title={comment.content}>{comment.content}</td>
+                    <td>
+                      <span className={`chip ${comment.status === 'approved' ? 'chip-brand' : comment.status === 'rejected' ? 'chip-rose' : 'chip-amber'}`}>
+                        {comment.status === 'approved' ? 'تایید شده' : comment.status === 'rejected' ? 'رد شده' : 'در انتظار بررسی'}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
+                    <td className="text-xs text-slate-400">
+                      {new Date(comment.createdAt).toLocaleDateString('fa-IR')}
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-2">
                         {comment.status !== 'approved' && (
                           <button
                             type="button"
                             onClick={() => changeStatus.mutate({ id: comment.id, status: 'approved' })}
-                            className="text-xs text-emerald-400 hover:text-emerald-300"
+                            className="huma-btn-secondary !py-1 !px-2.5 !text-xs !text-emerald-400 !border-emerald-500/30 !bg-emerald-500/15"
                             disabled={changeStatus.isPending}
                           >
                             تایید
@@ -87,16 +90,13 @@ export function CommentsPage() {
                           <button
                             type="button"
                             onClick={() => changeStatus.mutate({ id: comment.id, status: 'rejected' })}
-                            className="text-xs text-rose-400 hover:text-rose-300"
+                            className="huma-btn-secondary !py-1 !px-2.5 !text-xs !bg-rose-500/15 !text-rose-300 !border-rose-500/30"
                             disabled={changeStatus.isPending}
                           >
                             رد
                           </button>
                         )}
                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-400 font-mono text-xs" dir="ltr">
-                      {new Date(comment.createdAt).toLocaleString('fa-IR')}
                     </td>
                   </tr>
                 ))

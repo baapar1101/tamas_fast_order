@@ -72,7 +72,7 @@ body.admin-page-active {
   font-family: 'Vazirmatn FD', 'Vazirmatn', Tahoma, sans-serif;
   direction: rtl;
   position: relative;
-  overflow-x: hidden;
+  overflow-x: clip;
   isolation: isolate;
   letter-spacing: -0.3px;
 }

@@ -31,6 +31,7 @@ export function OrdersPage() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [detail, setDetail] = useState<OrderDTO | null>(null);
+  const [detailTab, setDetailTab] = useState<'info' | 'items'>('info');
   const [note, setNote] = useState('');
 
   const debounced = useDebounced(search);
@@ -250,6 +251,7 @@ export function OrdersPage() {
                         className="huma-btn-secondary !py-1 !px-3 !text-xs"
                         onClick={() => {
                           setDetail(o);
+                          setDetailTab('info');
                           setNote(o.note ?? '');
                         }}
                       >
@@ -283,6 +285,7 @@ export function OrdersPage() {
       {detail && (
         <Modal
           open={true}
+          wide
           title={`جزئیات سفارش #${detail.orderCode}`}
           onClose={() => setDetail(null)}
           footer={
@@ -291,77 +294,137 @@ export function OrdersPage() {
             </button>
           }
         >
-          <div className="space-y-4">
-            <div className="glass-card p-4 grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <span className="text-slate-400">نام خریدار:</span>{' '}
-                <strong className="text-white">{detail.customerName || 'مهمان'}</strong>
-              </div>
-              <div>
-                <span className="text-slate-400">شماره همراه:</span>{' '}
-                <strong className="text-white" dir="ltr">{detail.phone || '—'}</strong>
-              </div>
-              <div className="col-span-2">
-                <span className="text-slate-400">آدرس تحویل:</span>{' '}
-                <span className="text-slate-200">{detail.address || '—'}</span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-2">تغییر وضعیت سفارش:</label>
-              <div className="flex flex-wrap gap-2">
-                {ORDER_STATUSES.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      detail.status === s ? 'bg-emerald-500 text-slate-950 shadow-glow' : 'huma-btn-secondary'
-                    }`}
-                    onClick={() => patch.mutate({ id: detail.id, body: { status: s } })}
-                  >
-                    {ORDER_STATUS_LABELS[s]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t border-white/[0.06] pt-4">
-              <label className="block text-xs font-semibold text-slate-400 mb-2">وضعیت پرداخت:</label>
-              <div className="flex flex-wrap gap-2">
-                {['paid', 'unpaid', 'pending'].map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      detail.paymentStatus === s ? 'bg-emerald-500 text-slate-950 shadow-glow' : 'huma-btn-secondary'
-                    }`}
-                    onClick={() => patch.mutate({ id: detail.id, body: { paymentStatus: s as 'paid' | 'unpaid' | 'pending' } })}
-                  >
-                    {s === 'paid' ? 'پرداخت شده' : s === 'pending' ? 'در انتظار پرداخت' : 'پرداخت نشده'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t border-white/[0.06] pt-4">
-              <label className="block text-xs font-semibold text-slate-400 mb-1">یادداشت مدیریت:</label>
-              <div className="flex gap-2">
-                <input
-                  className="huma-input flex-1"
-                  placeholder="یادداشت یا پیگیری..."
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="huma-btn-primary"
-                  onClick={() => patch.mutate({ id: detail.id, body: { note } })}
-                >
-                  ذخیره
-                </button>
-              </div>
-            </div>
+          <div className="flex gap-2 border-b border-white/[0.06] mb-4">
+            <button
+              type="button"
+              className={`px-4 py-2 text-sm font-bold border-b-2 transition-all ${
+                detailTab === 'info' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
+              }`}
+              onClick={() => setDetailTab('info')}
+            >
+              اطلاعات سفارش
+            </button>
+            <button
+              type="button"
+              className={`px-4 py-2 text-sm font-bold border-b-2 transition-all ${
+                detailTab === 'items' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
+              }`}
+              onClick={() => setDetailTab('items')}
+            >
+              اقلام سفارش
+              <span className="ml-2 rounded-lg bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300">
+                {detail.items.length}
+              </span>
+            </button>
           </div>
+
+          {detailTab === 'info' && (
+            <div className="space-y-4">
+              <div className="glass-card p-4 grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-slate-400">نام خریدار:</span>{' '}
+                  <strong className="text-white">{detail.customerName || 'مهمان'}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-400">شماره همراه:</span>{' '}
+                  <strong className="text-white" dir="ltr">{detail.phone || '—'}</strong>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-slate-400">آدرس تحویل:</span>{' '}
+                  <span className="text-slate-200">{detail.address || '—'}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-2">تغییر وضعیت سفارش:</label>
+                <div className="flex flex-wrap gap-2">
+                  {ORDER_STATUSES.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        detail.status === s ? 'bg-emerald-500 text-slate-950 shadow-glow' : 'huma-btn-secondary'
+                      }`}
+                      onClick={() => patch.mutate({ id: detail.id, body: { status: s } })}
+                    >
+                      {ORDER_STATUS_LABELS[s]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-white/[0.06] pt-4">
+                <label className="block text-xs font-semibold text-slate-400 mb-2">وضعیت پرداخت:</label>
+                <div className="flex flex-wrap gap-2">
+                  {['paid', 'unpaid', 'pending'].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        detail.paymentStatus === s ? 'bg-emerald-500 text-slate-950 shadow-glow' : 'huma-btn-secondary'
+                      }`}
+                      onClick={() => patch.mutate({ id: detail.id, body: { paymentStatus: s as 'paid' | 'unpaid' | 'pending' } })}
+                    >
+                      {s === 'paid' ? 'پرداخت شده' : s === 'pending' ? 'در انتظار پرداخت' : 'پرداخت نشده'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-white/[0.06] pt-4">
+                <label className="block text-xs font-semibold text-slate-400 mb-1">یادداشت مدیریت:</label>
+                <div className="flex gap-2">
+                  <input
+                    className="huma-input flex-1"
+                    placeholder="یادداشت یا پیگیری..."
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="huma-btn-primary"
+                    onClick={() => patch.mutate({ id: detail.id, body: { note } })}
+                  >
+                    ذخیره
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {detailTab === 'items' && (
+            <div className="huma-table-container">
+              <table className="huma-table">
+                <thead>
+                  <tr>
+                    <th>کد کالا</th>
+                    <th>نام کالا</th>
+                    <th>مشخصات</th>
+                    <th>تعداد</th>
+                    <th>قیمت واحد</th>
+                    <th>جمع کل</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {detail.items.map((item) => (
+                    <tr key={item.id}>
+                      <td className="text-xs text-slate-400 font-mono">{item.productId}</td>
+                      <td className="font-bold text-white">{item.title}</td>
+                      <td className="text-xs text-slate-400">
+                        {item.color ? `رنگ: ${item.color}` : '—'}
+                      </td>
+                      <td className="font-bold text-emerald-300 text-center">{formatNumber(item.qty)}</td>
+                      <td className="text-slate-300"><Price amount={item.price} /></td>
+                      <td className="font-bold text-white"><Price amount={item.price * item.qty} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {detail.items.length === 0 && (
+                <div className="p-8 text-center text-slate-500 text-sm">محصولی در این سفارش یافت نشد!</div>
+              )}
+            </div>
+          )}
         </Modal>
       )}
     </div>
