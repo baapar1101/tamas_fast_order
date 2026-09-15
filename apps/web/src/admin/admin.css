@@ -1,39 +1,30 @@
 /* ===========================================================================
-   Huma Admin Panel Design System & Glassmorphism Theme
+   Apple Design System - Admin Theme
    ========================================================================== */
-
-/* React admin compatibility layer. The complete reference utility bundle is
-   loaded from reference.css before this file. Keep overrides scoped to the
-   admin shell so the storefront remains visually independent. */
-
 @font-face {
   font-family: 'Vazirmatn FD';
   src: url('../fonts/Vazirmatn-FD-Regular.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
 }
-
 @font-face {
   font-family: 'Vazirmatn FD';
   src: url('../fonts/Vazirmatn-FD-Medium.woff2') format('woff2');
   font-weight: 500;
   font-display: swap;
 }
-
 @font-face {
   font-family: 'Vazirmatn FD';
   src: url('../fonts/Vazirmatn-FD-SemiBold.woff2') format('woff2');
   font-weight: 600;
   font-display: swap;
 }
-
 @font-face {
   font-family: 'Vazirmatn FD';
   src: url('../fonts/Vazirmatn-FD-Bold.woff2') format('woff2');
   font-weight: 700;
   font-display: swap;
 }
-
 @font-face {
   font-family: 'Vazirmatn FD';
   src: url('../fonts/Vazirmatn-FD-ExtraBold.woff2') format('woff2');
@@ -42,23 +33,29 @@
 }
 
 :root {
-  --ink-950: #070b12;
-  --ink-900: #0b111d;
-  --ink-850: #0e1626;
-  --ink-800: #131c2e;
-  --ink-700: #1a2438;
-  --brand-500: #10b981;
-  --brand-400: #34d399;
-  --brand-300: #6ee7b7;
-  --aqua-500: #06b6d4;
-  --aqua-400: #22d3ee;
-  --amberx: #f59e0b;
-  --rose: #fb7185;
-  --slate-200: #e2e8f0;
-  --slate-300: #cbd5e1;
-  --slate-400: #94a3b8;
-  --slate-500: #64748b;
-  --slate-600: #475569;
+  /* Mapped Apple Light Theme Colors */
+  --ink-950: #f5f5f7; /* Background */
+  --ink-900: #ffffff; /* Card Background */
+  --ink-850: #f5f5f7;
+  --ink-800: #e5e5ea;
+  --ink-700: #d1d1d6;
+  
+  --brand-500: #0066cc; /* Apple Blue */
+  --brand-400: #2997ff;
+  --brand-300: #4cb3ff;
+  
+  --aqua-500: #0066cc;
+  --aqua-400: #2997ff;
+  
+  --amberx: #ff9500;
+  --rose: #ff3b30;
+  
+  /* Text Colors (Inverted for Light Mode) */
+  --slate-200: #1d1d1f; /* Primary Text */
+  --slate-300: #424245; /* Secondary Text */
+  --slate-400: #86868b; /* Tertiary Text */
+  --slate-500: #86868b;
+  --slate-600: #d1d1d6; /* Border */
 }
 
 .admin-body-shell {
@@ -70,6 +67,7 @@
   position: relative;
   overflow-x: hidden;
   isolation: isolate;
+  letter-spacing: -0.3px;
 }
 
 .admin-body-shell button,
@@ -84,7 +82,7 @@
 .admin-body-shell input:focus-visible,
 .admin-body-shell select:focus-visible,
 .admin-body-shell textarea:focus-visible {
-  outline: 2px solid rgba(52, 211, 153, 0.8);
+  outline: 2px solid rgba(0, 102, 204, 0.5);
   outline-offset: 2px;
 }
 
@@ -97,92 +95,27 @@
 
 /* Background Ambient Glows & Grid Mesh */
 .ambient-glow-container {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
+  display: none;
 }
 
-.glow-orb-1 {
-  position: absolute;
-  top: -10rem;
-  right: 10%;
-  height: 34rem;
-  width: 34rem;
-  border-radius: 9999px;
-  background-color: rgba(16, 185, 129, 0.13);
-  filter: blur(130px);
-  animation: floaty 5s ease-in-out infinite;
-}
-
-.glow-orb-2 {
-  position: absolute;
-  bottom: -10rem;
-  left: 5%;
-  height: 30rem;
-  width: 30rem;
-  border-radius: 9999px;
-  background-color: rgba(6, 182, 212, 0.1);
-  filter: blur(130px);
-  animation: floaty 5s ease-in-out infinite;
-  animation-delay: -2.5s;
-}
-
-.glow-orb-3 {
-  position: absolute;
-  top: 30%;
-  left: 35%;
-  height: 22rem;
-  width: 22rem;
-  border-radius: 9999px;
-  background-color: rgba(245, 158, 11, 0.05);
-  filter: blur(120px);
-  animation: floaty 5s ease-in-out infinite;
-  animation-delay: -1.2s;
-}
-
-.grid-dot-pattern {
-  position: absolute;
-  inset: 0;
-  opacity: 0.35;
-  background-image: radial-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
-/* Glassmorphism Cards */
-.glass-card {
+/* Glassmorphism Cards -> Apple Solid Cards */
+.glass-card, .glass-card-static {
   position: relative;
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background-color: rgba(14, 22, 38, 0.7);
-  box-shadow: 0 8px 30px -12px rgba(2, 8, 20, 0.7);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  border-radius: 18px;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .glass-card:hover {
-  transform: translateY(-0.25rem);
-  border-color: rgba(16, 185, 129, 0.25);
-  box-shadow: 0 20px 45px -15px rgba(2, 8, 20, 0.85);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
-/* Data-heavy forms and tables should stay stable while the dashboard cards
-   retain the lifted interaction used by the reference UI. */
 .huma-table-container.glass-card:hover,
 form.glass-card:hover {
   transform: none;
-}
-
-.glass-card-static {
-  position: relative;
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background-color: rgba(14, 22, 38, 0.7);
-  box-shadow: 0 8px 30px -12px rgba(2, 8, 20, 0.7);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
 }
 
 /* Sidebar Navigation Items */
@@ -191,51 +124,30 @@ form.glass-card:hover {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border-radius: 0.75rem;
+  border-radius: 12px;
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 500;
-  color: var(--slate-400);
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  color: var(--slate-300);
+  transition: all 0.2s ease;
   text-decoration: none;
 }
 
 .nav-item:hover {
-  color: #ffffff;
+  background-color: rgba(0,0,0,0.03);
+  color: var(--slate-200);
 }
 
 .nav-item::before {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 50%;
-  height: 0;
-  width: 0.25rem;
-  transform: translateY(-50%);
-  border-radius: 9999px;
-  background-image: linear-gradient(to bottom, var(--brand-300), var(--brand-500));
-  opacity: 0;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.nav-item.active::before,
-.nav-item:hover::before {
-  height: 60%;
-  opacity: 1;
+  display: none;
 }
 
 .nav-item.active {
-  background-image: linear-gradient(to left, rgba(16, 185, 129, 0.15), transparent);
-  color: var(--brand-300);
+  background-color: rgba(0, 102, 204, 0.08);
+  color: var(--brand-500);
   font-weight: 600;
 }
 
-.nav-item .icon-svg {
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
 .nav-item .icon-svg {
   display: inline-flex;
   align-items: center;
@@ -245,10 +157,11 @@ form.glass-card:hover {
   min-width: 1.25rem;
   min-height: 1.25rem;
   flex: 0 0 1.25rem;
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.2s ease;
 }
+
 .nav-item:hover .icon-svg {
-  transform: translateX(-0.25rem) scale(1.1);
+  transform: scale(1.05);
 }
 
 /* Chips & Badges */
@@ -256,35 +169,35 @@ form.glass-card:hover {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  border-radius: 9999px;
-  padding: 0.25rem 0.625rem;
+  border-radius: 980px;
+  padding: 0.3rem 0.75rem;
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .chip-brand {
-  background-color: rgba(16, 185, 129, 0.12);
-  color: var(--brand-300);
+  background-color: rgba(0, 102, 204, 0.1);
+  color: var(--brand-500);
 }
 
 .chip-aqua {
-  background-color: rgba(6, 182, 212, 0.12);
-  color: var(--aqua-400);
+  background-color: rgba(0, 102, 204, 0.1);
+  color: var(--brand-500);
 }
 
 .chip-amber {
-  background-color: rgba(245, 158, 11, 0.12);
-  color: var(--amberx);
+  background-color: rgba(255, 149, 0, 0.1);
+  color: #ff9500;
 }
 
 .chip-rose {
-  background-color: rgba(251, 113, 133, 0.12);
-  color: var(--rose);
+  background-color: rgba(255, 59, 48, 0.1);
+  color: #ff3b30;
 }
 
 .chip-slate {
-  background-color: rgba(100, 116, 139, 0.15);
+  background-color: rgba(0, 0, 0, 0.06);
   color: var(--slate-300);
 }
 
@@ -295,18 +208,17 @@ form.glass-card:hover {
   height: 2.5rem;
   width: 2.5rem;
   place-items: center;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background-color: rgba(19, 28, 46, 0.6);
-  color: var(--slate-400);
+  border-radius: 50%;
+  border: none;
+  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--slate-300);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: all 0.2s ease;
 }
 
 .icon-btn:hover {
-  border-color: rgba(16, 185, 129, 0.3);
-  color: var(--brand-300);
-  box-shadow: 0 0 24px -6px rgba(16, 185, 129, 0.45);
+  background-color: rgba(0, 0, 0, 0.08);
+  color: var(--slate-200);
 }
 
 /* Stat Icon Box */
@@ -315,12 +227,12 @@ form.glass-card:hover {
   height: 3rem;
   width: 3rem;
   place-items: center;
-  border-radius: 1rem;
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  border-radius: 12px;
+  transition: transform 0.3s ease;
 }
 
 .glass-card:hover .stat-icon {
-  transform: rotate(6deg) scale(1.1);
+  transform: scale(1.05);
 }
 
 /* Notification & Profile Items */
@@ -334,7 +246,7 @@ form.glass-card:hover {
 }
 
 .notif-item:hover {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 .notif-dot {
@@ -350,16 +262,16 @@ form.glass-card:hover {
   align-items: center;
   gap: 0.75rem;
   padding: 0.625rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 500;
   color: var(--slate-300);
   text-decoration: none;
   transition: all 0.2s;
 }
 
 .profile-menu-item:hover {
-  background-color: rgba(255, 255, 255, 0.03);
-  color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--slate-200);
 }
 
 /* Table Order Rows */
@@ -368,82 +280,29 @@ form.glass-card:hover {
 }
 
 .order-row:hover {
-  background-color: rgba(255, 255, 255, 0.025);
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
-/* Glow Shadow Utilities */
-.shadow-glow {
-  box-shadow: 0 0 24px -6px rgba(16, 185, 129, 0.45);
-}
-
-.shadow-glow-lg {
-  box-shadow: 0 0 60px -12px rgba(16, 185, 129, 0.35);
-}
-
-.shimmer-line {
-  background: linear-gradient(100deg, transparent 30%, rgba(110, 231, 183, 0.35) 50%, transparent 70%);
-  background-size: 200% 100%;
-}
-
-/* Animations */
-@keyframes floaty {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.animate-floaty {
-  animation: floaty 5s ease-in-out infinite;
-}
-
-@keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
-  70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-
-.animate-pulse-ring {
-  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-.animate-shimmer {
-  animation: shimmer 2.5s linear infinite;
-}
-
-@keyframes fade-up {
-  0% { opacity: 0; transform: translateY(24px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-up {
-  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-/* Form Inputs & Selects in Huma Dark Theme */
+/* Form Inputs & Selects in Apple Theme */
 .huma-input {
   width: 100%;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background-color: rgba(19, 28, 46, 0.6);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
   padding: 0.625rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: var(--slate-200);
   outline: none;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
 }
 
 .huma-input::placeholder {
-  color: var(--slate-500);
+  color: var(--slate-400);
 }
 
 .huma-input:focus {
-  border-color: rgba(16, 185, 129, 0.4);
-  background-color: var(--ink-800);
-  box-shadow: 0 0 24px -6px rgba(16, 185, 129, 0.45);
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.15);
 }
 
 .huma-btn-primary {
@@ -451,22 +310,20 @@ form.glass-card:hover {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.75rem;
-  background-image: linear-gradient(to left, var(--brand-500), var(--aqua-500));
+  border-radius: 980px;
+  background-color: var(--brand-500);
   padding: 0.625rem 1.25rem;
   font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--ink-950);
-  box-shadow: 0 0 24px -6px rgba(16, 185, 129, 0.45);
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  font-weight: 600;
+  color: #ffffff;
+  transition: opacity 0.2s ease;
   border: none;
   cursor: pointer;
   text-decoration: none;
 }
 
 .huma-btn-primary:hover {
-  box-shadow: 0 0 60px -12px rgba(16, 185, 129, 0.35);
-  filter: brightness(1.1);
+  opacity: 0.85;
 }
 
 .huma-btn-secondary {
@@ -474,27 +331,26 @@ form.glass-card:hover {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 980px;
+  border: none;
+  background-color: rgba(0, 0, 0, 0.05);
   padding: 0.625rem 1.25rem;
   font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--slate-300);
-  transition: all 0.3s;
+  font-weight: 500;
+  color: var(--slate-200);
+  transition: all 0.2s ease;
   cursor: pointer;
   text-decoration: none;
 }
 
 .huma-btn-secondary:hover {
-  border-color: rgba(16, 185, 129, 0.3);
-  color: var(--brand-300);
+  background-color: rgba(0, 0, 0, 0.08);
 }
 
-/* Glass Table Styling */
+/* Glass Table Styling -> Apple Table Styling */
 .huma-table-container {
   overflow-x: auto;
-  border-radius: 1rem;
+  border-radius: 14px;
 }
 
 .huma-table {
@@ -505,8 +361,8 @@ form.glass-card:hover {
 }
 
 .huma-table th {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background-color: rgba(19, 28, 46, 0.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: rgba(0, 0, 0, 0.02);
   padding: 0.875rem 1.25rem;
   font-size: 0.75rem;
   font-weight: 600;
@@ -515,7 +371,7 @@ form.glass-card:hover {
 }
 
 .huma-table td {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   padding: 1rem 1.25rem;
   color: var(--slate-200);
   vertical-align: middle;
@@ -526,10 +382,10 @@ form.glass-card:hover {
 }
 
 .huma-table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.025);
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
-/* Custom Scrollbar for Huma Dark Theme */
+/* Custom Scrollbar */
 .admin-body-shell ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -539,10 +395,34 @@ form.glass-card:hover {
 }
 .admin-body-shell ::-webkit-scrollbar-thumb {
   border-radius: 9999px;
-  background-color: #243149;
+  background-color: rgba(0, 0, 0, 0.2);
 }
 .admin-body-shell ::-webkit-scrollbar-thumb:hover {
-  background-color: #059669;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Overriding Tailwind Colors for Light Theme */
+.admin-body-shell .text-slate-950,
+.admin-body-shell .text-white,
+.admin-body-shell .text-slate-200,
+.admin-body-shell .text-slate-300 { color: var(--slate-200); }
+
+.admin-body-shell .text-slate-400,
+.admin-body-shell .text-slate-500 { color: var(--slate-400); }
+
+.admin-body-shell .bg-slate-800,
+.admin-body-shell .bg-slate-950\/80,
+.admin-body-shell .bg-\[\#070b12\],
+.admin-body-shell .bg-\[\#131c2e\] { background-color: #ffffff; }
+
+.admin-body-shell .border-white\/\[0\.06\],
+.admin-body-shell .border-white\/\[0\.04\] { border-color: rgba(0,0,0,0.06); }
+
+/* Remove glow shadows from tailwind utility */
+.admin-body-shell .shadow-glow,
+.admin-body-shell .shadow-glow-lg,
+.admin-body-shell .hover\:shadow-glow-lg:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
 /* ==========================================================================
