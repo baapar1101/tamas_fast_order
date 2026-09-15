@@ -56,6 +56,25 @@ const commentsRoutes: FastifyPluginAsync = async (app) => {
       perPage: 50,
     };
   });
+
+  // PATCH /admin/comments/:id
+  app.patch('/admin/comments/:id', async (req, res) => {
+    const id = parseInt((req.params as { id: string }).id, 10);
+    const body = z.object({
+      status: z.enum(['pending', 'approved', 'rejected']),
+    }).parse(req.body);
+
+    const [updated] = await db
+      .update(comments)
+      .set({ status: body.status, updatedAt: new Date() })
+      .where(eq(comments.id, id))
+      .returning();
+
+    if (!updated) {
+      return res.status(404).send({ ok: false, message: 'Comment not found' });
+    }
+    return { ok: true, item: updated };
+  });
 };
 
 export default commentsRoutes;

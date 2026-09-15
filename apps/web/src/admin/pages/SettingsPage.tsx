@@ -20,6 +20,18 @@ const KNOWN_SETTINGS = [
   { key: 'support_phone', label: 'شماره پشتیبانی', ltr: true },
   { key: 'store_address', label: 'آدرس فروشگاه', textarea: true },
   { key: 'hero_image', label: 'بنر بالای صفحه', image: true },
+  
+  // Gateways
+  { key: 'gateway_zarinpal_merchant', label: 'مرچنت زرین‌پال', ltr: true },
+  { key: 'gateway_saman_terminal', label: 'ترمینال بانک سامان', ltr: true },
+  
+  // Couriers
+  { key: 'shipping_post_cost', label: 'هزینه ارسال پستی (تومان)', ltr: true },
+  { key: 'free_shipping_threshold', label: 'حداقل مبلغ ارسال رایگان', ltr: true },
+  
+  // Domains & SEO
+  { key: 'custom_domain', label: 'دامنه اختصاصی (مثال: example.com)', ltr: true },
+  { key: 'seo_meta_description', label: 'توضیحات سئو (Meta Description)', textarea: true },
 ] as const;
 
 export function SettingsPage() {

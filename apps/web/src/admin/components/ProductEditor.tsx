@@ -45,6 +45,7 @@ export interface ProductForm {
 
 interface Props {
   product: ProductDTO | null;
+  template?: ProductDTO;
   categories: CategoryDTO[];
   brands: BrandDTO[];
   busy: boolean;
@@ -128,8 +129,8 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   tracking: p.tracking ?? true,
 });
 
-export function ProductEditor({ product, categories, brands, busy, onClose, onSave }: Props) {
-  const [form, setForm] = useState<ProductForm>(product ? fromProduct(product) : blank());
+export function ProductEditor({ product, template, categories, brands, busy, onClose, onSave }: Props) {
+  const [form, setForm] = useState<ProductForm>(product ? fromProduct(product) : template ? fromProduct(template) : blank());
   const [error, setError] = useState('');
 
   const { data: attributesList = [] } = useQuery({

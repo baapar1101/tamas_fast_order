@@ -8,6 +8,7 @@ import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 import { useDebounced } from '../../storefront/hooks';
 import { ProductEditor, type ProductForm } from '../components/ProductEditor';
+import { VariantsEditor } from '../components/VariantsEditor';
 
 interface ProductsResponse {
   items: ProductDTO[];
@@ -34,6 +35,7 @@ export function ProductsPage() {
   const [bulkPrompt, setBulkPrompt] = useState<'setStock' | 'adjustPrice' | null>(null);
   const [bulkValue, setBulkValue] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [variantsProduct, setVariantsProduct] = useState<ProductDTO | null>(null);
 
   const debounced = useDebounced(search);
 
@@ -44,7 +46,7 @@ export function ProductsPage() {
   });
 
   const query = useMemo(
-    () => ({ q: debounced, status, stock, categoryId: categoryId || undefined, brandId: brandId || undefined, sort, page, perPage: 24 }),
+    () => ({ q: debounced, status, stock, categoryId: categoryId || undefined, brandId: brandId || undefined, sort, page, perPage: 24, parentOnly: true }),
     [debounced, status, stock, categoryId, brandId, sort, page],
   );
 
@@ -368,6 +370,16 @@ export function ProductsPage() {
                       </button>
                       <button
                         type="button"
+                        className="icon-btn !h-8 !w-8 text-sky-400 hover:border-sky-500/40"
+                        onClick={() => setVariantsProduct(p)}
+                        title="مدیریت واریانت‌ها"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
                         className="icon-btn !h-8 !w-8 text-rose-400 hover:border-rose-500/40"
                         onClick={() => {
                           if (confirm(`«${p.title}» حذف شود؟`)) remove.mutate(p.id);
@@ -471,6 +483,13 @@ export function ProductsPage() {
                           </button>
                           <button
                             type="button"
+                            className="huma-btn-secondary !py-1 !px-2.5 !text-xs !text-sky-300 !border-sky-500/30 !bg-sky-500/15"
+                            onClick={() => setVariantsProduct(p)}
+                          >
+                            واریانت‌ها
+                          </button>
+                          <button
+                            type="button"
                             className="huma-btn-secondary !bg-rose-500/15 !text-rose-300 !border-rose-500/30 !py-1 !px-2.5 !text-xs"
                             onClick={() => {
                               if (confirm(`«${p.title}» حذف شود؟`)) remove.mutate(p.id);
@@ -563,6 +582,15 @@ export function ProductsPage() {
           />
         </div>
       </Modal>
+
+      {variantsProduct && (
+        <VariantsEditor
+          product={variantsProduct}
+          categories={taxonomy.data?.categories ?? []}
+          brands={taxonomy.data?.brands ?? []}
+          onClose={() => setVariantsProduct(null)}
+        />
+      )}
     </div>
   );
 }
