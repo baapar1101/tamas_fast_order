@@ -22,6 +22,8 @@ export function toProductDTO(
     categoryFaName: category?.faName ?? null,
     brandName: brand?.name ?? null,
     brandFaName: brand?.faName ?? null,
+    parentProductId: row.parentProductId ?? null,
+    otherStocks: row.otherStocks ?? {},
     color: row.color,
     colorEn: row.colorEn,
     colorCode: row.colorCode,

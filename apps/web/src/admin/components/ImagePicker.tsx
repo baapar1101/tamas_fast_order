@@ -21,6 +21,13 @@ export function ImagePicker({ label, value, kind, onChange }: Props) {
   const qc = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const previewUrl = value
+    ? value.startsWith('http') || value.startsWith('/')
+      ? value
+      : kind === 'brand' || kind === 'category'
+        ? `/assets/${kind}/${value}`
+        : `/uploads/${value}`
+    : '';
 
   async function upload(files: FileList | null) {
     const file = files?.[0];
@@ -49,9 +56,9 @@ export function ImagePicker({ label, value, kind, onChange }: Props) {
     <div className="space-y-1.5">
       <label className="block text-xs font-semibold text-slate-400">{label}</label>
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-        {value && (
+        {previewUrl && (
           <img
-            src={value}
+            src={previewUrl}
             alt=""
             className="h-12 w-12 rounded-lg object-cover bg-slate-900 border border-white/[0.06] shrink-0 mx-auto sm:mx-0"
             onError={(e) => {

@@ -1,12 +1,10 @@
-import { eq, desc } from 'drizzle-orm';
-import { Router } from 'express';
-import { db } from '../../db';
-import { slides } from '../../db/schema';
-import { requireAdmin } from '../auth';
+import { desc, eq } from 'drizzle-orm';
+import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-
-export const adminSlidesRouter = Router();
-adminSlidesRouter.use(requireAdmin);
+import { db } from '../../db/client.js';
+import { slides } from '../../db/schema.js';
+import { notFound } from '../../lib/errors.js';
+import { logAction } from '../../services/audit.js';
 
 const slideSchema = z.object({
   title: z.string().optional(),
@@ -16,35 +14,24 @@ const slideSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-// List all slides
-adminSlidesRouter.get('/', async (req, res) => {
-  try {
-    const list = await db.select().from(slides).orderBy(desc(slides.sortOrder), desc(slides.id));
-    res.json(list);
-  } catch (err) {
-    console.error('List slides error', err);
-    res.status(500).json({ error: 'Failed to load slides' });
-  }
-});
+const routes: FastifyPluginAsync = async (app) => {
+  app.addHook('preHandler', app.requireAdmin);
 
-// Create slide
-adminSlidesRouter.post('/', async (req, res) => {
-  try {
+  app.get('/admin/slides', async () => {
+    const list = await db.select().from(slides).orderBy(desc(slides.sortOrder), desc(slides.id));
+    return list;
+  });
+
+  app.post('/admin/slides', async (req, reply) => {
     const data = slideSchema.parse(req.body);
     const [created] = await db.insert(slides).values(data).returning();
-    res.status(201).json(created);
-  } catch (err) {
-    if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors[0].message });
-    console.error('Create slide error', err);
-    res.status(500).json({ error: 'Failed to create slide' });
-  }
-});
+    await logAction(req.user!.id, 'CREATE_SLIDE', 'slides', created.id, data);
+    reply.code(201);
+    return created;
+  });
 
-// Update slide
-adminSlidesRouter.put('/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+  app.put('/admin/slides/:id', async (req) => {
+    const id = parseInt((req.params as { id: string }).id, 10);
     const data = slideSchema.parse(req.body);
     
     const [updated] = await db
@@ -53,26 +40,18 @@ adminSlidesRouter.put('/:id', async (req, res) => {
       .where(eq(slides.id, id))
       .returning();
       
-    if (!updated) return res.status(404).json({ error: 'Slide not found' });
-    res.json(updated);
-  } catch (err) {
-    if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors[0].message });
-    console.error('Update slide error', err);
-    res.status(500).json({ error: 'Failed to update slide' });
-  }
-});
+    if (!updated) throw notFound('Slide not found');
+    await logAction(req.user!.id, 'UPDATE_SLIDE', 'slides', id, data);
+    return updated;
+  });
 
-// Delete slide
-adminSlidesRouter.delete('/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
-    
+  app.delete('/admin/slides/:id', async (req) => {
+    const id = parseInt((req.params as { id: string }).id, 10);
     const [deleted] = await db.delete(slides).where(eq(slides.id, id)).returning();
-    if (!deleted) return res.status(404).json({ error: 'Slide not found' });
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Delete slide error', err);
-    res.status(500).json({ error: 'Failed to delete slide' });
-  }
-});
+    if (!deleted) throw notFound('Slide not found');
+    await logAction(req.user!.id, 'DELETE_SLIDE', 'slides', id);
+    return { success: true };
+  });
+};
+
+export default routes;
