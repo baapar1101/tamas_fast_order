@@ -11,6 +11,10 @@
     "apps/*"
   ],
   "scripts": {
+    "postinstall": "node scripts/fix-perms.js",
+    "prebuild": "node scripts/fix-perms.js",
+    "predev": "node scripts/fix-perms.js",
+    "fix:perms": "node scripts/fix-perms.js",
     "dev": "npm-run-all --parallel dev:shared dev:api dev:web",
     "dev:api": "npm run dev -w @tamas/api",
     "dev:web": "npm run dev -w @tamas/web",
