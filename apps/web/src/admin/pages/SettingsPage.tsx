@@ -272,8 +272,6 @@ export function SettingsPage() {
             + افزودن
           </button>
         </div>
-          </button>
-        </div>
       </section>
       </div>
       )}
