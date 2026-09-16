@@ -533,20 +533,22 @@ export function StorefrontPage() {
           <section className="main-content">
             <div className="toolbar">
               <div className="toolbar-left">
-                <button
-                  type="button"
-                  className={`view-btn${viewMode === 'grid' ? ' active' : ''}`}
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Icon name="grid" style={{ marginInlineEnd: 4 }} /> شبکه‌ای
-                </button>
-                <button
-                  type="button"
-                  className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
-                  onClick={() => setViewMode('list')}
-                >
-                  <Icon name="filter" style={{ marginInlineEnd: 4 }} /> لیستی (عمده)
-                </button>
+                <div className="view-btn-group">
+                  <button
+                    type="button"
+                    className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
+                    onClick={() => setViewMode('list')}
+                  >
+                    <Icon name="filter" style={{ marginInlineEnd: 4 }} /> لیستی (عمده)
+                  </button>
+                  <button
+                    type="button"
+                    className={`view-btn${viewMode === 'grid' ? ' active' : ''}`}
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <Icon name="grid" style={{ marginInlineEnd: 4 }} /> شبکه‌ای
+                  </button>
+                </div>
 
                 <span className="results-count">تعداد {formatNumber(total)} کالا پیدا شد</span>
 
