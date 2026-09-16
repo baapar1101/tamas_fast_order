@@ -1,0 +1,20 @@
+D:\tamas_fast_order\new_admin\api\v1\manage\products\variants.html
+D:\tamas_fast_order\new_admin\api\v1\manage\products\attributes\count.html
+D:\tamas_fast_order\new_admin\api\v1\manage\products\brands\count.html
+D:\tamas_fast_order\new_admin\api\v1\manage\products\categories\count.html
+D:\tamas_fast_order\new_admin\api\v1\manage\products\categories\nested.html
+D:\tamas_fast_order\new_admin\api\v1\manage\products\comments\count (1).html
+D:\tamas_fast_order\new_admin\api\v1\manage\products\comments\count.html
+D:\tamas_fast_order\new_admin\api\v1\manage\products\variants\count (1).html
+D:\tamas_fast_order\new_admin\api\v1\manage\products\variants\count.html
+D:\tamas_fast_order\new_admin\api\v1\manage\routes\find.html
+D:\tamas_fast_order\new_admin\api\v1\manage\shipments\count.html
+D:\tamas_fast_order\new_admin\api\v1\manage\submissions\count (1).html
+D:\tamas_fast_order\new_admin\api\v1\manage\submissions\count.html
+D:\tamas_fast_order\new_admin\api\v1\manage\tickets\count (1).html
+D:\tamas_fast_order\new_admin\api\v1\manage\tickets\count.html
+D:\tamas_fast_order\new_admin\api\v1\manage\transactions\count.html
+D:\tamas_fast_order\new_admin\api\v1\manage\users\count (1).html
+D:\tamas_fast_order\new_admin\api\v1\manage\users\count.html
+D:\tamas_fast_order\new_admin\api\v1\manage\widgets\find (1).html
+D:\tamas_fast_order\new_admin\api\v1\manage\widgets\find (2).html

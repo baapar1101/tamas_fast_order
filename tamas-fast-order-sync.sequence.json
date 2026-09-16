@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Tamas Fast Order - Google Sheets Sync Process",
+    "output": "tamas-fast-order-sync.sequence.html",
+    "viewBox": [1080, 560],
+    "column_fit": "spread",
+    "animation": "trace",
+    "quality_profile": "showcase"
+  },
+  "participants": [
+    { "id": "admin", "type": "external", "label": "Admin User", "sublabel": "Browser" },
+    { "id": "web", "type": "frontend", "label": "Admin Panel", "sublabel": "React UI" },
+    { "id": "api", "type": "backend", "label": "Sync Service", "sublabel": "API" },
+    { "id": "db", "type": "database", "label": "Postgres", "sublabel": "Local DB" },
+    { "id": "gsheets", "type": "cloud", "label": "Google Sheets", "sublabel": "Remote API" }
+  ],
+  "segments": [
+    { "from": 180, "to": 250, "label": "Data Fetch" },
+    { "from": 260, "to": 310, "label": "Diffing" },
+    { "from": 320, "to": 420, "label": "Bi-directional Update" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "admin", "to": "web", "y": 160, "label": "click 'Sync Sheets'", "variant": "default" },
+    { "id": "m2", "from": "web", "to": "api", "y": 188, "label": "POST /api/sync", "variant": "emphasis" },
+    { "id": "m3", "from": "api", "to": "db", "y": 216, "label": "SELECT products", "variant": "default" },
+    { "id": "m4", "from": "db", "to": "api", "y": 244, "label": "local products", "variant": "return" },
+    { "id": "m5", "from": "api", "to": "gsheets", "y": 272, "label": "GET spreadsheet", "variant": "default" },
+    { "id": "m6", "from": "gsheets", "to": "api", "y": 300, "label": "sheet rows", "variant": "return" },
+    { "id": "m7", "from": "api", "to": "db", "y": 328, "label": "UPSERT updated rows", "variant": "emphasis" },
+    { "id": "m8", "from": "db", "to": "api", "y": 356, "label": "ack", "variant": "return" },
+    { "id": "m9", "from": "api", "to": "gsheets", "y": 384, "label": "batchUpdate values", "variant": "emphasis" },
+    { "id": "m10", "from": "gsheets", "to": "api", "y": 412, "label": "ack", "variant": "return" },
+    { "id": "m11", "from": "api", "to": "web", "y": 440, "label": "200 OK (Sync Results)", "variant": "return" },
+    { "id": "m12", "from": "web", "to": "admin", "y": 468, "label": "show success toast", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "web", "from": 180, "to": 475, "type": "frontend" },
+    { "participant": "api", "from": 180, "to": 450, "type": "backend" },
+    { "participant": "db", "from": 205, "to": 255, "type": "database" },
+    { "participant": "gsheets", "from": 260, "to": 310, "type": "cloud" },
+    { "participant": "db", "from": 315, "to": 365, "type": "database" },
+    { "participant": "gsheets", "from": 375, "to": 425, "type": "cloud" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Two-way Sync",
+      "items": [
+        "The Sync Service pulls data from both the local database and the remote Google Sheet.",
+        "It diffs the data based on cell hashes to identify changes on both sides."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Atomic Updates",
+      "items": [
+        "Local changes (e.g. from the admin panel) are pushed up.",
+        "Remote changes (e.g. warehouse staff updating kerman_stock) are pulled down.",
+        "Both systems are updated to mirror each other."
+      ]
+    }
+  ]
+}

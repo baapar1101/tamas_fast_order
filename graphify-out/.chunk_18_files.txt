@@ -1,0 +1,15 @@
+D:\tamas_fast_order\apps\web\public\assets\category\beauty.svg
+D:\tamas_fast_order\apps\web\public\assets\category\bondle.svg
+D:\tamas_fast_order\apps\web\public\assets\category\cable.svg
+D:\tamas_fast_order\apps\web\public\assets\category\caracsesories.svg
+D:\tamas_fast_order\apps\web\public\assets\category\caracsories.svg
+D:\tamas_fast_order\apps\web\public\assets\category\convertor.svg
+D:\tamas_fast_order\apps\web\public\assets\category\cover.svg
+D:\tamas_fast_order\apps\web\public\assets\category\dongle.svg
+D:\tamas_fast_order\apps\web\public\assets\category\gaming.svg
+D:\tamas_fast_order\apps\web\public\assets\category\glass.svg
+D:\tamas_fast_order\apps\web\public\assets\category\handsfree.svg
+D:\tamas_fast_order\apps\web\public\assets\category\headphon.svg
+D:\tamas_fast_order\apps\web\public\assets\category\health.svg
+D:\tamas_fast_order\apps\web\public\assets\category\holder.svg
+D:\tamas_fast_order\apps\web\public\assets\category\microphone.svg

@@ -1,0 +1,15 @@
+D:\tamas_fast_order\legacy\assets\category\airpod.svg
+D:\tamas_fast_order\legacy\assets\category\aux_icon.svg
+D:\tamas_fast_order\legacy\assets\category\beauty.svg
+D:\tamas_fast_order\legacy\assets\category\bondle.svg
+D:\tamas_fast_order\legacy\assets\category\cable.svg
+D:\tamas_fast_order\legacy\assets\category\caracsesories.svg
+D:\tamas_fast_order\legacy\assets\category\caracsories.svg
+D:\tamas_fast_order\legacy\assets\category\convertor.svg
+D:\tamas_fast_order\legacy\assets\category\cover.svg
+D:\tamas_fast_order\legacy\assets\category\dongle.svg
+D:\tamas_fast_order\legacy\assets\category\gadget.svg
+D:\tamas_fast_order\legacy\assets\category\gaming.svg
+D:\tamas_fast_order\legacy\assets\category\glass.svg
+D:\tamas_fast_order\legacy\assets\category\handsfree.svg
+D:\tamas_fast_order\legacy\assets\category\headphon.svg
