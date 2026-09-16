@@ -217,34 +217,7 @@ async function ensureCategory(name: string): Promise<number | null> {
  * Products
  * ------------------------------------------------------------------ */
 
-const PRODUCT_COLUMNS = [
-  'product_id',
-  'Category',
-  'Brand',
-  'title',
-  'model',
-  'color',
-  'color_en',
-  'color_code',
-  'sku',
-  'price',
-  'old_price',
-  'discount',
-  'stock',
-  'kerman_stock',
-  'tehran_stock',
-  'warranty',
-  'sell_type',
-  'seller',
-  'promotion',
-  'status',
-  'image_url',
-  'gallery',
-  'attribute_key',
-  'attribute_value',
-  'sort_order',
-  UPDATED_AT_COLUMN,
-];
+const PRODUCT_COLUMNS = ['product_id', 'Category', 'Brand', 'title', 'model', 'color', 'sku', 'RIAL PRICE', 'price', 'old_price', 'sell_type', 'discount%', 'kerman_stock', 'tehran_stock', 'warranty', 'promotion', 'status', 'image_url', 'attribute_key', 'attribute_value'];
 
 export const productMapping: EntityMapping = {
   entity: 'products',
@@ -274,9 +247,9 @@ export const productMapping: EntityMapping = {
           color_code: r.colorCode ?? '',
           sku: r.sku ?? '',
           price: String(r.price),
+          'RIAL PRICE': String(r.price),
           old_price: r.oldPrice == null ? '' : String(r.oldPrice),
-          discount: String(r.discount),
-          stock: String(r.stock),
+          'discount%': String(r.discount),
           kerman_stock: String(r.kermanStock),
           tehran_stock: String(r.tehranStock),
           warranty: r.warranty ?? '',
@@ -350,7 +323,7 @@ export const productMapping: EntityMapping = {
  * Categories / Brands / Colors
  * ------------------------------------------------------------------ */
 
-const CATEGORY_COLUMNS = ['category_name', 'category_fa_name', 'icon_url', 'Brand', 'sort_order', UPDATED_AT_COLUMN];
+const CATEGORY_COLUMNS = ['category_name', 'category_fa_name', 'icon_url', 'Brand'];
 
 export const categoryMapping: EntityMapping = {
   entity: 'categories',
@@ -432,7 +405,7 @@ export const categoryMapping: EntityMapping = {
   },
 };
 
-const BRAND_COLUMNS = ['brand_name', 'brand_fa_name', 'icon_url', 'sort_order', UPDATED_AT_COLUMN];
+const BRAND_COLUMNS = ['brand_name', 'brand_fa_name', 'icon_url'];
 
 export const brandMapping: EntityMapping = {
   entity: 'brands',
@@ -478,7 +451,7 @@ export const brandMapping: EntityMapping = {
   },
 };
 
-const COLOR_COLUMNS = ['color_code', 'color_fa_name', 'color_name', UPDATED_AT_COLUMN];
+const COLOR_COLUMNS = ['color_name', 'color_fa_name', 'color_code'];
 
 export const colorMapping: EntityMapping = {
   entity: 'colors',
@@ -526,21 +499,7 @@ export const colorMapping: EntityMapping = {
  * Users
  * ------------------------------------------------------------------ */
 
-const USER_COLUMNS = [
-  'mobile_number',
-  'name',
-  'last_name',
-  'Store_name',
-  'phone_number',
-  'address',
-  'postal_code',
-  'certificate_file_url',
-  'activity',
-  'page_website',
-  'actived',
-  'role',
-  UPDATED_AT_COLUMN,
-];
+const USER_COLUMNS = ['name', 'last_name', 'Store_name', 'phone_number', 'mobile_number', 'address', 'postal_code', 'certificate_file_url', 'activity', 'page_website', 'actived'];
 
 export const userMapping: EntityMapping = {
   entity: 'users',
@@ -625,20 +584,7 @@ export const userMapping: EntityMapping = {
  * Orders
  * ------------------------------------------------------------------ */
 
-const ORDER_COLUMNS = [
-  'order_id',
-  'date',
-  'customer_name',
-  'phone',
-  'store_name',
-  'address',
-  'items_json',
-  'total_price',
-  'payment',
-  'status',
-  'note',
-  UPDATED_AT_COLUMN,
-];
+const ORDER_COLUMNS = ['order_id', 'created_at', 'customer_name', 'phone', 'address', 'items_json', 'total', 'payment', 'status'];
 
 const ORDER_STATUS_SET = new Set(['new', 'confirmed', 'preparing', 'shipped', 'delivered', 'cancelled']);
 
@@ -681,7 +627,7 @@ export const orderMapping: EntityMapping = {
       sheetHash: r.sheetHash,
       cells: {
         order_id: r.orderCode,
-        date: iso(r.createdAt),
+        created_at: iso(r.createdAt),
         customer_name: r.customerName,
         phone: r.phone,
         store_name: r.storeName ?? '',
@@ -765,7 +711,7 @@ export const orderMapping: EntityMapping = {
  * Settings
  * ------------------------------------------------------------------ */
 
-const SETTING_COLUMNS = ['key', 'value', UPDATED_AT_COLUMN];
+const SETTING_COLUMNS = ['key', 'value'];
 
 export const settingMapping: EntityMapping = {
   entity: 'settings',
