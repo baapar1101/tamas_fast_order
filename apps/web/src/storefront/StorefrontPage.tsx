@@ -441,12 +441,12 @@ export function StorefrontPage() {
           {/* Sidebar (Right Column in RTL) */}
           <aside className={`sidebar${filtersOpen ? ' open' : ''}`}>
             <div className="sidebar-body">
-              <div className="side-title" onClick={() => setBrandsCollapsed(!brandsCollapsed)} style={{ cursor: 'pointer' }}>
+              <div className="side-title accordion-title" onClick={() => setBrandsCollapsed(!brandsCollapsed)} style={{ cursor: 'pointer', userSelect: 'none' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   برندها
                   <Icon name="chevron" className="mobile-chevron" style={{ transform: brandsCollapsed ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', fontSize: 14 }} />
                 </span>
-                <button type="button" onClick={(e) => { e.stopPropagation(); setBrands([]); }} style={{ fontSize: 12, color: 'var(--primary)' }}>
+                <button type="button" onClick={(e) => { e.stopPropagation(); setBrands([]); }} style={{ fontSize: 12, color: 'var(--primary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                   همه
                 </button>
               </div>

@@ -479,23 +479,28 @@
 }
 
 .switch {
-  width: 44px;
-  height: 24px;
+  position: relative;
+  width: 48px;
+  height: 26px;
   background: #cbd5e1;
   border-radius: 20px;
-  padding: 3px;
-  transition: background 0.2s ease;
+  transition: background 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
   cursor: pointer;
   border: none;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .switch i {
-  display: block;
-  width: 18px;
-  height: 18px;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #ffffff;
-  transition: transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), width 0.3s ease;
 }
 
 .switch.on {
@@ -503,11 +508,15 @@
 }
 
 .switch.on i {
-  transform: translateX(-20px);
+  transform: translateX(-22px);
 }
 
-[dir='rtl'] .switch.on i {
-  transform: translateX(-20px);
+.switch:active i {
+  width: 28px;
+}
+
+.switch.on:active i {
+  transform: translateX(-16px);
 }
 
 .wholesale-bar {
