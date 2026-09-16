@@ -2353,3 +2353,16 @@
 .product-accordion.is-promotion {
   padding-top: 36px;
 }
+
+/* Brands collapsible on mobile */
+@media (min-width: 1025px) {
+  .mobile-chevron {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .brand-icons.collapsed-mobile {
+    display: none;
+  }
+}
