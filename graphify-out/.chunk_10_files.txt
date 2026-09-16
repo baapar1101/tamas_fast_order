@@ -1,0 +1,20 @@
+D:\tamas_fast_order\new_admin\admin\settings\social.html
+D:\tamas_fast_order\new_admin\admin\settings\spotplayer.html
+D:\tamas_fast_order\new_admin\admin\settings\subscription.html
+D:\tamas_fast_order\new_admin\admin\settings\users.html
+D:\tamas_fast_order\new_admin\admin\site\cross-selling.html
+D:\tamas_fast_order\new_admin\admin\site\menu.html
+D:\tamas_fast_order\new_admin\admin\site\pages.html
+D:\tamas_fast_order\new_admin\admin\site\popups.html
+D:\tamas_fast_order\new_admin\admin\site\posts.html
+D:\tamas_fast_order\new_admin\admin\site\posts\categories.html
+D:\tamas_fast_order\new_admin\admin\site\posts\comments.html
+D:\tamas_fast_order\new_admin\admin\site\posts\tags.html
+D:\tamas_fast_order\new_admin\api\v1\cities.html
+D:\tamas_fast_order\new_admin\api\v1\features.html
+D:\tamas_fast_order\new_admin\api\v1\settings.html
+D:\tamas_fast_order\new_admin\api\v1\states.html
+D:\tamas_fast_order\new_admin\api\v1\user.html
+D:\tamas_fast_order\new_admin\api\v1\manage\channels (1).html
+D:\tamas_fast_order\new_admin\api\v1\manage\channels.html
+D:\tamas_fast_order\new_admin\api\v1\manage\couriers (1).html

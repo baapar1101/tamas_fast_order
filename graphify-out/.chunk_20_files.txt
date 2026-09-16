@@ -1,0 +1,15 @@
+D:\tamas_fast_order\apps\web\public\logo.png
+D:\tamas_fast_order\apps\web\public\logo.svg
+D:\tamas_fast_order\apps\web\public\promo-banner.gif
+D:\tamas_fast_order\apps\web\public\sign.png
+D:\tamas_fast_order\apps\web\public\toman.svg
+D:\tamas_fast_order\apps\web\public\uploads\img_00831f25fa90.jpg
+D:\tamas_fast_order\apps\web\public\uploads\img_025a4c9a984f.jpg
+D:\tamas_fast_order\apps\web\public\uploads\img_031e0cf80bc2.jpg
+D:\tamas_fast_order\apps\web\public\uploads\img_039729fd1d9e.jpg
+D:\tamas_fast_order\apps\web\public\uploads\img_0422f030450c.webp
+D:\tamas_fast_order\apps\web\public\uploads\img_04ca82c3b05e.jpg
+D:\tamas_fast_order\apps\web\public\uploads\img_04f90d9843ba.jpg
+D:\tamas_fast_order\apps\web\public\uploads\img_05ee5662fa50.jpg
+D:\tamas_fast_order\apps\web\public\uploads\img_06a993c22292.jpg
+D:\tamas_fast_order\apps\web\public\uploads\img_06b8a1c570e5.webp
