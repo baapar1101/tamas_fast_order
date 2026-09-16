@@ -523,10 +523,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
+  padding: 14px 0;
   border-bottom: 1px solid var(--border);
   font-size: 13.5px;
   font-weight: 600;
+}
+
+.switch-row:last-child {
+  border-bottom: none;
 }
 
 .switch {
@@ -1998,7 +2002,8 @@
 
   .sidebar {
     position: static;
-    padding: 0;
+    padding: 16px;
+    margin-bottom: 16px;
   }
 
   /* Grid View Compact Rows on Mobile */
