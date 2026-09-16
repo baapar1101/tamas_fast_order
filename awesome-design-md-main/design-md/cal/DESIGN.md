@@ -271,6 +271,50 @@ components:
     padding: 64px
 ---
 
+# Cal.com-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Cal.com-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-active")
+      ("primary-disabled")
+      ("ink")
+      ("body")
+      ("muted")
+      ("muted-soft")
+      ("hairline")
+      ("hairline-soft")
+      ("canvas")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("title-lg")
+      ("title-md")
+      ("title-sm")
+      ("body-md")
+      ("body-sm")
+      ("caption")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-active")
+      ("button-primary-disabled")
+      ("button-secondary")
+      ("button-icon-circular")
+      ("button-text-link")
+      ("text-link")
+      ("top-nav")
+      ("nav-pill-group")
+      ("hero-band")
+      (And more...)
+```
+
 ## Overview
 
 Cal.com's marketing surface is a clean, friendly modern-SaaS interface — white canvas (`{colors.canvas}` — #ffffff) with black primary CTAs (`{colors.primary}` — #111111), custom **Cal Sans** display typography, and `{colors.surface-card}` (#f5f5f5) light-gray cards holding product UI fragments. The system reads as confidently engineered without trying to impress — every band has clear hierarchy, generous whitespace, and a single primary action.

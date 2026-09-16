@@ -304,6 +304,50 @@ components:
     padding: 4px 10px
 ---
 
+# NVIDIA-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("NVIDIA-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("primary-dark")
+      ("ink")
+      ("canvas")
+      ("surface-dark")
+      ("surface-soft")
+      ("surface-elevated")
+      ("hairline")
+      ("hairline-strong")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("heading-xl")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("card-title")
+      ("body-md")
+      ("body-strong")
+      ("body-sm")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-active")
+      ("button-outline")
+      ("button-outline-on-dark")
+      ("button-ghost-link")
+      ("button-disabled")
+      ("pill-tab")
+      ("pill-tab-active")
+      ("text-input")
+      ("text-input-focused")
+      (And more...)
+```
+
 ## Overview
 
 NVIDIA's marketing system is built like a piece of engineering documentation that learned graphic design — every page is a structured cascade of dense, factual information arranged on a paper-white grid, framed top and bottom by deep black hero/footer chapters. There is exactly one accent color in the entire system, and it is doing all the work: NVIDIA Green (`{colors.primary}` — `#76b900`), used for every primary CTA, every active tab, every link affordance on dark surfaces, and the small decorative corner squares that mark out card containers. Nothing else competes for attention.

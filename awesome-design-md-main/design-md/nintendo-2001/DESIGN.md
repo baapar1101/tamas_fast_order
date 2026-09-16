@@ -339,9 +339,47 @@ components:
     rounded: "{rounded.md}"
     padding: "{spacing.sm} {spacing.md}"
     typography: "{typography.body}"
-
 ---
 
+# Nintendo.com (2001) Analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Nintendo.com (2001) Analysis"))
+    Colors
+      ("primary")
+      ("signal")
+      ("amber")
+      ("nav-gold")
+      ("canvas")
+      ("canvas-soft")
+      ("sky")
+      ("lavender")
+      ("ice")
+      ("periwinkle")
+      (And more...)
+    Typography
+      ("nav-link")
+      ("ui-label")
+      ("display")
+      ("hero-tagline")
+      ("body")
+      ("link")
+      ("micro")
+    Components
+      ("nav-bar")
+      ("subnav-strip")
+      ("logo-pill")
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-submit")
+      ("button-secondary")
+      ("button-icon-arrow")
+      ("button-arrow-chip")
+      ("search-field")
+      (And more...)
+```
 
 ## Overview
 

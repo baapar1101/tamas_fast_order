@@ -299,6 +299,50 @@ components:
     typography: "{typography.caption}"
 ---
 
+# Coinbase-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Coinbase-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-active")
+      ("primary-disabled")
+      ("ink")
+      ("body")
+      ("body-strong")
+      ("muted")
+      ("muted-soft")
+      ("hairline")
+      ("hairline-soft")
+      (And more...)
+    Typography
+      ("display-mega")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("title-lg")
+      ("title-md")
+      ("title-sm")
+      ("body-md")
+      ("body-strong")
+      (And more...)
+    Components
+      ("top-nav-light")
+      ("top-nav-on-dark")
+      ("button-primary")
+      ("button-primary-active")
+      ("button-primary-disabled")
+      ("button-secondary-light")
+      ("button-secondary-dark")
+      ("button-outline-on-dark")
+      ("button-tertiary-text")
+      ("button-pill-cta")
+      (And more...)
+```
+
 ## Overview
 
 Coinbase reads like an institutional financial brand that happens to trade crypto — the marketing surfaces are quiet, white-canvas, editorially-spaced, and almost monochromatic. The single brand voltage is **Coinbase Blue** (`{colors.primary}` — #0052ff), used scarcely: every primary CTA pill, the brand wordmark, and inline emphasis links. Beyond that one blue, the system is white canvas + ink + soft gray elevation bands + a deep near-black editorial canvas (`{colors.surface-dark}` — #0a0b0d) for full-bleed product-mockup heroes.

@@ -378,6 +378,50 @@ components:
     padding: "{spacing.xl}"
 ---
 
+# MiniMax-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("MiniMax-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("primary-soft")
+      ("brand-coral")
+      ("brand-magenta")
+      ("brand-blue")
+      ("brand-blue-mid")
+      ("brand-blue-deep")
+      ("brand-blue-700")
+      ("brand-cyan")
+      (And more...)
+    Typography
+      ("hero-display")
+      ("display-lg")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("card-title")
+      ("subtitle")
+      ("body-md")
+      ("body-md-bold")
+      ("body-sm")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-primary-disabled")
+      ("button-secondary")
+      ("button-tertiary")
+      ("button-link")
+      ("button-icon-circular")
+      ("product-card-coral")
+      ("product-card-magenta")
+      ("product-card-blue")
+      (And more...)
+```
+
 ## Overview
 
 MiniMax stages itself as a Chinese AI infrastructure brand with a sophisticated dual identity. Marketing surfaces and platform pages anchor in stark white canvas with deep-black typographic emphasis — the brand voice is confident, technical, almost editorial. But each model release gets its own vibrant gradient identity card: M2.7 in volcanic coral-red, Music 2.6 in magenta-pink, Hailuo in deep blue, Speech 2.8 in saturated orange-purple. Together these vibrant tiles read like album covers laid out on the homepage — each one declaring its own product personality.

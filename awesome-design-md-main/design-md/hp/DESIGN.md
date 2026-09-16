@@ -323,6 +323,50 @@ components:
     padding: 64px 32px
 ---
 
+# HP-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("HP-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-bright")
+      ("primary-deep")
+      ("primary-soft")
+      ("on-primary")
+      ("ink")
+      ("ink-deep")
+      ("ink-soft")
+      ("on-ink")
+      ("canvas")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("display-xs")
+      ("body-lg")
+      ("body-md")
+      ("body-emphasis")
+      ("caption-md")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-primary-disabled")
+      ("button-ink")
+      ("button-outline")
+      ("button-outline-ink")
+      ("button-text-link")
+      ("badge-pill-ink")
+      ("badge-pill-outline")
+      ("badge-sale-coral")
+      (And more...)
+```
+
 ## Overview
 
 HP reads like a long-running consumer-electronics catalog crossed with an enterprise-software product page. The whole system sits on **pure white** (`{colors.canvas}` — `#ffffff`) with thin gray panels (`{colors.cloud}` / `{colors.fog}`) for alternating section bands. There is one chromatic action color — **HP Electric Blue** (`{colors.primary}` — `#024ad8`) — and one ink color (`{colors.ink}` — `#1a1a1a`); together they do ninety percent of the work. Type is a single family across every surface: **Forma DJR Micro**, HP's bespoke geometric grotesque, set at weight 500 for headlines and 400 for body — clean, neutral, slightly mechanical.

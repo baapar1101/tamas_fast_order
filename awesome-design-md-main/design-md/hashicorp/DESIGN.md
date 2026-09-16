@@ -263,6 +263,50 @@ components:
     padding: 64px 32px
 ---
 
+# HashiCorp-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("HashiCorp-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("accent-blue")
+      ("ink")
+      ("ink-muted")
+      ("ink-subtle")
+      ("canvas")
+      ("surface-1")
+      ("surface-2")
+      ("surface-3")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("headline")
+      ("card-title")
+      ("subhead")
+      ("body-lg")
+      ("body")
+      ("body-sm")
+      ("caption")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-secondary")
+      ("button-tertiary")
+      ("button-product-terraform")
+      ("button-product-vault")
+      ("button-product-waypoint")
+      ("product-card")
+      ("product-card-terraform")
+      ("product-card-vault")
+      (And more...)
+```
+
 ## Overview
 
 HashiCorp's marketing canvas is a near-black ground that serves a multi-product portfolio without ever feeling generic. The dominant surface is `{colors.canvas}` (pure black) layered with `{colors.surface-1}` charcoal cards and 1px translucent gray hairlines. The chrome is monochrome — white pill-rounded buttons (`{components.button-primary}`), white type, gray secondary type — but the system is held together by a **palette of per-product accent colors** that signal which HashiCorp tool a given section belongs to: Terraform purple, Vault yellow, Consul red, Waypoint cyan, Vagrant blue, Nomad green, Boundary coral.

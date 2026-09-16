@@ -313,6 +313,50 @@ components:
     typography: "{typography.link-md}"
 ---
 
+# PlayStation-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("PlayStation-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-pressed")
+      ("primary-active")
+      ("on-primary")
+      ("link-light")
+      ("link-dark")
+      ("commerce")
+      ("commerce-pressed")
+      ("commerce-link-base")
+      ("on-commerce")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("heading-xl")
+      ("heading-lg")
+      ("heading-md")
+      ("body-md")
+      ("body-strong")
+      ("body-sm")
+      ("caption-md")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-commerce")
+      ("button-commerce-pressed")
+      ("button-secondary-light")
+      ("button-secondary-dark")
+      ("button-disabled")
+      ("text-input")
+      ("text-input-focused")
+      ("filter-pill")
+      (And more...)
+```
+
 ## Overview
 
 PlayStation's marketing system reads like a console launch trailer scrolling past the viewer in chapters. Each section is a full-bleed band — pure black `{colors.canvas-dark}`, true white `{colors.canvas-light}`, or PlayStation Blue `{colors.primary}` — and each chapter owns one editorial moment: hero console photography, a games-coming-soon strip, the PlayStation Plus tier banner, the "30 Years of PlayStation" anniversary band, the news strip from the PlayStation Blog. There is no decorative chrome between chapters; the section background change IS the divider. Sections stack at `{spacing.section}` (96px) rhythm with the next band's color taking over the page edge-to-edge.

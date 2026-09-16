@@ -436,6 +436,50 @@ components:
     padding: "{spacing.sm} {spacing.md}"
 ---
 
+# Miro-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Miro-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("brand-yellow")
+      ("brand-yellow-deep")
+      ("yellow-light")
+      ("yellow-dark")
+      ("brand-blue")
+      ("blue-450")
+      ("blue-pressed")
+      ("brand-coral")
+      (And more...)
+    Typography
+      ("hero-display")
+      ("display-lg")
+      ("heading-1")
+      ("heading-2")
+      ("heading-3")
+      ("heading-4")
+      ("heading-5")
+      ("subtitle")
+      ("body-md")
+      ("body-md-medium")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-primary-disabled")
+      ("button-yellow")
+      ("button-blue")
+      ("button-secondary")
+      ("button-on-dark")
+      ("button-ghost")
+      ("button-link")
+      ("button-icon-circular")
+      (And more...)
+```
+
 ## Overview
 
 Miro positions itself as the AI-powered visual workspace through a confident, slightly playful brand voice. The homepage opens with a stark white canvas anchored by a small canary-yellow Miro wordmark in the top-left, a black-pill primary CTA "Get started free" and a secondary "Book a demo" outline pill — then dramatic real-Miro-board mockup imagery (sticky notes, kanban, mind maps) carries the visual weight. Across deeper surfaces, the system breaks open: pastel feature cards (rose, teal, coral, yellow) echo the actual sticky-note color palette of the live whiteboard product, and customer story cards reuse those tints to differentiate brand vignettes.

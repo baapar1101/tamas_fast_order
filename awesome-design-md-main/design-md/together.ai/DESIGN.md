@@ -324,9 +324,51 @@ components:
     rounded: "{rounded.sm}"
     padding: "{spacing.md} {spacing.lg}"
     typography: "{typography.body-md}"
-
 ---
 
+# Together-AI-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Together-AI-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("body")
+      ("hairline")
+      ("canvas")
+      ("canvas-dark")
+      ("surface-dark-soft")
+      ("on-dark")
+      ("accent-orange")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("body-lg")
+      ("body-lg-strong")
+      ("body-md")
+      ("body-md-strong")
+      ("caption")
+      ("caption-strong")
+      (And more...)
+    Components
+      ("nav-bar")
+      ("nav-link")
+      ("button-primary")
+      ("button-secondary-mint")
+      ("button-secondary-white")
+      ("button-ghost-on-dark")
+      ("button-outline")
+      ("button-icon-circular")
+      ("text-input")
+      ("badge-neutral")
+      (And more...)
+```
 
 ## Overview
 

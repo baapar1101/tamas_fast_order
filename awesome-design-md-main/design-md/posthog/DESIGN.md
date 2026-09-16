@@ -354,6 +354,50 @@ components:
     typography: "{typography.link-md}"
 ---
 
+# PostHog-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("PostHog-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-pressed")
+      ("primary-active")
+      ("on-primary")
+      ("ink")
+      ("body")
+      ("charcoal")
+      ("mute")
+      ("ash")
+      ("stone")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("heading-sm-mixed")
+      ("body-md")
+      ("body-strong")
+      ("body-sm")
+      ("body-sm-strong")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-secondary")
+      ("button-tertiary")
+      ("button-disabled")
+      ("text-input")
+      ("text-input-focused")
+      ("search-input")
+      ("product-card")
+      ("doc-card")
+      (And more...)
+```
+
 ## Overview
 
 PostHog's marketing system is built on the visual contradiction at the heart of the brand: a serious open-source product analytics platform rendered as if it were a friendly engineering sketchbook. The chrome runs on a warm cream canvas (`{colors.canvas}` — `#eeefe9`) — not white — and every page is dotted with hand-drawn hedgehog mascots in lab coats, lounge chairs, terminals, and reading glasses, scattered across the layout like marginalia in a textbook. Type sits in IBM Plex Sans Variable at olive-gray (`{colors.body}` — `#4d4f46`) for body and deep olive-charcoal (`{colors.ink}` — `#23251d`) for headlines, with weights stepped tightly between 400, 600, 700, and 800 to create hierarchy without color. The single saturated yellow-orange pill (`{colors.primary}` — `#f7a501`) is the brand's only loud chromatic moment; everything else is cream, olive, white card, and the occasional pastel callout band.

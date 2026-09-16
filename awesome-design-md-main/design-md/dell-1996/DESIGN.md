@@ -340,9 +340,50 @@ components:
     rounded: "{rounded.none}"
     padding: "{spacing.md} {spacing.lg}"
     typography: "{typography.body-sm}"
-
 ---
 
+# Dell 1996 Inspired
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Dell 1996 Inspired"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("canvas")
+      ("surface")
+      ("ink")
+      ("frame-ink")
+      ("yellow-sticker")
+      ("purple-stripe")
+      ("link")
+      ("tint-olive")
+      (And more...)
+    Typography
+      ("display")
+      ("heading-1")
+      ("heading-2")
+      ("heading-3")
+      ("body")
+      ("body-sm")
+      ("caption")
+      ("button")
+      ("link")
+      ("ui-label")
+    Components
+      ("page-frame")
+      ("top-banner")
+      ("section-eyebrow-olive")
+      ("section-eyebrow-salmon")
+      ("ribbon-card-title")
+      ("ribbon-card-body-sage")
+      ("ribbon-card-body-salmon")
+      ("ribbon-card-body-peach")
+      ("ribbon-card-body-lime")
+      ("ribbon-card-body-sky")
+      (And more...)
+```
 
 ## Overview
 

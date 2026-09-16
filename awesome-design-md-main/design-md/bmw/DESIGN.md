@@ -268,6 +268,50 @@ components:
     padding: 64px
 ---
 
+# BMW-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("BMW-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-active")
+      ("primary-disabled")
+      ("ink")
+      ("body")
+      ("body-strong")
+      ("muted")
+      ("muted-soft")
+      ("hairline")
+      ("hairline-strong")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("title-lg")
+      ("title-md")
+      ("title-sm")
+      ("body-md")
+      ("body-sm")
+      ("caption")
+      (And more...)
+    Components
+      ("top-nav")
+      ("button-primary")
+      ("button-primary-active")
+      ("button-primary-disabled")
+      ("button-secondary")
+      ("button-secondary-on-dark")
+      ("button-text-link")
+      ("text-link")
+      ("hero-band-dark")
+      ("hero-photo-band")
+      (And more...)
+```
+
 ## Overview
 
 BMW's corporate site carries a far more **measured, corporate-automotive** interface than its motorsport-bombastic cousin BMW M. The atmosphere is light: `{colors.canvas}` (#ffffff) is the base surface, `{colors.surface-card}` (#fafafa) carries the soft-grey card plates, and dark navy `{colors.surface-dark}` (#1a2129) appears only inside hero bands — one per page, framing the lead model render.

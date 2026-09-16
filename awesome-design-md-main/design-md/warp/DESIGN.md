@@ -271,9 +271,49 @@ components:
     rounded: "{rounded.md}"
     padding: "{spacing.sm} {spacing.md}"
     typography: "{typography.body-sm}"
-
 ---
 
+# Warp-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Warp-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("body")
+      ("body-strong")
+      ("mute")
+      ("canvas")
+      ("canvas-soft")
+      ("hairline")
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("display-serif")
+      ("body-lg")
+      ("body-md")
+      ("body-md-strong")
+      ("body-sm")
+      ("body-sm-strong")
+      (And more...)
+    Components
+      ("nav-bar")
+      ("nav-link")
+      ("button-primary")
+      ("button-secondary-ghost")
+      ("button-icon-circular")
+      ("text-input")
+      ("card-content")
+      ("card-mockup")
+      ("download-tile")
+      ("press-row")
+      (And more...)
+```
 
 ## Overview
 

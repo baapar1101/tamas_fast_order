@@ -148,6 +148,46 @@ components:
     padding: 32px 24px
 ---
 
+# Spacex-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Spacex-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("ink")
+      ("on-primary")
+      ("on-primary-mute")
+      ("canvas-night")
+      ("canvas-night-soft")
+      ("canvas-light")
+      ("canvas-cool")
+      ("hairline-on-dark")
+      ("hairline-on-light")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("body-lg")
+      ("body-md")
+      ("button-cap")
+      ("micro-cap")
+      ("caption")
+    Components
+      ("button-ghost-on-dark")
+      ("button-ghost-on-light")
+      ("button-filled-cool")
+      ("text-input")
+      ("card-photo-band")
+      ("card-shop-product")
+      ("nav-bar-overlay")
+      ("link-on-dark")
+      ("link-on-light")
+      ("footer-dark")
+```
+
 ## Overview
 
 Spasex's design language is an exercise in negation: pure black canvas, white display type set in tight vertical leading and uppercase, full-bleed photography or autoplaying rocket-launch video as the only chrome. There is no brand color beyond black-and-white; there are no decorative shapes; there are no card grids or pricing tables on the marketing pages. Every band is a single full-viewport photograph or video paired with one all-caps headline at `{typography.display-xxl}` (80px D-DIN-Bold) and one ghost-outlined pill CTA. The composition is closer to a film title card than a SaaS landing page.

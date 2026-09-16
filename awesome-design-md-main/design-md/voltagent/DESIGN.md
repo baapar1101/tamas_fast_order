@@ -274,9 +274,51 @@ components:
     rounded: "{rounded.md}"
     padding: "{spacing.md} {spacing.lg}"
     typography: "{typography.body-sm}"
-
 ---
 
+# Voltagent-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Voltagent-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-soft")
+      ("primary-deep")
+      ("on-primary")
+      ("ink")
+      ("ink-strong")
+      ("body")
+      ("mute")
+      ("hairline")
+      ("hairline-soft")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("eyebrow-mono")
+      ("eyebrow-uppercase")
+      ("body-lg")
+      ("body-md")
+      ("body-md-strong")
+      ("body-sm")
+      (And more...)
+    Components
+      ("nav-bar")
+      ("nav-link")
+      ("button-primary")
+      ("button-outline-on-dark")
+      ("button-ghost-green")
+      ("button-pill-tag")
+      ("text-input")
+      ("card-feature")
+      ("card-feature-emphasized")
+      ("code-mockup")
+      (And more...)
+```
 
 ## Overview
 

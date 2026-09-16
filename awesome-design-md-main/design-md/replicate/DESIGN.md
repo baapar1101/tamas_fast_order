@@ -288,6 +288,50 @@ components:
     padding: 64px 32px
 ---
 
+# Replicate-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Replicate-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-deep")
+      ("on-primary")
+      ("ink")
+      ("body")
+      ("charcoal")
+      ("mute")
+      ("ash")
+      ("stone")
+      ("on-dark")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("subtitle")
+      ("body-lg")
+      ("body-md")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-dark")
+      ("button-outline")
+      ("button-ghost")
+      ("button-icon")
+      ("text-input")
+      ("hero-band")
+      ("model-card")
+      ("collection-tile")
+      (And more...)
+```
+
 ## Overview
 
 Replicate is a developer-tools platform with the soul of an art zine. The

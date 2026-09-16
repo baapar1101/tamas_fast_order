@@ -284,6 +284,50 @@ components:
     padding: 64px
 ---
 
+# Airtable-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Airtable-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-active")
+      ("ink")
+      ("body")
+      ("muted")
+      ("hairline")
+      ("border-strong")
+      ("canvas")
+      ("surface-soft")
+      ("surface-strong")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("title-lg")
+      ("title-md")
+      ("title-sm")
+      ("label-md")
+      ("button")
+      ("body-md")
+      ("caption")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-active")
+      ("button-secondary")
+      ("button-secondary-on-dark")
+      ("button-legal")
+      ("button-icon-circular")
+      ("button-pricing-pill")
+      ("text-link")
+      ("top-nav")
+      ("hero-band")
+      (And more...)
+```
+
 ## Overview
 
 Airtable's marketing surfaces are quietly editorial. The base atmosphere is white canvas, dark ink type, generous whitespace, and a near-black pill CTA — nothing is fighting for attention until a section needs to. The brand voltage doesn't come from gradient washes or accent walls; it comes from **full-bleed signature cards** in `{colors.signature-coral}`, `{colors.signature-forest}`, and `{colors.surface-dark}` that punctuate long-scroll explainer pages every two or three screens. Between those signature bands, the page reads like a print magazine: a headline, supporting copy, a small image cluster, then breathing room.

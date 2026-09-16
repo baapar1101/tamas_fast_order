@@ -252,6 +252,50 @@ components:
     padding: 64px 32px
 ---
 
+# Intercom-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Intercom-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("ink-muted")
+      ("ink-subtle")
+      ("ink-tertiary")
+      ("canvas")
+      ("surface-1")
+      ("surface-2")
+      ("inverse-canvas")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("headline")
+      ("card-title")
+      ("subhead")
+      ("body-lg")
+      ("body")
+      ("body-sm")
+      ("caption")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-secondary")
+      ("button-tertiary")
+      ("button-fin")
+      ("pricing-card")
+      ("pricing-card-featured")
+      ("feature-card")
+      ("product-mockup-card")
+      ("testimonial-card")
+      (And more...)
+```
+
 ## Overview
 
 Intercom's marketing canvas is a soft cream-white ground (`{colors.canvas}` ≈ #f5f1ec) — not pure white. The warmth is the brand's signal: this is editorial, calm, and product-focused, not bright SaaS. On top of the cream canvas sit white floating cards (`{colors.surface-1}`), thin hairline dividers (`{colors.hairline}`), and charcoal type (`{colors.ink}` #111111).

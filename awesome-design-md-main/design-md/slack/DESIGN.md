@@ -233,6 +233,50 @@ components:
     padding: 32px 24px
 ---
 
+# Slacc-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Slacc-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-deep")
+      ("primary-press")
+      ("primary-tint")
+      ("on-primary")
+      ("ink")
+      ("ink-mute")
+      ("link-blue")
+      ("link-hover")
+      ("canvas")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("body-lg")
+      ("body-md")
+      ("body-strong")
+      (And more...)
+    Components
+      ("button-primary-pill")
+      ("button-primary-pill-pressed")
+      ("button-secondary-pill")
+      ("button-outline-aubergine")
+      ("button-outline-on-aubergine")
+      ("text-input")
+      ("pill-cap-shade")
+      ("card-pricing")
+      ("card-pricing-featured")
+      ("card-feature-cream")
+      (And more...)
+```
+
 ## Overview
 
 Slacc's design language centers on a deep aubergine primary (`{colors.primary}`) — the brand's most enduring visual asset — applied as the dominant button color, the footer band, the featured pricing tier, and the brand wordmark. Around that aubergine the system stages an unusually delicate ecosystem: cream-lavender hero canvases with soft pastel-mesh gradients (peachy oranges, lavenders, dusty greens) that pulse behind floating product UI mockups, with the actual interface chrome rendered in fine detail at 3:2 aspect.

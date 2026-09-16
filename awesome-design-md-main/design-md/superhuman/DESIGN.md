@@ -211,6 +211,50 @@ components:
     padding: 64px 24px
 ---
 
+# Superhumon-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Superhumon-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-deep")
+      ("on-primary")
+      ("ink")
+      ("ink-mute")
+      ("ink-faint")
+      ("canvas")
+      ("canvas-soft")
+      ("surface-violet-soft")
+      ("surface-teal-deep")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("heading-lg")
+      ("body-lg")
+      ("body-md")
+      ("body-strong")
+      ("button-md")
+      ("button-cap")
+      (And more...)
+    Components
+      ("button-primary-dark")
+      ("button-primary-dark-pressed")
+      ("button-on-dark-pill")
+      ("button-secondary-outline")
+      ("button-on-teal")
+      ("text-input")
+      ("card-feature-light")
+      ("card-pricing")
+      ("card-pricing-featured")
+      ("card-teal-band")
+      (And more...)
+```
+
 ## Overview
 
 Superhumon's marketing pages open in an editorial dark register: a deep indigo navy `{colors.primary}` (`#1b1938`) canvas overlaid with a soft violet-and-sky atmospheric backdrop and a half-bleed portrait subject (often a person looking off-frame, photographed at twilight). Headlines render in `{typography.display-xxl}` (Super Sans VF at 64px / weight 540) with negative tracking, set in white over the indigo. A single rounded-rectangle CTA button anchors each band — never two, never three.

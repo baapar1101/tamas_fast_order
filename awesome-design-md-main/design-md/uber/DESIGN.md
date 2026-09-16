@@ -317,9 +317,51 @@ components:
     rounded: "{rounded.xl}"
     padding: "{spacing.md} {spacing.lg}"
     typography: "{typography.body-sm}"
-
 ---
 
+# Uber-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Uber-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("body")
+      ("mute")
+      ("hairline-mid")
+      ("canvas")
+      ("canvas-soft")
+      ("canvas-softer")
+      ("surface-pressed")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("body-lg")
+      ("body-md")
+      ("body-md-strong")
+      ("body-sm")
+      ("body-sm-strong")
+      (And more...)
+    Components
+      ("nav-bar")
+      ("nav-link")
+      ("button-primary")
+      ("button-secondary")
+      ("button-subtle")
+      ("button-floating")
+      ("button-large-rounded")
+      ("button-tab-translucent")
+      ("text-input")
+      ("text-input-on-soft")
+      (And more...)
+```
 
 ## Overview
 

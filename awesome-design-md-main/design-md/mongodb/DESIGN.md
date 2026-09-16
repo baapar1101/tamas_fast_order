@@ -402,6 +402,50 @@ components:
     padding: "{spacing.xxs} 0"
 ---
 
+# MongoDB-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("MongoDB-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-deep")
+      ("primary-pressed")
+      ("on-primary")
+      ("brand-green")
+      ("brand-green-dark")
+      ("brand-green-mid")
+      ("brand-green-soft")
+      ("brand-teal-deep")
+      ("brand-teal")
+      (And more...)
+    Typography
+      ("hero-display")
+      ("display-lg")
+      ("heading-1")
+      ("heading-2")
+      ("heading-3")
+      ("heading-4")
+      ("heading-5")
+      ("subtitle")
+      ("body-md")
+      ("body-md-medium")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-primary-disabled")
+      ("button-secondary")
+      ("button-on-dark")
+      ("button-secondary-on-dark")
+      ("button-ghost")
+      ("button-link")
+      ("card-base")
+      ("card-feature")
+      (And more...)
+```
+
 ## Overview
 
 MongoDB carries a strong dual-mode visual identity — dark deep-teal hero bands with the unmistakable bright MongoDB green ({colors.brand-green}) CTA pill paired with stark white documentation and pricing surfaces. The homepage opens with "One data platform. Unlimited AI potential." headline over a deep navy hero, the green pill sitting at the visual center as the primary CTA. Lower on the page, embedded code mockup cards (terminal-aesthetic) sit on the dark hero band, breaking out into white feature cards below. The pricing page renders a 3-tier comparison (Free / Flex / Dedicated) with a featured tier highlighted in soft mint background and bright green border. The MongoDB University page presents a course catalog grid where each tile carries a colored category tag (orange, purple, green, teal) — these are MongoDB's category-encoding accent colors and are the only place outside the brand green where saturated color appears.

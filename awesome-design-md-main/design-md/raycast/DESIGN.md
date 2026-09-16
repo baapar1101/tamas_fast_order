@@ -327,6 +327,50 @@ components:
     typography: "{typography.link-md}"
 ---
 
+# Raycast-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Raycast-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-pressed")
+      ("on-primary")
+      ("ink")
+      ("body")
+      ("charcoal")
+      ("mute")
+      ("ash")
+      ("stone")
+      ("on-dark")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("heading-xl")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("body-lg")
+      ("body-md")
+      ("body-strong")
+      ("body-sm")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-secondary")
+      ("button-tertiary")
+      ("button-disabled")
+      ("install-button")
+      ("text-input")
+      ("text-input-focused")
+      ("store-search-bar")
+      ("command-palette-row")
+      (And more...)
+```
+
 ## Overview
 
 Raycast's marketing site reads like an extended product screenshot. The chrome IS the in-product command palette at marketing scale: pure near-black canvas (`{colors.canvas}` — `#07080a`), hairline 1px borders (`{colors.hairline}` — `#242728`), command-palette-style cards with rounded corners between 6 and 16px, Inter typography with the **ss03 stylistic set enabled site-wide** (a single character — the alternate `g` — that gives Raycast's typography its signature subtle distinction), a single white CTA pill that anchors every primary action, and small splashes of saturated accent reserved for category illustrations.

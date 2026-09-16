@@ -285,9 +285,51 @@ components:
     rounded: "{rounded.xl}"
     padding: "{spacing.md} {spacing.lg}"
     typography: "{typography.body-sm}"
-
 ---
 
+# Wise-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Wise-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("primary-active")
+      ("primary-neutral")
+      ("primary-pale")
+      ("ink")
+      ("ink-deep")
+      ("body")
+      ("mute")
+      ("canvas")
+      (And more...)
+    Typography
+      ("display-mega")
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("display-xs")
+      ("body-lg")
+      ("body-md")
+      ("body-md-strong")
+      (And more...)
+    Components
+      ("nav-bar")
+      ("nav-link")
+      ("button-primary")
+      ("button-secondary")
+      ("button-tertiary")
+      ("button-icon-circular")
+      ("text-input")
+      ("card-content")
+      ("card-feature-sage")
+      ("card-feature-green")
+      (And more...)
+```
 
 ## Overview
 

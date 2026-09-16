@@ -252,6 +252,50 @@ components:
     typography: "{typography.body-sm}"
 ---
 
+# ElevenLabs-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("ElevenLabs-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-active")
+      ("ink")
+      ("body")
+      ("body-strong")
+      ("muted")
+      ("muted-soft")
+      ("hairline")
+      ("hairline-soft")
+      ("hairline-strong")
+      (And more...)
+    Typography
+      ("display-mega")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("title-md")
+      ("title-sm")
+      ("body-md")
+      ("body-strong")
+      ("body-sm")
+      (And more...)
+    Components
+      ("top-nav")
+      ("button-primary")
+      ("button-primary-active")
+      ("button-outline")
+      ("button-tertiary-text")
+      ("hero-band")
+      ("gradient-orb-card")
+      ("feature-card")
+      ("product-card-stack")
+      ("voice-row")
+      (And more...)
+```
+
 ## Overview
 
 ElevenLabs reads like a quietly editorial print magazine that happens to be a voice-AI product. The base canvas is off-white `{colors.canvas}` (#f5f5f5) holding warm near-black ink `{colors.ink}` (#0c0a09). The brand voltage is **photographic, not chromatic**: soft pastel atmospheric gradient orbs (mint, peach, lavender, sky, rose) drift through the page as the only "color" moments. There is no neon accent, no saturated CTA color, no dark-canvas dev-tools atmosphere.
