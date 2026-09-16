@@ -324,12 +324,30 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">موجودی انبار</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">موجودی کلی</label>
                 <input
                   className="huma-input ltr"
                   inputMode="numeric"
                   value={form.stock}
                   onChange={(e) => set('stock', Number(e.target.value.replace(/\D/g, '')))}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">موجودی انبار تهران</label>
+                <input
+                  className="huma-input ltr"
+                  inputMode="numeric"
+                  value={form.tehranStock}
+                  onChange={(e) => set('tehranStock', Number(e.target.value.replace(/\D/g, '')))}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">موجودی انبار کرمان</label>
+                <input
+                  className="huma-input ltr"
+                  inputMode="numeric"
+                  value={form.kermanStock}
+                  onChange={(e) => set('kermanStock', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
               <div>
