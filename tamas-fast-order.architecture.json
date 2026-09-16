@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Tamas Fast Order Architecture",
+    "output": "tamas-fast-order-architecture.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "customers", "type": "external", "label": "Customers", "sublabel": "Browser / Mobile", "pos": [40, 200], "size": [120, 60] },
+    { "id": "admins", "type": "external", "label": "Admins", "sublabel": "Store Managers", "pos": [40, 360], "size": [120, 60] },
+    { "id": "web", "type": "frontend", "label": "Web App", "sublabel": "React + Vite", "pos": [260, 280], "size": [130, 60] },
+    { "id": "api", "type": "backend", "label": "API Server", "sublabel": "Node.js + Express", "pos": [520, 280], "size": [130, 60] },
+    { "id": "db", "type": "database", "label": "PostgreSQL", "sublabel": "Drizzle ORM", "pos": [780, 280], "size": [130, 60] },
+    { "id": "gsheets", "type": "cloud", "label": "Google Sheets", "sublabel": "External Sync API", "pos": [520, 100], "size": [130, 60], "tag": "Two-way sync" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Self-Hosted Environment", "wraps": ["web", "api", "db"] }
+  ],
+  "connections": [
+    { "id": "c-to-w", "from": "customers", "to": "web", "label": "Storefront", "variant": "emphasis", "fromSide": "right", "toSide": "top" },
+    { "id": "a-to-w", "from": "admins", "to": "web", "label": "Admin Panel", "variant": "emphasis", "fromSide": "right", "toSide": "bottom" },
+    { "id": "w-to-a", "from": "web", "to": "api", "label": "REST API" },
+    { "id": "a-to-db", "from": "api", "to": "db", "label": "SQL" },
+    { "id": "a-to-g", "from": "api", "to": "gsheets", "label": "Sync Products/Orders", "variant": "dashed", "fromSide": "top", "toSide": "bottom" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Storefront & Admin", "items": ["React Single Page Application serving both customers and admins"] },
+    { "dot": "cyan", "title": "Core System", "items": ["Node.js API managing products, variants, and orders", "PostgreSQL database as the primary source of truth"] },
+    { "dot": "rose", "title": "Google Sheets Integration", "items": ["Two-way synchronization for legacy operations", "Maintains identical structure to previous workflow"] }
+  ]
+}
