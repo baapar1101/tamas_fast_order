@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import type { ProductDTO, Warehouse } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { useToast } from '../components/Toast';
@@ -64,15 +64,44 @@ export function StorefrontPage() {
   const addToCart = useCart((s) => s.add);
   const lines = useCart((s) => s.lines);
 
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<string | null>(null);
-  const [brands, setBrands] = useState<string[]>([]);
-  const [promotion, setPromotion] = useState(false);
-  const [inStockOnly, setInStockOnly] = useState(true);
-  const [sort, setSort] = useState<CatalogFilters['sort']>('price_asc');
-  const [page, setPage] = useState(1);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [search, setSearch] = useState(searchParams.get('q') || '');
+  const [category, setCategory] = useState<string | null>(searchParams.get('cat') || null);
+  const [brands, setBrands] = useState<string[]>(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
+  const [promotion, setPromotion] = useState(searchParams.get('promo') === '1');
+  const [inStockOnly, setInStockOnly] = useState(searchParams.get('stock') !== '0');
+  const [sort, setSort] = useState<CatalogFilters['sort']>((searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc');
+  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'grid');
   const [mobileTab, setMobileTab] = useState<'home' | 'categories' | 'search' | 'cart' | 'profile'>('home');
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (search) params.set('q', search); else params.delete('q');
+    if (category) params.set('cat', category); else params.delete('cat');
+    if (brands.length > 0) params.set('brand', brands.join(',')); else params.delete('brand');
+    if (promotion) params.set('promo', '1'); else params.delete('promo');
+    if (!inStockOnly) params.set('stock', '0'); else params.delete('stock');
+    if (sort !== 'price_asc') params.set('sort', sort); else params.delete('sort');
+    if (page > 1) params.set('page', String(page)); else params.delete('page');
+    if (viewMode !== 'grid') params.set('view', viewMode); else params.delete('view');
+
+    if (params.toString() !== searchParams.toString()) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [search, category, brands, promotion, inStockOnly, sort, page, viewMode, searchParams, setSearchParams]);
+
+  useEffect(() => {
+    setSearch(searchParams.get('q') || '');
+    setCategory(searchParams.get('cat') || null);
+    setBrands(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
+    setPromotion(searchParams.get('promo') === '1');
+    setInStockOnly(searchParams.get('stock') !== '0');
+    setSort((searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc');
+    setPage(Number(searchParams.get('page')) || 1);
+    setViewMode((searchParams.get('view') as 'list' | 'grid') || 'grid');
+  }, [searchParams]);
 
   const [activeSlide, setActiveSlide] = useState(0);
 
