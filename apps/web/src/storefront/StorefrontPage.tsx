@@ -82,6 +82,7 @@ export function StorefrontPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [brandsCollapsed, setBrandsCollapsed] = useState(true);
 
   // Auto advance slide carousel
   useEffect(() => {
@@ -440,13 +441,16 @@ export function StorefrontPage() {
           {/* Sidebar (Right Column in RTL) */}
           <aside className={`sidebar${filtersOpen ? ' open' : ''}`}>
             <div className="sidebar-body">
-              <div className="side-title">
-                <span>برندها</span>
-                <button type="button" onClick={() => setBrands([])} style={{ fontSize: 12, color: 'var(--primary)' }}>
+              <div className="side-title" onClick={() => setBrandsCollapsed(!brandsCollapsed)} style={{ cursor: 'pointer' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  برندها
+                  <Icon name="chevron" className="mobile-chevron" style={{ transform: brandsCollapsed ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', fontSize: 14 }} />
+                </span>
+                <button type="button" onClick={(e) => { e.stopPropagation(); setBrands([]); }} style={{ fontSize: 12, color: 'var(--primary)' }}>
                   همه
                 </button>
               </div>
-              <div className="brand-icons">
+              <div className={`brand-icons${brandsCollapsed ? ' collapsed-mobile' : ''}`}>
               {visibleBrands.slice(0, 18).map((b) => {
                 const on = brands.includes(b.name);
                 const iconSrc = b.iconUrl
