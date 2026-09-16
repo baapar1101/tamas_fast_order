@@ -46,9 +46,10 @@
   /* The main content area that holds the tabs */
   .shell > main.container {
     flex: 1;
-    overflow: hidden; /* Each tab manages its own scroll */
+    overflow-y: auto; /* Let the container scroll all active tabs naturally */
+    -webkit-overflow-scrolling: touch;
     position: relative;
-    padding-bottom: 0;
+    padding-bottom: 80px; /* Space for bottom tab bar */
     margin-bottom: 0;
     display: flex;
     flex-direction: column;
