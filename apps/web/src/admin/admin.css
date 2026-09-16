@@ -1422,3 +1422,30 @@ svg.w-full, .w-full { width: 100%; }
   .taxonomy-item-actions > * { flex: 1; }
   .taxonomy-form-actions > * { width: 100%; }
 }
+
+/* Missing Grid Classes for Admin Forms */
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 768px) {
+  .admin-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .admin-col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+}
+.admin-page-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 1024px) {
+  .admin-page-grid {
+    grid-template-columns: 1fr 320px;
+  }
+}

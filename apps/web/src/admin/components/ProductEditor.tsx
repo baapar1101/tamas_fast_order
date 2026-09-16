@@ -202,7 +202,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
       )}
 
       {/* Main Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 px-4">
+      <div className="admin-page-grid">
         
         {/* Left Column (Main Content Blocks) */}
         <div className="space-y-6">
@@ -210,34 +210,34 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
           {/* General Info */}
           <section className="glass-card p-6 space-y-4">
             <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">اطلاعات پایه</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
+            <div className="admin-form-grid">
+              <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1.5">کد کالا (product_id) *</label>
                 <input 
-                  className="huma-input ltr" 
+                  className="huma-input ltr text-left" 
                   value={form.productId} 
                   onChange={(e) => set('productId', e.target.value)}
                   readOnly={!!product}
                   title={product ? 'کد کالا قابل تغییر نیست' : ''}
                 />
               </div>
-              <div className="md:col-span-2">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">کد شناسایی (SKU)</label>
+                <input className="huma-input ltr text-left" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
+              </div>
+              <div className="admin-col-span-2">
                 <label className="block text-xs font-semibold text-slate-400 mb-1.5">عنوان *</label>
                 <input className="huma-input" value={form.title} onChange={(e) => set('title', e.target.value)} />
               </div>
-              <div className="md:col-span-2">
+              <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1.5">زیرعنوان (SubTitle)</label>
-                <input className="huma-input ltr text-right" value={form.subTitle} onChange={(e) => set('subTitle', e.target.value)} />
+                <input className="huma-input ltr text-left" value={form.subTitle} onChange={(e) => set('subTitle', e.target.value)} />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1.5">مدل</label>
-                <input className="huma-input ltr text-right" value={form.model} onChange={(e) => set('model', e.target.value)} />
+                <input className="huma-input ltr text-left" value={form.model} onChange={(e) => set('model', e.target.value)} />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">کد شناسایی (SKU)</label>
-                <input className="huma-input ltr text-right" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
-              </div>
-              <div className="md:col-span-2">
+              <div className="admin-col-span-2">
                 <label className="block text-xs font-semibold text-slate-400 mb-1.5">توضیحات (Description)</label>
                 <textarea 
                   className="huma-input min-h-[140px] resize-y py-3" 
@@ -304,7 +304,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
           {/* Pricing */}
           <section className="glass-card p-6 space-y-4">
             <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">قیمت‌گذاری و موجودی</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="admin-form-grid">
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1.5">قیمت (تومان)</label>
                 <input
@@ -416,7 +416,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
           {/* Shipping */}
           <section className="glass-card p-6 space-y-4">
             <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">حمل و نقل</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="admin-form-grid">
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1.5">وزن بسته (گرم)</label>
                 <input
