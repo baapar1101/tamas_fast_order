@@ -712,14 +712,18 @@
 .promo-tag {
   position: absolute;
   top: 0;
-  left: 0;
+  right: 0;
   background: linear-gradient(135deg, #f5a623, #f7c85c);
   color: #4a2d00;
   font-size: 11.5px;
   font-weight: 800;
   padding: 4px 14px;
-  border-bottom-right-radius: 14px;
+  border-bottom-left-radius: 14px;
+  border-top-right-radius: var(--radius-lg);
   z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .product-head {
@@ -1942,6 +1946,26 @@
   .product-card.is-promotion {
     border-radius: 14px;
     margin-bottom: 8px;
+    padding-top: 0;
+    grid-template-columns: 104px minmax(0, 1fr);
+    grid-template-areas:
+      "promo promo"
+      "thumb body"
+      "actions actions";
+  }
+
+  .product-card.is-promotion .promo-tag {
+    position: relative;
+    top: auto;
+    right: auto;
+    grid-area: promo;
+    border-radius: 14px 14px 0 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 14px;
+    width: 100%;
+    justify-content: center;
+    padding: 5px 14px;
+    font-size: 11px;
   }
 
   .card-thumb {
@@ -1982,6 +2006,11 @@
     left: 6px;
     width: 36px;
     height: 36px;
+  }
+
+  .product-card.is-promotion .card-fav-btn {
+    top: auto;
+    bottom: 8px;
   }
 
   .card-price-box {
