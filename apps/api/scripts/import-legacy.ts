@@ -150,7 +150,7 @@ async function main(): Promise<void> {
       color: str(p.color) || null,
       colorEn: str(p.color_en) || null,
       colorCode: str(p.color_code) || null,
-      price: num(p.price),
+      price: str(p.price) ? num(p.price) : (str(p['RIAL PRICE']) ? Math.trunc(num(p['RIAL PRICE']) / 10) : 0),
       oldPrice: str(p.old_price) ? num(p.old_price) : null,
       discount: num(p.discount),
       stock: num(p.stock),
