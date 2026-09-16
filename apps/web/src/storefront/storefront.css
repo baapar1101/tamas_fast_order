@@ -2203,9 +2203,10 @@
   /* The main content area that holds the tabs */
   .shell > main.container {
     flex: 1;
-    overflow: hidden; /* Each tab manages its own scroll */
+    overflow-y: auto; /* Let the container scroll all active tabs naturally */
+    -webkit-overflow-scrolling: touch;
     position: relative;
-    padding-bottom: 0;
+    padding-bottom: 80px; /* Space for bottom tab bar */
     margin-bottom: 0;
     display: flex;
     flex-direction: column;
@@ -2254,25 +2255,17 @@
     display: none !important;
   }
   
-  /* Make mobile-only views scrollable and take up full space */
+  /* Allow mobile-only views to grow naturally within the scrollable main container */
   .mobile-only-categories,
   .mobile-only-search,
   .mobile-only-cart,
   .mobile-only-profile {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
     width: 100%;
-    padding-bottom: 80px; /* Space for bottom nav */
   }
 
-  /* Reset layout height for mobile so it scrolls nicely inside container */
+  /* Reset layout height for mobile so it scrolls naturally inside container */
   .layout {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding-bottom: 80px;
+    height: auto;
     margin-bottom: 0;
   }
   
