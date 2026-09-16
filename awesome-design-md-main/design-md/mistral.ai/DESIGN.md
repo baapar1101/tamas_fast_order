@@ -399,6 +399,50 @@ components:
     padding: "{spacing.sm} {spacing.md}"
 ---
 
+# Mistral-AI-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Mistral-AI-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-deep")
+      ("on-primary")
+      ("sunshine-300")
+      ("sunshine-500")
+      ("sunshine-700")
+      ("sunshine-800")
+      ("sunshine-900")
+      ("yellow-saturated")
+      ("cream")
+      (And more...)
+    Typography
+      ("hero-display")
+      ("display-lg")
+      ("heading-1")
+      ("heading-2")
+      ("heading-3")
+      ("heading-4")
+      ("heading-5")
+      ("subtitle")
+      ("body-md")
+      ("body-md-medium")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-primary-disabled")
+      ("button-cream")
+      ("button-dark")
+      ("button-secondary")
+      ("button-on-cream")
+      ("button-link")
+      ("card-base")
+      ("card-feature")
+      (And more...)
+```
+
 ## Overview
 
 Mistral AI carries itself with a singular, almost cinematographic visual signature — the homepage opens with "Frontier AI. In your hands." rendered in elegant near-serif display type over a photographic mountain landscape bathed in mustard-orange sunset light. Below the hero, every page closes with the same recognizable element: a horizontal "sunset stripe" gradient band running red→orange→yellow→cream that wraps the foot of the page just above the footer. This stripe is THE brand recognizer — it appears on the homepage, products/studio, solutions/coding, news articles, contact form, and services tier page without exception.

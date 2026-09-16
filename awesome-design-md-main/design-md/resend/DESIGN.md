@@ -264,6 +264,50 @@ components:
     padding: 64px 32px
 ---
 
+# Resend-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Resend-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-on")
+      ("ink")
+      ("body")
+      ("charcoal")
+      ("mute")
+      ("ash")
+      ("stone")
+      ("on-light")
+      ("on-light-mute")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("subtitle")
+      ("body-lg")
+      ("body-md")
+      ("body-sm")
+      ("button-md")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-ghost")
+      ("button-outline")
+      ("text-input")
+      ("hero-stripe")
+      ("feature-card")
+      ("feature-card-bordered")
+      ("pricing-tier")
+      ("pricing-tier-featured")
+      (And more...)
+```
+
 ## Overview
 
 Resend looks like a developer tool with the typography of an editorial.

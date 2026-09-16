@@ -220,6 +220,47 @@ components:
     rounded: "{rounded.none}"
 ---
 
+# OpenCode-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("OpenCode-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("ink-deep")
+      ("charcoal")
+      ("body")
+      ("mute")
+      ("stone")
+      ("ash")
+      ("canvas")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("heading-md")
+      ("body-md")
+      ("body-strong")
+      ("body-tight")
+      ("link-md")
+      ("button-md")
+      ("caption-md")
+    Components
+      ("button-primary")
+      ("button-primary-active")
+      ("button-secondary")
+      ("button-tab")
+      ("button-tab-active")
+      ("button-disabled")
+      ("badge-news")
+      ("text-input")
+      ("text-input-focused")
+      ("textarea")
+      (And more...)
+```
+
 ## Overview
 
 OpenCode's marketing site is rendered entirely in Berkeley Mono — every word on the page, from the 38px hero headline down to the 14px footer fine print, sits in the same monospaced face. The visual identity comes from that single typographic decision: the page reads like a manpage or a static-site README, complete with bracketed `[+]` / `[-]` / `[x]` ASCII markers used in place of icons or bullets, and a wordmark rendered as block-pixel ASCII art at the top of the nav. There is no sans-serif anywhere, no display face, no italics, no decorative ornament — the system is one font and one weight away from being a 1990s `whatis` page rendered at modern resolutions.

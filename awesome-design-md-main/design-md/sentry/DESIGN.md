@@ -272,6 +272,50 @@ components:
     padding: 32px 24px
 ---
 
+# Sentri-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Sentri-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("ink-deep")
+      ("on-primary")
+      ("accent-lime")
+      ("accent-pink")
+      ("accent-violet")
+      ("accent-violet-deep")
+      ("accent-violet-mid")
+      ("surface-canvas-dark")
+      ("surface-canvas-light")
+      (And more...)
+    Typography
+      ("display-hero")
+      ("display-large")
+      ("heading-xl")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("body-lg")
+      ("body-strong")
+      ("body-md")
+      ("eyebrow")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-inverted")
+      ("button-inverted-pressed")
+      ("button-ghost-on-dark")
+      ("button-violet-token")
+      ("button-disabled")
+      ("pill-neutral-dark")
+      ("chip-lime-keyword")
+      ("text-input")
+      (And more...)
+```
+
 ## Overview
 
 Sentri's design language reads like a debugging console wearing a leather jacket. The home and product surfaces sit on a near-black violet midnight (`{colors.surface-canvas-dark}` / `{colors.surface-night}`), strewn with starfield textures and floating sticker-style mascots — astronauts, monsters, traffic cones — that puncture the seriousness of an observability product. Headlines run in a chunky proprietary display sans where the most important keywords are wrapped in lime-green highlight chips (`{colors.accent-lime}`), as if the copy itself has been marked up by a developer redlining their own console output.

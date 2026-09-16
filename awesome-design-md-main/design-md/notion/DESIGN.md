@@ -443,6 +443,50 @@ components:
     padding: "{spacing.xxs} 0"
 ---
 
+# Notion-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Notion-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-pressed")
+      ("primary-deep")
+      ("on-primary")
+      ("brand-navy")
+      ("brand-navy-deep")
+      ("brand-navy-mid")
+      ("link-blue")
+      ("link-blue-pressed")
+      ("brand-orange")
+      (And more...)
+    Typography
+      ("hero-display")
+      ("display-lg")
+      ("heading-1")
+      ("heading-2")
+      ("heading-3")
+      ("heading-4")
+      ("heading-5")
+      ("subtitle")
+      ("body-md")
+      ("body-md-medium")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-primary-disabled")
+      ("button-dark")
+      ("button-secondary")
+      ("button-on-dark")
+      ("button-secondary-on-dark")
+      ("button-ghost")
+      ("button-link")
+      ("card-base")
+      (And more...)
+```
+
 ## Overview
 
 Notion presents itself as the all-in-one workspace through a confident, illustration-rich brand voice. The homepage opens with **"Meet the night shift."** rendered centered over a deep navy hero band ({colors.brand-navy}), decorated with brand-colored sticky-note dots and mesh wire illustrations scattered around the headline. The signature **purple pill primary CTA** ({colors.primary}) "Get Notion free" sits at the visual center, paired with an outlined "Request a demo" secondary. Below the buttons, a real Notion workspace UI mockup card (the "Ramp HQ" kanban board) breaks out of the hero band with a deep diffuse drop shadow.

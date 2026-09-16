@@ -247,9 +247,49 @@ components:
     rounded: "{rounded.none}"
     padding: "{spacing.md} {spacing.lg}"
     typography: "{typography.body-sm}"
-
 ---
 
+# Wired-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Wired-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("ink-soft")
+      ("body")
+      ("hairline")
+      ("canvas")
+      ("canvas-soft")
+      ("link")
+    Typography
+      ("display-hero")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("display-xs")
+      ("body-serif-lg")
+      ("body-serif-md")
+      ("body-md")
+      ("body-md-strong")
+      ("body-sm")
+      (And more...)
+    Components
+      ("nav-bar")
+      ("nav-link")
+      ("button-primary")
+      ("button-outline")
+      ("button-icon-circular")
+      ("text-input")
+      ("story-card-large")
+      ("story-card")
+      ("story-row")
+      ("category-eyebrow")
+      (And more...)
+```
 
 ## Overview
 

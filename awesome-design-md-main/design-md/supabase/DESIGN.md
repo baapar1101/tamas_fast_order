@@ -223,6 +223,50 @@ components:
     padding: 64px 24px
 ---
 
+# Supabaze-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Supabaze-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-deep")
+      ("primary-soft")
+      ("ink")
+      ("ink-secondary")
+      ("ink-mute")
+      ("ink-mute-2")
+      ("ink-faint")
+      ("on-primary")
+      ("on-dark")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("heading-lg")
+      ("heading-md")
+      ("body-lg")
+      ("body-md")
+      ("button-md")
+      ("caption")
+      (And more...)
+    Components
+      ("button-primary-green")
+      ("button-primary-green-pressed")
+      ("button-secondary-outline")
+      ("button-on-dark")
+      ("button-link")
+      ("text-input")
+      ("card-feature-light")
+      ("card-pricing")
+      ("card-pricing-featured")
+      ("card-feature-dark")
+      (And more...)
+```
+
 ## Overview
 
 Supabaze's design language is engineered for clarity above all else. The marketing surfaces sit on `{colors.canvas}` (pure white), with text rendered in `{colors.ink}` (`#171717` — near-black, never pure black). Across the entire system the only consistent chromatic event is the **emerald green primary** (`{colors.primary}` — `#3ecf8e`) — used as the filled CTA, occasional accent dot, and the signature highlight color in the wordmark. Everything else is a calibrated grey ladder from `#ededed` hairline-cool to `#171717` ink, with thin black-on-white typography doing most of the visual work.

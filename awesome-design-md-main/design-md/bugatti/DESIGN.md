@@ -202,6 +202,50 @@ components:
     padding: 64px
 ---
 
+# Bugatti-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Bugatti-design-analysis"))
+    Colors
+      ("primary")
+      ("ink")
+      ("body")
+      ("body-strong")
+      ("muted")
+      ("muted-soft")
+      ("hairline")
+      ("hairline-strong")
+      ("canvas")
+      ("surface-soft")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("wordmark")
+      ("title-md")
+      ("title-sm")
+      ("caption-uppercase")
+      ("body-md")
+      ("body-sm")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-icon")
+      ("text-link")
+      ("top-nav")
+      ("wordmark-display")
+      ("hero-photo-band")
+      ("caption-overlay")
+      ("career-callout-card")
+      ("model-photo-card")
+      ("newsroom-article-card")
+      (And more...)
+```
+
 ## Overview
 
 Bugatti's marketing surface is the most austere interface in luxury automotive: a near-pure black canvas (`{colors.canvas}` — #000000) holding white uppercase **letterspaced** display type and full-bleed automotive photography. The system has no accent color, no surface card decoration, no shadows, no gradients, no chrome — only **photography, typography, and the brand wordmark**. Every other luxury auto site in this category (BMW M, Aston Martin, Lamborghini) uses some form of accent color or signature element; Bugatti uses nothing. The empty space, the photograph, and the precisely-tracked Bugatti Display headline ARE the brand.

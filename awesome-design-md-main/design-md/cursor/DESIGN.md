@@ -281,6 +281,50 @@ components:
     typography: "{typography.body-sm}"
 ---
 
+# Cursor-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Cursor-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-active")
+      ("ink")
+      ("body")
+      ("body-strong")
+      ("muted")
+      ("muted-soft")
+      ("hairline")
+      ("hairline-soft")
+      ("hairline-strong")
+      (And more...)
+    Typography
+      ("display-mega")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("title-md")
+      ("title-sm")
+      ("body-md")
+      ("body-tracked")
+      ("body-sm")
+      ("caption")
+      (And more...)
+    Components
+      ("top-nav")
+      ("button-primary")
+      ("button-primary-active")
+      ("button-secondary")
+      ("button-tertiary-text")
+      ("button-download")
+      ("hero-band")
+      ("ide-mockup-card")
+      ("ide-pane")
+      ("feature-card")
+      (And more...)
+```
+
 ## Overview
 
 Cursor's marketing site reads as a quietly-confident developer brand that believes in editorial calm over IDE-darkness. The base canvas is **warm cream** (`{colors.canvas}` — #f7f7f4) holding warm near-black ink (`{colors.ink}` — #26251e) for body and display alike. The single brand voltage is **Cursor Orange** (`{colors.primary}` — #f54e00) reserved for primary CTAs and the wordmark — used scarcely.

@@ -255,6 +255,50 @@ components:
     padding: 64px 32px
 ---
 
+# Linear-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Linear-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("primary-hover")
+      ("primary-focus")
+      ("ink")
+      ("ink-muted")
+      ("ink-subtle")
+      ("ink-tertiary")
+      ("canvas")
+      ("surface-1")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("headline")
+      ("card-title")
+      ("subhead")
+      ("body-lg")
+      ("body")
+      ("body-sm")
+      ("caption")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-primary-hover")
+      ("button-secondary")
+      ("button-tertiary")
+      ("button-inverse")
+      ("pricing-card")
+      ("pricing-card-featured")
+      ("feature-card")
+      ("product-screenshot-card")
+      (And more...)
+```
+
 ## Overview
 
 Linear's marketing canvas is the deepest dark surface in this collection — `{colors.canvas}` is #010102, essentially pure black with a faint blue tint. On top sits a four-step surface ladder (`{colors.surface-1}` through `{colors.surface-4}`) for cards, panels, and lifted tiles, with hairline borders running from `{colors.hairline}` (#23252a) up through `{colors.hairline-strong}` and `{colors.hairline-tertiary}`. Light gray text (`{colors.ink}` #f7f8f8) carries the body and headlines.

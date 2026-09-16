@@ -292,6 +292,50 @@ components:
     padding: 80px
 ---
 
+# Clay-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Clay-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-active")
+      ("primary-disabled")
+      ("ink")
+      ("body")
+      ("body-strong")
+      ("muted")
+      ("muted-soft")
+      ("hairline")
+      ("hairline-soft")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("title-lg")
+      ("title-md")
+      ("title-sm")
+      ("body-md")
+      ("body-sm")
+      ("caption")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-active")
+      ("button-primary-disabled")
+      ("button-secondary")
+      ("button-on-color")
+      ("button-text-link")
+      ("text-link")
+      ("top-nav")
+      ("hero-band")
+      ("hero-illustration-card")
+      (And more...)
+```
+
 ## Overview
 
 Clay.com is the most playful B2B SaaS interface in the GTM-data category. The base atmosphere is **cream-tinted white canvas** (`{colors.canvas}` — #fffaf0) holding dark-navy ink type and **3D-rendered claymation illustrations** (mountains, mascot characters, peach/ochre/lavender landscapes) as the dominant brand voltage. Where most data-platform brands play it cool with grids and gradients, Clay leans hard into hand-crafted-looking 3D illustrations and saturated single-color feature cards.

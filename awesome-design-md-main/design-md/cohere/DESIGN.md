@@ -194,6 +194,50 @@ components:
     typography: "{typography.micro}"
 ---
 
+# Cohere-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Cohere-design-analysis"))
+    Colors
+      ("primary")
+      ("cohere-black")
+      ("ink")
+      ("deep-green")
+      ("dark-navy")
+      ("canvas")
+      ("soft-stone")
+      ("pale-green")
+      ("pale-blue")
+      ("hairline")
+      (And more...)
+    Typography
+      ("hero-display")
+      ("product-display")
+      ("section-display")
+      ("section-heading")
+      ("card-heading")
+      ("feature-heading")
+      ("body-large")
+      ("body")
+      ("button")
+      ("caption")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-secondary")
+      ("button-pill-outline")
+      ("announcement-bar")
+      ("hero-photo-card")
+      ("agent-console-card")
+      ("trust-logo-strip")
+      ("capability-card")
+      ("dark-feature-band")
+      ("product-card")
+      (And more...)
+```
+
 ## Overview
 
 Cohere's current web presence feels like a sober enterprise AI command center with editorial restraint. The home page opens on a huge typographic declaration over a white canvas, then uses photography, dark product mockups, trust logos, and generous empty space to make AI infrastructure feel controlled rather than speculative. Product pages invert the tone into deep green-black or dark navy bands, while blog and research pages move toward publishing-system clarity: large filters, thin rules, dense lists, and pale technical backgrounds.

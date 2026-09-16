@@ -242,6 +242,50 @@ components:
     padding: 64px
 ---
 
+# BMW-M-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("BMW-M-design-analysis"))
+    Colors
+      ("primary")
+      ("ink")
+      ("body")
+      ("body-strong")
+      ("muted")
+      ("hairline")
+      ("hairline-strong")
+      ("canvas")
+      ("surface-card")
+      ("surface-elevated")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("title-lg")
+      ("title-md")
+      ("title-sm")
+      ("label-uppercase")
+      ("body-md")
+      ("body-sm")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-outline")
+      ("button-on-light")
+      ("button-icon")
+      ("text-link")
+      ("top-nav")
+      ("hero-photo-band")
+      ("m-stripe-divider")
+      ("feature-photo-card")
+      ("model-card")
+      (And more...)
+```
+
 ## Overview
 
 BMW M's marketing surface is a near-pure black canvas (`{colors.canvas}` — #000) holding white BMW Type Next Latin headlines in **confident UPPERCASE**. The system has no decorative voltage of its own; brand energy comes from **full-bleed automotive photography** — cars cornering at speed, carbon-fiber wheel detail, driver cockpit shots, motorsport pit lanes — placed as edge-to-edge content that fills entire bands. UI chrome around the photography stays minimal: thin sans-serif copy, dividers as 1px hairlines (`{colors.hairline}`), all-caps button labels with no fill until hovered.

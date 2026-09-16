@@ -269,6 +269,50 @@ components:
     typography: "{typography.body-sm}"
 ---
 
+# Ferrari-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Ferrari-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-active")
+      ("primary-hover")
+      ("ink")
+      ("body")
+      ("body-strong")
+      ("body-on-light")
+      ("muted")
+      ("muted-soft")
+      ("hairline")
+      (And more...)
+    Typography
+      ("display-mega")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("title-md")
+      ("title-sm")
+      ("body-md")
+      ("body-sm")
+      ("caption")
+      ("caption-uppercase")
+      (And more...)
+    Components
+      ("top-nav-on-dark")
+      ("top-nav-on-light")
+      ("button-primary")
+      ("button-primary-active")
+      ("button-outline-on-dark")
+      ("button-outline-on-light")
+      ("button-tertiary-text")
+      ("hero-band-cinema")
+      ("hero-band-light")
+      ("feature-card-photo")
+      (And more...)
+```
+
 ## Overview
 
 Ferrari's marketing site reads as cinematic editorial — closer to a luxury-magazine spread than a typical car-OEM site. The base canvas is **near-black** (`{colors.canvas}` — #181818) holding pure white display type; white-canvas bands appear only inside specific editorial contexts (preowned listings, pricing tables, dealer surfaces). The single brand voltage is **Rosso Corsa** (`{colors.primary}` — #da291c), the iconic Ferrari racing red, used scarcely on primary CTAs, the Cavallino mark, and Formula 1 race-position highlights.

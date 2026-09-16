@@ -235,9 +235,51 @@ components:
     rounded: "{rounded.sm}"
     padding: "{spacing.md} {spacing.lg}"
     typography: "{typography.body-sm}"
-
 ---
 
+# xAI-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("xAI-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("ink-hover")
+      ("body")
+      ("body-mid")
+      ("mute")
+      ("hairline")
+      ("canvas")
+      ("canvas-soft")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("display-xs")
+      ("body-lg")
+      ("body-md")
+      ("body-sm")
+      ("caption-mono")
+      ("caption-mono-sm")
+      (And more...)
+    Components
+      ("nav-bar")
+      ("nav-link")
+      ("button-primary")
+      ("button-outline-on-dark")
+      ("button-outline-sm")
+      ("text-input")
+      ("card-content")
+      ("card-feature-product")
+      ("hero-band")
+      ("content-band")
+      (And more...)
+```
 
 ## Overview
 

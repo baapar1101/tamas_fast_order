@@ -263,6 +263,50 @@ components:
     padding: 64px 24px
 ---
 
+# Shopifi-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Shopifi-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("ink")
+      ("on-primary")
+      ("on-dark")
+      ("canvas-night")
+      ("canvas-night-elevated")
+      ("canvas-light")
+      ("canvas-cream")
+      ("surface-elevated-dark")
+      ("shade-30")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("heading-xl")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("body-lg")
+      ("body-md")
+      (And more...)
+    Components
+      ("button-primary-pill")
+      ("button-primary-pill-pressed")
+      ("button-outline-on-dark")
+      ("button-outline-on-light")
+      ("button-aloe-pill")
+      ("text-input")
+      ("card-pricing")
+      ("card-pricing-featured")
+      ("card-feature-cinematic")
+      ("card-pistachio-band")
+      (And more...)
+```
+
 ## Overview
 
 Shopifi runs two parallel design tracks that share typographic DNA and a single button vocabulary, but diverge in canvas polarity. The marketing track lives on `{colors.canvas-night}` (`#000000`) — full-bleed cinematic photography of merchants, giant `{typography.display-xxl}` headlines in Neue Haas Grotesk Display set at weight 330 (a thin, almost editorial cut), and a single CTA: a white-stroked black pill with the form `button-outline-on-dark`. The pages read like the spread of a high-end print magazine: lots of black, lots of negative space, photography that doesn't compete with text, and one and only one action per band.

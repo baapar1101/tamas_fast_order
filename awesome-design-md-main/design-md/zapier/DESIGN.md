@@ -288,9 +288,50 @@ components:
     rounded: "{rounded.md}"
     padding: "{spacing.md} {spacing.lg}"
     typography: "{typography.body-sm}"
-
 ---
 
+# Zapier-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Zapier-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("ink-soft")
+      ("ink-mid")
+      ("body")
+      ("body-mid")
+      ("mute")
+      ("canvas")
+      ("canvas-soft")
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sub-lg")
+      ("display-sub-md")
+      ("display-sub-sm")
+      ("display-xs")
+      ("body-lg")
+      ("body-md")
+      ("body-md-strong")
+      (And more...)
+    Components
+      ("nav-bar")
+      ("nav-link")
+      ("button-primary")
+      ("button-secondary")
+      ("button-tertiary")
+      ("button-text")
+      ("text-input")
+      ("card-content")
+      ("card-feature-cream")
+      ("card-feature-dark")
+      (And more...)
+```
 
 ## Overview
 

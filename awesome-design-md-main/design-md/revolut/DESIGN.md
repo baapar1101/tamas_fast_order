@@ -299,6 +299,50 @@ components:
     padding: 80px 24px
 ---
 
+# Revolut-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Revolut-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-bright")
+      ("primary-deep")
+      ("on-primary")
+      ("ink")
+      ("body")
+      ("charcoal")
+      ("mute")
+      ("ash")
+      ("stone")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("body-lg")
+      ("body-md")
+      ("body-md-bold")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-dark")
+      ("button-soft")
+      ("button-outline-light")
+      ("button-outline-dark")
+      ("button-pill-sm")
+      ("text-input")
+      ("hero-band-dark")
+      ("hero-band-photo")
+      (And more...)
+```
+
 ## Overview
 
 Revolut's marketing canvas operates in a high-contrast two-mode system: a

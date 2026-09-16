@@ -331,6 +331,50 @@ components:
     padding: 64px
 ---
 
+# Binance-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Binance-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-active")
+      ("primary-disabled")
+      ("ink")
+      ("body")
+      ("body-on-light")
+      ("muted")
+      ("muted-strong")
+      ("hairline-on-light")
+      ("hairline-on-dark")
+      (And more...)
+    Typography
+      ("hero-display")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("title-lg")
+      ("title-md")
+      ("title-sm")
+      ("number-display")
+      ("number-md")
+      ("number-sm")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-active")
+      ("button-primary-disabled")
+      ("button-primary-pill")
+      ("button-secondary-on-dark")
+      ("button-secondary-on-light")
+      ("button-tertiary-text")
+      ("button-trading-up")
+      ("button-trading-down")
+      ("button-subscribe")
+      (And more...)
+```
+
 ## Overview
 
 Binance reads like a financial trading platform that wants to feel both authoritative and energetic. The base atmosphere is **deep near-black canvas** (`{colors.canvas-dark}` — #0b0e11) holding white type and a single, ubiquitous accent: **Binance Yellow** (`{colors.primary}` — #FCD535). That yellow does almost all of the brand's heavy lifting — it carries every primary CTA, every value-claim headline ("FUNDS ARE SAFU"), every "Sign Up" pill, every featured tier indicator, and the wordmark itself. There is no secondary brand color. The system trusts the yellow voltage to do the brand work, and it carries it.

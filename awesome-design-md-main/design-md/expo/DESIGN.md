@@ -264,6 +264,50 @@ components:
     typography: "{typography.body-sm}"
 ---
 
+# Expo-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Expo-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-active")
+      ("text-link")
+      ("text-link-secondary")
+      ("ink")
+      ("body")
+      ("body-strong")
+      ("muted")
+      ("muted-soft")
+      ("hairline")
+      (And more...)
+    Typography
+      ("display-mega")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("title-md")
+      ("title-sm")
+      ("body-md")
+      ("body-sm")
+      ("caption")
+      (And more...)
+    Components
+      ("top-nav")
+      ("button-primary")
+      ("button-primary-active")
+      ("button-secondary")
+      ("button-tertiary-text")
+      ("hero-band")
+      ("device-mockup-card")
+      ("feature-card")
+      ("feature-card-dark")
+      ("workflow-step-card")
+      (And more...)
+```
+
 ## Overview
 
 Expo's marketing site reads like a quietly-confident React-Native developer platform. The base canvas is **pure white** (`{colors.canvas}` — #ffffff) with a soft **sky-blue gradient atmospheric wash** behind the hero band. Near-black ink `{colors.ink}` (#171717) carries body and display alike. The single brand voltage is **pure black** (`{colors.primary}` — #000000) for primary CTAs — minimal and editorial-feeling. A small blue text-link accent (`{colors.text-link}` — #0d74ce) is reserved for inline body links, never as a CTA.

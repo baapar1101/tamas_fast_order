@@ -243,6 +243,50 @@ components:
     padding: 64px 24px
 ---
 
+# Stripi-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Stripi-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-deep")
+      ("primary-press")
+      ("primary-soft")
+      ("primary-bg-subdued-hover")
+      ("brand-dark-900")
+      ("ink")
+      ("ink-secondary")
+      ("ink-mute")
+      ("ink-mute-2")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("body-lg")
+      ("body-md")
+      ("body-tabular")
+      (And more...)
+    Components
+      ("button-primary-pill")
+      ("button-primary-pill-pressed")
+      ("button-secondary")
+      ("button-on-dark")
+      ("text-input")
+      ("text-input-focused")
+      ("card-feature-light")
+      ("card-pricing")
+      ("card-pricing-featured")
+      ("card-cream-band")
+      (And more...)
+```
+
 ## Overview
 
 Stripi's design language opens with the gradient mesh. A wide horizontal band of pastel cream, sherbet orange, lavender, electric indigo, and ruby pink occupies the upper third of nearly every marketing page — the brand's instantly-recognizable atmospheric backdrop. Type and product UI mockups float above it on `{colors.canvas}` (white), with the gradient acting as both decoration and visual anchor. The lower portion of the page returns to white, with feature explanations on `{colors.canvas-soft}` (a barely-tinted cool off-white) and dashboard product mockups composited as faux IDE/console panels in deep navy.

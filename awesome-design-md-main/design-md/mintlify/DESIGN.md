@@ -450,6 +450,50 @@ components:
     padding: "{spacing.xxl}"
 ---
 
+# Mintlify-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Mintlify-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("brand-green")
+      ("brand-green-deep")
+      ("brand-green-soft")
+      ("brand-tag")
+      ("brand-warn")
+      ("brand-annotate")
+      ("brand-error")
+      ("brand-cursor")
+      (And more...)
+    Typography
+      ("hero-display")
+      ("display-lg")
+      ("heading-1")
+      ("heading-2")
+      ("heading-3")
+      ("heading-4")
+      ("heading-5")
+      ("subtitle")
+      ("body-md")
+      ("body-md-medium")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-primary-disabled")
+      ("button-accent-green")
+      ("button-on-dark")
+      ("button-secondary")
+      ("button-ghost")
+      ("button-link")
+      ("button-icon-circular")
+      ("card-base")
+      (And more...)
+```
+
 ## Overview
 
 Mintlify positions itself at the intersection of polished marketing presentation and developer-grade documentation density. The home and startups pages open with cinematic atmospheric heroes — soft sky-gradient backdrops with cloud illustrations on the homepage, dark teal-to-mint gradients with a rocket launch on the startups page — that feel more like a SaaS landing aesthetic than a developer tool. Then the deeper surfaces (pricing comparison, live documentation pages) collapse into dense, high-information layouts where Inter body type carries 14–16px copy across long-form prose, syntax-highlighted code blocks, and 3-column documentation grids.

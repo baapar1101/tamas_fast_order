@@ -312,9 +312,51 @@ components:
     rounded: "{rounded.md}"
     padding: "{spacing.md} {spacing.lg}"
     typography: "{typography.body-sm}"
-
 ---
 
+# Webflow-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Webflow-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("ink-strong")
+      ("body")
+      ("body-mid")
+      ("mute")
+      ("mute-soft")
+      ("hairline")
+      ("canvas")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("display-xs")
+      ("eyebrow-uppercase")
+      ("eyebrow-uppercase-sm")
+      ("body-lg")
+      ("body-md")
+      (And more...)
+    Components
+      ("nav-bar")
+      ("nav-link")
+      ("button-primary")
+      ("button-secondary")
+      ("button-text-arrow")
+      ("button-icon-circular")
+      ("text-input")
+      ("badge-info")
+      ("badge-info-soft")
+      ("card-feature")
+      (And more...)
+```
 
 ## Overview
 

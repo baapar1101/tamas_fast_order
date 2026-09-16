@@ -326,6 +326,50 @@ components:
     typography: "{typography.caption-sm}"
 ---
 
+# Airbnb-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Airbnb-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-active")
+      ("primary-disabled")
+      ("primary-error-text")
+      ("primary-error-text-hover")
+      ("luxe")
+      ("plus")
+      ("ink")
+      ("body")
+      ("muted")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("title-md")
+      ("title-sm")
+      ("rating-display")
+      ("body-md")
+      ("body-sm")
+      ("caption")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-active")
+      ("button-primary-disabled")
+      ("button-secondary")
+      ("button-tertiary-text")
+      ("button-pill-rausch")
+      ("search-orb")
+      ("icon-button-circle")
+      ("icon-button-outline")
+      ("top-nav")
+      (And more...)
+```
+
 ## Overview
 
 Airbnb is the canonical example of a generous, photography-led consumer marketplace. The base canvas is **pure white** (`{colors.canvas}` — #ffffff) with deep near-black ink (`{colors.ink}` — #222222) for headlines and body, and a single voltage of **Rausch** (`{colors.primary}` — #ff385c) carrying every primary CTA, the search-button orb, the heart save state, and inline brand links. There is no secondary brand color in mainline marketing — the **Luxe purple** (`{colors.luxe}` — #460479) and **Plus magenta** (`{colors.plus}` — #92174d) tokens are sub-brand accents that only appear inside Airbnb Luxe / Plus contexts.

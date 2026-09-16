@@ -269,9 +269,48 @@ components:
     rounded: "{rounded.sm}"
     padding: "{spacing.md} {spacing.lg}"
     typography: "{typography.body-sm}"
-
 ---
 
+# Vodafone-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Vodafone-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("body")
+      ("mute")
+      ("canvas")
+      ("canvas-soft")
+      ("on-dark")
+    Typography
+      ("display-hero")
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("display-xs")
+      ("eyebrow-uppercase")
+      ("body-lg")
+      ("body-md")
+      (And more...)
+    Components
+      ("nav-bar")
+      ("nav-link")
+      ("button-primary")
+      ("button-outline-red")
+      ("button-outline-dark")
+      ("button-icon-circular")
+      ("text-input")
+      ("badge-chip")
+      ("card-content")
+      ("card-hero")
+      (And more...)
+```
 
 ## Overview
 

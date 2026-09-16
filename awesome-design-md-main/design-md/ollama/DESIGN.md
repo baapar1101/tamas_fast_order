@@ -245,6 +245,50 @@ components:
     padding: 24px 32px
 ---
 
+# Ollama-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Ollama-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("ink-deep")
+      ("charcoal")
+      ("body")
+      ("mute")
+      ("canvas")
+      ("surface-soft")
+      ("surface-card")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("body-md")
+      ("body-strong")
+      ("body-sm")
+      ("body-sm-strong")
+      ("caption-sm")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-active")
+      ("button-secondary")
+      ("button-pill-on-dark")
+      ("button-disabled")
+      ("search-pill")
+      ("search-pill-focused")
+      ("text-input")
+      ("text-input-focused")
+      ("install-snippet")
+      (And more...)
+```
+
 ## Overview
 
 Ollama's site is the most aggressively under-designed marketing surface in the AI tooling space, and that is the entire point. The home page reads like a Markdown README rendered with care: a 36px center-aligned heading sits above an inline `curl` install snippet inside a soft-gray pill, a single black "Download" CTA, and a hand-drawn llama mascot as the only ornament. Everything else — automate-your-work block, "Start local. Scale cloud." pricing pair, "Your data stays yours" guarantee strip, FAQ wall on `/pricing` — sits on the same paper-white canvas (`{colors.canvas}`) with quiet `{colors.body}` neutrals carrying the prose. The system is the documentation, and the documentation is the system.

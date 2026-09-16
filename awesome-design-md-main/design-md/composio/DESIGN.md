@@ -257,6 +257,50 @@ components:
     typography: "{typography.body-sm}"
 ---
 
+# Composio-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Composio-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-active")
+      ("primary-glow")
+      ("ink")
+      ("body")
+      ("body-strong")
+      ("muted")
+      ("muted-soft")
+      ("hairline")
+      ("hairline-soft")
+      (And more...)
+    Typography
+      ("display-mega")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("title-md")
+      ("title-sm")
+      ("body-md")
+      ("body-sm")
+      ("caption")
+      (And more...)
+    Components
+      ("top-nav-dark")
+      ("button-primary")
+      ("button-primary-active")
+      ("button-secondary-dark")
+      ("button-outline")
+      ("button-tertiary-text")
+      ("hero-band")
+      ("terminal-mockup-grid")
+      ("terminal-pane")
+      ("feature-card")
+      (And more...)
+```
+
 ## Overview
 
 Composio's marketing site reads like a serious developer-infrastructure brand — closer to Vercel or Stripe Docs in atmosphere than to a typical AI-tools startup. The base canvas is a near-black `{colors.canvas}` (#0f0f0f) holding white type and a single voltage of **deep electric blue** (`{colors.primary}` — #0007cd) carrying every primary CTA, brand wordmark, and atmospheric spotlight glow that backs the homepage hero.

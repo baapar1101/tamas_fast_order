@@ -264,6 +264,50 @@ components:
     padding: 64px 24px
 ---
 
+# Renault-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Renault-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-deep")
+      ("on-primary")
+      ("ink")
+      ("body")
+      ("charcoal")
+      ("mute")
+      ("ash")
+      ("stone")
+      ("on-dark")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("subtitle")
+      ("body-lg")
+      ("body-md")
+      ("body-sm")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-secondary-dark")
+      ("button-outline-dark")
+      ("button-outline-light")
+      ("button-pill")
+      ("button-icon-square")
+      ("text-input")
+      ("hero-banner")
+      ("promo-tile-light")
+      (And more...)
+```
+
 ## Overview
 
 Renault's Turkish marketing surfaces are unapologetically high-contrast: a

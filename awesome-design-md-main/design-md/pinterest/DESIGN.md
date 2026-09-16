@@ -281,6 +281,50 @@ components:
     typography: "{typography.link-md}"
 ---
 
+# Pinterest-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Pinterest-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("primary-pressed")
+      ("ink")
+      ("ink-soft")
+      ("body")
+      ("charcoal")
+      ("mute")
+      ("ash")
+      ("stone")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("heading-xl")
+      ("heading-lg")
+      ("heading-md")
+      ("body-md")
+      ("body-strong")
+      ("body-sm")
+      ("body-sm-strong")
+      ("caption-md")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-secondary")
+      ("button-secondary-pressed")
+      ("button-tertiary")
+      ("button-icon-circular")
+      ("button-pill-on-image")
+      ("button-disabled")
+      ("search-bar")
+      ("search-bar-focused")
+      (And more...)
+```
+
 ## Overview
 
 Pinterest's marketing system is built around a single instructional principle: get out of the photograph's way. The chrome is a quiet warm-cream neutral palette (`{colors.surface-soft}`, `{colors.surface-card}`, `{colors.canvas}`) carrying typography in Pinterest's proprietary Pin Sans face, with Pinterest Red (`{colors.primary}` — `#e60023`) reserved exclusively for the "Sign up" CTA, the active-tab indicator, and the sticky top-nav anchor. Every other surface is allowed to fade behind the imagery — pin tiles, category tiles, content thumbnails, profile shots — that constitutes the actual product.

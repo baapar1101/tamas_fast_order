@@ -253,6 +253,50 @@ components:
     padding: 64px 32px
 ---
 
+# Framer-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Framer-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("accent-blue")
+      ("ink")
+      ("ink-muted")
+      ("canvas")
+      ("surface-1")
+      ("surface-2")
+      ("hairline")
+      ("hairline-soft")
+      (And more...)
+    Typography
+      ("display-xxl")
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("headline")
+      ("subhead")
+      ("body-lg")
+      ("body")
+      ("body-sm")
+      ("caption")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-secondary")
+      ("button-translucent")
+      ("button-icon-circular")
+      ("pricing-tab-default")
+      ("pricing-tab-selected")
+      ("text-input")
+      ("text-input-focused")
+      ("pricing-card")
+      (And more...)
+```
+
 ## Overview
 
 Framer's marketing canvas is a near-pure black artboard. The dominant surface is `{colors.canvas}` — almost pure black with a faint warmth — and on top of it sits oversized white display type set in **GT Walsheim Medium** with letter-spacing pulled to extreme negative values (-5.5px on the 110px display, -4.25px on the 85px hero). The page reads like a poster: one assertive statement per band, generous breathing room above and below.

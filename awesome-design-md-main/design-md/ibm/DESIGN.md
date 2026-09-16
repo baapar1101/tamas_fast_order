@@ -259,6 +259,50 @@ components:
     padding: 64px 32px
 ---
 
+# IBM-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("IBM-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("ink-muted")
+      ("ink-subtle")
+      ("canvas")
+      ("surface-1")
+      ("surface-2")
+      ("inverse-canvas")
+      ("inverse-surface-1")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("headline")
+      ("card-title")
+      ("subhead")
+      ("body-lg")
+      ("body")
+      ("body-sm")
+      ("body-emphasis")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-secondary")
+      ("button-tertiary")
+      ("button-ghost")
+      ("button-danger")
+      ("feature-card")
+      ("feature-card-elevated")
+      ("product-card")
+      ("hero-card")
+      (And more...)
+```
+
 ## Overview
 
 IBM's marketing system is a faithful application of **Carbon Design System** — IBM's open-source enterprise design system. The dominant surface is `{colors.canvas}` pure white with `{colors.surface-1}` light gray for elevation, charcoal `{colors.ink}` (#161616) for text, and IBM Blue `{colors.primary}` (#0f62fe) as the single brand accent.

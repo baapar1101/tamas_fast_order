@@ -386,9 +386,51 @@ components:
     rounded: "{rounded.md}"
     padding: "{spacing.sm} {spacing.md}"
     typography: "{typography.body-sm}"
-
 ---
 
+# Vercel-Inspired-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Vercel-Inspired-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("body")
+      ("mute")
+      ("hairline")
+      ("hairline-strong")
+      ("canvas")
+      ("canvas-soft")
+      ("canvas-soft-2")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("display-md")
+      ("display-sm")
+      ("body-lg")
+      ("body-md")
+      ("body-md-strong")
+      ("body-sm")
+      ("body-sm-strong")
+      ("caption")
+      (And more...)
+    Components
+      ("nav-bar")
+      ("nav-link")
+      ("nav-cta-signup")
+      ("nav-cta-login")
+      ("nav-cta-ask-ai")
+      ("button-primary")
+      ("button-secondary")
+      ("button-primary-sm")
+      ("button-secondary-sm")
+      ("tab-ghost")
+      (And more...)
+```
 
 ## Overview
 

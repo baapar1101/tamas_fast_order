@@ -270,6 +270,50 @@ components:
     padding: 64px 32px
 ---
 
+# Figma-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Figma-design-analysis"))
+    Colors
+      ("primary")
+      ("on-primary")
+      ("ink")
+      ("canvas")
+      ("inverse-canvas")
+      ("inverse-ink")
+      ("on-inverse-soft")
+      ("hairline")
+      ("hairline-soft")
+      ("surface-soft")
+      (And more...)
+    Typography
+      ("display-xl")
+      ("display-lg")
+      ("headline")
+      ("subhead")
+      ("card-title")
+      ("body-lg")
+      ("body")
+      ("body-sm")
+      ("link")
+      ("button")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-secondary")
+      ("button-tertiary-text")
+      ("button-icon-circular")
+      ("button-icon-circular-inverse")
+      ("button-magenta-promo")
+      ("pricing-tab-default")
+      ("pricing-tab-selected")
+      ("text-input")
+      (And more...)
+```
+
 ## Overview
 
 Figma's marketing canvas is, at the system level, an editor-clean black-and-white frame. The chrome — top nav, body type, footer, primary CTA — is monochrome. Headlines are oversized `{typography.display-xl}` set in `figmaSans` with aggressive negative tracking, body copy hovers around weight 320–340 of the same variable family, and small mono `{typography.eyebrow}` and `{typography.caption}` labels (figmaMono, all-caps, positive tracking) act as section markers. Every CTA is a pill — `{rounded.pill}` — and the primary action across the entire site is the same black `{components.button-primary}` paired with the same white `{components.button-secondary}`.

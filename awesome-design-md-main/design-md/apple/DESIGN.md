@@ -273,6 +273,50 @@ components:
     padding: 64px
 ---
 
+# Apple-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Apple-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-focus")
+      ("primary-on-dark")
+      ("ink")
+      ("body")
+      ("body-on-dark")
+      ("body-muted")
+      ("ink-muted-80")
+      ("ink-muted-48")
+      ("divider-soft")
+      (And more...)
+    Typography
+      ("hero-display")
+      ("display-lg")
+      ("display-md")
+      ("lead")
+      ("lead-airy")
+      ("tagline")
+      ("body-strong")
+      ("body")
+      ("dense-link")
+      ("caption")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-focus")
+      ("button-primary-active")
+      ("button-secondary-pill")
+      ("button-dark-utility")
+      ("button-pearl-capsule")
+      ("button-store-hero")
+      ("button-icon-circular")
+      ("text-link")
+      ("text-link-on-dark")
+      (And more...)
+```
+
 ## Overview
 
 Apple's web presence is a masterclass in **reverent product photography framed by near-invisible UI**. Every page is a stack of edge-to-edge product "tiles" — alternating light and dark canvases, each centered on a hero headline, a one-line tagline, two tiny blue pill CTAs, and an impossibly crisp product render. Nothing competes with the product. Typography is confident but quiet; color is either pure white, an off-white parchment, or a near-black tile; interactive elements are a single, quiet blue.

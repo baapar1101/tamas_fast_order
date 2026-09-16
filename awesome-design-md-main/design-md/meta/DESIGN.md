@@ -348,6 +348,50 @@ components:
     border: "1px solid {colors.hairline-soft}"
 ---
 
+# Meta-design-analysis
+
+## System Architecture
+```mermaid
+mindmap
+  root(("Meta-design-analysis"))
+    Colors
+      ("primary")
+      ("primary-deep")
+      ("primary-soft")
+      ("on-primary")
+      ("ink-button")
+      ("on-ink-button")
+      ("fb-blue")
+      ("meta-link")
+      ("oculus-purple")
+      ("success")
+      (And more...)
+    Typography
+      ("hero-display")
+      ("display-lg")
+      ("heading-lg")
+      ("heading-md")
+      ("heading-sm")
+      ("subtitle-lg")
+      ("subtitle-md")
+      ("body-md-bold")
+      ("body-md")
+      ("body-sm-bold")
+      (And more...)
+    Components
+      ("button-primary")
+      ("button-primary-pressed")
+      ("button-primary-disabled")
+      ("button-buy-cta")
+      ("button-buy-cta-pressed")
+      ("button-secondary")
+      ("button-ghost")
+      ("button-pill-tab")
+      ("button-pill-tab-active")
+      ("button-icon-circular")
+      (And more...)
+```
+
 ## Overview
 
 Meta's commerce surfaces (homepage, Quest configurator, Ray-Ban product detail, prescription page) read as a confident hardware merchandiser. The brand voice is photography-first: large, full-bleed product imagery dominates above-the-fold real estate, with white space and tight typographic hierarchy carrying the rest. The system has a recognizable dual-CTA pattern — a black pill-shaped primary on marketing surfaces shifting to a saturated cobalt blue ({colors.primary}) inside the buy-now flows, paired with an outlined ghost button for secondary navigation.
