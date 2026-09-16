@@ -37,6 +37,7 @@
   /* Reset hero-slider margin for tab spacing */
   .hero-slider {
     flex-shrink: 0;
+    margin-top: 16px;
   }
 
   /* TABS VISIBILITY LOGIC */
