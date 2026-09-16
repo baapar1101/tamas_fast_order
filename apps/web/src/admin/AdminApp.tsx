@@ -616,8 +616,9 @@ export default function AdminApp() {
         </header>
 
         {/* Main Content Body */}
-        <main className="admin-main-content flex-1 space-y-6 p-4 sm:p-6 lg:p-8">
-          <Routes>
+        <main className="admin-main-content flex-1 p-4 sm:p-6 lg:p-8">
+          <div className="max-w-6xl mx-auto w-full">
+            <Routes>
             <Route index element={<DashboardPage />} />
             <Route path="products" element={<ProductsPage />} />
             <Route path="categories" element={<CategoriesPage />} />
@@ -637,7 +638,8 @@ export default function AdminApp() {
             <Route path="financial" element={<FinancialPage />} />
             <Route path="comments" element={<CommentsPage />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
-          </Routes>
+            </Routes>
+          </div>
         </main>
       </div>
     </div>
