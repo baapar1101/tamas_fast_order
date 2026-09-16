@@ -60,7 +60,7 @@ export function DashboardPage() {
 
           {/* Goal Progress Ring */}
           <div className="admin-goal-ring relative mx-auto grid place-items-center shrink-0 sm:mx-0" style={{ width: '8.5rem', height: '8.5rem' }}>
-            <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
+            <svg className="block h-full w-full -rotate-90" style={{ width: '100%', height: '100%' }} viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
               <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="10" />
               <circle
                 cx="60"
@@ -112,7 +112,7 @@ export function DashboardPage() {
             <span className="text-xs font-normal text-slate-500"><img src="/toman.svg" alt="تومان" style={{ width: '1em', height: '1em', display: 'inline' }} /></span>
           </p>
           <div className="mt-4 h-10 w-full overflow-hidden">
-            <svg viewBox="0 0 100 30" className="h-full w-full" preserveAspectRatio="none">
+            <svg viewBox="0 0 100 30" className="block w-full h-full" style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
               <defs>
                 <linearGradient id="sparkGrad1" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#34d399" stopOpacity="0.4" />
@@ -152,7 +152,7 @@ export function DashboardPage() {
             <span className="text-xs font-normal text-slate-500">سفارش</span>
           </p>
           <div className="mt-4 h-10 w-full overflow-hidden">
-            <svg viewBox="0 0 100 30" className="h-full w-full" preserveAspectRatio="none">
+            <svg viewBox="0 0 100 30" className="block w-full h-full" style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
               <defs>
                 <linearGradient id="sparkGrad2" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.4" />
@@ -192,7 +192,7 @@ export function DashboardPage() {
             <span className="text-xs font-normal text-slate-500">کاربر</span>
           </p>
           <div className="mt-4 h-10 w-full overflow-hidden">
-            <svg viewBox="0 0 100 30" className="h-full w-full" preserveAspectRatio="none">
+            <svg viewBox="0 0 100 30" className="block w-full h-full" style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
               <defs>
                 <linearGradient id="sparkGrad3" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.4" />
@@ -227,7 +227,7 @@ export function DashboardPage() {
             <span className="text-xs font-normal text-slate-500">کالا</span>
           </p>
           <div className="mt-4 h-10 w-full overflow-hidden">
-            <svg viewBox="0 0 100 30" className="h-full w-full" preserveAspectRatio="none">
+            <svg viewBox="0 0 100 30" className="block w-full h-full" style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
               <defs>
                 <linearGradient id="sparkGrad4" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#fb7185" stopOpacity="0.4" />
@@ -268,8 +268,8 @@ export function DashboardPage() {
             </div>
           </div>
 
-          <div className="admin-revenue-chart" aria-label="نمودار روند درآمد فروشگاه">
-            <div className="admin-y-axis" aria-hidden="true">
+          <div className="admin-revenue-chart grid grid-cols-[2rem_minmax(0,1fr)] gap-2 w-full" aria-label="نمودار روند درآمد فروشگاه">
+            <div className="admin-y-axis flex flex-col justify-between h-[16.25rem] py-[0.1rem] text-[0.6rem] text-slate-500 text-right leading-none" aria-hidden="true">
               <span>۳۰۰</span>
               <span>۲۵۰</span>
               <span>۲۰۰</span>
@@ -278,8 +278,8 @@ export function DashboardPage() {
               <span>۵۰</span>
               <span>۰</span>
             </div>
-            <div className="admin-revenue-plot">
-            <svg viewBox="0 0 1000 260" role="img" preserveAspectRatio="none">
+            <div className="admin-revenue-plot w-full" style={{ minWidth: 0 }}>
+            <svg viewBox="0 0 1000 260" role="img" preserveAspectRatio="none" className="block w-full h-[16.25rem]" style={{ width: '100%', height: '16.25rem' }}>
               <defs>
                 <linearGradient id="chartAreaGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
