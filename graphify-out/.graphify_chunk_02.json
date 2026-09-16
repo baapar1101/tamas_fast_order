@@ -1,0 +1,596 @@
+{
+  "nodes": [
+    {
+      "id": "awesome_design_md_main_design_md_elevenlabs_readme",
+      "label": "ElevenLabs Design System",
+      "file_type": "document",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\elevenlabs\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_expo_design",
+      "label": "Expo Design System Analysis",
+      "file_type": "document",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_expo_design_device_mockup_hero",
+      "label": "Device Mockup Hero",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_expo_design_sky_blue_gradient",
+      "label": "Sky-Blue Gradient Atmospheric Wash",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_expo_design_inter_typeface",
+      "label": "Inter Typeface",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_expo_design_jetbrains_mono",
+      "label": "JetBrains Mono",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_expo_design_pure_black_cta",
+      "label": "Pure Black CTA Pattern",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_expo_design_96px_rhythm",
+      "label": "96px Section Rhythm",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_expo_readme",
+      "label": "Expo Design System README",
+      "file_type": "document",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_ferrari_design",
+      "label": "Ferrari Design System Analysis",
+      "file_type": "document",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_ferrari_design_rosso_corsa",
+      "label": "Rosso Corsa",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_ferrari_design_ferrarisans",
+      "label": "FerrariSans Typeface",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_ferrari_design_cinematic_hero",
+      "label": "Full-Bleed Cinematic Hero",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_ferrari_design_sharp_corners",
+      "label": "Sharp 0px Corner Pattern",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_ferrari_design_8px_ladder",
+      "label": "8px Spacing Token Ladder",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_ferrari_design_cavallino",
+      "label": "Cavallino Mark",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_ferrari_design_livery_band",
+      "label": "Livery Band",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_ferrari_readme",
+      "label": "Ferrari Design System README",
+      "file_type": "document",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_figma_design",
+      "label": "Figma Design System Analysis",
+      "file_type": "document",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_figma_design_monochrome_frame",
+      "label": "Monochrome Editorial Frame",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_figma_design_color_blocks",
+      "label": "Pastel Color-Block Sections",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_figma_design_figmasans",
+      "label": "figmaSans Typeface",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_figma_design_figmamono",
+      "label": "figmaMono Typeface",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_figma_design_pill_ctas",
+      "label": "Pill CTA Pattern",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_figma_design_sticky_note_thumbnails",
+      "label": "Sticky-Note Thumbnails",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_figma_design_weight_hierarchy",
+      "label": "Weight-Not-Size Hierarchy",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_figma_readme",
+      "label": "Figma Design System README",
+      "file_type": "document",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "awesome_design_md_main_design_md_expo_design",
+      "target": "awesome_design_md_main_design_md_expo_design_device_mockup_hero",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_expo_design",
+      "target": "awesome_design_md_main_design_md_expo_design_sky_blue_gradient",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_expo_design",
+      "target": "awesome_design_md_main_design_md_expo_design_inter_typeface",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_expo_design",
+      "target": "awesome_design_md_main_design_md_expo_design_jetbrains_mono",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_expo_design",
+      "target": "awesome_design_md_main_design_md_expo_design_pure_black_cta",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_expo_design",
+      "target": "awesome_design_md_main_design_md_expo_design_96px_rhythm",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_expo_design_device_mockup_hero",
+      "target": "awesome_design_md_main_design_md_expo_design_sky_blue_gradient",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_expo_design_pure_black_cta",
+      "target": "awesome_design_md_main_design_md_expo_design_inter_typeface",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_expo_design_inter_typeface",
+      "target": "awesome_design_md_main_design_md_expo_design_jetbrains_mono",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_ferrari_design",
+      "target": "awesome_design_md_main_design_md_ferrari_design_rosso_corsa",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_ferrari_design",
+      "target": "awesome_design_md_main_design_md_ferrari_design_ferrarisans",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_ferrari_design",
+      "target": "awesome_design_md_main_design_md_ferrari_design_cinematic_hero",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_ferrari_design",
+      "target": "awesome_design_md_main_design_md_ferrari_design_sharp_corners",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_ferrari_design",
+      "target": "awesome_design_md_main_design_md_ferrari_design_8px_ladder",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_ferrari_design",
+      "target": "awesome_design_md_main_design_md_ferrari_design_cavallino",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_ferrari_design",
+      "target": "awesome_design_md_main_design_md_ferrari_design_livery_band",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_ferrari_design_rosso_corsa",
+      "target": "awesome_design_md_main_design_md_ferrari_design_cavallino",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_ferrari_design_livery_band",
+      "target": "awesome_design_md_main_design_md_ferrari_design_rosso_corsa",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\ferrari\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_figma_design",
+      "target": "awesome_design_md_main_design_md_figma_design_monochrome_frame",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_figma_design",
+      "target": "awesome_design_md_main_design_md_figma_design_color_blocks",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_figma_design",
+      "target": "awesome_design_md_main_design_md_figma_design_figmasans",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_figma_design",
+      "target": "awesome_design_md_main_design_md_figma_design_figmamono",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_figma_design",
+      "target": "awesome_design_md_main_design_md_figma_design_pill_ctas",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_figma_design",
+      "target": "awesome_design_md_main_design_md_figma_design_sticky_note_thumbnails",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_figma_design",
+      "target": "awesome_design_md_main_design_md_figma_design_weight_hierarchy",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_figma_design_monochrome_frame",
+      "target": "awesome_design_md_main_design_md_figma_design_color_blocks",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_figma_design_figmasans",
+      "target": "awesome_design_md_main_design_md_figma_design_figmamono",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_figma_design_weight_hierarchy",
+      "target": "awesome_design_md_main_design_md_figma_design_figmasans",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\figma\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_expo_design_device_mockup_hero",
+      "target": "awesome_design_md_main_design_md_ferrari_design_cinematic_hero",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\expo\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

@@ -1,0 +1,794 @@
+{
+  "nodes": [
+    {
+      "id": "awesome_design_md_main_design_md_tesla_readme",
+      "label": "Tesla Inspired Design System Analysis",
+      "file_type": "document",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\tesla\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design",
+      "label": "Vercel-Inspired Design Analysis",
+      "file_type": "document",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_readme",
+      "label": "Vercel Inspired Design System Analysis",
+      "file_type": "document",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_warp_design",
+      "label": "Warp-Inspired Design Analysis",
+      "file_type": "document",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_warp_readme",
+      "label": "Warp Inspired Design System Analysis",
+      "file_type": "document",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_geist_font",
+      "label": "Geist Font Family",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_geist_mono",
+      "label": "Geist Mono Font",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_mesh_gradient",
+      "label": "Multi-Stop Mesh Gradient",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_stacked_shadows",
+      "label": "Stacked Shadow Elevation System",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_negative_tracking",
+      "label": "Negative Tracking Principle",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_sentence_case",
+      "label": "Sentence-Case Period-Terminated Headlines",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_polarity_flip",
+      "label": "Polarity-Flipped Dark Band",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_color_system",
+      "label": "Vercel Color Token System",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_spacing_base",
+      "label": "4px Base Spacing Unit",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_component_library",
+      "label": "Vercel Component Library",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_gradient_identity",
+      "label": "Gradient as Brand Identity",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_mono_technical",
+      "label": "Mono for Technical Voice Only",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_weight_ceiling",
+      "label": "Weight 600 Display Ceiling",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_pricing_system",
+      "label": "Active CPU Pricing System",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_vercel_design_warm_dark_canvas",
+      "label": "Warm Dark Canvas Surface",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_warp_design_inter_font",
+      "label": "Inter Font Family",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_warp_design_dm_mono",
+      "label": "DM Mono Font",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_warp_design_instrument_serif",
+      "label": "Instrument Serif Font",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_warp_design_warm_canvas",
+      "label": "Warm Dark Canvas Identity",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_warp_design_offwhite_primary",
+      "label": "Off-White Primary System",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_warp_design_tight_radii",
+      "label": "Tight Button Radii Principle",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_warp_design_light_hero_weight",
+      "label": "Light Weight Hero Display",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_warp_design_terminal_imagery",
+      "label": "Terminal Mockup Imagery System",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_warp_design_component_library",
+      "label": "Warp Component Library",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "awesome_design_md_main_design_md_warp_design_warm_neutrals",
+      "label": "Warm Tint Through Neutrals",
+      "file_type": "rationale",
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_readme",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design",
+      "target": "awesome_design_md_main_design_md_warp_readme",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_geist_font",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_geist_mono",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_mesh_gradient",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_stacked_shadows",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_negative_tracking",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_sentence_case",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_polarity_flip",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_color_system",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_spacing_base",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_component_library",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_gradient_identity",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_mono_technical",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_weight_ceiling",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design",
+      "target": "awesome_design_md_main_design_md_vercel_design_pricing_system",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design_geist_font",
+      "target": "awesome_design_md_main_design_md_vercel_design_negative_tracking",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design_geist_font",
+      "target": "awesome_design_md_main_design_md_vercel_design_weight_ceiling",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design_geist_mono",
+      "target": "awesome_design_md_main_design_md_vercel_design_mono_technical",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design_mesh_gradient",
+      "target": "awesome_design_md_main_design_md_vercel_design_gradient_identity",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design_stacked_shadows",
+      "target": "awesome_design_md_main_design_md_vercel_design_polarity_flip",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design_color_system",
+      "target": "awesome_design_md_main_design_md_vercel_design_polarity_flip",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design_color_system",
+      "target": "awesome_design_md_main_design_md_vercel_design_warm_dark_canvas",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design",
+      "target": "awesome_design_md_main_design_md_warp_design_inter_font",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design",
+      "target": "awesome_design_md_main_design_md_warp_design_dm_mono",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design",
+      "target": "awesome_design_md_main_design_md_warp_design_instrument_serif",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design",
+      "target": "awesome_design_md_main_design_md_warp_design_warm_canvas",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design",
+      "target": "awesome_design_md_main_design_md_warp_design_offwhite_primary",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design",
+      "target": "awesome_design_md_main_design_md_warp_design_tight_radii",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design",
+      "target": "awesome_design_md_main_design_md_warp_design_light_hero_weight",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design",
+      "target": "awesome_design_md_main_design_md_warp_design_terminal_imagery",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design",
+      "target": "awesome_design_md_main_design_md_warp_design_component_library",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design",
+      "target": "awesome_design_md_main_design_md_warp_design_warm_neutrals",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design_warm_canvas",
+      "target": "awesome_design_md_main_design_md_warp_design_offwhite_primary",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design_warm_canvas",
+      "target": "awesome_design_md_main_design_md_warp_design_warm_neutrals",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design_warm_canvas",
+      "target": "awesome_design_md_main_design_md_warp_design_terminal_imagery",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design_inter_font",
+      "target": "awesome_design_md_main_design_md_warp_design_light_hero_weight",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_warp_design_tight_radii",
+      "target": "awesome_design_md_main_design_md_warp_design_offwhite_primary",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design_mesh_gradient",
+      "target": "awesome_design_md_main_design_md_warp_design_terminal_imagery",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.55,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design_negative_tracking",
+      "target": "awesome_design_md_main_design_md_warp_design_light_hero_weight",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "awesome_design_md_main_design_md_vercel_design_mono_technical",
+      "target": "awesome_design_md_main_design_md_warp_design_dm_mono",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "vercel_design_principles",
+      "label": "Vercel Design Principles",
+      "nodes": [
+        "awesome_design_md_main_design_md_vercel_design_negative_tracking",
+        "awesome_design_md_main_design_md_vercel_design_sentence_case",
+        "awesome_design_md_main_design_md_vercel_design_mono_technical",
+        "awesome_design_md_main_design_md_vercel_design_weight_ceiling",
+        "awesome_design_md_main_design_md_vercel_design_gradient_identity"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md"
+    },
+    {
+      "id": "warp_design_principles",
+      "label": "Warp Design Principles",
+      "nodes": [
+        "awesome_design_md_main_design_md_warp_design_tight_radii",
+        "awesome_design_md_main_design_md_warp_design_light_hero_weight",
+        "awesome_design_md_main_design_md_warp_design_warm_neutrals"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\warp\\DESIGN.md"
+    },
+    {
+      "id": "vercel_design_system",
+      "label": "Vercel Design System Core",
+      "nodes": [
+        "awesome_design_md_main_design_md_vercel_design_color_system",
+        "awesome_design_md_main_design_md_vercel_design_spacing_base",
+        "awesome_design_md_main_design_md_vercel_design_component_library",
+        "awesome_design_md_main_design_md_vercel_design_stacked_shadows",
+        "awesome_design_md_main_design_md_vercel_design_geist_font",
+        "awesome_design_md_main_design_md_vercel_design_geist_mono"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\awesome-design-md-main\\design-md\\vercel\\DESIGN.md"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

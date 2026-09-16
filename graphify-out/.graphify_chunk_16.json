@@ -1,0 +1,538 @@
+{
+  "nodes": [
+    {
+      "id": "apps_web_public_assets_brand_anker_svg",
+      "label": "Anker Brand Logo",
+      "file_type": "image",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_anker_logo",
+      "label": "Anker Logo Graphic",
+      "file_type": "image",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_apple_svg",
+      "label": "Apple Brand Logo",
+      "file_type": "image",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\apple.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_apple_logo",
+      "label": "Apple Logo Graphic",
+      "file_type": "image",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\apple.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_baiko_svg",
+      "label": "Baiko Brand Logo",
+      "file_type": "image",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\baiko.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_baiko_logo",
+      "label": "Baiko Logo Graphic",
+      "file_type": "image",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\baiko.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_borofone_svg",
+      "label": "Borofone Brand Logo",
+      "file_type": "image",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\borofone.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_borofone_logo",
+      "label": "Borofone Logo Graphic",
+      "file_type": "image",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\borofone.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_haylou_svg",
+      "label": "Haylou Brand Logo",
+      "file_type": "image",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\haylou.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_haylou_logo",
+      "label": "Haylou Logo Graphic",
+      "file_type": "image",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\haylou.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_hoco_svg",
+      "label": "Hoco Brand Logo",
+      "file_type": "image",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\hoco.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_hoco_logo",
+      "label": "Hoco Logo Graphic",
+      "file_type": "image",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\hoco.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_brand_logo_template",
+      "label": "Brand Logo Design Template",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_anker_consumer_electronics",
+      "label": "Anker Consumer Electronics",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_apple_consumer_electronics",
+      "label": "Apple Consumer Electronics",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\apple.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_baiko_consumer_electronics",
+      "label": "Baiko Consumer Electronics",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\baiko.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_borofone_consumer_electronics",
+      "label": "Borofone Consumer Electronics",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\borofone.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_haylou_consumer_electronics",
+      "label": "Haylou Consumer Electronics",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\haylou.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_hoco_consumer_electronics",
+      "label": "Hoco Consumer Electronics",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\hoco.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "apps_web_public_assets_brand_teal_primary_color",
+      "label": "Teal #00768F Primary Color",
+      "file_type": "concept",
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "apps_web_public_assets_brand_anker_svg",
+      "target": "apps_web_public_assets_brand_anker_logo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_apple_svg",
+      "target": "apps_web_public_assets_brand_apple_logo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\apple.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_baiko_svg",
+      "target": "apps_web_public_assets_brand_baiko_logo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\baiko.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_borofone_svg",
+      "target": "apps_web_public_assets_brand_borofone_logo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\borofone.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_haylou_svg",
+      "target": "apps_web_public_assets_brand_haylou_logo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\haylou.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_hoco_svg",
+      "target": "apps_web_public_assets_brand_hoco_logo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\hoco.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_anker_svg",
+      "target": "apps_web_public_assets_brand_brand_logo_template",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_apple_svg",
+      "target": "apps_web_public_assets_brand_brand_logo_template",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\apple.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_baiko_svg",
+      "target": "apps_web_public_assets_brand_brand_logo_template",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\baiko.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_borofone_svg",
+      "target": "apps_web_public_assets_brand_brand_logo_template",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\borofone.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_haylou_svg",
+      "target": "apps_web_public_assets_brand_brand_logo_template",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\haylou.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_hoco_svg",
+      "target": "apps_web_public_assets_brand_brand_logo_template",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\hoco.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_anker_svg",
+      "target": "apps_web_public_assets_brand_anker_consumer_electronics",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_apple_svg",
+      "target": "apps_web_public_assets_brand_apple_consumer_electronics",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\apple.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_baiko_svg",
+      "target": "apps_web_public_assets_brand_baiko_consumer_electronics",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\baiko.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_borofone_svg",
+      "target": "apps_web_public_assets_brand_borofone_consumer_electronics",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\borofone.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_haylou_svg",
+      "target": "apps_web_public_assets_brand_haylou_consumer_electronics",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\haylou.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_hoco_svg",
+      "target": "apps_web_public_assets_brand_hoco_consumer_electronics",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\hoco.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_anker_svg",
+      "target": "apps_web_public_assets_brand_teal_primary_color",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_apple_svg",
+      "target": "apps_web_public_assets_brand_teal_primary_color",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\apple.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_baiko_svg",
+      "target": "apps_web_public_assets_brand_teal_primary_color",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\baiko.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_borofone_svg",
+      "target": "apps_web_public_assets_brand_teal_primary_color",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\borofone.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_haylou_svg",
+      "target": "apps_web_public_assets_brand_teal_primary_color",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\haylou.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_hoco_svg",
+      "target": "apps_web_public_assets_brand_teal_primary_color",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\hoco.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_anker_consumer_electronics",
+      "target": "apps_web_public_assets_brand_apple_consumer_electronics",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_anker_consumer_electronics",
+      "target": "apps_web_public_assets_brand_borofone_consumer_electronics",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_anker_consumer_electronics",
+      "target": "apps_web_public_assets_brand_haylou_consumer_electronics",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_anker_consumer_electronics",
+      "target": "apps_web_public_assets_brand_hoco_consumer_electronics",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_public_assets_brand_anker_consumer_electronics",
+      "target": "apps_web_public_assets_brand_baiko_consumer_electronics",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "brand_logo_assets_design_pattern",
+      "label": "Unified Brand Logo Design Pattern",
+      "nodes": [
+        "apps_web_public_assets_brand_anker_svg",
+        "apps_web_public_assets_brand_apple_svg",
+        "apps_web_public_assets_brand_baiko_svg",
+        "apps_web_public_assets_brand_borofone_svg",
+        "apps_web_public_assets_brand_haylou_svg",
+        "apps_web_public_assets_brand_hoco_svg",
+        "apps_web_public_assets_brand_brand_logo_template",
+        "apps_web_public_assets_brand_teal_primary_color"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\tamas_fast_order\\apps\\web\\public\\assets\\brand\\anker.svg"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
