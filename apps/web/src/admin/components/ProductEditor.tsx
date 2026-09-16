@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ProductDTO } from '@tamas/shared';
+import { formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
-import { Modal } from '../../components/Modal';
 import { ImagePicker } from './ImagePicker';
+import { Price } from '../../components/Price';
 
 export interface ProductForm {
   productId: string;
@@ -129,26 +130,17 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   tracking: p.tracking ?? true,
 });
 
-type TabKey = 'basic' | 'pricing' | 'attributes' | 'gallery' | 'seo';
-
 export function ProductEditor({ product, template, categories, brands, busy, onClose, onSave }: Props) {
   const [form, setForm] = useState<ProductForm>(product ? fromProduct(product) : template ? fromProduct(template) : blank());
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<TabKey>('basic');
 
-  const { data: attributesList = [] } = useQuery({
-    queryKey: ['admin', 'attributes'],
-    queryFn: async () => {
-      return api.get<{ id: string; name: string; type: string }[]>('/admin/attributes');
-    },
+  // Variants Fetching (if editing an existing parent product)
+  const { data: variantsData, isLoading: variantsLoading } = useQuery({
+    queryKey: ['admin', 'products', 'variants', form.productId],
+    queryFn: () => api.get<{ items: ProductDTO[] }>('/admin/products', { parentProductId: form.productId }),
+    enabled: !!product && !!form.productId && !form.parentProductId,
   });
-
-  const { data: warehousesList = [] } = useQuery({
-    queryKey: ['admin', 'warehouses'],
-    queryFn: async () => {
-      return api.get<{ id: string; code: string; name: string; isActive: boolean }[]>('/admin/warehouses');
-    },
-  });
+  const variants = variantsData?.items ?? [];
 
   const set = <K extends keyof ProductForm>(key: K, value: ProductForm[K]) => setForm({ ...form, [key]: value });
 
@@ -170,450 +162,439 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
     });
   }
 
-  const tabs = [
-    { id: 'basic', label: 'اطلاعات پایه' },
-    { id: 'pricing', label: 'قیمت و موجودی' },
-    { id: 'attributes', label: 'ویژگی‌ها و نوع' },
-    { id: 'gallery', label: 'گالری تصاویر' },
-    { id: 'seo', label: 'سئو و تنظیمات' },
-  ] as const;
+  const titleText = product ? 'ویرایش محصول' : 'ایجاد محصول';
 
   return (
-    <Modal
-      open
-      wide
-      busy={busy}
-      title={product ? `ویرایش: ${product.title}` : 'محصول جدید'}
-      onClose={onClose}
-      footer={
-        <>
-          <button type="button" className="btn primary" style={{ flex: 1 }} onClick={submit} disabled={busy}>
-            {busy ? 'در حال ذخیره…' : 'ذخیره محصول'}
+    <div className="flex flex-col h-full animate-fade-in pb-20 lg:pb-0">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-40 flex items-center justify-between bg-slate-900/80 backdrop-blur-md border-b border-white/[0.06] p-4 mb-6 shadow-sm">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/[0.06] transition text-slate-400 hover:text-white"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
           </button>
-          <button type="button" className="btn" onClick={onClose} disabled={busy}>
+          <div>
+            <h1 className="text-lg font-extrabold text-white">{titleText}</h1>
+            {product && <p className="text-xs text-slate-400 mt-0.5">{product.title}</p>}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button type="button" className="huma-btn-secondary !hidden sm:!flex" onClick={onClose} disabled={busy}>
             انصراف
           </button>
-        </>
-      }
-    >
-      <div className="flex flex-col h-full gap-4">
-        {error && <div className="alert error">{error}</div>}
-
-        {/* Custom Tab Bar */}
-        <div className="flex overflow-x-auto border-b border-white/[0.06] mb-4 pb-2 gap-2 hide-scrollbar">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={`px-4 py-2 text-sm font-semibold rounded-lg whitespace-nowrap transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-              }`}
-              onClick={() => setActiveTab(tab.id as TabKey)}
-            >
-              {tab.label}
-            </button>
-          ))}
+          <button type="button" className="huma-btn-primary" onClick={submit} disabled={busy}>
+            {busy ? 'در حال ذخیره…' : 'ذخیره محصول'}
+          </button>
         </div>
+      </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {activeTab === 'basic' && (
-            <div className="form-grid">
-              <div className="field">
-                <label htmlFor="f-pid">کد کالا (product_id) *</label>
-                <input
-                  id="f-pid"
-                  className="input ltr"
-                  value={form.productId}
+      {error && (
+        <div className="mb-6 px-4">
+          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-xl text-sm font-semibold">
+            {error}
+          </div>
+        </div>
+      )}
+
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 px-4">
+        
+        {/* Left Column (Main Content Blocks) */}
+        <div className="space-y-6">
+          
+          {/* General Info */}
+          <section className="glass-card p-6 space-y-4">
+            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">اطلاعات پایه</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">کد کالا (product_id) *</label>
+                <input 
+                  className="huma-input ltr" 
+                  value={form.productId} 
                   onChange={(e) => set('productId', e.target.value)}
-                  disabled={Boolean(product)}
+                  readOnly={!!product}
+                  title={product ? 'کد کالا قابل تغییر نیست' : ''}
                 />
-                {product && <span className="faint" style={{ fontSize: 11 }}>کد کالا کلید همگام‌سازی است و تغییر نمی‌کند.</span>}
               </div>
-
-              <div className="field">
-                <label htmlFor="f-parent">کد محصول والد (parent_product_id)</label>
-                <input id="f-parent" className="input ltr" value={form.parentProductId} onChange={(e) => set('parentProductId', e.target.value)} />
-                <span className="faint" style={{ fontSize: 11 }}>برای اتصال به عنوان واریانت، کد محصول اصلی را وارد کنید.</span>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">عنوان *</label>
+                <input className="huma-input" value={form.title} onChange={(e) => set('title', e.target.value)} />
               </div>
-
-              <div className="field">
-                <label htmlFor="f-sku">SKU</label>
-                <input id="f-sku" className="input ltr" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">زیرعنوان (SubTitle)</label>
+                <input className="huma-input ltr text-right" value={form.subTitle} onChange={(e) => set('subTitle', e.target.value)} />
               </div>
-
-              <div className="field full">
-                <label htmlFor="f-title">عنوان *</label>
-                <input id="f-title" className="input" value={form.title} onChange={(e) => set('title', e.target.value)} />
-                <span className="faint" style={{ fontSize: 11 }}>محصولات با عنوان یکسان در فروشگاه در یک صفحه با چند رنگ نمایش داده می‌شوند.</span>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">مدل</label>
+                <input className="huma-input ltr text-right" value={form.model} onChange={(e) => set('model', e.target.value)} />
               </div>
-
-              <div className="field">
-                <label htmlFor="f-model">مدل</label>
-                <input id="f-model" className="input" value={form.model} onChange={(e) => set('model', e.target.value)} />
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">کد شناسایی (SKU)</label>
+                <input className="huma-input ltr text-right" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
               </div>
-
-              <div className="field full">
-                <label htmlFor="f-subtitle">زیرعنوان (SubTitle)</label>
-                <input id="f-subtitle" className="input" value={form.subTitle} onChange={(e) => set('subTitle', e.target.value)} />
-              </div>
-
-              <div className="field full">
-                <label htmlFor="f-desc">توضیحات (Description)</label>
-                <textarea id="f-desc" className="input" rows={6} value={form.description} onChange={(e) => set('description', e.target.value)} />
-              </div>
-
-              <div className="field">
-                <label htmlFor="f-cat">دسته‌بندی</label>
-                <input
-                  id="f-cat"
-                  className="input"
-                  list="cat-list"
-                  value={form.categoryName}
-                  onChange={(e) => set('categoryName', e.target.value)}
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">توضیحات (Description)</label>
+                <textarea 
+                  className="huma-input min-h-[140px] resize-y py-3" 
+                  value={form.description} 
+                  onChange={(e) => set('description', e.target.value)} 
                 />
-                <datalist id="cat-list">
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.name}>{c.faName}</option>
-                  ))}
-                </datalist>
-              </div>
-
-              <div className="field">
-                <label htmlFor="f-brand">برند</label>
-                <input
-                  id="f-brand"
-                  className="input"
-                  list="brand-list"
-                  value={form.brandName}
-                  onChange={(e) => set('brandName', e.target.value)}
-                />
-                <datalist id="brand-list">
-                  {brands.map((b) => (
-                    <option key={b.id} value={b.name}>{b.faName}</option>
-                  ))}
-                </datalist>
               </div>
             </div>
-          )}
+          </section>
 
-          {activeTab === 'pricing' && (
-            <div className="form-grid">
-              <div className="field">
-                <label htmlFor="f-price">قیمت (تومان) *</label>
-                <input
-                  id="f-price"
-                  className="input ltr"
-                  inputMode="numeric"
-                  value={form.price}
-                  onChange={(e) => set('price', Number(e.target.value.replace(/\D/g, '')) || 0)}
+          {/* Gallery */}
+          <section className="glass-card p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-4">
+              <h3 className="text-sm font-bold text-white">گالری تصاویر</h3>
+              <span className="text-xs text-slate-500">حداکثر ۵ تصویر</span>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+              {/* Main Image */}
+              <div className="relative group">
+                <div className="text-xs text-center text-emerald-400 mb-1 font-semibold">تصویر اصلی</div>
+                <ImagePicker
+                  url={form.imageUrl}
+                  onSelect={(url) => set('imageUrl', url)}
+                  kind="product"
                 />
               </div>
-
-              <div className="field">
-                <label htmlFor="f-oldprice">قیمت قبلی</label>
-                <input
-                  id="f-oldprice"
-                  className="input ltr"
-                  inputMode="numeric"
-                  value={form.oldPrice ?? ''}
-                  onChange={(e) => {
-                    const digits = e.target.value.replace(/\D/g, '');
-                    set('oldPrice', digits ? Number(digits) : null);
-                  }}
-                />
-              </div>
-
-              <div className="field">
-                <label htmlFor="f-discount">تخفیف (٪)</label>
-                <input
-                  id="f-discount"
-                  className="input ltr"
-                  inputMode="numeric"
-                  value={form.discount}
-                  onChange={(e) => set('discount', Math.min(100, Number(e.target.value.replace(/\D/g, '')) || 0))}
-                />
-              </div>
-
-              {warehousesList.filter(w => w.isActive).map((w) => (
-                <div className="field" key={w.code}>
-                  <label htmlFor={`f-wh-${w.code}`}>موجودی {w.name}</label>
-                  <input
-                    id={`f-wh-${w.code}`}
-                    className="input ltr"
-                    inputMode="numeric"
-                    value={
-                      w.code === 'tehran' ? form.tehranStock :
-                      w.code === 'kerman' ? form.kermanStock :
-                      (form.otherStocks?.[w.code] || 0)
-                    }
-                    onChange={(e) => {
-                      const val = Number(e.target.value.replace(/\D/g, '')) || 0;
-                      if (w.code === 'tehran') set('tehranStock', val);
-                      else if (w.code === 'kerman') set('kermanStock', val);
-                      else set('otherStocks', { ...form.otherStocks, [w.code]: val });
+              {/* Gallery Images */}
+              {form.gallery.map((url, idx) => (
+                <div key={idx} className="relative group pt-5">
+                  <ImagePicker
+                    url={url}
+                    onSelect={(url) => {
+                      const copy = [...form.gallery];
+                      copy[idx] = url;
+                      set('gallery', copy);
                     }}
+                    kind="product"
                   />
-                </div>
-              ))}
-
-              <div className="field">
-                <label htmlFor="f-stock">موجودی کلی (پشتیبان)</label>
-                <input
-                  id="f-stock"
-                  className="input ltr"
-                  inputMode="numeric"
-                  value={form.stock}
-                  onChange={(e) => set('stock', Number(e.target.value.replace(/\D/g, '')) || 0)}
-                />
-              </div>
-
-              <div className="field">
-                <label htmlFor="f-selltype">نوع فروش</label>
-                <input
-                  id="f-selltype"
-                  className="input"
-                  placeholder="نقدی, اعتباری"
-                  value={form.sellType}
-                  onChange={(e) => set('sellType', e.target.value)}
-                />
-              </div>
-
-              <div className="field">
-                <label htmlFor="f-seller">فروشنده</label>
-                <input id="f-seller" className="input" value={form.seller} onChange={(e) => set('seller', e.target.value)} />
-              </div>
-
-              <div className="field">
-                <label htmlFor="f-warranty">گارانتی</label>
-                <input id="f-warranty" className="input" value={form.warranty} onChange={(e) => set('warranty', e.target.value)} />
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'attributes' && (
-            <div className="form-grid">
-              <div className="field">
-                <label htmlFor="f-type">نوع محصول</label>
-                <select id="f-type" className="select" value={form.type} onChange={(e) => set('type', e.target.value)}>
-                  <option value="physical">فیزیکی (ارسال پستی)</option>
-                  <option value="digital">دیجیتال (دانلودی)</option>
-                </select>
-              </div>
-
-              <div className="field">
-                <label htmlFor="f-weight">وزن (گرم)</label>
-                <input id="f-weight" className="input ltr" inputMode="numeric" value={form.weight} onChange={(e) => set('weight', Number(e.target.value.replace(/\D/g, '')) || 0)} />
-              </div>
-
-              <div className="field">
-                <label htmlFor="f-dim">ابعاد</label>
-                <input id="f-dim" className="input ltr" placeholder="L x W x H" value={form.dimensions} onChange={(e) => set('dimensions', e.target.value)} />
-              </div>
-
-              <div className="field">
-                <label htmlFor="f-color">رنگ (فارسی)</label>
-                <input id="f-color" className="input" value={form.color} onChange={(e) => set('color', e.target.value)} />
-              </div>
-
-              <div className="field">
-                <label htmlFor="f-coloren">رنگ (انگلیسی)</label>
-                <input id="f-coloren" className="input ltr" value={form.colorEn} onChange={(e) => set('colorEn', e.target.value)} />
-              </div>
-
-              <div className="field">
-                <label htmlFor="f-colorcode">کد رنگ</label>
-                <div className="row">
-                  <input
-                    id="f-colorcode"
-                    className="input ltr"
-                    placeholder="#C25E27"
-                    value={form.colorCode}
-                    onChange={(e) => set('colorCode', e.target.value)}
-                  />
-                  <input
-                    type="color"
-                    value={/^#[0-9a-f]{6}$/i.test(form.colorCode) ? form.colorCode : '#00768f'}
-                    onChange={(e) => set('colorCode', e.target.value)}
-                    style={{ width: 40, height: 36, padding: 2, border: '1px solid var(--border-strong)', borderRadius: 8 }}
-                    aria-label="انتخاب رنگ"
-                  />
-                </div>
-              </div>
-
-              <div className="field full mt-4">
-                <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 mb-3">
-                  <label className="text-sm font-bold text-white">مشخصات فنی</label>
-                  <button
-                    type="button"
-                    className="huma-btn-secondary !py-1 !px-3 !text-xs"
-                    onClick={() => set('attributes', [...form.attributes, { key: '', value: '' }])}
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      const copy = [...form.gallery];
+                      copy.splice(idx, 1);
+                      set('gallery', copy);
+                    }}
+                    className="absolute top-6 left-1 bg-rose-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg"
                   >
-                    + افزودن ویژگی
+                    ✕
                   </button>
                 </div>
+              ))}
+              {form.gallery.length < 5 && (
+                <div className="pt-5">
+                  <div className="flex items-center justify-center border border-dashed border-white/20 rounded-xl bg-white/[0.01] hover:bg-white/[0.03] transition cursor-pointer h-full min-h-[120px]"
+                        onClick={() => set('gallery', [...form.gallery, ''])}>
+                    <span className="text-2xl text-slate-400">+</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
 
-                <div className="space-y-3">
-                  <datalist id="attrs-list">
-                    {attributesList.map((a) => (
-                      <option key={a.id} value={a.name} />
-                    ))}
-                  </datalist>
-                  {form.attributes.map((attr, i) => (
-                    <div className="flex flex-col sm:flex-row items-center gap-2" key={i}>
+          {/* Pricing */}
+          <section className="glass-card p-6 space-y-4">
+            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">قیمت‌گذاری و موجودی</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">قیمت (تومان)</label>
+                <input
+                  className="huma-input ltr"
+                  inputMode="numeric"
+                  value={form.price}
+                  onChange={(e) => set('price', Number(e.target.value.replace(/\D/g, '')))}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">قیمت خط‌خورده (تومان)</label>
+                <input
+                  className="huma-input ltr"
+                  inputMode="numeric"
+                  value={form.oldPrice || ''}
+                  onChange={(e) => set('oldPrice', Number(e.target.value.replace(/\D/g, '')))}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">موجودی انبار</label>
+                <input
+                  className="huma-input ltr"
+                  inputMode="numeric"
+                  value={form.stock}
+                  onChange={(e) => set('stock', Number(e.target.value.replace(/\D/g, '')))}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">گارانتی</label>
+                <input className="huma-input" value={form.warranty} onChange={(e) => set('warranty', e.target.value)} />
+              </div>
+            </div>
+          </section>
+
+          {/* Variants Block */}
+          {!form.parentProductId && (
+            <section className="glass-card p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white">تنوع محصول (Variants)</h3>
+                  <p className="text-xs text-slate-500 mt-1">محصول دارای تنوع رنگ یا ویژگی‌های دیگر است</p>
+                </div>
+                {product && (
+                  <button type="button" className="huma-btn-secondary !text-xs !py-1.5">
+                    + افزودن تنوع
+                  </button>
+                )}
+              </div>
+              
+              {!product ? (
+                <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm p-4 rounded-xl text-center font-semibold">
+                  ابتدا اطلاعات محصول را ذخیره کنید تا امکان افزودن تنوع فراهم شود.
+                </div>
+              ) : variantsLoading ? (
+                <div className="animate-pulse p-4 text-center text-slate-400">در حال بارگذاری تنوع‌ها...</div>
+              ) : variants.length === 0 ? (
+                <div className="text-center text-slate-500 py-6 text-sm">هیچ تنوعی ثبت نشده است.</div>
+              ) : (
+                <div className="huma-table-container">
+                  <table className="huma-table">
+                    <thead>
+                      <tr>
+                        <th>رنگ / تنوع</th>
+                        <th>قیمت (تومان)</th>
+                        <th>موجودی</th>
+                        <th>وضعیت</th>
+                        <th>عملیات</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {variants.map(v => {
+                        const totalStock = v.kermanStock + v.tehranStock > 0 ? v.kermanStock + v.tehranStock : v.stock;
+                        return (
+                          <tr key={v.id}>
+                            <td>
+                              <div className="flex items-center gap-2 font-bold text-white">
+                                {v.colorCode && (
+                                  <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: v.colorCode }} />
+                                )}
+                                {v.color || 'بدون نام'}
+                              </div>
+                            </td>
+                            <td className="font-semibold text-emerald-400"><Price amount={v.price} /></td>
+                            <td>
+                              <span className={`chip ${totalStock > 0 ? 'chip-brand' : 'chip-rose'}`}>
+                                {formatNumber(totalStock)}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={`chip ${v.status === 'active' ? 'chip-brand' : 'chip-slate'}`}>
+                                {v.status === 'active' ? 'فعال' : 'غیرفعال'}
+                              </span>
+                            </td>
+                            <td>
+                              <button type="button" className="text-xs font-semibold text-emerald-400 hover:text-emerald-300">
+                                ویرایش
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Shipping */}
+          <section className="glass-card p-6 space-y-4">
+            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">حمل و نقل</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">وزن بسته (گرم)</label>
+                <input
+                  className="huma-input ltr"
+                  inputMode="numeric"
+                  value={form.weight}
+                  onChange={(e) => set('weight', Number(e.target.value.replace(/\D/g, '')))}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">ابعاد بسته‌بندی</label>
+                <input className="huma-input ltr text-right" placeholder="مثال: 20x15x10" value={form.dimensions} onChange={(e) => set('dimensions', e.target.value)} />
+              </div>
+            </div>
+          </section>
+
+          {/* Features / Attributes */}
+          <section className="glass-card p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-4">
+              <div>
+                <h3 className="text-sm font-bold text-white">ویژگی‌ها</h3>
+                <p className="text-xs text-slate-500 mt-1">ویژگی‌های فنی و مشخصات محصول</p>
+              </div>
+              <button 
+                type="button" 
+                className="huma-btn-secondary !text-xs !py-1.5"
+                onClick={() => set('attributes', [...form.attributes, { key: '', value: '' }])}
+              >
+                + افزودن ویژگی
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {form.attributes.length === 0 ? (
+                <div className="text-center text-slate-500 py-4 text-sm">هیچ ویژگی ثبت نشده است.</div>
+              ) : (
+                form.attributes.map((attr, idx) => (
+                  <div key={idx} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center bg-white/[0.02] p-3 rounded-xl border border-white/[0.04]">
+                    <div className="w-full sm:w-1/3">
                       <input
-                        className="huma-input sm:w-1/3"
-                        placeholder="نام ویژگی (مثلا: وزن)"
-                        list="attrs-list"
+                        className="huma-input !py-2 !text-sm"
+                        placeholder="نام ویژگی (مثال: رم)"
                         value={attr.key}
                         onChange={(e) => {
-                          const next = [...form.attributes];
-                          next[i] = { ...attr, key: e.target.value };
-                          set('attributes', next);
+                          const cp = [...form.attributes];
+                          cp[idx].key = e.target.value;
+                          set('attributes', cp);
                         }}
                       />
+                    </div>
+                    <div className="flex-1 w-full relative">
                       <input
-                        className="huma-input sm:flex-1"
-                        placeholder="مقدار"
+                        className="huma-input !py-2 !text-sm pr-10"
+                        placeholder="مقدار (مثال: 8 گیگابایت)"
                         value={attr.value}
                         onChange={(e) => {
-                          const next = [...form.attributes];
-                          next[i] = { ...attr, value: e.target.value };
-                          set('attributes', next);
+                          const cp = [...form.attributes];
+                          cp[idx].value = e.target.value;
+                          set('attributes', cp);
                         }}
                       />
                       <button
                         type="button"
-                        className="huma-btn-secondary !bg-rose-500/10 !text-rose-400 !border-rose-500/30"
-                        onClick={() => set('attributes', form.attributes.filter((_, j) => j !== i))}
-                        aria-label="حذف ویژگی"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                  {form.attributes.length === 0 && <span className="text-xs text-slate-400">ویژگی‌ای ثبت نشده است.</span>}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'gallery' && (
-            <div className="space-y-6">
-              <ImagePicker
-                label="تصویر اصلی محصول"
-                value={form.imageUrl}
-                onChange={(url) => set('imageUrl', url)}
-                kind="product"
-              />
-              
-              <div className="border-t border-white/[0.06] pt-4">
-                <label className="block text-sm font-bold text-white mb-3">گالری تصاویر (بیشتر از یک عکس)</label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {form.gallery.map((g, idx) => (
-                    <div key={idx} className="relative group">
-                      <ImagePicker
-                        label={`تصویر ${idx + 1}`}
-                        value={g}
-                        onChange={(url) => {
-                          const copy = [...form.gallery];
-                          copy[idx] = url;
-                          set('gallery', copy);
-                        }}
-                        kind="product"
-                      />
-                      <button 
-                        type="button" 
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-rose-400 hover:bg-rose-500/20 rounded-lg transition"
                         onClick={() => {
-                          const copy = [...form.gallery];
-                          copy.splice(idx, 1);
-                          set('gallery', copy);
+                          const cp = [...form.attributes];
+                          cp.splice(idx, 1);
+                          set('attributes', cp);
                         }}
-                        className="absolute top-1 left-1 bg-rose-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                       >
                         ✕
                       </button>
                     </div>
-                  ))}
-                  {form.gallery.length < 5 && (
-                     <div className="flex items-center justify-center border border-dashed border-white/20 rounded-xl bg-white/[0.01] hover:bg-white/[0.03] transition cursor-pointer min-h-[120px]"
-                          onClick={() => set('gallery', [...form.gallery, ''])}>
-                       <span className="text-2xl text-slate-400">+</span>
-                     </div>
-                  )}
-                </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
+          {/* SEO */}
+          <section className="glass-card p-6 space-y-4">
+            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">موتورهای جستجو (SEO)</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">نامک (Slug) - انتهای URL</label>
+                <input className="huma-input ltr text-right" placeholder="english-product-name" value={form.slug} onChange={(e) => set('slug', e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">کلمات کلیدی (با کاما جدا کنید)</label>
+                <input className="huma-input" value={form.keywords} onChange={(e) => set('keywords', e.target.value)} />
               </div>
             </div>
-          )}
+          </section>
 
-          {activeTab === 'seo' && (
-            <div className="form-grid">
-              <div className="field">
-                <label htmlFor="f-slug">نامک (Slug) - برای URL</label>
-                <input id="f-slug" className="input ltr" value={form.slug} onChange={(e) => set('slug', e.target.value)} />
-              </div>
-              
-              <div className="field">
-                <label htmlFor="f-keywords">کلمات کلیدی (سئو - با کاما جدا کنید)</label>
-                <input id="f-keywords" className="input" value={form.keywords} onChange={(e) => set('keywords', e.target.value)} />
-              </div>
-              
-              <div className="field">
-                <label htmlFor="f-ribbon">روبان (Ribbon)</label>
-                <input id="f-ribbon" className="input" placeholder="مثال: پرفروش، حراج" value={form.ribbon} onChange={(e) => set('ribbon', e.target.value)} />
-              </div>
-              
-              <div className="field">
-                <label htmlFor="f-sort">ترتیب نمایش</label>
+        </div>
+
+        {/* Right Column (Sidebar) */}
+        <div className="space-y-6">
+          
+          {/* Categorization */}
+          <section className="glass-card p-5 space-y-4">
+            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">دسته‌بندی و برند</h3>
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5">دسته‌بندی اصلی</label>
+              <select className="huma-input !py-2.5" value={form.categoryName} onChange={(e) => set('categoryName', e.target.value)}>
+                <option value="">-- انتخاب دسته‌بندی --</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.faName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5">برند محصول</label>
+              <select className="huma-input !py-2.5" value={form.brandName} onChange={(e) => set('brandName', e.target.value)}>
+                <option value="">-- بدون برند --</option>
+                {brands.map((b) => (
+                  <option key={b.id} value={b.name}>
+                    {b.faName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </section>
+
+          {/* Settings */}
+          <section className="glass-card p-5 space-y-4">
+            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">تنظیمات</h3>
+            
+            <div className="space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition">
                 <input
-                  id="f-sort"
-                  className="input ltr"
-                  inputMode="numeric"
-                  value={form.sortOrder}
-                  onChange={(e) => set('sortOrder', Number(e.target.value.replace(/[^\d-]/g, '')) || 0)}
+                  type="checkbox"
+                  className="w-5 h-5 rounded border-white/10 bg-black/20 text-emerald-500 focus:ring-emerald-500/30"
+                  checked={form.status === 'active'}
+                  onChange={(e) => set('status', e.target.checked ? 'active' : 'inactive')}
                 />
-              </div>
+                <div>
+                  <div className="font-semibold text-slate-200 text-sm">محصول فعال باشد</div>
+                </div>
+              </label>
 
-              <div className="field">
-                <label htmlFor="f-status">وضعیت نمایش</label>
-                <select id="f-status" className="select" value={form.status} onChange={(e) => set('status', e.target.value as 'active' | 'inactive')}>
-                  <option value="active">فعال (در فروشگاه دیده می‌شود)</option>
-                  <option value="inactive">غیرفعال (مخفی)</option>
-                </select>
-              </div>
+              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition">
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 rounded border-white/10 bg-black/20 text-brand-500 focus:ring-brand-500/30"
+                  checked={form.promotion}
+                  onChange={(e) => set('promotion', e.target.checked)}
+                />
+                <div>
+                  <div className="font-semibold text-slate-200 text-sm">پیشنهاد ویژه</div>
+                  <div className="text-[10px] text-slate-500 mt-1">نمایش در اسلایدر محصولات ویژه</div>
+                </div>
+              </label>
 
-              <div className="field full mt-4 p-4 border border-white/[0.06] rounded-xl bg-white/[0.01] space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 rounded border-white/10 bg-black/20 text-brand-500 focus:ring-brand-500/30"
-                    checked={form.promotion}
-                    onChange={(e) => set('promotion', e.target.checked)}
-                  />
-                  <div>
-                    <div className="font-semibold text-slate-200">پیشنهاد ویژه (شگفت‌انگیز)</div>
-                    <div className="text-xs text-slate-500">آیا این محصول در لیست پیشنهادات ویژه صفحه اصلی نمایش داده شود؟</div>
-                  </div>
-                </label>
+              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition">
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 rounded border-white/10 bg-black/20 text-brand-500 focus:ring-brand-500/30"
+                  checked={form.tracking}
+                  onChange={(e) => set('tracking', e.target.checked)}
+                />
+                <div>
+                  <div className="font-semibold text-slate-200 text-sm">پیگیری موجودی</div>
+                  <div className="text-[10px] text-slate-500 mt-1">جلوگیری از فروش در صورت اتمام موجودی</div>
+                </div>
+              </label>
 
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 rounded border-white/10 bg-black/20 text-brand-500 focus:ring-brand-500/30"
-                    checked={form.tracking}
-                    onChange={(e) => set('tracking', e.target.checked)}
-                  />
-                  <div>
-                    <div className="font-semibold text-slate-200">پیگیری موجودی (Tracking)</div>
-                    <div className="text-xs text-slate-500">اگر غیرفعال باشد، محصول بدون توجه به موجودی قابل خرید است.</div>
-                  </div>
-                </label>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5 mt-2">روبان / برچسب روی عکس</label>
+                <input className="huma-input !py-2" placeholder="مثال: پرفروش" value={form.ribbon} onChange={(e) => set('ribbon', e.target.value)} />
               </div>
             </div>
-          )}
+          </section>
+
         </div>
       </div>
-    </Modal>
+    </div>
   );
 }

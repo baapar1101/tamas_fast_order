@@ -134,6 +134,19 @@ export function ProductsPage() {
     else bulk.mutate({ ids: [...selected], action: 'adjustPrice', percent: n });
   }
 
+  if (editing) {
+    return (
+      <ProductEditor
+        product={editing === 'new' ? null : editing}
+        categories={taxonomy.data?.categories ?? []}
+        brands={taxonomy.data?.brands ?? []}
+        busy={save.isPending}
+        onClose={() => setEditing(null)}
+        onSave={(body) => save.mutate({ id: editing === 'new' ? null : editing.id, body })}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header & Primary Actions */}
@@ -531,18 +544,6 @@ export function ProductsPage() {
             صفحه بعدی
           </button>
         </section>
-      )}
-
-      {/* Product Editor Modal */}
-      {editing && (
-        <ProductEditor
-          product={editing === 'new' ? null : editing}
-          categories={taxonomy.data?.categories ?? []}
-          brands={taxonomy.data?.brands ?? []}
-          busy={save.isPending}
-          onClose={() => setEditing(null)}
-          onSave={(body) => save.mutate({ id: editing === 'new' ? null : editing.id, body })}
-        />
       )}
 
       {/* Bulk Modal */}
