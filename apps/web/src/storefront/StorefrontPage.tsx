@@ -199,10 +199,10 @@ export function StorefrontPage() {
       <header className="topbar">
         {/* Top promo strip */}
         <div className="topbar-promo">
-          <div className="promo-sheen" />
+          <div className="promo-sheen" aria-hidden="true" />
           <div className="promo-inner">
             <div className="promo-copy">
-              <span className="promo-title">با هم، سریع‌تر و بهتر رشد می‌کنیم!</span>
+              <strong className="promo-title">با هم، سریع‌تر و بهتر رشد می‌کنیم!</strong>
               <span className="promo-text">
                 همکاری با ما از چیزی که فکرش رو می‌کنید راحت‌تره. با ثبت‌نام در پنل همکاران، بلافاصله به قیمت‌های ویژه، تامین مطمئن و پشتیبانی اختصاصی دسترسی پیدا کنید.
               </span>
