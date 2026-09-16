@@ -2023,7 +2023,7 @@
 
   .products-list .product-accordion {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 78px;
+    grid-template-columns: minmax(0, 1fr) 90px;
     grid-template-areas:
       "head image"
       "variants variants";
@@ -2310,7 +2310,7 @@
     display: none !important;
   }
 
-  /* Remove cart sidebar fixed positioning when inline on mobile */
+  /* Fix cart panel z-index so it isn't hidden */
   .mobile-only-cart .cart-panel {
     position: static;
     width: 100%;
@@ -2324,4 +2324,32 @@
   .mobile-only-cart .cart-panel-close {
     display: none !important; /* No close button needed for tab */
   }
+}
+
+/* Fix list mode layout bugs globally (desktop & mobile) */
+.product-accordion .thumb-box,
+.product-accordion .product-thumb {
+  width: 130px !important;
+  height: 130px !important;
+  min-width: 130px !important;
+  max-width: 130px !important;
+  min-height: 130px !important;
+  max-height: 130px !important;
+  object-fit: contain !important;
+}
+
+@media (max-width: 1024px) {
+  .product-accordion .thumb-box,
+  .product-accordion .product-thumb {
+    width: 90px !important;
+    height: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
+    min-height: 90px !important;
+    max-height: 90px !important;
+  }
+}
+
+.product-accordion.is-promotion {
+  padding-top: 36px;
 }

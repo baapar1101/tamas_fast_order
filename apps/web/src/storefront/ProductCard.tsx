@@ -91,7 +91,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
 
         <div className="list-product-content">
           <div className="product-head">
-            <div className="product-title">
+            <div className={`product-title ${titleClass}`}>
               {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
               {group.title}
             </div>
