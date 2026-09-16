@@ -88,6 +88,14 @@ const routes: FastifyPluginAsync = async (app) => {
   app.patch('/admin/orders/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
     const body = orderPatchSchema.parse(req.body);
+    
+    // Check old status if we are updating it to avoid duplicate SMS
+    let oldStatus: string | undefined;
+    if (body.status) {
+      const [oldRow] = await db.select({ status: orders.status }).from(orders).where(eq(orders.id, id));
+      oldStatus = oldRow?.status;
+    }
+
     const [updated] = await db
       .update(orders)
       .set({
@@ -99,6 +107,17 @@ const routes: FastifyPluginAsync = async (app) => {
       .where(eq(orders.id, id))
       .returning();
     if (!updated) throw notFound('سفارش پیدا نشد.');
+    
+    if (body.status && body.status !== oldStatus && updated.phone) {
+      const { sendTemplatedSms } = await import('../../services/sms.js');
+      const templateKey = `sms_template_order_${body.status}`;
+      sendTemplatedSms(updated.phone, templateKey, {
+        order_code: updated.orderCode,
+        name: updated.customerName || 'مشتری',
+        status: body.status,
+      }).catch((err) => req.log.error({ err }, 'failed to send status sms'));
+    }
+
     const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
     await logAction(req.currentUser!.id, 'update', 'order', updated.orderCode, body as Record<string, unknown>);
     return { ok: true, order: toOrderDTO(updated, items) };
@@ -111,11 +130,29 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.post('/admin/orders/bulk-status', async (req) => {
     const body = bulkStatus.parse(req.body);
+    const oldOrders = await db.select({ id: orders.id, status: orders.status }).from(orders).where(inArray(orders.id, body.ids));
+    const changedIds = oldOrders.filter((o) => o.status !== body.status).map((o) => o.id);
+
+    if (changedIds.length === 0) return { ok: true, changed: 0 };
+
     const changed = await db
       .update(orders)
       .set({ status: body.status, updatedAt: new Date() })
-      .where(inArray(orders.id, body.ids))
-      .returning({ id: orders.id });
+      .where(inArray(orders.id, changedIds))
+      .returning({ id: orders.id, phone: orders.phone, orderCode: orders.orderCode, customerName: orders.customerName });
+
+    const { sendTemplatedSms } = await import('../../services/sms.js');
+    const templateKey = `sms_template_order_${body.status}`;
+    for (const order of changed) {
+      if (order.phone) {
+        sendTemplatedSms(order.phone, templateKey, {
+          order_code: order.orderCode,
+          name: order.customerName || 'مشتری',
+          status: body.status,
+        }).catch((err) => req.log.error({ err }, 'failed to send status sms bulk'));
+      }
+    }
+
     await logAction(req.currentUser!.id, 'bulk:status', 'order', null, { count: changed.length, status: body.status });
     return { ok: true, changed: changed.length };
   });
