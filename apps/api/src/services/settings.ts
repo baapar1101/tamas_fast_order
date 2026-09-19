@@ -11,25 +11,48 @@ const cache = new TtlCache<Record<string, string>>(30_000, 4);
  */
 const PRIVATE_PREFIX = 'private_';
 
-export async function getCrmConfig(): Promise<{
+export async function getAllSettings(): Promise<Record<string, string>> {
+  const hit = cache.get('all');
+  if (hit) return hit;
+  const rows = await db.select().from(settings).where(isNull(settings.deletedAt));
+  const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  cache.set('all', map);
+  return map;
+}
+
+export interface CrmConfig {
   apiBase: string;
   apiKey: string;
   businessId: number;
   webhookSecret: string;
   syncEnabled: boolean;
   syncDebounceMs: number;
-}> {
+}
+
+export async function getCrmConfig(): Promise<CrmConfig> {
   const dbSettings = await getAllSettings();
-  
+
   // Read from database settings first, fall back to env
-  const apiBase = dbSettings.CRM_API_BASE || (typeof process !== 'undefined' && process.env.CRM_API_BASE) || 'https://tamastore.ir';
-  const apiKey = dbSettings.CRM_API_KEY || (typeof process !== 'undefined' && process.env.CRM_API_KEY) || '';
-  const businessId = (dbSettings.CRM_BUSINESS_ID || (typeof process !== 'undefined' && process.env.CRM_BUSINESS_ID) || '1').trim();
-  const webhookSecret = dbSettings.CRM_WEBHOOK_SECRET || (typeof process !== 'undefined' && process.env.CRM_WEBHOOK_SECRET) || '';
-  const syncEnabled = dbSettings.CRM_SYNC_ENABLED !== 'false' && dbSettings.CRM_SYNC_ENABLED !== false;  // env fallback handled in crm.ts
-  const syncDebounceMs = parseInt(dbSettings.CRM_SYNC_DEBOUNCE_MS || (typeof process !== 'undefined' && process.env.CRM_SYNC_DEBOUNCE_MS) || '500', 10);
-  
-  return { apiBase, apiKey, businessId: Number(businessId), webhookSecret, syncEnabled, syncDebounceMs };
+  const apiBase = (dbSettings.CRM_API_BASE ?? '').trim()
+    || (typeof process !== 'undefined' && process.env.CRM_API_BASE)?.trim()
+    || 'https://tamastore.ir';
+  const apiKey = (dbSettings.CRM_API_KEY ?? '').trim()
+    || (typeof process !== 'undefined' && process.env.CRM_API_KEY)?.trim()
+    || '';
+  const businessIdStr = (dbSettings.CRM_BUSINESS_ID ?? '').trim()
+    || (typeof process !== 'undefined' && process.env.CRM_BUSINESS_ID)?.trim()
+    || '1';
+  const webhookSecret = (dbSettings.CRM_WEBHOOK_SECRET ?? '').trim()
+    || (typeof process !== 'undefined' && process.env.CRM_WEBHOOK_SECRET)?.trim()
+    || '';
+  const syncEnabledRaw = dbSettings.CRM_SYNC_ENABLED ?? (typeof process !== 'undefined' && process.env.CRM_SYNC_ENABLED);
+  const syncEnabled = typeof syncEnabledRaw === 'boolean'
+    ? syncEnabledRaw
+    : !['false', '0', 'no', 'off'].includes(String(syncEnabledRaw).toLowerCase());
+  const syncDebounceMsRaw = dbSettings.CRM_SYNC_DEBOUNCE_MS ?? (typeof process !== 'undefined' && process.env.CRM_SYNC_DEBOUNCE_MS);
+  const syncDebounceMs = Math.max(0, Number(syncDebounceMsRaw) || 500);
+
+  return { apiBase, apiKey, businessId: Number(businessIdStr), webhookSecret, syncEnabled, syncDebounceMs };
 }
 
 export async function getPublicSettings(): Promise<Record<string, string>> {
