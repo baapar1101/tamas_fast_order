@@ -3,6 +3,16 @@ import { useState, useEffect, useRef } from 'react';
 const API_BASE = 'https://tamastore.ir';
 const PUBLIC_KEY = 'wPzldz3FGwE2EX8tYS4WYew2kf9aL72Y';
 
+const colors = {
+  primary: '#0066cc',
+  primaryHover: '#0052a3',
+  bg: '#f8fafc',
+  card: '#ffffff',
+  text: '#1e293b',
+  textMuted: '#64748b',
+  border: '#e2e8f0',
+};
+
 const isMobile = () => window.innerWidth < 768;
 
 interface Message {
