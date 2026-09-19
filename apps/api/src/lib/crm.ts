@@ -1,27 +1,3 @@
-/**
- * Tamas Fast Order — CRM Integration Module
- *
- * Bridges the tamas-fast-order site with the Hesabix/MarkStreet CRM
- * (arc) so that orders, customers, products, and chat messages stay
- * in sync bidirectionally.
- *
- * Usage:  import { crmClient, crmWebhook } from '../lib/crm.js';
- *
- *   crmClient.pushOrder(orderDto)   → sends order to CRM
- *   crmClient.pushProduct(product)  → sends product to CRM
- *   crmClient.searchPerson(query)   → finds a person in CRM
- *
- *   crmWebhook.handler(rawBody, signature)  → process inbound webhook
- *
- * Config (env):
- *   CRM_API_BASE       – base URL of the CRM API (default: http://localhost:8000)
- *   CRM_API_KEY        – API key for CRM management endpoints (Bearer token)
- *   CRM_BUSINESS_ID    – business ID in CRM (default: 1)
- *   CRM_WEBHOOK_SECRET – shared secret for webhook signature verification (HMAC-SHA256)
- *   CRM_SYNC_ENABLED   – 'true' to enable outbound sync (default: true in dev)
- *   CRM_SYNC_DEBOUNCE_MS – ms to wait before flushing a batch (default: 500)
- */
-
 import { createHash, createHmac } from 'node:crypto';
 
 /* ------------------------------------------------------------------ */
@@ -44,32 +20,32 @@ const CRM_SYNC_DEBOUNCE_MS = parseInt(
 /** A tamas order (matches OrderDTO from the site's API). */
 export interface CrmOrder {
   orderCode: string;
-  userId?: number;
+  userId?: number | null;
   customerName: string;
   phone: string;
-  storeName: string;
+  storeName: string | null;
   address: string;
   total: number;
   quantity: number;
   status: string;
   paymentStatus: string;
-  paymentMethod: string;
-  note?: string;
+  paymentMethod: string | null;
+  note?: string | null;
   items: Array<{
     productId: string;
-    sku: string;
+    sku: string | null;
     title: string;
     price: number;
     qty: number;
     warehouse: string;
-    color?: string;
+    color?: string | null;
   }>;
 }
 
 /** A tamas product (matches ProductDTO). */
 export interface CrmProduct {
   productId: string;
-  sku: string;
+  sku: string | null;
   title: string;
   model?: string | null;
   categoryName?: string | null;
@@ -159,7 +135,7 @@ export const crmClient = {
         note: order.note ?? '',
         items: order.items.map((i) => ({
           product_id: i.productId,
-          sku: i.sku,
+          sku: i.sku ?? '',
           title: i.title,
           price: i.price,
           qty: i.qty,
@@ -187,7 +163,7 @@ export const crmClient = {
       const payload = {
         source: 'tamas-fast-order',
         product_id: product.productId,
-        sku: product.sku,
+        sku: product.sku ?? '',
         name: product.title,
         model: product.model ?? '',
         category_name: product.categoryName ?? '',
@@ -277,7 +253,7 @@ export const crmClient = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Webhook handler (CRM → site)                                        */
+/* Webhook handler (CRM → site)                                         */
 /* ------------------------------------------------------------------ */
 
 /** Simple in-memory dedupe window (last N event ids). */
@@ -288,7 +264,6 @@ function _dedupe(key: string): boolean {
   if (_seen.has(key)) return true;
   _seen.add(key);
   if (_seen.size > _seenMax) {
-    // Evict oldest by converting to array — small bounded set, fine.
     const arr = [..._seen];
     _seen.clear();
     for (const k of arr.slice(-_seenMax + 1)) _seen.add(k);
@@ -298,11 +273,9 @@ function _dedupe(key: string): boolean {
 
 /** Verify HMAC-SHA256 signature of raw body against secret. */
 function _verifySignature(rawBody: string | Buffer, signature: string | undefined, secret: string): boolean {
-  if (!secret || !signature) return true; // allow unsigned in dev
+  if (!secret || !signature) return true;
   const expected = createHmac('sha256', secret).update(rawBody).digest('hex');
-  return createHmac('sha256', secret).update(rawBody).digest('hex') === signature
-    ? true
-    : createHash('sha256').update(rawBody).digest('hex') === signature; // fallback: sha256
+  return createHmac('sha256', secret).update(rawBody).digest('hex') === signature;
 }
 
 /** Normalize a CRM webhook payload into a flat event envelope. */
@@ -338,34 +311,26 @@ export async function processCrmWebhook(
 
   try {
     switch (eventType) {
-      /* ---- CRM → site: new lead / person ---- */
       case 'crm.lead.created':
       case 'person.created': {
         const person = (data as Record<string, unknown>) ?? {};
         details.personId = person.id;
-        details.matched = 'stored_in_site_pending'; // would insert into a sync_audit table
+        details.matched = 'stored_in_site_pending';
         break;
       }
-
-      /* ---- CRM → site: order created / updated ---- */
       case 'crm.order.created':
       case 'order.created': {
         const order = (data as Record<string, unknown>) ?? {};
         details.orderCode = order.order_code ?? order.orderCode;
         details.remoteOrderId = order.id;
-        // In production you'd upsert into the site's orders table here.
         break;
       }
-
-      /* ---- CRM → site: product updated ---- */
       case 'crm.product.updated':
       case 'product.updated': {
         const product = (data as Record<string, unknown>) ?? {};
         details.productId = product.product_id ?? product.id;
         break;
       }
-
-      /* ---- CRM → site: chat message (agent reply) ---- */
       case 'crm.chat.message.created':
       case 'chat.message': {
         const msg = (data as Record<string, unknown>) ?? {};
@@ -373,8 +338,6 @@ export async function processCrmWebhook(
         details.conversationId = msg.conversation_id ?? msg.conversationId;
         break;
       }
-
-      /* ---- CRM → site: payment / receipt ---- */
       case 'crm.payment.received':
       case 'payment.received': {
         const pay = (data as Record<string, unknown>) ?? {};
@@ -382,8 +345,6 @@ export async function processCrmWebhook(
         details.amount = pay.amount;
         break;
       }
-
-      /* ---- Unknown / generic ---- */
       default:
         details.warning = 'unhandled_event_type';
         break;
@@ -394,9 +355,5 @@ export async function processCrmWebhook(
     return { ok: false, processed: eventType, details: { error: err?.message ?? String(err) } };
   }
 }
-
-/* ------------------------------------------------------------------ */
-/* Re-export for convenience                                            */
-/* ------------------------------------------------------------------ */
 
 export { CRM_API_BASE, CRM_API_KEY, CRM_BUSINESS_ID, CRM_WEBHOOK_SECRET, CRM_SYNC_ENABLED, CRM_SYNC_DEBOUNCE_MS };
