@@ -112,6 +112,13 @@ async function main(): Promise<void> {
   const [conflictCount] = await db.select({ n: sql<number>`count(*)::int` }).from(syncConflicts);
   check('a one-sided edit is not logged as a conflict', (conflictCount?.n ?? 0) === 0, `logged ${conflictCount?.n}`);
 
+  /* -------- 3b. editing only the rial price column also updates DB -------- */
+  sheet.setCell('Products', sampleKey, 'RIAL PRICE', '2345670');
+  const rialEdit = await runSync({ direction: 'both', entities: [...CATALOGUE], dryRun: false }, sheet);
+  const rialPulled = rialEdit.entities.find((e) => e.entity === 'products')!;
+  check('RIAL PRICE edit is converted to toman and pulled', (await priceOf(sampleKey)) === 234567, `price is ${await priceOf(sampleKey)}`);
+  check('RIAL PRICE pull is reported', rialPulled.pulled === 1, `pulled ${rialPulled.pulled}`);
+
   /* ---------------- 4. an edit in the database goes back to the sheet ---------------- */
   await db.update(products).set({ price: 777000, updatedAt: new Date() }).where(eq(products.productId, sampleKey));
   await runSync({ direction: 'both', entities: [...CATALOGUE], dryRun: false }, sheet);
