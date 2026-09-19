@@ -27,6 +27,7 @@ import adminComments from './routes/admin/comments.js';
 import authRoutes from './routes/auth.js';
 import catalogRoutes from './routes/catalog.js';
 import orderRoutes from './routes/orders.js';
+import crmRoutes from './routes/crm.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -124,25 +125,26 @@ export async function buildApp(): Promise<FastifyInstance> {
    * before the /api routes are registered or they never reach them.
    */
   await app.register(
-    async (api) => {
-      await api.register(catalogRoutes);
-      await api.register(authRoutes);
-      await api.register(orderRoutes);
-      await api.register(adminDashboard);
-      await api.register(adminProducts);
-      await api.register(adminTaxonomy);
-      await api.register(adminOrders);
-      await api.register(adminUsers);
-      await api.register(adminUploads);
-      await api.register(adminSync);
-      await api.register(adminSlides);
-      await api.register(adminWarehouses);
-      await api.register(adminAttributes);
-      await api.register(adminFinancial);
-      await api.register(adminComments);
-    },
-    { prefix: '/api' },
-  );
+      async (api) => {
+        await api.register(catalogRoutes);
+        await api.register(authRoutes);
+        await api.register(orderRoutes);
+        await api.register(adminDashboard);
+        await api.register(adminProducts);
+        await api.register(adminTaxonomy);
+        await api.register(adminOrders);
+        await api.register(adminUsers);
+        await api.register(adminUploads);
+        await api.register(adminSync);
+        await api.register(adminSlides);
+        await api.register(adminWarehouses);
+        await api.register(adminAttributes);
+        await api.register(adminFinancial);
+        await api.register(adminComments);
+        await api.register(crmRoutes); // <-- CRM integration routes
+      },
+      { prefix: '/api' },
+    );
 
   return app;
 }
