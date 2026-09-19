@@ -28,6 +28,7 @@
     "sync:pull": "npm run sync:pull -w @tamas/api",
     "sync:push": "npm run sync:push -w @tamas/api",
     "start": "npm run start -w @tamas/api",
+    "start:prod": "npm run start:prod -w @tamas/api",
     "dev:shared": "npm run dev -w @tamas/shared"
   },
   "devDependencies": {
