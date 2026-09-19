@@ -75,8 +75,16 @@ async function apiPost(path: string, body: object, token?: string) {
 async function apiGet(path: string, token: string): Promise<Message[]> {
   const separator = path.includes('?') ? '&' : '?';
   const url = `${API_BASE}${path}${separator}visitor_token=${encodeURIComponent(token)}`;
-  const res = await fetch(url, { headers: { 'X-Visitor-Token': token } });
-  const data = await res.json();
+  let res: Response;
+  try {
+    res = await fetch(url, { headers: { 'X-Visitor-Token': token } });
+  } catch {
+    // Only a rejected fetch means the network is genuinely unreachable
+    throw new Error('network');
+  }
+  // If the body isn't JSON (proxy error page, empty reply), it's a server hiccup — not a disconnect
+  let data: any;
+  try { data = await res.json(); } catch { return []; }
   const raw = extractArray(data);
   return raw.map((m: any) => ({
     id: String(m.id ?? Date.now()),
@@ -324,21 +332,24 @@ export function CrmChat({ user }: CrmChatProps) {
     return () => { window.removeEventListener('offline', goOff); window.removeEventListener('online', goOn); };
   }, [session, openWs]);
 
-  /* Polling fallback — runs continuously whenever WS is not connected */
+  /* Polling — always on while a session exists; slow catch-up when WS is live, fast when it isn't */
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const failRef = useRef(0); // consecutive REST failures — ignore single blips
   const isWsConnected = wsStatus === 'connected';
 
   useEffect(() => {
-    if (!session || isWsConnected) {
+    if (!session) {
       if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
       return;
     }
 
+    const delay = isWsConnected ? 8000 : 3000;
     const tick = () => {
       apiGet(
         `/api/v1/public/crm-chat/conversations/${session.conversationId}/messages?limit=80`,
         session.visitorToken
       ).then(fresh => {
+        failRef.current = 0;
         setNetAlive(true); // network is fine even if WS isn't — don't scare the user
         if (!fresh) return;
         setMessages(prev => {
@@ -365,11 +376,15 @@ export function CrmChat({ user }: CrmChatProps) {
           setIsTyping(false);
           return merged;
         });
-      }).catch(() => { setNetAlive(false); /* silent retry */ });
+      }).catch(() => {
+        failRef.current += 1;
+        // Only report disconnection after several consecutive failures
+        if (failRef.current >= 2) setNetAlive(false);
+      });
     };
 
     tick();
-    pollRef.current = setInterval(tick, 3000);
+    pollRef.current = setInterval(tick, delay);
     return () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
   }, [session, isWsConnected, isOpen]);
 
@@ -452,15 +467,8 @@ export function CrmChat({ user }: CrmChatProps) {
   };
 
   /* Colors — tamasmarket state tokens */
-  /* Header status — WS is realtime; REST polling keeps chat alive when WS is down */
-  const liveStatus = wsStatus === 'connected'
-    ? 'connected'
-    : wsStatus === 'connecting'
-      ? 'connecting'
-      : wsStatus === 'offline' && !netAlive
-        ? 'offline'
-        : 'idle';
-  const orbColor = liveStatus === 'connected' ? 'var(--tamas-success)' : liveStatus === 'connecting' ? 'var(--tamas-warning)' : liveStatus === 'offline' ? 'var(--tamas-danger)' : 'var(--tamas-accent)';
+  /* Visible status reflects REST reachability (polling), never the flaky WS */
+  const orbColor = netAlive ? 'var(--tamas-success)' : 'var(--tamas-danger)';
   const bottom   = isMobile ? 80 : 24;
   const widgetW  = isMobile ? 'calc(100vw - 24px)' : 390;
   const widgetH  = isMobile ? 'calc(100svh - 104px)' : 560;
@@ -571,7 +579,7 @@ export function CrmChat({ user }: CrmChatProps) {
           <div>
             <div style={{ fontWeight: 800, fontSize: 14 }}>پشتیبانی تماس</div>
             <div style={{ fontSize: 11, opacity: 0.85, marginTop: 1 }}>
-              {liveStatus === 'connected' ? '● آنلاین' : liveStatus === 'connecting' ? '◌ در حال اتصال...' : liveStatus === 'offline' ? '○ آفلاین' : 'آماده پاسخگویی'}
+              {netAlive ? '● آنلاین' : '○ آفلاین'}
             </div>
           </div>
         </div>
@@ -675,7 +683,7 @@ export function CrmChat({ user }: CrmChatProps) {
               />
               <SendBtn disabled={sending || !input.trim()} loading={sending} />
             </div>
-            {wsStatus === 'offline' && !netAlive && (
+            {!netAlive && (
               <p style={{ fontSize: 11, color: 'var(--tamas-danger)', marginTop: 5, fontWeight: 500 }}>⚠️ اتصال قطع شده — در حال اتصال مجدد...</p>
             )}
           </form>
