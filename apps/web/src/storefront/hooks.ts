@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ColorDTO, ProductGroupDTO } from '@tamas/shared';
 import { api } from '../lib/api';
-import { getFallbackBootstrap, getFallbackProducts } from './fallbackData';
+import { getFallbackBootstrap } from './fallbackData';
 
 export interface BootstrapData {
   categories: CategoryDTO[];
@@ -84,8 +84,14 @@ export function useProducts(filters: CatalogFilters) {
         );
         return sanitizeProducts(response);
       } catch (err) {
-        console.warn('API products failed, falling back to legacy catalog snapshot:', err);
-        return sanitizeProducts(getFallbackProducts(filters));
+        // Inventory must always come from the same API/database used by the
+        // admin panel. The legacy snapshot is intentionally not used here:
+        // silently serving it after an API failure shows stale warehouse
+        // counts and makes the storefront disagree with admin.
+        if ((err as Error).name !== 'AbortError') {
+          console.error('API products failed; refusing to display stale inventory:', err);
+        }
+        throw err;
       }
     },
     placeholderData: (previous) => previous,
