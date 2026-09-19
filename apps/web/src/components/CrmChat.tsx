@@ -205,15 +205,18 @@ export function CrmChat({ user }: CrmChatProps) {
   const [sending,  setSending]  = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [wsStatus, setWsStatus] = useState<'idle' | 'connecting' | 'connected' | 'offline'>('idle');
+  const [netAlive, setNetAlive] = useState(true); // REST polling working — WS may still be down, but chat works
   const [unread,   setUnread]   = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const inputRef  = useRef<HTMLInputElement>(null);
-  const wsRef     = useRef<WebSocket | null>(null);
-  const reconnRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const reconnAtt = useRef(0);
-  const intentRef = useRef(false);
+  const intakeScrollRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef   = useRef<HTMLDivElement>(null);
+  const inputRef        = useRef<HTMLInputElement>(null);
+  const wsRef           = useRef<WebSocket | null>(null);
+  const hbRef           = useRef<ReturnType<typeof setInterval> | null>(null);
+  const reconnRef       = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnAtt       = useRef(0);
+  const intentRef       = useRef(false);
 
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768);
@@ -221,7 +224,16 @@ export function CrmChat({ user }: CrmChatProps) {
     return () => window.removeEventListener('resize', h);
   }, []);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isTyping]);
+  /* Scroll to bottom reliably: scroll the actual scrollable container. */
+  useEffect(() => {
+    const el = chatScrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, isTyping, phase]);
+
+  useEffect(() => {
+    const el = intakeScrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [qIndex, answers, phase]);
 
   useEffect(() => {
     const s = loadSession();
@@ -247,7 +259,7 @@ export function CrmChat({ user }: CrmChatProps) {
     ws.onmessage = (e) => {
       try {
         const frame = JSON.parse(e.data as string);
-        if (frame.type === 'auth_ok') { setWsStatus('connected'); reconnAtt.current = 0; return; }
+        if (frame.type === 'auth_ok') { setWsStatus('connected'); reconnAtt.current = 0; setNetAlive(true); return; }
         if (frame.type === 'ping' || frame.type === 'heartbeat') { ws.send(JSON.stringify({ type: 'pong' })); return; }
         if (frame.type !== 'crm_chat.event' || frame.event !== 'message.created') return;
         const raw = frame?.payload?.message ?? frame?.data?.message ?? frame?.message ?? frame?.payload ?? frame?.data;
@@ -267,17 +279,24 @@ export function CrmChat({ user }: CrmChatProps) {
     ws.onerror = () => setWsStatus('offline');
     ws.onclose = () => {
       wsRef.current = null;
+      if (hbRef.current) { clearInterval(hbRef.current); hbRef.current = null; }
       if (intentRef.current) return;
       reconnAtt.current += 1;
       if (reconnAtt.current >= MAX_WS_RETRIES) { setWsStatus('offline'); return; } // give up
       reconnRef.current = setTimeout(() => openWs(s), Math.min(1000 * 2 ** (reconnAtt.current - 1), 20000));
       setWsStatus('offline');
     };
+    // Keep the socket alive so idle server connections don't drop and trigger false reconnects
+    if (hbRef.current) clearInterval(hbRef.current);
+    hbRef.current = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'ping' }));
+    }, 20000);
   }, [isOpen]);
 
   const closeWs = useCallback(() => {
     intentRef.current = true;
     if (reconnRef.current) clearTimeout(reconnRef.current);
+    if (hbRef.current) { clearInterval(hbRef.current); hbRef.current = null; }
     wsRef.current?.close();
     wsRef.current = null;
     setWsStatus('idle');
@@ -292,8 +311,14 @@ export function CrmChat({ user }: CrmChatProps) {
   }, [session]);
 
   useEffect(() => {
-    const goOff = () => setWsStatus('offline');
-    const goOn  = () => { if (session) { intentRef.current = false; openWs(session); } };
+    const goOff = () => { setWsStatus('offline'); setNetAlive(false); };
+    const goOn  = () => {
+      setNetAlive(true);
+      if (!session) return;
+      intentRef.current = false;
+      reconnAtt.current = 0; // allow reconnecting after network recovery
+      openWs(session);
+    };
     window.addEventListener('offline', goOff);
     window.addEventListener('online', goOn);
     return () => { window.removeEventListener('offline', goOff); window.removeEventListener('online', goOn); };
@@ -314,6 +339,7 @@ export function CrmChat({ user }: CrmChatProps) {
         `/api/v1/public/crm-chat/conversations/${session.conversationId}/messages?limit=80`,
         session.visitorToken
       ).then(fresh => {
+        setNetAlive(true); // network is fine even if WS isn't — don't scare the user
         if (!fresh) return;
         setMessages(prev => {
           const map = new Map<string, Message>();
@@ -339,7 +365,7 @@ export function CrmChat({ user }: CrmChatProps) {
           setIsTyping(false);
           return merged;
         });
-      }).catch(() => { /* silent retry */ });
+      }).catch(() => { setNetAlive(false); /* silent retry */ });
     };
 
     tick();
@@ -375,6 +401,7 @@ export function CrmChat({ user }: CrmChatProps) {
         device_type: isMobile ? 'mobile' : 'desktop',
         initial_message: newAns.msg,
       });
+      setNetAlive(true);
       const d = data?.data ?? data;
       const s: Session = { visitorToken: d.visitor_token, conversationId: Number(d.conversation_id) };
       saveSession(s);
@@ -383,6 +410,7 @@ export function CrmChat({ user }: CrmChatProps) {
       setMessages(history.length > 0 ? history : [{ id: String(Date.now()), senderRole: 'visitor', body: newAns.msg, createdAt: new Date().toISOString() }]);
       setPhase('chat');
     } catch (ex: any) {
+      setNetAlive(false);
       setErr(ex?.message ?? 'خطا در اتصال. دوباره تلاش کن.');
     } finally {
       setSending(false);
@@ -401,12 +429,14 @@ export function CrmChat({ user }: CrmChatProps) {
     setIsTyping(true);
     try {
       await apiPost('/api/v1/public/crm-chat/messages', { visitor_token: session.visitorToken, conversation_id: session.conversationId, body }, session.visitorToken);
+      setNetAlive(true);
       // Refresh messages immediately to get true server ID & any agent reply
       const fresh = await apiGet(`/api/v1/public/crm-chat/conversations/${session.conversationId}/messages?limit=80`, session.visitorToken);
       if (fresh && fresh.length > 0) {
         setMessages(fresh);
       }
     } catch {
+      setNetAlive(false);
       setMessages(prev => prev.filter(m => m.id !== tempId));
       setIsTyping(false);
     } finally {
@@ -567,7 +597,7 @@ export function CrmChat({ user }: CrmChatProps) {
       {/* Intake */}
       {phase === 'intake' && (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--tamas-bg)' }}>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div ref={intakeScrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <AgentBubble text="سلام! خوش اومدی 😊 برای شروع مکالمه با پشتیبانی، چند سوال کوتاه داریم." />
             {QUESTIONS.slice(0, qIndex).map((q, i) => {
               const prompt = typeof q.prompt === 'function' ? q.prompt(answers.name) : q.prompt;
@@ -580,7 +610,6 @@ export function CrmChat({ user }: CrmChatProps) {
               );
             })}
             {qIndex < QUESTIONS.length && <AgentBubble text={currentPrompt} />}
-            <div ref={bottomRef} />
           </div>
           <form onSubmit={handleIntakeSubmit} style={{ padding: '10px 12px 14px', borderTop: '1px solid var(--tamas-border)', background: 'var(--tamas-surface)', flexShrink: 0 }}>
             {err && <div style={{ color: 'var(--tamas-danger)', fontSize: 12, marginBottom: 6, fontWeight: 500 }}>⚠️ {err}</div>}
@@ -606,7 +635,7 @@ export function CrmChat({ user }: CrmChatProps) {
       {/* Chat */}
       {phase === 'chat' && (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--tamas-bg)' }}>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '14px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div ref={chatScrollRef} style={{ flex: 1, overflowY: 'auto', padding: '14px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {messages.length === 0 && (
               <div style={{ textAlign: 'center', color: 'var(--tamas-muted)', padding: '32px 16px' }}>
                 <div style={{ fontSize: 40, marginBottom: 8 }}>💬</div>
@@ -620,7 +649,6 @@ export function CrmChat({ user }: CrmChatProps) {
                 : <AgentBubble   key={msg.id} text={msg.body} time={msg.displayTime ?? formatTime(msg.createdAt)} />
             )}
             {isTyping && <TypingIndicator />}
-            <div ref={bottomRef} />
           </div>
           <form onSubmit={handleSend} style={{ padding: '10px 12px 14px', borderTop: '1px solid var(--tamas-border)', background: 'var(--tamas-surface)', flexShrink: 0 }}>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -639,8 +667,8 @@ export function CrmChat({ user }: CrmChatProps) {
               />
               <SendBtn disabled={sending || !input.trim()} loading={sending} />
             </div>
-            {wsStatus === 'offline' && (
-              <p style={{ fontSize: 11, color: 'var(--tamas-warning)', marginTop: 5, fontWeight: 500 }}>⚠️ اتصال قطع شده — در حال اتصال مجدد...</p>
+            {wsStatus === 'offline' && !netAlive && (
+              <p style={{ fontSize: 11, color: 'var(--tamas-danger)', marginTop: 5, fontWeight: 500 }}>⚠️ اتصال قطع شده — در حال اتصال مجدد...</p>
             )}
           </form>
         </div>

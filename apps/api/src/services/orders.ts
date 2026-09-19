@@ -176,9 +176,16 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     }
 
     invalidateCatalog();
-    return toOrderDTO(order, items);
-  });
-}
+
+        // Fire-and-forget CRM sync — failures are logged, never block the order.
+        const { crmClient } = await import('../lib/crm.js');
+        crmClient.pushOrder(toOrderDTO(order, items)).catch((err: unknown) => {
+          app.log?.warn?.({ err }, 'CRM pushOrder failed (non-blocking)');
+        });
+
+        return toOrderDTO(order, items);
+      });
+    }
 
 export async function listOrdersForUser(userId: number, limit = 50): Promise<OrderDTO[]> {
   const rows = await db
@@ -206,4 +213,21 @@ export async function listOrdersForUser(userId: number, limit = 50): Promise<Ord
     byOrder.set(it.orderId, list);
   }
   return rows.map((r) => toOrderDTO(r, byOrder.get(r.id) ?? []));
+}
+
+/** Fetch an order by its orderCode (used for CRM manual sync). */
+export async function getOrderByCode(orderCode: string): Promise<OrderDTO | null> {
+  const [row] = await db
+    .select()
+    .from(orders)
+    .where(and(eq(orders.orderCode, orderCode), isNull(orders.deletedAt)))
+    .limit(1);
+  if (!row) return null;
+
+  const items = await db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, row.id));
+
+  return toOrderDTO(row, items);
 }

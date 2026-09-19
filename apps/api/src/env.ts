@@ -56,6 +56,14 @@ const envSchema = z.object({
 
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   TRUST_PROXY: bool.default(false),
+
+  /* --- CRM Integration --- */
+  CRM_API_BASE: z.string().default(''),
+  CRM_API_KEY: z.string().default(''),
+  CRM_BUSINESS_ID: z.coerce.number().int().min(1).default(1),
+  CRM_WEBHOOK_SECRET: z.string().default(''),
+  CRM_SYNC_ENABLED: bool.default(true),
+  CRM_SYNC_DEBOUNCE_MS: z.coerce.number().int().min(0).default(500),
 });
 
 const parsed = envSchema.safeParse(process.env);
