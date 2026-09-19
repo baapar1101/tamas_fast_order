@@ -1,0 +1,211 @@
+{
+  "name": "tamasmarket",
+  "tagline": "تماس مارکت | فروشگاه دیجیتال",
+  "description": "Tamas Market is an Iranian wholesale (omdeh) webstore for mobile accessories — phone cases, chargers, cables, glass protectors, earphones — rebuilt on Node.js + PostgreSQL + React with two-way Google Sheets sync. Fast order, wholesale pricing, and a dark ops dashboard for the admin. The storefront spans real appliance lines sourced from the client's catalogs (D:\\tamas_fast_order\\catalogs): BOROFONE (BX cables, BJ power banks, BR/BS speakers, BO headphones, BG mouse/keyboard, BH/BQ holders), HIMI (MOTION airpods, XOOM speakers, NITRO chargers, FUSION cables, VOLTA power banks), YESIDO (models YAU/GS/HM/TWS/MG/SF/CA…), and VENDENS power banks. Prices in previews come from the real BOROFONE PRICE LIST / HIMI PRICE / YESIDO 222 / POWERBANK BASKET sheets and the catalog PDFs — not invented.",
+  "sourceUrl": "https://anker.com/",
+  "logo": {
+    "primary": "assets/logo.svg",
+    "alternates": [
+      "logos/tamas-logo.svg",
+      "logos/tamas-logo.png",
+      "logos/tamas-admin-logo.svg",
+      "logos/borofone/borofone-mark-01.svg",
+      "logos/borofone/borofone-mark-02.svg",
+      "logos/borofone/borofone-mark-03.svg",
+      "logos/borofone/borofone-mark-04.svg",
+      "logos/borofone/borofone-mark-05.svg",
+      "logos/borofone/borofone-mark-06.svg",
+      "logos/borofone/borofone-mark-07.svg"
+    ],
+    "notes": "Teal monogram mark (#08798f) used as /logo.svg on the storefront and /admin-logo.svg in the admin shell. Preserved byte-for-byte from apps/web/public. logos/borofone/*.svg are the BOROFONE square tile marks (fair-use thumbnails from the catalog bundle), rounded 79.2-radius teal tiles #00768f with white wordmark — evidence that the system's promo-teal family matches the real brand line."
+  },
+  "colors": [
+    {
+      "role": "background",
+      "hex": "#f5f5f7",
+      "oklch": "",
+      "name": "Background",
+      "usage": "page canvas (storefront shell)"
+    },
+    {
+      "role": "surface",
+      "hex": "#ffffff",
+      "oklch": "",
+      "name": "Surface",
+      "usage": "cards, modal panels, inputs"
+    },
+    {
+      "role": "foreground",
+      "hex": "#1d1d1f",
+      "oklch": "",
+      "name": "Foreground",
+      "usage": "body text / headings"
+    },
+    {
+      "role": "muted",
+      "hex": "#7a7a7a",
+      "oklch": "",
+      "name": "Muted",
+      "usage": "secondary text, faint labels"
+    },
+    {
+      "role": "border",
+      "hex": "#e0e0e0",
+      "oklch": "",
+      "name": "Border",
+      "usage": "hairlines, dividers, 1px borders"
+    },
+    {
+      "role": "accent",
+      "hex": "#08798f",
+      "oklch": "",
+      "name": "Accent",
+      "usage": "brand teal — logo mark, promo strip, primary CTA"
+    },
+    {
+      "role": "accent-secondary",
+      "hex": "#00596b",
+      "oklch": "",
+      "name": "Accent secondary",
+      "usage": "deep teal — promo CTA text, links, dark footer"
+    }
+  ],
+  "typography": {
+    "display": {
+      "family": "Vazirmatn FD",
+      "fallbacks": [
+        "Vazirmatn",
+        "Tahoma",
+        "Segoe UI",
+        "sans-serif"
+      ],
+      "weights": [
+        700,
+        800
+      ]
+    },
+    "body": {
+      "family": "Vazirmatn FD",
+      "fallbacks": [
+        "Vazirmatn",
+        "Tahoma",
+        "Segoe UI",
+        "sans-serif"
+      ],
+      "weights": [
+        400,
+        700
+      ]
+    }
+  },
+  "voice": {
+    "adjectives": [
+      "wholesale",
+      "specialist",
+      "fast",
+      "trusted",
+      "transparent"
+    ],
+    "tone": "Confident and dependable — plain, direct, RTL Persian copy that leads with price, speed and trust. No hype.",
+    "messagingPillars": [
+      "تماس مارکت | فروشگاه دیجیتال",
+      "مرجع تخصصی فروش عمده کالای دیجیتال",
+      "سفارش سریع عمده لوازم جانبی موبایل",
+      "شفافیت، اعتماد و همکاری پایدار"
+    ],
+    "vocabulary": {
+      "use": [
+        "فروش عمده (wholesale)",
+        "لوازم جانبی موبایل",
+        "سفارش سریع (fast order)",
+        "قیمت عمده",
+        "ضمانت و تعویض"
+      ],
+      "avoid": []
+    }
+  },
+  "imagery": {
+    "style": "Bright, minimal, product-first: clean product shots on near-white, signature teal gradient promo banners, dark teal footer. Product photos are the client's own catalog photography (BOROFONE/HIMI/YESIDO/VENDENS lines) downscaled into imagery/products/catalog/.",
+    "subjects": [
+      "BOROFONE cables (BX19…BX114), chargers (BA/BAS), power banks (BJ25…BJ69)",
+      "BOROFONE speakers (BR/BS party boxes), headphones (BO), headsets (BE/BM), mice & keyboards (BG)",
+      "BOROFONE holders (BH/BQ), car chargers (BZ), smart watch (BD/SE2-ULTRA)",
+      "HIMI airpods (MOTION), speakers (XOOM), chargers (NITRO), cables (FUSION), power banks (VOLTA), scales (SENSE)",
+      "YESIDO electronics (YAU/GS/TWS/MG/SF/CA/C models), VENDENS power banks (PB041/PB042)",
+      "wholesale price-list sheets and basket totals (qty × unit price)"
+    ],
+    "treatment": "Full-frame product photos on white; no composite collages; real banner artwork from the catalog bundle (BANNER-01..06, BANNER-N-01..04).",
+    "avoid": [
+      "busy backgrounds",
+      "washed-out cross-sells"
+    ],
+    "samples": [
+      {
+        "file": "imagery/banners/banner-01.jpg",
+        "kind": "hero",
+        "caption": "Catalog hero banner (BANNER-01 from D:\\tamas_fast_order\\catalogs)"
+      },
+      {
+        "file": "imagery/products/catalog/borofone-cable-01.jpg",
+        "kind": "product",
+        "caption": "BOROFONE cable — e.g. BX93 USB-C (قیمت فروش 135)"
+      },
+      {
+        "file": "imagery/products/catalog/borofone-charger-01.jpg",
+        "kind": "product",
+        "caption": "BOROFONE charger — e.g. BA76A USB-C (قیمت فروش 775)"
+      },
+      {
+        "file": "imagery/products/catalog/borofone-speaker-01.jpg",
+        "kind": "product",
+        "caption": "BOROFONE speaker — e.g. BR29 (قیمت فروش 1670)"
+      },
+      {
+        "file": "imagery/products/catalog/borofone-headphone-01.jpg",
+        "kind": "product",
+        "caption": "BOROFONE headphone — e.g. BO22 (قیمت فروش 1720)"
+      },
+      {
+        "file": "imagery/products/catalog/borofone-mouse-01.jpg",
+        "kind": "product",
+        "caption": "BOROFONE mouse/keyboard — e.g. BG13 mouse (قیمت فروش 600)"
+      },
+      {
+        "file": "imagery/products/catalog/borofone-holder-01.jpg",
+        "kind": "product",
+        "caption": "BOROFONE holder — e.g. BH54 (قیمت فروش 699)"
+      },
+      {
+        "file": "imagery/products/catalog/borofone-umbos-01.jpg",
+        "kind": "product",
+        "caption": "BOROFONE catalog item (umbos photo set)"
+      },
+      {
+        "file": "imagery/products/catalog/vendens-01.jpg",
+        "kind": "product",
+        "caption": "VENDENS power bank (POWERBANK BASKET: PB041 ۱۰هزار 499, PB042 ۲۰هزار 879)"
+      },
+      {
+        "file": "imagery/banners/poster-himi-02.jpg",
+        "kind": "poster",
+        "caption": "HIMI poster (POSTER HIMI-02) — MOTION/XOOM/NITRO/VOLTA lines"
+      }
+    ]
+  },
+  "layout": {
+    "radius": "8px",
+    "borderWeight": "1px",
+    "spacing": "8px baseline grid",
+    "postureRules": [
+      "Persian RTL-first; isolate LTR spans (prices, phone numbers, order codes) with unicode-bidi: isolate.",
+      "Pill-shaped primary buttons (border-radius 980px); cards and modals use 18px, inputs 10px. Pills signal action: primary CTA, chips and search inputs all use the pill radius.",
+      "Signature flourish: the teal promo strip gradient (#00596b → #00768f → #008da8) across the top bar — the system's ONE decorative gradient.",
+      "Dark ops admin shell: slate-ink surfaces (#070b12 → #0e1626) with emerald/cyan accents.",
+      "Compact Apple-style header (44px) with 12px backdrop blur.",
+      "Shadows: 0 1px 3px / 0 4px 14px / 0 12px 32px -4px (rgba black at 0.02/0.04/0.08) — whisper-level on chrome. The heavy shadow (0 12px 32px -4px at 0.14) is reserved for product renders resting on a surface, never cards, buttons or text.",
+      "Interaction: buttons scale to 0.95 on :active (system-wide micro-interaction). States are default + active/pressed only — never hover-only. Focus ring is 2px solid accent teal on light surfaces and 2px admin cyan on the dark shell.",
+      "Motion: all transitions 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) (0.1s for press feedback); modal pop and promo sheen keyframes come from the storefront.",
+      "Catalog principle: products, model codes and prices in any preview must come from the real catalogs (context/catalog-data.json + imagery/products/catalog/ + imagery/banners/) — BOROFONE/HIMI/YESIDO/VENDENS lines with their actual SKUs (BX, BJ, BR, BO, BH, BG, MOTION, XOOM, NITRO, FUSION, VOLTA, YAU, GS, PB…). Wholesale price columns (قیمت فروش) are real extractions, not samples."
+    ]
+  }
+}

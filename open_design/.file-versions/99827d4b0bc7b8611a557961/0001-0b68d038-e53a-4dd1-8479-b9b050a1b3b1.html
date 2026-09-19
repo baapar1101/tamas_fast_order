@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>tamasmarket — Preview (روشن)</title>
+<style>
+  :root {
+    --tamas-bg:#f5f5f7; --tamas-surface:#ffffff; --tamas-fg:#1d1d1f; --tamas-muted:#7a7a7a;
+    --tamas-border:#e0e0e0; --tamas-accent:#08798f; --tamas-accent-deep:#00596b;
+    --tamas-success:#34c759; --tamas-warning:#ff9500; --tamas-danger:#ff3b30;
+    --tamas-success-bg:#ffffff; --tamas-warning-bg:#fff6d6; --tamas-danger-bg:#ffdcd3;
+    --tamas-radius:8px; --tamas-radius-card:18px; --tamas-radius-pill:980px;
+    --tamas-shadow:0 4px 14px rgba(0,0,0,.04); --tamas-ease:cubic-bezier(.2,.8,.2,1);
+    font: 400 14px/1.57 "Vazirmatn FD", Vazirmatn, Tahoma, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--tamas-bg); color: var(--tamas-fg); margin: 0; padding: 32px 20px; }
+  .card { max-width: 460px; margin: 0 auto; background: var(--tamas-surface); border: 1px solid var(--tamas-border); border-radius: var(--tamas-radius-card); box-shadow: var(--tamas-shadow); padding: 20px; }
+  .head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .head img { height: 34px; width: 34px; }
+  .head b { font-weight: 700; font-size: 16px; }
+  .head span { display: block; font-size: 11px; color: var(--tamas-muted); font-weight: 400; }
+  .swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+  .sw { border-radius: 10px; height: 56px; border: 1px solid rgba(0,0,0,.06); display: flex; align-items: flex-end; padding: 6px 8px; font-size: 10px; font-weight: 700; }
+  .promo { border-radius: 14px; padding: 12px 16px; margin: 6px 0 14px; background: linear-gradient(90deg,#00596b,#00768f 60%,#008da8); color:#fff; font-weight: 700; font-size: 13px; }
+  .prod { display: flex; gap: 12px; align-items: center; border: 1px solid var(--tamas-border); border-radius: 14px; padding: 10px; }
+  .prod img { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; background: #f1f1f3; }
+  .p-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .p-price { font-weight: 700; margin: 4px 0; }
+  .p-price s { color: var(--tamas-muted); font-size: 11px; margin-inline-start: 6px; }
+  .pill { display: inline-block; border-radius: var(--tamas-radius-pill); background: var(--tamas-accent); color: #fff; font-weight: 700; font-size: 11.5px; padding: 6px 16px; }
+  .states { display: flex; gap: 8px; margin-top: 12px; }
+  .st { font-size: 11px; font-weight: 700; border-radius: var(--tamas-radius-pill); padding: 3px 12px; }
+  .note { margin-top: 14px; font-size: 10.5px; color: var(--tamas-muted); }
+  .ltr { unicode-bidi: isolate; direction: ltr; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="head">
+      <img src="../assets/logo.svg" alt="" />
+      <div><b>تماس مارکت</b><span>فروشگاه دیجیتال · فروش عمده</span></div>
+    </div>
+
+    <div class="promo">سفارش سریع عمده لوازم جانبی موبایل — ارسال از تهران و کرمان</div>
+
+    <div class="prod">
+      <img src="../imagery/products/img_07a71539e7f4.jpg" alt="" />
+      <div>
+        <div class="p-title">گلس محافظ صفحه‌نمایش — نمونه</div>
+        <div class="p-price">۳۵٬۰۰۰ تومان <s>۴۲٬۰۰۰ تومان</s></div>
+        <span class="pill">+ افزودن به سفارش</span>
+      </div>
+    </div>
+
+    <div class="swatches">
+      <div class="sw" style="background:#f5f5f7">bg #f5f5f7</div>
+      <div class="sw" style="background:#ffffff;color:#1d1d1f">surface #ffffff</div>
+      <div class="sw" style="background:#e0e0e0;color:#1d1d1f">border #e0e0e0</div>
+      <div class="sw" style="background:#08798f;color:#fff">accent #08798f</div>
+      <div class="sw" style="background:#00596b;color:#fff">deep #00596b</div>
+      <div class="sw" style="background:#1d1d1f;color:#fff">fg #1d1d1f</div>
+      <div class="sw" style="background:#34c759;color:#fff">success #34c759</div>
+      <div class="sw" style="background:#ff9500;color:#fff">warning #ff9500</div>
+      <div class="sw" style="background:#ff3b30;color:#fff">danger #ff3b30</div>
+    </div>
+
+    <div class="states">
+      <span class="st" style="background:var(--tamas-success-bg);color:var(--tamas-success)">موجود</span>
+      <span class="st" style="background:var(--tamas-warning-bg);color:var(--tamas-warning)">موجودی محدود</span>
+      <span class="st" style="background:var(--tamas-danger-bg);color:var(--tamas-danger)">ناموجود</span>
+    </div>
+
+    <p class="note">پیش‌نمایش تم روشن · tokens = <code class="ltr">colors_and_type.css</code> · تصویر از کاتالوگ واقعی، قیمت نمونه</p>
+  </div>
+</body>
+</html>

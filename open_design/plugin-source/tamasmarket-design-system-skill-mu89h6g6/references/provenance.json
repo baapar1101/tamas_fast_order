@@ -1,0 +1,40 @@
+{
+  "candidateId": "f44bdeec-756a-412b-b877-9f8b2fdee79e",
+  "projectId": "brand-anker-535220",
+  "runId": "dc505b90-3e7d-48bb-9ab2-be804503df79",
+  "conversationId": "b6f5567f-4599-4a86-b30d-561a70e0f85c",
+  "provenance": {
+    "summary": "Detected from SKILL.md, context/source-context.md, context/local-code/catalogs.md, agent-knowledge/verified-scorecard.md after a successful run.",
+    "detectedAt": 1789813944556
+  },
+  "sourceRefs": [
+    {
+      "kind": "file",
+      "value": "SKILL.md",
+      "label": "SKILL.md",
+      "size": 5478,
+      "copied": true
+    },
+    {
+      "kind": "file",
+      "value": "context/source-context.md",
+      "label": "context/source-context.md",
+      "size": 11061,
+      "copied": true
+    },
+    {
+      "kind": "file",
+      "value": "context/local-code/catalogs.md",
+      "label": "context/local-code/catalogs.md",
+      "size": 28746,
+      "copied": true
+    },
+    {
+      "kind": "file",
+      "value": "agent-knowledge/verified-scorecard.md",
+      "label": "agent-knowledge/verified-scorecard.md",
+      "size": 1749,
+      "copied": true
+    }
+  ]
+}

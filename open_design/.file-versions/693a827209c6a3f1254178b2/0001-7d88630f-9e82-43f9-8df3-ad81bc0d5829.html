@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>tamasmarket — Preview (تاریک)</title>
+<style>
+  :root {
+    --bg:#0b111d; --surface:#0e1626; --panel:#131c2e; --fg:#eef0f6; --muted:#9aa4b4;
+    --accent:#08798f; --emerald:#10b981; --cyan:#06b6d4;
+    --success:#10b981; --warning:#f59e0b; --danger:#fb7185;
+    --success-bg:#041511; --warning-bg:#281908; --danger-bg:#611424;
+    --radius:8px; --radius-card:18px; --shadow:0 12px 32px -4px rgba(0,0,0,.6);
+    font: 400 14px/1.57 "Vazirmatn FD", Vazirmatn, Tahoma, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); margin: 0; padding: 32px 20px;
+         background: linear-gradient(180deg,#070b12,#0b111d 40%,#0e1626); }
+  .card { max-width: 460px; margin: 0 auto; background: var(--surface); border: 1px solid var(--panel); border-radius: var(--radius-card); box-shadow: var(--shadow); padding: 20px; }
+  .head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .head img { height: 34px; width: 34px; }
+  .head b { font-weight: 700; font-size: 16px; }
+  .head span { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
+  .promo { border-radius: 14px; padding: 12px 16px; margin: 6px 0 14px; background: linear-gradient(90deg,#00596b,#00768f 60%,#008da8); color:#fff; font-weight: 700; font-size: 13px; }
+  .prod { display: flex; gap: 12px; align-items: center; border: 1px solid var(--panel); border-radius: 14px; padding: 10px; }
+  .prod img { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; background:#131c2e; }
+  .p-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .p-price { font-weight: 700; margin: 4px 0; }
+  .p-price s { color: var(--muted); font-size: 11px; margin-inline-start: 6px; }
+  .pill { display: inline-block; border-radius: 980px; background: var(--accent); color: #fff; font-weight: 700; font-size: 11.5px; padding: 6px 16px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  th, td { text-align: right; padding: 8px 6px; border-bottom: 1px solid var(--panel); }
+  th { color: var(--muted); font-weight: 400; font-size: 11px; }
+  .states { display: flex; gap: 8px; margin-top: 12px; }
+  .st { font-size: 11px; font-weight: 700; border-radius: 980px; padding: 3px 12px; }
+  .note { margin-top: 14px; font-size: 10.5px; color: var(--muted); }
+  .ltr { unicode-bidi: isolate; direction: ltr; }
+  .em { color: var(--emerald); font-weight: 700; } .cy { color: var(--cyan); font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="head">
+      <img src="../logos/tamas-admin-logo.svg" alt="" />
+      <div><b>پنل مدیریت — تماس مارکت</b><span>داشبورد عملیاتی</span></div>
+    </div>
+
+    <div class="promo">سفارش سریع عمده لوازم جانبی موبایل — ارسال از تهران و کرمان</div>
+
+    <div class="prod">
+      <img src="../imagery/products/img_17d1bd9005c3.png" alt="" />
+      <div>
+        <div class="p-title">هدفون بی‌سیم — نمونه</div>
+        <div class="p-price">۸۹٬۰۰۰ تومان <s>۱۲۰٬۰۰۰ تومان</s></div>
+        <span class="pill">+ افزودن به سفارش</span>
+      </div>
+    </div>
+
+    <table>
+      <thead><tr><th>کد کالا</th><th>نام کالا</th><th>موجودی</th><th>وضعیت</th></tr></thead>
+      <tbody>
+        <tr><td class="ltr">TC-1047</td><td>گلس محافظ</td><td>128</td><td class="em">تأیید شد</td></tr>
+        <tr><td class="ltr">TC-0087</td><td>کابل تایپ سی</td><td>4</td><td class="cy">به‌روزرسانی</td></tr>
+        <tr><td class="ltr">DK-5306</td><td>قاب سیلیکونی</td><td>0</td><td>ناموجود</td></tr>
+      </tbody>
+    </table>
+
+    <div class="states">
+      <span class="st" style="background:var(--success-bg);color:var(--success)">موجود</span>
+      <span class="st" style="background:var(--warning-bg);color:var(--warning)">موجودی محدود</span>
+      <span class="st" style="background:var(--danger-bg);color:var(--danger)">ناموجود</span>
+    </div>
+
+    <p class="note">پیش‌نمایش تم تاریک (پنل مدیریت) · ink <code class="ltr">#070b12/#0e1626</code> · emerald/cyan تزئینی · تصویر از کاتالوگ واقعی، قیمت نمونه</p>
+  </div>
+</body>
+</html>

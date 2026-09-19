@@ -1,0 +1,76 @@
+/* ============================================================================
+   tamasmarket — colors_and_type.css
+   Concrete, reusable design tokens for the Tamas Market (تماس مارکت) system.
+   Bind this file into any deliverable as the FIRST <style>/<link> for
+   tamasmarket work. Palette, radii, borders, shadows, spacing and motion are
+   measured from the tamasmarket storefront + admin codebase, not invented.
+
+   Fonts are shipped in ./fonts (Vazirmatn FD woff2, weights 400-800).
+   ========================================================================== */
+
+@import url("./fonts/fonts.css");
+
+:root {
+  /* ---- Color · core palette (measured) ---- */
+  --tamas-bg: #f5f5f7;            /* page canvas — storefront shell */
+  --tamas-surface: #ffffff;       /* cards, modal panels, inputs */
+  --tamas-fg: #1d1d1f;            /* body text / headings */
+  --tamas-muted: #7a7a7a;         /* secondary text, faint labels */
+  --tamas-border: #e0e0e0;        /* hairlines / 1px borders */
+  --tamas-accent: #08798f;        /* brand teal — logo mark, promo, CTA */
+  --tamas-accent-deep: #00596b;   /* promo CTA text, links, dark footer */
+
+  /* ---- Color · state (measured from the app) ---- */
+  --tamas-success: #34c759;
+  --tamas-success-bg: #e5f8eb;
+  --tamas-warning: #ff9500;
+  --tamas-warning-bg: #fff4e5;
+  --tamas-danger: #ff3b30;
+  --tamas-danger-bg: #ffebeb;
+  --tamas-info-bg: #e5f0ff;
+
+  /* ---- Color · dark ops admin shell (measured) ---- */
+  --tamas-ink-950: #070b12;
+  --tamas-ink-900: #0b111d;
+  --tamas-ink-850: #0e1626;
+  --tamas-ink-800: #131c2e;
+  --tamas-ink-fg: #eef0f6;
+  --tamas-ink-muted: #9aa4b4;
+  --tamas-admin-emerald: #10b981;
+  --tamas-admin-cyan: #06b6d4;
+  --tamas-admin-grad: linear-gradient(180deg, #0b111d, #0e1626);
+
+  /* ---- Color · composite brand moments ---- */
+  --tamas-promo-grad: linear-gradient(90deg, #00596b, #00768f 60%, #008da8);
+
+  /* ---- Typography ---- */
+  --tamas-font: "Vazirmatn FD", Vazirmatn, Tahoma, "Segoe UI", sans-serif;
+
+  /* ---- Layout posture ---- */
+  --tamas-radius-sm: 8px;         /* default radius */
+  --tamas-radius-input: 10px;
+  --tamas-radius-card: 18px;
+  --tamas-radius-pill: 980px;
+  --tamas-border-w: 1px;
+  --tamas-space: 8px;             /* baseline grid */
+
+  /* ---- Shadows (storefront) ---- */
+  --tamas-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.02);
+  --tamas-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  --tamas-shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.08);
+
+  /* ---- Motion (storefront) ---- */
+  --tamas-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --tamas-duration: 0.2s;
+  --tamas-duration-fast: 0.1s;    /* press/active feedback */
+
+  /* ---- Interaction & focus (Apple-style: states = default + active, never hover-only) ---- */
+  --tamas-press: 0.95;            /* buttons shrink to 0.95 on :active */
+  --tamas-focus-ring: 0 0 0 2px rgba(8, 121, 143, 0.35);   /* light surfaces — accent teal */
+  --tamas-focus-ring-dark: 0 0 0 2px rgba(6, 182, 212, 0.5); /* dark ops shell — admin cyan */
+
+  /* ---- Elevation ---- */
+  /* Whisper shadows only on chrome (alphas 0.02/0.04/0.08 measured). The heavy
+     shadow is reserved for product renders resting on a surface — never chrome. */
+  --tamas-shadow-product: 0 12px 32px -4px rgba(0, 0, 0, 0.14); /* product imagery only */
+}

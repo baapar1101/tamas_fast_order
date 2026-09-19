@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "prefetch/page.html",
+  "currentVersionId": "ab1adced-5b0d-42ca-bc23-173f3a393918",
+  "entries": [
+    {
+      "id": "ab1adced-5b0d-42ca-bc23-173f3a393918",
+      "fileName": "prefetch/page.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1789807850207,
+      "source": "ai",
+      "prompt": "update design system based my project and named tamasmarket (see my logo)",
+      "size": 6000900,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-ab1adced-5b0d-42ca-bc23-173f3a393918.html",
+      "contentDigest": "a431d1154eb6540b0941653da6eac1e23087f8b84a63b4072020d547e3dd61da",
+      "promptSource": "message"
+    }
+  ]
+}

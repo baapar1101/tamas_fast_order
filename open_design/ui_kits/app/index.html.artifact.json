@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "ui_kits/app/index.html",
+  "entry": "ui_kits/app/index.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-09-19T09:03:53.072Z",
+  "updatedAt": "2026-09-19T09:03:53.072Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

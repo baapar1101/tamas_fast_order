@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "preview/brand-assets.html",
+  "currentVersionId": "faa48848-2fe5-4fd1-9cf6-9089b830f52d",
+  "entries": [
+    {
+      "id": "faa48848-2fe5-4fd1-9cf6-9089b830f52d",
+      "fileName": "preview/brand-assets.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1789813102795,
+      "source": "ai",
+      "prompt": "extract fully them and design system and update based on D:\\tamas_fast_order\\catalogs",
+      "size": 5022,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-faa48848-2fe5-4fd1-9cf6-9089b830f52d.html",
+      "contentDigest": "40443dbe73e265446585d97b3571e2f7acb42d4d96c4cbee37363e0c8c345f0d",
+      "promptSource": "message"
+    }
+  ]
+}

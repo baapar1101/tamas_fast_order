@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>tamasmarket — Typography Specimens (تایپوگرافی)</title>
+<link rel="stylesheet" href="../fonts/fonts.css" />
+<style>
+  :root {
+    --tamas-bg:#f5f5f7; --tamas-surface:#ffffff; --tamas-fg:#1d1d1f; --tamas-muted:#7a7a7a;
+    --tamas-border:#e0e0e0; --tamas-accent:#08798f;
+    --tamas-radius:8px; --tamas-radius-card:18px;
+    font-family: "Vazirmatn FD", Vazirmatn, Tahoma, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--tamas-bg); color: var(--tamas-fg); margin: 0; padding: 32px 20px; line-height: 1.57; }
+  .card { max-width: 720px; margin: 0 auto; background: var(--tamas-surface); border: 1px solid var(--tamas-border); border-radius: var(--tamas-radius-card); padding: 24px; }
+  h1 { font-size: 18px; font-weight: 800; margin: 0 0 4px; }
+  .sub { color: var(--tamas-muted); font-size: 12px; margin-bottom: 18px; }
+  .row { display: grid; grid-template-columns: 84px 1fr; gap: 12px; align-items: baseline; border-bottom: 1px solid #f1f1f3; padding: 12px 0; }
+  .row .label { font-size: 10.5px; color: var(--tamas-muted); font-weight: 700; }
+  .row .ltr { unicode-bidi: isolate; direction: ltr; font-size: 10px; color: var(--tamas-muted); }
+  .sample { color: var(--tamas-fg); margin: 0; }
+  .w700 { font-weight: 700; } .w600 { font-weight: 600; } .w500 { font-weight: 500; } .w400 { font-weight: 400; } .w800 { font-weight: 800; }
+  .prices { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .price { border: 1px solid var(--tamas-border); border-radius: var(--tamas-radius); padding: 8px 12px; }
+  .price b { font-weight: 800; }
+  .price small { color: var(--tamas-muted); font-size: 10px; display: block; }
+  .note { margin-top: 18px; font-size: 10.5px; color: var(--tamas-muted); }
+  .ltr { unicode-bidi: isolate; direction: ltr; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>تایپوگرافی — Vazirmatn FD</h1>
+    <div class="sub">Display / Body · وزنی 400–800 · پشتیبان: Vazirmatn, Tahoma, Segoe UI</div>
+
+    <div class="row"><div class="label">Display 800<br/><span class="ltr">ExtraBold</span></div><p class="sample w800" style="font-size:30px">سفارشسریع عمدهٔ لوازم جانبی موبایل</p></div>
+    <div class="row"><div class="label">Display 700<br/><span class="ltr">Bold</span></div><p class="sample w700" style="font-size:24px">تماس مارکت | فروشگاه دیجیتال</p></div>
+    <div class="row"><div class="label">Body 700<br/><span class="ltr">Bold</span></div><p class="sample w700" style="font-size:16px">پاوربانک BOROFONE — قیمت فروش عمده</p></div>
+    <div class="row"><div class="label">Body 600<br/><span class="ltr">SemiBold</span></div><p class="sample w600" style="font-size:14px">کابل USB-C با ضمانت و تعویض — ارسال از تهران و کرمان</p></div>
+    <div class="row"><div class="label">Body 500<br/><span class="ltr">Medium</span></div><p class="sample w500" style="font-size:14px">شفافیت، اعتماد و همکاری پایدار در فروش عمده</p></div>
+    <div class="row"><div class="label">Body 400<br/><span class="ltr">Regular</span></div><p class="sample w400" style="font-size:14px">لوازم جانبی موبایل برندهای معتبر — قیمت به‌روز از کاتالوگ</p></div>
+
+    <div class="row" style="border-bottom:none"><div class="label">LTR island<br/><span class="ltr">isolate</span></div>
+      <p class="sample w700" style="font-size:13px">کد سفارش <span class="ltr" style="color:var(--tamas-accent)">BX93 USB-C</span> ثبت شد</p></div>
+
+    <div class="prices">
+      <div class="price"><small>قیمت فروش (هزار تومان)</small><b>۱۳۵</b> <span class="w400" style="font-size:12px">هزار تومان</span></div>
+      <div class="price"><small>قیمت آنلاین HIMI (ریال)</small><b class="ltr" style="font-weight:800">29,860,000</b><small class="ltr">rial</small></div>
+      <div class="price"><small>قیمت PDF (تومان)</small><b class="ltr">9.499.000</b><small class="ltr">speaker PDF</small></div>
+    </div>
+
+    <p class="note">پیش‌نمایش تایپ‌فیس · منبع سطح: استورفرنت + پنل مدیریت · اعداد قیمت به‌صورت LTR-isolated نمایش داده می‌شوند (unicode-bidi: isolate) و ارقام نمونه برگرفته از کاتالوگ واقعی‌اند.</p>
+  </div>
+</body>
+</html>

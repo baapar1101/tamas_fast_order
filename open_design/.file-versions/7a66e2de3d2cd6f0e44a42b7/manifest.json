@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "ui_kits/app/components/list-rail.html",
+  "currentVersionId": "9b93e70c-66a0-487b-ad3c-6f5320ace0b0",
+  "entries": [
+    {
+      "id": "9b93e70c-66a0-487b-ad3c-6f5320ace0b0",
+      "fileName": "ui_kits/app/components/list-rail.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1789813102801,
+      "source": "ai",
+      "prompt": "extract fully them and design system and update based on D:\\tamas_fast_order\\catalogs",
+      "size": 1912,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-9b93e70c-66a0-487b-ad3c-6f5320ace0b0.html",
+      "contentDigest": "562e2fbed0074276c09a554b067cb8f9207174c67dc44bcef1b6c2385f7239d2",
+      "promptSource": "message"
+    }
+  ]
+}

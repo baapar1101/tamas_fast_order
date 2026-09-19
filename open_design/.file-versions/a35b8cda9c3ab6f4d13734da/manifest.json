@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "preview/spacing-tokens.html",
+  "currentVersionId": "cde2db86-cfec-4608-b389-d4111e61abfd",
+  "entries": [
+    {
+      "id": "cde2db86-cfec-4608-b389-d4111e61abfd",
+      "fileName": "preview/spacing-tokens.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1789813102796,
+      "source": "ai",
+      "prompt": "extract fully them and design system and update based on D:\\tamas_fast_order\\catalogs",
+      "size": 4223,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-cde2db86-cfec-4608-b389-d4111e61abfd.html",
+      "contentDigest": "e06c26913f31d7e30408f2b99e839ff037783d0bcab154eb0e7200086140fffb",
+      "promptSource": "message"
+    }
+  ]
+}

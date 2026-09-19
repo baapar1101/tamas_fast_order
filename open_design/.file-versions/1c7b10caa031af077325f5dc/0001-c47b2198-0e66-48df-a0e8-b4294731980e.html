@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>tamasmarket — Color Preview (هسته رنگ)</title>
+<style>
+  :root {
+    --tamas-bg:#f5f5f7; --tamas-surface:#ffffff; --tamas-fg:#1d1d1f; --tamas-muted:#7a7a7a;
+    --tamas-border:#e0e0e0; --tamas-accent:#08798f; --tamas-accent-deep:#00596b;
+    --tamas-success:#34c759; --tamas-warning:#ff9500; --tamas-danger:#ff3b30;
+    --tamas-radius:8px; --tamas-radius-card:18px; --tamas-ease:cubic-bezier(.2,.8,.2,1);
+    font: 400 14px/1.57 "Vazirmatn FD", Vazirmatn, Tahoma, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--tamas-bg); color: var(--tamas-fg); margin: 0; padding: 32px 20px; }
+  .card { max-width: 720px; margin: 0 auto; background: var(--tamas-surface); border: 1px solid var(--tamas-border); border-radius: var(--tamas-radius-card); padding: 20px; }
+  h1 { font-size: 18px; font-weight: 800; margin: 0 0 4px; }
+  .sub { color: var(--tamas-muted); font-size: 12px; margin-bottom: 18px; }
+  .group-title { font-weight: 700; font-size: 12.5px; color: var(--tamas-muted); margin: 18px 0 8px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .sw { border-radius: var(--tamas-radius); height: 74px; border: 1px solid rgba(0,0,0,.07); display: flex; flex-direction: column; justify-content: flex-end; padding: 8px 10px; font-size: 10.5px; }
+  .sw b { font-weight: 700; font-size: 11px; }
+  .sw small { color: rgba(0,0,0,.55); }
+  .grad-row { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .grad { border-radius: var(--tamas-radius); height: 44px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 12.5px; }
+  .notes { margin-top: 16px; font-size: 11.5px; color: var(--tamas-muted); line-height: 1.7; }
+  .note-cat { margin-top: 18px; font-size: 10.5px; color: var(--tamas-muted); }
+  .ltr { unicode-bidi: isolate; direction: ltr; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>هسته رنگ — تماس مارکت</h1>
+    <div class="sub">روشن / سطح: وب · منبع: کاتالوگ + استورفرانت (رندر زندهٔ token ها)</div>
+
+    <div class="group-title">نقش‌های اصلی (7 توکن قفل)</div>
+    <div class="grid">
+      <div class="sw" style="background:#f5f5f7"><b>background</b><small>#f5f5f7</small></div>
+      <div class="sw" style="background:#ffffff;color:#1d1d1f"><b>surface</b><small>#ffffff</small></div>
+      <div class="sw" style="background:#1d1d1f"><b>foreground</b><small>#1d1d1f</small></div>
+      <div class="sw" style="background:#7a7a7a;color:#fff"><b>muted</b><small>#7a7a7a</small></div>
+      <div class="sw" style="background:#e0e0e0;color:#1d1d1f"><b>border</b><small>#e0e0e0</small></div>
+      <div class="sw" style="background:#08798f"><b>accent</b><small>#08798f · teal</small></div>
+      <div class="sw" style="background:#00596b"><b>accent-secondary</b><small>#00596b · deep teal</small></div>
+      <div class="sw" style="background:#ffffff;border:1px solid #7a7a7a;color:#7a7a7a"><b>on-surface placeholder</b><small>muted on white</small></div>
+      <div class="sw" style="background:#00768f"><b>gradient mid-stop</b><small>#00768f · cross-check</small></div>
+    </div>
+
+    <div class="group-title">وضعیت (عملیاتی — پنل مدیریت)</div>
+    <div class="grid">
+      <div class="sw" style="background:#34c759;color:#fff"><b>success</b><small>#34c759 · مرتبهٔ تأیید</small></div>
+      <div class="sw" style="background:#ff9500;color:#fff"><b>warning</b><small>#ff9500 · موجودی محدود</small></div>
+      <div class="sw" style="background:#ff3b30;color:#fff"><b>danger</b><small>#ff3b30 · ناموجود</small></div>
+      <div class="sw" style="background:#10b981;color:#fff"><b>success (dark)</b><small>#10b981</small></div>
+      <div class="sw" style="background:#f59e0b;color:#fff"><b>warning (dark)</b><small>#f59e0b</small></div>
+      <div class="sw" style="background:#fb7185;color:#fff"><b>danger (dark)</b><small>#fb7185</small></div>
+      <div class="sw" style="background:#070b12;color:#fff"><b>ink 1 (dark shell)</b><small>#070b12</small></div>
+      <div class="sw" style="background:#0e1626;color:#fff"><b>ink 2 (dark shell)</b><small>#0e1626</small></div>
+      <div class="sw" style="background:#06b6d4;color:#fff"><b>admin cyan</b><small>#06b6d4 · focus</small></div>
+    </div>
+
+    <div class="group-title">گرادیان تبلیغاتی (تنها گرادیان تزئینی سیستم)</div>
+    <div class="grad-row">
+      <div class="grad" style="background:linear-gradient(90deg,#00596b,#00768f 60%,#008da8)">#00596b → #00768f → #008da8</div>
+    </div>
+
+    <div class="notes">
+      • <b>accent #08798f</b> و <b>accent-secondary #00596b</b> از نشانگرهای برند BOROFONE (تایل‌های teal در <span class="ltr">logos/borofone/*.svg</span>) و استورفرنت گرفته شده‌اند.<br/>
+      • <b>#00768f</b> دقیقاً نقطهٔ میانی گرادیان است — بازنویسی در هیچ UI استخدام نمی‌شود (پایهٔ مشتق، نه hue جدید).<br/>
+      • رنگ‌های وضعیت از حالت سفارش/موجودی پنل مدیریت استفراط و با سیستم تایپ cross-check شده‌اند.
+    </div>
+
+    <p class="note-cat">پیش‌نمایش رنگ · tokens = <code class="ltr">system/variables.css</code> + <code class="ltr">system/tokens.default.json</code> · ترتیب وضعیت مطابق card.dark.html («موجود / موجودی محدود / ناموجود»)</p>
+  </div>
+</body>
+</html>

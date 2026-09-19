@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "ui_kits/app/components/nav-sidebar.html",
+  "currentVersionId": "232ba1b0-4c35-4e07-a8b4-60ae399bb566",
+  "entries": [
+    {
+      "id": "232ba1b0-4c35-4e07-a8b4-60ae399bb566",
+      "fileName": "ui_kits/app/components/nav-sidebar.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1789813102802,
+      "source": "ai",
+      "prompt": "extract fully them and design system and update based on D:\\tamas_fast_order\\catalogs",
+      "size": 1284,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-232ba1b0-4c35-4e07-a8b4-60ae399bb566.html",
+      "contentDigest": "02743ae7a97f29b323f3f9e7e8d1fdf1b68daaf590e7d48aeeb244afe05a92a9",
+      "promptSource": "message"
+    }
+  ]
+}
