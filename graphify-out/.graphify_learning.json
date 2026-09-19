@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-19T07:33:19.972499+00:00",
+  "generated_at": "2026-09-19T08:13:30.861942+00:00",
   "nodes": {
     "apps_api_src_services_catalog_availablestock": {
       "code_fingerprint": "fb9ea14c749466d9f6d69161842707e2dc690f88bbf27f3ff58f51f7c04406dc",
@@ -12,8 +12,40 @@
           "q": "انبار رو اشتباه نشون میده و مطابق پنل ادمین نیست"
         }
       ],
-      "score": 0.99989246,
+      "score": 0.999248023,
       "source_file": "apps/api/src/services/catalog.ts",
+      "status": "tentative",
+      "uses": 1
+    },
+    "apps_web_src_admin_components_imagepicker": {
+      "code_fingerprint": "8f4afae3b449c8eb954cbf65d925b7f35cf5af15a8e71aeb108997a73b8e9fde",
+      "label": "ImagePicker.tsx",
+      "last": "2026-09-19T07:34:12.176968+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-19T07:34:12.176968+00:00",
+          "outcome": "useful",
+          "q": "Fix npm run build errors in ProductEditor.tsx"
+        }
+      ],
+      "score": 0.999369444,
+      "source_file": "apps/web/src/admin/components/ImagePicker.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "apps_web_src_admin_components_producteditor": {
+      "code_fingerprint": "fb25dbd50c53bf0e87498924694f8a399e5e1a6fa9494e1251093b6f895740d0",
+      "label": "ProductEditor.tsx",
+      "last": "2026-09-19T07:34:12.176968+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-19T07:34:12.176968+00:00",
+          "outcome": "useful",
+          "q": "Fix npm run build errors in ProductEditor.tsx"
+        }
+      ],
+      "score": 0.999369444,
+      "source_file": "apps/web/src/admin/components/ProductEditor.tsx",
       "status": "tentative",
       "uses": 1
     },
@@ -28,7 +60,7 @@
           "q": "انبار رو اشتباه نشون میده و مطابق پنل ادمین نیست"
         }
       ],
-      "score": 0.99989246,
+      "score": 0.999248023,
       "source_file": "apps/web/src/store/cart.ts",
       "status": "tentative",
       "uses": 1
@@ -44,7 +76,7 @@
           "q": "انبار رو اشتباه نشون میده و مطابق پنل ادمین نیست"
         }
       ],
-      "score": 0.99989246,
+      "score": 0.999248023,
       "source_file": "apps/web/src/storefront/hooks.ts",
       "status": "tentative",
       "uses": 1
@@ -60,7 +92,7 @@
           "q": "انبار رو اشتباه نشون میده و مطابق پنل ادمین نیست"
         }
       ],
-      "score": 0.99989246,
+      "score": 0.999248023,
       "source_file": "apps/web/src/storefront/ProductCard.tsx",
       "status": "tentative",
       "uses": 1

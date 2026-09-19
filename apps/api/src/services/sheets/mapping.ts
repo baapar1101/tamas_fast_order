@@ -217,7 +217,30 @@ async function ensureCategory(name: string): Promise<number | null> {
  * Products
  * ------------------------------------------------------------------ */
 
-const PRODUCT_COLUMNS = ['product_id', 'Category', 'Brand', 'title', 'model', 'color', 'sku', 'RIAL PRICE', 'price', 'old_price', 'sell_type', 'discount%', 'kerman_stock', 'tehran_stock', 'warranty', 'promotion', 'status', 'image_url', 'attribute_key', 'attribute_value'];
+const PRODUCT_COLUMNS = ['product_id', 'Category', 'Brand', 'title', 'model', 'color', 'sku', 'RIAL PRICE', 'price', 'old_price', 'sell_type', 'discount%', 'kerman_stock', 'tehran_stock', 'warranty', 'promotion', 'status', 'image_url', 'attribute_key', 'attribute_value', UPDATED_AT_COLUMN];
+
+/**
+ * The sheet exposes price in both تومان (`price`) and ریال (`RIAL PRICE`).
+ * A push fills both cells, so on pull we compare each representation with the
+ * current database price to discover which cell the user actually edited.
+ */
+export function resolveProductSheetPrice(cells: SheetCells, currentPrice?: number): number {
+  const tomanRaw = str(cells.price);
+  const rialRaw = str(cells['RIAL PRICE']);
+  const toman = tomanRaw ? num(tomanRaw) : null;
+  const rialAsToman = rialRaw ? Math.trunc(num(rialRaw) / 10) : null;
+
+  if (currentPrice != null) {
+    const tomanChanged = toman != null && toman !== currentPrice;
+    const rialChanged = rialAsToman != null && rialAsToman !== currentPrice;
+    if (tomanChanged && !rialChanged) return toman;
+    if (rialChanged && !tomanChanged) return rialAsToman;
+  }
+
+  // `price` is the canonical column when creating a row or when both cells
+  // were edited to different values. RIAL PRICE remains fully editable too.
+  return toman ?? rialAsToman ?? 0;
+}
 
 export const productMapping: EntityMapping = {
   entity: 'products',
@@ -269,6 +292,11 @@ export const productMapping: EntityMapping = {
   },
 
   async applySheetRow(key, cells, updatedAt) {
+    const [existing] = await db
+      .select({ id: products.id, price: products.price })
+      .from(products)
+      .where(eq(products.productId, key))
+      .limit(1);
     const title = str(cells.title) || str(cells.model) || key;
     const categoryId = await ensureCategory(str(cells.Category));
     const brandId = await ensureBrand(str(cells.Brand));
@@ -284,7 +312,7 @@ export const productMapping: EntityMapping = {
       color: str(cells.color) || null,
       colorEn: str(cells.color_en) || null,
       colorCode: str(cells.color_code) || null,
-      price: str(cells.price) ? num(cells.price) : (str(cells['RIAL PRICE']) ? Math.trunc(num(cells['RIAL PRICE']) / 10) : 0),
+      price: resolveProductSheetPrice(cells, existing?.price),
       oldPrice: str(cells.old_price) ? num(cells.old_price) : null,
       discount: num(cells.discount ?? cells['discount%']),
       stock: num(cells.stock),
@@ -303,12 +331,6 @@ export const productMapping: EntityMapping = {
       updatedAt,
       deletedAt: null,
     };
-
-    const [existing] = await db
-      .select({ id: products.id })
-      .from(products)
-      .where(eq(products.productId, key))
-      .limit(1);
 
     if (existing) {
       await db.update(products).set(values).where(eq(products.id, existing.id));
