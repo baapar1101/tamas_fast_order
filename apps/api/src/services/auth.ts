@@ -69,13 +69,14 @@ export async function findOrCreateUser(phone: string): Promise<{ row: UserRow; i
     if (!created) throw new Error('failed to create user');
 
     // Fire-and-forget CRM person sync for new users
-    crmClient.pushPerson({
+    const { getCrmConfig } = await import('./settings.js');
+    getCrmConfig().then(config => crmClient.pushPerson({
       firstName: '',
       lastName: '',
       phone: created.phone,
       email: `${created.phone}@tamas.local`,
       aliasName: created.phone,
-    }).catch((err: unknown) => {
+    }, config)).catch((err: unknown) => {
       // CRM sync failure shouldn't block user creation
     });
 

@@ -1,17 +1,17 @@
 import { createHash, createHmac } from 'node:crypto';
 
 /* ------------------------------------------------------------------ */
-/* Config                                                               */
+/* Types                                                                */
 /* ------------------------------------------------------------------ */
 
-const CRM_API_BASE   = (typeof process !== 'undefined' && process.env.CRM_API_BASE)   || 'https://tamastore.ir';
-const CRM_API_KEY    = (typeof process !== 'undefined' && process.env.CRM_API_KEY)    || '';
-const CRM_BUSINESS_ID= (typeof process !== 'undefined' && process.env.CRM_BUSINESS_ID) || '1';
-const CRM_WEBHOOK_SECRET = (typeof process !== 'undefined' && process.env.CRM_WEBHOOK_SECRET) || '';
-const CRM_SYNC_ENABLED = (typeof process !== 'undefined' && process.env.CRM_SYNC_ENABLED) !== 'false';
-const CRM_SYNC_DEBOUNCE_MS = parseInt(
-  (typeof process !== 'undefined' && process.env.CRM_SYNC_DEBOUNCE_MS) || '500', 10,
-);
+export interface CrmConfig {
+  apiBase: string;
+  apiKey: string;
+  businessId: number;
+  webhookSecret: string;
+  syncEnabled: boolean;
+  syncDebounceMs: number;
+}
 
 /* ------------------------------------------------------------------ */
 /* Types                                                                */
@@ -86,20 +86,21 @@ export interface CrmSyncResult {
 
 async function crmRequest<T = unknown>(
   path: string,
+  config: CrmConfig,
   opts: RequestInit & { retries?: number } = {},
 ): Promise<T> {
   const { retries = 2, ...rest } = opts;
-  const url = `${CRM_API_BASE.replace(/\/+$/, '')}${path}`;
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const res = await fetch(url, {
-        ...rest,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(CRM_API_KEY ? { Authorization: `Bearer ${CRM_API_KEY}` } : {}),
-          ...(rest.headers as Record<string, string> | undefined),
-        },
-      });
+    const url = `${config.apiBase.replace(/\/$/, '')}${path}`;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const res = await fetch(url, {
+          ...rest,
+          headers: {
+            'Content-Type': 'application/json',
+            ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}),
+            ...(rest.headers as Record<string, string> | undefined),
+          },
+        });
       if (!res.ok && attempt < retries && res.status >= 500) {
         await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
         continue;
@@ -120,7 +121,7 @@ async function crmRequest<T = unknown>(
 
 export const crmClient = {
   /** Push an order to the CRM. Returns the remote CRM order id on success. */
-  async pushOrder(order: CrmOrder): Promise<CrmSyncResult> {
+  async pushOrder(order: CrmOrder, config: CrmConfig): Promise<CrmSyncResult> {
     try {
       const payload = {
         source: 'tamas-fast-order',
@@ -148,6 +149,7 @@ export const crmClient = {
       };
       const data = (await crmRequest<{ success?: boolean; id?: number; error?: string }>(
         `/api/v1/crm/tamas/orders`,
+        config,
         { method: 'POST', body: JSON.stringify(payload) },
       )) as { success?: boolean; id?: number; error?: string };
       if (data?.success === false || data?.error) {
@@ -160,7 +162,7 @@ export const crmClient = {
   },
 
   /** Push a product to the CRM (creates or updates the CRM product). */
-  async pushProduct(product: CrmProduct): Promise<CrmSyncResult> {
+  async pushProduct(product: CrmProduct, config: CrmConfig): Promise<CrmSyncResult> {
     try {
       const payload = {
         source: 'tamas-fast-order',
@@ -174,6 +176,8 @@ export const crmClient = {
         old_price: product.oldPrice ?? null,
         discount: product.discount,
         stock: product.stock,
+        kerman_stock: product.kermanStock ?? 0,
+        tehran_stock: product.tehranStock ?? 0,
         status: product.status,
         description: product.description ?? '',
         image_url: product.imageUrl ?? '',
@@ -181,6 +185,7 @@ export const crmClient = {
       };
       const data = (await crmRequest<{ success?: boolean; id?: number; error?: string }>(
         `/api/v1/crm/tamas/products`,
+        config,
         { method: 'POST', body: JSON.stringify(payload) },
       )) as { success?: boolean; id?: number; error?: string };
       if (data?.success === false || data?.error) {
@@ -193,17 +198,20 @@ export const crmClient = {
   },
 
   /** Search for a person in CRM by phone or name (for order customer matching). */
-  async searchPerson(query: { phone?: string; name?: string; email?: string }): Promise<CrmSyncResult & { personId?: number }> {
+  async searchPerson(
+    query: { phone?: string; name?: string; email?: string },
+    config: CrmConfig,
+  ): Promise<CrmSyncResult & { personId?: number }> {
     try {
       const params = new URLSearchParams();
       if (query.phone) params.set('phone', query.phone);
       if (query.name) params.set('name', query.name);
       if (query.email) params.set('email', query.email);
       const data = (await crmRequest<{
-        success?: boolean;
-        items?: Array<{ id: number }>;
-        error?: string;
-      }>(`/api/v1/crm/tamas/people/search?${params.toString()}`)) as {
+              success?: boolean;
+              items?: Array<{ id: number }>;
+              error?: string;
+            }>(`/api/v1/crm/tamas/people/search?${params.toString()}`, config)) as {
         success?: boolean;
         items?: Array<{ id: number }>;
         error?: string;
@@ -219,7 +227,12 @@ export const crmClient = {
   },
 
   /** Send a chat message from the site visitor to the CRM conversation. */
-  async sendChatMessage(conversationId: number, visitorToken: string, body: string): Promise<CrmSyncResult> {
+  async sendChatMessage(
+    conversationId: number,
+    visitorToken: string,
+    body: string,
+    config: CrmConfig,
+  ): Promise<CrmSyncResult> {
     try {
       const payload = {
         conversation_id: conversationId,
@@ -230,6 +243,7 @@ export const crmClient = {
       };
       const data = (await crmRequest<{ success?: boolean; id?: number; error?: string }>(
         `/api/v1/public/crm-chat/messages`,
+        config,
         { method: 'POST', body: JSON.stringify(payload) },
       )) as { success?: boolean; id?: number; error?: string };
       if (data?.success === false || data?.error) {
@@ -242,9 +256,9 @@ export const crmClient = {
   },
 
   /** Check CRM health / reachability. */
-  async ping(): Promise<boolean> {
+  async ping(config: CrmConfig): Promise<boolean> {
     try {
-      const data = (await crmRequest<{ success?: boolean }>('/api/v1/health')) as {
+      const data = (await crmRequest<{ success?: boolean }>('/api/v1/health', config)) as {
         success?: boolean;
       };
       return data?.success === true;
@@ -254,8 +268,9 @@ export const crmClient = {
   },
 
   /** Push a person to CRM (create or find existing by phone/email). */
-  async pushPerson(person: CrmPerson): Promise<CrmSyncResult & { personId?: number }> {
+  async pushPerson(person: CrmPerson, config: CrmConfig): Promise<CrmSyncResult & { personId?: number }> {
     try {
+      if (!config.syncEnabled) return { ok: true, entity: 'person', deduped: true };
       const payload = {
         source: 'tamas-fast-order',
         first_name: person.firstName,
@@ -267,6 +282,7 @@ export const crmClient = {
       };
       const data = (await crmRequest<{ success?: boolean; id?: number; error?: string }>(
         `/api/v1/crm/tamas/people`,
+        config,
         { method: 'POST', body: JSON.stringify(payload) },
       )) as { success?: boolean; id?: number; error?: string };
       if (data?.success === false || data?.error) {
@@ -306,7 +322,7 @@ function _verifySignature(rawBody: string | Buffer, signature: string | undefine
 }
 
 /** Normalize a CRM webhook payload into a flat event envelope. */
-function _normalizeEvent(payload: unknown): {
+function _normalizeEvent(payload: unknown, defaultBusinessId: string | number): {
   eventType: string;
   eventId: string;
   businessId: string;
@@ -315,7 +331,7 @@ function _normalizeEvent(payload: unknown): {
   const p = (payload as Record<string, unknown>) ?? {};
   const eventType = String(p.event_type ?? p.event ?? p.type ?? 'unknown');
   const eventId = String(p.event_id ?? p.id ?? p.hash_id ?? createHash('sha256').update(JSON.stringify(p)).digest('hex').slice(0, 16));
-  const businessId = String(p.business_id ?? p.businessId ?? CRM_BUSINESS_ID);
+  const businessId = String(p.business_id ?? p.businessId ?? defaultBusinessId);
   const data = p.data ?? p.payload ?? p;
   return { eventType, eventId, businessId, data };
 }
@@ -325,11 +341,12 @@ export async function processCrmWebhook(
   rawBody: string,
   signature: string | undefined,
   payload: unknown,
+  config: CrmConfig,
 ): Promise<{ ok: boolean; processed: string; details: Record<string, unknown> }> {
-  if (!_verifySignature(rawBody, signature, CRM_WEBHOOK_SECRET)) {
+  if (!_verifySignature(rawBody, signature, config.webhookSecret)) {
     return { ok: false, processed: 'signature_invalid', details: { error: 'invalid signature' } };
   }
-  const { eventType, eventId, businessId, data } = _normalizeEvent(payload);
+  const { eventType, eventId, businessId, data } = _normalizeEvent(payload, config.businessId);
   if (_dedupe(`${businessId}:${eventType}:${eventId}`)) {
     return { ok: true, processed: 'duplicate_skipped', details: { eventType, eventId } };
   }
@@ -382,5 +399,3 @@ export async function processCrmWebhook(
     return { ok: false, processed: eventType, details: { error: err?.message ?? String(err) } };
   }
 }
-
-export { CRM_API_BASE, CRM_API_KEY, CRM_BUSINESS_ID, CRM_WEBHOOK_SECRET, CRM_SYNC_ENABLED, CRM_SYNC_DEBOUNCE_MS };

@@ -86,13 +86,14 @@ const routes: FastifyPluginAsync = async (app) => {
             updatedUser = toUserDTO(updated || current);
 
             // Fire-and-forget CRM person sync on profile update
-                        crmClient.pushPerson({
-                          firstName: body.name ?? '',
-                          lastName: body.lastName ?? '',
-                          phone: current.phone,
-                          email: `${current.phone}@tamas.local`,
-                          aliasName: `${body.name ?? ''} ${body.lastName ?? ''}`.trim() || current.phone,
-                        }).catch((err: unknown) => {
+            const { getCrmConfig } = await import('../services/settings.js');
+            getCrmConfig().then(config => crmClient.pushPerson({
+              firstName: body.name ?? '',
+              lastName: body.lastName ?? '',
+              phone: current.phone,
+              email: `${current.phone}@tamas.local`,
+              aliasName: `${body.name ?? ''} ${body.lastName ?? ''}`.trim() || current.phone,
+            }, config)).catch((err: unknown) => {
                           // CRM sync failure shouldn't block profile update
                         });
     } catch {
@@ -183,13 +184,14 @@ const routes: FastifyPluginAsync = async (app) => {
                 updatedUser = toUserDTO(updated || current);
 
                 // Fire-and-forget CRM person sync after identity verification
-                crmClient.pushPerson({
+                const { getCrmConfig } = await import('../services/settings.js');
+                getCrmConfig().then(config => crmClient.pushPerson({
                   firstName: inquiryBody.first_name || current.name,
                   lastName: inquiryBody.last_name || current.lastName,
                   phone: current.phone,
                   email: `${current.phone}@tamas.local`,
                   aliasName: `${inquiryBody.first_name || current.name} ${inquiryBody.last_name || current.lastName}`.trim() || current.phone,
-                }).catch((err: unknown) => {
+                }, config)).catch((err: unknown) => {
                   // CRM sync failure shouldn't block identity verification
                 });
       } catch {

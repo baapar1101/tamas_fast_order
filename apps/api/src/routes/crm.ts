@@ -7,6 +7,7 @@ import type {
 } from 'fastify';
 import { processCrmWebhook } from '../lib/crm.js';
 import { env } from '../env.js';
+import { getCrmConfig } from '../services/settings.js';
 
 /**
  * CRM Integration Routes
@@ -114,7 +115,8 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
         reply.code(404);
         return { ok: false, error: 'Order not found' };
       }
-      const result = await crmClient.pushOrder(order);
+      const config = await getCrmConfig();
+      const result = await crmClient.pushOrder(order, config);
       return { ok: result.ok, result };
     },
   );
@@ -139,7 +141,8 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
         reply.code(404);
         return { ok: false, error: 'Product not found' };
       }
-      const pushResult = await crmClient.pushProduct(result.product);
+      const config = await getCrmConfig();
+      const pushResult = await crmClient.pushProduct(result.product, config);
       return { ok: pushResult.ok, result: pushResult };
     },
   );
@@ -185,6 +188,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       let totalPushed = 0;
       let totalErrors = 0;
       const errors: string[] = [];
+      const config = await getCrmConfig();
 
       while (true) {
         const result = await queryProducts({
@@ -214,7 +218,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
               description: variant.description ?? '',
               imageUrl: variant.imageUrl ?? '',
               updatedAt: variant.updatedAt,
-            });
+            }, config);
 
             if (pushResult.ok) totalPushed++;
             else {
@@ -271,6 +275,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       const result = await queryProducts({ page: 1, perPage: 200, inStock: false, sort: 'price_asc', brands: [] });
       let synced = 0;
       const errors: string[] = [];
+      const config = await getCrmConfig();
 
       for (const group of result.groups ?? []) {
         for (const variant of group.variants) {
@@ -291,7 +296,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
             description: variant.description ?? '',
             imageUrl: variant.imageUrl ?? '',
             updatedAt: variant.updatedAt,
-          });
+          }, config);
 
           if (pushResult.ok) synced++;
           else errors.push(`${variant.productId}: ${pushResult.error}`);

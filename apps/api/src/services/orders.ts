@@ -177,7 +177,8 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
 
     // Fire-and-forget CRM sync — failures are logged, never block the order.
     const { crmClient } = await import('../lib/crm.js');
-    crmClient.pushOrder(toOrderDTO(order, items)).catch((err: unknown) => {
+    const { getCrmConfig } = await import('./settings.js');
+    getCrmConfig().then(config => crmClient.pushOrder(toOrderDTO(order, items), config)).catch((err: unknown) => {
       // app.log?.warn?.({ err }, 'CRM pushOrder failed (non-blocking)');
     });
 

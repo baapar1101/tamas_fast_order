@@ -101,7 +101,7 @@ export async function setSettings(values: Record<string, string>): Promise<void>
   if (rows.length > 0) {
     await db.insert(settings).values(rows).onConflictDoUpdate({
       target: settings.key,
-      set: { value: rows[0].value, updatedAt: new Date(), deletedAt: null },
+      set: { value: rows[0]!.value, updatedAt: new Date(), deletedAt: null },
     });
   }
   cache.clear();
