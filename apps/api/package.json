@@ -7,7 +7,7 @@
   "scripts": {
     "predev": "node ../../scripts/fix-perms.js",
     "prebuild": "node ../../scripts/fix-perms.js",
-    "dev": "tsx watch src/index.ts",
+    "dev": "PORT=3001 NODE_ENV=development tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/index.js",
     "start:prod": "PORT=3102 NODE_ENV=production node dist/src/index.js",
