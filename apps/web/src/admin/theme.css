@@ -41,8 +41,11 @@
 
 /* ---------------------------------------------------------------------------
    Theme tokens — DARK is the default (attribute-less), LIGHT is opt-in.
+   Tokens are also exposed on `body.admin-page-active` because modals render
+   through a portal onto <body> outside the .admin-body-shell scope.
    -------------------------------------------------------------------------- */
-.admin-body-shell {
+.admin-body-shell,
+body.admin-page-active {
   font-family: 'IRANYekanX', 'Vazirmatn FD', Peyda, Tahoma, sans-serif;
 
   /* Brand (new_admin blue) */
@@ -85,7 +88,8 @@
   --a-shadow-2: 0 20px 45px -15px rgba(2, 8, 20, 0.85);
 }
 
-.admin-body-shell[data-theme='light'] {
+.admin-body-shell[data-theme='light'],
+body.admin-page-active.admin-theme-light {
   /* Light palette (new_admin tokens) */
   --a-bg: #f5f6f8;
   --a-surface: #ffffff;
@@ -201,6 +205,9 @@
 
 .a-btn--danger { background: var(--a-red-soft); color: var(--a-red); border-color: var(--a-border-2); }
 .a-btn--danger:hover:not(:disabled) { background: var(--a-red); color: #fff; border-color: var(--a-red); }
+
+.a-btn--info { background: var(--a-brand-soft); color: var(--a-brand); border-color: var(--a-brand-soft-strong); }
+.a-btn--info:hover:not(:disabled) { background: var(--a-brand); color: var(--a-brand-contrast); border-color: var(--a-brand); }
 
 .a-btn--ghost { background: transparent; border-color: transparent; color: var(--a-t3); }
 .a-btn--ghost:hover:not(:disabled) { background: var(--a-hover); color: var(--a-t1); }
@@ -512,6 +519,146 @@
 
 .a-fade { animation: a-fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
 @keyframes a-fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ---------------------------------------------------------------------------
+   List / management page extras (products grid, tables, filters, pagers)
+   -------------------------------------------------------------------------- */
+
+/* Segmented view toggle */
+.a-segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid var(--a-border-2);
+  border-radius: 0.8rem;
+  background: var(--a-field-bg);
+}
+.a-seg {
+  padding: 0.42rem 0.8rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: var(--a-t3);
+  font-size: 0.74rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.a-seg:hover { color: var(--a-t1); }
+.a-seg--on { background: var(--a-brand); color: var(--a-brand-contrast); }
+.a-seg--on:hover { color: var(--a-brand-contrast); }
+
+/* Stat cards */
+.a-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--a-border);
+  border-radius: 0.9rem;
+  background: var(--a-surface);
+  box-shadow: var(--a-shadow);
+}
+.a-stat-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.a-stat-label { font-size: 0.72rem; color: var(--a-t4); }
+.a-stat-value { font-size: 1.5rem; font-weight: 800; color: var(--a-t1); line-height: 1.3; }
+.a-stat-value--green { color: var(--a-green); }
+.a-stat-value--amber { color: var(--a-amber); }
+.a-stat-value--red { color: var(--a-red); }
+
+/* Filter bar */
+.a-filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.a-filterbar .a-grow { flex: 1 1 220px; }
+.a-select--auto, .a-input--auto { width: auto; }
+
+/* Bulk operations bar */
+.a-bulkbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--a-green);
+  border-radius: 0.9rem;
+  background: var(--a-green-soft);
+}
+.a-bulkbar-label { font-size: 0.78rem; font-weight: 700; color: var(--a-green); }
+.a-bulkbar-spacer { flex: 1 1 auto; }
+.a-bulkbar-link { font-size: 0.72rem; color: var(--a-t4); text-decoration: underline; cursor: pointer; background: none; border: 0; font-family: inherit; }
+.a-bulkbar-link:hover { color: var(--a-t1); }
+
+/* Icon buttons (grid card actions) */
+.a-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--a-border);
+  background: var(--a-surface-2);
+  color: var(--a-t3);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+.a-icon-btn:hover { color: var(--a-t1); border-color: var(--a-border-2); background: var(--a-hover); }
+.a-icon-btn--info { color: var(--a-brand); }
+.a-icon-btn--danger { color: var(--a-red); }
+.a-icon-btn--danger:hover { background: var(--a-red-soft); }
+
+/* Product image area */
+.a-thumb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: var(--a-surface-2);
+  overflow: hidden;
+}
+.a-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+/* Flush card (product grid cards) */
+.a-card--flush { padding: 0; gap: 0; overflow: hidden; }
+.a-card-body { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.1rem 1.2rem; flex: 1 1 auto; }
+
+/* Pager */
+.a-pager { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+.a-pager-info { font-size: 0.74rem; font-weight: 600; color: var(--a-t4); }
+
+/* Checkboxes inside tables / grids follow the brand accent */
+.a-table input[type='checkbox'],
+.a-grid-check { accent-color: var(--a-brand); }
+
+/* Tab strip (order detail etc.) */
+.a-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border: 1px solid var(--a-border-2);
+  border-radius: 0.9rem;
+  background: var(--a-field-bg);
+  overflow-x: auto;
+}
+.a-tab {
+  padding: 0.5rem 0.95rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: transparent;
+  color: var(--a-t3);
+  font-size: 0.76rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.a-tab:hover { color: var(--a-t1); }
+.a-tab--on { background: var(--a-brand); color: var(--a-brand-contrast); }
+.a-tab--on:hover { color: var(--a-brand-contrast); }
 
 /* ============================================================================
    LIGHT MODE — remap of the legacy (hard-coded) dark palette so the whole

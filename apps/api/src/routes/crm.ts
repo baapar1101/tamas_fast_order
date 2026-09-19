@@ -217,6 +217,8 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
               oldPrice: variant.oldPrice ?? null,
               discount: variant.discount,
               stock: variant.stock,
+              kermanStock: variant.kermanStock,
+              tehranStock: variant.tehranStock,
               status: variant.status,
               description: variant.description ?? '',
               imageUrl: variant.imageUrl ?? '',

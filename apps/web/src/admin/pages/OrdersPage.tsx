@@ -81,33 +81,33 @@ export function OrdersPage() {
   const pageCount = Math.max(1, Math.ceil(total / 30));
 
   return (
-    <div className="space-y-6">
+    <div className="a-page a-fade">
       {/* Header */}
-      <section className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
-        <div>
-          <h2 className="text-xl font-extrabold text-white sm:text-2xl">مدیریت سفارش‌ها</h2>
-          <p className="mt-1 text-xs text-slate-400">بررسی، تایید و تغییر وضعیت سفارش‌های فروشگاه</p>
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h2 className="a-title">مدیریت سفارش‌ها</h2>
+          <p className="a-subtitle">بررسی، تایید و تغییر وضعیت سفارش‌های فروشگاه</p>
         </div>
-        <button
-          type="button"
-          className="huma-btn-secondary"
-          onClick={() =>
-            void api
-              .download('/admin/orders/export', { status, q: debounced }, `orders-${Date.now()}.csv`)
-              .catch((err: Error) => toast.error(err.message))
-          }
-        >
-          خروجی اکسل / CSV
-        </button>
+        <div className="a-page-actions">
+          <button
+            type="button"
+            className="a-btn a-btn--secondary"
+            onClick={() =>
+              void api
+                .download('/admin/orders/export', { status, q: debounced }, `orders-${Date.now()}.csv`)
+                .catch((err: Error) => toast.error(err.message))
+            }
+          >
+            خروجی اکسل / CSV
+          </button>
+        </div>
       </section>
 
       {/* Status Filter Tabs */}
-      <section className="glass-card p-2 flex items-center gap-1 overflow-x-auto max-w-full whitespace-nowrap">
+      <section className="a-tabs">
         <button
           type="button"
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-            status === 'all' ? 'bg-emerald-500/15 text-emerald-300 shadow-glow' : 'text-slate-400 hover:text-white'
-          }`}
+          className={`a-tab${status === 'all' ? ' a-tab--on' : ''}`}
           onClick={() => {
             setStatus('all');
             setPage(1);
@@ -119,9 +119,7 @@ export function OrdersPage() {
           <button
             key={s}
             type="button"
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-              status === s ? 'bg-emerald-500/15 text-emerald-300 shadow-glow' : 'text-slate-400 hover:text-white'
-            }`}
+            className={`a-tab${status === s ? ' a-tab--on' : ''}`}
             onClick={() => {
               setStatus(s);
               setPage(1);
@@ -133,9 +131,9 @@ export function OrdersPage() {
       </section>
 
       {/* Search Input */}
-      <section className="glass-card p-4">
+      <section className="a-card">
         <input
-          className="huma-input"
+          className="a-input"
           placeholder="جستجو در کد سفارش، نام مشتری، شماره همراه..."
           value={search}
           onChange={(e) => {
@@ -147,33 +145,34 @@ export function OrdersPage() {
 
       {/* Bulk Operations */}
       {selected.size > 0 && (
-        <section className="glass-card bg-emerald-500/10 border-emerald-500/30 p-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold text-emerald-300">{formatNumber(selected.size)} سفارش انتخاب شده:</span>
+        <section className="a-bulkbar">
+          <span className="a-bulkbar-label">{formatNumber(selected.size)} سفارش انتخاب شده:</span>
           {ORDER_STATUSES.map((s) => (
             <button
               key={s}
               type="button"
-              className="huma-btn-secondary !py-1 !px-2.5 !text-xs"
+              className="a-btn a-btn--secondary a-btn--sm"
               onClick={() => bulkStatus.mutate({ ids: [...selected], status: s })}
             >
               به {ORDER_STATUS_LABELS[s]}
             </button>
           ))}
-          <button type="button" className="text-xs text-slate-400 underline mr-auto" onClick={() => setSelected(new Set())}>
+          <span className="a-bulkbar-spacer" />
+          <button type="button" className="a-bulkbar-link" onClick={() => setSelected(new Set())}>
             لغو انتخاب
           </button>
         </section>
       )}
 
-      {/* Orders Glass Table */}
-      <section className="glass-card overflow-hidden">
+      {/* Orders Table */}
+      <section className="a-card a-card--flush">
         {orders.isLoading ? (
-          <div className="p-12 text-center text-slate-400">در حال دریافت لیست سفارش‌ها...</div>
+          <div className="a-empty">در حال دریافت لیست سفارش‌ها...</div>
         ) : items.length === 0 ? (
-          <div className="p-12 text-center text-slate-500">هیچ سفارشی یافت نشد.</div>
+          <div className="a-empty">هیچ سفارشی یافت نشد.</div>
         ) : (
-          <div className="huma-table-container">
-            <table className="huma-table">
+          <div className="a-table-wrap">
+            <table className="a-table">
               <thead>
                 <tr>
                   <th style={{ width: 36 }}>
@@ -216,16 +215,16 @@ export function OrdersPage() {
                         }}
                       />
                     </td>
-                    <td className="font-mono font-bold text-white" dir="ltr">
+                    <td className="a-strong font-mono" dir="ltr">
                       #{o.orderCode}
                     </td>
                     <td>
-                      <div className="font-bold text-white">{o.customerName || 'کاربر مهمان'}</div>
+                      <div className="font-bold">{o.customerName || 'کاربر مهمان'}</div>
                       <div className="text-[11px] text-slate-500 font-mono" dir="ltr">
                         {o.phone || '—'}
                       </div>
                     </td>
-                    <td className="text-center font-bold text-white">
+                    <td className="text-center font-bold">
                       {formatNumber(o.quantity ?? 1)}
                     </td>
                     <td className="font-bold text-emerald-300"><Price amount={o.total} /></td>
@@ -248,7 +247,7 @@ export function OrdersPage() {
                     <td>
                       <button
                         type="button"
-                        className="huma-btn-secondary !py-1 !px-3 !text-xs"
+                        className="a-btn a-btn--secondary a-btn--sm"
                         onClick={() => {
                           setDetail(o);
                           setDetailTab('info');
@@ -268,14 +267,14 @@ export function OrdersPage() {
 
       {/* Pagination */}
       {pageCount > 1 && (
-        <section className="flex items-center justify-between glass-card p-4">
-          <button type="button" className="huma-btn-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+        <section className="a-card a-pager">
+          <button type="button" className="a-btn a-btn--secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
             صفحه قبلی
           </button>
-          <span className="text-xs text-slate-400 font-semibold">
+          <span className="a-pager-info">
             صفحه {formatNumber(page)} از {formatNumber(pageCount)}
           </span>
-          <button type="button" className="huma-btn-secondary" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
+          <button type="button" className="a-btn a-btn--secondary" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
             صفحه بعدی
           </button>
         </section>
@@ -289,30 +288,26 @@ export function OrdersPage() {
           title={`جزئیات سفارش #${detail.orderCode}`}
           onClose={() => setDetail(null)}
           footer={
-            <button type="button" className="huma-btn-secondary" onClick={() => setDetail(null)}>
+            <button type="button" className="a-btn a-btn--secondary" onClick={() => setDetail(null)}>
               بستن
             </button>
           }
         >
-          <div className="flex gap-2 border-b border-white/[0.06] mb-4">
+          <div className="a-tabs mb-4">
             <button
               type="button"
-              className={`px-4 py-2 text-sm font-bold border-b-2 transition-all ${
-                detailTab === 'info' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
-              }`}
+              className={`a-tab${detailTab === 'info' ? ' a-tab--on' : ''}`}
               onClick={() => setDetailTab('info')}
             >
               اطلاعات سفارش
             </button>
             <button
               type="button"
-              className={`px-4 py-2 text-sm font-bold border-b-2 transition-all ${
-                detailTab === 'items' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
-              }`}
+              className={`a-tab${detailTab === 'items' ? ' a-tab--on' : ''}`}
               onClick={() => setDetailTab('items')}
             >
               اقلام سفارش
-              <span className="ml-2 rounded-lg bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300">
+              <span className="mr-2 rounded-lg bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300">
                 {detail.items.length}
               </span>
             </button>
@@ -320,7 +315,7 @@ export function OrdersPage() {
 
           {detailTab === 'info' && (
             <div className="space-y-4">
-              <div className="glass-card p-4 grid grid-cols-2 gap-3 text-xs">
+              <div className="a-card grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <span className="text-slate-400">نام خریدار:</span>{' '}
                   <strong className="text-white">{detail.customerName || 'مهمان'}</strong>
@@ -336,15 +331,13 @@ export function OrdersPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-2">تغییر وضعیت سفارش:</label>
+                <label className="a-label mb-2">تغییر وضعیت سفارش:</label>
                 <div className="flex flex-wrap gap-2">
                   {ORDER_STATUSES.map((s) => (
                     <button
                       key={s}
                       type="button"
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        detail.status === s ? 'bg-emerald-500 text-slate-950 shadow-glow' : 'huma-btn-secondary'
-                      }`}
+                      className={detail.status === s ? 'a-btn a-btn--primary a-btn--sm' : 'a-btn a-btn--secondary a-btn--sm'}
                       onClick={() => patch.mutate({ id: detail.id, body: { status: s } })}
                     >
                       {ORDER_STATUS_LABELS[s]}
@@ -353,16 +346,15 @@ export function OrdersPage() {
                 </div>
               </div>
 
-              <div className="border-t border-white/[0.06] pt-4">
-                <label className="block text-xs font-semibold text-slate-400 mb-2">وضعیت پرداخت:</label>
+              <div className="a-divider" />
+              <div>
+                <label className="a-label mb-2">وضعیت پرداخت:</label>
                 <div className="flex flex-wrap gap-2">
                   {['paid', 'unpaid', 'pending'].map((s) => (
                     <button
                       key={s}
                       type="button"
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        detail.paymentStatus === s ? 'bg-emerald-500 text-slate-950 shadow-glow' : 'huma-btn-secondary'
-                      }`}
+                      className={detail.paymentStatus === s ? 'a-btn a-btn--primary a-btn--sm' : 'a-btn a-btn--secondary a-btn--sm'}
                       onClick={() => patch.mutate({ id: detail.id, body: { paymentStatus: s as 'paid' | 'unpaid' | 'pending' } })}
                     >
                       {s === 'paid' ? 'پرداخت شده' : s === 'pending' ? 'در انتظار پرداخت' : 'پرداخت نشده'}
@@ -371,18 +363,19 @@ export function OrdersPage() {
                 </div>
               </div>
 
-              <div className="border-t border-white/[0.06] pt-4">
-                <label className="block text-xs font-semibold text-slate-400 mb-1">یادداشت مدیریت:</label>
+              <div className="a-divider" />
+              <div>
+                <label className="a-label mb-1">یادداشت مدیریت:</label>
                 <div className="flex gap-2">
                   <input
-                    className="huma-input flex-1"
+                    className="a-input flex-1"
                     placeholder="یادداشت یا پیگیری..."
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                   />
                   <button
                     type="button"
-                    className="huma-btn-primary"
+                    className="a-btn a-btn--primary"
                     onClick={() => patch.mutate({ id: detail.id, body: { note } })}
                   >
                     ذخیره
@@ -393,8 +386,8 @@ export function OrdersPage() {
           )}
 
           {detailTab === 'items' && (
-            <div className="huma-table-container">
-              <table className="huma-table">
+            <div className="a-table-wrap">
+              <table className="a-table">
                 <thead>
                   <tr>
                     <th>کد کالا</th>
@@ -421,7 +414,7 @@ export function OrdersPage() {
                 </tbody>
               </table>
               {detail.items.length === 0 && (
-                <div className="p-8 text-center text-slate-500 text-sm">محصولی در این سفارش یافت نشد!</div>
+                <div className="a-empty">محصولی در این سفارش یافت نشد!</div>
               )}
             </div>
           )}

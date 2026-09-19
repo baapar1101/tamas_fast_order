@@ -148,35 +148,31 @@ export function ProductsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="a-page a-fade">
       {/* Header & Primary Actions */}
-      <section className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
-        <div>
-          <h2 className="text-xl font-extrabold text-white sm:text-2xl">مدیریت محصولات</h2>
-          <p className="mt-1 text-xs text-slate-400">افزودن، ویرایش و مدیریت موجودی محصولات فروشگاه</p>
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h2 className="a-title">مدیریت محصولات</h2>
+          <p className="a-subtitle">افزودن، ویرایش و مدیریت موجودی محصولات فروشگاه</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex rounded-xl border border-white/[0.06] bg-[#131c2e]/60 p-1">
+        <div className="a-page-actions">
+          <div className="a-segmented">
             <button
               type="button"
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                viewMode === 'grid' ? 'bg-emerald-500/15 text-emerald-300' : 'text-slate-400 hover:text-white'
-              }`}
+              className={`a-seg${viewMode === 'grid' ? ' a-seg--on' : ''}`}
               onClick={() => setViewMode('grid')}
             >
               کارت‌ها (Grid)
             </button>
             <button
               type="button"
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                viewMode === 'table' ? 'bg-emerald-500/15 text-emerald-300' : 'text-slate-400 hover:text-white'
-              }`}
+              className={`a-seg${viewMode === 'table' ? ' a-seg--on' : ''}`}
               onClick={() => setViewMode('table')}
             >
               جدول (Table)
             </button>
           </div>
-          <button type="button" className="huma-btn-primary" onClick={() => setEditing('new')}>
+          <button type="button" className="a-btn a-btn--primary" onClick={() => setEditing('new')}>
             + افزودن محصول جدید
           </button>
         </div>
@@ -184,41 +180,41 @@ export function ProductsPage() {
 
       {/* 4 Summary Stat Cards */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400">کل محصولات سیستم</span>
-            <span className="chip chip-brand">{formatNumber(total)} مورد</span>
+        <div className="a-stat">
+          <div className="a-stat-head">
+            <span className="a-stat-label">کل محصولات سیستم</span>
+            <span className="a-badge a-badge--brand">{formatNumber(total)} مورد</span>
           </div>
-          <p className="mt-3 text-2xl font-extrabold text-white">{formatNumber(total)}</p>
+          <p className="a-stat-value">{formatNumber(total)}</p>
         </div>
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400">محصولات فعال</span>
-            <span className="chip chip-brand">فعال</span>
+        <div className="a-stat">
+          <div className="a-stat-head">
+            <span className="a-stat-label">محصولات فعال</span>
+            <span className="a-badge a-badge--green">فعال</span>
           </div>
-          <p className="mt-3 text-2xl font-extrabold text-emerald-400">{formatNumber(activeCount)}</p>
+          <p className="a-stat-value a-stat-value--green">{formatNumber(activeCount)}</p>
         </div>
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400">موجودی رو به اتمام</span>
-            <span className="chip chip-amber">هشدار</span>
+        <div className="a-stat">
+          <div className="a-stat-head">
+            <span className="a-stat-label">موجودی رو به اتمام</span>
+            <span className="a-badge a-badge--amber">هشدار</span>
           </div>
-          <p className="mt-3 text-2xl font-extrabold text-amber-400">{formatNumber(lowStockCount)}</p>
+          <p className="a-stat-value a-stat-value--amber">{formatNumber(lowStockCount)}</p>
         </div>
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400">محصولات تمام‌شده</span>
-            <span className="chip chip-rose">ناموجود</span>
+        <div className="a-stat">
+          <div className="a-stat-head">
+            <span className="a-stat-label">محصولات تمام‌شده</span>
+            <span className="a-badge a-badge--red">ناموجود</span>
           </div>
-          <p className="mt-3 text-2xl font-extrabold text-rose-400">{formatNumber(outOfStockCount)}</p>
+          <p className="a-stat-value a-stat-value--red">{formatNumber(outOfStockCount)}</p>
         </div>
       </section>
 
       {/* Filters Bar */}
-      <section className="glass-card p-4">
-        <div className="flex flex-wrap items-center gap-3">
+      <section className="a-card">
+        <div className="a-filterbar">
           <input
-            className="huma-input flex-1 min-w-[200px]"
+            className="a-input a-grow"
             placeholder="جستجو در عنوان، کد کالا، SKU..."
             value={search}
             onChange={(e) => {
@@ -227,7 +223,7 @@ export function ProductsPage() {
             }}
           />
           <select
-            className="huma-input !w-auto"
+            className="a-select a-select--auto"
             value={status}
             onChange={(e) => { setStatus(e.target.value as typeof status); setPage(1); }}
           >
@@ -236,7 +232,7 @@ export function ProductsPage() {
             <option value="inactive">فقط غیرفعال</option>
           </select>
           <select
-            className="huma-input !w-auto"
+            className="a-select a-select--auto"
             value={stock}
             onChange={(e) => { setStock(e.target.value as typeof stock); setPage(1); }}
           >
@@ -245,7 +241,7 @@ export function ProductsPage() {
             <option value="out">تمام شده</option>
           </select>
           <select
-            className="huma-input !w-auto"
+            className="a-select a-select--auto"
             value={categoryId}
             onChange={(e) => { setCategoryId(e.target.value ? Number(e.target.value) : ''); setPage(1); }}
           >
@@ -257,7 +253,7 @@ export function ProductsPage() {
             ))}
           </select>
           <select
-            className="huma-input !w-auto"
+            className="a-select a-select--auto"
             value={brandId}
             onChange={(e) => { setBrandId(e.target.value ? Number(e.target.value) : ''); setPage(1); }}
           >
@@ -268,7 +264,7 @@ export function ProductsPage() {
               </option>
             ))}
           </select>
-          <select className="huma-input !w-auto" value={sort} onChange={(e) => setSort(e.target.value)}>
+          <select className="a-select a-select--auto" value={sort} onChange={(e) => setSort(e.target.value)}>
             <option value="updated">آخرین تغییرات</option>
             <option value="title">عنوان کالا</option>
             <option value="price_asc">ارزان‌ترین</option>
@@ -280,33 +276,32 @@ export function ProductsPage() {
 
       {/* Bulk Operations Toolbar */}
       {selected.size > 0 && (
-        <section className="glass-card bg-emerald-500/10 border-emerald-500/30 p-4 flex flex-wrap items-center gap-3">
-          <span className="text-xs font-bold text-emerald-300">
-            {formatNumber(selected.size)} محصول انتخاب شده:
-          </span>
-          <button type="button" className="huma-btn-secondary !py-1 !px-3 !text-xs" onClick={() => runBulk('activate')}>
+        <section className="a-bulkbar">
+          <span className="a-bulkbar-label">{formatNumber(selected.size)} محصول انتخاب شده:</span>
+          <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => runBulk('activate')}>
             فعال‌سازی
           </button>
-          <button type="button" className="huma-btn-secondary !py-1 !px-3 !text-xs" onClick={() => runBulk('deactivate')}>
+          <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => runBulk('deactivate')}>
             غیرفعال‌سازی
           </button>
-          <button type="button" className="huma-btn-secondary !py-1 !px-3 !text-xs" onClick={() => runBulk('promote')}>
+          <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => runBulk('promote')}>
             پیشنهاد ویژه
           </button>
-          <button type="button" className="huma-btn-secondary !py-1 !px-3 !text-xs" onClick={() => runBulk('setStock')}>
+          <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => runBulk('setStock')}>
             تنظیم موجودی
           </button>
-          <button type="button" className="huma-btn-secondary !py-1 !px-3 !text-xs" onClick={() => runBulk('adjustPrice')}>
+          <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => runBulk('adjustPrice')}>
             تغییر قیمت (درصدی)
           </button>
+          <span className="a-bulkbar-spacer" />
           <button
             type="button"
-            className="huma-btn-secondary !bg-rose-500/15 !text-rose-300 !border-rose-500/30 !py-1 !px-3 !text-xs mr-auto"
+            className="a-btn a-btn--danger a-btn--sm"
             onClick={() => runBulk('delete')}
           >
             حذف محصولات
           </button>
-          <button type="button" className="text-xs text-slate-400 underline hover:text-white" onClick={() => setSelected(new Set())}>
+          <button type="button" className="a-bulkbar-link" onClick={() => setSelected(new Set())}>
             لغو انتخاب
           </button>
         </section>
@@ -314,22 +309,22 @@ export function ProductsPage() {
 
       {/* Main Products Rendering (Grid vs Table) */}
       {products.isLoading ? (
-        <div className="glass-card p-12 text-center text-slate-400">در حال دریافت لیست محصولات...</div>
+        <div className="a-card"><div className="a-empty">در حال دریافت لیست محصولات...</div></div>
       ) : products.isError ? (
-        <div className="glass-card p-8 text-center text-rose-400">خطا در دریافت لیست محصولات.</div>
+        <div className="a-card"><div className="a-empty">خطا در دریافت لیست محصولات.</div></div>
       ) : items.length === 0 ? (
-        <div className="glass-card p-12 text-center text-slate-500">هیچ محصولی با مشخصات جستجویافته پیدا نشد.</div>
+        <div className="a-card"><div className="a-empty">هیچ محصولی با مشخصات جستجویافته پیدا نشد.</div></div>
       ) : viewMode === 'grid' ? (
         <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((p) => {
             const totalStock = p.kermanStock + p.tehranStock > 0 ? p.kermanStock + p.tehranStock : p.stock;
             return (
-              <div key={p.id} className="glass-card overflow-hidden flex flex-col group">
-                <div className="relative h-44 w-full bg-[#131c2e]/60 flex items-center justify-center p-4">
+              <div key={p.id} className="a-card a-card--flush group">
+                <div className="a-thumb" style={{ height: '11rem' }}>
                   <img
                     src={p.imageUrl || '/logo.png'}
                     alt={p.title}
-                    className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                    className="transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = '/logo.png';
@@ -340,21 +335,21 @@ export function ProductsPage() {
                       type="checkbox"
                       checked={selected.has(p.id)}
                       onChange={() => toggle(p.id)}
-                      className="h-4 w-4 rounded accent-emerald-500 cursor-pointer"
+                      className="a-grid-check h-4 w-4 cursor-pointer"
                     />
                   </div>
                   {p.promotion && (
-                    <span className="absolute top-3 left-3 chip chip-amber">ویژه</span>
+                    <span className="absolute top-3 left-3 a-badge a-badge--amber">ویژه</span>
                   )}
                 </div>
 
-                <div className="p-5 flex-1 flex flex-col justify-between">
+                <div className="a-card-body">
                   <div>
                     <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
                       <span>{p.categoryFaName || p.categoryName || 'دسته‌بندی'}</span>
                       <span>{p.brandFaName || p.brandName || ''}</span>
                     </div>
-                    <h3 className="font-bold text-white text-sm line-clamp-2">{p.title}</h3>
+                    <h3 className="font-bold text-sm text-white line-clamp-2">{p.title}</h3>
                     <div className="admin-product-stock-row">
                       <span className={`admin-product-stock chip ${totalStock > 0 ? 'chip-brand' : 'chip-rose'}`}>
                         <span className="admin-product-stock-dot" aria-hidden="true" />
@@ -364,16 +359,15 @@ export function ProductsPage() {
                     {p.color && <p className="text-xs text-slate-400 mt-1">رنگ: {p.color}</p>}
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-white/[0.06] flex items-center justify-between">
-                    <div>
-                      <p className="text-lg font-extrabold text-emerald-300">
-                        <Price amount={p.price} />
-                      </p>
-                    </div>
+                  <div className="a-divider" />
+                  <div className="flex items-center justify-between">
+                    <p className="text-lg font-extrabold text-emerald-300">
+                      <Price amount={p.price} />
+                    </p>
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        className="icon-btn !h-8 !w-8"
+                        className="a-icon-btn"
                         onClick={() => setEditing(p)}
                         title="ویرایش"
                       >
@@ -383,7 +377,7 @@ export function ProductsPage() {
                       </button>
                       <button
                         type="button"
-                        className="icon-btn !h-8 !w-8 text-sky-400 hover:border-sky-500/40"
+                        className="a-icon-btn a-icon-btn--info"
                         onClick={() => setVariantsProduct(p)}
                         title="مدیریت واریانت‌ها"
                       >
@@ -393,7 +387,7 @@ export function ProductsPage() {
                       </button>
                       <button
                         type="button"
-                        className="icon-btn !h-8 !w-8 text-rose-400 hover:border-rose-500/40"
+                        className="a-icon-btn a-icon-btn--danger"
                         onClick={() => {
                           if (confirm(`«${p.title}» حذف شود؟`)) remove.mutate(p.id);
                         }}
@@ -411,9 +405,9 @@ export function ProductsPage() {
           })}
         </section>
       ) : (
-        <section className="glass-card overflow-hidden">
-          <div className="huma-table-container">
-            <table className="huma-table">
+        <section className="a-card a-card--flush">
+          <div className="a-table-wrap">
+            <table className="a-table">
               <thead>
                 <tr>
                   <th style={{ width: 36 }}>
@@ -489,21 +483,21 @@ export function ProductsPage() {
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            className="huma-btn-secondary !py-1 !px-2.5 !text-xs"
+                            className="a-btn a-btn--secondary a-btn--xs"
                             onClick={() => setEditing(p)}
                           >
                             ویرایش
                           </button>
                           <button
                             type="button"
-                            className="huma-btn-secondary !py-1 !px-2.5 !text-xs !text-sky-300 !border-sky-500/30 !bg-sky-500/15"
+                            className="a-btn a-btn--info a-btn--xs"
                             onClick={() => setVariantsProduct(p)}
                           >
                             واریانت‌ها
                           </button>
                           <button
                             type="button"
-                            className="huma-btn-secondary !bg-rose-500/15 !text-rose-300 !border-rose-500/30 !py-1 !px-2.5 !text-xs"
+                            className="a-btn a-btn--danger a-btn--xs"
                             onClick={() => {
                               if (confirm(`«${p.title}» حذف شود؟`)) remove.mutate(p.id);
                             }}
@@ -523,21 +517,21 @@ export function ProductsPage() {
 
       {/* Pagination Controls */}
       {pageCount > 1 && (
-        <section className="flex items-center justify-between glass-card p-4">
+        <section className="a-card a-pager">
           <button
             type="button"
-            className="huma-btn-secondary !py-1.5 !px-4"
+            className="a-btn a-btn--secondary"
             disabled={page <= 1}
             onClick={() => setPage(page - 1)}
           >
             صفحه قبلی
           </button>
-          <span className="text-xs text-slate-400 font-semibold">
+          <span className="a-pager-info">
             صفحه {formatNumber(page)} از {formatNumber(pageCount)}
           </span>
           <button
             type="button"
-            className="huma-btn-secondary !py-1.5 !px-4"
+            className="a-btn a-btn--secondary"
             disabled={page >= pageCount}
             onClick={() => setPage(page + 1)}
           >
@@ -555,26 +549,25 @@ export function ProductsPage() {
           <>
             <button
               type="button"
-              className="huma-btn-primary"
+              className="a-btn a-btn--primary"
               onClick={confirmBulkValue}
               disabled={bulk.isPending}
             >
               اعمال روی {formatNumber(selected.size)} محصول
             </button>
-            <button type="button" className="huma-btn-secondary" onClick={() => setBulkPrompt(null)}>
+            <button type="button" className="a-btn a-btn--secondary" onClick={() => setBulkPrompt(null)}>
               انصراف
             </button>
           </>
         }
       >
         <div className="space-y-3">
-          <label htmlFor="bulk-value" className="block text-xs font-semibold text-slate-300">
+          <label htmlFor="bulk-value" className="a-label">
             {bulkPrompt === 'setStock' ? 'موجودی جدید (عدد کل موجودی)' : 'درصد تغییر — مثبت گران‌تر، منفی ارزان‌تر'}
           </label>
           <input
             id="bulk-value"
-            className="huma-input text-left"
-            dir="ltr"
+            className="a-input a-ltr"
             inputMode="numeric"
             placeholder={bulkPrompt === 'setStock' ? '10' : '-5'}
             value={bulkValue}
