@@ -60,7 +60,7 @@ export function SettingsPage() {
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [testPhone, setTestPhone] = useState('');
-  const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'logs' | 'sms'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'logs' | 'sms' | 'crm'>('general');
 
   useEffect(() => {
     if (settings.data) setForm(settings.data.settings);
@@ -107,34 +107,43 @@ export function SettingsPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-white/[0.06] mb-6">
-        <button
-          type="button"
-          className={`px-4 py-3 text-sm font-bold border-b-2 transition-all ${
-            activeTab === 'general' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
-          }`}
-          onClick={() => setActiveTab('general')}
-        >
-          تنظیمات عمومی
-        </button>
-        <button
-          type="button"
-          className={`px-4 py-3 text-sm font-bold border-b-2 transition-all ${
-            activeTab === 'tools' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
-          }`}
-          onClick={() => setActiveTab('tools')}
-        >
-          ابزارها و پیشرفته
-        </button>
-        <button
-          type="button"
-          className={`px-4 py-3 text-sm font-bold border-b-2 transition-all ${
-            activeTab === 'logs' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
-          }`}
-          onClick={() => setActiveTab('logs')}
-        >
-          لاگ سیستم
-        </button>
-      </div>
+              <button
+                type="button"
+                className={`px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+                  activeTab === 'general' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
+                }`}
+                onClick={() => setActiveTab('general')}
+              >
+                تنظیمات عمومی
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+                  activeTab === 'tools' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
+                }`}
+                onClick={() => setActiveTab('tools')}
+              >
+                ابزارها و پیشرفته
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+                  activeTab === 'crm' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
+                }`}
+                onClick={() => setActiveTab('crm')}
+              >
+                اتصال CRM
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+                  activeTab === 'logs' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'
+                }`}
+                onClick={() => setActiveTab('logs')}
+              >
+                لاگ سیستم
+              </button>
+            </div>
 
       {activeTab === 'general' && (
         <section className="glass-card p-6 space-y-4 animate-fade-up">
@@ -281,10 +290,187 @@ export function SettingsPage() {
           </button>
         </div>
       </section>
-      </div>
-      )}
+            </div>
+            )}
 
-      {activeTab === 'logs' && (
+            {activeTab === 'crm' && (
+              <div className="space-y-6 animate-fade-up">
+                {/* CRM Connection Settings Card */}
+                <section className="glass-card p-6 space-y-6">
+                  <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                    <div>
+                      <h3 className="text-base font-bold text-white">تنظیمات اتصال CRM (Hesabix/MarkStreet)</h3>
+                      <p className="text-xs text-slate-400 mt-0.5">پیکربندی اتصال دوطرفه با سیستم CRM برای همگام‌سازی سفارش‌ها، مشتریان و محصولات</p>
+                    </div>
+                    <span className="chip chip-brand">همگام‌سازی سفارش/مشتری/محصول</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-semibold text-slate-400">آدرس API پایه CRM</label>
+                      <input
+                        className="huma-input text-left font-mono"
+                        dir="ltr"
+                        placeholder="https://tamastore.ir"
+                        value={form.CRM_API_BASE ?? ''}
+                        onChange={(e) => setForm({ ...form, CRM_API_BASE: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-semibold text-slate-400">کلید API (Bearer Token)</label>
+                      <input
+                        className="huma-input text-left font-mono"
+                        dir="ltr"
+                        type="password"
+                        placeholder="hsx_xsG3kMYcFToYiVEdc3h1jba9c0bShx7ZREK5JYufTbY"
+                        value={form.CRM_API_KEY ?? ''}
+                        onChange={(e) => setForm({ ...form, CRM_API_KEY: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-semibold text-slate-400">شناسه کسب‌وکار در CRM</label>
+                      <input
+                        className="huma-input text-left font-mono"
+                        dir="ltr"
+                        type="number"
+                        placeholder="1"
+                        value={form.CRM_BUSINESS_ID ?? '1'}
+                        onChange={(e) => setForm({ ...form, CRM_BUSINESS_ID: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-semibold text-slate-400">مخفی رمز وب‌هوک (HMAC-SHA256)</label>
+                      <input
+                        className="huma-input text-left font-mono"
+                        dir="ltr"
+                        type="password"
+                        placeholder="CRM_WEBHOOK_SECRET"
+                        value={form.CRM_WEBHOOK_SECRET ?? ''}
+                        onChange={(e) => setForm({ ...form, CRM_WEBHOOK_SECRET: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-xl border border-white/[0.06]">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-emerald-500 rounded border-slate-600 bg-slate-800"
+                        checked={form.CRM_SYNC_ENABLED === 'true'}
+                        onChange={(e) => setForm({ ...form, CRM_SYNC_ENABLED: e.target.checked ? 'true' : 'false' })}
+                      />
+                      <span className="text-sm text-slate-300">فعال‌سازی همگام‌سازی خودکار (سفارش/مشتری/محصول)</span>
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-xl border border-white/[0.06]">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="number"
+                        className="huma-input w-24 text-left font-mono"
+                        dir="ltr"
+                        min="100"
+                        max="10000"
+                        value={parseInt(form.CRM_SYNC_DEBOUNCE_MS ?? '500', 10)}
+                        onChange={(e) => setForm({ ...form, CRM_SYNC_DEBOUNCE_MS: e.target.value })}
+                      />
+                      <span className="text-sm text-slate-300">دیبانس همگام‌سازی (میلی‌ثانیه)</span>
+                    </label>
+                  </div>
+                </section>
+
+                {/* CRM Health & Manual Sync Card */}
+                <section className="glass-card p-6 space-y-4">
+                  <h3 className="text-base font-bold text-white border-b border-white/[0.06] pb-3">بهداشت اتصال و همگام‌سازی دستی</h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <button
+                      type="button"
+                      className="huma-btn-secondary"
+                      onClick={async () => {
+                        try {
+                          const res = await api.get<{ ok: boolean; crm: { reachable: boolean; baseUrl: string } }>('/crm/health');
+                          if (res.crm?.reachable) toast.ok(`CRM قابل دسترسی: ${res.crm.baseUrl}`);
+                          else toast.error('CRM غیرقابل دسترسی است');
+                        } catch (err: any) {
+                          toast.error(err.message || 'خطا در بررسی اتصال');
+                        }
+                      }}
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      بررسی اتصال
+                    </button>
+
+                    <button
+                      type="button"
+                      className="huma-btn-primary"
+                      onClick={async () => {
+                        try {
+                          const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/products/push');
+                          if (res.ok) toast.ok(`${res.pushed} محصول همگام‌سازی شد. خطاها: ${res.errors}`);
+                          else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                        } catch (err: any) {
+                          toast.error(err.message || 'خطا در همگام‌سازی محصولات');
+                        }
+                      }}
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      ارسال همه محصولات
+                    </button>
+
+                    <button
+                      type="button"
+                      className="huma-btn-secondary"
+                      onClick={async () => {
+                        try {
+                          const res = await api.post<{ ok: boolean; synced: number; errors: number; errorDetails: string[] }>('/crm/sync/stock');
+                          if (res.ok) toast.ok(`${res.synced} محصول Stok همگام‌سازی شد. خطاها: ${res.errors}`);
+                          else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                        } catch (err: any) {
+                          toast.error(err.message || 'خطا در همگام‌سازی Stok');
+                        }
+                      }}
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      همگام‌سازی Stok
+                    </button>
+
+                    <button
+                      type="button"
+                      className="huma-btn-secondary"
+                      onClick={async () => {
+                        try {
+                          const res = await api.get<{ ok: boolean; crm: { reachable: boolean; baseUrl: string }; sync: { enabled: boolean; debounceMs: number }; local: { activeUsers: number; totalOrders: number; activeProducts: number } }>('/crm/stats');
+                          const { crm, sync, local } = res;
+                          toast.ok(`CRM: ${crm.reachable ? 'آنلاین' : 'آفلاین'} | کاربران: ${local.activeUsers} | سفارش‌ها: ${local.totalOrders} | محصولات: ${local.activeProducts}`);
+                        } catch (err: any) {
+                          toast.error(err.message || 'خطا در دریافت آمار');
+                        }
+                      }}
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      آمار همگام‌سازی
+                    </button>
+                  </div>
+
+                  <div className="p-3 bg-slate-900/50 rounded-xl border border-white/[0.06] text-xs text-slate-400">
+                    <p><strong>نکته:</strong> تغییرات تنظیمات پس از ذخیره تنظیمات عمومی اعمال می‌شود. برای تست اتصال ابتدا تنظیمات را ذخیره کنید سپس دکمه «بررسی اتصال» را بزنید.</p>
+                    <p className="mt-1">دکمه‌های «همگام‌سازی دستی» مستقیماً API را صدا می‌زنند و نتیجه را به صورت توست نمایش می‌دهند.</p>
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {activeTab === 'logs' && (
       <section className="glass-card overflow-hidden animate-fade-up">
         <div className="border-b border-white/[0.06] px-6 py-4">
           <h3 className="text-sm font-bold text-white">تاریخچه تغییرات مدیریت (Audit Log)</h3>
