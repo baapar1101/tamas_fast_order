@@ -1,52 +1,36 @@
-import { createHash } from 'node:crypto';
-import { mkdir, unlink, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import crypto from 'node:crypto';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
 import { env } from '../../env.js';
 
-export interface StorageDriver {
-  localRoot(): string | null;
+export interface StorageAdapter {
+  localRoot?(): string;
   publicUrl(key: string): string;
-  put(key: string, body: Buffer, mimeType: string): Promise<{ key: string; size: number; checksum: string }>;
+  put(key: string, buffer: Buffer, mimeType: string): Promise<{ size: number; checksum: string }>;
   delete(key: string): Promise<void>;
 }
 
-class LocalStorageDriver implements StorageDriver {
-  localRoot(): string | null {
-    return env.STORAGE_DRIVER === 'local' ? join(process.cwd(), env.STORAGE_ROOT) : null;
+class LocalStorage implements StorageAdapter {
+  localRoot(): string {
+    return resolve(env.STORAGE_ROOT);
   }
 
   publicUrl(key: string): string {
-    if (key.startsWith('http://') || key.startsWith('https://')) {
-      return key;
-    }
-    const prefix = env.STORAGE_PUBLIC_URL.replace(/\/$/, '');
-    const cleanKey = key.replace(/^\//, '');
-    return `${prefix}/${cleanKey}`;
+    return `${env.STORAGE_PUBLIC_URL.replace(/\/$/, '')}/${key.replace(/^\//, '')}`;
   }
 
-  async put(key: string, body: Buffer, _mimeType: string): Promise<{ key: string; size: number; checksum: string }> {
+  async put(key: string, buffer: Buffer, mimeType: string) {
     const fullPath = join(env.STORAGE_ROOT, key);
     await mkdir(dirname(fullPath), { recursive: true });
-    await writeFile(fullPath, body);
-
-    const checksum = `sha256:${createHash('sha256').update(body).digest('hex')}`;
-    return {
-      key,
-      size: body.byteLength,
-      checksum,
-    };
+    await writeFile(fullPath, buffer);
+    const checksum = crypto.createHash('sha256').update(buffer).digest('hex');
+    return { size: buffer.byteLength, checksum };
   }
 
-  async delete(key: string): Promise<void> {
+  async delete(key: string) {
     const fullPath = join(env.STORAGE_ROOT, key);
-    try {
-      await unlink(fullPath);
-    } catch (err: unknown) {
-      if ((err as { code?: string }).code !== 'ENOENT') {
-        throw err;
-      }
-    }
+    await rm(fullPath, { force: true }).catch(() => {});
   }
 }
 
-export const storage: StorageDriver = new LocalStorageDriver();
+export const storage = new LocalStorage();

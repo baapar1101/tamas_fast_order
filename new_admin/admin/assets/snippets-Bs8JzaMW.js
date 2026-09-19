@@ -1,0 +1,1 @@
+import{V as p,W as e}from"./index-D2rJ0L9F.js";const i={get:p((a,s)=>t=>e().get("/api/v1/manage/snippets",{params:{...a},signal:t,...s})),update:p((a,s)=>t=>e().put("/api/v1/manage/snippets",a,{signal:t,...s}))};export{i as s};

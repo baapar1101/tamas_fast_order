@@ -1,0 +1,1 @@
+import{t as i}from"./index-D2rJ0L9F.js";const n={onError:({error:e,setError:r,initialValues:a,showErrorInToast:o})=>{e?.fields&&Object.entries(e.fields).forEach(([s,t])=>{a?.hasOwnProperty(s)?o?.includes(s)?i({title:t,variant:"danger"}):r(s,{message:t},{shouldFocus:!0}):i({title:t,variant:"danger"})})}};export{n as f};

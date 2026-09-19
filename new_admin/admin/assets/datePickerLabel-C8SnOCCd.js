@@ -1,0 +1,1 @@
+import{c8 as o,r as m,j as e,c as i}from"./index-D2rJ0L9F.js";const x=({children:t,className:s,dir:a="rtl",id:r,...l})=>{const{setLabel:c}=o();return m.useEffect(()=>{c(t)},[t]),e.jsx("div",{className:"absolute left-0 right-0 top-0 mr-lg -translate-y-1/2 ltr:ml-lg",dir:a,children:e.jsx("label",{htmlFor:r,className:i("date-picker-label",s),...l,children:t})})};export{x as D};

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Tamas Fast Order System Architecture",
+    "output": "tamas-fast-order-architecture.html",
+    "subtitle": "React storefront + Fastify API + Drizzle/Postgres, with Google Sheets sync and a legacy Express admin",
+    "quality_profile": "showcase",
+    "animation": "trace",
+    "repository": {
+      "url": "https://github.com/baapar1101/tamas_fast_order",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "43932c2f099fb033b0101417911fc67c72a9046b"
+    },
+    "views": [
+      { "id": "request-path", "label": "Product request path", "focus": ["customers", "web", "api", "db"], "note": "Follow a catalog read from the browser to Postgres." },
+      { "id": "sync-flow", "label": "Sheets sync", "focus": ["admins", "api", "gsheets"], "note": "Two-way catalog/order sync between Postgres and Google Sheets." },
+      { "id": "legacy-import", "label": "Legacy migration", "focus": ["legacy", "db"], "note": "One-time import of the legacy catalog snapshot into Postgres." }
+    ]
+  },
+  "components": [
+    { "id": "customers", "type": "external", "label": "Customers", "sublabel": "Browser / Mobile", "pos": [30, 170], "size": [130, 60], "sources": [{ "path": "apps/web/src/App.tsx" }] },
+    { "id": "admins", "type": "external", "label": "Admins", "sublabel": "Store Managers", "pos": [30, 300], "size": [130, 60] },
+    { "id": "sms", "type": "external", "label": "SMS Gateway", "sublabel": "OTP delivery", "pos": [260, 30], "size": [160, 60], "sources": [{ "path": "apps/api/src/services/otp.ts" }] },
+    { "id": "gsheets", "type": "cloud", "label": "Google Sheets", "sublabel": "two-way sync", "pos": [610, 30], "size": [170, 60], "tag": "Pull / Push", "sources": [{ "path": "apps/api/src/services/sheets/sync.ts" }] },
+    { "id": "web", "type": "frontend", "label": "Web App", "sublabel": "@tamas/web · React 19 + Vite", "pos": [260, 190], "size": [170, 64], "tag": "Storefront + Dashboard", "sources": [{ "path": "apps/web/src/App.tsx" }] },
+    { "id": "api", "type": "backend", "label": "API Server", "sublabel": "@tamas/api · Fastify 5 + Drizzle", "pos": [610, 190], "size": [170, 64], "tag": "REST :3000", "sources": [{ "path": "apps/api/src/app.ts" }] },
+    { "id": "db", "type": "database", "label": "PostgreSQL", "sublabel": "Drizzle ORM", "pos": [960, 190], "size": [150, 64], "sources": [{ "path": "apps/api/src/db/schema.ts" }] },
+    { "id": "uploads", "type": "cloud", "label": "Upload Storage", "sublabel": "disk · sharp", "pos": [610, 360], "size": [170, 60], "tag": "product images", "sources": [{ "path": "apps/api/src/routes/admin/uploads.ts" }] },
+    { "id": "legacy", "type": "backend", "label": "Legacy Admin", "sublabel": "new_admin · Express 4", "pos": [960, 360], "size": [150, 60], "tag": "JSON-file backed", "sources": [{ "path": "new_admin/index.html" }] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Monorepo tamas-fast-order", "wraps": ["web", "api", "db"] },
+    { "kind": "region", "label": "Legacy (retired)", "wraps": ["legacy"] }
+  ],
+  "connections": [
+    { "id": "c-to-w", "from": "customers", "to": "web", "label": "Storefront", "variant": "emphasis", "fromSide": "right", "toSide": "left", "labelAt": [180, 140] },
+    { "id": "a-to-w", "from": "admins", "to": "web", "label": "Admin dashboard", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "w-to-a", "from": "web", "to": "api", "label": "REST JSON", "variant": "emphasis" },
+    { "id": "a-to-db", "from": "api", "to": "db", "label": "SQL" },
+    { "id": "a-to-sms", "from": "api", "to": "sms", "label": "send OTP", "fromSide": "top", "toSide": "bottom", "labelSegment": 1, "labelAt": [500, 152], "via": [[695, 140], [340, 140]] },
+    { "id": "a-to-g", "from": "api", "to": "gsheets", "label": "sync", "variant": "dashed", "fromSide": "top", "toSide": "bottom", "labelAt": [712, 128] },
+    { "id": "a-to-ul", "from": "api", "to": "uploads", "label": "save images", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 30 },
+    { "id": "legacy-to-db", "from": "legacy", "to": "db", "label": "import legacy catalog", "variant": "dashed", "fromSide": "top", "toSide": "bottom", "labelSegment": 0, "labelDx": 42, "labelDy": -14 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Storefront & Admin", "items": ["One React 19 SPA serves customers and the admin dashboard", "Zod schemas shared through @tamas/shared"] },
+    { "dot": "cyan", "title": "API Core", "items": ["Fastify 5 with Drizzle ORM over PostgreSQL", "Server-side OTP with rate limiting", "Catalog, orders, auth, and /admin/* routes"] },
+    { "dot": "violet", "title": "Google Sheets Sync", "items": ["Two-way push/pull with conflict tracking", "Legacy Express admin (new_admin) retained"] }
+  ]
+}

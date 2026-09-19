@@ -1,0 +1,20 @@
+{
+  "name": "تماس مارکت | مرجع پخش عمده کالای دیجیتال",
+  "short_name": "تماس مارکت",
+  "description": "بزرگترین مرجع پخش عمده لوازم جانبی و گوشی تلفن همراه در جنوب شرق کشور با بهترین قیمت و گارانتی معتبر",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00768f",
+  "orientation": "portrait-primary",
+  "dir": "rtl",
+  "lang": "fa-IR",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

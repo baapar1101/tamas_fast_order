@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="شرایط و قوانین همکاری، مسئولیت ارسال، مرجوعی و خدمات پس از فروش تماس مارکت">
+  <title>شرایط و قوانین همکاری | تماس مارکت</title>
+  <link rel="shortcut icon" href="/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .terms-header {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .terms-header-inner {
+      max-width: 1180px;
+      min-height: 76px;
+      margin: auto;
+      padding: 12px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .terms-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .terms-logo img {
+      width: 145px;
+      height: 42px;
+      object-fit: contain;
+    }
+
+    .terms-logo span {
+      color: #64747d;
+      font-size: 10px;
+    }
+
+    .terms-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--primary);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 10px;
+      padding: 11px 18px;
+      font-weight: 700;
+    }
+
+    .terms-main {
+      max-width: 1100px;
+      margin: 34px auto 60px;
+      padding: 0 18px;
+    }
+
+    .terms-hero {
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+      background: linear-gradient(135deg, #005f73, #008da8);
+      border-radius: 24px;
+      padding: 42px 40px;
+      box-shadow: 0 14px 35px rgba(0, 118, 143, .18);
+    }
+
+    .terms-hero::after {
+      content: "§";
+      position: absolute;
+      left: 30px;
+      top: -30px;
+      color: rgba(255, 255, 255, .1);
+      font: 900 180px Georgia, serif;
+    }
+
+    .terms-eyebrow {
+      margin: 0 0 10px;
+      color: #bdebf3;
+      font-weight: 700;
+    }
+
+    .terms-hero h1 {
+      position: relative;
+      z-index: 1;
+      margin: 0 0 15px;
+      font-size: clamp(25px, 4vw, 38px);
+      line-height: 1.55;
+    }
+
+    .terms-hero p {
+      position: relative;
+      z-index: 1;
+      max-width: 790px;
+      margin: 0;
+      color: #e3f7fa;
+      line-height: 2;
+      font-size: 16px;
+    }
+
+    .terms-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 22px 0;
+    }
+
+    .summary-item {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .summary-icon,
+    .section-number {
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: #e6f5f8;
+      color: var(--primary);
+      font-weight: 900;
+    }
+
+    .summary-item strong {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .summary-item span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .terms-section {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 30px;
+      margin-top: 18px;
+      box-shadow: 0 5px 20px rgba(18, 50, 77, .04);
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      margin-bottom: 20px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      color: #123b48;
+      font-size: 21px;
+    }
+
+    .terms-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 13px;
+    }
+
+    .terms-list li {
+      position: relative;
+      padding: 15px 45px 15px 16px;
+      background: #f8fafb;
+      border: 1px solid #edf1f4;
+      border-radius: 13px;
+      line-height: 2;
+    }
+
+    .terms-list li::before {
+      content: "✓";
+      position: absolute;
+      right: 15px;
+      top: 17px;
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--primary);
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .terms-list strong {
+      color: #123b48;
+    }
+
+    .refund-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .refund-card {
+      background: linear-gradient(180deg, #f7fcfd, #fff);
+      border: 1px solid #cfe8ed;
+      border-radius: 16px;
+      padding: 22px;
+      line-height: 2;
+    }
+
+    .refund-card h3 {
+      margin: 0 0 8px;
+      color: var(--primary);
+      font-size: 17px;
+    }
+
+    .refund-card p {
+      margin: 0;
+    }
+
+    .important-section {
+      border-color: #f1d9a7;
+      background: #fffdf8;
+    }
+
+    .important-section .section-number {
+      color: #805600;
+      background: #fff0c9;
+    }
+
+    .important-section .terms-list li {
+      background: #fffaf0;
+      border-color: #f4e5c6;
+    }
+
+    .important-section .terms-list li::before {
+      content: "!";
+      background: #d99000;
+    }
+
+    .support-note {
+      margin-top: 22px;
+      padding: 19px 22px;
+      text-align: center;
+      color: #d9edf0;
+      background: #073f4b;
+      border-radius: 16px;
+      line-height: 1.9;
+    }
+
+    .support-note strong {
+      color: #fff;
+    }
+
+    .terms-footer-link {
+      color: #fff;
+      text-underline-offset: 4px;
+    }
+
+    @media (max-width: 760px) {
+      .terms-header-inner {
+        min-height: 66px;
+        padding: 10px 14px;
+      }
+
+      .terms-logo img {
+        width: 120px;
+      }
+
+      .terms-logo span {
+        display: none;
+      }
+
+      .terms-home {
+        padding: 9px 12px;
+        font-size: 13px;
+      }
+
+      .terms-main {
+        margin-top: 18px;
+        padding: 0 12px;
+      }
+
+      .terms-hero {
+        padding: 28px 22px;
+        border-radius: 18px;
+      }
+
+      .terms-summary,
+      .refund-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .terms-section {
+        padding: 22px 17px;
+        border-radius: 16px;
+      }
+
+      .terms-list li {
+        padding-left: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="terms-header">
+    <div class="terms-header-inner">
+      <a class="terms-logo" href="index.html" aria-label="تماس مارکت">
+        <img src="logo.png" alt="تماس مارکت">
+        <span>مرجع تخصصی فروش عمده کالای دیجیتال</span>
+      </a>
+      <a class="terms-home" href="index.html"><span>⌂</span> بازگشت به فروشگاه</a>
+    </div>
+  </header>
+
+  <main class="terms-main">
+    <section class="terms-hero">
+      <p class="terms-eyebrow">شفافیت، اعتماد و همکاری پایدار</p>
+      <h1>شرایط و قوانین همکاری: مرزهای مسئولیت و خدمات پس از فروش</h1>
+      <p>ما در تماس مارکت بر پایه شفافیت و اعتماد، مسیر همکاری با شما را هموار کرده‌ایم. جهت حفظ نظم در
+        فرآیند خرید و فروش، رعایت قوانین زیر الزامی است.</p>
+    </section>
+
+    <div class="terms-summary" aria-label="خلاصه قوانین">
+      <div class="summary-item">
+        <span class="summary-icon">۷</span>
+        <div><strong>۷ روز مهلت اعلام</strong><span>برای اعلام مغایرت سفارش</span></div>
+      </div>
+      <div class="summary-item">
+        <span class="summary-icon">۳</span>
+        <div><strong>حداکثر ۳ روز کاری</strong><span>برای بازگشت وجه بانکی</span></div>
+      </div>
+      <div class="summary-item">
+        <span class="summary-icon">✓</span>
+        <div><strong>هماهنگی پیش از مرجوعی</strong><span>با واحد پشتیبانی تماس مارکت</span></div>
+      </div>
+    </div>
+
+    <section class="terms-section">
+      <div class="section-heading">
+        <span class="section-number">۱</span>
+        <h2>محدوده مسئولیت‌ها و خدمات</h2>
+      </div>
+      <ul class="terms-list">
+        <li><strong>مسئولیت ارسال و حمل‌ونقل:</strong> تعهد ما صرفاً تا لحظه «تحویل صحیح و کامل بسته به شرکت
+          حمل‌ونقل» شامل باربری، تیپاکس، پست یا پیک است. از لحظه تحویل به شرکت حمل، مسئولیت سلامت فیزیکی
+          محموله و زمان رسیدن آن بر عهده شرکت حمل‌کننده خواهد بود.</li>
+        <li><strong>گارانتی و خدمات فنی:</strong> تمامی محصولات دارای ضمانت‌نامه، مشمول قوانین خدمات پس از فروش
+          «شرکت گارانتی‌کننده» هستند. مجموعه ما هیچ‌گونه دخل‌وتصرفی در فرآیند تعمیر یا تأیید شرایط گارانتی کالا
+          ندارد.</li>
+        <li><strong>خطای مجموعه:</strong> تنها در صورتی که کالا به دلیل خطای انسانی ما، مانند ارسال مدل یا تعداد
+          اشتباه، دچار مغایرت باشد، مسئولیت اصلاح و جبران بر عهده تماس مارکت خواهد بود.</li>
+      </ul>
+    </section>
+
+    <section class="terms-section">
+      <div class="section-heading">
+        <span class="section-number">۲</span>
+        <h2>قوانین و الزامات مرجوعی کالا</h2>
+      </div>
+      <ul class="terms-list">
+        <li><strong>حفظ سلامت بسته‌بندی:</strong> کالا باید در بسته‌بندی اولیه و پلمپ اصلی باشد. هرگونه تغییر در
+          بسته‌بندی یا استفاده از محصول، امکان بازگشت را از بین می‌برد.</li>
+        <li><strong>اثبات نقص:</strong> ارسال تصویر یا ویدیو از ایراد کالا یا مغایرت به پشتیبانی از طریق واتس‌اپ
+          یا تلگرام الزامی است.</li>
+        <li><strong>هماهنگی قبلی:</strong> پیش از ارسال هرگونه کالا برای مرجوعی، حتماً باید هماهنگی تلفنی یا
+          پیامکی با واحد پشتیبانی صورت گیرد.</li>
+      </ul>
+    </section>
+
+    <section class="terms-section">
+      <div class="section-heading">
+        <span class="section-number">۳</span>
+        <h2>روش‌های جبران و بازگشت وجه</h2>
+      </div>
+      <div class="refund-grid">
+        <article class="refund-card">
+          <h3>اعتبار به کیف پول — سریع‌ترین روش</h3>
+          <p>مبلغ کالا بلافاصله به کیف پول حساب کاربری شما در پنل اضافه می‌شود تا در سفارش‌های بعدی بدون معطلی
+            از آن استفاده کنید.</p>
+        </article>
+        <article class="refund-card">
+          <h3>بازگشت به حساب بانکی</h3>
+          <p>در صورت تمایل، مبلغ نهایی پس از تأیید کارشناس و هماهنگی با واحد مالی، حداکثر ظرف ۳ روز کاری به
+            شماره شبای ثبت‌شده در پنل شما واریز خواهد شد.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="terms-section important-section">
+      <div class="section-heading">
+        <span class="section-number">۴</span>
+        <h2>نکات بسیار مهم</h2>
+      </div>
+      <ul class="terms-list">
+        <li><strong>مهلت اعلام مغایرت:</strong> سفارش‌های ثبت‌شده پس از گذشت ۷ روز، از نظر قانونی «تأییدشده
+          توسط همکار» تلقی شده و مشمول قانون مرجوعی، به‌جز موارد دارای گارانتی، نخواهند بود.</li>
+        <li><strong>پیگیری حمل:</strong> در صورت بروز آسیب در حین جابه‌جایی، همکار گرامی موظف است با ارائه رسید
+          تحویل به باربری، از طریق شرکت حمل‌کننده پیگیری خسارت نماید.</li>
+      </ul>
+    </section>
+
+    <section class="terms-section important-section" id="sales-terms">
+      <div class="section-heading">
+        <span class="section-number">۵</span>
+        <h2>شرایط و تعهدات فروش</h2>
+      </div>
+      <ul class="terms-list">
+        <li><strong>حفظ مالکیت:</strong> کالاهای موضوع این فاکتور تا زمان تسویه کامل وجه و پاس شدن چک‌ها/اسناد پرداخت، نزد خریدار به صورت «امانت» محسوب می‌گردد و مالکیت قانونی آن‌ها کماکان متعلق به «تماس مارکت» است.</li>
+        <li><strong>انتقال مالکیت:</strong> انتقال قطعی و نهایی مالکیت کالاها به خریدار، صرفاً پس از وصول کامل وجه فاکتور امکان‌پذیر خواهد بود.</li>
+        <li><strong>حق استرداد:</strong> در صورت عدم پرداخت به‌موقع اقساط یا برگشت خوردن چک‌های بدهی، خریدار به «تماس مارکت» اختیار تام می‌دهد تا بدون نیاز به اخذ مجوزهای قضاییِ اولیه (با استناد به این توافقنامه)، نسبت به شناسایی و استرداد کالاهای مذکور اقدام نماید. در این صورت، خریدار حق هرگونه ادعا یا شکایت بعدی را در این خصوص از خود سلب و ساقط می‌نماید.</li>
+        <li><strong>تأییدیه الکترونیک:</strong> با تیک زدن چکباکسِ «تأیید شرایط» و ثبت نهایی سفارش، خریدار اقرار می‌نماید که این فاکتور در حکم سند رسمی بدهی بوده و تمامی مفاد فوق به منزله‌ی امضای قانونی خریدار و پذیرشِ بی‌قید و شرطِ این شرایط می‌باشد.</li>
+      </ul>
+    </section>
+
+    <div class="support-note">
+      <strong>پیش از ارسال کالای مرجوعی با واحد پشتیبانی هماهنگ کنید.</strong><br>
+      شماره تماس: <a class="terms-footer-link" href="tel:09135006644">۰۹۱۳۵۰۰۶۶۴۴</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <h3 class="footer-title">تماس با ما</h3>
+      <p class="footer-text">شماره تماس: <a class="terms-footer-link" href="tel:09135006644">09135006644</a></p>
+      <p class="footer-text">آدرس: کرمان، خیابان شهید نامجو، بعد از کوچه ۹، پلاک ۱۰۹</p>
+      <p class="footer-text"><a class="terms-footer-link" href="index.html">بازگشت به فروشگاه</a></p>
+      <p class="footer-text"><a class="terms-footer-link" href="faq.html">سؤالات متداول همکاری</a></p>
+      <p class="footer-text"><a class="terms-footer-link" href="payment.html">روش‌های پرداخت و تسویه‌حساب</a></p>
+    </div>
+    <div class="footer-logo">
+      <img src="logo.png" alt="تماس مارکت">
+      <p class="footer-text">مرجع تخصصی فروش عمده کالای دیجیتال</p>
+    </div>
+    <div class="footer-benefits">
+      <h3 class="footer-title">چرا همکاری با ما؟</h3>
+      <p class="footer-text">💰 <strong>قیمت‌های استثنایی:</strong> دسترسی مستقیم به قیمت‌های عمده و لحظه‌ای.</p>
+      <p class="footer-text">⚡ <strong>سرعت در سفارش:</strong> فرآیند ثبت و تأیید سریع برای اینکه وقت شما تلف نشود.</p>
+      <p class="footer-text">📊 <strong>پنل کاربری هوشمند:</strong> مدیریت آسان فاکتورها، موجودی و سفارشات در یک‌جا.</p>
+      <p class="footer-text">🤝 <strong>پشتیبانی همیشگی:</strong> تیم ما همیشه کنار شماست تا در مسیر کسب‌وکارتان کمکی کنید.</p>
+    </div>
+    <div class="enamad-box" aria-label="نماد اعتماد الکترونیکی">
+      <a referrerpolicy="origin" target="_blank"
+        href="https://trustseal.enamad.ir/?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw">
+        <img referrerpolicy="origin"
+          src="https://trustseal.enamad.ir/logo.aspx?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw"
+          alt="نماد اعتماد الکترونیکی" style="cursor:pointer;max-width:120px;max-height:95px">
+      </a>
+    </div>
+  </footer>
+</body>
+
+</html>

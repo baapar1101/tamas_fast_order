@@ -1,0 +1,1 @@
+const i={large:1280,medium:640,small:320},s=(l,a="small")=>{const e=l?.replace(/^\//,"");return!e||e==="undefined"||e===""?"/admin/images/placeholder.webp":`/${e}?width=${i[a]}&height=${i[a]}`};export{s as i};

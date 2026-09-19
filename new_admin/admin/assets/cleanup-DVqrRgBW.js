@@ -1,0 +1,1 @@
+const n={payload:(u,s)=>Object.keys(u).reduce((r,e)=>(s.includes(e)&&(r[e]=u[e]),r),{}),advancedPayload:(u,s)=>Array.isArray(s)?Object.keys(u).reduce((r,e)=>(s.includes(e)&&(r[e]=u[e]),r),{}):Object.keys(u).reduce((r,e)=>(s?.validKey?.includes(e)?r[e]=u[e]:s?.invalidKey?.includes(e)?r[e]=void 0:r[e]=u[e],r),{})};export{n as c};
