@@ -19,6 +19,10 @@ export default defineConfig({
   build: {
     target: 'es2022',
     sourcemap: true,
+    // The server places a .user.ini file inside dist/ which causes Vite's
+    // emptyOutDir (rmSync) to crash with ENOTDIR. Disabling it is safe
+    // because built files overwrite their previous versions on every build.
+    emptyOutDir: false,
     rollupOptions: {
       output: {
         // The admin panel is a separate chunk: a shopper never downloads it.
