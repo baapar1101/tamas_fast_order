@@ -8,6 +8,7 @@ export default defineConfig({
     port: 5173,
     allowedHosts: [
       'shop.tamasmarket.com',
+      'tamasmarket.com'
     ],
     // Dev talks to the API on the same origin, so cookies and uploads behave
     // exactly as they do in production behind nginx.
