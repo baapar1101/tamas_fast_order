@@ -11,54 +11,61 @@
   },
   "participants": [
     { "id": "admin", "type": "external", "label": "Admin User", "sublabel": "Browser" },
-    { "id": "web", "type": "frontend", "label": "Admin Panel", "sublabel": "React UI" },
-    { "id": "api", "type": "backend", "label": "Sync Service", "sublabel": "API" },
-    { "id": "db", "type": "database", "label": "Postgres", "sublabel": "Local DB" },
-    { "id": "gsheets", "type": "cloud", "label": "Google Sheets", "sublabel": "Remote API" }
+    { "id": "web", "type": "frontend", "label": "Admin Panel", "sublabel": "React UI (SyncPage)" },
+    { "id": "api", "type": "backend", "label": "Sync Service", "sublabel": "runSync()" },
+    { "id": "db", "type": "database", "label": "Postgres", "sublabel": "Drizzle · postgres" },
+    { "id": "gsheets", "type": "cloud", "label": "Google Sheets", "sublabel": "googleapis" }
   ],
   "segments": [
-    { "from": 180, "to": 250, "label": "Data Fetch" },
-    { "from": 260, "to": 310, "label": "Diffing" },
-    { "from": 320, "to": 420, "label": "Bi-directional Update" }
+    { "from": 164, "to": 186, "label": "Trigger" },
+    { "from": 190, "to": 344, "label": "Pull · three-way merge" },
+    { "from": 348, "to": 396, "label": "Push" },
+    { "from": 400, "to": 472, "label": "State & finish" }
   ],
   "messages": [
-    { "id": "m1", "from": "admin", "to": "web", "y": 160, "label": "click 'Sync Sheets'", "variant": "default" },
-    { "id": "m2", "from": "web", "to": "api", "y": 188, "label": "POST /api/sync", "variant": "emphasis" },
-    { "id": "m3", "from": "api", "to": "db", "y": 216, "label": "SELECT products", "variant": "default" },
-    { "id": "m4", "from": "db", "to": "api", "y": 244, "label": "local products", "variant": "return" },
-    { "id": "m5", "from": "api", "to": "gsheets", "y": 272, "label": "GET spreadsheet", "variant": "default" },
-    { "id": "m6", "from": "gsheets", "to": "api", "y": 300, "label": "sheet rows", "variant": "return" },
-    { "id": "m7", "from": "api", "to": "db", "y": 328, "label": "UPSERT updated rows", "variant": "emphasis" },
-    { "id": "m8", "from": "db", "to": "api", "y": 356, "label": "ack", "variant": "return" },
-    { "id": "m9", "from": "api", "to": "gsheets", "y": 384, "label": "batchUpdate values", "variant": "emphasis" },
-    { "id": "m10", "from": "gsheets", "to": "api", "y": 412, "label": "ack", "variant": "return" },
-    { "id": "m11", "from": "api", "to": "web", "y": 440, "label": "200 OK (Sync Results)", "variant": "return" },
-    { "id": "m12", "from": "web", "to": "admin", "y": 468, "label": "show success toast", "variant": "return" }
+    { "id": "m1", "from": "web", "to": "api", "y": 160, "label": "POST /admin/sync/run", "variant": "emphasis", "note": "body { direction: 'both', entities } - requireAdmin, SHEETS_ENABLED check" },
+    { "id": "m2", "from": "api", "to": "gsheets", "y": 188, "label": "read tab (transport.read)", "variant": "default" },
+    { "id": "m3", "from": "api", "to": "db", "y": 216, "label": "load rows + sheetHash", "variant": "default" },
+    { "id": "m4", "from": "db", "to": "api", "y": 244, "label": "rows (db, baseline)", "variant": "return" },
+    { "id": "m5", "from": "gsheets", "to": "api", "y": 272, "label": "sheet rows (hashed)", "variant": "return" },
+    { "id": "m6", "from": "api", "to": "db", "y": 300, "label": "apply sheet row (sheet wins)", "variant": "emphasis", "note": "sheetChanged && dbChanged -> recordConflicts()" },
+    { "id": "m7", "from": "db", "to": "api", "y": 328, "label": "created / updated / skipped", "variant": "return" },
+    { "id": "m8", "from": "api", "to": "gsheets", "y": 356, "label": "write changed rows", "variant": "emphasis", "note": "transport.write, then markSynced() re-stamps the baseline" },
+    { "id": "m9", "from": "gsheets", "to": "api", "y": 384, "label": "ack", "variant": "return" },
+    { "id": "m10", "from": "api", "to": "db", "y": 412, "label": "upsert syncState", "variant": "default", "note": "lastPulledAt / lastPushedAt, row counts, lastError" },
+    { "id": "m11", "from": "api", "to": "web", "y": 440, "label": "200 { ok, report }", "variant": "return", "note": "invalidateCatalog() clears the query cache" },
+    { "id": "m12", "from": "web", "to": "admin", "y": 468, "label": "sync report + conflicts", "variant": "return" }
   ],
   "activations": [
-    { "participant": "web", "from": 180, "to": 475, "type": "frontend" },
-    { "participant": "api", "from": 180, "to": 450, "type": "backend" },
-    { "participant": "db", "from": 205, "to": 255, "type": "database" },
-    { "participant": "gsheets", "from": 260, "to": 310, "type": "cloud" },
-    { "participant": "db", "from": 315, "to": 365, "type": "database" },
-    { "participant": "gsheets", "from": 375, "to": 425, "type": "cloud" }
+    { "participant": "web", "from": 160, "to": 472, "type": "frontend" },
+    { "participant": "api", "from": 160, "to": 444, "type": "backend" },
+    { "participant": "gsheets", "from": 188, "to": 388, "type": "cloud" },
+    { "participant": "db", "from": 216, "to": 416, "type": "database" }
   ],
   "cards": [
     {
       "dot": "emerald",
-      "title": "Two-way Sync",
+      "title": "Three-Way Merge",
       "items": [
-        "The Sync Service pulls data from both the local database and the remote Google Sheet.",
-        "It diffs the data based on cell hashes to identify changes on both sides."
+        "Row content is merged against the sheetHash captured the last time both sides agreed.",
+        "A hand edit in the sheet counts even when nobody touched updated_at - the hash is the source of truth."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Conflicts",
+      "items": [
+        "When both sides changed, the differing fields are recorded in syncConflicts.",
+        "The timestamp determines the winner; sheet rows without a timestamp never win."
       ]
     },
     {
       "dot": "cyan",
-      "title": "Atomic Updates",
+      "title": "Atomicity",
       "items": [
-        "Local changes (e.g. from the admin panel) are pushed up.",
-        "Remote changes (e.g. warehouse staff updating kerman_stock) are pulled down.",
-        "Both systems are updated to mirror each other."
+        "Pull and push share one runSync() lock; dryRun reports changes without writing.",
+        "Only after the sheet write lands is markSynced() called, so the new baseline is always true.",
+        "syncState tracks lastPulledAt / lastPushedAt and per-entity errors."
       ]
     }
   ]

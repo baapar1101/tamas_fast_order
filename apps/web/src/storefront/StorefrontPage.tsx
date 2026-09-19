@@ -11,6 +11,7 @@ import { CheckoutDialog } from './CheckoutDialog';
 import { ProductCard } from './ProductCard';
 import { useBootstrap, useDebounced, useProducts, type CatalogFilters } from './hooks';
 import { Icon } from '../components/Icon';
+import { CrmChat } from '../components/CrmChat';
 import './storefront.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
@@ -362,12 +363,12 @@ export function StorefrontPage() {
         </div>
 
         {/* Mobile-only Cart View */}
-        <div className="mobile-only-cart" style={{ background: '#f8fafc' }}>
+        <div className="mobile-only-cart" style={{ background: '#f8fafc', paddingBottom: 100 }}>
           <CartPanel onCheckout={openCheckout} canViewPrices={canViewPrices} />
         </div>
 
         {/* Mobile-only Profile View */}
-        <div className="mobile-only-profile" style={{ padding: 16, background: '#f8fafc' }}>
+        <div className="mobile-only-profile" style={{ padding: 16, paddingBottom: 100, background: '#f8fafc' }}>
           {user ? (
             <div style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center' }}>
               <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--brand)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 800, margin: '0 auto 16px' }}>{user.name?.[0] || 'U'}</div>
@@ -782,6 +783,9 @@ export function StorefrontPage() {
           <span className="tabbar-icon"><Icon name="user" /></span><span>{user ? 'حساب کاربری' : 'ورود / عضویت'}</span>
         </button>
       </nav>
+
+      {/* CRM Chat Widget */}
+      <CrmChat user={user || undefined} />
     </div>
   );
 }
