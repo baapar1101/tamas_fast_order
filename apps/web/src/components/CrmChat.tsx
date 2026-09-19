@@ -452,7 +452,15 @@ export function CrmChat({ user }: CrmChatProps) {
   };
 
   /* Colors — tamasmarket state tokens */
-  const orbColor = wsStatus === 'connected' ? 'var(--tamas-success)' : wsStatus === 'connecting' ? 'var(--tamas-warning)' : wsStatus === 'offline' ? 'var(--tamas-danger)' : 'var(--tamas-accent)';
+  /* Header status — WS is realtime; REST polling keeps chat alive when WS is down */
+  const liveStatus = wsStatus === 'connected'
+    ? 'connected'
+    : wsStatus === 'connecting'
+      ? 'connecting'
+      : wsStatus === 'offline' && !netAlive
+        ? 'offline'
+        : 'idle';
+  const orbColor = liveStatus === 'connected' ? 'var(--tamas-success)' : liveStatus === 'connecting' ? 'var(--tamas-warning)' : liveStatus === 'offline' ? 'var(--tamas-danger)' : 'var(--tamas-accent)';
   const bottom   = isMobile ? 80 : 24;
   const widgetW  = isMobile ? 'calc(100vw - 24px)' : 390;
   const widgetH  = isMobile ? 'calc(100svh - 104px)' : 560;
@@ -563,7 +571,7 @@ export function CrmChat({ user }: CrmChatProps) {
           <div>
             <div style={{ fontWeight: 800, fontSize: 14 }}>پشتیبانی تماس</div>
             <div style={{ fontSize: 11, opacity: 0.85, marginTop: 1 }}>
-              {wsStatus === 'connected' ? '● آنلاین' : wsStatus === 'connecting' ? '◌ در حال اتصال...' : wsStatus === 'offline' ? '○ آفلاین' : 'آماده پاسخگویی'}
+              {liveStatus === 'connected' ? '● آنلاین' : liveStatus === 'connecting' ? '◌ در حال اتصال...' : liveStatus === 'offline' ? '○ آفلاین' : 'آماده پاسخگویی'}
             </div>
           </div>
         </div>

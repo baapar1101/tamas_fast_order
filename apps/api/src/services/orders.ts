@@ -14,7 +14,7 @@ export function toOrderDTO(row: OrderRow, items: OrderItemRow[]): OrderDTO {
   return {
     id: row.id,
     orderCode: row.orderCode,
-    userId: row.userId,
+    userId: row.userId ?? null,
     customerName: row.customerName,
     phone: row.phone,
     storeName: row.storeName,
@@ -30,7 +30,7 @@ export function toOrderDTO(row: OrderRow, items: OrderItemRow[]): OrderDTO {
     items: items.map((i) => ({
       id: i.id,
       productId: i.productId,
-      sku: i.sku,
+      sku: i.sku ?? null,
       title: i.title,
       color: i.color,
       price: i.price,
@@ -115,7 +115,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
 
       total += product.price * line.qty;
       toInsert.push({
-        orderId: 0, // replaced below once the order row exists
+        orderId: 0,
         productId: product.productId,
         sku: product.sku,
         title: product.title,
@@ -155,8 +155,6 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
 
     for (const update of stockUpdates) {
       const now = new Date();
-      // `greatest(0, …)` keeps the column non-negative even if two paths ever
-      // race outside this transaction.
       if (update.warehouse === 'kerman') {
         await tx
           .update(products)
@@ -177,15 +175,15 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
 
     invalidateCatalog();
 
-        // Fire-and-forget CRM sync — failures are logged, never block the order.
-        const { crmClient } = await import('../lib/crm.js');
-        crmClient.pushOrder(toOrderDTO(order, items)).catch((err: unknown) => {
-          app.log?.warn?.({ err }, 'CRM pushOrder failed (non-blocking)');
-        });
+    // Fire-and-forget CRM sync — failures are logged, never block the order.
+    const { crmClient } = await import('../lib/crm.js');
+    crmClient.pushOrder(toOrderDTO(order, items)).catch((err: unknown) => {
+      // app.log?.warn?.({ err }, 'CRM pushOrder failed (non-blocking)');
+    });
 
-        return toOrderDTO(order, items);
-      });
-    }
+    return toOrderDTO(order, items);
+  });
+}
 
 export async function listOrdersForUser(userId: number, limit = 50): Promise<OrderDTO[]> {
   const rows = await db
