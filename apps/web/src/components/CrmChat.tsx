@@ -5,6 +5,20 @@ const PUBLIC_KEY = 'wPzldz3FGwE2EX8tYS4WYew2kf9aL72Y';
 
 const isMobile = () => window.innerWidth < 768;
 
+// Design tokens matching the app's design system
+const colors = {
+  primary: '#0066cc',
+  primaryLight: '#e6f0ff',
+  primaryHover: '#0071e3',
+  accent: '#2997ff',
+  bg: '#f5f5f7',
+  card: '#ffffff',
+  border: '#f0f0f0',
+  text: '#1d1d1f',
+  textMuted: '#7a7a7a',
+  success: '#10b981',
+};
+
 interface Message {
   id: number;
   conversation_id: number;
@@ -184,23 +198,30 @@ export function CrmChat({ user }: CrmChatProps) {
           position: 'fixed',
           bottom: isMobileView ? 80 : 24,
           left: 24,
-          width: 60,
-          height: 60,
+          width: 56,
+          height: 56,
           borderRadius: '50%',
-          backgroundColor: '#10b981',
+          backgroundColor: colors.primary,
           color: 'white',
           border: 'none',
           cursor: 'pointer',
-          boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)',
+          boxShadow: '0 4px 14px rgba(0, 102, 204, 0.3)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 28,
+          fontSize: 24,
           zIndex: 1000,
-          transition: 'transform 0.2s',
+          transition: 'all 0.2s ease',
+          backdropFilter: 'blur(12px)',
         }}
-        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 102, 204, 0.4)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 4px 14px rgba(0, 102, 204, 0.3)';
+        }}
         title="چت با پشتیبانی"
       >
         💬
@@ -219,31 +240,47 @@ export function CrmChat({ user }: CrmChatProps) {
         maxWidth: 'calc(100vw - 48px)',
         height: 520,
         maxHeight: 'calc(100vh - 48px)',
-        backgroundColor: 'white',
-        borderRadius: 16,
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+        backgroundColor: colors.card,
+        borderRadius: 12,
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
         display: 'flex',
         flexDirection: 'column',
         zIndex: 1000,
         overflow: 'hidden',
+        border: '1px solid rgba(0, 0, 0, 0.05)',
+        backdropFilter: 'blur(12px)',
       }}
     >
       {/* Header */}
       <div
         style={{
-          padding: 16,
-          backgroundColor: '#10b981',
+          padding: '16px 20px',
+          backgroundColor: colors.primary,
           color: 'white',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 24 }}>💬</span>
+          <div 
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 20,
+            }}
+          >
+            💬
+          </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>پشتیبانی آنلاین</h3>
-            <p style={{ margin: 0, fontSize: 12, opacity: 0.9 }}>
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>پشتیبانی آنلاین</h3>
+            <p style={{ margin: 0, fontSize: 12, opacity: 0.9, fontWeight: 500 }}>
               {step === 'chat' ? 'آنلاین و آماده پاسخگویی' : 'شروع مکالمه جدید'}
             </p>
           </div>
@@ -252,24 +289,28 @@ export function CrmChat({ user }: CrmChatProps) {
           type="button"
           onClick={() => setIsOpen(false)}
           style={{
-            background: 'none',
+            background: 'rgba(255, 255, 255, 0.1)',
             border: 'none',
             color: 'white',
-            fontSize: 24,
+            fontSize: 20,
             cursor: 'pointer',
-            padding: 4,
+            padding: 8,
+            borderRadius: 8,
+            transition: 'background 0.2s',
           }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
         >
           ✕
         </button>
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: 20, backgroundColor: colors.bg }}>
         {step === 'form' ? (
-          <form onSubmit={startConversation} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <form onSubmit={startConversation} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4, color: '#334155' }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: colors.text }}>
                 نام *
               </label>
               <input
@@ -279,16 +320,28 @@ export function CrmChat({ user }: CrmChatProps) {
                 onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                 style={{
                   width: '100%',
-                  padding: 10,
-                  border: '1px solid #e2e8f0',
+                  padding: '12px 14px',
+                  border: `1px solid ${colors.border}`,
                   borderRadius: 8,
                   fontSize: 14,
+                  backgroundColor: colors.card,
+                  color: colors.text,
+                  outline: 'none',
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
                 }}
                 placeholder="نام خود را وارد کنید"
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = colors.primary;
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0, 102, 204, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4, color: '#334155' }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: colors.text }}>
                 نام خانوادگی *
               </label>
               <input
@@ -298,16 +351,28 @@ export function CrmChat({ user }: CrmChatProps) {
                 onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                 style={{
                   width: '100%',
-                  padding: 10,
-                  border: '1px solid #e2e8f0',
+                  padding: '12px 14px',
+                  border: `1px solid ${colors.border}`,
                   borderRadius: 8,
                   fontSize: 14,
+                  backgroundColor: colors.card,
+                  color: colors.text,
+                  outline: 'none',
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
                 }}
                 placeholder="نام خانوادگی خود را وارد کنید"
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = colors.primary;
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0, 102, 204, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4, color: '#334155' }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: colors.text }}>
                 شماره موبایل *
               </label>
               <input
@@ -317,16 +382,28 @@ export function CrmChat({ user }: CrmChatProps) {
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 style={{
                   width: '100%',
-                  padding: 10,
-                  border: '1px solid #e2e8f0',
+                  padding: '12px 14px',
+                  border: `1px solid ${colors.border}`,
                   borderRadius: 8,
                   fontSize: 14,
+                  backgroundColor: colors.card,
+                  color: colors.text,
+                  outline: 'none',
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
                 }}
                 placeholder="09xxxxxxxxx"
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = colors.primary;
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0, 102, 204, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 4, color: '#334155' }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: colors.text }}>
                 ایمیل
               </label>
               <input
@@ -335,12 +412,24 @@ export function CrmChat({ user }: CrmChatProps) {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 style={{
                   width: '100%',
-                  padding: 10,
-                  border: '1px solid #e2e8f0',
+                  padding: '12px 14px',
+                  border: `1px solid ${colors.border}`,
                   borderRadius: 8,
                   fontSize: 14,
+                  backgroundColor: colors.card,
+                  color: colors.text,
+                  outline: 'none',
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
                 }}
                 placeholder="example@email.com"
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = colors.primary;
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0, 102, 204, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </div>
             <button
@@ -348,8 +437,8 @@ export function CrmChat({ user }: CrmChatProps) {
               disabled={isLoading}
               style={{
                 width: '100%',
-                padding: 12,
-                backgroundColor: '#10b981',
+                padding: 14,
+                backgroundColor: colors.primary,
                 color: 'white',
                 border: 'none',
                 borderRadius: 8,
@@ -357,6 +446,20 @@ export function CrmChat({ user }: CrmChatProps) {
                 fontWeight: 600,
                 cursor: isLoading ? 'not-allowed' : 'pointer',
                 opacity: isLoading ? 0.7 : 1,
+                transition: 'all 0.2s',
+                boxShadow: '0 2px 8px rgba(0, 102, 204, 0.2)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = colors.primaryHover;
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = colors.primary;
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }
               }}
             >
               {isLoading ? 'در حال اتصال...' : 'شروع مکالمه'}
@@ -370,14 +473,15 @@ export function CrmChat({ user }: CrmChatProps) {
                 overflow: 'auto',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 8,
-                marginBottom: 12,
+                gap: 12,
+                marginBottom: 16,
               }}
             >
               {messages.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#64748b', padding: 32 }}>
-                  <p style={{ fontSize: 14 }}>مکالمه جدیدی را شروع کنید!</p>
-                  <p style={{ fontSize: 12, marginTop: 8 }}>تیم پشتیبانی ما به زودی پاسخ خواهند داد.</p>
+                <div style={{ textAlign: 'center', color: colors.textMuted, padding: 32 }}>
+                  <div style={{ fontSize: 48, marginBottom: 12 }}>💬</div>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: colors.text, marginBottom: 4 }}>مکالمه جدیدی را شروع کنید!</p>
+                  <p style={{ fontSize: 13, marginTop: 8 }}>تیم پشتیبانی ما به زودی پاسخ خواهند داد.</p>
                 </div>
               ) : (
                 messages.map((msg) => (
@@ -390,17 +494,21 @@ export function CrmChat({ user }: CrmChatProps) {
                   >
                     <div
                       style={{
-                        backgroundColor: msg.sender_role === 'visitor' ? '#10b981' : '#f1f5f9',
-                        color: msg.sender_role === 'visitor' ? 'white' : '#334155',
-                        padding: 10,
+                        backgroundColor: msg.sender_role === 'visitor' ? colors.primary : colors.card,
+                        color: msg.sender_role === 'visitor' ? 'white' : colors.text,
+                        padding: '12px 16px',
                         borderRadius: 12,
                         fontSize: 14,
                         lineHeight: 1.5,
+                        boxShadow: msg.sender_role === 'visitor' 
+                          ? '0 2px 8px rgba(0, 102, 204, 0.2)' 
+                          : '0 1px 3px rgba(0, 0, 0, 0.05)',
+                        border: msg.sender_role === 'agent' ? `1px solid ${colors.border}` : 'none',
                       }}
                     >
                       {msg.body}
                     </div>
-                    <span style={{ fontSize: 11, color: '#94a3b8', marginTop: 4, display: 'block' }}>
+                    <span style={{ fontSize: 11, color: colors.textMuted, marginTop: 4, display: 'block', fontWeight: 500 }}>
                       {new Date(msg.created_at).toLocaleTimeString('fa-IR', {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -421,18 +529,30 @@ export function CrmChat({ user }: CrmChatProps) {
                 disabled={isLoading}
                 style={{
                   flex: 1,
-                  padding: 10,
-                  border: '1px solid #e2e8f0',
+                  padding: '12px 16px',
+                  border: `1px solid ${colors.border}`,
                   borderRadius: 8,
                   fontSize: 14,
+                  backgroundColor: colors.card,
+                  color: colors.text,
+                  outline: 'none',
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = colors.primary;
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0, 102, 204, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               />
               <button
                 type="submit"
                 disabled={isLoading || !inputMessage.trim()}
                 style={{
-                  padding: '10 16',
-                  backgroundColor: '#10b981',
+                  padding: '12px 20px',
+                  backgroundColor: colors.primary,
                   color: 'white',
                   border: 'none',
                   borderRadius: 8,
@@ -440,6 +560,20 @@ export function CrmChat({ user }: CrmChatProps) {
                   fontWeight: 600,
                   cursor: isLoading || !inputMessage.trim() ? 'not-allowed' : 'pointer',
                   opacity: isLoading || !inputMessage.trim() ? 0.7 : 1,
+                  transition: 'all 0.2s',
+                  boxShadow: '0 2px 8px rgba(0, 102, 204, 0.2)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoading && inputMessage.trim()) {
+                    e.currentTarget.style.backgroundColor = colors.primaryHover;
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isLoading && inputMessage.trim()) {
+                    e.currentTarget.style.backgroundColor = colors.primary;
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }
                 }}
               >
                 {isLoading ? '...' : 'ارسال'}
