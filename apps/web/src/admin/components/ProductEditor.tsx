@@ -166,28 +166,29 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
 
   return (
     <div className="flex flex-col h-full animate-fade-in pb-20 lg:pb-0">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-40 flex items-center justify-between bg-slate-900/80 backdrop-blur-md border-b border-white/[0.06] p-4 mb-6 shadow-sm">
-        <div className="flex items-center gap-3">
+      {/* Sticky Toolbar */}
+      <div className="a-stickybar mb-6">
+        <div className="a-stickybar-head">
           <button
             type="button"
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/[0.06] transition text-slate-400 hover:text-white"
+            className="a-btn a-btn--ghost a-btn--sm"
+            aria-label="بستن"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
           </button>
-          <div>
-            <h1 className="text-lg font-extrabold text-white">{titleText}</h1>
-            {product && <p className="text-xs text-slate-400 mt-0.5">{product.title}</p>}
+          <div className="flex flex-col">
+            <span className="a-stickybar-title">{titleText}</span>
+            {product && <span className="a-subtitle">{product.title}</span>}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button type="button" className="huma-btn-secondary !hidden sm:!flex" onClick={onClose} disabled={busy}>
+        <div className="a-stickybar-actions">
+          <button type="button" className="a-btn a-btn--secondary" onClick={onClose} disabled={busy}>
             انصراف
           </button>
-          <button type="button" className="huma-btn-primary" onClick={submit} disabled={busy}>
+          <button type="button" className="a-btn a-btn--primary" onClick={submit} disabled={busy}>
             {busy ? 'در حال ذخیره…' : 'ذخیره محصول'}
           </button>
         </div>
@@ -195,9 +196,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
 
       {error && (
         <div className="mb-6 px-4">
-          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-xl text-sm font-semibold">
-            {error}
-          </div>
+          <div className="a-error-box">{error}</div>
         </div>
       )}
 
@@ -472,11 +471,11 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
               {form.attributes.length === 0 ? (
                 <div className="text-center text-slate-500 py-4 text-sm">هیچ ویژگی ثبت نشده است.</div>
               ) : (
-                form.attributes.map((attr, idx) => (
-                  <div key={idx} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center bg-white/[0.02] p-3 rounded-xl border border-white/[0.04]">
-                    <div className="w-full sm:w-1/3">
+form.attributes.map((attr, idx) => (
+                  <div key={idx} className="a-attr-row">
+                    <div className="a-attr-key">
                       <input
-                        className="huma-input !py-2 !text-sm"
+                        className="a-input"
                         placeholder="نام ویژگی (مثال: رم)"
                         value={attr.key}
                         onChange={(e) => {
@@ -488,7 +487,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                     </div>
                     <div className="flex-1 w-full relative">
                       <input
-                        className="huma-input !py-2 !text-sm pr-10"
+                        className="a-input"
                         placeholder="مقدار (مثال: 8 گیگابایت)"
                         value={attr.value}
                         onChange={(e) => {
@@ -499,7 +498,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                       />
                       <button
                         type="button"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-rose-400 hover:bg-rose-500/20 rounded-lg transition"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-rose-400 hover:bg-rose-500/20 rounded-lg transition"
                         onClick={() => {
                           const cp = [...form.attributes];
                           cp.splice(idx, 1);
@@ -566,48 +565,54 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
           <section className="glass-card p-5 space-y-4">
             <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">تنظیمات</h3>
             
-            <div className="space-y-4">
-              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition">
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 rounded border-white/10 bg-black/20 text-emerald-500 focus:ring-emerald-500/30"
-                  checked={form.status === 'active'}
-                  onChange={(e) => set('status', e.target.checked ? 'active' : 'inactive')}
-                />
-                <div>
-                  <div className="font-semibold text-slate-200 text-sm">محصول فعال باشد</div>
+            <div className="space-y-3">
+              <div className={`a-option-row${form.status === 'active' ? ' a-option-row--on' : ''}`}>
+                <div className="a-option-copy">
+                  <span className="a-option-title">محصول فعال باشد</span>
+                  <span className="a-option-desc">در صورت غیرفعال بودن، محصول از سایت حذف می‌شود.</span>
                 </div>
-              </label>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.status === 'active'}
+                  className="a-switch"
+                  onClick={() => set('status', form.status === 'active' ? 'inactive' : 'active')}
+                />
+              </div>
 
-              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition">
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 rounded border-white/10 bg-black/20 text-brand-500 focus:ring-brand-500/30"
-                  checked={form.promotion}
-                  onChange={(e) => set('promotion', e.target.checked)}
-                />
-                <div>
-                  <div className="font-semibold text-slate-200 text-sm">پیشنهاد ویژه</div>
-                  <div className="text-[10px] text-slate-500 mt-1">نمایش در اسلایدر محصولات ویژه</div>
+              <div className={`a-option-row${form.promotion ? ' a-option-row--on' : ''}`}>
+                <div className="a-option-copy">
+                  <span className="a-option-title">پیشنهاد ویژه</span>
+                  <span className="a-option-desc">نمایش در اسلایدر محصولات ویژه</span>
                 </div>
-              </label>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.promotion}
+                  className="a-switch"
+                  onClick={() => set('promotion', !form.promotion)}
+                />
+              </div>
 
-              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition">
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 rounded border-white/10 bg-black/20 text-brand-500 focus:ring-brand-500/30"
-                  checked={form.tracking}
-                  onChange={(e) => set('tracking', e.target.checked)}
-                />
-                <div>
-                  <div className="font-semibold text-slate-200 text-sm">پیگیری موجودی</div>
-                  <div className="text-[10px] text-slate-500 mt-1">جلوگیری از فروش در صورت اتمام موجودی</div>
+              <div className={`a-option-row${form.tracking ? ' a-option-row--on' : ''}`}>
+                <div className="a-option-copy">
+                  <span className="a-option-title">پیگیری موجودی</span>
+                  <span className="a-option-desc">جلوگیری از فروش در صورت اتمام موجودی</span>
                 </div>
-              </label>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.tracking}
+                  className="a-switch"
+                  onClick={() => set('tracking', !form.tracking)}
+                />
+              </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5 mt-2">روبان / برچسب روی عکس</label>
-                <input className="huma-input !py-2" placeholder="مثال: پرفروش" value={form.ribbon} onChange={(e) => set('ribbon', e.target.value)} />
+                <label className="a-field">
+                  <span className="a-label">روبان / برچسب روی عکس</span>
+                  <input className="a-input" placeholder="مثال: پرفروش" value={form.ribbon} onChange={(e) => set('ribbon', e.target.value)} />
+                </label>
               </div>
             </div>
           </section>

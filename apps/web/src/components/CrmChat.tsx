@@ -116,7 +116,7 @@ function pointerScale(disabled = false) {
     },
     onMouseEnter: (e: React.MouseEvent) => {
       if (disabled) return;
-      (e.currentTarget as HTMLElement).style.transform = 'scale(1.05)';
+      (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; // Removed hover scaling per DESIGN.md: "never hover-only"
     },
     onMouseLeave: (e: React.MouseEvent) => {
       (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
@@ -126,14 +126,14 @@ function pointerScale(disabled = false) {
 
 /* ─── Sub-components ─────────────────────────────────────── */
 function AgentBubble({ text, time }: { text: string; time?: string }) {
+  // Agent is .out (right in RTL, so flex-start)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', animation: 'msgIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', animation: 'msgIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)' }}>
       <div style={{
-        background: 'var(--tamas-surface)', color: 'var(--tamas-fg)',
-        padding: '10px 14px', borderRadius: '16px 16px 4px 16px',
-        fontSize: 13.5, lineHeight: 1.65, maxWidth: '82%',
-        boxShadow: 'var(--tamas-shadow-sm)',
-        border: '1px solid var(--tamas-border)',
+        background: 'color-mix(in srgb, var(--tamas-surface) 82%, transparent)', color: 'var(--tamas-fg)',
+        padding: '10px 14px', borderRadius: 14,
+        fontSize: 12.5, lineHeight: 1.6, maxWidth: '82%',
+        border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)',
         whiteSpace: 'pre-wrap', wordBreak: 'break-word',
       }}>{text}</div>
       {time && <span style={{ fontSize: 10, color: 'var(--tamas-muted)', marginTop: 3 }}>{time}</span>}
@@ -141,13 +141,13 @@ function AgentBubble({ text, time }: { text: string; time?: string }) {
   );
 }
 function VisitorBubble({ text, time }: { text: string; time?: string }) {
+  // Visitor is .in (left in RTL, so flex-end)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', animation: 'msgIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', animation: 'msgIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)' }}>
       <div style={{
-        background: 'linear-gradient(135deg, var(--tamas-accent), var(--tamas-accent-deep))', color: '#fff',
-        padding: '10px 14px', borderRadius: '16px 16px 16px 4px',
-        fontSize: 13.5, lineHeight: 1.65, maxWidth: '82%',
-        boxShadow: '0 2px 10px rgba(8, 121, 143, 0.28)',
+        background: 'var(--tamas-accent)', color: '#fff',
+        padding: '10px 14px', borderRadius: 14,
+        fontSize: 12.5, lineHeight: 1.6, maxWidth: '82%',
         whiteSpace: 'pre-wrap', wordBreak: 'break-word',
       }}>{text}</div>
       {time && <span style={{ fontSize: 10, color: 'var(--tamas-muted)', marginTop: 3 }}>{time}</span>}
@@ -156,11 +156,11 @@ function VisitorBubble({ text, time }: { text: string; time?: string }) {
 }
 function TypingIndicator() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-end', animation: 'msgIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)' }}>
+    <div style={{ display: 'flex', justifyContent: 'flex-start', animation: 'msgIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)' }}>
       <div style={{
-        background: 'var(--tamas-surface)', borderRadius: '16px 16px 4px 16px',
+        background: 'color-mix(in srgb, var(--tamas-surface) 82%, transparent)', borderRadius: 14,
         padding: '10px 16px', display: 'flex', gap: 5, alignItems: 'center',
-        border: '1px solid var(--tamas-border)',
+        border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)',
       }}>
         {[0, 160, 320].map(d => (
           <span key={d} style={{
@@ -183,8 +183,8 @@ function SendBtn({ disabled, loading }: { disabled: boolean; loading: boolean })
         width: 44, height: 44, flexShrink: 0,
         background: disabled ? 'var(--tamas-bg)' : 'var(--tamas-accent)',
         color: disabled ? 'var(--tamas-muted)' : '#fff',
-        border: disabled ? '1px solid var(--tamas-border)' : 'none',
-        borderRadius: 980,
+        border: disabled ? 'var(--tamas-border-w, 1px) solid var(--tamas-border)' : 'none',
+        borderRadius: 'var(--tamas-radius-pill, 980px)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: disabled ? 'none' : '0 6px 16px rgba(8, 121, 143, 0.28)',
@@ -469,15 +469,18 @@ export function CrmChat({ user }: CrmChatProps) {
   /* Colors — tamasmarket state tokens */
   /* Visible status reflects REST reachability (polling), never the flaky WS */
   const orbColor = netAlive ? 'var(--tamas-success)' : 'var(--tamas-danger)';
-  const bottom   = isMobile ? 80 : 24;
-  const widgetW  = isMobile ? 'calc(100vw - 24px)' : 390;
-  const widgetH  = isMobile ? 'calc(100svh - 104px)' : 560;
+  const toggleBottom = isMobile ? 80 : 24;
+  const widgetBottom = isMobile ? 0 : 24;
+  const widgetLeft   = isMobile ? 0 : 20;
+  const widgetW      = isMobile ? '100vw' : 390;
+  const widgetH      = isMobile ? '100svh' : 560;
+  const widgetRadius = isMobile ? 0 : 'var(--tamas-radius-card)';
 
   const togglePress = pointerScale();
 
   const inputStyle: React.CSSProperties = {
-    flex: 1, padding: '11px 14px',
-    border: '1px solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-input)', fontSize: 14,
+    flex: 1, padding: '10px 16px',
+    border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', fontSize: 12.5,
     background: 'var(--tamas-surface)', color: 'var(--tamas-fg)', outline: 'none',
     caretColor: 'var(--tamas-accent)',
     transition: 'border-color 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)',
@@ -505,7 +508,7 @@ export function CrmChat({ user }: CrmChatProps) {
         title="چت با پشتیبانی"
         aria-label="چت با پشتیبانی"
         style={{
-          position: 'fixed', bottom, left: 20,
+          position: 'fixed', bottom: toggleBottom, left: 20,
           width: 58, height: 58, borderRadius: '50%',
           background: 'var(--tamas-promo-grad)',
           color: '#fff', border: 'none', cursor: 'pointer',
@@ -542,13 +545,13 @@ export function CrmChat({ user }: CrmChatProps) {
       id="crm-chat-widget"
       dir="rtl"
       style={{
-        position: 'fixed', bottom, left: 20,
+        position: 'fixed', bottom: widgetBottom, left: widgetLeft,
         width: widgetW, height: widgetH,
-        background: 'var(--tamas-surface)', borderRadius: 'var(--tamas-radius-card)',
+        background: 'var(--tamas-surface)', borderRadius: widgetRadius,
         boxShadow: 'var(--tamas-shadow-lg), 0 4px 16px rgba(0, 0, 0, 0.06)',
         display: 'flex', flexDirection: 'column',
         zIndex: 9999, overflow: 'hidden',
-        border: '1px solid var(--tamas-border)',
+        border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)',
         fontFamily: 'var(--tamas-font)',
         animation: 'chatSlideUp 0.28s cubic-bezier(0.2, 0.8, 0.2, 1)',
       }}
@@ -565,33 +568,31 @@ export function CrmChat({ user }: CrmChatProps) {
         #crm-chat-widget button:focus-visible{outline:2px solid var(--tamas-accent);outline-offset:2px}
       `}</style>
 
-      {/* Header — teal promo strip */}
+      {/* Header — teal promo strip (Apple-style compact) */}
       <div style={{
-        padding: '14px 16px',
+        padding: '0 16px', height: 44,
         background: 'var(--tamas-promo-grad)',
+        backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
         color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ position: 'relative', width: 40, height: 40 }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🎧</div>
-            <span style={{ position: 'absolute', bottom: 1, right: 1, width: 11, height: 11, borderRadius: '50%', background: orbColor, border: '2px solid rgba(255,255,255,0.9)', transition: 'background 0.4s' }} />
+          <div style={{ position: 'relative', width: 28, height: 28 }}>
+            <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🎧</div>
+            <span style={{ position: 'absolute', bottom: -1, right: -1, width: 9, height: 9, borderRadius: '50%', background: orbColor, border: '2px solid rgba(0, 0, 0, 0.1)', transition: 'background 0.4s' }} />
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 14 }}>پشتیبانی تماس</div>
-            <div style={{ fontSize: 11, opacity: 0.85, marginTop: 1 }}>
-              {netAlive ? '● آنلاین' : '○ آفلاین'}
-            </div>
+            <div style={{ fontWeight: 800, fontSize: 13.5 }}>پشتیبانی تماس</div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           {phase === 'chat' && (
             <button
               type="button"
               onClick={handleEnd}
               style={{
-                background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.24)',
-                color: '#fff', borderRadius: 980, padding: '7px 12px', minHeight: 40,
-                cursor: 'pointer', fontSize: 12, fontWeight: 700, ...PRESS_SCALE,
+                background: 'rgba(255,255,255,0.16)', border: 'none',
+                color: '#fff', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: '4px 12px', minHeight: 28,
+                cursor: 'pointer', fontSize: 11, fontWeight: 700, ...PRESS_SCALE,
               }}
               {...pointerScale()}
             >پایان</button>
@@ -601,9 +602,9 @@ export function CrmChat({ user }: CrmChatProps) {
             onClick={() => setIsOpen(false)}
             aria-label="بستن چت"
             style={{
-              background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.24)',
-              color: '#fff', borderRadius: 980, padding: '0 12px', minHeight: 40, minWidth: 40,
-              cursor: 'pointer', fontSize: 18, lineHeight: 1, fontWeight: 400, ...PRESS_SCALE,
+              background: 'transparent', border: 'none',
+              color: '#fff', borderRadius: '50%', padding: 0, minHeight: 28, minWidth: 28,
+              cursor: 'pointer', fontSize: 20, lineHeight: 1, fontWeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', ...PRESS_SCALE,
             }}
             {...pointerScale()}
           >×</button>
@@ -627,7 +628,7 @@ export function CrmChat({ user }: CrmChatProps) {
             })}
             {qIndex < QUESTIONS.length && <AgentBubble text={currentPrompt} />}
           </div>
-          <form onSubmit={handleIntakeSubmit} style={{ padding: '10px 12px 14px', borderTop: '1px solid var(--tamas-border)', background: 'var(--tamas-surface)', flexShrink: 0 }}>
+          <form onSubmit={handleIntakeSubmit} style={{ padding: '10px 12px 14px', borderTop: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', background: 'var(--tamas-surface)', flexShrink: 0 }}>
             {err && <div style={{ color: 'var(--tamas-danger)', fontSize: 12, marginBottom: 6, fontWeight: 500 }}>⚠️ {err}</div>}
             <div style={{ display: 'flex', gap: 8 }}>
               <input
@@ -666,7 +667,7 @@ export function CrmChat({ user }: CrmChatProps) {
             )}
             {isTyping && <TypingIndicator />}
           </div>
-          <form onSubmit={handleSend} style={{ padding: '10px 12px 14px', borderTop: '1px solid var(--tamas-border)', background: 'var(--tamas-surface)', flexShrink: 0 }}>
+          <form onSubmit={handleSend} style={{ padding: '10px 12px 14px', borderTop: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', background: 'var(--tamas-surface)', flexShrink: 0 }}>
             <div style={{ display: 'flex', gap: 8 }}>
               <input
                 ref={inputRef}

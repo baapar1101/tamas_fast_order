@@ -10,6 +10,12 @@ interface Attribute {
   createdAt: string;
 }
 
+const TYPE_LABELS: Record<string, string> = {
+  text: 'متن ساده',
+  number: 'عدد',
+  boolean: 'بله / خیر',
+};
+
 export function AttributesPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -67,106 +73,131 @@ export function AttributesPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="glass-card p-6">
-        <h2 className="text-xl font-bold text-white mb-6">{editingId ? 'ویرایش ویژگی' : 'افزودن ویژگی جدید'}</h2>
-        
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">نام ویژگی</label>
-            <input
-              type="text"
-              required
-              className="huma-input"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="مثلا: حافظه داخلی"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">نوع فیلد</label>
-            <select
-              required
-              className="huma-input"
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            >
-              <option value="text">متن ساده</option>
-              <option value="number">عدد</option>
-              <option value="boolean">بله / خیر</option>
-            </select>
-          </div>
-          
-          <div className="md:col-span-2 flex gap-3 mt-2">
-            <button
-              type="submit"
-              disabled={saveMutation.isPending}
-              className="huma-btn-primary px-8"
-            >
-              {saveMutation.isPending ? 'در حال ثبت...' : 'ذخیره ویژگی'}
-            </button>
-            {editingId && (
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="huma-btn-secondary px-8"
-              >
-                انصراف
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
+    <div className="a-page a-fade">
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h2 className="a-title">ویژگی‌های محصول</h2>
+          <p className="a-subtitle">تعریف فیلدهای سفارشی که هنگام ویرایش محصول تکمیل می‌شوند</p>
+        </div>
+        <div className="a-page-actions">
+          <span className="a-badge a-badge--brand">{attributes?.length ?? 0} ویژگی</span>
+        </div>
+      </section>
 
-      <div className="glass-card overflow-hidden">
-        <div className="p-4 border-b border-white/[0.06]">
-          <h2 className="text-lg font-bold text-white">لیست ویژگی‌ها</h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-right text-slate-300">
-            <thead className="bg-[#131c2e] text-xs text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">نام ویژگی</th>
-                <th className="px-4 py-3 font-medium">نوع</th>
-                <th className="px-4 py-3 font-medium">عملیات</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/[0.04]">
-              {isLoading ? (
-                <tr><td colSpan={3} className="px-4 py-8 text-center text-slate-500">در حال دریافت...</td></tr>
-              ) : attributes?.length === 0 ? (
-                <tr><td colSpan={3} className="px-4 py-8 text-center text-slate-500">هیچ ویژگی یافت نشد.</td></tr>
-              ) : (
-                attributes?.map((a: Attribute) => (
-                  <tr key={a.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="px-4 py-3 font-bold text-white">{a.name}</td>
-                    <td className="px-4 py-3">
-                      {a.type === 'text' ? 'متن ساده' : a.type === 'number' ? 'عدد' : a.type === 'boolean' ? 'بله / خیر' : a.type}
-                    </td>
-                    <td className="px-4 py-3 flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(a)}
-                        className="text-amber-400 hover:text-amber-300 transition-colors"
-                      >
-                        ویرایش
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (window.confirm('آیا از حذف این ویژگی مطمئن هستید؟')) {
-                            deleteMutation.mutate(a.id);
-                          }
-                        }}
-                        className="text-rose-400 hover:text-rose-300 transition-colors"
-                      >
-                        حذف
-                      </button>
-                    </td>
-                  </tr>
-                ))
+      <div className="a-cols a-cols--2">
+        {/* Form */}
+        <section className="a-card a-col-sticky">
+          <div className="a-card-head">
+            <div>
+              <h3 className="a-card-title">{editingId ? 'ویرایش ویژگی' : 'افزودن ویژگی جدید'}</h3>
+              <p className="a-card-sub">نوع فیلد مشخص می‌کند گزینه‌ها در فرم محصول چگونه نمایش داده شوند.</p>
+            </div>
+            {editingId && <span className="a-badge a-badge--neutral">ID: {editingId}</span>}
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="a-form-grid">
+              <label className="a-field">
+                <span className="a-label">نام ویژگی <span className="a-req">*</span></span>
+                <input
+                  type="text"
+                  required
+                  className="a-input"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="مثلا: حافظه داخلی"
+                />
+              </label>
+              <label className="a-field">
+                <span className="a-label">نوع فیلد <span className="a-req">*</span></span>
+                <select
+                  required
+                  className="a-select"
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                >
+                  <option value="text">متن ساده</option>
+                  <option value="number">عدد</option>
+                  <option value="boolean">بله / خیر</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="submit"
+                disabled={saveMutation.isPending}
+                className="a-btn a-btn--primary"
+              >
+                {saveMutation.isPending ? 'در حال ثبت...' : editingId ? 'ذخیره تغییرات' : '+ افزودن ویژگی'}
+              </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="a-btn a-btn--secondary"
+                >
+                  انصراف از ویرایش
+                </button>
               )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </form>
+        </section>
+
+        {/* List */}
+        <section className="a-card">
+          <div className="a-card-head">
+            <div>
+              <h3 className="a-card-title">لیست ویژگی‌ها</h3>
+              <p className="a-card-sub">پس از ثبت، گزینه موردنظر در فرم محصول ظاهر می‌شود.</p>
+            </div>
+          </div>
+
+          <div className="a-table-wrap">
+            <table className="a-table">
+              <thead>
+                <tr>
+                  <th>نام ویژگی</th>
+                  <th>نوع</th>
+                  <th>عملیات</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  <tr><td colSpan={3} className="text-center text-slate-500">در حال دریافت...</td></tr>
+                ) : attributes?.length === 0 ? (
+                  <tr><td colSpan={3} className="text-center text-slate-500">هیچ ویژگی یافت نشد.</td></tr>
+                ) : (
+                  attributes?.map((a: Attribute) => (
+                    <tr key={a.id}>
+                      <td className="a-strong">{a.name}</td>
+                      <td>
+                        <span className={`a-badge ${a.type === 'text' ? 'a-badge--neutral' : a.type === 'number' ? 'a-badge--brand' : 'a-badge--green'}`}>
+                          {TYPE_LABELS[a.type] ?? a.type}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => handleEdit(a)} className="a-btn a-btn--secondary a-btn--xs">ویرایش</button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm('آیا از حذف این ویژگی مطمئن هستید؟')) {
+                                deleteMutation.mutate(a.id);
+                              }
+                            }}
+                            className="a-btn a-btn--danger a-btn--xs"
+                          >
+                            حذف
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   );

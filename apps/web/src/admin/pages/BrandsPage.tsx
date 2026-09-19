@@ -72,24 +72,30 @@ export function BrandsPage() {
   };
 
   return (
-    <div className="space-y-6 taxonomy-page">
-      <section className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
-        <div>
-          <h2 className="text-xl font-extrabold text-white sm:text-2xl">مدیریت برندها</h2>
-          <p className="mt-1 text-xs text-slate-400">ثبت نام فارسی و انگلیسی، لوگو و ترتیب نمایش برندها</p>
+    <div className="a-page a-fade">
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h2 className="a-title">مدیریت برندها</h2>
+          <p className="a-subtitle">ثبت نام فارسی و انگلیسی، لوگو و ترتیب نمایش برندها</p>
         </div>
-        <span className="chip chip-aqua">{formatNumber(brands.length)} برند</span>
+        <div className="a-page-actions">
+          <span className="a-badge a-badge--brand">{formatNumber(brands.length)} برند</span>
+        </div>
       </section>
 
-      <div className="taxonomy-layout">
-        <section className="glass-card p-6 taxonomy-form-card">
-          <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
-            <h3 className="text-base font-bold text-white">{editingId === null ? 'افزودن برند جدید' : 'ویرایش برند'}</h3>
-            {editingId !== null && <span className="chip chip-slate">ID: #{editingId}</span>}
+      <div className="a-cols">
+        {/* Form */}
+        <section className="a-card a-col-sticky">
+          <div className="a-card-head">
+            <div>
+              <h3 className="a-card-title">{editingId === null ? 'افزودن برند جدید' : 'ویرایش برند'}</h3>
+              <p className="a-card-sub">فیلدهای ستاره‌دار الزامی هستند.</p>
+            </div>
+            {editingId !== null && <span className="a-badge a-badge--neutral">ID: #{editingId}</span>}
           </div>
 
           <form
-            className="taxonomy-form"
+            className="flex flex-col gap-6"
             onSubmit={(event) => {
               event.preventDefault();
               if (!form.name.trim() || !form.faName.trim()) {
@@ -99,57 +105,71 @@ export function BrandsPage() {
               save.mutate();
             }}
           >
-            <div className="taxonomy-fields-grid">
-              <label className="taxonomy-field">
-                <span>نام فارسی *</span>
-                <input className="huma-input" value={form.faName} onChange={(e) => setForm({ ...form, faName: e.target.value })} placeholder="مثلاً انکر" />
-              </label>
-              <label className="taxonomy-field">
-                <span>نام انگلیسی *</span>
-                <input className="huma-input" dir="ltr" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="ANKER" />
-              </label>
-              <label className="taxonomy-field">
-                <span>ترتیب نمایش</span>
-                <input className="huma-input" type="number" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) || 0 })} />
-              </label>
+            <div>
+              <div className="a-card-title mb-3">اطلاعات پایه</div>
+              <div className="a-form-grid">
+                <label className="a-field">
+                  <span className="a-label">نام فارسی <span className="a-req">*</span></span>
+                  <input className="a-input" value={form.faName} onChange={(e) => setForm({ ...form, faName: e.target.value })} placeholder="مثلاً انکر" />
+                </label>
+                <label className="a-field">
+                  <span className="a-label">نام انگلیسی <span className="a-req">*</span></span>
+                  <input className="a-input a-ltr a-mono" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="ANKER" />
+                </label>
+                <label className="a-field">
+                  <span className="a-label">ترتیب نمایش</span>
+                  <input className="a-input" type="number" inputMode="numeric" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) || 0 })} />
+                  <span className="a-hint">عدد کوچک‌تر ابتدا نمایش داده می‌شود.</span>
+                </label>
+              </div>
             </div>
 
-            <ImagePicker label="لوگو / تصویر برند" value={form.iconUrl} kind="brand" onChange={(iconUrl) => setForm({ ...form, iconUrl })} />
+            <div className="a-divider" />
+            <div>
+              <div className="a-card-title mb-3">لوگو برند</div>
+              <ImagePicker label="لوگو / تصویر برند" value={form.iconUrl} kind="brand" onChange={(iconUrl) => setForm({ ...form, iconUrl })} />
+            </div>
 
-            <div className="taxonomy-form-actions">
-              <button type="submit" className="huma-btn-primary" disabled={save.isPending}>{save.isPending ? 'در حال ذخیره…' : editingId === null ? '+ ثبت برند' : 'ذخیره تغییرات'}</button>
-              {editingId !== null && <button type="button" className="huma-btn-secondary" onClick={resetForm}>انصراف از ویرایش</button>}
+            <div className="a-divider" />
+            <div className="flex flex-wrap items-center gap-3">
+              <button type="submit" className="a-btn a-btn--primary" disabled={save.isPending}>
+                {save.isPending ? 'در حال ذخیره…' : editingId === null ? '+ ثبت برند' : 'ذخیره تغییرات'}
+              </button>
+              {editingId !== null && (
+                <button type="button" className="a-btn a-btn--secondary" onClick={resetForm}>انصراف از ویرایش</button>
+              )}
             </div>
           </form>
         </section>
 
-        <section className="glass-card p-6 taxonomy-list-card">
-          <div className="taxonomy-list-header">
+        {/* List */}
+        <section className="a-card">
+          <div className="a-card-head">
             <div>
-              <h3 className="text-base font-bold text-white">فهرست برندها</h3>
-              <p className="text-[10px] text-slate-500">برای مشاهده فرم کامل، ویرایش را انتخاب کنید.</p>
+              <h3 className="a-card-title">فهرست برندها</h3>
+              <p className="a-card-sub">برای مشاهده فرم کامل، ویرایش را انتخاب کنید.</p>
             </div>
-            <input className="huma-input taxonomy-search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی برند…" />
+            <input className="a-input" style={{ maxWidth: 230 }} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی برند…" />
           </div>
 
-          <div className="taxonomy-items">
+          <div className="a-list">
             {filtered.map((brand) => (
-              <article key={brand.id} className={`taxonomy-item${editingId === brand.id ? ' active' : ''}`}>
-                <div className="taxonomy-item-icon">
+              <article key={brand.id} className={`a-list-item${editingId === brand.id ? ' a-list-item--active' : ''}`}>
+                <div className="a-list-icon">
                   {brand.iconUrl ? <img src={brand.iconUrl.startsWith('/') || brand.iconUrl.startsWith('http') ? brand.iconUrl : `/assets/brand/${brand.iconUrl}`} alt="" /> : <span>{brand.faName.slice(0, 1)}</span>}
                 </div>
-                <div className="taxonomy-item-copy">
+                <div className="a-list-copy">
                   <strong>{brand.faName}</strong>
-                  <span dir="ltr">{brand.name}</span>
+                  <span className="a-ltr">{brand.name}</span>
                   <small>{formatNumber(brand.productCount ?? 0)} محصول · ترتیب {formatNumber(brand.sortOrder)}</small>
                 </div>
-                <div className="taxonomy-item-actions">
-                  <button type="button" className="huma-btn-secondary" onClick={() => edit(brand)}>ویرایش</button>
-                  <button type="button" className="taxonomy-delete-btn" disabled={remove.isPending} onClick={() => { if (confirm(`برند «${brand.faName}» حذف شود؟`)) remove.mutate(brand.id); }}>حذف</button>
+                <div className="a-list-actions">
+                  <button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={() => edit(brand)}>ویرایش</button>
+                  <button type="button" className="a-btn a-btn--danger a-btn--xs" disabled={remove.isPending} onClick={() => { if (confirm(`برند «${brand.faName}» حذف شود؟`)) remove.mutate(brand.id); }}>حذف</button>
                 </div>
               </article>
             ))}
-            {!query.isLoading && filtered.length === 0 && <div className="taxonomy-empty">برندی پیدا نشد.</div>}
+            {!query.isLoading && filtered.length === 0 && <div className="a-empty">برندی پیدا نشد.</div>}
           </div>
         </section>
       </div>

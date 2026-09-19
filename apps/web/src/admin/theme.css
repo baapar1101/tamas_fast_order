@@ -460,6 +460,22 @@
   background: var(--a-field-bg);
 }
 
+/* Key/value attribute rows (product editor) */
+.a-attr-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--a-border);
+  border-radius: 0.8rem;
+  background: var(--a-field-bg);
+}
+@media (min-width: 640px) {
+  .a-attr-row { flex-direction: row; align-items: center; }
+  .a-attr-row .a-attr-key { flex: 0 0 33.333%; }
+  .a-attr-row .a-attr-val { flex: 1 1 auto; }
+}
+
 /* Sticky editor toolbar */
 .a-stickybar {
   position: sticky;
