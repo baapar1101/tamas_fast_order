@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 /* ─── Config ─────────────────────────────────────────────── */
-const API_BASE    = 'https://tamastore.ir';
-const PUBLIC_KEY  = 'wPzldz3FGwE2EX8tYS4WYew2kf9aL72Y';
-const WS_URL      = 'wss://tamastore.ir/ws/crm-chat';
-const SESSION_KEY = 'tamas_crm_session';
+const API_BASE       = 'https://tamastore.ir';
+const PUBLIC_KEY     = 'wPzldz3FGwE2EX8tYS4WYew2kf9aL72Y';
+const WS_URL         = 'wss://tamastore.ir/ws/crm-chat';
+const SESSION_KEY    = 'tamas_crm_session';
+const MAX_WS_RETRIES = 5;
 
 /* ─── Types ──────────────────────────────────────────────── */
 interface Message {
@@ -191,6 +192,8 @@ export function CrmChat({ user }: CrmChatProps) {
   /* WebSocket */
   const openWs = useCallback((s: Session) => {
     if (intentRef.current || wsRef.current?.readyState === WebSocket.OPEN) return;
+    // Give up silently after MAX_WS_RETRIES — avoids console spam when WS is unavailable
+    if (reconnAtt.current >= MAX_WS_RETRIES) { setWsStatus('offline'); return; }
     setWsStatus('connecting');
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
@@ -220,6 +223,7 @@ export function CrmChat({ user }: CrmChatProps) {
       wsRef.current = null;
       if (intentRef.current) return;
       reconnAtt.current += 1;
+      if (reconnAtt.current >= MAX_WS_RETRIES) { setWsStatus('offline'); return; } // give up
       reconnRef.current = setTimeout(() => openWs(s), Math.min(1000 * 2 ** (reconnAtt.current - 1), 20000));
       setWsStatus('offline');
     };

@@ -7,10 +7,10 @@
   "scripts": {
     "predev": "node ../../scripts/fix-perms.js",
     "prebuild": "node ../../scripts/fix-perms.js",
-    "dev": "PORT=3001 NODE_ENV=development tsx watch src/index.ts",
+    "dev": "cross-env PORT=3001 NODE_ENV=development tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/index.js",
-    "start:prod": "PORT=3102 NODE_ENV=production node dist/src/index.js",
+    "start:prod": "cross-env PORT=3102 NODE_ENV=production node dist/src/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
@@ -31,16 +31,17 @@
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.38.3",
     "fastify": "^5.2.1",
+    "fastify-plugin": "^5.0.1",
     "google-auth-library": "^9.15.0",
     "googleapis": "^144.0.0",
     "pino-pretty": "^13.0.0",
     "postgres": "^3.4.5",
     "sharp": "^0.33.5",
-    "zod": "^3.24.1",
-    "fastify-plugin": "^5.0.1"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
+    "cross-env": "^10.1.0",
     "drizzle-kit": "^0.30.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
