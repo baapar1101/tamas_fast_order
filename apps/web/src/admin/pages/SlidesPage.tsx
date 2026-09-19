@@ -70,6 +70,11 @@ export function SlidesPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function handleCancel() {
+    setEditingId(null);
+    setFormData({ title: '', imageUrl: '', linkUrl: '', sortOrder: 0, isActive: true });
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!formData.imageUrl) {
@@ -88,12 +93,33 @@ export function SlidesPage() {
         </div>
       </section>
 
-      <section className="a-card a-page--narrow">
-        <div className="a-card-head">
-          <h3 className="a-card-title">{editingId ? 'ویرایش بنر' : 'افزودن بنر جدید'}</h3>
+      {/* Reference-style create form: header card + stacked sections + save footer */}
+      <form className="a-form a-fade" onSubmit={handleSubmit}>
+        <div className="a-form-head">
+          <button type="button" className="a-form-back" onClick={handleCancel} aria-label="بازگشت" title="بازگشت">
+            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-5 w-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </button>
+          <div className="a-form-title">
+            {editingId ? 'ویرایش بنر' : 'افزودن بنر جدید'}
+            {editingId && <span className="a-badge a-badge--neutral">#{editingId}</span>}
+          </div>
+          <div className="a-form-actions">
+            {editingId && (
+              <button type="button" className="a-btn a-btn--ghost" onClick={handleCancel}>انصراف</button>
+            )}
+            <button type="submit" className="a-btn a-btn--primary" disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? 'در حال ذخیره…' : 'ذخیره'}
+            </button>
+          </div>
         </div>
-        <form onSubmit={handleSubmit}>
-          <div className="a-form-grid a-cols--2">
+
+        <section className="a-card">
+          <div className="a-card-head">
+            <h3 className="a-card-title">جزئیات بنر</h3>
+          </div>
+          <div className="a-form-grid">
             <div className="a-field">
               <label className="a-label">عنوان (اختیاری)</label>
               <input
@@ -124,50 +150,48 @@ export function SlidesPage() {
                 onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) || 0 })}
               />
             </div>
-            <div className="a-option-row">
-              <div>
-                <div className="a-option-title">فعال باشد</div>
-                <div className="a-option-desc">بنرهای غیرفعال در اسلایدر نمایش داده نمی‌شوند</div>
-              </div>
-              <label className="a-switch">
-                <input
-                  type="checkbox"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                />
-                <span className="a-switch-track"><span className="a-switch-thumb" /></span>
-              </label>
+          </div>
+        </section>
+
+        <section className="a-card">
+          <div className="a-card-head">
+            <h3 className="a-card-title">تصویر بنر</h3>
+          </div>
+          <p className="a-card-sub">تصویر شاخص بنر؛ حداقل برای نمایش در اسلایدر الزامی است.</p>
+          <ImagePicker
+            label="تصویر بنر"
+            value={formData.imageUrl}
+            kind="slide"
+            onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+          />
+        </section>
+
+        <section className="a-card">
+          <div className="a-card-head">
+            <h3 className="a-card-title">وضعیت نمایش</h3>
+          </div>
+          <div className="a-option-row">
+            <div className="a-option-copy">
+              <div className="a-option-title">فعال باشد</div>
+              <div className="a-option-desc">بنرهای غیرفعال در اسلایدر نمایش داده نمی‌شوند</div>
             </div>
+            <label className="a-switch">
+              <input
+                type="checkbox"
+                checked={formData.isActive}
+                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              />
+              <span className="a-switch-track"><span className="a-switch-thumb" /></span>
+            </label>
           </div>
+        </section>
 
-          <div className="pt-2">
-            <ImagePicker
-              label="تصویر بنر"
-              value={formData.imageUrl}
-              kind="slide"
-              onChange={(url) => setFormData({ ...formData, imageUrl: url })}
-            />
-          </div>
-
-          <div className="a-actions mt-4">
-            <button type="submit" className="a-btn a-btn--primary" disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? 'در حال ذخیره...' : 'ذخیره بنر'}
-            </button>
-            {editingId && (
-              <button
-                type="button"
-                className="a-btn a-btn--secondary"
-                onClick={() => {
-                  setEditingId(null);
-                  setFormData({ title: '', imageUrl: '', linkUrl: '', sortOrder: 0, isActive: true });
-                }}
-              >
-                انصراف
-              </button>
-            )}
-          </div>
-        </form>
-      </section>
+        <div className="a-form-foot">
+          <button type="submit" className="a-btn a-btn--primary a-btn--lg" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? 'در حال ذخیره...' : 'ذخیره بنر'}
+          </button>
+        </div>
+      </form>
 
       <section className="a-card a-card--flush">
         {isLoading ? (

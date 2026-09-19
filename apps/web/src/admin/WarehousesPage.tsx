@@ -69,7 +69,7 @@ export function WarehousesPage() {
   };
 
   return (
-    <div className="a-page a-fade a-page--narrow">
+    <div className="a-page a-fade">
       <section className="a-page-head">
         <div className="a-titles">
           <h2 className="a-title">{editingId ? 'ویرایش انبار' : 'افزودن انبار جدید'}</h2>
@@ -77,9 +77,33 @@ export function WarehousesPage() {
         </div>
       </section>
 
-      <section className="a-card">
-        <form onSubmit={handleSubmit}>
-          <div className="a-form-grid a-cols--2">
+      {/* Reference-style create form: header card + stacked sections + save footer */}
+      <form className="a-form a-fade" onSubmit={handleSubmit}>
+        <div className="a-form-head">
+          <button type="button" className="a-form-back" onClick={handleCancel} aria-label="بازگشت" title="بازگشت">
+            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-5 w-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </button>
+          <div className="a-form-title">
+            {editingId ? 'ویرایش انبار' : 'افزودن انبار جدید'}
+            {editingId && <span className="a-badge a-badge--neutral">{editingId}</span>}
+          </div>
+          <div className="a-form-actions">
+            {editingId && (
+              <button type="button" className="a-btn a-btn--ghost" onClick={handleCancel}>انصراف</button>
+            )}
+            <button type="submit" className="a-btn a-btn--primary" disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? 'در حال ذخیره…' : 'ذخیره'}
+            </button>
+          </div>
+        </div>
+
+        <section className="a-card">
+          <div className="a-card-head">
+            <h3 className="a-card-title">مشخصات انبار</h3>
+          </div>
+          <div className="a-form-grid">
             <div className="a-field">
               <label className="a-label">کد انبار (انگلیسی)</label>
               <input
@@ -112,41 +136,39 @@ export function WarehousesPage() {
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               />
             </div>
-            <div className="a-option-row">
-              <div className="a-option-copy">
-                <div className="a-option-title">انبار فعال است</div>
-                <div className="a-option-desc">انبارهای غیرفعال در فرم‌ها نمایش داده نمی‌شوند</div>
-              </div>
-              <label className="a-switch">
-                <input
-                  type="checkbox"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                />
-                <span className="a-switch-track"><span className="a-switch-thumb" /></span>
-              </label>
+          </div>
+        </section>
+
+        <section className="a-card">
+          <div className="a-card-head">
+            <h3 className="a-card-title">وضعیت انبار</h3>
+          </div>
+          <div className="a-option-row">
+            <div className="a-option-copy">
+              <div className="a-option-title">انبار فعال است</div>
+              <div className="a-option-desc">انبارهای غیرفعال در فرم‌ها نمایش داده نمی‌شوند</div>
             </div>
+            <label className="a-switch">
+              <input
+                type="checkbox"
+                checked={formData.isActive}
+                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              />
+              <span className="a-switch-track"><span className="a-switch-thumb" /></span>
+            </label>
           </div>
-          <div className="a-actions a-actions--end mt-4">
-            <button
-              type="submit"
-              disabled={saveMutation.isPending}
-              className="a-btn a-btn--primary"
-            >
-              {saveMutation.isPending ? 'در حال ثبت...' : 'ذخیره انبار'}
-            </button>
-            {editingId && (
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="a-btn a-btn--secondary"
-              >
-                انصراف
-              </button>
-            )}
-          </div>
-        </form>
-      </section>
+        </section>
+
+        <div className="a-form-foot">
+          <button
+            type="submit"
+            disabled={saveMutation.isPending}
+            className="a-btn a-btn--primary a-btn--lg"
+          >
+            {saveMutation.isPending ? 'در حال ثبت...' : 'ذخیره انبار'}
+          </button>
+        </div>
+      </form>
 
       <section className="a-card a-card--flush">
         <div className="a-card-head a-card-head--px">

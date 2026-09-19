@@ -176,75 +176,88 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
   );
 
   /**
-   * Bulk push all active products to CRM.
-   * POST /api/crm/sync/products/push
-   */
-  app.post(
-    '/crm/sync/products/push',
-    async (req: FastifyRequest, reply: FastifyReply) => {
-      const { crmClient } = await import('../lib/crm.js');
-      const { queryProducts } = await import('../services/catalog.js');
+     * Bulk push all active products to CRM.
+     * POST /api/crm/sync/products/push
+     */
+    app.post(
+      '/crm/sync/products/push',
+      async (req: FastifyRequest, reply: FastifyReply) => {
+        const config = await getCrmConfig();
+        const { crmClient } = await import('../lib/crm.js');
+        const { queryProducts } = await import('../services/catalog.js');
 
-      // Fetch all active products in batches
-      const pageSize = 50;
-      let page = 1;
-      let totalPushed = 0;
-      let totalErrors = 0;
-      const errors: string[] = [];
-      const config = await getCrmConfig();
+        // Fetch all active products in batches
+        const pageSize = 50;
+        let page = 1;
+        let totalPushed = 0;
+        let totalErrors = 0;
+        const errors: string[] = [];
 
-      while (true) {
-        const result = await queryProducts({
-          page,
-          perPage: pageSize,
-          inStock: false, // include all statuses
-          sort: 'price_asc',
-          brands: [],
-        });
+        while (true) {
+          // MarkStreet API: GET /api/v1/products/business/{id}/search
+          const searchParams = new URLSearchParams({
+            take: String(pageSize),
+            skip: String((page - 1) * pageSize),
+            sort_desc: 'false',
+            include_inventory: 'true',
+          });
 
-        if (!result.groups || result.groups.length === 0) break;
+          const result = await queryProducts({
+            page,
+            perPage: pageSize,
+            inStock: false,
+            sort: 'price_asc',
+            brands: [],
+          });
 
-        for (const group of result.groups) {
-          for (const variant of group.variants) {
-            const pushResult = await crmClient.pushProduct({
-              productId: variant.productId,
-              sku: variant.sku ?? '',
-              title: variant.title,
-              model: variant.model ?? '',
-              categoryName: variant.categoryName ?? '',
-              brandName: variant.brandName ?? '',
-              price: variant.price,
-              oldPrice: variant.oldPrice ?? null,
-              discount: variant.discount,
-              stock: variant.stock,
-              kermanStock: variant.kermanStock,
-              tehranStock: variant.tehranStock,
-              status: variant.status,
-              description: variant.description ?? '',
-              imageUrl: variant.imageUrl ?? '',
-              updatedAt: variant.updatedAt,
-            }, config);
+          if (!result.groups || result.groups.length === 0) break;
 
-            if (pushResult.ok) totalPushed++;
-            else {
-              totalErrors++;
-              errors.push(`${variant.productId}: ${pushResult.error}`);
+          for (const group of result.groups) {
+            for (const variant of group.variants) {
+              // Search product in CRM first
+              const searchResult = await crmClient.searchProduct(
+                { productId: variant.productId },
+                config,
+              );
+
+              if (searchResult.ok && searchResult.remoteId) {
+                // Product exists - update it
+                const updateResult = await crmClient.pushProduct(
+                  { ...variant, productId: variant.productId },
+                  config,
+                );
+                if (updateResult.ok) totalPushed++;
+                else {
+                  totalErrors++;
+                  errors.push(`${variant.productId}: ${updateResult.error}`);
+                }
+              } else {
+                // Product doesn't exist - create it
+                const createResult = await crmClient.pushProduct(
+                  { ...variant, productId: variant.productId },
+                  config,
+                );
+                if (createResult.ok) totalPushed++;
+                else {
+                  totalErrors++;
+                  errors.push(`${variant.productId}: ${createResult.error}`);
+                }
+              }
             }
           }
+
+          if (result.groups.length < pageSize) break;
+          page++;
         }
 
-        if (result.groups.length < pageSize) break;
-        page++;
-      }
-
-      return {
-        ok: totalErrors === 0,
-        pushed: totalPushed,
-        errors: totalErrors,
-        errorDetails: errors.slice(0, 20),
-      };
-    },
-  );
+        return {
+          ok: totalErrors === 0,
+          pushed: totalPushed,
+          errors: totalErrors,
+          errorDetails: errors.slice(0, 20),
+        };
+      },
+    );
 
   /**
    * Pull products from CRM (placeholder - needs CRM API endpoint)

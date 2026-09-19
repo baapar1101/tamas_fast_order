@@ -60,7 +60,7 @@ export function SettingsPage() {
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [testPhone, setTestPhone] = useState('');
-  const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'logs' | 'sms' | 'crm'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'logs' | 'sms' | 'crm' | 'advanced-sync'>('general');
 
   useEffect(() => {
     if (settings.data) setForm(settings.data.settings);
@@ -87,11 +87,12 @@ export function SettingsPage() {
   const knownKeys = new Set<string>(KNOWN_SETTINGS.map((s) => s.key));
   const extraKeys = Object.keys(form).filter((k) => !knownKeys.has(k)).sort();
 
-  const TABS: { id: 'general' | 'tools' | 'crm' | 'logs'; label: string }[] = [
+  const TABS: { id: 'general' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
     { id: 'general', label: 'تنظیمات عمومی' },
     { id: 'tools', label: 'ابزارها و پیشرفته' },
     { id: 'crm', label: 'اتصال CRM' },
     { id: 'logs', label: 'لاگ سیستم' },
+    { id: 'advanced-sync', label: 'همگام‌سازی پیشرفته' },
   ];
 
   return (

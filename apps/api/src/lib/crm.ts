@@ -97,7 +97,10 @@ async function crmRequest<T = unknown>(
           ...rest,
           headers: {
             'Content-Type': 'application/json',
-            ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}),
+            ...(config.apiKey ? { Authorization: `ApiKey ${config.apiKey}` } : {}),
+            'X-Business-ID': String(config.businessId),
+            'X-Calendar-Type': 'jalali',
+            'X-Currency': 'IRR',
             ...(rest.headers as Record<string, string> | undefined),
           },
         });
@@ -198,35 +201,75 @@ export const crmClient = {
   },
 
   /** Search for a person in CRM by phone or name (for order customer matching). */
-  async searchPerson(
-    query: { phone?: string; name?: string; email?: string },
-    config: CrmConfig,
-  ): Promise<CrmSyncResult & { personId?: number }> {
-    try {
-      const params = new URLSearchParams();
-      if (query.phone) params.set('phone', query.phone);
-      if (query.name) params.set('name', query.name);
-      if (query.email) params.set('email', query.email);
-      const data = (await crmRequest<{
-              success?: boolean;
-              items?: Array<{ id: number }>;
-              error?: string;
-            }>(`/api/v1/crm/tamas/people/search?${params.toString()}`, config)) as {
-        success?: boolean;
-        items?: Array<{ id: number }>;
-        error?: string;
-      };
-      if (data?.success === false || data?.error) {
-        return { ok: false, entity: 'person', error: data.error || 'CRM search failed' };
+    async searchPerson(
+      query: { phone?: string; name?: string; email?: string },
+      config: CrmConfig,
+    ): Promise<CrmSyncResult & { personId?: number }> {
+      try {
+        const params = new URLSearchParams();
+        if (query.phone) params.set('phone', query.phone);
+        if (query.name) params.set('name', query.name);
+        if (query.email) params.set('email', query.email);
+        const data = (await crmRequest<{
+          success?: boolean;
+          items?: Array<{ id: number }>;
+          error?: string;
+        }>(`/api/v1/crm/tamas/people/search?${params.toString()}`, config)) as {
+          success?: boolean;
+          items?: Array<{ id: number }>;
+          error?: string;
+        };
+        if (data?.success === false || data?.error) {
+          return { ok: false, entity: 'person', error: data.error || 'CRM search failed' };
+        }
+        const first = data?.items?.[0];
+        return { ok: true, entity: 'person', personId: first?.id };
+      } catch (err: any) {
+        return { ok: false, entity: 'person', error: err?.message ?? String(err) };
       }
-      const first = data?.items?.[0];
-      return { ok: true, entity: 'person', personId: first?.id };
-    } catch (err: any) {
-      return { ok: false, entity: 'person', error: err?.message ?? String(err) };
-    }
-  },
+    },
 
-  /** Send a chat message from the site visitor to the CRM conversation. */
+    /** Search for a product in CRM by productId. */
+    async searchProduct(
+      query: { productId: string },
+      config: CrmConfig,
+    ): Promise<CrmSyncResult & { remoteId?: number }> {
+      try {
+        // MarkStreet API: GET /api/v1/products/business/{businessId}/search
+        const params = new URLSearchParams();
+        params.set('take', '1');
+        params.set('skip', '0');
+        params.set('sort_desc', 'false');
+        params.set('include_inventory', 'true');
+
+        const data = (await crmRequest<{
+          success?: boolean;
+          items?: Array<{ id: number; sku?: string; title?: string }>;
+          error?: string;
+        }>(`/api/v1/products/business/${config.businessId}/search?${params.toString()}`, config)) as {
+          success?: boolean;
+          items?: Array<{ id: number; sku?: string; title?: string }>;
+          error?: string;
+        };
+        if (data?.success === false || data?.error) {
+          return { ok: false, entity: 'product', error: data.error || 'CRM product search failed' };
+        }
+        const first = data?.items?.[0];
+        if (!first) {
+          return { ok: true, entity: 'product', remoteId: undefined };
+        }
+        // Check if this matches our productId
+        if (first.sku === query.productId || first.title === query.productId) {
+          return { ok: true, entity: 'product', remoteId: first.id };
+        }
+        // No match found
+        return { ok: true, entity: 'product', remoteId: undefined };
+      } catch (err: any) {
+        return { ok: false, entity: 'product', error: err?.message ?? String(err) };
+      }
+    },
+
+    /** Send a chat message from the site visitor to the CRM conversation. */
   async sendChatMessage(
     conversationId: number,
     visitorToken: string,
