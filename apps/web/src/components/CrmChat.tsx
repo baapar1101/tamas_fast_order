@@ -465,11 +465,19 @@ export function CrmChat({ user }: CrmChatProps) {
           color: '#fff', border: 'none', cursor: 'pointer',
           boxShadow: '0 8px 22px rgba(8, 121, 143, 0.34)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 26, zIndex: 9999, ...PRESS_SCALE,
+          zIndex: 9999, ...PRESS_SCALE,
         }}
         {...togglePress}
       >
-        💬
+        <img
+          src="/logo.svg"
+          alt="تماس"
+          style={{
+            width: 30, height: 30, objectFit: 'contain',
+            filter: 'brightness(0) invert(1)',
+            pointerEvents: 'none',
+          }}
+        />
         {unread > 0 && (
           <span style={{
             position: 'absolute', top: -4, right: -4,
@@ -523,7 +531,7 @@ export function CrmChat({ user }: CrmChatProps) {
             <span style={{ position: 'absolute', bottom: 1, right: 1, width: 11, height: 11, borderRadius: '50%', background: orbColor, border: '2px solid rgba(255,255,255,0.9)', transition: 'background 0.4s' }} />
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 14 }}>پشتیبانی تاماس</div>
+            <div style={{ fontWeight: 800, fontSize: 14 }}>پشتیبانی تماس</div>
             <div style={{ fontSize: 11, opacity: 0.85, marginTop: 1 }}>
               {wsStatus === 'connected' ? '● آنلاین' : wsStatus === 'connecting' ? '◌ در حال اتصال...' : wsStatus === 'offline' ? '○ آفلاین' : 'آماده پاسخگویی'}
             </div>
