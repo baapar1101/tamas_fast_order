@@ -53,13 +53,13 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
    * Health check for the CRM integration.
    */
   app.get('/crm/health', async () => {
-    const { crmClient } = await import('../lib/crm.js');
     const config = await getCrmConfig();
+    const { crmClient } = await import('../lib/crm.js');
     const reachable = await crmClient.ping(config);
     return {
       ok: true,
-      crm: { reachable, baseUrl: env.CRM_API_BASE || 'not configured' },
-      sync: { enabled: env.CRM_SYNC_ENABLED, debounceMs: env.CRM_SYNC_DEBOUNCE_MS },
+      crm: { reachable, baseUrl: config.apiBase || 'not configured' },
+      sync: { enabled: config.syncEnabled, debounceMs: config.syncDebounceMs },
     };
   });
 
@@ -67,8 +67,8 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
    * CRM Integration Statistics (admin only)
    */
   app.get('/crm/stats', { preHandler: [app.requireAdmin] }, async () => {
-    const { crmClient } = await import('../lib/crm.js');
     const config = await getCrmConfig();
+    const { crmClient } = await import('../lib/crm.js');
     const reachable = await crmClient.ping(config);
 
     // Get counts from local DB
@@ -86,8 +86,8 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       ok: true,
       crm: {
         reachable,
-        baseUrl: env.CRM_API_BASE || 'not configured',
-        syncEnabled: env.CRM_SYNC_ENABLED,
+        baseUrl: config.apiBase || 'not configured',
+        syncEnabled: config.syncEnabled,
       },
       local: {
         activeUsers: userCount[0]?.n ?? 0,
