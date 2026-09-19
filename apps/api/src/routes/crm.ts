@@ -6,7 +6,6 @@ import type {
   FastifyReply,
 } from 'fastify';
 import { processCrmWebhook } from '../lib/crm.js';
-import { env } from '../env.js';
 import { getCrmConfig } from '../services/settings.js';
 
 /**
@@ -41,7 +40,8 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       const parsed = req.body as { raw: Buffer; json: unknown };
       const rawBody = parsed.raw.toString('utf-8');
       const signature = (req.headers['x-crm-signature'] as string) ?? undefined;
-      const result = await processCrmWebhook(rawBody, signature, parsed.json);
+      const config = await getCrmConfig();
+      const result = await processCrmWebhook(rawBody, signature, parsed.json, config);
       if (!result.ok) {
         reply.code(400);
       }
@@ -54,7 +54,8 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
    */
   app.get('/crm/health', async () => {
     const { crmClient } = await import('../lib/crm.js');
-    const reachable = await crmClient.ping();
+    const config = await getCrmConfig();
+    const reachable = await crmClient.ping(config);
     return {
       ok: true,
       crm: { reachable, baseUrl: env.CRM_API_BASE || 'not configured' },
@@ -67,7 +68,8 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
    */
   app.get('/crm/stats', { preHandler: [app.requireAdmin] }, async () => {
     const { crmClient } = await import('../lib/crm.js');
-    const reachable = await crmClient.ping();
+    const config = await getCrmConfig();
+    const reachable = await crmClient.ping(config);
 
     // Get counts from local DB
     const { db } = await import('../db/client.js');
@@ -161,13 +163,14 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
         return { ok: false, error: 'phone is required' };
       }
       const { crmClient } = await import('../lib/crm.js');
+      const config = await getCrmConfig();
       const result = await crmClient.pushPerson({
         firstName: name?.split(' ')[0] ?? '',
         lastName: name?.split(' ').slice(1).join(' ') ?? '',
         phone,
         email,
         aliasName: name ?? phone,
-      });
+      }, config);
       return { ok: result.ok, result };
     },
   );
