@@ -69,59 +69,69 @@ export function WarehousesPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="glass-card p-6">
-        <h2 className="text-xl font-bold text-white mb-6">{editingId ? 'ویرایش انبار' : 'افزودن انبار جدید'}</h2>
-        
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">کد انبار (انگلیسی)</label>
-            <input
-              type="text"
-              required
-              className="huma-input"
-              value={formData.code}
-              onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-              placeholder="مثلا: kerman"
-              dir="ltr"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">نام انبار</label>
-            <input
-              type="text"
-              required
-              className="huma-input"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="مثلا: انبار مرکزی کرمان"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">موقعیت / شهر</label>
-            <input
-              type="text"
-              className="huma-input"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            />
-          </div>
-          <div className="flex items-end pb-2">
-            <label className="flex items-center gap-2 cursor-pointer">
+    <div className="a-page a-fade a-page--narrow">
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h2 className="a-title">{editingId ? 'ویرایش انبار' : 'افزودن انبار جدید'}</h2>
+          <p className="a-subtitle">تعریف و مدیریت انبارهای نگهداری موجودی کالا</p>
+        </div>
+      </section>
+
+      <section className="a-card">
+        <form onSubmit={handleSubmit}>
+          <div className="a-form-grid a-cols--2">
+            <div className="a-field">
+              <label className="a-label">کد انبار (انگلیسی)</label>
               <input
-                type="checkbox"
-                checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700"
+                type="text"
+                required
+                className="a-input"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                placeholder="مثلا: kerman"
+                dir="ltr"
               />
-              <span className="text-sm font-medium text-slate-300">انبار فعال است</span>
-            </label>
+            </div>
+            <div className="a-field">
+              <label className="a-label">نام انبار</label>
+              <input
+                type="text"
+                required
+                className="a-input"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="مثلا: انبار مرکزی کرمان"
+              />
+            </div>
+            <div className="a-field">
+              <label className="a-label">موقعیت / شهر</label>
+              <input
+                type="text"
+                className="a-input"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              />
+            </div>
+            <div className="a-option-row">
+              <div className="a-option-copy">
+                <div className="a-option-title">انبار فعال است</div>
+                <div className="a-option-desc">انبارهای غیرفعال در فرم‌ها نمایش داده نمی‌شوند</div>
+              </div>
+              <label className="a-switch">
+                <input
+                  type="checkbox"
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                />
+                <span className="a-switch-track"><span className="a-switch-thumb" /></span>
+              </label>
+            </div>
           </div>
-          <div className="md:col-span-2 flex gap-3 mt-2">
+          <div className="a-actions a-actions--end mt-4">
             <button
               type="submit"
               disabled={saveMutation.isPending}
-              className="huma-btn-primary px-8"
+              className="a-btn a-btn--primary"
             >
               {saveMutation.isPending ? 'در حال ثبت...' : 'ذخیره انبار'}
             </button>
@@ -129,65 +139,73 @@ export function WarehousesPage() {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="huma-btn-secondary px-8"
+                className="a-btn a-btn--secondary"
               >
                 انصراف
               </button>
             )}
           </div>
         </form>
-      </div>
+      </section>
 
-      <div className="glass-card overflow-hidden">
-        <div className="p-4 border-b border-white/[0.06]">
-          <h2 className="text-lg font-bold text-white">لیست انبارها</h2>
+      <section className="a-card a-card--flush">
+        <div className="a-card-head a-card-head--px">
+          <h3 className="a-card-title">لیست انبارها</h3>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-right text-slate-300">
-            <thead className="bg-[#131c2e] text-xs text-slate-400">
+        <div className="a-table-wrap">
+          <table className="a-table">
+            <thead>
               <tr>
-                <th className="px-4 py-3 font-medium">کد</th>
-                <th className="px-4 py-3 font-medium">نام</th>
-                <th className="px-4 py-3 font-medium">موقعیت</th>
-                <th className="px-4 py-3 font-medium">وضعیت</th>
-                <th className="px-4 py-3 font-medium">عملیات</th>
+                <th>کد</th>
+                <th>نام</th>
+                <th>موقعیت</th>
+                <th>وضعیت</th>
+                <th>عملیات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody>
               {isLoading ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-500">در حال دریافت...</td></tr>
+                <tr><td colSpan={5} className="a-empty">در حال دریافت...</td></tr>
               ) : warehouses?.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-500">هیچ انباری یافت نشد.</td></tr>
+                <tr><td colSpan={5} className="a-empty">هیچ انباری یافت نشد.</td></tr>
               ) : (
                 warehouses?.map((w: Warehouse) => (
-                  <tr key={w.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="px-4 py-3 font-mono text-emerald-400" dir="ltr">{w.code}</td>
-                    <td className="px-4 py-3 font-bold text-white">{w.name}</td>
-                    <td className="px-4 py-3">{w.location || '-'}</td>
-                    <td className="px-4 py-3">
+                  <tr key={w.id}>
+                    <td className="font-mono text-emerald-400 a-ltr">{w.code}</td>
+                    <td className="font-bold text-white">{w.name}</td>
+                    <td>{w.location || '-'}</td>
+                    <td>
                       {w.isActive ? (
-                        <span className="chip chip-brand bg-emerald-500/10 text-emerald-400 border-emerald-500/20">فعال</span>
+                        <span className="chip chip-brand">فعال</span>
                       ) : (
-                        <span className="chip bg-slate-500/10 text-slate-400 border-slate-500/20">غیرفعال</span>
+                        <span className="chip chip-slate">غیرفعال</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(w)}
-                        className="text-amber-400 hover:text-amber-300 transition-colors"
-                      >
-                        ویرایش
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (window.confirm('آیا از حذف این انبار مطمئن هستید؟ موجودی کالاها در این انبار از بین خواهد رفت.')) {
-                            deleteMutation.mutate(w.id);
-                          }
-                        }}
-                        className="text-rose-400 hover:text-rose-300 transition-colors"
-                      >
-                        حذف
-                      </button>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEdit(w)}
+                          className="a-icon-btn a-icon-btn--info"
+                          title="ویرایش"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-4 w-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm('آیا از حذف این انبار مطمئن هستید؟ موجودی کالاها در این انبار از بین خواهد رفت.')) {
+                              deleteMutation.mutate(w.id);
+                            }
+                          }}
+                          className="a-icon-btn a-icon-btn--danger"
+                          title="حذف"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-4 w-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                          </svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -195,7 +213,7 @@ export function WarehousesPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

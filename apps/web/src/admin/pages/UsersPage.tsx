@@ -52,75 +52,79 @@ export function UsersPage() {
   const verifiedIdCount = items.filter((u) => u.isVerifiedIdentity).length;
 
   return (
-    <div className="space-y-6">
+    <div className="a-page a-fade">
       {/* Page Header */}
-      <section className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
-        <div>
-          <h2 className="text-xl font-extrabold text-white sm:text-2xl">مدیریت کاربران</h2>
-          <p className="mt-1 text-xs text-slate-400">مشاهده، بررسی احراز هویت و مدیریت دسترسی‌های کاربران</p>
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h2 className="a-title">مدیریت کاربران</h2>
+          <p className="a-subtitle">مشاهده، بررسی احراز هویت و مدیریت دسترسی‌های کاربران</p>
         </div>
-        <div className="chip chip-brand">{formatNumber(total)} کاربر کل</div>
+        <div className="a-page-actions">
+          <span className="a-badge a-badge--brand">{formatNumber(total)} کاربر کل</span>
+        </div>
       </section>
 
       {/* Summary Cards */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>کل کاربران</span>
-            <span className="chip chip-brand">{formatNumber(total)}</span>
+        <div className="a-stat">
+          <div className="a-stat-head">
+            <span className="a-stat-label">کل کاربران</span>
+            <span className="a-badge a-badge--brand">{formatNumber(total)}</span>
           </div>
-          <p className="mt-3 text-2xl font-extrabold text-white">{formatNumber(total)}</p>
+          <p className="a-stat-value">{formatNumber(total)}</p>
         </div>
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>مدیران سیستم</span>
-            <span className="chip chip-amber">{formatNumber(adminUsersCount)}</span>
+        <div className="a-stat">
+          <div className="a-stat-head">
+            <span className="a-stat-label">مدیران سیستم</span>
+            <span className="a-badge a-badge--amber">{formatNumber(adminUsersCount)}</span>
           </div>
-          <p className="mt-3 text-2xl font-extrabold text-amber-400">{formatNumber(adminUsersCount)}</p>
+          <p className="a-stat-value a-stat-value--amber">{formatNumber(adminUsersCount)}</p>
         </div>
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>کد ملی تایید شده</span>
-            <span className="chip chip-aqua">{formatNumber(verifiedIdCount)}</span>
+        <div className="a-stat">
+          <div className="a-stat-head">
+            <span className="a-stat-label">کد ملی تایید شده</span>
+            <span className="a-badge a-badge--brand">{formatNumber(verifiedIdCount)}</span>
           </div>
-          <p className="mt-3 text-2xl font-extrabold text-cyan-400">{formatNumber(verifiedIdCount)}</p>
+          <p className="a-stat-value a-stat-value--green">{formatNumber(verifiedIdCount)}</p>
         </div>
       </section>
 
       {/* Filters Bar */}
-      <section className="glass-card p-4 flex flex-wrap items-center gap-3">
-        <input
-          className="huma-input flex-1 min-w-[200px]"
-          placeholder="جستجو در نام، شماره همراه، کد ملی..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
-        <select
-          className="huma-input !w-auto"
-          value={role}
-          onChange={(e) => {
-            setRole(e.target.value as typeof role);
-            setPage(1);
-          }}
-        >
-          <option value="all">همه نقش‌ها</option>
-          <option value="admin">مدیران (Admin)</option>
-          <option value="customer">مشتریان عادی</option>
-        </select>
+      <section className="a-card">
+        <div className="a-filterbar">
+          <input
+            className="a-input a-grow"
+            placeholder="جستجو در نام، شماره همراه، کد ملی..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+          <select
+            className="a-select a-select--auto"
+            value={role}
+            onChange={(e) => {
+              setRole(e.target.value as typeof role);
+              setPage(1);
+            }}
+          >
+            <option value="all">همه نقش‌ها</option>
+            <option value="admin">مدیران (Admin)</option>
+            <option value="customer">مشتریان عادی</option>
+          </select>
+        </div>
       </section>
 
-      {/* Glass Users Table */}
-      <section className="glass-card overflow-hidden">
+      {/* Users Table */}
+      <section className="a-card a-card--flush">
         {users.isLoading ? (
-          <div className="p-12 text-center text-slate-400">در حال دریافت لیست کاربران...</div>
+          <div className="a-empty">در حال دریافت لیست کاربران...</div>
         ) : items.length === 0 ? (
-          <div className="p-12 text-center text-slate-500">هیچ کاربری یافت نشد.</div>
+          <div className="a-empty">هیچ کاربری یافت نشد.</div>
         ) : (
-          <div className="huma-table-container">
-            <table className="huma-table">
+          <div className="a-table-wrap">
+            <table className="a-table">
               <thead>
                 <tr>
                   <th>کاربر</th>
@@ -163,7 +167,7 @@ export function UsersPage() {
                           ) : (
                             <button
                               type="button"
-                              className="text-[10px] text-amber-400 underline hover:text-white"
+                              className="a-btn a-btn--info a-btn--xs"
                               onClick={() => patch.mutate({ id: u.id, body: { isVerifiedIdentity: true } })}
                             >
                               تایید کد ملی
@@ -189,7 +193,7 @@ export function UsersPage() {
                         {u.role === 'admin' ? (
                           <button
                             type="button"
-                            className="huma-btn-secondary !py-1 !px-2.5 !text-xs"
+                            className="a-btn a-btn--secondary a-btn--xs"
                             onClick={() => patch.mutate({ id: u.id, body: { role: 'customer' } })}
                           >
                             تنزل به مشتری
@@ -197,7 +201,7 @@ export function UsersPage() {
                         ) : (
                           <button
                             type="button"
-                            className="huma-btn-primary !py-1 !px-2.5 !text-xs"
+                            className="a-btn a-btn--primary a-btn--xs"
                             onClick={() => patch.mutate({ id: u.id, body: { role: 'admin' } })}
                           >
                             ارتقا به مدیر
@@ -206,9 +210,7 @@ export function UsersPage() {
 
                         <button
                           type="button"
-                          className={`huma-btn-secondary !py-1 !px-2.5 !text-xs ${
-                            u.isActive ? '!bg-rose-500/15 !text-rose-300' : ''
-                          }`}
+                          className={`a-btn a-btn--xs ${u.isActive ? 'a-btn--danger' : 'a-btn--secondary'}`}
                           onClick={() => patch.mutate({ id: u.id, body: { isActive: !u.isActive } })}
                         >
                           {u.isActive ? 'مسدودسازی' : 'فعال‌سازی'}
@@ -225,14 +227,14 @@ export function UsersPage() {
 
       {/* Pagination */}
       {pageCount > 1 && (
-        <section className="flex items-center justify-between glass-card p-4">
-          <button type="button" className="huma-btn-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+        <section className="a-card a-pager">
+          <button type="button" className="a-btn a-btn--secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
             صفحه قبلی
           </button>
-          <span className="text-xs text-slate-400 font-semibold">
+          <span className="a-pager-info">
             صفحه {formatNumber(page)} از {formatNumber(pageCount)}
           </span>
-          <button type="button" className="huma-btn-secondary" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
+          <button type="button" className="a-btn a-btn--secondary" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
             صفحه بعدی
           </button>
         </section>

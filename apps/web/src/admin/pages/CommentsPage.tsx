@@ -24,17 +24,17 @@ export function CommentsPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
-        <div>
-          <h1 className="text-xl font-extrabold text-white sm:text-2xl">نظرات و فرم‌ها</h1>
-          <p className="mt-1 text-xs text-slate-400">مدیریت نظرات محصولات و درخواست‌های پشتیبانی</p>
+    <div className="a-page a-fade">
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h2 className="a-title">نظرات و فرم‌ها</h2>
+          <p className="a-subtitle">مدیریت نظرات محصولات و درخواست‌های پشتیبانی</p>
         </div>
-      </div>
+      </section>
 
-      <div className="glass-card overflow-hidden">
-        <div className="huma-table-container">
-          <table className="huma-table">
+      <section className="a-card a-card--flush">
+        <div className="a-table-wrap">
+          <table className="a-table">
             <thead>
               <tr>
                 <th>نویسنده</th>
@@ -49,13 +49,13 @@ export function CommentsPage() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                  <td colSpan={7} className="a-empty">
                     در حال دریافت اطلاعات...
                   </td>
                 </tr>
               ) : data?.items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                  <td colSpan={7} className="a-empty">
                     هیچ نظری یافت نشد.
                   </td>
                 </tr>
@@ -80,7 +80,7 @@ export function CommentsPage() {
                           <button
                             type="button"
                             onClick={() => changeStatus.mutate({ id: comment.id, status: 'approved' })}
-                            className="huma-btn-secondary !py-1 !px-2.5 !text-xs !text-emerald-400 !border-emerald-500/30 !bg-emerald-500/15"
+                            className="a-btn a-btn--info a-btn--xs"
                             disabled={changeStatus.isPending}
                           >
                             تایید
@@ -90,7 +90,7 @@ export function CommentsPage() {
                           <button
                             type="button"
                             onClick={() => changeStatus.mutate({ id: comment.id, status: 'rejected' })}
-                            className="huma-btn-secondary !py-1 !px-2.5 !text-xs !bg-rose-500/15 !text-rose-300 !border-rose-500/30"
+                            className="a-btn a-btn--danger a-btn--xs"
                             disabled={changeStatus.isPending}
                           >
                             رد
@@ -104,7 +104,7 @@ export function CommentsPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

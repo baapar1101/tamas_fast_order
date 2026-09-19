@@ -51,54 +51,59 @@ export function UploadsPage() {
   const items = uploads.data?.items ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="a-page a-fade">
       {/* Header */}
-      <section className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
-        <div>
-          <h2 className="text-xl font-extrabold text-white sm:text-2xl">مدیریت فایل‌ها و تصاویر</h2>
-          <p className="mt-1 text-xs text-slate-400">آپلود، مشاهده و مدیریت گالری تصاویر محصولات</p>
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h2 className="a-title">مدیریت فایل‌ها و تصاویر</h2>
+          <p className="a-subtitle">آپلود، مشاهده و مدیریت گالری تصاویر محصولات</p>
         </div>
-        <div className="chip chip-brand">{formatNumber(items.length)} فایل تصویر</div>
+        <div className="a-page-actions">
+          <span className="a-badge a-badge--brand">{formatNumber(items.length)} فایل تصویر</span>
+        </div>
       </section>
 
       {/* Upload Dropzone */}
-      <section className="glass-card p-8 text-center border-2 border-dashed border-white/10 hover:border-emerald-500/40 transition-colors cursor-pointer relative">
-        <input
-          type="file"
-          accept="image/*"
-          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-          disabled={uploading}
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void uploadFile(f);
-          }}
-        />
-        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-emerald-500/15 text-emerald-400 mb-3">
-          <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-          </svg>
-        </div>
-        <h3 className="text-sm font-bold text-white mb-1">
-          {uploading ? 'در حال آپلود تصویر...' : 'کلیک کنید یا تصویر را به این قسمت بکشید'}
-        </h3>
-        <p className="text-xs text-slate-500">فرمت‌های مجاز: PNG, JPG, WEBP (حداکثر ۱۵ مگابایت)</p>
+      <section className="a-card">
+        <label className="a-dropzone">
+          <input
+            type="file"
+            accept="image/*"
+            disabled={uploading}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void uploadFile(f);
+            }}
+          />
+          <span className="a-dropzone-icon">
+            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+            </svg>
+          </span>
+          <span className="a-dropzone-title">
+            {uploading ? 'در حال آپلود تصویر...' : 'کلیک کنید یا تصویر را به این قسمت بکشید'}
+          </span>
+          <span className="a-dropzone-hint">فرمت‌های مجاز: PNG, JPG, WEBP (حداکثر ۱۵ مگابایت)</span>
+        </label>
       </section>
 
       {/* Uploads Gallery Grid */}
-      <section className="glass-card p-6">
-        <h3 className="text-sm font-bold text-white mb-4">گالری تصاویر آپلودشده</h3>
+      <section className="a-card">
+        <div className="a-card-head">
+          <h3 className="a-card-title">گالری تصاویر آپلودشده</h3>
+        </div>
         {uploads.isLoading ? (
-          <div className="py-12 text-center text-slate-400">در حال دریافت گالری تصاویر...</div>
+          <div className="a-empty">در حال دریافت گالری تصاویر...</div>
         ) : items.length === 0 ? (
-          <div className="py-12 text-center text-slate-500">هیچ تصاویری هنوز بارگذاری نشده است.</div>
+          <div className="a-empty">هیچ تصاویری هنوز بارگذاری نشده است.</div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
             {items.map((img) => (
               <div
                 key={img.id}
-                className="group relative rounded-xl border border-white/[0.06] bg-[#131c2e]/60 overflow-hidden flex flex-col justify-between"
+                className="a-card a-card--flush group flex flex-col justify-between"
               >
-                <div className="aspect-square w-full p-2 flex items-center justify-center bg-[#070b12]">
+                <div className="a-thumb aspect-square p-2">
                   <img
                     src={img.url}
                     alt={img.filename}
@@ -106,31 +111,35 @@ export function UploadsPage() {
                     loading="lazy"
                   />
                 </div>
-                <div className="p-2 border-t border-white/[0.06] bg-[#0e1626]/80 flex items-center justify-between">
-                  <span className="truncate text-[10px] text-slate-400" title={img.filename}>
+                <div className="a-card-foot flex items-center justify-between gap-2">
+                  <span className="a-muted truncate a-truncate" title={img.filename}>
                     {img.filename}
                   </span>
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
-                      className="text-[10px] text-emerald-400 hover:underline"
+                      className="a-icon-btn a-icon-btn--info a-icon-btn--sm"
                       onClick={() => {
                         void navigator.clipboard.writeText(img.url);
                         toast.ok('آدرس تصویر کپی شد.');
                       }}
                       title="کپی لینک"
                     >
-                      کپی
+                      <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                      </svg>
                     </button>
                     <button
                       type="button"
-                      className="text-[10px] text-rose-400 hover:underline"
+                      className="a-icon-btn a-icon-btn--danger a-icon-btn--sm"
                       onClick={() => {
                         if (confirm('تصویر حذف شود؟')) remove.mutate(img.id);
                       }}
                       title="حذف"
                     >
-                      حذف
+                      <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                      </svg>
                     </button>
                   </div>
                 </div>

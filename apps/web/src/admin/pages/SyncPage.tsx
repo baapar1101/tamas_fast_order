@@ -88,15 +88,21 @@ export function SyncPage() {
     }
   };
 
+  const DIRECTIONS: { id: 'both' | 'pull' | 'push'; label: string }[] = [
+    { id: 'both', label: 'دو طرفه (Both)' },
+    { id: 'pull', label: 'دریافت از شیت (Pull)' },
+    { id: 'push', label: 'ارسال به شیت (Push)' },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="a-page a-fade">
       {/* Header */}
-      <section className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
-        <div>
-          <h2 className="text-xl font-extrabold text-white sm:text-2xl">همگام‌سازی گوگل شیت (Google Sheets)</h2>
-          <p className="mt-1 text-xs text-slate-400">اتصال و همگام‌سازی ۲ طرفه دیتابیس و شیت گوگل</p>
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h2 className="a-title">همگام‌سازی گوگل شیت (Google Sheets)</h2>
+          <p className="a-subtitle">اتصال و همگام‌سازی ۲ طرفه دیتابیس و شیت گوگل</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="a-page-actions a-actions">
           <span className={`chip ${enabled ? 'chip-brand' : 'chip-rose'}`}>
             {enabled ? 'فعال (Enabled)' : 'غیرفعال'}
           </span>
@@ -105,7 +111,7 @@ export function SyncPage() {
               href={`https://docs.google.com/spreadsheets/d/${status.data.spreadsheetId}`}
               target="_blank"
               rel="noreferrer"
-              className="huma-btn-secondary !py-1.5 !px-3 !text-xs"
+              className="a-btn a-btn--secondary a-btn--sm"
             >
               باز کردن شیت ↗
             </a>
@@ -114,16 +120,16 @@ export function SyncPage() {
       </section>
 
       {/* Sync Control Bar with Advanced Options */}
-      <section className="glass-card p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.06] pb-5 mb-5">
+      <section className="a-card">
+        <div className="a-card-head a-card-head--split">
           <div>
-            <h3 className="text-sm font-bold text-white mb-1">اجرای دستی همگام‌سازی (پیشرفته)</h3>
-            <p className="text-xs text-slate-400">انتخاب جهت همگام‌سازی و جداول دلخواه برای اجرا</p>
+            <h3 className="a-card-title">اجرای دستی همگام‌سازی (پیشرفته)</h3>
+            <p className="a-card-desc">انتخاب جهت همگام‌سازی و جداول دلخواه برای اجرا</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="a-card-actions">
             <button
               type="button"
-              className="huma-btn-secondary"
+              className="a-btn a-btn--secondary"
               disabled={isRunning || runSync.isPending || syncSelectedEntities.length === 0}
               onClick={() => runSync.mutate(true)}
             >
@@ -131,7 +137,7 @@ export function SyncPage() {
             </button>
             <button
               type="button"
-              className="huma-btn-primary"
+              className="a-btn a-btn--primary"
               disabled={isRunning || runSync.isPending || syncSelectedEntities.length === 0}
               onClick={() => runSync.mutate(false)}
             >
@@ -141,65 +147,48 @@ export function SyncPage() {
         </div>
 
         {/* Advanced Options Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-3">جهت همگام‌سازی:</label>
-            <div className="flex bg-[#0b111d] rounded-xl p-1 border border-white/[0.06]">
-              <button
-                type="button"
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                  syncDirection === 'both' ? 'bg-emerald-500 text-slate-950 shadow-glow' : 'text-slate-400 hover:text-white'
-                }`}
-                onClick={() => setSyncDirection('both')}
-              >
-                دو طرفه (Both)
-              </button>
-              <button
-                type="button"
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                  syncDirection === 'pull' ? 'bg-cyan-500 text-slate-950 shadow-glow' : 'text-slate-400 hover:text-white'
-                }`}
-                onClick={() => setSyncDirection('pull')}
-              >
-                دریافت از شیت (Pull)
-              </button>
-              <button
-                type="button"
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                  syncDirection === 'push' ? 'bg-amber-500 text-slate-950 shadow-glow' : 'text-slate-400 hover:text-white'
-                }`}
-                onClick={() => setSyncDirection('push')}
-              >
-                ارسال به شیت (Push)
-              </button>
+            <label className="a-label a-label--static mb-2">جهت همگام‌سازی:</label>
+            <div className="a-segmented">
+              {DIRECTIONS.map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  className={`a-seg ${syncDirection === d.id ? 'a-seg--on' : ''}`}
+                  onClick={() => setSyncDirection(d.id)}
+                >
+                  {d.label}
+                </button>
+              ))}
             </div>
           </div>
-          
+
           <div>
-            <label className="flex items-center justify-between text-xs font-semibold text-slate-400 mb-3">
+            <label className="a-label a-label--static mb-2 flex items-center justify-between">
               جداول هدف:
-              <button 
-                type="button" 
-                className="text-emerald-400 hover:text-emerald-300 underline"
+              <span
+                className="a-link cursor-pointer"
                 onClick={() => setSyncSelectedEntities([...SYNC_ENTITIES])}
               >
                 انتخاب همه
-              </button>
+              </span>
             </label>
             <div className="flex flex-wrap gap-2">
               {SYNC_ENTITIES.map((e) => (
-                <button
+                <label
                   key={e}
-                  type="button"
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                    syncSelectedEntities.includes(e) 
-                      ? 'bg-slate-700/50 border-emerald-500/30 text-emerald-300 shadow-glow' 
-                      : 'bg-transparent border-white/[0.06] text-slate-500 hover:border-slate-400/30 hover:text-slate-300'
-                  }`}
-                  onClick={() => toggleEntity(e)}
+                  className={`a-chip-opt ${syncSelectedEntities.includes(e) ? 'a-chip-opt--on' : ''}`}
                 >
-                  {SYNC_ENTITY_LABELS[e]}
-                </button>
+                  <input
+                    type="checkbox"
+                    checked={syncSelectedEntities.includes(e)}
+                    onChange={() => toggleEntity(e)}
+                  />
+                  <span className="a-chip-opt-copy">
+                    <span className="a-option-title">{SYNC_ENTITY_LABELS[e]}</span>
+                  </span>
+                </label>
               ))}
             </div>
           </div>
@@ -213,9 +202,9 @@ export function SyncPage() {
           const hasErr = Boolean(state?.lastError);
 
           return (
-            <div key={entityKey} className={`glass-card p-5 flex flex-col ${hasErr ? 'border-rose-500/40 bg-rose-500/10' : ''}`}>
+            <div key={entityKey} className={`a-card ${hasErr ? 'a-card--danger' : ''}`}>
               <div className="flex items-center justify-between mb-3">
-                <h4 className="font-bold text-white text-sm">{SYNC_ENTITY_LABELS[entityKey]}</h4>
+                <h4 className="font-bold a-title-fallback text-sm">{SYNC_ENTITY_LABELS[entityKey]}</h4>
                 <span className={`chip ${hasErr ? 'chip-rose' : 'chip-brand'}`}>
                   {hasErr ? 'خطا' : 'سالم'}
                 </span>
@@ -223,19 +212,19 @@ export function SyncPage() {
 
               {hasErr ? (
                 <div className="flex flex-col gap-2 flex-1 mt-2">
-                  <p className="text-[11px] leading-relaxed text-rose-300 bg-black/20 p-2 rounded-lg line-clamp-3 text-left font-mono" dir="ltr">
+                  <p className="a-error-box text-[11px] leading-relaxed line-clamp-3 text-left font-mono" dir="ltr">
                     {state?.lastError}
                   </p>
                   <button
                     type="button"
-                    className="text-xs font-bold text-rose-400 hover:text-white bg-rose-500/20 hover:bg-rose-500/40 px-3 py-2 rounded-lg mt-auto transition-colors w-full text-center"
+                    className="a-btn a-btn--danger a-btn--sm w-full mt-auto"
                     onClick={() => clearError.mutate(entityKey)}
                   >
                     پاکسازی خطا
                   </button>
                 </div>
               ) : (
-                <div className="space-y-1 text-xs text-slate-400">
+                <div className="space-y-1 text-xs a-muted">
                   <div>
                     دریافتی:{' '}
                     <span className="font-bold text-emerald-300">
@@ -249,7 +238,7 @@ export function SyncPage() {
                     </span>
                   </div>
                   {state?.lastPulledAt && (
-                    <div className="text-[10px] text-slate-500 mt-2">
+                    <div className="text-[10px] a-muted mt-2">
                       آخرین بروزرسانی: {new Date(state.lastPulledAt).toLocaleTimeString('fa-IR')}
                     </div>
                   )}
@@ -261,14 +250,21 @@ export function SyncPage() {
       </section>
 
       {/* Conflict History Table */}
-      <section className="glass-card overflow-hidden">
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">
-          <h3 className="text-sm font-bold text-white">تاریخچه تضادها (Conflicts)</h3>
-          <span className="chip chip-slate">{formatNumber(conflicts.data?.total ?? 0)} تضاد ثبت‌شده</span>
+      <section className="a-card a-card--flush">
+        <div className="a-card-head a-card-head--px">
+          <h3 className="a-card-title">تاریخچه تضادها (Conflicts)</h3>
+          <div className="a-card-actions">
+            <span className="chip chip-slate">{formatNumber(conflicts.data?.total ?? 0)} تضاد ثبت‌شده</span>
+            {(conflicts.data?.items ?? []).length > 0 && (
+              <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => clearConflicts.mutate()}>
+                پاک کردن همه
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="huma-table-container">
-          <table className="huma-table">
+        <div className="a-table-wrap">
+          <table className="a-table">
             <thead>
               <tr>
                 <th>جدول</th>
@@ -282,7 +278,7 @@ export function SyncPage() {
             <tbody>
               {(conflicts.data?.items ?? []).length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-500">
+                  <td colSpan={6} className="a-empty">
                     هیچ تضادی بین دیتابیس و گوگل شیت وجود ندارد.
                   </td>
                 </tr>
@@ -290,7 +286,7 @@ export function SyncPage() {
                 conflicts.data?.items.map((c) => (
                   <tr key={c.id} className="order-row">
                     <td className="font-bold text-white">{c.entity}</td>
-                    <td className="font-mono text-xs text-slate-300">{c.field}</td>
+                    <td className="font-mono text-xs text-slate-300 a-ltr">{c.field}</td>
                     <td className="text-xs text-slate-300">{c.dbValue || '—'}</td>
                     <td className="text-xs text-slate-300">{c.sheetValue || '—'}</td>
                     <td>

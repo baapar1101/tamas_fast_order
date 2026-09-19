@@ -19,7 +19,7 @@ export function SlidesPage() {
   const toast = useToast();
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<number | null>(null);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     imageUrl: '',
@@ -80,54 +80,62 @@ export function SlidesPage() {
   }
 
   return (
-    <div className="admin-page">
-      <div className="admin-header">
-        <h1 className="text-xl font-bold">مدیریت بنرها (اسلایدر)</h1>
-      </div>
+    <div className="a-page a-fade">
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h2 className="a-title">مدیریت بنرها (اسلایدر)</h2>
+          <p className="a-subtitle">{editingId ? 'ویرایش بنر نمایشی' : 'افزودن بنر جدید به اسلایدر فروشگاه'}</p>
+        </div>
+      </section>
 
-      <div className="card max-w-2xl mb-8">
-        <h2 className="text-lg font-bold mb-4">{editingId ? 'ویرایش بنر' : 'افزودن بنر جدید'}</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">عنوان (اختیاری)</label>
+      <section className="a-card a-page--narrow">
+        <div className="a-card-head">
+          <h3 className="a-card-title">{editingId ? 'ویرایش بنر' : 'افزودن بنر جدید'}</h3>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="a-form-grid a-cols--2">
+            <div className="a-field">
+              <label className="a-label">عنوان (اختیاری)</label>
               <input
                 type="text"
-                className="input"
+                className="a-input"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="مثال: فروش ویژه بهاره"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">لینک (اختیاری)</label>
+            <div className="a-field">
+              <label className="a-label">لینک (اختیاری)</label>
               <input
                 type="text"
-                className="input"
+                className="a-input"
                 value={formData.linkUrl}
                 onChange={(e) => setFormData({ ...formData, linkUrl: e.target.value })}
                 placeholder="https://..."
                 dir="ltr"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">ترتیب نمایش</label>
+            <div className="a-field">
+              <label className="a-label">ترتیب نمایش</label>
               <input
                 type="number"
-                className="input"
+                className="a-input"
                 value={formData.sortOrder}
                 onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) || 0 })}
               />
             </div>
-            <div className="flex items-end pb-2">
-              <label className="flex items-center gap-2 cursor-pointer">
+            <div className="a-option-row">
+              <div>
+                <div className="a-option-title">فعال باشد</div>
+                <div className="a-option-desc">بنرهای غیرفعال در اسلایدر نمایش داده نمی‌شوند</div>
+              </div>
+              <label className="a-switch">
                 <input
                   type="checkbox"
                   checked={formData.isActive}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="rounded border-gray-300"
                 />
-                <span className="text-sm font-medium">فعال باشد</span>
+                <span className="a-switch-track"><span className="a-switch-thumb" /></span>
               </label>
             </div>
           </div>
@@ -141,14 +149,14 @@ export function SlidesPage() {
             />
           </div>
 
-          <div className="flex gap-2 pt-4">
-            <button type="submit" className="btn btn-primary" disabled={saveMutation.isPending}>
+          <div className="a-actions mt-4">
+            <button type="submit" className="a-btn a-btn--primary" disabled={saveMutation.isPending}>
               {saveMutation.isPending ? 'در حال ذخیره...' : 'ذخیره بنر'}
             </button>
             {editingId && (
               <button
                 type="button"
-                className="btn btn-secondary"
+                className="a-btn a-btn--secondary"
                 onClick={() => {
                   setEditingId(null);
                   setFormData({ title: '', imageUrl: '', linkUrl: '', sortOrder: 0, isActive: true });
@@ -159,63 +167,64 @@ export function SlidesPage() {
             )}
           </div>
         </form>
-      </div>
+      </section>
 
-      <div className="card p-0 overflow-hidden">
+      <section className="a-card a-card--flush">
         {isLoading ? (
-          <div className="p-8 text-center text-gray-500">در حال بارگذاری...</div>
+          <div className="a-empty">در حال بارگذاری...</div>
         ) : slides?.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">هیچ بنری ثبت نشده است.</div>
+          <div className="a-empty">هیچ بنری ثبت نشده است.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-right">
-              <thead className="bg-gray-50 text-gray-600 border-b">
+          <div className="a-table-wrap">
+            <table className="a-table">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 font-medium">تصویر</th>
-                  <th className="px-4 py-3 font-medium">عنوان</th>
-                  <th className="px-4 py-3 font-medium">لینک</th>
-                  <th className="px-4 py-3 font-medium">ترتیب</th>
-                  <th className="px-4 py-3 font-medium">وضعیت</th>
-                  <th className="px-4 py-3 font-medium text-left">عملیات</th>
+                  <th>تصویر</th>
+                  <th>عنوان</th>
+                  <th>لینک</th>
+                  <th>ترتیب</th>
+                  <th>وضعیت</th>
+                  <th className="text-left">عملیات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody>
                 {slides?.map((slide) => (
-                  <tr key={slide.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="w-24 h-12 bg-gray-100 rounded overflow-hidden">
-                        <img 
-                          src={slide.imageUrl} 
-                          alt={slide.title || 'بنر'} 
-                          className="w-full h-full object-cover" 
+                  <tr key={slide.id}>
+                    <td>
+                      <span className="a-media-thumb inline-flex">
+                        <img
+                          src={slide.imageUrl}
+                          alt={slide.title || 'بنر'}
+                          className="h-full w-full object-cover"
                         />
-                      </div>
+                      </span>
                     </td>
-                    <td className="px-4 py-3">{slide.title || '-'}</td>
-                    <td className="px-4 py-3" dir="ltr">
+                    <td className="font-bold text-white">{slide.title || '-'}</td>
+                    <td dir="ltr">
                       {slide.linkUrl ? (
-                        <a href={slide.linkUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline max-w-[150px] truncate inline-block">
+                        <a href={slide.linkUrl} target="_blank" rel="noreferrer" className="a-link a-truncate inline-block max-w-[150px] align-bottom">
                           {slide.linkUrl}
                         </a>
                       ) : (
                         '-'
                       )}
                     </td>
-                    <td className="px-4 py-3">{slide.sortOrder}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        slide.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                      }`}>
+                    <td>{slide.sortOrder}</td>
+                    <td>
+                      <span className={`chip ${slide.isActive ? 'chip-brand' : 'chip-slate'}`}>
                         {slide.isActive ? 'فعال' : 'غیرفعال'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-left">
+                    <td className="text-left">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleEdit(slide)}
-                          className="text-blue-600 hover:text-blue-800 text-sm font-medium px-2 py-1"
+                          className="a-icon-btn a-icon-btn--info"
+                          title="ویرایش"
                         >
-                          ویرایش
+                          <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-4 w-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                          </svg>
                         </button>
                         <button
                           onClick={() => {
@@ -223,9 +232,12 @@ export function SlidesPage() {
                               deleteMutation.mutate(slide.id);
                             }
                           }}
-                          className="text-red-600 hover:text-red-800 text-sm font-medium px-2 py-1"
+                          className="a-icon-btn a-icon-btn--danger"
+                          title="حذف"
                         >
-                          حذف
+                          <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-4 w-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                          </svg>
                         </button>
                       </div>
                     </td>
@@ -235,7 +247,7 @@ export function SlidesPage() {
             </table>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

@@ -11,17 +11,17 @@ export function FinancialPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
-        <div>
-          <h1 className="text-xl font-extrabold text-white sm:text-2xl">امور مالی</h1>
-          <p className="mt-1 text-xs text-slate-400">مشاهده و مدیریت تراکنش‌ها و پرداخت‌های سیستم</p>
+    <div className="a-page a-fade">
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h2 className="a-title">امور مالی</h2>
+          <p className="a-subtitle">مشاهده و مدیریت تراکنش‌ها و پرداخت‌های سیستم</p>
         </div>
-      </div>
+      </section>
 
-      <div className="glass-card overflow-hidden">
-        <div className="huma-table-container">
-          <table className="huma-table">
+      <section className="a-card a-card--flush">
+        <div className="a-table-wrap">
+          <table className="a-table">
             <thead>
               <tr>
                 <th>شناسه تراکنش</th>
@@ -35,23 +35,23 @@ export function FinancialPage() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-400">
+                  <td colSpan={6} className="a-empty">
                     در حال دریافت اطلاعات...
                   </td>
                 </tr>
               ) : data?.items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-400">
+                  <td colSpan={6} className="a-empty">
                     هیچ تراکنشی یافت نشد.
                   </td>
                 </tr>
               ) : (
                 data?.items.map((payment) => (
                   <tr key={payment.id}>
-                    <td className="font-mono text-slate-300" dir="ltr">#{payment.id}</td>
+                    <td className="font-mono text-slate-300 a-ltr">#{payment.id}</td>
                     <td className="font-bold text-emerald-300">{payment.amount.toLocaleString('fa-IR')}</td>
                     <td className="text-slate-300">{payment.gateway}</td>
-                    <td className="font-mono text-slate-400" dir="ltr">{payment.trackingCode || '—'}</td>
+                    <td className="font-mono text-slate-400 a-ltr">{payment.trackingCode || '—'}</td>
                     <td>
                       <span className={`chip ${payment.status === 'success' ? 'chip-brand' : payment.status === 'failed' ? 'chip-rose' : 'chip-amber'}`}>
                         {payment.status === 'success' ? 'موفق' : payment.status === 'failed' ? 'ناموفق' : 'در انتظار'}
@@ -66,7 +66,7 @@ export function FinancialPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
