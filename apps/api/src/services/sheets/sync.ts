@@ -89,7 +89,10 @@ function parseSheet(mapping: EntityMapping, rows: string[][]): { header: string[
       updatedAt: parsed && !Number.isNaN(parsed.getTime()) ? parsed : null,
       // The timestamp column is excluded so a row that only got restamped does
       // not read as an edit.
-      hash: rowHash(header.filter((h) => h !== UPDATED_AT_COLUMN).map((h) => cells[h])),
+      // Ignore unrelated/formatted Google Sheet columns (for example the
+      // automatic "Column 21" headers created by a Sheet table). Only the
+      // mapping contract participates in change detection, matching dbHash.
+      hash: rowHash(mapping.columns.filter((h) => h !== UPDATED_AT_COLUMN).map((h) => cells[h] ?? '')),
     });
   }
   return { header, items };

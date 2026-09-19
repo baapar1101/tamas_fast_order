@@ -217,30 +217,7 @@ async function ensureCategory(name: string): Promise<number | null> {
  * Products
  * ------------------------------------------------------------------ */
 
-const PRODUCT_COLUMNS = ['product_id', 'Category', 'Brand', 'title', 'model', 'color', 'sku', 'RIAL PRICE', 'price', 'old_price', 'sell_type', 'discount%', 'kerman_stock', 'tehran_stock', 'warranty', 'promotion', 'status', 'image_url', 'attribute_key', 'attribute_value', UPDATED_AT_COLUMN];
-
-/**
- * The sheet exposes price in both تومان (`price`) and ریال (`RIAL PRICE`).
- * A push fills both cells, so on pull we compare each representation with the
- * current database price to discover which cell the user actually edited.
- */
-export function resolveProductSheetPrice(cells: SheetCells, currentPrice?: number): number {
-  const tomanRaw = str(cells.price);
-  const rialRaw = str(cells['RIAL PRICE']);
-  const toman = tomanRaw ? num(tomanRaw) : null;
-  const rialAsToman = rialRaw ? Math.trunc(num(rialRaw) / 10) : null;
-
-  if (currentPrice != null) {
-    const tomanChanged = toman != null && toman !== currentPrice;
-    const rialChanged = rialAsToman != null && rialAsToman !== currentPrice;
-    if (tomanChanged && !rialChanged) return toman;
-    if (rialChanged && !tomanChanged) return rialAsToman;
-  }
-
-  // `price` is the canonical column when creating a row or when both cells
-  // were edited to different values. RIAL PRICE remains fully editable too.
-  return toman ?? rialAsToman ?? 0;
-}
+const PRODUCT_COLUMNS = ['product_id', 'Category', 'Brand', 'title', 'model', 'color', 'sku', 'price', 'old_price', 'sell_type', 'discount%', 'kerman_stock', 'tehran_stock', 'warranty', 'promotion', 'status', 'image_url', 'attribute_key', 'attribute_value', UPDATED_AT_COLUMN];
 
 export const productMapping: EntityMapping = {
   entity: 'products',
@@ -270,7 +247,6 @@ export const productMapping: EntityMapping = {
           color_code: r.colorCode ?? '',
           sku: r.sku ?? '',
           price: String(r.price),
-          'RIAL PRICE': String(r.price * 10),
           old_price: r.oldPrice == null ? '' : String(r.oldPrice),
           'discount%': String(r.discount),
           kerman_stock: String(r.kermanStock),
@@ -293,7 +269,7 @@ export const productMapping: EntityMapping = {
 
   async applySheetRow(key, cells, updatedAt) {
     const [existing] = await db
-      .select({ id: products.id, price: products.price })
+      .select({ id: products.id })
       .from(products)
       .where(eq(products.productId, key))
       .limit(1);
@@ -312,7 +288,8 @@ export const productMapping: EntityMapping = {
       color: str(cells.color) || null,
       colorEn: str(cells.color_en) || null,
       colorCode: str(cells.color_code) || null,
-      price: resolveProductSheetPrice(cells, existing?.price),
+      // `price` is the sole source of truth and is always expressed in toman.
+      price: num(cells.price),
       oldPrice: str(cells.old_price) ? num(cells.old_price) : null,
       discount: num(cells.discount ?? cells['discount%']),
       stock: num(cells.stock),
