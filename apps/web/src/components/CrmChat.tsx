@@ -270,7 +270,7 @@ export function CrmChat({ user }: CrmChatProps) {
       const data = await apiPost('/api/v1/public/crm-chat/conversations/start', {
         public_key: PUBLIC_KEY,
         first_name: newAns.name,
-        last_name: '',
+        last_name: '-',
         email: `${newAns.phone}@tamas.local`,
         phone: newAns.phone,
         page_url: window.location.href,
