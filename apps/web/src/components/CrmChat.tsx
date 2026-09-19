@@ -75,47 +75,76 @@ async function apiGet(path: string, token: string): Promise<Message[]> {
   }));
 }
 
+/* ─── tamasmarket interaction: pressed scale + subtle hover, never hover-only ─── */
+const PRESS_SCALE: React.CSSProperties = {
+  transition: 'transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1)',
+};
+function pointerScale(disabled = false) {
+  return {
+    onPointerDown: (e: React.PointerEvent) => {
+      if (disabled) return;
+      (e.currentTarget as HTMLElement).style.transform = 'scale(0.95)';
+    },
+    onPointerUp: (e: React.PointerEvent) => {
+      (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
+    },
+    onPointerCancel: (e: React.PointerEvent) => {
+      (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
+    },
+    onPointerLeave: (e: React.PointerEvent) => {
+      (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
+    },
+    onMouseEnter: (e: React.MouseEvent) => {
+      if (disabled) return;
+      (e.currentTarget as HTMLElement).style.transform = 'scale(1.05)';
+    },
+    onMouseLeave: (e: React.MouseEvent) => {
+      (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
+    },
+  };
+}
+
 /* ─── Sub-components ─────────────────────────────────────── */
 function AgentBubble({ text, time }: { text: string; time?: string }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', animation: 'msgIn 0.22s ease' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', animation: 'msgIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)' }}>
       <div style={{
-        background: '#f0f4ff', color: '#1e293b',
+        background: 'var(--tamas-surface)', color: 'var(--tamas-fg)',
         padding: '10px 14px', borderRadius: '16px 16px 4px 16px',
         fontSize: 13.5, lineHeight: 1.65, maxWidth: '82%',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-        border: '1px solid #e2e8f0',
+        boxShadow: 'var(--tamas-shadow-sm)',
+        border: '1px solid var(--tamas-border)',
         whiteSpace: 'pre-wrap', wordBreak: 'break-word',
       }}>{text}</div>
-      {time && <span style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>{time}</span>}
+      {time && <span style={{ fontSize: 10, color: 'var(--tamas-muted)', marginTop: 3 }}>{time}</span>}
     </div>
   );
 }
 function VisitorBubble({ text, time }: { text: string; time?: string }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', animation: 'msgIn 0.22s ease' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', animation: 'msgIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)' }}>
       <div style={{
-        background: 'linear-gradient(135deg, #1a6ef7, #1558d6)', color: '#fff',
+        background: 'linear-gradient(135deg, var(--tamas-accent), var(--tamas-accent-deep))', color: '#fff',
         padding: '10px 14px', borderRadius: '16px 16px 16px 4px',
         fontSize: 13.5, lineHeight: 1.65, maxWidth: '82%',
-        boxShadow: '0 2px 10px rgba(26,110,247,0.28)',
+        boxShadow: '0 2px 10px rgba(8, 121, 143, 0.28)',
         whiteSpace: 'pre-wrap', wordBreak: 'break-word',
       }}>{text}</div>
-      {time && <span style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>{time}</span>}
+      {time && <span style={{ fontSize: 10, color: 'var(--tamas-muted)', marginTop: 3 }}>{time}</span>}
     </div>
   );
 }
 function TypingIndicator() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-end', animation: 'msgIn 0.2s ease' }}>
+    <div style={{ display: 'flex', justifyContent: 'flex-end', animation: 'msgIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)' }}>
       <div style={{
-        background: '#f0f4ff', borderRadius: '16px 16px 4px 16px',
+        background: 'var(--tamas-surface)', borderRadius: '16px 16px 4px 16px',
         padding: '10px 16px', display: 'flex', gap: 5, alignItems: 'center',
-        border: '1px solid #e2e8f0',
+        border: '1px solid var(--tamas-border)',
       }}>
         {[0, 160, 320].map(d => (
           <span key={d} style={{
-            width: 7, height: 7, borderRadius: '50%', background: '#94a3b8',
+            width: 7, height: 7, borderRadius: '50%', background: 'var(--tamas-accent)',
             display: 'inline-block',
             animation: `dotBounce 1.2s ${d}ms infinite ease-in-out`,
           }} />
@@ -125,19 +154,24 @@ function TypingIndicator() {
   );
 }
 function SendBtn({ disabled, loading }: { disabled: boolean; loading: boolean }) {
+  const scale = pointerScale(disabled);
   return (
-    <button type="submit" disabled={disabled} style={{
-      width: 44, height: 44, flexShrink: 0,
-      background: disabled ? '#e2e8f0' : 'linear-gradient(135deg,#1a6ef7,#1558d6)',
-      color: disabled ? '#94a3b8' : '#fff',
-      border: 'none', borderRadius: 10,
-      cursor: disabled ? 'not-allowed' : 'pointer',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      transition: 'all 0.18s',
-      boxShadow: disabled ? 'none' : '0 2px 10px rgba(26,110,247,0.3)',
-    }}
-    onMouseEnter={e => { if (!disabled) (e.currentTarget as HTMLElement).style.transform = 'scale(1.07)'; }}
-    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}>
+    <button
+      type="submit"
+      disabled={disabled}
+      style={{
+        width: 44, height: 44, flexShrink: 0,
+        background: disabled ? 'var(--tamas-bg)' : 'var(--tamas-accent)',
+        color: disabled ? 'var(--tamas-muted)' : '#fff',
+        border: disabled ? '1px solid var(--tamas-border)' : 'none',
+        borderRadius: 980,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: disabled ? 'none' : '0 6px 16px rgba(8, 121, 143, 0.28)',
+        ...PRESS_SCALE,
+      }}
+      {...scale}
+    >
       {loading
         ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" strokeLinecap="round"/></svg>
         : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13" strokeLinecap="round"/><polygon points="22 2 15 22 11 13 2 9 22 2" strokeLinejoin="round"/></svg>
@@ -253,6 +287,39 @@ export function CrmChat({ user }: CrmChatProps) {
     return () => { window.removeEventListener('offline', goOff); window.removeEventListener('online', goOn); };
   }, [session, openWs]);
 
+  /* Polling fallback — kicks in when WS is not connected */
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    // Only poll when we have a session and WS isn't carrying the messages
+    if (!session || wsStatus === 'connected') {
+      if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+      return;
+    }
+    // Start polling every 5 seconds
+    const tick = () => {
+      apiGet(
+        `/api/v1/public/crm-chat/conversations/${session.conversationId}/messages?limit=80`,
+        session.visitorToken
+      ).then(fresh => {
+        setMessages(prev => {
+          const existingIds = new Set(prev.map(m => m.id));
+          const newMsgs = fresh.filter(m => !existingIds.has(m.id));
+          if (newMsgs.length === 0) return prev;
+          // Show unread badge for incoming agent messages
+          newMsgs.forEach(m => {
+            if (!isOpen && m.senderRole === 'agent') setUnread(n => n + 1);
+          });
+          setIsTyping(false);
+          return [...prev, ...newMsgs];
+        });
+      }).catch(() => { /* silent — network may be flaky */ });
+    };
+    // Poll immediately, then on interval
+    tick();
+    pollRef.current = setInterval(tick, 5000);
+    return () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
+  }, [session, wsStatus, isOpen]);
+
   /* Intake */
   const currentQ = QUESTIONS[qIndex];
   const currentPrompt = typeof currentQ?.prompt === 'function' ? currentQ.prompt(answers.name) : currentQ?.prompt ?? '';
@@ -322,18 +389,32 @@ export function CrmChat({ user }: CrmChatProps) {
     setInput(''); setIsOpen(false);
   };
 
-  /* Colors */
-  const orbColor = wsStatus === 'connected' ? '#22c55e' : wsStatus === 'connecting' ? '#f59e0b' : wsStatus === 'offline' ? '#ef4444' : '#1a6ef7';
+  /* Colors — tamasmarket state tokens */
+  const orbColor = wsStatus === 'connected' ? 'var(--tamas-success)' : wsStatus === 'connecting' ? 'var(--tamas-warning)' : wsStatus === 'offline' ? 'var(--tamas-danger)' : 'var(--tamas-accent)';
   const bottom   = isMobile ? 80 : 24;
   const widgetW  = isMobile ? 'calc(100vw - 24px)' : 390;
   const widgetH  = isMobile ? 'calc(100svh - 104px)' : 560;
 
+  const togglePress = pointerScale();
+
   const inputStyle: React.CSSProperties = {
     flex: 1, padding: '11px 14px',
-    border: '1.5px solid #e2e8f0', borderRadius: 10, fontSize: 14,
-    background: '#f8fafc', color: '#1e293b', outline: 'none',
-    transition: 'border-color 0.2s',
-    fontFamily: "'Vazirmatn','Segoe UI',Tahoma,sans-serif",
+    border: '1px solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-input)', fontSize: 14,
+    background: 'var(--tamas-surface)', color: 'var(--tamas-fg)', outline: 'none',
+    caretColor: 'var(--tamas-accent)',
+    transition: 'border-color 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)',
+    fontFamily: 'var(--tamas-font)',
+  };
+
+  const focusInput = (e: React.FocusEvent<HTMLInputElement>) => {
+    const el = e.currentTarget;
+    el.style.borderColor = 'var(--tamas-accent)';
+    el.style.boxShadow = '0 0 0 3px rgba(8, 121, 143, 0.12)';
+  };
+  const blurInput = (e: React.FocusEvent<HTMLInputElement>) => {
+    const el = e.currentTarget;
+    el.style.borderColor = 'var(--tamas-border)';
+    el.style.boxShadow = 'none';
   };
 
   /* Toggle button */
@@ -348,20 +429,19 @@ export function CrmChat({ user }: CrmChatProps) {
         style={{
           position: 'fixed', bottom, left: 20,
           width: 58, height: 58, borderRadius: '50%',
-          background: 'linear-gradient(135deg,#1a6ef7,#1558d6)',
+          background: 'var(--tamas-promo-grad)',
           color: '#fff', border: 'none', cursor: 'pointer',
-          boxShadow: '0 4px 20px rgba(26,110,247,0.42)',
+          boxShadow: '0 8px 22px rgba(8, 121, 143, 0.34)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 26, zIndex: 9999, transition: 'transform 0.2s',
+          fontSize: 26, zIndex: 9999, ...PRESS_SCALE,
         }}
-        onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.08)')}
-        onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+        {...togglePress}
       >
         💬
         {unread > 0 && (
           <span style={{
             position: 'absolute', top: -4, right: -4,
-            background: '#ef4444', color: '#fff', borderRadius: '50%',
+            background: 'var(--tamas-danger)', color: '#fff', borderRadius: '50%',
             width: 20, height: 20, fontSize: 11, fontWeight: 700,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
@@ -378,13 +458,13 @@ export function CrmChat({ user }: CrmChatProps) {
       style={{
         position: 'fixed', bottom, left: 20,
         width: widgetW, height: widgetH,
-        background: '#fff', borderRadius: 18,
-        boxShadow: '0 16px 64px rgba(0,0,0,0.14),0 4px 16px rgba(0,0,0,0.06)',
+        background: 'var(--tamas-surface)', borderRadius: 'var(--tamas-radius-card)',
+        boxShadow: 'var(--tamas-shadow-lg), 0 4px 16px rgba(0, 0, 0, 0.06)',
         display: 'flex', flexDirection: 'column',
         zIndex: 9999, overflow: 'hidden',
-        border: '1px solid #e2e8f0',
-        fontFamily: "'Vazirmatn','Segoe UI',Tahoma,sans-serif",
-        animation: 'chatSlideUp 0.25s cubic-bezier(0.34,1.56,0.64,1)',
+        border: '1px solid var(--tamas-border)',
+        fontFamily: 'var(--tamas-font)',
+        animation: 'chatSlideUp 0.28s cubic-bezier(0.2, 0.8, 0.2, 1)',
       }}
     >
       <style>{`
@@ -393,22 +473,25 @@ export function CrmChat({ user }: CrmChatProps) {
         @keyframes dotBounce { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
         #crm-chat-widget *{box-sizing:border-box}
         #crm-chat-widget ::-webkit-scrollbar{width:4px}
-        #crm-chat-widget ::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:4px}
+        #crm-chat-widget ::-webkit-scrollbar-track{background:transparent}
+        #crm-chat-widget ::-webkit-scrollbar-thumb{background:var(--tamas-border);border-radius:4px}
+        #crm-chat-toggle:focus-visible,
+        #crm-chat-widget button:focus-visible{outline:2px solid var(--tamas-accent);outline-offset:2px}
       `}</style>
 
-      {/* Header */}
+      {/* Header — teal promo strip */}
       <div style={{
         padding: '14px 16px',
-        background: 'linear-gradient(135deg,#1a6ef7,#1558d6)',
+        background: 'var(--tamas-promo-grad)',
         color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ position: 'relative', width: 40, height: 40 }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🎧</div>
-            <span style={{ position: 'absolute', bottom: 1, right: 1, width: 11, height: 11, borderRadius: '50%', background: orbColor, border: '2px solid white', transition: 'background 0.4s' }} />
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🎧</div>
+            <span style={{ position: 'absolute', bottom: 1, right: 1, width: 11, height: 11, borderRadius: '50%', background: orbColor, border: '2px solid rgba(255,255,255,0.9)', transition: 'background 0.4s' }} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>پشتیبانی تاماس</div>
+            <div style={{ fontWeight: 800, fontSize: 14 }}>پشتیبانی تاماس</div>
             <div style={{ fontSize: 11, opacity: 0.85, marginTop: 1 }}>
               {wsStatus === 'connected' ? '● آنلاین' : wsStatus === 'connecting' ? '◌ در حال اتصال...' : wsStatus === 'offline' ? '○ آفلاین' : 'آماده پاسخگویی'}
             </div>
@@ -416,15 +499,34 @@ export function CrmChat({ user }: CrmChatProps) {
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           {phase === 'chat' && (
-            <button type="button" onClick={handleEnd} style={{ background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>پایان</button>
+            <button
+              type="button"
+              onClick={handleEnd}
+              style={{
+                background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.24)',
+                color: '#fff', borderRadius: 980, padding: '7px 12px', minHeight: 40,
+                cursor: 'pointer', fontSize: 12, fontWeight: 700, ...PRESS_SCALE,
+              }}
+              {...pointerScale()}
+            >پایان</button>
           )}
-          <button type="button" onClick={() => setIsOpen(false)} style={{ background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            aria-label="بستن چت"
+            style={{
+              background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.24)',
+              color: '#fff', borderRadius: 980, padding: '0 12px', minHeight: 40, minWidth: 40,
+              cursor: 'pointer', fontSize: 18, lineHeight: 1, fontWeight: 400, ...PRESS_SCALE,
+            }}
+            {...pointerScale()}
+          >×</button>
         </div>
       </div>
 
       {/* Intake */}
       {phase === 'intake' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--tamas-bg)' }}>
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <AgentBubble text="سلام! خوش اومدی 😊 برای شروع مکالمه با پشتیبانی، چند سوال کوتاه داریم." />
             {QUESTIONS.slice(0, qIndex).map((q, i) => {
@@ -440,8 +542,8 @@ export function CrmChat({ user }: CrmChatProps) {
             {qIndex < QUESTIONS.length && <AgentBubble text={currentPrompt} />}
             <div ref={bottomRef} />
           </div>
-          <form onSubmit={handleIntakeSubmit} style={{ padding: '10px 12px 14px', borderTop: '1px solid #e2e8f0', background: '#fff', flexShrink: 0 }}>
-            {err && <div style={{ color: '#ef4444', fontSize: 12, marginBottom: 6, fontWeight: 500 }}>⚠️ {err}</div>}
+          <form onSubmit={handleIntakeSubmit} style={{ padding: '10px 12px 14px', borderTop: '1px solid var(--tamas-border)', background: 'var(--tamas-surface)', flexShrink: 0 }}>
+            {err && <div style={{ color: 'var(--tamas-danger)', fontSize: 12, marginBottom: 6, fontWeight: 500 }}>⚠️ {err}</div>}
             <div style={{ display: 'flex', gap: 8 }}>
               <input
                 ref={inputRef}
@@ -452,8 +554,8 @@ export function CrmChat({ user }: CrmChatProps) {
                 disabled={sending}
                 dir="auto"
                 style={inputStyle}
-                onFocus={e => (e.currentTarget.style.borderColor = '#1a6ef7')}
-                onBlur={e => (e.currentTarget.style.borderColor = '#e2e8f0')}
+                onFocus={focusInput}
+                onBlur={blurInput}
               />
               <SendBtn disabled={sending || !input.trim()} loading={sending} />
             </div>
@@ -463,12 +565,12 @@ export function CrmChat({ user }: CrmChatProps) {
 
       {/* Chat */}
       {phase === 'chat' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--tamas-bg)' }}>
           <div style={{ flex: 1, overflowY: 'auto', padding: '14px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {messages.length === 0 && (
-              <div style={{ textAlign: 'center', color: '#64748b', padding: '32px 16px' }}>
+              <div style={{ textAlign: 'center', color: 'var(--tamas-muted)', padding: '32px 16px' }}>
                 <div style={{ fontSize: 40, marginBottom: 8 }}>💬</div>
-                <p style={{ fontSize: 14, fontWeight: 600, color: '#1e293b' }}>مکالمه شروع شد!</p>
+                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--tamas-fg)' }}>مکالمه شروع شد!</p>
                 <p style={{ fontSize: 12, marginTop: 4 }}>کارشناس ما به زودی پاسخ می‌دهد.</p>
               </div>
             )}
@@ -480,7 +582,7 @@ export function CrmChat({ user }: CrmChatProps) {
             {isTyping && <TypingIndicator />}
             <div ref={bottomRef} />
           </div>
-          <form onSubmit={handleSend} style={{ padding: '10px 12px 14px', borderTop: '1px solid #e2e8f0', background: '#fff', flexShrink: 0 }}>
+          <form onSubmit={handleSend} style={{ padding: '10px 12px 14px', borderTop: '1px solid var(--tamas-border)', background: 'var(--tamas-surface)', flexShrink: 0 }}>
             <div style={{ display: 'flex', gap: 8 }}>
               <input
                 ref={inputRef}
@@ -491,14 +593,14 @@ export function CrmChat({ user }: CrmChatProps) {
                 disabled={sending}
                 dir="auto"
                 style={inputStyle}
-                onFocus={e => (e.currentTarget.style.borderColor = '#1a6ef7')}
-                onBlur={e => (e.currentTarget.style.borderColor = '#e2e8f0')}
+                onFocus={focusInput}
+                onBlur={blurInput}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e as any); } }}
               />
               <SendBtn disabled={sending || !input.trim()} loading={sending} />
             </div>
             {wsStatus === 'offline' && (
-              <p style={{ fontSize: 11, color: '#f59e0b', marginTop: 5, fontWeight: 500 }}>⚠️ اتصال قطع شده — در حال اتصال مجدد...</p>
+              <p style={{ fontSize: 11, color: 'var(--tamas-warning)', marginTop: 5, fontWeight: 500 }}>⚠️ اتصال قطع شده — در حال اتصال مجدد...</p>
             )}
           </form>
         </div>
@@ -506,4 +608,3 @@ export function CrmChat({ user }: CrmChatProps) {
     </div>
   );
 }
-
