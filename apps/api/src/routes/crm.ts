@@ -1,3 +1,4 @@
+import { count, eq, isNull } from 'drizzle-orm';
 import type {
   FastifyInstance,
   FastifyPluginAsync,
@@ -8,22 +9,18 @@ import { processCrmWebhook } from '../lib/crm.js';
 import { env } from '../env.js';
 
 /**
- * Webhook endpoint for inbound CRM events.
+ * CRM Integration Routes
  *
- * POST /api/crm/webhook
- *   - Content-Type: application/json
- *   - X-CRM-Signature: HMAC-SHA256 hex digest of raw body (optional in dev)
- *
- * Events handled:
- *   - person.created / updated
- *   - order.created / updated / paid
- *   - product.updated
- *   - crm.chat.message.created (agent reply)
- *   - payment.received
- *
- * The handler verifies the signature, dedupes by event_id, and stores
- * a minimal audit log. Actual data mutations happen in the service layer
- * (to be wired in).
+ * Endpoints:
+ *   POST /api/crm/webhook           - Inbound webhook from CRM
+ *   GET  /api/crm/health            - CRM connectivity health check
+ *   POST /api/crm/sync/order        - Manual order sync by orderCode
+ *   POST /api/crm/sync/product      - Manual product sync by productId
+ *   POST /api/crm/sync/person       - Manual person sync by phone/email
+ *   POST /api/crm/sync/products/push - Bulk push all products to CRM
+ *   POST /api/crm/sync/products/pull - Pull products from CRM
+ *   POST /api/crm/sync/stock        - Sync stock levels to CRM
+ *   GET  /api/crm/stats             - CRM integration statistics (admin)
  */
 const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
   // Capture the raw body for HMAC signature verification.
@@ -61,6 +58,39 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       ok: true,
       crm: { reachable, baseUrl: env.CRM_API_BASE || 'not configured' },
       sync: { enabled: env.CRM_SYNC_ENABLED, debounceMs: env.CRM_SYNC_DEBOUNCE_MS },
+    };
+  });
+
+  /**
+   * CRM Integration Statistics (admin only)
+   */
+  app.get('/crm/stats', { preHandler: [app.requireAdmin] }, async () => {
+    const { crmClient } = await import('../lib/crm.js');
+    const reachable = await crmClient.ping();
+
+    // Get counts from local DB
+    const { db } = await import('../db/client.js');
+    const { users, orders, products } = await import('../db/schema.js');
+    const { count } = await import('drizzle-orm');
+
+    const [userCount, orderCount, productCount] = await Promise.all([
+      db.select({ n: count() }).from(users).where(eq(users.isActive, true)),
+      db.select({ n: count() }).from(orders).where(isNull(orders.deletedAt)),
+      db.select({ n: count() }).from(products).where(eq(products.status, 'active')),
+    ]);
+
+    return {
+      ok: true,
+      crm: {
+        reachable,
+        baseUrl: env.CRM_API_BASE || 'not configured',
+        syncEnabled: env.CRM_SYNC_ENABLED,
+      },
+      local: {
+        activeUsers: userCount[0]?.n ?? 0,
+        totalOrders: orderCount[0]?.n ?? 0,
+        activeProducts: productCount[0]?.n ?? 0,
+      },
     };
   });
 
@@ -111,6 +141,169 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       }
       const pushResult = await crmClient.pushProduct(result.product);
       return { ok: pushResult.ok, result: pushResult };
+    },
+  );
+
+  /**
+   * Trigger a manual sync of a specific person to CRM.
+   * POST /api/crm/sync/person { phone: string, name?: string, email?: string }
+   */
+  app.post(
+    '/crm/sync/person',
+    async (req: FastifyRequest, reply: FastifyReply) => {
+      const body = (req.body as { phone?: string; name?: string; email?: string }) ?? {};
+      const { phone, name, email } = body;
+      if (!phone) {
+        reply.code(400);
+        return { ok: false, error: 'phone is required' };
+      }
+      const { crmClient } = await import('../lib/crm.js');
+      const result = await crmClient.pushPerson({
+        firstName: name?.split(' ')[0] ?? '',
+        lastName: name?.split(' ').slice(1).join(' ') ?? '',
+        phone,
+        email,
+        aliasName: name ?? phone,
+      });
+      return { ok: result.ok, result };
+    },
+  );
+
+  /**
+   * Bulk push all active products to CRM.
+   * POST /api/crm/sync/products/push
+   */
+  app.post(
+    '/crm/sync/products/push',
+    async (req: FastifyRequest, reply: FastifyReply) => {
+      const { crmClient } = await import('../lib/crm.js');
+      const { queryProducts } = await import('../services/catalog.js');
+
+      // Fetch all active products in batches
+      const pageSize = 50;
+      let page = 1;
+      let totalPushed = 0;
+      let totalErrors = 0;
+      const errors: string[] = [];
+
+      while (true) {
+        const result = await queryProducts({
+          page,
+          perPage: pageSize,
+          inStock: false, // include all statuses
+          sort: 'price_asc',
+          brands: [],
+        });
+
+        if (!result.groups || result.groups.length === 0) break;
+
+        for (const group of result.groups) {
+          for (const variant of group.variants) {
+            const pushResult = await crmClient.pushProduct({
+              productId: variant.productId,
+              sku: variant.sku ?? '',
+              title: variant.title,
+              model: variant.model ?? '',
+              categoryName: variant.categoryName ?? '',
+              brandName: variant.brandName ?? '',
+              price: variant.price,
+              oldPrice: variant.oldPrice ?? null,
+              discount: variant.discount,
+              stock: variant.stock,
+              status: variant.status,
+              description: variant.description ?? '',
+              imageUrl: variant.imageUrl ?? '',
+              updatedAt: variant.updatedAt,
+            });
+
+            if (pushResult.ok) totalPushed++;
+            else {
+              totalErrors++;
+              errors.push(`${variant.productId}: ${pushResult.error}`);
+            }
+          }
+        }
+
+        if (result.groups.length < pageSize) break;
+        page++;
+      }
+
+      return {
+        ok: totalErrors === 0,
+        pushed: totalPushed,
+        errors: totalErrors,
+        errorDetails: errors.slice(0, 20),
+      };
+    },
+  );
+
+  /**
+   * Pull products from CRM (placeholder - needs CRM API endpoint)
+   * POST /api/crm/sync/products/pull
+   */
+  app.post(
+    '/crm/sync/products/pull',
+    async (req: FastifyRequest, reply: FastifyReply) => {
+      const { crmClient } = await import('../lib/crm.js');
+      const { db } = await import('../db/client.js');
+      const { products } = await import('../db/schema.js');
+      const { eq } = await import('drizzle-orm');
+
+      // This would call CRM to get products and upsert locally
+      // For now, return not implemented
+      return {
+        ok: false,
+        error: 'Product pull from CRM not yet implemented. Requires CRM API endpoint.',
+      };
+    },
+  );
+
+  /**
+   * Sync stock levels to CRM.
+   * POST /api/crm/sync/stock
+   */
+  app.post(
+    '/crm/sync/stock',
+    async (req: FastifyRequest, reply: FastifyReply) => {
+      const { crmClient } = await import('../lib/crm.js');
+      const { queryProducts } = await import('../services/catalog.js');
+
+      const result = await queryProducts({ page: 1, perPage: 200, inStock: false, sort: 'price_asc', brands: [] });
+      let synced = 0;
+      const errors: string[] = [];
+
+      for (const group of result.groups ?? []) {
+        for (const variant of group.variants) {
+          const pushResult = await crmClient.pushProduct({
+            productId: variant.productId,
+            sku: variant.sku ?? '',
+            title: variant.title,
+            model: variant.model ?? '',
+            categoryName: variant.categoryName ?? '',
+            brandName: variant.brandName ?? '',
+            price: variant.price,
+            oldPrice: variant.oldPrice ?? null,
+            discount: variant.discount,
+            stock: variant.stock,
+            kermanStock: variant.kermanStock,
+            tehranStock: variant.tehranStock,
+            status: variant.status,
+            description: variant.description ?? '',
+            imageUrl: variant.imageUrl ?? '',
+            updatedAt: variant.updatedAt,
+          });
+
+          if (pushResult.ok) synced++;
+          else errors.push(`${variant.productId}: ${pushResult.error}`);
+        }
+      }
+
+      return {
+        ok: errors.length === 0,
+        synced,
+        errors: errors.length,
+        errorDetails: errors.slice(0, 20),
+      };
     },
   );
 };

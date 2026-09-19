@@ -54,6 +54,8 @@ export interface CrmProduct {
   oldPrice?: number | null;
   discount: number;
   stock: number;
+  kermanStock?: number;
+  tehranStock?: number;
   status: string;
   description?: string | null;
   imageUrl?: string | null;
@@ -248,6 +250,31 @@ export const crmClient = {
       return data?.success === true;
     } catch {
       return false;
+    }
+  },
+
+  /** Push a person to CRM (create or find existing by phone/email). */
+  async pushPerson(person: CrmPerson): Promise<CrmSyncResult & { personId?: number }> {
+    try {
+      const payload = {
+        source: 'tamas-fast-order',
+        first_name: person.firstName,
+        last_name: person.lastName ?? '',
+        email: person.email ?? '',
+        phone: person.phone,
+        alias_name: person.aliasName ?? '',
+        synced_at: new Date().toISOString(),
+      };
+      const data = (await crmRequest<{ success?: boolean; id?: number; error?: string }>(
+        `/api/v1/crm/tamas/people`,
+        { method: 'POST', body: JSON.stringify(payload) },
+      )) as { success?: boolean; id?: number; error?: string };
+      if (data?.success === false || data?.error) {
+        return { ok: false, entity: 'person', error: data.error || 'CRM rejected person' };
+      }
+      return { ok: true, entity: 'person', personId: data?.id };
+    } catch (err: any) {
+      return { ok: false, entity: 'person', error: err?.message ?? String(err) };
     }
   },
 };

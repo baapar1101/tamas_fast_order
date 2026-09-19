@@ -7,6 +7,7 @@ import { env } from '../env.js';
 import { badRequest } from '../lib/errors.js';
 import { createSession, destroySession, missingProfileFields, findOrCreateUser, toUserDTO } from '../services/auth.js';
 import { resendCooldown, sendOtp, verifyOtp } from '../services/otp.js';
+import { crmClient } from '../lib/crm.js';
 
 /**
  * The whole point of this file: verification now happens on the server. The
@@ -69,20 +70,31 @@ const routes: FastifyPluginAsync = async (app) => {
     let updatedUser: UserDTO;
     try {
       const [updated] = await db
-        .update(users)
-        .set({
-          name: body.name,
-          lastName: body.lastName,
-          storeName: body.storeName,
-          landline: normalizeLandline(body.landline),
-          address: body.address,
-          postalCode: normalizeLandline(body.postalCode),
-          certificateFileUrl: body.certificateFileUrl,
-          updatedAt: new Date(),
-        })
-        .where(eq(users.id, current.id))
-        .returning();
-      updatedUser = toUserDTO(updated || current);
+              .update(users)
+              .set({
+                name: body.name,
+                lastName: body.lastName,
+                storeName: body.storeName,
+                landline: normalizeLandline(body.landline),
+                address: body.address,
+                postalCode: normalizeLandline(body.postalCode),
+                certificateFileUrl: body.certificateFileUrl,
+                updatedAt: new Date(),
+              })
+              .where(eq(users.id, current.id))
+              .returning();
+            updatedUser = toUserDTO(updated || current);
+
+            // Fire-and-forget CRM person sync on profile update
+                        crmClient.pushPerson({
+                          firstName: body.name ?? '',
+                          lastName: body.lastName ?? '',
+                          phone: current.phone,
+                          email: `${current.phone}@tamas.local`,
+                          aliasName: `${body.name ?? ''} ${body.lastName ?? ''}`.trim() || current.phone,
+                        }).catch((err: unknown) => {
+                          // CRM sync failure shouldn't block profile update
+                        });
     } catch {
       current.name = body.name;
       current.lastName = body.lastName;
@@ -156,19 +168,30 @@ const routes: FastifyPluginAsync = async (app) => {
       let updatedUser: UserDTO;
       try {
         const [updated] = await db
-          .update(users)
-          .set({
-            name: inquiryBody.first_name || current.name,
-            lastName: inquiryBody.last_name || current.lastName,
-            fatherName: inquiryBody.father_name || '',
-            nationalCode: cleanNationalCode,
-            birthDate: cleanBirthDate,
-            isVerifiedIdentity: true,
-            updatedAt: new Date(),
-          })
-          .where(eq(users.id, current.id))
-          .returning();
-        updatedUser = toUserDTO(updated || current);
+                  .update(users)
+                  .set({
+                    name: inquiryBody.first_name || current.name,
+                    lastName: inquiryBody.last_name || current.lastName,
+                    fatherName: inquiryBody.father_name || '',
+                    nationalCode: cleanNationalCode,
+                    birthDate: cleanBirthDate,
+                    isVerifiedIdentity: true,
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(users.id, current.id))
+                  .returning();
+                updatedUser = toUserDTO(updated || current);
+
+                // Fire-and-forget CRM person sync after identity verification
+                crmClient.pushPerson({
+                  firstName: inquiryBody.first_name || current.name,
+                  lastName: inquiryBody.last_name || current.lastName,
+                  phone: current.phone,
+                  email: `${current.phone}@tamas.local`,
+                  aliasName: `${inquiryBody.first_name || current.name} ${inquiryBody.last_name || current.lastName}`.trim() || current.phone,
+                }).catch((err: unknown) => {
+                  // CRM sync failure shouldn't block identity verification
+                });
       } catch {
         current.name = inquiryBody.first_name || current.name;
         current.lastName = inquiryBody.last_name || current.lastName;

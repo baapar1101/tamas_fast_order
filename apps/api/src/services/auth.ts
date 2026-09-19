@@ -4,6 +4,7 @@ import { db } from '../db/client.js';
 import { sessions, users } from '../db/schema.js';
 import { adminPhones, env } from '../env.js';
 import { randomToken, sha256 } from '../lib/hash.js';
+import { crmClient } from '../lib/crm.js';
 
 export type UserRow = typeof users.$inferSelect;
 
@@ -66,6 +67,18 @@ export async function findOrCreateUser(phone: string): Promise<{ row: UserRow; i
       .values({ phone, role: isAdmin ? 'admin' : 'customer', isActive: isAdmin })
       .returning();
     if (!created) throw new Error('failed to create user');
+
+    // Fire-and-forget CRM person sync for new users
+    crmClient.pushPerson({
+      firstName: '',
+      lastName: '',
+      phone: created.phone,
+      email: `${created.phone}@tamas.local`,
+      aliasName: created.phone,
+    }).catch((err: unknown) => {
+      // CRM sync failure shouldn't block user creation
+    });
+
     return { row: created, isNew: true };
   } catch (err) {
     if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
