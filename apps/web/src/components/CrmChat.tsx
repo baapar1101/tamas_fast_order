@@ -52,21 +52,33 @@ function formatTime(iso: string) {
   try { return new Date(iso).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }); }
   catch { return ''; }
 }
+function extractArray(data: any): any[] {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.data)) return data.data;
+  if (Array.isArray(data.items)) return data.items;
+  if (Array.isArray(data.messages)) return data.messages;
+  if (Array.isArray(data.data?.items)) return data.data.items;
+  if (Array.isArray(data.data?.messages)) return data.data.messages;
+  return [];
+}
+
 async function apiPost(path: string, body: object, token?: string) {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['X-Visitor-Token'] = token;
   const res = await fetch(`${API_BASE}${path}`, { method: 'POST', headers, body: JSON.stringify(body) });
   const data = await res.json();
-  if (!res.ok) throw new Error(data?.error?.message ?? 'خطای سرور');
+  if (!res.ok) throw new Error(data?.error?.message ?? data?.detail?.message ?? 'خطای سرور');
   return data;
 }
+
 async function apiGet(path: string, token: string): Promise<Message[]> {
-  const res = await fetch(`${API_BASE}${path}`, { headers: { 'X-Visitor-Token': token } });
+  const separator = path.includes('?') ? '&' : '?';
+  const url = `${API_BASE}${path}${separator}visitor_token=${encodeURIComponent(token)}`;
+  const res = await fetch(url, { headers: { 'X-Visitor-Token': token } });
   const data = await res.json();
-  const raw: unknown[] = Array.isArray(data?.data) ? data.data
-    : Array.isArray(data?.data?.items) ? data.data.items
-    : Array.isArray(data) ? data : [];
-  return (raw as any[]).map((m) => ({
+  const raw = extractArray(data);
+  return raw.map((m: any) => ({
     id: String(m.id ?? Date.now()),
     senderRole: (['visitor','agent','system'].includes(m.sender_role) ? m.sender_role : 'system') as Message['senderRole'],
     body: m.body ?? '',
@@ -287,38 +299,53 @@ export function CrmChat({ user }: CrmChatProps) {
     return () => { window.removeEventListener('offline', goOff); window.removeEventListener('online', goOn); };
   }, [session, openWs]);
 
-  /* Polling fallback — kicks in when WS is not connected */
+  /* Polling fallback — runs continuously whenever WS is not connected */
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isWsConnected = wsStatus === 'connected';
+
   useEffect(() => {
-    // Only poll when we have a session and WS isn't carrying the messages
-    if (!session || wsStatus === 'connected') {
+    if (!session || isWsConnected) {
       if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
       return;
     }
-    // Start polling every 5 seconds
+
     const tick = () => {
       apiGet(
         `/api/v1/public/crm-chat/conversations/${session.conversationId}/messages?limit=80`,
         session.visitorToken
       ).then(fresh => {
+        if (!fresh) return;
         setMessages(prev => {
-          const existingIds = new Set(prev.map(m => m.id));
-          const newMsgs = fresh.filter(m => !existingIds.has(m.id));
-          if (newMsgs.length === 0) return prev;
-          // Show unread badge for incoming agent messages
-          newMsgs.forEach(m => {
-            if (!isOpen && m.senderRole === 'agent') setUnread(n => n + 1);
+          const map = new Map<string, Message>();
+          // 1. Add fresh messages from server
+          fresh.forEach(m => map.set(m.id, m));
+          // 2. Preserve local temporary messages not yet in server list
+          prev.forEach(m => {
+            if (!map.has(m.id)) {
+              const alreadyInServer = fresh.some(sf => sf.body === m.body && sf.senderRole === m.senderRole);
+              if (!alreadyInServer) map.set(m.id, m);
+            }
           });
+          const merged = Array.from(map.values()).sort((a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+
+          // Check for new agent messages to update unread badge
+          if (!isOpen) {
+            const existingAgentIds = new Set(prev.filter(m => m.senderRole === 'agent').map(m => m.id));
+            const newAgentCount = fresh.filter(m => m.senderRole === 'agent' && !existingAgentIds.has(m.id)).length;
+            if (newAgentCount > 0) setUnread(n => n + newAgentCount);
+          }
           setIsTyping(false);
-          return [...prev, ...newMsgs];
+          return merged;
         });
-      }).catch(() => { /* silent — network may be flaky */ });
+      }).catch(() => { /* silent retry */ });
     };
-    // Poll immediately, then on interval
+
     tick();
-    pollRef.current = setInterval(tick, 5000);
+    pollRef.current = setInterval(tick, 3000);
     return () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
-  }, [session, wsStatus, isOpen]);
+  }, [session, isWsConnected, isOpen]);
 
   /* Intake */
   const currentQ = QUESTIONS[qIndex];
@@ -367,13 +394,18 @@ export function CrmChat({ user }: CrmChatProps) {
     e.preventDefault();
     if (!input.trim() || !session || sending) return;
     const body = input.trim();
-    const tempId = String(Date.now());
+    const tempId = `temp_${Date.now()}`;
     setMessages(prev => [...prev, { id: tempId, senderRole: 'visitor', body, createdAt: new Date().toISOString() }]);
     setInput('');
     setSending(true);
     setIsTyping(true);
     try {
       await apiPost('/api/v1/public/crm-chat/messages', { visitor_token: session.visitorToken, conversation_id: session.conversationId, body }, session.visitorToken);
+      // Refresh messages immediately to get true server ID & any agent reply
+      const fresh = await apiGet(`/api/v1/public/crm-chat/conversations/${session.conversationId}/messages?limit=80`, session.visitorToken);
+      if (fresh && fresh.length > 0) {
+        setMessages(fresh);
+      }
     } catch {
       setMessages(prev => prev.filter(m => m.id !== tempId));
       setIsTyping(false);
