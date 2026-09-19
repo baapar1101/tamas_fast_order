@@ -1,0 +1,183 @@
+/*
+=====================================================
+MARKSTREET — LAYOUT
+=====================================================
+
+Containers, grids, section rhythm and shared heading structures.
+
+=====================================================
+*/
+
+main {
+  overflow: hidden;
+}
+
+.section {
+  position: relative;
+  padding: clamp(74px, 8vw, 124px) var(--ms-gutter);
+  overflow: hidden;
+}
+
+.section::before {
+  content: "";
+  position: absolute;
+  inset: 0 max(var(--ms-gutter), calc((100% - var(--ms-max)) / 2));
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--section-line-image, none);
+  background-position: var(--section-line-position, left top);
+  background-size: var(--section-line-size, 1px 100%);
+  background-repeat: no-repeat;
+}
+
+.section.compact {
+  padding-block: clamp(56px, 6vw, 92px);
+}
+
+main > .section.compact:last-of-type:not(.light-section) {
+  background: radial-gradient(circle at 62% 62%, rgba(36,92,255,.12), rgba(36,92,255,.025) 30%, transparent 62%);
+}
+
+.container {
+  max-width: var(--ms-max); margin: 0 auto;
+}
+
+.section > .container,
+.metric-strip > .container {
+  position: relative; z-index: 2;
+}
+
+.section-architecture,
+.container-lines {
+  position: relative;
+}
+
+.grid-2 {
+  display: grid; grid-template-columns: 1.04fr .96fr; gap: clamp(40px, 7vw, 112px); align-items: start;
+}
+
+.grid-3 {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px;
+}
+
+.grid-4 {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+  color: var(--ms-blue);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 34px;
+  height: 1px;
+  background: currentColor;
+}
+
+.metric-strip {
+  border-top: 1px solid var(--ms-line-soft);
+  border-bottom: 1px solid var(--ms-line-soft);
+  background: rgba(255,255,255,.025);
+}
+
+.metric-strip .container {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+}
+
+.metric {
+  min-height: 128px;
+  padding: 28px;
+  border-right: 1px solid var(--ms-line-soft);
+}
+
+.metric:first-child {
+  border-left: 1px solid var(--ms-line-soft);
+}
+
+.metric strong {
+  display: block; font-size: clamp(27px, 3.7vw, 54px); letter-spacing: 0; line-height: .95;
+}
+
+.metric span {
+  display: block; margin-top: 10px; color: var(--ms-muted); font-size: 13px; line-height: 1.45;
+}
+
+.section-heading {
+  display: grid; grid-template-columns: .54fr 1fr; gap: 42px; margin-bottom: 44px; align-items: end;
+}
+
+.section-kicker {
+  color: var(--ms-blue);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.section-title {
+  margin: 0;
+  font-size: clamp(31px, 3.7vw, 48px);
+  line-height: 1.05;
+  letter-spacing: 0;
+  font-weight: 700;
+}
+
+.section-intro {
+  max-width: 700px;
+  margin: 18px 0 0;
+  color: rgba(255,255,255,.66);
+  font-size: clamp(16px, 1.2vw, 19px);
+  line-height: 1.62;
+}
+
+.reveal {
+  opacity: 0; transform: translateY(28px); transition: opacity .9s var(--ms-ease), transform .9s var(--ms-ease);
+}
+
+.reveal.is-visible {
+  opacity: 1; transform: translateY(0);
+}
+
+@media (max-width: 1100px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .section-heading {
+    grid-template-columns: 1fr; gap: 18px;
+  }
+}
+
+@media (max-width: 720px) {
+  .section::before {
+    inset-inline: var(--ms-gutter);
+  }
+
+  .section-title {
+    font-size: clamp(30px, 8.8vw, 36px);
+  }
+
+  .metric-strip .container,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .metric,
+  .metric:first-child {
+    border-left: 0; border-right: 0; border-bottom: 1px solid var(--ms-line-soft);
+  }
+}

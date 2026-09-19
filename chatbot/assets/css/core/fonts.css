@@ -1,0 +1,89 @@
+/*
+=====================================================
+MARKSTREET — LOCAL FONT SYSTEM
+=====================================================
+
+Nexa is the intended primary Latin typeface. Its verified
+upright weights remain registered under one public family;
+the global token uses a temporary upright fallback while
+the defective Regular files are quarantined.
+
+=====================================================
+*/
+
+@font-face {
+  font-family: "Nexa";
+  src:
+    url("../../fonts/Nexa-EN/Nexa-Thin.woff2") format("woff2"),
+    url("../../fonts/Nexa-EN/Nexa-Thin.woff") format("woff");
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Nexa";
+  src:
+    url("../../fonts/Nexa-EN/Nexa-Light.woff2") format("woff2"),
+    url("../../fonts/Nexa-EN/Nexa-Light.woff") format("woff");
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Nexa";
+  src:
+    url("../../fonts/Nexa-EN/Nexa-Book.woff2") format("woff2"),
+    url("../../fonts/Nexa-EN/Nexa-Book.woff") format("woff");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+/*
+Nexa Regular is intentionally not registered.
+The supplied WOFF and WOFF2 files identify themselves as Italic and set the
+OS/2 italic flag. Keep the binaries for replacement review, but do not expose
+them through the active family until verified upright files are supplied.
+*/
+
+@font-face {
+  font-family: "Nexa";
+  src:
+    url("../../fonts/Nexa-EN/Nexa-Bold.woff2") format("woff2"),
+    url("../../fonts/Nexa-EN/Nexa-Bold.woff") format("woff");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Nexa";
+  src:
+    url("../../fonts/Nexa-EN/Nexa-XBold.woff2") format("woff2"),
+    url("../../fonts/Nexa-EN/Nexa-XBold.woff") format("woff");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Nexa";
+  src:
+    url("../../fonts/Nexa-EN/Nexa-Heavy.woff2") format("woff2"),
+    url("../../fonts/Nexa-EN/Nexa-Heavy.woff") format("woff");
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Nexa";
+  src:
+    url("../../fonts/Nexa-EN/Nexa-Black.woff2") format("woff2"),
+    url("../../fonts/Nexa-EN/Nexa-Black.woff") format("woff");
+  font-style: normal;
+  font-weight: 950;
+  font-display: swap;
+}

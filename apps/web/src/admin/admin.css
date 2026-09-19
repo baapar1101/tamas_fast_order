@@ -69,7 +69,7 @@ body.admin-page-active {
   min-height: 100vh;
   background-color: var(--ink-950);
   color: var(--slate-200);
-  font-family: 'Vazirmatn FD', 'Vazirmatn', Tahoma, sans-serif;
+  font-family: 'Peyda', Tahoma, sans-serif;
   direction: rtl;
   position: relative;
   overflow-x: clip;

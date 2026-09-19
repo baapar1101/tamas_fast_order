@@ -1,0 +1,107 @@
+/*
+=====================================================
+MARKSTREET — SITE HEADER
+=====================================================
+
+Fixed header shell, logo and menu trigger states.
+
+=====================================================
+*/
+
+.ms-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  transition: background .45s var(--ms-ease), border-color .45s var(--ms-ease), transform .45s var(--ms-ease);
+  border-bottom: 1px solid transparent;
+}
+
+.ms-header.is-scrolled {
+  background: rgba(5, 5, 5, .78);
+  border-bottom-color: var(--ms-line-soft);
+  backdrop-filter: blur(20px);
+}
+
+.nav-shell {
+  max-width: var(--ms-max);
+  margin: 0 auto;
+  padding: 18px var(--ms-gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.logo-link {
+  display: flex; align-items: center; gap: 12px; min-width: 172px;
+}
+
+.logo-link img {
+  width: 172px; height: auto;
+}
+
+body.menu-open .menu-toggle span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+body.menu-open .menu-toggle span:nth-child(2) {
+  opacity: 0;
+}
+
+body.menu-open .menu-toggle span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+@media (max-width: 1100px) {
+  body.menu-open .ms-header {
+    background: var(--ms-blue); border-bottom-color: rgba(255,255,255,.2);
+  }
+}
+
+@media (max-width: 720px) {
+  .logo-link img {
+    width: 142px;
+  }
+}
+
+@media (max-width: 520px) {
+  .nav-shell {
+    gap: 14px;
+  }
+
+  .logo-link {
+    min-width: 0;
+  }
+}
+
+.menu-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 48px;
+  height: 44px;
+  border: 1px solid var(--ms-line);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--ms-white);
+  cursor: pointer;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 20px;
+  height: 1px;
+  margin: 3px 0;
+  background: currentColor;
+  transition: transform .35s var(--ms-ease), opacity .35s var(--ms-ease);
+}
+
+@media (max-width: 520px) {
+  .menu-toggle {
+    width: 44px;
+  }
+}

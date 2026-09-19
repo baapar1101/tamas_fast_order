@@ -1,0 +1,46 @@
+/*
+=====================================================
+MARKSTREET — BASE
+=====================================================
+
+Document defaults, global typography and overflow states.
+
+=====================================================
+*/
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  background: var(--ms-black);
+  font-family: var(--ms-font);
+  font-style: normal;
+  font-synthesis: weight;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  font-family: inherit;
+  font-style: normal;
+  color: var(--ms-white);
+  background: var(--ms-black);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+body.menu-open,
+body.signal-desk-open {
+  overflow: hidden;
+}
+
+.anchor-target {
+  scroll-margin-top: 120px;
+}
+
+a {
+  color: inherit; text-decoration: none;
+}
+
+::selection {
+  background: var(--ms-blue); color: var(--ms-white);
+}

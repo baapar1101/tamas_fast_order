@@ -1,0 +1,138 @@
+/*
+=====================================================
+MARKSTREET — INSIGHTS
+=====================================================
+
+Article cards, featured insight and publication layouts.
+
+=====================================================
+*/
+
+.article-card {
+  min-height: 360px; display: flex; flex-direction: column; justify-content: space-between;
+}
+
+.article-card::after {
+  top: 18px;
+  bottom: auto;
+  right: 18px;
+  width: 70px;
+  height: 44px;
+}
+
+.article-meta {
+  color: var(--ms-blue); font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase;
+}
+
+.article-card h3 {
+  margin-top: 34px;
+}
+
+.article-link {
+  margin-top: 28px; color: var(--ms-white); font-size: 13px; font-weight: 500;
+}
+
+.publication-grid {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 18px;
+}
+
+.featured-insight,
+.publication-card {
+  position: relative;
+  border: 1px solid var(--ms-line-soft);
+  background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.014));
+  overflow: hidden;
+}
+
+.featured-insight {
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+}
+
+.featured-insight .visual-frame {
+  min-height: 310px;
+  border: 0;
+  border-bottom: 1px solid var(--ms-line-soft);
+}
+
+.featured-insight__copy,
+.publication-card__copy {
+  padding: 26px;
+}
+
+.featured-insight h3,
+.publication-card h3 {
+  margin: 16px 0 12px;
+  line-height: 1.08;
+}
+
+.featured-insight h3 {
+  font-size: clamp(30px, 3.5vw, 48px);
+}
+
+.publication-card h3 {
+  font-size: 23px;
+}
+
+.featured-insight p,
+.publication-card p {
+  color: rgba(255,255,255,.64);
+  line-height: 1.58;
+}
+
+.publication-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.publication-card {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  min-height: 180px;
+}
+
+.publication-card .visual-placeholder {
+  min-height: 100%;
+  border: 0;
+  border-right: 1px solid var(--ms-line-soft);
+}
+
+.category-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.category-row span {
+  border: 1px solid var(--ms-line-soft);
+  padding: 9px 12px;
+  color: rgba(255,255,255,.66);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@media (max-width: 1100px) {
+  .publication-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .publication-card {
+    grid-template-columns: 1fr;
+  }
+
+  .publication-card .visual-placeholder {
+    min-height: 160px;
+    border-right: 0;
+    border-bottom: 1px solid var(--ms-line-soft);
+  }
+
+  .featured-insight {
+    min-height: auto;
+  }
+}

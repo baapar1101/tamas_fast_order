@@ -38,7 +38,7 @@
   --tamas-promo-grad: linear-gradient(90deg, #00596b, #00768f 60%, #008da8);
 
   /* ---- Typography ---- */
-  --tamas-font: "Vazirmatn FD", Vazirmatn, Tahoma, "Segoe UI", sans-serif;
+  --tamas-font: "Peyda", Tahoma, "Segoe UI", sans-serif;
 
   /* ---- Layout posture ---- */
   --tamas-radius-sm: 8px;         /* default radius */
@@ -552,7 +552,7 @@ select.select {
     padding: 24px;
     background: #fff !important;
     color: #000 !important;
-    font-family: 'Vazirmatn FD', Tahoma, sans-serif;
+    font-family: 'Peyda', Tahoma, sans-serif;
     direction: rtl;
     z-index: 99999;
     -webkit-print-color-adjust: exact;

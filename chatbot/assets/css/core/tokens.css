@@ -1,0 +1,46 @@
+/*
+=====================================================
+MARKSTREET — DESIGN TOKENS
+=====================================================
+
+Global color, sizing, typography and motion variables.
+
+=====================================================
+*/
+
+:root {
+  --ms-black: #050505;
+  --ms-charcoal: #0b0b0d;
+  --ms-ink: #111114;
+  --ms-panel: #151519;
+  --ms-panel-2: #1b1b21;
+  --ms-white: #ffffff;
+  --ms-offwhite: #f4f4f0;
+  --ms-muted: #8f9097;
+  --ms-muted-2: #b9bac1;
+  --ms-line: rgba(255, 255, 255, 0.115);
+  --ms-line-soft: rgba(255, 255, 255, 0.07);
+  --ms-overlay: rgba(0, 0, 0, 0.58);
+  --ms-blue: #245cff;
+  --ms-blue-deep: #1236b8;
+  --ms-blue-soft: #eaf0ff;
+  --color-accent-primary: var(--ms-blue);
+  --color-text-primary: var(--ms-white);
+  --color-text-on-accent: var(--ms-white);
+  --ms-state-error: #ff8f8f;
+  --ms-radius-sm: 0;
+  --ms-radius-md: 0;
+  --ms-radius-lg: 0;
+  --ms-max: 1240px;
+  --ms-gutter: clamp(20px, 4vw, 72px);
+  /*
+  Temporary upright fallback. Nexa can return here after the defective
+  Regular/500 binaries are replaced with verified upright files.
+  */
+  --ms-font-primary:
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  --ms-font: var(--ms-font-primary);
+  --ms-ease: cubic-bezier(.19, 1, .22, 1);
+}

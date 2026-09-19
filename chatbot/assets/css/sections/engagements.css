@@ -1,0 +1,84 @@
+/*
+=====================================================
+MARKSTREET — ENGAGEMENTS
+=====================================================
+
+Engagement grids, cards, metadata and case fields.
+
+=====================================================
+*/
+
+.engagement-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.engagement-card {
+  min-height: 520px;
+  padding: 16px;
+  border: 1px solid rgba(5,5,5,.12);
+  background: rgba(255,255,255,.76);
+  color: var(--ms-black);
+  transition: transform .45s var(--ms-ease), border-color .45s var(--ms-ease);
+}
+
+.engagement-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(36,92,255,.52);
+}
+
+.engagement-card .visual-placeholder {
+  min-height: 190px;
+  margin-bottom: 22px;
+  border-color: rgba(5,5,5,.12);
+  background:
+    radial-gradient(circle at 68% 28%, rgba(36,92,255,.14), transparent 38%),
+    linear-gradient(140deg, rgba(5,5,5,.075), rgba(255,255,255,.72));
+}
+
+.engagement-card h3 {
+  margin: 18px 0;
+  font-size: 25px;
+  line-height: 1.08;
+}
+
+.engagement-meta {
+  color: var(--ms-blue);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.case-field {
+  padding-top: 14px;
+  margin-top: 14px;
+  border-top: 1px solid rgba(5,5,5,.10);
+}
+
+.case-field strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.case-field span {
+  color: rgba(5,5,5,.64);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1100px) {
+  .engagement-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .engagement-grid {
+    grid-template-columns: 1fr;
+  }
+}

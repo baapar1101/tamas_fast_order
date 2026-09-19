@@ -1,0 +1,125 @@
+/*
+=====================================================
+MARKSTREET — CAPABILITIES
+=====================================================
+
+Capability rows, modules, scope lists and responsive layouts.
+
+=====================================================
+*/
+
+.capability-row {
+  display: grid;
+  grid-template-columns: .42fr 1fr .42fr;
+  gap: 24px;
+  padding: 30px 0;
+  border-top: 1px solid var(--ms-line-soft);
+  align-items: start;
+}
+
+.capability-row > * + * {
+  border-left: 1px solid var(--line-color-subtle);
+  padding-left: 24px;
+}
+
+.capability-row:last-child {
+  border-bottom: 1px solid var(--ms-line-soft);
+}
+
+.capability-row .index {
+  color: var(--ms-blue); font-size: 12px; font-weight: 500; letter-spacing: .14em;
+}
+
+.capability-row h3 {
+  margin: 0; font-size: clamp(24px, 2.8vw, 42px); letter-spacing: 0; line-height: 1.04;
+}
+
+.capability-row p {
+  margin: 0; color: rgba(255,255,255,.65); line-height: 1.58;
+}
+
+@media (max-width: 720px) {
+  .capability-row {
+    grid-template-columns: 1fr; gap: 14px;
+  }
+
+  .capability-row > * + * {
+    border-left: 0;
+    padding-left: 0;
+  }
+}
+
+.capability-modules {
+  display: grid;
+  gap: 18px;
+}
+
+.capability-module {
+  display: grid;
+  grid-template-columns: minmax(0, .86fr) minmax(0, 1.14fr);
+  gap: clamp(22px, 4vw, 52px);
+  align-items: stretch;
+  padding: clamp(18px, 3vw, 32px);
+  border: 1px solid var(--ms-line-soft);
+  background: linear-gradient(180deg, rgba(255,255,255,.052), rgba(255,255,255,.014));
+}
+
+.capability-module:nth-child(even) {
+  grid-template-columns: minmax(0, 1.14fr) minmax(0, .86fr);
+}
+
+.capability-module:nth-child(even) .capability-module__copy {
+  order: 2;
+}
+
+.capability-module__copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 28px;
+  min-height: 330px;
+}
+
+.capability-module h3 {
+  margin: 18px 0 14px;
+  font-size: clamp(28px, 3vw, 44px);
+  line-height: 1.02;
+}
+
+.capability-module p {
+  margin: 0;
+  color: rgba(255,255,255,.66);
+  line-height: 1.62;
+}
+
+.scope-list {
+  display: grid;
+  gap: 9px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.scope-list li {
+  padding-top: 9px;
+  border-top: 1px solid var(--ms-line-soft);
+  color: rgba(255,255,255,.62);
+  font-size: 13px;
+}
+
+@media (max-width: 1100px) {
+  .capability-module,
+  .capability-module:nth-child(even) {
+    grid-template-columns: 1fr;
+  }
+
+  .capability-module:nth-child(even) .capability-module__copy {
+    order: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .capability-module__copy {
+    min-height: auto;
+  }
+}

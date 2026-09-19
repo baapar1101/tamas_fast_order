@@ -1,0 +1,993 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MarkStreet - Business Strategy & Market Direction</title>
+    <meta
+      name="description"
+      content="MarkStreet provides strategic business solutions across market positioning, media direction, content optimization and growth planning."
+    />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="icon" type="image/png" href="favicon.ico" />
+  </head>
+  <body>
+    <div class="site-bg" aria-hidden="true"></div>
+    <header class="ms-header">
+      <div class="nav-shell">
+        <a class="logo-link" href="index.html" aria-label="MarkStreet Home">
+          <img
+            src="assets/images/logo/markstreet-logo-white.png"
+            alt="MarkStreet"
+          />
+        </a>
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="Open menu"
+          aria-controls="markstreet-menu"
+          aria-expanded="false"
+          data-menu-toggle
+        >
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+    <!--
+  =====================================================
+  MARKSTREET GLOBAL MENU
+  =====================================================
+
+  The navigation content is NOT controlled here.
+
+  To edit menu labels, pages, descriptions or submenu items,
+  open:
+
+  assets/js/menu-data.js
+
+  The HTML below only provides the reusable structural shell.
+
+  =====================================================
+  -->
+    <div
+      class="markstreet-menu-layer"
+      id="markstreet-menu-layer"
+      aria-hidden="true"
+    >
+      <!-- MENU SCRIM: darkens the page behind the desktop menu. -->
+      <button
+        class="markstreet-menu-scrim"
+        type="button"
+        aria-label="Close menu"
+        data-menu-close
+      ></button>
+
+      <!--
+    MAIN EXPANDING MENU SHELL
+    Desktop starts at the primary width and expands as one surface.
+    Mobile uses this same shell as a fullscreen forward/back view.
+    -->
+      <nav
+        class="markstreet-menu"
+        id="markstreet-menu"
+        aria-label="Main navigation"
+      >
+        <!-- MENU HEADER -->
+        <div class="markstreet-menu__header">
+          <a
+            class="markstreet-menu__logo"
+            href="index.html"
+            aria-label="MarkStreet home"
+          >
+            <img
+              src="assets/images/logo/markstreet-logo-white.png"
+              alt="MarkStreet"
+            />
+          </a>
+          <button
+            class="markstreet-menu__close"
+            type="button"
+            aria-label="Close menu"
+            data-menu-close
+          >
+            ×
+          </button>
+        </div>
+
+        <!--
+      STRUCTURAL VERTICAL LINES
+      These three guides align to the primary midpoint, column boundary,
+      and secondary midpoint. They never receive pointer events.
+      -->
+        <div class="markstreet-menu__lines" aria-hidden="true">
+          <span
+            class="markstreet-menu__line markstreet-menu__line--primary-guide"
+          ></span>
+          <span
+            class="markstreet-menu__line markstreet-menu__line--column-boundary"
+          ></span>
+          <span
+            class="markstreet-menu__line markstreet-menu__line--secondary-guide"
+          ></span>
+        </div>
+
+        <!-- MENU CONTENT: one grid containing the two navigation levels. -->
+        <div class="markstreet-menu__content">
+          <!-- PRIMARY NAVIGATION: items are rendered from menu-data.js. -->
+          <section
+            class="markstreet-menu__primary"
+            aria-label="Primary navigation"
+          >
+            <div
+              class="markstreet-menu__primary-list"
+              data-menu-primary-list
+            ></div>
+          </section>
+
+          <!-- SECONDARY NAVIGATION: selected section content is rendered from menu-data.js. -->
+          <section
+            class="markstreet-menu__secondary"
+            id="markstreet-menu-secondary"
+            aria-label="Secondary navigation"
+            aria-hidden="true"
+            data-menu-secondary
+          >
+            <button class="markstreet-menu__back" type="button" data-menu-back>
+              ← Back
+            </button>
+            <p
+              class="markstreet-menu__section-label"
+              data-menu-section-label
+            ></p>
+            <p
+              class="markstreet-menu__section-description"
+              data-menu-section-description
+            ></p>
+            <div
+              class="markstreet-menu__secondary-list"
+              data-menu-secondary-list
+            ></div>
+            <a
+              class="markstreet-menu__section-link"
+              href="#"
+              data-menu-section-link
+              >Open section</a
+            >
+          </section>
+        </div>
+      </nav>
+    </div>
+
+    <!--
+    =====================================================
+    MARKSTREET — SIGNAL DESK
+    SIGNAL DESK: CRM CONVERSATION BOOTSTRAP
+    =====================================================
+    -->
+    <div class="signal-desk-trigger-anchor">
+      <button
+        class="signal-desk-trigger"
+        type="button"
+        data-signal-desk-open
+        aria-controls="signal-desk"
+        aria-expanded="false"
+        aria-label="Open MarkStreet Signal Desk"
+      >
+        <span class="signal-desk-trigger__orb" aria-hidden="true">
+          <canvas
+            class="signal-desk-trigger__orb-canvas"
+            data-signal-desk-orb-canvas
+            aria-hidden="true"
+            tabindex="-1"
+          ></canvas>
+          <span class="signal-desk-trigger__orb-reflection"></span>
+        </span>
+        <span class="signal-desk-trigger__content" aria-hidden="true">
+          <span>Open</span>
+          <span>a Line</span>
+        </span>
+      </button>
+    </div>
+    <div class="signal-desk-layer" id="signal-desk-layer" aria-hidden="true">
+      <button
+        class="signal-desk-scrim"
+        type="button"
+        aria-label="Close conversation panel"
+        data-signal-desk-close
+      ></button>
+
+      <aside
+        class="signal-desk"
+        id="signal-desk"
+        aria-label="MarkStreet conversation panel"
+        data-signal-desk-state="intro"
+        data-signal-desk-conversation-phase="intake"
+      >
+        <span class="signal-desk__shiny-breathe" aria-hidden="true"></span>
+        <header class="signal-desk__header">
+          <div class="signal-desk__brand">MARKSTREET</div>
+          <button
+            class="signal-desk__close"
+            type="button"
+            aria-label="Close conversation panel"
+            data-signal-desk-close
+          >
+            ×
+          </button>
+        </header>
+
+        <div class="signal-desk__body">
+          <div class="signal-desk__lines" aria-hidden="true">
+            <span class="signal-desk__line"></span>
+            <span class="signal-desk__line"></span>
+          </div>
+
+          <section
+            class="signal-desk__state signal-desk__state--intro"
+            data-signal-desk-state-panel="intro"
+            aria-hidden="false"
+          >
+            <button
+              class="btn signal-desk__start"
+              type="button"
+              data-signal-desk-start
+            >
+              Start Conversation
+            </button>
+          </section>
+
+          <section
+            class="signal-desk__state signal-desk__state--conversation"
+            data-signal-desk-state-panel="conversation"
+            aria-hidden="true"
+          >
+            <div class="signal-desk-conversation">
+              <header class="signal-desk-conversation__header">
+                <div>
+                  <span class="signal-desk-conversation__eyebrow"
+                    >MarkStreet</span
+                  >
+                  <h2 class="signal-desk-conversation__title">Signal Desk</h2>
+                </div>
+
+                <div
+                  class="signal-desk-conversation__status"
+                  data-realtime-status="idle"
+                  aria-label="Connecting"
+                >
+                  <span
+                    class="signal-desk-conversation__status-dot"
+                    aria-hidden="true"
+                  ></span>
+                  <span>Connecting</span>
+                </div>
+              </header>
+
+              <div
+                class="signal-desk-conversation__messages"
+                data-signal-desk-messages
+                aria-live="polite"
+                aria-relevant="additions"
+              ></div>
+
+              <form
+                class="signal-desk-composer"
+                data-signal-desk-composer
+                novalidate
+              >
+                <label
+                  class="signal-desk__sr-only"
+                  for="signal-desk-short-answer"
+                  data-signal-desk-composer-label
+                >
+                  Your answer
+                </label>
+
+                <input
+                  class="signal-desk-composer__input"
+                  id="signal-desk-short-answer"
+                  data-signal-desk-short-answer
+                  type="text"
+                  hidden
+                  disabled
+                />
+
+                <textarea
+                  class="signal-desk-composer__input"
+                  id="signal-desk-message-input"
+                  data-signal-desk-message-input
+                  rows="1"
+                  hidden
+                  disabled
+                ></textarea>
+
+                <div
+                  class="signal-desk-composer__choices"
+                  data-signal-desk-intake-choices
+                  hidden
+                ></div>
+
+                <button
+                  class="signal-desk-composer__skip"
+                  type="button"
+                  data-signal-desk-skip
+                  hidden
+                  disabled
+                >
+                  Skip
+                </button>
+
+                <button
+                  class="signal-desk-composer__send"
+                  type="submit"
+                  aria-label="Submit answer"
+                  data-signal-desk-send
+                  disabled
+                >
+                  ↗
+                </button>
+
+                <button
+                  class="signal-desk-composer__retry"
+                  type="button"
+                  data-signal-desk-bootstrap-retry
+                  hidden
+                  disabled
+                >
+                  Retry
+                </button>
+
+                <p
+                  class="signal-desk-composer__status"
+                  data-signal-desk-composer-status
+                  role="status"
+                  aria-live="polite"
+                ></p>
+              </form>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </div>
+
+    <main>
+      <section class="hero brand-line-layer brand-line-layer--route">
+        <div class="container hero-layout">
+          <div class="hero-title-col reveal">
+            <div class="eyebrow">Market Strategy / Business Solutions</div>
+            <h1>
+              Business strategy for brands moving through
+              <span class="accent">complex markets.</span>
+            </h1>
+          </div>
+          <div class="hero-support-col reveal">
+            <p class="hero-copy">
+              MarkStreet provides strategic business solutions across market
+              positioning, media direction, content optimization and growth
+              planning.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="capabilities.html"
+                >Explore Capabilities</a
+              >
+              <a class="btn btn-ghost" href="method.html">See Our Method</a>
+            </div>
+            <div class="hero-tags" aria-label="Core focus areas">
+              <span class="tag">Business Strategy</span>
+              <span class="tag">Media Direction</span>
+              <span class="tag">Content Optimization</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="statement section-line-art section-line-art--corner section-line-art--blue"
+      >
+        <div class="route-lines" aria-hidden="true"></div>
+        <div class="container grid-2 reveal">
+          <div>
+            <h2>
+              We do not start with content. <br />We start with direction.
+            </h2>
+            <p>
+              MarkStreet connects business strategy, market intelligence, media
+              planning and content systems into one clear path for brand growth.
+            </p>
+          </div>
+          <div
+            class="visual-frame visual-frame--glass visual-frame--wide"
+            aria-hidden="true"
+          ></div>
+        </div>
+      </section>
+
+      <section
+        class="section materials-section brand-line-layer brand-line-layer--ribbed"
+      >
+        <div class="container">
+          <div class="materials-header reveal">
+            <div class="section-kicker">Strategy Materials</div>
+            <div>
+              <h2 class="section-title">
+                Strategy materials built for business decisions.
+              </h2>
+              <p class="section-intro">
+                From market maps to media plans, MarkStreet turns strategy into
+                structured systems that teams can understand, use and deploy.
+              </p>
+            </div>
+          </div>
+          <div class="materials-strip">
+            <article class="material-card reveal">
+              <div
+                class="visual-placeholder placeholder-report"
+                aria-hidden="true"
+              ></div>
+              <span class="material-num">01</span>
+              <h3>Strategy Documents</h3>
+              <p>
+                Structured reports, decision frameworks and strategic narratives
+                for leadership teams.
+              </p>
+            </article>
+            <article class="material-card reveal">
+              <div
+                class="visual-placeholder placeholder-map"
+                aria-hidden="true"
+              ></div>
+              <span class="material-num">02</span>
+              <h3>Market Maps</h3>
+              <p>
+                Clear visual systems for positioning, audience movement and
+                competitive direction.
+              </p>
+            </article>
+            <article class="material-card reveal">
+              <div
+                class="visual-placeholder placeholder-media"
+                aria-hidden="true"
+              ></div>
+              <span class="material-num">03</span>
+              <h3>Media Plans</h3>
+              <p>
+                Channel architecture, campaign timing and media priorities
+                aligned with business goals.
+              </p>
+            </article>
+            <article class="material-card reveal">
+              <div
+                class="visual-placeholder placeholder-content"
+                aria-hidden="true"
+              ></div>
+              <span class="material-num">04</span>
+              <h3>Content Systems</h3>
+              <p>
+                Editorial structures, content calendars and performance logic
+                for consistent output.
+              </p>
+            </article>
+            <article class="material-card reveal">
+              <div
+                class="visual-placeholder placeholder-roadmap"
+                aria-hidden="true"
+              ></div>
+              <span class="material-num">05</span>
+              <h3>Growth Roadmaps</h3>
+              <p>
+                Prioritized routes for market expansion, brand movement and
+                business growth.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section image-led-section">
+        <div class="container">
+          <div class="artifact-band reveal">
+            <div
+              class="visual-frame visual-frame--artifact visual-frame--large"
+              aria-hidden="true"
+            ></div>
+            <div class="artifact-band__copy">
+              <span class="signal-line" aria-hidden="true"></span>
+              <h2>A visual system for strategic movement.</h2>
+              <p>
+                MarkStreet translates business direction into communication
+                systems, market materials and deployable brand assets.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-line-art section-line-art--left">
+        <div class="container">
+          <div class="section-heading reveal">
+            <div class="section-kicker">01 / What We Solve</div>
+            <div>
+              <h2 class="section-title">
+                Strategic problems require structured answers.
+              </h2>
+              <p class="section-intro">
+                The work begins with the business challenge, then moves into
+                positioning, media architecture, content performance and
+                activation.
+              </p>
+            </div>
+          </div>
+          <div class="grid-4">
+            <article class="card problem-card reveal">
+              <div
+                class="visual-placeholder placeholder-map"
+                aria-hidden="true"
+              ></div>
+              <span class="num">01</span>
+              <h3>Market Direction</h3>
+              <p>
+                For brands that need a clearer position, sharper audience focus
+                and a stronger market path.
+              </p>
+            </article>
+            <article class="card problem-card reveal">
+              <div
+                class="visual-placeholder placeholder-roadmap"
+                aria-hidden="true"
+              ></div>
+              <span class="num">02</span>
+              <h3>Business Growth</h3>
+              <p>
+                For companies looking to identify opportunities, define
+                priorities and build scalable growth systems.
+              </p>
+            </article>
+            <article class="card problem-card reveal">
+              <div
+                class="visual-placeholder placeholder-media"
+                aria-hidden="true"
+              ></div>
+              <span class="num">03</span>
+              <h3>Media Strategy</h3>
+              <p>
+                For brands that need smarter channel decisions, campaign
+                planning and communication architecture.
+              </p>
+            </article>
+            <article class="card problem-card reveal">
+              <div
+                class="visual-placeholder placeholder-content"
+                aria-hidden="true"
+              ></div>
+              <span class="num">04</span>
+              <h3>Content Performance</h3>
+              <p>
+                For teams producing content without enough clarity, consistency
+                or measurable impact.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="section light-section brand-line-layer brand-line-layer--ribbed"
+      >
+        <div class="container">
+          <div class="section-heading reveal">
+            <div class="section-kicker">02 / Capabilities</div>
+            <div>
+              <h2 class="section-title">
+                Built around business outcomes, not isolated services.
+              </h2>
+              <p class="section-intro">
+                Capabilities are designed to work together: strategy defines the
+                path, media shapes movement, content improves performance and
+                activation creates market response.
+              </p>
+            </div>
+          </div>
+          <div class="grid-3">
+            <article class="card reveal">
+              <div
+                class="visual-placeholder placeholder-roadmap"
+                aria-hidden="true"
+              ></div>
+              <span class="num">01</span>
+              <h3>Business Solutions</h3>
+              <p>
+                Growth roadmap, opportunity mapping and business development
+                direction.
+              </p>
+            </article>
+            <article class="card reveal">
+              <div
+                class="visual-placeholder placeholder-map"
+                aria-hidden="true"
+              ></div>
+              <span class="num">02</span>
+              <h3>Market Strategy</h3>
+              <p>
+                Market analysis, positioning, audience intelligence and
+                competitive direction.
+              </p>
+            </article>
+            <article class="card reveal">
+              <div
+                class="visual-placeholder placeholder-report"
+                aria-hidden="true"
+              ></div>
+              <span class="num">03</span>
+              <h3>Brand & Communication</h3>
+              <p>
+                Narrative, messaging systems and communication architecture.
+              </p>
+            </article>
+            <article class="card reveal">
+              <div
+                class="visual-placeholder placeholder-media"
+                aria-hidden="true"
+              ></div>
+              <span class="num">04</span>
+              <h3>Media Strategy</h3>
+              <p>
+                Channel planning, campaign planning and smarter media decisions.
+              </p>
+            </article>
+            <article class="card reveal">
+              <div
+                class="visual-placeholder placeholder-content"
+                aria-hidden="true"
+              ></div>
+              <span class="num">05</span>
+              <h3>Content Optimization</h3>
+              <p>
+                Content systems, editorial structure and performance
+                improvement.
+              </p>
+            </article>
+            <article class="card reveal">
+              <div
+                class="visual-placeholder placeholder-signage"
+                aria-hidden="true"
+              ></div>
+              <span class="num">06</span>
+              <h3>Campaign Activation</h3>
+              <p>
+                Launch strategy, campaign architecture and execution planning.
+              </p>
+            </article>
+          </div>
+          <div style="margin-top: 32px" class="reveal">
+            <a class="btn btn-primary" href="capabilities.html"
+              >View All Capabilities</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="section workbench-section brand-line-layer brand-line-layer--perspective"
+      >
+        <div class="container">
+          <div class="section-heading reveal">
+            <div class="section-kicker">03 / Method</div>
+            <div>
+              <h2 class="section-title">
+                From market signal to business action.
+              </h2>
+              <p class="section-intro">
+                A structured consulting process designed to move from diagnosis
+                to deployment with clarity.
+              </p>
+            </div>
+          </div>
+          <div class="method-workbench reveal">
+            <span class="workbench-route" aria-hidden="true"></span>
+            <div class="workbench-grid">
+              <article class="workbench-stage">
+                <div
+                  class="workbench-visual workbench-visual--diagnose"
+                  aria-hidden="true"
+                >
+                  <span></span><i></i>
+                </div>
+                <span class="workbench-node" aria-hidden="true"></span>
+                <div class="workbench-copy">
+                  <span class="stage-meta">Market Research</span
+                  ><strong>01</strong>
+                  <h3>Diagnose</h3>
+                  <p>
+                    We examine the business challenge, market signals, audience
+                    behavior and competitive context.
+                  </p>
+                </div>
+              </article>
+              <article class="workbench-stage">
+                <div
+                  class="workbench-visual workbench-visual--define"
+                  aria-hidden="true"
+                >
+                  <span></span><i></i>
+                </div>
+                <span class="workbench-node" aria-hidden="true"></span>
+                <div class="workbench-copy">
+                  <span class="stage-meta">Strategic Direction</span
+                  ><strong>02</strong>
+                  <h3>Define</h3>
+                  <p>
+                    We define the position, priorities, message architecture and
+                    strategic direction.
+                  </p>
+                </div>
+              </article>
+              <article class="workbench-stage">
+                <div
+                  class="workbench-visual workbench-visual--design"
+                  aria-hidden="true"
+                >
+                  <span></span><i></i>
+                </div>
+                <span class="workbench-node" aria-hidden="true"></span>
+                <div class="workbench-copy">
+                  <span class="stage-meta">System Architecture</span
+                  ><strong>03</strong>
+                  <h3>Design</h3>
+                  <p>
+                    We build the business, media and content systems required to
+                    move the strategy forward.
+                  </p>
+                </div>
+              </article>
+              <article class="workbench-stage">
+                <div
+                  class="workbench-visual workbench-visual--deploy"
+                  aria-hidden="true"
+                >
+                  <span></span><i></i>
+                </div>
+                <span class="workbench-node" aria-hidden="true"></span>
+                <div class="workbench-copy">
+                  <span class="stage-meta">Activation Planning</span
+                  ><strong>04</strong>
+                  <h3>Deploy</h3>
+                  <p>
+                    We activate the roadmap, align execution and optimize the
+                    system through performance feedback.
+                  </p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="section light-section brand-line-layer brand-line-layer--ribbed"
+      >
+        <div class="container">
+          <div class="section-heading reveal">
+            <div class="section-kicker">Selected Engagements</div>
+            <div>
+              <h2 class="section-title">
+                Consulting-grade thinking with executional clarity.
+              </h2>
+              <p class="section-intro">
+                Each engagement is framed around business context, strategic
+                direction, solution design and market outcome.
+              </p>
+            </div>
+          </div>
+          <div class="engagement-grid">
+            <article class="engagement-card reveal">
+              <div
+                class="visual-placeholder placeholder-report"
+                aria-hidden="true"
+              ></div>
+              <span class="engagement-meta">Market Repositioning</span>
+              <h3>Sharper position for a crowded category.</h3>
+              <div class="case-field">
+                <strong>Challenge</strong
+                ><span>Unclear market role and fragmented claims.</span>
+              </div>
+              <div class="case-field">
+                <strong>Direction</strong
+                ><span
+                  >Positioning territory, message hierarchy and proof
+                  system.</span
+                >
+              </div>
+              <div class="case-field">
+                <strong>Outcome</strong
+                ><span>A deployable communication architecture.</span>
+              </div>
+            </article>
+            <article class="engagement-card reveal">
+              <div
+                class="visual-placeholder placeholder-roadmap"
+                aria-hidden="true"
+              ></div>
+              <span class="engagement-meta">Growth Roadmap</span>
+              <h3>Priority model for market expansion.</h3>
+              <div class="case-field">
+                <strong>Challenge</strong
+                ><span
+                  >Too many possible growth paths competing for attention.</span
+                >
+              </div>
+              <div class="case-field">
+                <strong>Direction</strong
+                ><span>Opportunity mapping and phased execution plan.</span>
+              </div>
+              <div class="case-field">
+                <strong>Outcome</strong
+                ><span>A leadership-ready growth roadmap.</span>
+              </div>
+            </article>
+            <article class="engagement-card reveal">
+              <div
+                class="visual-placeholder placeholder-media"
+                aria-hidden="true"
+              ></div>
+              <span class="engagement-meta">Media Direction System</span>
+              <h3>Channel logic for campaign movement.</h3>
+              <div class="case-field">
+                <strong>Challenge</strong
+                ><span
+                  >Media activity lacked a strategic decision framework.</span
+                >
+              </div>
+              <div class="case-field">
+                <strong>Direction</strong
+                ><span
+                  >Channel roles, timing and performance feedback loops.</span
+                >
+              </div>
+              <div class="case-field">
+                <strong>Outcome</strong
+                ><span>A media plan built around business priorities.</span>
+              </div>
+            </article>
+          </div>
+          <div style="margin-top: 32px" class="reveal">
+            <a class="btn btn-primary" href="engagements.html"
+              >View Engagements</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-line-art section-line-art--corner">
+        <div class="container">
+          <div class="section-heading reveal">
+            <div class="section-kicker">04 / Insights</div>
+            <div>
+              <h2 class="section-title">Perspective before production.</h2>
+              <p class="section-intro">
+                Notes and strategic briefs on business growth, media decisions,
+                brand positioning and content performance.
+              </p>
+            </div>
+          </div>
+          <div class="publication-grid">
+            <article class="featured-insight reveal">
+              <div
+                class="visual-frame visual-frame--billboard"
+                aria-hidden="true"
+              ></div>
+              <div class="featured-insight__copy">
+                <span class="article-meta">Market Notes</span>
+                <h3>Why brands need direction before content</h3>
+                <p>
+                  Content becomes more effective when it is tied to a strategic
+                  market position, a clear message system and business
+                  priorities.
+                </p>
+                <a class="article-link" href="insights.html">Read insight -</a>
+              </div>
+            </article>
+            <div class="publication-stack">
+              <article class="publication-card reveal">
+                <div
+                  class="visual-placeholder placeholder-media"
+                  aria-hidden="true"
+                ></div>
+                <div class="publication-card__copy">
+                  <span class="article-meta">Media Strategy</span>
+                  <h3>The role of media strategy in business growth</h3>
+                  <p>Media choices should be driven by business priorities.</p>
+                </div>
+              </article>
+              <article class="publication-card reveal">
+                <div
+                  class="visual-placeholder placeholder-map"
+                  aria-hidden="true"
+                ></div>
+                <div class="publication-card__copy">
+                  <span class="article-meta">Brand Positioning</span>
+                  <h3>How market signals shape communication systems</h3>
+                  <p>Signals clarify message, timing and activation logic.</p>
+                </div>
+              </article>
+              <article class="publication-card reveal">
+                <div
+                  class="visual-placeholder placeholder-content"
+                  aria-hidden="true"
+                ></div>
+                <div class="publication-card__copy">
+                  <span class="article-meta">Content Performance</span>
+                  <h3>From content calendar to content system</h3>
+                  <p>Structure turns output into measurable movement.</p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section compact">
+        <div class="container reveal">
+          <div class="final-cta">
+            <div class="final-cta__copy">
+              <div class="section-kicker">Start</div>
+              <h2>Have a business challenge that needs strategic direction?</h2>
+              <p>Let us define the path forward.</p>
+              <div style="margin-top: 28px">
+                <a class="btn btn-primary" href="contact.html"
+                  >Start a Conversation</a
+                >
+              </div>
+            </div>
+            <div
+              class="visual-frame visual-frame--signage"
+              aria-hidden="true"
+            ></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="ms-footer">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img
+            src="assets/images/logo/markstreet-logo-white.png"
+            alt="MarkStreet"
+          />
+          <p>
+            Business strategy, market direction and content optimization for
+            brands moving with intent.
+          </p>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a href="about.html">About</a><a href="method.html">Method</a
+          ><a href="engagements.html">Engagements</a>
+        </div>
+        <div class="footer-col">
+          <h4>Capabilities</h4>
+          <a href="capabilities.html">Business Solutions</a
+          ><a href="capabilities.html">Market Strategy</a
+          ><a href="capabilities.html">Content Optimization</a>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <a href="contact.html">Start a Conversation</a
+          ><span>info@markstreet.co</span><span>LinkedIn / Instagram</span>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>(c) 2026 MarkStreet.</span
+        ><span>Strategic Perspective System / v1</span>
+      </div>
+    </footer>
+    <script src="assets/js/menu-data.js"></script>
+    <script src="assets/js/main.js" defer></script>
+    <script src="assets/js/crm-chat-api.js" defer></script>
+    <script src="assets/js/crm-chat-realtime.js" defer></script>
+    <script src="assets/js/signal-desk-intake.js" defer></script>
+    <script src="assets/js/signal-desk-persistence.js" defer></script>
+    <script src="assets/js/signal-desk-gradient-orb.js" defer></script>
+    <script src="assets/js/signal-desk.js" defer></script>
+  </body>
+</html>

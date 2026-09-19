@@ -1,0 +1,158 @@
+/*
+=====================================================
+MARKSTREET — HERO
+=====================================================
+
+Home hero layout, typography, actions, tags and responsive behavior.
+
+=====================================================
+*/
+
+.hero.brand-line-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0 max(var(--ms-gutter), calc((100% - var(--ms-max)) / 2));
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle)),
+    linear-gradient(var(--line-blue-subtle), var(--line-blue-subtle)),
+    linear-gradient(var(--line-color-very-subtle), var(--line-color-very-subtle)),
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle));
+  background-position: left top, 63.64% top, 82% top, right top;
+  background-size: 1px 100%;
+  background-repeat: no-repeat;
+}
+
+.hero {
+  min-height: 92vh;
+  display: flex;
+  align-items: center;
+  padding: 144px var(--ms-gutter) 92px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 74% 50%, rgba(36,92,255,.10), rgba(36,92,255,.025) 28%, transparent 58%),
+    linear-gradient(180deg, rgba(255,255,255,.015), transparent 42%);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  right: max(-90px, -6vw);
+  top: 18%;
+  width: min(680px, 62vw);
+  height: 330px;
+  pointer-events: none;
+  z-index: 1;
+  opacity: .7;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 680 330' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M28 286H166Q210 286 210 242V132Q210 92 250 92H390Q432 92 432 50V22' fill='none' stroke='%23ffffff' stroke-opacity='.14' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M308 92H520Q574 92 574 146V252Q574 286 608 286H660' fill='none' stroke='%23ffffff' stroke-opacity='.10' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M432 50H558' fill='none' stroke='%23245CFF' stroke-opacity='.50' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  mask-image: linear-gradient(90deg, transparent 0%, black 18%, black 82%, transparent 100%);
+}
+
+.hero .container {
+  position: relative; z-index: 2; width: 100%;
+}
+
+.hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(300px, 4fr);
+  align-items: end;
+  gap: clamp(32px, 5vw, 76px);
+}
+
+.hero-title-col,
+.hero-support-col {
+  min-width: 0;
+}
+
+.hero h1 {
+  margin: 0;
+  max-width: 1060px;
+  font-size: clamp(46px, 5.7vw, 74px);
+  line-height: .98;
+  letter-spacing: 0;
+  font-weight: 700;
+}
+
+.hero h1 .accent {
+  color: var(--ms-blue);
+}
+
+.hero-copy {
+  max-width: 500px;
+  margin: 0;
+  color: rgba(255,255,255,.72);
+  font-size: clamp(17px, 1.55vw, 23px);
+  line-height: 1.45;
+}
+
+.hero-actions {
+  display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px;
+}
+
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--ms-line-soft);
+  background: rgba(255,255,255,.035);
+  color: rgba(255,255,255,.68);
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@media (max-width: 1100px) {
+  .hero-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-layout {
+    align-items: start; gap: 30px;
+  }
+
+  .hero-support-col {
+    max-width: 620px;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero {
+    padding-top: 124px; min-height: auto;
+  }
+
+  .hero::before {
+    background:
+      linear-gradient(90deg, transparent var(--ms-gutter), rgba(255,255,255,.035) 0, rgba(255,255,255,.035) calc(var(--ms-gutter) + 1px), transparent 0);
+    opacity: .46;
+    mask-image: linear-gradient(180deg, black 0%, transparent 88%);
+  }
+
+  .hero.brand-line-layer::before {
+    inset-inline: var(--ms-gutter);
+    background-image:
+      linear-gradient(var(--line-color-very-subtle), var(--line-color-very-subtle)),
+      linear-gradient(var(--line-color-very-subtle), var(--line-color-very-subtle));
+    background-position: left top, right top;
+    background-size: 1px 100%;
+  }
+
+  .hero h1 {
+    font-size: clamp(40px, 11.5vw, 48px);
+  }
+
+  .hero-copy {
+    font-size: 16px;
+  }
+}

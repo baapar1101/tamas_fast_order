@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About - MarkStreet</title>
+    <meta
+      name="description"
+      content="About MarkStreet, a strategy-led business solutions firm."
+    />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body>
+    <div class="site-bg" aria-hidden="true"></div>
+    <header class="ms-header">
+      <div class="nav-shell">
+        <a class="logo-link" href="index.html" aria-label="MarkStreet Home">
+          <img
+            src="assets/images/logo/markstreet-logo-white.png"
+            alt="MarkStreet"
+          />
+        </a>
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="Open menu"
+          aria-controls="markstreet-menu"
+          aria-expanded="false"
+          data-menu-toggle
+        >
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>    <!--
+  =====================================================
+  MARKSTREET GLOBAL MENU
+  =====================================================
+
+  The navigation content is NOT controlled here.
+
+  To edit menu labels, pages, descriptions or submenu items,
+  open:
+
+  assets/js/menu-data.js
+
+  The HTML below only provides the reusable structural shell.
+
+  =====================================================
+  -->
+    <div
+      class="markstreet-menu-layer"
+      id="markstreet-menu-layer"
+      aria-hidden="true"
+    >
+      <!-- MENU SCRIM: darkens the page behind the desktop menu. -->
+      <button
+        class="markstreet-menu-scrim"
+        type="button"
+        aria-label="Close menu"
+        data-menu-close
+      ></button>
+
+      <!--
+    MAIN EXPANDING MENU SHELL
+    Desktop starts at the primary width and expands as one surface.
+    Mobile uses this same shell as a fullscreen forward/back view.
+    -->
+      <nav
+        class="markstreet-menu"
+        id="markstreet-menu"
+        aria-label="Main navigation"
+      >
+        <!-- MENU HEADER -->
+        <div class="markstreet-menu__header">
+          <a
+            class="markstreet-menu__logo"
+            href="index.html"
+            aria-label="MarkStreet home"
+          >
+            <img
+              src="assets/images/logo/markstreet-logo-white.png"
+              alt="MarkStreet"
+            />
+          </a>
+          <button
+            class="markstreet-menu__close"
+            type="button"
+            aria-label="Close menu"
+            data-menu-close
+          >
+            ×
+          </button>
+        </div>
+
+        <!--
+      STRUCTURAL VERTICAL LINES
+      These three guides align to the primary midpoint, column boundary,
+      and secondary midpoint. They never receive pointer events.
+      -->
+        <div class="markstreet-menu__lines" aria-hidden="true">
+          <span
+            class="markstreet-menu__line markstreet-menu__line--primary-guide"
+          ></span>
+          <span
+            class="markstreet-menu__line markstreet-menu__line--column-boundary"
+          ></span>
+          <span
+            class="markstreet-menu__line markstreet-menu__line--secondary-guide"
+          ></span>
+        </div>
+
+        <!-- MENU CONTENT: one grid containing the two navigation levels. -->
+        <div class="markstreet-menu__content">
+          <!-- PRIMARY NAVIGATION: items are rendered from menu-data.js. -->
+          <section
+            class="markstreet-menu__primary"
+            aria-label="Primary navigation"
+          >
+            <div
+              class="markstreet-menu__primary-list"
+              data-menu-primary-list
+            ></div>
+          </section>
+
+          <!-- SECONDARY NAVIGATION: selected section content is rendered from menu-data.js. -->
+          <section
+            class="markstreet-menu__secondary"
+            id="markstreet-menu-secondary"
+            aria-label="Secondary navigation"
+            aria-hidden="true"
+            data-menu-secondary
+          >
+            <button class="markstreet-menu__back" type="button" data-menu-back>
+              ← Back
+            </button>
+            <p
+              class="markstreet-menu__section-label"
+              data-menu-section-label
+            ></p>
+            <p
+              class="markstreet-menu__section-description"
+              data-menu-section-description
+            ></p>
+            <div
+              class="markstreet-menu__secondary-list"
+              data-menu-secondary-list
+            ></div>
+            <a
+              class="markstreet-menu__section-link"
+              href="#"
+              data-menu-section-link
+              >Open section</a
+            >
+          </section>
+        </div>
+      </nav>
+    </div>
+    <!--
+    =====================================================
+    MARKSTREET — SIGNAL DESK
+    SIGNAL DESK: CRM CONVERSATION BOOTSTRAP
+    =====================================================
+    -->
+    <div class="signal-desk-trigger-anchor">
+      <button
+        class="signal-desk-trigger"
+        type="button"
+        data-signal-desk-open
+        aria-controls="signal-desk"
+        aria-expanded="false"
+        aria-label="Open MarkStreet Signal Desk"
+      >
+        <span class="signal-desk-trigger__orb" aria-hidden="true">
+          <canvas
+            class="signal-desk-trigger__orb-canvas"
+            data-signal-desk-orb-canvas
+            aria-hidden="true"
+            tabindex="-1"
+          ></canvas>
+          <span class="signal-desk-trigger__orb-reflection"></span>
+        </span>
+        <span class="signal-desk-trigger__content" aria-hidden="true">
+          <span>Open</span>
+          <span>a Line</span>
+        </span>
+      </button>
+    </div>
+    <div class="signal-desk-layer" id="signal-desk-layer" aria-hidden="true">
+      <button
+        class="signal-desk-scrim"
+        type="button"
+        aria-label="Close conversation panel"
+        data-signal-desk-close
+      ></button>
+
+      <aside
+        class="signal-desk"
+        id="signal-desk"
+        aria-label="MarkStreet conversation panel"
+        data-signal-desk-state="intro"
+        data-signal-desk-conversation-phase="intake"
+      >
+        <span class="signal-desk__shiny-breathe" aria-hidden="true"></span>
+        <header class="signal-desk__header">
+          <div class="signal-desk__brand">MARKSTREET</div>
+          <button
+            class="signal-desk__close"
+            type="button"
+            aria-label="Close conversation panel"
+            data-signal-desk-close
+          >
+            ×
+          </button>
+        </header>
+
+        <div class="signal-desk__body">
+          <div class="signal-desk__lines" aria-hidden="true">
+            <span class="signal-desk__line"></span>
+            <span class="signal-desk__line"></span>
+          </div>
+
+          <section
+            class="signal-desk__state signal-desk__state--intro"
+            data-signal-desk-state-panel="intro"
+            aria-hidden="false"
+          >
+            <button
+              class="btn signal-desk__start"
+              type="button"
+              data-signal-desk-start
+            >
+              Start Conversation
+            </button>
+          </section>
+
+          <section
+            class="signal-desk__state signal-desk__state--conversation"
+            data-signal-desk-state-panel="conversation"
+            aria-hidden="true"
+          >
+            <div class="signal-desk-conversation">
+              <header class="signal-desk-conversation__header">
+                <div>
+                  <span class="signal-desk-conversation__eyebrow">MarkStreet</span>
+                  <h2 class="signal-desk-conversation__title">Signal Desk</h2>
+                </div>
+
+                <div
+                  class="signal-desk-conversation__status"
+                  data-realtime-status="idle"
+                  aria-label="Connecting"
+                >
+                  <span
+                    class="signal-desk-conversation__status-dot"
+                    aria-hidden="true"
+                  ></span>
+                  <span>Connecting</span>
+                </div>
+              </header>
+
+              <div
+                class="signal-desk-conversation__messages"
+                data-signal-desk-messages
+                aria-live="polite"
+                aria-relevant="additions"
+              ></div>
+
+              <form class="signal-desk-composer" data-signal-desk-composer novalidate>
+                <label
+                  class="signal-desk__sr-only"
+                  for="signal-desk-short-answer"
+                  data-signal-desk-composer-label
+                >
+                  Your answer
+                </label>
+
+                <input
+                  class="signal-desk-composer__input"
+                  id="signal-desk-short-answer"
+                  data-signal-desk-short-answer
+                  type="text"
+                  hidden
+                  disabled
+                />
+
+                <textarea
+                  class="signal-desk-composer__input"
+                  id="signal-desk-message-input"
+                  data-signal-desk-message-input
+                  rows="1"
+                  hidden
+                  disabled
+                ></textarea>
+
+                <div
+                  class="signal-desk-composer__choices"
+                  data-signal-desk-intake-choices
+                  hidden
+                ></div>
+
+                <button
+                  class="signal-desk-composer__skip"
+                  type="button"
+                  data-signal-desk-skip
+                  hidden
+                  disabled
+                >
+                  Skip
+                </button>
+
+                <button
+                  class="signal-desk-composer__send"
+                  type="submit"
+                  aria-label="Submit answer"
+                  data-signal-desk-send
+                  disabled
+                >
+                  ↗
+                </button>
+
+                <button
+                  class="signal-desk-composer__retry"
+                  type="button"
+                  data-signal-desk-bootstrap-retry
+                  hidden
+                  disabled
+                >
+                  Retry
+                </button>
+
+                <p
+                  class="signal-desk-composer__status"
+                  data-signal-desk-composer-status
+                  role="status"
+                  aria-live="polite"
+                ></p>
+              </form>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </div>
+
+    <main>
+      <section class="page-hero section-line-art section-line-art--corner">
+        <div class="container reveal">
+          <div class="eyebrow">About MarkStreet</div>
+          <h1>
+            Business thinking for brands that need sharper market direction.
+          </h1>
+          <p>
+            MarkStreet is a strategy-led business solutions firm connecting
+            market intelligence, communication systems, media direction and
+            content performance.
+          </p>
+        </div>
+      </section>
+      <section
+        id="overview"
+        class="section brand-line-layer brand-line-layer--veil anchor-target"
+      >
+        <div class="container grid-2">
+          <div class="reveal">
+            <div class="section-kicker">Who We Are</div>
+            <h2 class="section-title">
+              A high-level partner between business strategy and market
+              execution.
+            </h2>
+          </div>
+          <div class="reveal">
+            <p class="section-intro">
+              MarkStreet exists for companies that need clarity before
+              production. The work begins with the business challenge and turns
+              it into a structured direction for positioning, media, content and
+              activation.
+            </p>
+            <p class="section-intro">
+              The firm operates across the space between consulting and agency
+              execution: analytical enough to define the direction, creative
+              enough to shape the message, and practical enough to build systems
+              that can be deployed.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="section image-led-section">
+        <div class="container editorial-image-grid reveal">
+          <div
+            class="visual-frame visual-frame--cards visual-frame--tall"
+            aria-hidden="true"
+          ></div>
+          <div class="editorial-image-stack">
+            <div
+              class="visual-frame visual-frame--signage"
+              aria-hidden="true"
+            ></div>
+            <div
+              class="visual-frame visual-frame--glass"
+              aria-hidden="true"
+            ></div>
+          </div>
+        </div>
+      </section>
+      <section
+        id="perspective"
+        class="section light-section section-line-art section-line-art--left anchor-target"
+      >
+        <div class="container">
+          <div class="section-heading reveal">
+            <div class="section-kicker">Our Perspective</div>
+            <div>
+              <h2 class="section-title">
+                Growth is not only a marketing problem.
+              </h2>
+              <p class="section-intro">
+                It is a business, market, media and communication problem that
+                needs to be solved as one connected system.
+              </p>
+            </div>
+          </div>
+          <div class="grid-3">
+            <article class="card reveal">
+              <div
+                class="visual-placeholder placeholder-report"
+                aria-hidden="true"
+              ></div>
+              <span class="num">01</span>
+              <h3>Clarity before volume</h3>
+              <p>
+                More activity does not create more value when the direction is
+                unclear.
+              </p>
+            </article>
+            <article class="card reveal">
+              <div
+                class="visual-placeholder placeholder-map"
+                aria-hidden="true"
+              ></div>
+              <span class="num">02</span>
+              <h3>Strategy before channels</h3>
+              <p>
+                Media channels should serve business priorities, not dictate
+                them.
+              </p>
+            </article>
+            <article class="card reveal">
+              <div
+                class="visual-placeholder placeholder-content"
+                aria-hidden="true"
+              ></div>
+              <span class="num">03</span>
+              <h3>Systems before campaigns</h3>
+              <p>
+                Campaigns perform better when supported by a strategic
+                communication system.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+      <section id="thinking" class="section image-led-section anchor-target">
+        <div class="container">
+          <div class="artifact-band reveal">
+            <div
+              class="visual-frame visual-frame--billboard visual-frame--large"
+              aria-hidden="true"
+            ></div>
+            <div class="artifact-band__copy">
+              <span class="signal-line" aria-hidden="true"></span>
+              <h2>How we see markets.</h2>
+              <p>
+                Markets are moving systems. MarkStreet studies the signals,
+                shapes the route and builds the materials required for teams to
+                move with confidence.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        id="principles"
+        class="section brand-line-layer brand-line-layer--blue-glow anchor-target"
+      >
+        <div class="container">
+          <div class="section-heading reveal">
+            <div class="section-kicker">Principles</div>
+            <div>
+              <h2 class="section-title">
+                Market, brand and audience must meet in one clear direction.
+              </h2>
+              <p class="section-intro">
+                The MarkStreet identity is based on perspective: seeing the
+                market path, understanding both sides of the conversation, and
+                defining the strategic route forward.
+              </p>
+            </div>
+          </div>
+          <div class="grid-4">
+            <article class="card reveal">
+              <span class="num">01</span>
+              <h3>Business first</h3>
+              <p>Every recommendation starts with the commercial problem.</p>
+            </article>
+            <article class="card reveal">
+              <span class="num">02</span>
+              <h3>System built</h3>
+              <p>
+                Strategy becomes useful when it is translated into deployable
+                material.
+              </p>
+            </article>
+            <article class="card reveal">
+              <span class="num">03</span>
+              <h3>Market aware</h3>
+              <p>
+                Positioning is shaped by category behavior and audience
+                movement.
+              </p>
+            </article>
+            <article class="card reveal">
+              <span class="num">04</span>
+              <h3>Execution ready</h3>
+              <p>
+                Outputs are designed for teams to understand, use and refine.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+      <section class="section compact">
+        <div class="container reveal">
+          <div class="final-cta">
+            <div class="final-cta__copy">
+              <div class="section-kicker">Next</div>
+              <h2>Explore the method behind the work.</h2>
+              <p>
+                See how MarkStreet moves from market signal to strategic
+                deployment.
+              </p>
+              <div style="margin-top: 28px">
+                <a class="btn btn-primary" href="method.html">Explore Method</a>
+              </div>
+            </div>
+            <div
+              class="visual-frame visual-frame--artifact"
+              aria-hidden="true"
+            ></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="ms-footer">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img
+            src="assets/images/logo/markstreet-logo-white.png"
+            alt="MarkStreet"
+          />
+          <p>
+            Business strategy, market direction and content optimization for
+            brands moving with intent.
+          </p>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a href="about.html">About</a><a href="method.html">Method</a
+          ><a href="engagements.html">Engagements</a>
+        </div>
+        <div class="footer-col">
+          <h4>Capabilities</h4>
+          <a href="capabilities.html">Business Solutions</a
+          ><a href="capabilities.html">Market Strategy</a
+          ><a href="capabilities.html">Content Optimization</a>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <a href="contact.html">Start a Conversation</a
+          ><span>info@markstreet.co</span><span>LinkedIn / Instagram</span>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>(c) 2026 MarkStreet.</span
+        ><span>Strategic Perspective System / v1</span>
+      </div>
+    </footer>
+    <script src="assets/js/menu-data.js"></script>
+    <script src="assets/js/main.js" defer></script>
+    <script src="assets/js/crm-chat-api.js" defer></script>
+    <script src="assets/js/crm-chat-realtime.js" defer></script>
+    <script src="assets/js/signal-desk-intake.js" defer></script>
+    <script src="assets/js/signal-desk-persistence.js" defer></script>
+    <script src="assets/js/signal-desk-gradient-orb.js" defer></script>
+    <script src="assets/js/signal-desk.js" defer></script>
+  </body>
+</html>

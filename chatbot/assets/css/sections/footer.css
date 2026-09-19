@@ -1,0 +1,62 @@
+/*
+=====================================================
+MARKSTREET — FOOTER
+=====================================================
+
+Footer grid, brand, columns and lower metadata row.
+
+=====================================================
+*/
+
+.ms-footer {
+  position: relative;
+  padding: 72px var(--ms-gutter) 34px;
+  border-top: 1px solid var(--ms-line-soft);
+  background: #030303;
+  overflow: hidden;
+}
+
+.ms-footer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .28;
+  background:
+    linear-gradient(90deg, transparent calc((100% - min(var(--ms-max), calc(100vw - (var(--ms-gutter) * 2)))) / 2), rgba(255,255,255,.05) 0, rgba(255,255,255,.05) calc(((100% - min(var(--ms-max), calc(100vw - (var(--ms-gutter) * 2)))) / 2) + 1px), transparent 0),
+    linear-gradient(90deg, transparent calc(100% - ((100% - min(var(--ms-max), calc(100vw - (var(--ms-gutter) * 2)))) / 2) - 1px), rgba(255,255,255,.05) 0, rgba(255,255,255,.05) calc(100% - ((100% - min(var(--ms-max), calc(100vw - (var(--ms-gutter) * 2)))) / 2)), transparent 0);
+}
+
+.footer-grid {
+  position: relative; z-index: 2; max-width: var(--ms-max); margin: 0 auto; display: grid; grid-template-columns: 1.1fr repeat(3, .55fr); gap: 34px;
+}
+
+.footer-brand img {
+  width: 210px;
+}
+
+.footer-brand p {
+  max-width: 420px; margin: 22px 0 0; color: rgba(255,255,255,.62); line-height: 1.6;
+}
+
+.footer-col h4 {
+  margin: 0 0 18px; color: var(--ms-white); font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+}
+
+.footer-col a,
+.footer-col span {
+  display: block; margin: 11px 0; color: rgba(255,255,255,.58); font-size: 14px;
+}
+
+.footer-bottom {
+  position: relative; z-index: 2; max-width: var(--ms-max); margin: 70px auto 0; padding-top: 24px; border-top: 1px solid var(--ms-line-soft); display: flex; justify-content: space-between; color: rgba(255,255,255,.42); font-size: 12px;
+}
+
+@media (max-width: 720px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-bottom {
+    flex-direction: column; gap: 12px;
+  }
+}
