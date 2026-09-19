@@ -259,7 +259,7 @@ export function CrmChat({ user }: CrmChatProps) {
     if (qIndex === 1 && !/^09\d{9}$/.test(val)) { setErr('شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود'); return; }
     if (!val) { setErr('لطفاً پاسخ را وارد کنید'); return; }
     setErr('');
-    const key = QUESTIONS[qIndex].id;
+    const key = currentQ!.id;
     const newAns = { ...answers, [key]: val };
     setAnswers(newAns);
     setInput('');
