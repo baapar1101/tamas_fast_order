@@ -5,20 +5,6 @@ const PUBLIC_KEY = 'wPzldz3FGwE2EX8tYS4WYew2kf9aL72Y';
 
 const isMobile = () => window.innerWidth < 768;
 
-// Design tokens matching the app's design system
-const colors = {
-  primary: '#0066cc',
-  primaryLight: '#e6f0ff',
-  primaryHover: '#0071e3',
-  accent: '#2997ff',
-  bg: '#f5f5f7',
-  card: '#ffffff',
-  border: '#f0f0f0',
-  text: '#1d1d1f',
-  textMuted: '#7a7a7a',
-  success: '#10b981',
-};
-
 interface Message {
   id: number;
   conversation_id: number;
