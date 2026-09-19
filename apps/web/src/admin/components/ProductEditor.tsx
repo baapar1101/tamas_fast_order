@@ -258,10 +258,10 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
               {/* Main Image */}
               <div className="relative group">
-                <div className="text-xs text-center text-emerald-400 mb-1 font-semibold">تصویر اصلی</div>
                 <ImagePicker
-                  url={form.imageUrl}
-                  onSelect={(url) => set('imageUrl', url)}
+                  label="تصویر اصلی"
+                  value={form.imageUrl}
+                  onChange={(url) => set('imageUrl', url)}
                   kind="product"
                 />
               </div>
@@ -269,8 +269,9 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
               {form.gallery.map((url, idx) => (
                 <div key={idx} className="relative group pt-5">
                   <ImagePicker
-                    url={url}
-                    onSelect={(url) => {
+                    label={`تصویر ${idx + 1}`}
+                    value={url}
+                    onChange={(url) => {
                       const copy = [...form.gallery];
                       copy[idx] = url;
                       set('gallery', copy);
@@ -480,7 +481,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                         value={attr.key}
                         onChange={(e) => {
                           const cp = [...form.attributes];
-                          cp[idx].key = e.target.value;
+                          cp[idx] = { ...attr, key: e.target.value };
                           set('attributes', cp);
                         }}
                       />
@@ -492,7 +493,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                         value={attr.value}
                         onChange={(e) => {
                           const cp = [...form.attributes];
-                          cp[idx].value = e.target.value;
+                          cp[idx] = { ...attr, value: e.target.value };
                           set('attributes', cp);
                         }}
                       />
