@@ -515,132 +515,231 @@
 
 /* ============================================================================
    LIGHT MODE — remap of the legacy (hard-coded) dark palette so the whole
-   panel reads as a light theme. The chrome (sidebar/topbar) stays dark.
+   panel reads as a light theme.
+   Tokens live on the shell root so the kit reacts everywhere, but the legacy
+   class remaps are scoped to `.admin-main-content` so the chrome (fixed dark
+   sidebar / topbar / dropdowns) keeps its intended dark look.
    ========================================================================== */
 .admin-body-shell[data-theme='light'] {
   background-color: var(--a-bg);
   color: var(--a-t1);
 }
 
+.admin-body-shell[data-theme='light'] .admin-main-content {
+  background-color: var(--a-bg);
+  color: var(--a-t1);
+}
+
 .admin-body-shell[data-theme='light'] .ambient-glow-container { display: none; }
 
-/* Cards / surfaces */
-.admin-body-shell[data-theme='light'] .glass-card,
-.admin-body-shell[data-theme='light'] .glass-card-static {
+/* Content scoping root for all legacy remaps */
+.admin-body-shell[data-theme='light'] .admin-main-content .glass-card,
+.admin-body-shell[data-theme='light'] .admin-main-content .glass-card-static {
   background-color: var(--a-surface);
   border-color: var(--a-border);
   box-shadow: var(--a-shadow);
   backdrop-filter: none;
 }
-.admin-body-shell[data-theme='light'] .glass-card:hover {
+.admin-body-shell[data-theme='light'] .admin-main-content .glass-card:hover {
   transform: none;
   border-color: var(--a-border-2);
   box-shadow: var(--a-shadow-2);
 }
-.admin-body-shell[data-theme='light'] .huma-table-container.glass-card:hover,
-.admin-body-shell[data-theme='light'] form.glass-card:hover {
+.admin-body-shell[data-theme='light'] .admin-main-content .huma-table-container.glass-card:hover,
+.admin-body-shell[data-theme='light'] .admin-main-content form.glass-card:hover {
   border-color: var(--a-border);
   box-shadow: var(--a-shadow);
 }
 
-/* Global text remap */
-.admin-body-shell[data-theme='light'] .text-white { color: var(--a-t1) !important; }
-.admin-body-shell[data-theme='light'] .text-slate-950 { color: #101828 !important; }
-.admin-body-shell[data-theme='light'] .text-slate-200 { color: var(--a-t1) !important; }
-.admin-body-shell[data-theme='light'] .text-slate-300 { color: var(--a-t2) !important; }
-.admin-body-shell[data-theme='light'] .text-slate-400 { color: var(--a-t3) !important; }
-.admin-body-shell[data-theme='light'] .text-slate-500 { color: var(--a-t4) !important; }
-.admin-body-shell[data-theme='light'] .text-emerald-400 { color: var(--a-green) !important; }
-.admin-body-shell[data-theme='light'] .text-emerald-300 { color: var(--a-green) !important; }
-.admin-body-shell[data-theme='light'] .text-amber-400 { color: var(--a-amber) !important; }
-.admin-body-shell[data-theme='light'] .text-rose-400 { color: var(--a-red) !important; }
-.admin-body-shell[data-theme='light'] .text-rose-300 { color: var(--a-red) !important; }
-.admin-body-shell[data-theme='light'] .text-cyan-400 { color: #0e7490 !important; }
-.admin-body-shell[data-theme='light'] .text-cyan-300 { color: #0e7490 !important; }
-.admin-body-shell[data-theme='light'] .text-sky-400 { color: var(--a-brand) !important; }
-.admin-body-shell[data-theme='light'] .text-sky-300 { color: var(--a-brand) !important; }
+/* Text remap */
+.admin-body-shell[data-theme='light'] .admin-main-content .text-white { color: var(--a-t1) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .text-slate-950 { color: #101828 !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .text-slate-200 { color: var(--a-t1) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .text-slate-300 { color: var(--a-t2) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .text-slate-400 { color: var(--a-t3) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .text-slate-500 { color: var(--a-t4) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .text-emerald-400,
+.admin-body-shell[data-theme='light'] .admin-main-content .text-emerald-300 { color: var(--a-green) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .text-amber-400 { color: var(--a-amber) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .text-rose-400,
+.admin-body-shell[data-theme='light'] .admin-main-content .text-rose-300 { color: var(--a-red) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .text-cyan-400,
+.admin-body-shell[data-theme='light'] .admin-main-content .text-cyan-300 { color: #0e7490 !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .text-sky-400,
+.admin-body-shell[data-theme='light'] .admin-main-content .text-sky-300 { color: var(--a-brand) !important; }
 
 /* Inputs */
-.admin-body-shell[data-theme='light'] .huma-input {
+.admin-body-shell[data-theme='light'] .admin-main-content .huma-input {
   background-color: var(--a-input-bg);
   border-color: var(--a-border-2);
   color: var(--a-t1);
 }
-.admin-body-shell[data-theme='light'] .huma-input::placeholder { color: var(--a-t4); }
-.admin-body-shell[data-theme='light'] .huma-input:focus {
+.admin-body-shell[data-theme='light'] .admin-main-content .huma-input::placeholder { color: var(--a-t4); }
+.admin-body-shell[data-theme='light'] .admin-main-content .huma-input:focus {
   border-color: var(--a-brand);
   box-shadow: 0 0 0 3px var(--a-brand-ring);
 }
-.admin-body-shell[data-theme='light'] select.huma-input {
+.admin-body-shell[data-theme='light'] .admin-main-content select.huma-input {
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23667085' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
 }
-.admin-body-shell[data-theme='light'] .huma-input option { color: var(--a-t1); background: var(--a-surface); }
+.admin-body-shell[data-theme='light'] .admin-main-content .huma-input option { color: var(--a-t1); background: var(--a-surface); }
+
+/* Native inputs that were hard-coded dark (checkboxes etc.) */
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-slate-800,
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-slate-900\/50 { background-color: var(--a-check-bg) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .border-slate-700,
+.admin-body-shell[data-theme='light'] .admin-main-content .border-slate-600,
+.admin-body-shell[data-theme='light'] .admin-main-content .border-slate-500 { border-color: var(--a-border-2) !important; }
 
 /* Secondary buttons */
-.admin-body-shell[data-theme='light'] .huma-btn-secondary {
+.admin-body-shell[data-theme='light'] .admin-main-content .huma-btn-secondary {
   background-color: var(--a-field-bg);
   border-color: var(--a-border-2);
   color: var(--a-t2);
 }
-.admin-body-shell[data-theme='light'] .huma-btn-secondary:hover {
-  border-color: var(--a-brand);
-  color: var(--a-t1);
-}
-.admin-body-shell[data-theme='light'] .icon-btn {
-  border-color: var(--a-border);
-  background: var(--a-surface-2);
-  color: var(--a-t3);
-}
+.admin-body-shell[data-theme='light'] .admin-main-content .huma-btn-secondary:hover { border-color: var(--a-brand); color: var(--a-t1); }
+.admin-body-shell[data-theme='light'] .admin-main-content .icon-btn { border-color: var(--a-border); background: var(--a-surface-2); color: var(--a-t3); }
+.admin-body-shell[data-theme='light'] .admin-main-content .btn.primary { background: var(--a-brand); color: var(--a-brand-contrast); }
+.admin-body-shell[data-theme='light'] .admin-main-content .btn.primary:hover { background: var(--a-brand-hover); }
 
 /* Tables */
-.admin-body-shell[data-theme='light'] .huma-table th { color: var(--a-t4); border-color: var(--a-divider); }
-.admin-body-shell[data-theme='light'] .huma-table td { color: var(--a-t2); border-color: var(--a-divider); }
-.admin-body-shell[data-theme='light'] .huma-table tbody tr:hover { background: var(--a-hover); }
+.admin-body-shell[data-theme='light'] .admin-main-content .huma-table th { color: var(--a-t4); border-color: var(--a-divider); }
+.admin-body-shell[data-theme='light'] .admin-main-content .huma-table td { color: var(--a-t2); border-color: var(--a-divider); }
+.admin-body-shell[data-theme='light'] .admin-main-content .huma-table tbody tr:hover { background: var(--a-hover); }
+
+/* Subtle translucent-white fills become light fills / borders in light mode */
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-white\/\[0\.03\],
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-white\/\[0\.05\],
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-white\/\[0\.04\],
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-white\/\[0\.02\],
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-white\/\[0\.01\] { background-color: var(--a-field-bg) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .hover\:bg-white\/\[0\.03\]:hover,
+.admin-body-shell[data-theme='light'] .admin-main-content .hover\:bg-white\/\[0\.05\]:hover,
+.admin-body-shell[data-theme='light'] .admin-main-content .hover\:bg-white\/\[0\.06\]:hover { background-color: var(--a-hover) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .border-white\/20,
+.admin-body-shell[data-theme='light'] .admin-main-content .border-white\/10,
+.admin-body-shell[data-theme='light'] .admin-main-content .border-white\/\[0\.06\],
+.admin-body-shell[data-theme='light'] .admin-main-content .border-white\/\[0\.04\] { border-color: var(--a-border) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .divide-white\/\[0\.04\] > :not([hidden]) ~ :not([hidden]) { border-color: var(--a-divider) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-black\/20,
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-black\/30,
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-black\/40 { background-color: var(--a-surface-2) !important; }
 
 /* Chips keep a tinted background with a readable hard remap */
-.admin-body-shell[data-theme='light'] .chip-brand { background: var(--a-green-soft); color: var(--a-green); }
-.admin-body-shell[data-theme='light'] .chip-aqua { background: rgba(14, 116, 144, 0.12); color: #0e7490; }
-.admin-body-shell[data-theme='light'] .chip-amber { background: var(--a-amber-soft); color: var(--a-amber); }
-.admin-body-shell[data-theme='light'] .chip-rose { background: var(--a-red-soft); color: var(--a-red); }
-.admin-body-shell[data-theme='light'] .chip-slate { background: var(--a-slate-soft); color: var(--a-t3); }
+.admin-body-shell[data-theme='light'] .admin-main-content .chip-brand { background: var(--a-green-soft); color: var(--a-green); }
+.admin-body-shell[data-theme='light'] .admin-main-content .chip-aqua { background: rgba(14, 116, 144, 0.12); color: #0e7490; }
+.admin-body-shell[data-theme='light'] .admin-main-content .chip-amber { background: var(--a-amber-soft); color: var(--a-amber); }
+.admin-body-shell[data-theme='light'] .admin-main-content .chip-rose { background: var(--a-red-soft); color: var(--a-red); }
+.admin-body-shell[data-theme='light'] .admin-main-content .chip-slate { background: var(--a-slate-soft); color: var(--a-t3); }
 
 /* Stat / stock elements */
-.admin-body-shell[data-theme='light'] .admin-product-stock {
-  background: var(--a-green-soft);
-  color: var(--a-green);
-  border-color: transparent;
-}
-.admin-body-shell[data-theme='light'] .admin-product-stock.chip-rose {
-  background: var(--a-red-soft);
-  color: var(--a-red);
-  border-color: transparent;
-}
+.admin-body-shell[data-theme='light'] .admin-main-content .admin-product-stock { background: var(--a-green-soft); color: var(--a-green); border-color: transparent; }
+.admin-body-shell[data-theme='light'] .admin-main-content .admin-product-stock.chip-rose { background: var(--a-red-soft); color: var(--a-red); border-color: transparent; }
 
-/* Taxonomy legacy styles */
-.admin-body-shell[data-theme='light'] .taxonomy-field > span,
-.admin-body-shell[data-theme='light'] .category-brands-heading strong { color: var(--a-t1); }
-.admin-body-shell[data-theme='light'] .taxonomy-item {
-  background: var(--a-field-bg);
-  border-color: var(--a-border);
+/* Taxonomy + category legacy styles */
+.admin-body-shell[data-theme='light'] .admin-main-content .category-brands-heading strong { color: var(--a-t1); }
+.admin-body-shell[data-theme='light'] .admin-main-content .taxonomy-field > span { color: var(--a-t1); }
+.admin-body-shell[data-theme='light'] .admin-main-content .taxonomy-item { background: var(--a-field-bg); border-color: var(--a-border); }
+.admin-body-shell[data-theme='light'] .admin-main-content .taxonomy-item:hover,
+.admin-body-shell[data-theme='light'] .admin-main-content .taxonomy-item.active { border-color: var(--a-brand); background: var(--a-brand-soft); }
+.admin-body-shell[data-theme='light'] .admin-main-content .taxonomy-item-copy > strong { color: var(--a-t1); }
+.admin-body-shell[data-theme='light'] .admin-main-content .taxonomy-item-copy > span,
+.admin-body-shell[data-theme='light'] .admin-main-content .taxonomy-item-copy > small { color: var(--a-t4); }
+.admin-body-shell[data-theme='light'] .admin-main-content .brand-checkbox { background: var(--a-check-bg); border-color: var(--a-border); }
+.admin-body-shell[data-theme='light'] .admin-main-content .brand-checkbox.selected { border-color: var(--a-brand); background: var(--a-brand-soft); }
+.admin-body-shell[data-theme='light'] .admin-main-content .brand-checkbox strong { color: var(--a-t1); }
+.admin-body-shell[data-theme='light'] .admin-main-content .brand-checkbox small { color: var(--a-t4); }
+.admin-body-shell[data-theme='light'] .admin-main-content .category-brands-field { border-color: var(--a-border); background: var(--a-field-bg); }
+.admin-body-shell[data-theme='light'] .admin-main-content .taxonomy-brand-chips i { background: var(--a-brand-soft); color: var(--a-brand); }
+
+/* Analytics bars that relied on white text over gradients */
+.admin-body-shell[data-theme='light'] .admin-main-content .admin-bar-value,
+.admin-body-shell[data-theme='light'] .admin-main-content .progress-brand { background: linear-gradient(to top, var(--a-brand), #6cb6ff); }
+
+/* Hard-coded dark surfaces used by legacy pages */
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-\[\#0e1626\]\/80,
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-\[\#131c2e\]\/40,
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-\[\#131c2e\]\/60,
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-\[\#070b12\]\/75,
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-\[\#0b111d\] { background-color: rgba(244, 247, 250, 0.65) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-\[\#131c2e\],
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-\[\#070b12\] { background-color: var(--a-surface-2) !important; }
+.admin-body-shell[data-theme='light'] .admin-main-content .bg-\[\#0e1626\] { background-color: var(--a-surface-3) !important; }
+
+/* ============================================================================
+   LIGHT MODE — portaled admin primitives.
+   Modals & their content render through a portal onto <body> (outside the
+   .admin-body-shell scope). When the admin is in light theme, AdminApp adds
+   `admin-theme-light` to <body>; this block re-themes those shared global
+   primitives (modal panel, tables, chips, cards, buttons) accordingly.
+   ========================================================================== */
+body.admin-theme-light .modal-panel {
+  background-color: #ffffff;
+  border: 1px solid #eaecf0;
+  color: #101828;
+  box-shadow: 0 25px 50px -12px rgba(16, 24, 40, 0.22);
 }
-.admin-body-shell[data-theme='light'] .taxonomy-item:hover,
-.admin-body-shell[data-theme='light'] .taxonomy-item.active { border-color: var(--a-brand); background: var(--a-brand-soft); }
-.admin-body-shell[data-theme='light'] .taxonomy-item-copy > strong { color: var(--a-t1); }
-.admin-body-shell[data-theme='light'] .taxonomy-item-copy > span,
-.admin-body-shell[data-theme='light'] .taxonomy-item-copy > small { color: var(--a-t4); }
-.admin-body-shell[data-theme='light'] .brand-checkbox { background: var(--a-check-bg); border-color: var(--a-border); }
-.admin-body-shell[data-theme='light'] .brand-checkbox.selected { border-color: var(--a-brand); background: var(--a-brand-soft); }
-.admin-body-shell[data-theme='light'] .brand-checkbox strong { color: var(--a-t1); }
-.admin-body-shell[data-theme='light'] .brand-checkbox small { color: var(--a-t4); }
-.admin-body-shell[data-theme='light'] .category-brands-field { border-color: var(--a-border); background: var(--a-field-bg); }
-.admin-body-shell[data-theme='light'] .taxonomy-brand-chips i { background: var(--a-brand-soft); color: var(--a-brand); }
+body.admin-theme-light .modal-head,
+body.admin-theme-light .modal-foot {
+  background-color: #ffffff;
+  border-color: #eaecf0;
+}
+body.admin-theme-light .modal-head h3 { color: #101828; }
+body.admin-theme-light .modal-head button.ghost { color: #667085; }
+body.admin-theme-light .modal-head button.ghost:hover { color: #d92d20; background-color: rgba(217, 45, 32, 0.1); }
+body.admin-theme-light .modal-body .input,
+body.admin-theme-light .modal-body .select,
+body.admin-theme-light .modal-body input[type="text"],
+body.admin-theme-light .modal-body input[type="number"] {
+  background-color: #ffffff !important;
+  border: 1px solid #d0d5dd !important;
+  color: #101828 !important;
+}
+body.admin-theme-light .modal-body .input:focus,
+body.admin-theme-light .modal-body .select:focus,
+body.admin-theme-light .modal-body input:focus {
+  border-color: #0580fa !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(5, 128, 250, 0.22);
+}
+body.admin-theme-light .modal-body label,
+body.admin-theme-light .modal-body .faint { color: #475467 !important; }
 
-/* Marketing / analytics bars that rely on white text over gradients */
-.admin-body-shell[data-theme='light'] .admin-bar-value,
-.admin-body-shell[data-theme='light'] .progress-brand { background: linear-gradient(to top, var(--a-brand), #6cb6ff); }
+body.admin-theme-light .glass-card,
+body.admin-theme-light .glass-card-static {
+  background-color: #ffffff;
+  border-color: #eaecf0;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  backdrop-filter: none;
+}
+body.admin-theme-light .glass-card:hover { transform: none; border-color: #d0d5dd; }
 
-/* Misc hard-coded surfaces used by legacy pages */
-.admin-body-shell[data-theme='light'] .bg-\[\#0e1626\]\/80,
-.admin-body-shell[data-theme='light'] .bg-\[\#131c2e\]\/40,
-.admin-body-shell[data-theme='light'] .bg-\[\#131c2e\]\/60 { background-color: rgba(255, 255, 255, 0.55) !important; }
-.admin-body-shell[data-theme='light'] .bg-\[\#131c2e\] { background-color: var(--a-surface-2) !important; }
+body.admin-theme-light .text-white { color: #101828 !important; }
+body.admin-theme-light .text-slate-200 { color: #101828 !important; }
+body.admin-theme-light .text-slate-300 { color: #344054 !important; }
+body.admin-theme-light .text-slate-400 { color: #475467 !important; }
+body.admin-theme-light .text-slate-500 { color: #667085 !important; }
+body.admin-theme-light .text-emerald-400,
+body.admin-theme-light .text-emerald-300 { color: #10a37f !important; }
+body.admin-theme-light .text-rose-400,
+body.admin-theme-light .text-rose-300 { color: #d92d20 !important; }
+body.admin-theme-light .text-amber-400 { color: #b54708 !important; }
+
+body.admin-theme-light .huma-btn-secondary {
+  background-color: #f8fafc;
+  border-color: #d0d5dd;
+  color: #344054;
+}
+body.admin-theme-light .huma-btn-secondary:hover { border-color: #0580fa; color: #101828; }
+body.admin-theme-light .btn.primary { background-color: #0580fa; color: #ffffff; }
+body.admin-theme-light .btn.primary:hover { background-color: #0470dc; }
+
+body.admin-theme-light .huma-table th { color: #667085; border-color: #eaecf0; }
+body.admin-theme-light .huma-table td { color: #344054; border-color: #eaecf0; }
+body.admin-theme-light .huma-table tbody tr:hover { background-color: rgba(16, 24, 40, 0.04); }
+
+body.admin-theme-light .chip-brand { background: rgba(16, 163, 127, 0.14); color: #10a37f; }
+body.admin-theme-light .chip-aqua { background: rgba(14, 116, 144, 0.12); color: #0e7490; }
+body.admin-theme-light .chip-amber { background: rgba(245, 158, 11, 0.16); color: #b54708; }
+body.admin-theme-light .chip-rose { background: rgba(217, 45, 32, 0.14); color: #d92d20; }
+body.admin-theme-light .chip-slate { background: rgba(128, 138, 157, 0.18); color: #475467; }

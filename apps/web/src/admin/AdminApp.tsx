@@ -241,6 +241,12 @@ export default function AdminApp() {
     });
   };
 
+  useEffect(() => {
+    if (theme === 'light') document.body.classList.add('admin-theme-light');
+    else document.body.classList.remove('admin-theme-light');
+    return () => document.body.classList.remove('admin-theme-light');
+  }, [theme]);
+
   // The reference stylesheet contains a complete utility/reset layer. Mark the
   // document while this lazy route is mounted so those rules never leak into
   // the storefront after client-side navigation.

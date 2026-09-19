@@ -157,13 +157,29 @@ export function StorefrontPage() {
 
   const resetPage = useCallback(() => setPage(1), []);
 
+  const setQty = useCart((s) => s.setQty);
+
+  const handleUpdateQty = useCallback((key: string, newQty: number) => {
+    if (!user) {
+      setAuthStep('phone');
+      setAuthOpen(true);
+      return;
+    }
+    setQty(key, newQty);
+  }, [setQty, user]);
+
   const handleAdd = useCallback(
     (product: ProductDTO, warehouse: Warehouse) => {
+      if (!user) {
+        setAuthStep('phone');
+        setAuthOpen(true);
+        return;
+      }
       const result = addToCart(product, warehouse);
       if (!result.ok) toast.error(result.message ?? 'افزودن به سبد ممکن نشد.');
       else toast.ok('به سبد خرید اضافه شد.');
     },
-    [addToCart, toast],
+    [addToCart, toast, user],
   );
 
   const openCheckout = useCallback(() => {
@@ -625,7 +641,7 @@ export function StorefrontPage() {
               <>
                 <div className={viewMode === 'grid' ? 'products-grid' : 'products-list'} style={{ opacity: products.isFetching ? 0.65 : 1, transition: 'opacity .15s' }}>
                   {groups.map((g) => (
-                    <ProductCard key={g.key} group={g} colorMap={colorMap} canViewPrices={canViewPrices} viewMode={viewMode} onAdd={handleAdd} onPreview={setPreview} />
+                    <ProductCard key={g.key} group={g} colorMap={colorMap} canViewPrices={canViewPrices} viewMode={viewMode} cartLines={lines} onAdd={handleAdd} onUpdateQty={handleUpdateQty} onPreview={setPreview} />
                   ))}
                 </div>
 

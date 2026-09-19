@@ -5,12 +5,16 @@ import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
 import { stockFor } from '../store/cart';
 
+import type { CartLine } from '../store/cart';
+
 interface Props {
   group: ProductGroupDTO;
   colorMap: Map<string, string>;
   canViewPrices: boolean;
   viewMode?: 'grid' | 'list';
+  cartLines: CartLine[];
   onAdd: (product: ProductDTO, warehouse: Warehouse) => void;
+  onUpdateQty: (key: string, qty: number) => void;
   onPreview: (url: string) => void;
 }
 
@@ -62,7 +66,7 @@ function productTitleClass(title: string): string {
   return '';
 }
 
-export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', onAdd, onPreview }: Props) {
+export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFav, setIsFav] = useState(false);
 
@@ -129,19 +133,30 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                     <div className="warehouse-section">
                       {whButtonsV.map((wh) => {
                         const n = stockFor(v, wh);
+                        const cartKey = `${v.productId}::${wh}`;
+                        const cartLine = cartLines.find((l) => l.key === cartKey);
+                        const qty = cartLine ? cartLine.qty : 0;
                         return (
                           <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
                             <div className="wh-details">
                               <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
                             </div>
-                            <button
-                              type="button"
-                              className="add-wh-btn"
-                              onClick={() => onAdd(v, wh)}
-                              title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
-                            >
-                              +
-                            </button>
+                            {qty > 0 ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: '2px 4px' }}>
+                                <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 24, height: 24, fontSize: 16 }} onClick={() => onUpdateQty(cartKey, qty - 1)}>-</button>
+                                <span style={{ fontSize: 12, fontWeight: 700, minWidth: 16, textAlign: 'center', color: 'var(--tamas-fg)' }}>{qty}</span>
+                                <button type="button" className="add-wh-btn" style={{ width: 24, height: 24, fontSize: 16 }} onClick={() => onAdd(v, wh)}>+</button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                className="add-wh-btn"
+                                onClick={() => onAdd(v, wh)}
+                                title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
+                              >
+                                +
+                              </button>
+                            )}
                           </div>
                         );
                       })}
@@ -277,20 +292,31 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
           <div className="warehouse-section" style={{ marginBottom: 8 }}>
             {whButtons.map((wh) => {
               const n = stockFor(selectedVariant, wh);
+              const cartKey = `${selectedVariant.productId}::${wh}`;
+              const cartLine = cartLines.find((l) => l.key === cartKey);
+              const qty = cartLine ? cartLine.qty : 0;
               return (
                 <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
                   <div className="wh-details">
                     <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
                     {n === 1 && <span className="wh-count"><b className="stock-warn">تنها ۱ عدد باقیست!</b></span>}
                   </div>
-                  <button
-                    type="button"
-                    className="add-wh-btn"
-                    onClick={() => onAdd(selectedVariant, wh)}
-                    title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
-                  >
-                    +
-                  </button>
+                  {qty > 0 ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: '2px 4px' }}>
+                      <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 26, height: 26, fontSize: 18 }} onClick={() => onUpdateQty(cartKey, qty - 1)} title="کاهش">-</button>
+                      <span style={{ fontSize: 13, fontWeight: 700, minWidth: 20, textAlign: 'center', color: 'var(--tamas-fg)' }}>{qty}</span>
+                      <button type="button" className="add-wh-btn" style={{ width: 26, height: 26, fontSize: 16 }} onClick={() => onAdd(selectedVariant, wh)} title="افزایش">+</button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="add-wh-btn"
+                      onClick={() => onAdd(selectedVariant, wh)}
+                      title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
+                    >
+                      +
+                    </button>
+                  )}
                 </div>
               );
             })}
