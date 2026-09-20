@@ -6,10 +6,25 @@ import { attributes } from '../../db/schema.js';
 import { notFound, badRequest } from '../../lib/errors.js';
 import { logAction } from '../../services/audit.js';
 
-const attributeSchema = z.object({
-  name: z.string().min(1).max(100),
-  type: z.string().min(1).max(20),
-});
+const attributeSchema = z
+  .object({
+    name: z.string().min(1).max(100),
+    type: z.enum(['text', 'number', 'boolean', 'select']),
+    options: z.array(z.string().trim().min(1).max(200)).max(100).default([]),
+  })
+  .superRefine((data, ctx) => {
+    if (data.type === 'select' && data.options.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['options'],
+        message: 'برای ویژگی چندگزینهای باید حداقل یک گزینه تعریف کنید',
+      });
+    }
+  });
+
+function normalizeOptions(data: z.infer<typeof attributeSchema>) {
+  return data.type === 'select' ? data.options : [];
+}
 
 const routes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requireAdmin);
@@ -23,7 +38,10 @@ const routes: FastifyPluginAsync = async (app) => {
     const data = attributeSchema.parse(req.body);
     
     try {
-      const [created] = await db.insert(attributes).values(data).returning();
+      const [created] = await db
+        .insert(attributes)
+        .values({ ...data, options: normalizeOptions(data) })
+        .returning();
       await logAction((req as any).user.id, 'CREATE_ATTRIBUTE', 'attributes', String(created?.id), data);
       reply.code(201);
       return created;
@@ -40,7 +58,7 @@ const routes: FastifyPluginAsync = async (app) => {
     try {
       const [updated] = await db
         .update(attributes)
-        .set({ ...data, updatedAt: new Date() })
+        .set({ ...data, options: normalizeOptions(data), updatedAt: new Date() })
         .where(eq(attributes.id, id))
         .returning();
         

@@ -729,9 +729,31 @@ body.admin-page-active.admin-theme-light {
   flex-direction: column;
   gap: 1rem;
   width: 100%;
-  max-width: 36rem;
+  max-width: 540px;
   margin-inline: auto;
 }
+
+/* Centered responsive content columns — same width scale as the reference
+   (forms = sm, lists = md). Stretch is capped; on narrow screens each column
+   simply fills the viewport. */
+.a-container-sm,
+.a-container-md,
+.a-container-lg,
+.a-container-xl { width: 100%; margin-inline: auto; }
+.a-page > .a-container-sm { max-width: 540px; }
+.a-page > .a-container-md { max-width: 720px; }
+.a-page > .a-container-lg { max-width: 960px; }
+.a-page > .a-container-xl { max-width: 1140px; }
+
+/* List pages: keep tables centered and capped — matching the reference scale
+   (products/users = lg, orders = xl) so they never stretch across the screen. */
+.a-page--products > .a-card,
+.a-page--users > .a-card,
+.a-page--comments > .a-card,
+.a-page--messages > .a-card,
+.a-page--financial > .a-card,
+.a-page--uploads > .a-card { max-width: 960px; margin-inline: auto; }
+.a-page--orders > .a-card { max-width: 1140px; margin-inline: auto; }
 
 .a-form-head {
   display: flex;

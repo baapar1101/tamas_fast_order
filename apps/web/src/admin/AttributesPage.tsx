@@ -7,6 +7,7 @@ interface Attribute {
   id: string;
   name: string;
   type: string;
+  options?: string[];
   createdAt: string;
 }
 
@@ -14,13 +15,18 @@ const TYPE_LABELS: Record<string, string> = {
   text: 'متن ساده',
   number: 'عدد',
   boolean: 'بله / خیر',
+  select: 'چند گزینهای',
 };
 
 export function AttributesPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: '', type: 'text' });
+  const [formData, setFormData] = useState<{ name: string; type: string; options: string[] }>({
+    name: '',
+    type: 'text',
+    options: [],
+  });
   const [formOpen, setFormOpen] = useState(false);
 
   const { data: attributes, isLoading } = useQuery({
@@ -42,7 +48,7 @@ export function AttributesPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'attributes'] });
       toast.ok('ویژگی با موفقیت ذخیره شد');
       setEditingId(null);
-      setFormData({ name: '', type: 'text' });
+      setFormData({ name: '', type: 'text', options: [] });
       setFormOpen(false);
     },
     onError: (err: any) => {
@@ -61,20 +67,34 @@ export function AttributesPage() {
 
   const handleEdit = (a: Attribute) => {
     setEditingId(a.id);
-    setFormData({ name: a.name, type: a.type });
+    setFormData({ name: a.name, type: a.type, options: a.options ?? [] });
     setFormOpen(true);
   };
 
   const handleCancel = () => {
     setEditingId(null);
-    setFormData({ name: '', type: 'text' });
+    setFormData({ name: '', type: 'text', options: [] });
     setFormOpen(false);
   };
 
   const handleCreate = () => {
     setEditingId(null);
-    setFormData({ name: '', type: 'text' });
+    setFormData({ name: '', type: 'text', options: [] });
     setFormOpen(true);
+  };
+
+  const setOption = (idx: number, value: string) => {
+    const options = [...formData.options];
+    options[idx] = value;
+    setFormData({ ...formData, options });
+  };
+
+  const addOption = () => setFormData({ ...formData, options: [...formData.options, ''] });
+
+  const removeOption = (idx: number) => {
+    const options = [...formData.options];
+    options.splice(idx, 1);
+    setFormData({ ...formData, options });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -147,10 +167,46 @@ export function AttributesPage() {
                 <option value="text">متن ساده</option>
                 <option value="number">عدد</option>
                 <option value="boolean">بله / خیر</option>
+                <option value="select">چند گزینهای</option>
               </select>
             </label>
           </div>
         </section>
+
+        {formData.type === 'select' && (
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">گزینه‌ها</h3>
+              <button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={addOption}>
+                + افزودن گزینه
+              </button>
+            </div>
+            <p className="a-card-sub">هنگام پر کردن فرم محصول می‌توان چند مورد از این گزینه‌ها را انتخاب کرد.</p>
+            <div className="space-y-2">
+              {formData.options.length === 0 && (
+                <p className="text-xs text-slate-500">هنوز گزینه‌ای اضافه نشده است. حداقل یک گزینه تعریف کنید.</p>
+              )}
+              {formData.options.map((opt, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    className="a-input"
+                    value={opt}
+                    onChange={(e) => setOption(idx, e.target.value)}
+                    placeholder={`گزینه ${idx + 1} (مثلا: ۱۲۸ گیگابایت)`}
+                  />
+                  <button
+                    type="button"
+                    className="a-btn a-btn--ghost a-btn--xs shrink-0"
+                    onClick={() => removeOption(idx)}
+                  >
+                    حذف
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="a-form-foot">
           <button
@@ -166,7 +222,7 @@ export function AttributesPage() {
       )}
 
       {/* List */}
-      <section className="a-card">
+      <section className="a-card a-container-md">
         <div className="a-card-head">
           <div>
             <h3 className="a-card-title">لیست ویژگی‌ها</h3>
@@ -180,22 +236,30 @@ export function AttributesPage() {
               <tr>
                 <th>نام ویژگی</th>
                 <th>نوع</th>
+                <th>گزینه‌ها</th>
                 <th>عملیات</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={3} className="text-center text-slate-500">در حال دریافت...</td></tr>
+                <tr><td colSpan={4} className="text-center text-slate-500">در حال دریافت...</td></tr>
               ) : attributes?.length === 0 ? (
-                <tr><td colSpan={3} className="text-center text-slate-500">هیچ ویژگی یافت نشد.</td></tr>
+                <tr><td colSpan={4} className="text-center text-slate-500">هیچ ویژگی یافت نشد.</td></tr>
               ) : (
                 attributes?.map((a: Attribute) => (
                   <tr key={a.id}>
                     <td className="a-strong">{a.name}</td>
                     <td>
-                      <span className={`a-badge ${a.type === 'text' ? 'a-badge--neutral' : a.type === 'number' ? 'a-badge--brand' : 'a-badge--green'}`}>
+                      <span className={`a-badge ${a.type === 'text' ? 'a-badge--neutral' : a.type === 'number' ? 'a-badge--brand' : a.type === 'select' ? 'a-badge--amber' : 'a-badge--green'}`}>
                         {TYPE_LABELS[a.type] ?? a.type}
                       </span>
+                    </td>
+                    <td>
+                      {a.type === 'select' ? (
+                        <span className="a-badge a-badge--neutral">{a.options?.length ?? 0} گزینه</span>
+                      ) : (
+                        <span className="text-slate-500">—</span>
+                      )}
                     </td>
                     <td>
                       <div className="flex items-center gap-2">

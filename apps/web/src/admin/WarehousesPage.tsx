@@ -187,7 +187,8 @@ export function WarehousesPage() {
         </>
       )}
 
-      <section className="a-card a-card--flush">
+      {/* List */}
+      <section className="a-card a-card--flush a-container-md">
         <div className="a-card-head a-card-head--px">
           <h3 className="a-card-title">لیست انبارها</h3>
         </div>

@@ -38,7 +38,7 @@ export function UsersPage() {
   const patch = useMutation({
     mutationFn: ({ id, body }: { id: number; body: Partial<UserDTO> }) => api.patch(`/admin/users/${id}`, body),
     onSuccess: () => {
-      toast.ok('اطلاعات کاربر به‌روزرسانی شد.');
+      toast.ok('Ø§Ø·Ù„Ø§Ø¹Ø§Øª Ú©Ø§Ø±Ø¨Ø± Ø¨Ù‡â€ŒØ±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ Ø´Ø¯.');
       invalidate();
     },
     onError: (err: Error) => toast.error(err.message),
@@ -52,15 +52,15 @@ export function UsersPage() {
   const verifiedIdCount = items.filter((u) => u.isVerifiedIdentity).length;
 
   return (
-    <div className="a-page a-fade">
+    <div className="a-page a-page--users a-fade">
       {/* Page Header */}
       <section className="a-page-head">
         <div className="a-titles">
-          <h2 className="a-title">مدیریت کاربران</h2>
-          <p className="a-subtitle">مشاهده، بررسی احراز هویت و مدیریت دسترسی‌های کاربران</p>
+          <h2 className="a-title">Ù…Ø¯ÛŒØ±ÛŒØª Ú©Ø§Ø±Ø¨Ø±Ø§Ù†</h2>
+          <p className="a-subtitle">Ù…Ø´Ø§Ù‡Ø¯Ù‡ØŒ Ø¨Ø±Ø±Ø³ÛŒ Ø§Ø­Ø±Ø§Ø² Ù‡ÙˆÛŒØª Ùˆ Ù…Ø¯ÛŒØ±ÛŒØª Ø¯Ø³ØªØ±Ø³ÛŒâ€ŒÙ‡Ø§ÛŒ Ú©Ø§Ø±Ø¨Ø±Ø§Ù†</p>
         </div>
         <div className="a-page-actions">
-          <span className="a-badge a-badge--brand">{formatNumber(total)} کاربر کل</span>
+          <span className="a-badge a-badge--brand">{formatNumber(total)} Ú©Ø§Ø±Ø¨Ø± Ú©Ù„</span>
         </div>
       </section>
 
@@ -68,21 +68,21 @@ export function UsersPage() {
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="a-stat">
           <div className="a-stat-head">
-            <span className="a-stat-label">کل کاربران</span>
+            <span className="a-stat-label">Ú©Ù„ Ú©Ø§Ø±Ø¨Ø±Ø§Ù†</span>
             <span className="a-badge a-badge--brand">{formatNumber(total)}</span>
           </div>
           <p className="a-stat-value">{formatNumber(total)}</p>
         </div>
         <div className="a-stat">
           <div className="a-stat-head">
-            <span className="a-stat-label">مدیران سیستم</span>
+            <span className="a-stat-label">Ù…Ø¯ÛŒØ±Ø§Ù† Ø³ÛŒØ³ØªÙ…</span>
             <span className="a-badge a-badge--amber">{formatNumber(adminUsersCount)}</span>
           </div>
           <p className="a-stat-value a-stat-value--amber">{formatNumber(adminUsersCount)}</p>
         </div>
         <div className="a-stat">
           <div className="a-stat-head">
-            <span className="a-stat-label">کد ملی تایید شده</span>
+            <span className="a-stat-label">Ú©Ø¯ Ù…Ù„ÛŒ ØªØ§ÛŒÛŒØ¯ Ø´Ø¯Ù‡</span>
             <span className="a-badge a-badge--brand">{formatNumber(verifiedIdCount)}</span>
           </div>
           <p className="a-stat-value a-stat-value--green">{formatNumber(verifiedIdCount)}</p>
@@ -94,7 +94,7 @@ export function UsersPage() {
         <div className="a-filterbar">
           <input
             className="a-input a-grow"
-            placeholder="جستجو در نام، شماره همراه، کد ملی..."
+            placeholder="Ø¬Ø³ØªØ¬Ùˆ Ø¯Ø± Ù†Ø§Ù…ØŒ Ø´Ù…Ø§Ø±Ù‡ Ù‡Ù…Ø±Ø§Ù‡ØŒ Ú©Ø¯ Ù…Ù„ÛŒ..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -109,9 +109,9 @@ export function UsersPage() {
               setPage(1);
             }}
           >
-            <option value="all">همه نقش‌ها</option>
-            <option value="admin">مدیران (Admin)</option>
-            <option value="customer">مشتریان عادی</option>
+            <option value="all">Ù‡Ù…Ù‡ Ù†Ù‚Ø´â€ŒÙ‡Ø§</option>
+            <option value="admin">Ù…Ø¯ÛŒØ±Ø§Ù† (Admin)</option>
+            <option value="customer">Ù…Ø´ØªØ±ÛŒØ§Ù† Ø¹Ø§Ø¯ÛŒ</option>
           </select>
         </div>
       </section>
@@ -119,20 +119,20 @@ export function UsersPage() {
       {/* Users Table */}
       <section className="a-card a-card--flush">
         {users.isLoading ? (
-          <div className="a-empty">در حال دریافت لیست کاربران...</div>
+          <div className="a-empty">Ø¯Ø± Ø­Ø§Ù„ Ø¯Ø±ÛŒØ§ÙØª Ù„ÛŒØ³Øª Ú©Ø§Ø±Ø¨Ø±Ø§Ù†...</div>
         ) : items.length === 0 ? (
-          <div className="a-empty">هیچ کاربری یافت نشد.</div>
+          <div className="a-empty">Ù‡ÛŒÚ† Ú©Ø§Ø±Ø¨Ø±ÛŒ ÛŒØ§ÙØª Ù†Ø´Ø¯.</div>
         ) : (
           <div className="a-table-wrap">
             <table className="a-table">
               <thead>
                 <tr>
-                  <th>کاربر</th>
-                  <th>شماره همراه</th>
-                  <th>کد ملی</th>
-                  <th>نقش کاربر</th>
-                  <th>وضعیت حساب</th>
-                  <th>عملیات و سطح دسترسی</th>
+                  <th>Ú©Ø§Ø±Ø¨Ø±</th>
+                  <th>Ø´Ù…Ø§Ø±Ù‡ Ù‡Ù…Ø±Ø§Ù‡</th>
+                  <th>Ú©Ø¯ Ù…Ù„ÛŒ</th>
+                  <th>Ù†Ù‚Ø´ Ú©Ø§Ø±Ø¨Ø±</th>
+                  <th>ÙˆØ¶Ø¹ÛŒØª Ø­Ø³Ø§Ø¨</th>
+                  <th>Ø¹Ù…Ù„ÛŒØ§Øª Ùˆ Ø³Ø·Ø­ Ø¯Ø³ØªØ±Ø³ÛŒ</th>
                 </tr>
               </thead>
               <tbody>
@@ -141,14 +141,14 @@ export function UsersPage() {
                     <td>
                       <div className="flex items-center gap-3">
                         <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-xs font-extrabold text-slate-950">
-                          {u.name?.[0] || 'ک'}
+                          {u.name?.[0] || 'Ú©'}
                         </span>
                         <div>
                           <div className="font-bold text-white">
                             {u.name} {u.lastName}
                           </div>
                           <div className="text-[11px] text-slate-500">
-                            ثبت نام: {new Date(u.createdAt).toLocaleDateString('fa-IR')}
+                            Ø«Ø¨Øª Ù†Ø§Ù…: {new Date(u.createdAt).toLocaleDateString('fa-IR')}
                           </div>
                         </div>
                       </div>
@@ -163,29 +163,29 @@ export function UsersPage() {
                             {u.nationalCode}
                           </span>
                           {u.isVerifiedIdentity ? (
-                            <span className="chip chip-brand !py-0.5 !px-1.5">تایید شده</span>
+                            <span className="chip chip-brand !py-0.5 !px-1.5">ØªØ§ÛŒÛŒØ¯ Ø´Ø¯Ù‡</span>
                           ) : (
                             <button
                               type="button"
                               className="a-btn a-btn--info a-btn--xs"
                               onClick={() => patch.mutate({ id: u.id, body: { isVerifiedIdentity: true } })}
                             >
-                              تایید کد ملی
+                              ØªØ§ÛŒÛŒØ¯ Ú©Ø¯ Ù…Ù„ÛŒ
                             </button>
                           )}
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-500">ثبت نشده</span>
+                        <span className="text-xs text-slate-500">Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡</span>
                       )}
                     </td>
                     <td>
                       <span className={`chip ${u.role === 'admin' ? 'chip-amber' : 'chip-slate'}`}>
-                        {u.role === 'admin' ? 'مدیر سیستم' : 'مشتری عادی'}
+                        {u.role === 'admin' ? 'Ù…Ø¯ÛŒØ± Ø³ÛŒØ³ØªÙ…' : 'Ù…Ø´ØªØ±ÛŒ Ø¹Ø§Ø¯ÛŒ'}
                       </span>
                     </td>
                     <td>
                       <span className={`chip ${u.isActive ? 'chip-brand' : 'chip-rose'}`}>
-                        {u.isActive ? 'فعال' : 'مسدود'}
+                        {u.isActive ? 'ÙØ¹Ø§Ù„' : 'Ù…Ø³Ø¯ÙˆØ¯'}
                       </span>
                     </td>
                     <td>
@@ -196,7 +196,7 @@ export function UsersPage() {
                             className="a-btn a-btn--secondary a-btn--xs"
                             onClick={() => patch.mutate({ id: u.id, body: { role: 'customer' } })}
                           >
-                            تنزل به مشتری
+                            ØªÙ†Ø²Ù„ Ø¨Ù‡ Ù…Ø´ØªØ±ÛŒ
                           </button>
                         ) : (
                           <button
@@ -204,7 +204,7 @@ export function UsersPage() {
                             className="a-btn a-btn--primary a-btn--xs"
                             onClick={() => patch.mutate({ id: u.id, body: { role: 'admin' } })}
                           >
-                            ارتقا به مدیر
+                            Ø§Ø±ØªÙ‚Ø§ Ø¨Ù‡ Ù…Ø¯ÛŒØ±
                           </button>
                         )}
 
@@ -213,7 +213,7 @@ export function UsersPage() {
                           className={`a-btn a-btn--xs ${u.isActive ? 'a-btn--danger' : 'a-btn--secondary'}`}
                           onClick={() => patch.mutate({ id: u.id, body: { isActive: !u.isActive } })}
                         >
-                          {u.isActive ? 'مسدودسازی' : 'فعال‌سازی'}
+                          {u.isActive ? 'Ù…Ø³Ø¯ÙˆØ¯Ø³Ø§Ø²ÛŒ' : 'ÙØ¹Ø§Ù„â€ŒØ³Ø§Ø²ÛŒ'}
                         </button>
                       </div>
                     </td>
@@ -229,13 +229,13 @@ export function UsersPage() {
       {pageCount > 1 && (
         <section className="a-card a-pager">
           <button type="button" className="a-btn a-btn--secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-            صفحه قبلی
+            ØµÙØ­Ù‡ Ù‚Ø¨Ù„ÛŒ
           </button>
           <span className="a-pager-info">
-            صفحه {formatNumber(page)} از {formatNumber(pageCount)}
+            ØµÙØ­Ù‡ {formatNumber(page)} Ø§Ø² {formatNumber(pageCount)}
           </span>
           <button type="button" className="a-btn a-btn--secondary" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
-            صفحه بعدی
+            ØµÙØ­Ù‡ Ø¨Ø¹Ø¯ÛŒ
           </button>
         </section>
       )}

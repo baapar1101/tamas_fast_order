@@ -1441,6 +1441,9 @@ svg.w-full, .w-full { width: 100%; }
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
   padding-left: 1rem;
   padding-right: 1rem;
 }

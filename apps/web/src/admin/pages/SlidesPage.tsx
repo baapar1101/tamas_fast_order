@@ -211,7 +211,8 @@ export function SlidesPage() {
         </>
       )}
 
-      <section className="a-card a-card--flush">
+      {/* List */}
+      <section className="a-card a-card--flush a-container-md">
         {isLoading ? (
           <div className="a-empty">در حال بارگذاری...</div>
         ) : slides?.length === 0 ? (

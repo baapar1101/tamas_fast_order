@@ -29,6 +29,13 @@
       "when": 1789489745138,
       "tag": "0003_lazy_marten_broadcloak",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789891200000,
+      "tag": "0004_attribute_options",
+      "breakpoints": true
     }
   ]
 }

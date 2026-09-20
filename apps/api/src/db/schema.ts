@@ -80,6 +80,8 @@ export const attributes = pgTable(
   {
     id: serial('id').primaryKey(),
     name: varchar('name', { length: 160 }).notNull(),
+    type: varchar('type', { length: 20 }).notNull().default('text'),
+    options: jsonb('options').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
     ...syncColumns,
   },
   (t) => [uniqueIndex('attributes_name_key').on(t.name)],

@@ -169,7 +169,7 @@ export function BrandsPage() {
       )}
 
       {/* List */}
-      <section className="a-card">
+      <section className="a-card a-container-md">
         <div className="a-card-head">
           <div>
             <h3 className="a-card-title">فهرست برندها</h3>

@@ -59,7 +59,7 @@ export function OrdersPage() {
     mutationFn: ({ id, body }: { id: number; body: { status?: OrderStatus; paymentStatus?: 'paid' | 'unpaid' | 'pending'; note?: string } }) =>
       api.patch<{ order: OrderDTO }>(`/admin/orders/${id}`, body),
     onSuccess: (res) => {
-      toast.ok('سفارش به روزرسانی شد.');
+      toast.ok('Ø³ÙØ§Ø±Ø´ Ø¨Ù‡ Ø±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ Ø´Ø¯.');
       setDetail(res.order);
       refresh();
     },
@@ -69,7 +69,7 @@ export function OrdersPage() {
   const bulkStatus = useMutation({
     mutationFn: (body: { ids: number[]; status: OrderStatus }) => api.post<{ changed: number }>('/admin/orders/bulk-status', body),
     onSuccess: (res) => {
-      toast.ok(`${formatNumber(res.changed)} سفارش تغییر یافت.`);
+      toast.ok(`${formatNumber(res.changed)} Ø³ÙØ§Ø±Ø´ ØªØºÛŒÛŒØ± ÛŒØ§ÙØª.`);
       setSelected(new Set());
       refresh();
     },
@@ -81,12 +81,12 @@ export function OrdersPage() {
   const pageCount = Math.max(1, Math.ceil(total / 30));
 
   return (
-    <div className="a-page a-fade">
+    <div className="a-page a-page--orders a-fade">
       {/* Header */}
       <section className="a-page-head">
         <div className="a-titles">
-          <h2 className="a-title">مدیریت سفارش‌ها</h2>
-          <p className="a-subtitle">بررسی، تایید و تغییر وضعیت سفارش‌های فروشگاه</p>
+          <h2 className="a-title">Ù…Ø¯ÛŒØ±ÛŒØª Ø³ÙØ§Ø±Ø´â€ŒÙ‡Ø§</h2>
+          <p className="a-subtitle">Ø¨Ø±Ø±Ø³ÛŒØŒ ØªØ§ÛŒÛŒØ¯ Ùˆ ØªØºÛŒÛŒØ± ÙˆØ¶Ø¹ÛŒØª Ø³ÙØ§Ø±Ø´â€ŒÙ‡Ø§ÛŒ ÙØ±ÙˆØ´Ú¯Ø§Ù‡</p>
         </div>
         <div className="a-page-actions">
           <button
@@ -98,7 +98,7 @@ export function OrdersPage() {
                 .catch((err: Error) => toast.error(err.message))
             }
           >
-            خروجی اکسل / CSV
+            Ø®Ø±ÙˆØ¬ÛŒ Ø§Ú©Ø³Ù„ / CSV
           </button>
         </div>
       </section>
@@ -113,7 +113,7 @@ export function OrdersPage() {
             setPage(1);
           }}
         >
-          همه ({formatNumber(counts.data?.total ?? 0)})
+          Ù‡Ù…Ù‡ ({formatNumber(counts.data?.total ?? 0)})
         </button>
         {ORDER_STATUSES.map((s) => (
           <button
@@ -134,7 +134,7 @@ export function OrdersPage() {
       <section className="a-card">
         <input
           className="a-input"
-          placeholder="جستجو در کد سفارش، نام مشتری، شماره همراه..."
+          placeholder="Ø¬Ø³ØªØ¬Ùˆ Ø¯Ø± Ú©Ø¯ Ø³ÙØ§Ø±Ø´ØŒ Ù†Ø§Ù… Ù…Ø´ØªØ±ÛŒØŒ Ø´Ù…Ø§Ø±Ù‡ Ù‡Ù…Ø±Ø§Ù‡..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -146,7 +146,7 @@ export function OrdersPage() {
       {/* Bulk Operations */}
       {selected.size > 0 && (
         <section className="a-bulkbar">
-          <span className="a-bulkbar-label">{formatNumber(selected.size)} سفارش انتخاب شده:</span>
+          <span className="a-bulkbar-label">{formatNumber(selected.size)} Ø³ÙØ§Ø±Ø´ Ø§Ù†ØªØ®Ø§Ø¨ Ø´Ø¯Ù‡:</span>
           {ORDER_STATUSES.map((s) => (
             <button
               key={s}
@@ -154,12 +154,12 @@ export function OrdersPage() {
               className="a-btn a-btn--secondary a-btn--sm"
               onClick={() => bulkStatus.mutate({ ids: [...selected], status: s })}
             >
-              به {ORDER_STATUS_LABELS[s]}
+              Ø¨Ù‡ {ORDER_STATUS_LABELS[s]}
             </button>
           ))}
           <span className="a-bulkbar-spacer" />
           <button type="button" className="a-bulkbar-link" onClick={() => setSelected(new Set())}>
-            لغو انتخاب
+            Ù„ØºÙˆ Ø§Ù†ØªØ®Ø§Ø¨
           </button>
         </section>
       )}
@@ -167,9 +167,9 @@ export function OrdersPage() {
       {/* Orders Table */}
       <section className="a-card a-card--flush">
         {orders.isLoading ? (
-          <div className="a-empty">در حال دریافت لیست سفارش‌ها...</div>
+          <div className="a-empty">Ø¯Ø± Ø­Ø§Ù„ Ø¯Ø±ÛŒØ§ÙØª Ù„ÛŒØ³Øª Ø³ÙØ§Ø±Ø´â€ŒÙ‡Ø§...</div>
         ) : items.length === 0 ? (
-          <div className="a-empty">هیچ سفارشی یافت نشد.</div>
+          <div className="a-empty">Ù‡ÛŒÚ† Ø³ÙØ§Ø±Ø´ÛŒ ÛŒØ§ÙØª Ù†Ø´Ø¯.</div>
         ) : (
           <div className="a-table-wrap">
             <table className="a-table">
@@ -189,15 +189,15 @@ export function OrdersPage() {
                       }}
                     />
                   </th>
-                  <th>کد سفارش</th>
-                  <th>خریدار</th>
-                  <th>تعداد</th>
-                  <th>مبلغ کل</th>
-                  <th>وضعیت پرداخت</th>
-                  <th>وضعیت سفارش</th>
-                  <th>روش پرداخت</th>
-                  <th>تاریخ</th>
-                  <th>جزئیات</th>
+                  <th>Ú©Ø¯ Ø³ÙØ§Ø±Ø´</th>
+                  <th>Ø®Ø±ÛŒØ¯Ø§Ø±</th>
+                  <th>ØªØ¹Ø¯Ø§Ø¯</th>
+                  <th>Ù…Ø¨Ù„Øº Ú©Ù„</th>
+                  <th>ÙˆØ¶Ø¹ÛŒØª Ù¾Ø±Ø¯Ø§Ø®Øª</th>
+                  <th>ÙˆØ¶Ø¹ÛŒØª Ø³ÙØ§Ø±Ø´</th>
+                  <th>Ø±ÙˆØ´ Ù¾Ø±Ø¯Ø§Ø®Øª</th>
+                  <th>ØªØ§Ø±ÛŒØ®</th>
+                  <th>Ø¬Ø²Ø¦ÛŒØ§Øª</th>
                 </tr>
               </thead>
               <tbody>
@@ -219,9 +219,9 @@ export function OrdersPage() {
                       #{o.orderCode}
                     </td>
                     <td>
-                      <div className="font-bold">{o.customerName || 'کاربر مهمان'}</div>
+                      <div className="font-bold">{o.customerName || 'Ú©Ø§Ø±Ø¨Ø± Ù…Ù‡Ù…Ø§Ù†'}</div>
                       <div className="text-[11px] text-slate-500 font-mono" dir="ltr">
-                        {o.phone || '—'}
+                        {o.phone || 'â€”'}
                       </div>
                     </td>
                     <td className="text-center font-bold">
@@ -230,7 +230,7 @@ export function OrdersPage() {
                     <td className="font-bold text-emerald-300"><Price amount={o.total} /></td>
                     <td>
                       <span className={`chip ${o.paymentStatus === 'paid' ? 'chip-brand' : o.paymentStatus === 'pending' ? 'chip-amber' : 'chip-rose'}`}>
-                        {o.paymentStatus === 'paid' ? 'پرداخت شده' : o.paymentStatus === 'pending' ? 'در انتظار' : 'پرداخت نشده'}
+                        {o.paymentStatus === 'paid' ? 'Ù¾Ø±Ø¯Ø§Ø®Øª Ø´Ø¯Ù‡' : o.paymentStatus === 'pending' ? 'Ø¯Ø± Ø§Ù†ØªØ¸Ø§Ø±' : 'Ù¾Ø±Ø¯Ø§Ø®Øª Ù†Ø´Ø¯Ù‡'}
                       </span>
                     </td>
                     <td>
@@ -239,7 +239,7 @@ export function OrdersPage() {
                       </span>
                     </td>
                     <td className="text-xs text-slate-400">
-                      {o.paymentMethod === 'card_to_card' ? 'کارت به کارت' : 'آنلاین / نقدی'}
+                      {o.paymentMethod === 'card_to_card' ? 'Ú©Ø§Ø±Øª Ø¨Ù‡ Ú©Ø§Ø±Øª' : 'Ø¢Ù†Ù„Ø§ÛŒÙ† / Ù†Ù‚Ø¯ÛŒ'}
                     </td>
                     <td className="text-xs text-slate-400">
                       {new Date(o.createdAt).toLocaleDateString('fa-IR')}
@@ -254,7 +254,7 @@ export function OrdersPage() {
                           setNote(o.note ?? '');
                         }}
                       >
-                        بررسی و ویرایش
+                        Ø¨Ø±Ø±Ø³ÛŒ Ùˆ ÙˆÛŒØ±Ø§ÛŒØ´
                       </button>
                     </td>
                   </tr>
@@ -269,13 +269,13 @@ export function OrdersPage() {
       {pageCount > 1 && (
         <section className="a-card a-pager">
           <button type="button" className="a-btn a-btn--secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-            صفحه قبلی
+            ØµÙØ­Ù‡ Ù‚Ø¨Ù„ÛŒ
           </button>
           <span className="a-pager-info">
-            صفحه {formatNumber(page)} از {formatNumber(pageCount)}
+            ØµÙØ­Ù‡ {formatNumber(page)} Ø§Ø² {formatNumber(pageCount)}
           </span>
           <button type="button" className="a-btn a-btn--secondary" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
-            صفحه بعدی
+            ØµÙØ­Ù‡ Ø¨Ø¹Ø¯ÛŒ
           </button>
         </section>
       )}
@@ -285,11 +285,11 @@ export function OrdersPage() {
         <Modal
           open={true}
           wide
-          title={`جزئیات سفارش #${detail.orderCode}`}
+          title={`Ø¬Ø²Ø¦ÛŒØ§Øª Ø³ÙØ§Ø±Ø´ #${detail.orderCode}`}
           onClose={() => setDetail(null)}
           footer={
             <button type="button" className="a-btn a-btn--secondary" onClick={() => setDetail(null)}>
-              بستن
+              Ø¨Ø³ØªÙ†
             </button>
           }
         >
@@ -299,14 +299,14 @@ export function OrdersPage() {
               className={`a-tab${detailTab === 'info' ? ' a-tab--on' : ''}`}
               onClick={() => setDetailTab('info')}
             >
-              اطلاعات سفارش
+              Ø§Ø·Ù„Ø§Ø¹Ø§Øª Ø³ÙØ§Ø±Ø´
             </button>
             <button
               type="button"
               className={`a-tab${detailTab === 'items' ? ' a-tab--on' : ''}`}
               onClick={() => setDetailTab('items')}
             >
-              اقلام سفارش
+              Ø§Ù‚Ù„Ø§Ù… Ø³ÙØ§Ø±Ø´
               <span className="mr-2 rounded-lg bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300">
                 {detail.items.length}
               </span>
@@ -317,21 +317,21 @@ export function OrdersPage() {
             <div className="space-y-4">
               <div className="a-card grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span className="text-slate-400">نام خریدار:</span>{' '}
-                  <strong className="text-white">{detail.customerName || 'مهمان'}</strong>
+                  <span className="text-slate-400">Ù†Ø§Ù… Ø®Ø±ÛŒØ¯Ø§Ø±:</span>{' '}
+                  <strong className="text-white">{detail.customerName || 'Ù…Ù‡Ù…Ø§Ù†'}</strong>
                 </div>
                 <div>
-                  <span className="text-slate-400">شماره همراه:</span>{' '}
-                  <strong className="text-white" dir="ltr">{detail.phone || '—'}</strong>
+                  <span className="text-slate-400">Ø´Ù…Ø§Ø±Ù‡ Ù‡Ù…Ø±Ø§Ù‡:</span>{' '}
+                  <strong className="text-white" dir="ltr">{detail.phone || 'â€”'}</strong>
                 </div>
                 <div className="col-span-2">
-                  <span className="text-slate-400">آدرس تحویل:</span>{' '}
-                  <span className="text-slate-200">{detail.address || '—'}</span>
+                  <span className="text-slate-400">Ø¢Ø¯Ø±Ø³ ØªØ­ÙˆÛŒÙ„:</span>{' '}
+                  <span className="text-slate-200">{detail.address || 'â€”'}</span>
                 </div>
               </div>
 
               <div>
-                <label className="a-label mb-2">تغییر وضعیت سفارش:</label>
+                <label className="a-label mb-2">ØªØºÛŒÛŒØ± ÙˆØ¶Ø¹ÛŒØª Ø³ÙØ§Ø±Ø´:</label>
                 <div className="flex flex-wrap gap-2">
                   {ORDER_STATUSES.map((s) => (
                     <button
@@ -348,7 +348,7 @@ export function OrdersPage() {
 
               <div className="a-divider" />
               <div>
-                <label className="a-label mb-2">وضعیت پرداخت:</label>
+                <label className="a-label mb-2">ÙˆØ¶Ø¹ÛŒØª Ù¾Ø±Ø¯Ø§Ø®Øª:</label>
                 <div className="flex flex-wrap gap-2">
                   {['paid', 'unpaid', 'pending'].map((s) => (
                     <button
@@ -357,7 +357,7 @@ export function OrdersPage() {
                       className={detail.paymentStatus === s ? 'a-btn a-btn--primary a-btn--sm' : 'a-btn a-btn--secondary a-btn--sm'}
                       onClick={() => patch.mutate({ id: detail.id, body: { paymentStatus: s as 'paid' | 'unpaid' | 'pending' } })}
                     >
-                      {s === 'paid' ? 'پرداخت شده' : s === 'pending' ? 'در انتظار پرداخت' : 'پرداخت نشده'}
+                      {s === 'paid' ? 'Ù¾Ø±Ø¯Ø§Ø®Øª Ø´Ø¯Ù‡' : s === 'pending' ? 'Ø¯Ø± Ø§Ù†ØªØ¸Ø§Ø± Ù¾Ø±Ø¯Ø§Ø®Øª' : 'Ù¾Ø±Ø¯Ø§Ø®Øª Ù†Ø´Ø¯Ù‡'}
                     </button>
                   ))}
                 </div>
@@ -365,11 +365,11 @@ export function OrdersPage() {
 
               <div className="a-divider" />
               <div>
-                <label className="a-label mb-1">یادداشت مدیریت:</label>
+                <label className="a-label mb-1">ÛŒØ§Ø¯Ø¯Ø§Ø´Øª Ù…Ø¯ÛŒØ±ÛŒØª:</label>
                 <div className="flex gap-2">
                   <input
                     className="a-input flex-1"
-                    placeholder="یادداشت یا پیگیری..."
+                    placeholder="ÛŒØ§Ø¯Ø¯Ø§Ø´Øª ÛŒØ§ Ù¾ÛŒÚ¯ÛŒØ±ÛŒ..."
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                   />
@@ -378,7 +378,7 @@ export function OrdersPage() {
                     className="a-btn a-btn--primary"
                     onClick={() => patch.mutate({ id: detail.id, body: { note } })}
                   >
-                    ذخیره
+                    Ø°Ø®ÛŒØ±Ù‡
                   </button>
                 </div>
               </div>
@@ -390,12 +390,12 @@ export function OrdersPage() {
               <table className="a-table">
                 <thead>
                   <tr>
-                    <th>کد کالا</th>
-                    <th>نام کالا</th>
-                    <th>مشخصات</th>
-                    <th>تعداد</th>
-                    <th>قیمت واحد</th>
-                    <th>جمع کل</th>
+                    <th>Ú©Ø¯ Ú©Ø§Ù„Ø§</th>
+                    <th>Ù†Ø§Ù… Ú©Ø§Ù„Ø§</th>
+                    <th>Ù…Ø´Ø®ØµØ§Øª</th>
+                    <th>ØªØ¹Ø¯Ø§Ø¯</th>
+                    <th>Ù‚ÛŒÙ…Øª ÙˆØ§Ø­Ø¯</th>
+                    <th>Ø¬Ù…Ø¹ Ú©Ù„</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -404,7 +404,7 @@ export function OrdersPage() {
                       <td className="text-xs text-slate-400 font-mono">{item.productId}</td>
                       <td className="font-bold text-white">{item.title}</td>
                       <td className="text-xs text-slate-400">
-                        {item.color ? `رنگ: ${item.color}` : '—'}
+                        {item.color ? `Ø±Ù†Ú¯: ${item.color}` : 'â€”'}
                       </td>
                       <td className="font-bold text-emerald-300 text-center">{formatNumber(item.qty)}</td>
                       <td className="text-slate-300"><Price amount={item.price} /></td>
@@ -414,7 +414,7 @@ export function OrdersPage() {
                 </tbody>
               </table>
               {detail.items.length === 0 && (
-                <div className="a-empty">محصولی در این سفارش یافت نشد!</div>
+                <div className="a-empty">Ù…Ø­ØµÙˆÙ„ÛŒ Ø¯Ø± Ø§ÛŒÙ† Ø³ÙØ§Ø±Ø´ ÛŒØ§ÙØª Ù†Ø´Ø¯!</div>
               )}
             </div>
           )}
