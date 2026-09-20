@@ -8,9 +8,9 @@ import { deleteSetting, getAllSettings, setSetting } from '../../services/settin
 import { recentAudit } from '../../services/audit.js';
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requirePermission('manage_settings'));
-
-  app.get('/admin/stats', async () => {
+  // Operational overview is safe for every admin/operator; the sensitive
+  // settings & audit endpoints stay locked behind manage_settings.
+  app.get('/admin/stats', { preHandler: app.requireAdmin }, async () => {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000);
     const liveProducts = isNull(products.deletedAt);
 
@@ -100,21 +100,29 @@ const routes: FastifyPluginAsync = async (app) => {
     return { ok: true, stats };
   });
 
-  app.get('/admin/settings', async () => ({ ok: true, settings: await getAllSettings() }));
+  app.get(
+    '/admin/settings',
+    { preHandler: app.requirePermission('manage_settings') },
+    async () => ({ ok: true, settings: await getAllSettings() }),
+  );
 
-  app.put('/admin/settings', async (req) => {
+  app.put('/admin/settings', { preHandler: app.requirePermission('manage_settings') }, async (req) => {
     const body = z.record(z.string().max(120), z.string().max(4000)).parse(req.body);
     for (const [key, value] of Object.entries(body)) await setSetting(key, value);
     return { ok: true, settings: await getAllSettings(), message: 'تنظیمات ذخیره شد.' };
   });
 
-  app.delete('/admin/settings/:key', async (req) => {
-    const { key } = req.params as { key: string };
-    await deleteSetting(key);
-    return { ok: true };
-  });
+  app.delete(
+    '/admin/settings/:key',
+    { preHandler: app.requirePermission('manage_settings') },
+    async (req) => {
+      const { key } = req.params as { key: string };
+      await deleteSetting(key);
+      return { ok: true };
+    },
+  );
 
-  app.get('/admin/audit', async () => {
+  app.get('/admin/audit', { preHandler: app.requirePermission('manage_settings') }, async () => {
     const rows = await recentAudit(150);
     return {
       ok: true,
@@ -130,7 +138,7 @@ const routes: FastifyPluginAsync = async (app) => {
     };
   });
 
-  app.get('/admin/recent-orders', async () => {
+  app.get('/admin/recent-orders', { preHandler: app.requireAdmin }, async () => {
     const rows = await db
       .select()
       .from(orders)

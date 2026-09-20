@@ -233,8 +233,9 @@ const routes: FastifyPluginAsync = async (app) => {
     }
   });
 
-  app.post('/auth/logout', async (req) => {
+  app.post('/auth/logout', async (req, reply) => {
     await destroySession(req.sessionToken ?? undefined);
+    reply.clearCookie('tamas_session', { path: '/' });
     return { ok: true, message: 'از حساب خود خارج شدید.' };
   });
 };

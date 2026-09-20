@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { userPatchSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { sessions, users } from '../../db/schema.js';
-import { badRequest, notFound } from '../../lib/errors.js';
+import { badRequest, forbidden, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { toUserDTO } from '../../services/auth.js';
 import { logAction } from '../../services/audit.js';
@@ -67,6 +67,14 @@ const routes: FastifyPluginAsync = async (app) => {
     // An admin must not be able to lock themselves out of their own panel.
     if (id === req.currentUser!.id && (body.role === 'customer' || body.isActive === false)) {
       throw badRequest('نمی‌توانید دسترسی مدیریت خودتان را بردارید.');
+    }
+
+    // Only the super admin may promote or change role/access groups — an
+    // operator holding manage_users must not escalate their own privileges.
+    if (body.role !== undefined || body.accessGroupId !== undefined) {
+      if (req.currentUser!.role !== 'admin') {
+        throw forbidden('فقط مدیر ارشد می‌تواند نقش یا گروه دسترسی کاربران را تغییر دهد.');
+      }
     }
 
     const [updated] = await db

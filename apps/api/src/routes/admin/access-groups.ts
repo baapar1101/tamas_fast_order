@@ -1,8 +1,8 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { eq } from 'drizzle-orm';
+import { and, count, eq, isNull, not } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db/client.js';
-import { accessGroups } from '../../db/schema.js';
+import { accessGroups, users } from '../../db/schema.js';
 import { notFound, conflict } from '../../lib/errors.js';
 
 const groupSchema = z.object({
@@ -16,8 +16,19 @@ export const accessGroupsRoutes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requirePermission('manage_settings'));
 
   app.get('/admin/access-groups', async () => {
-    const rows = await db.select().from(accessGroups).orderBy(accessGroups.id);
-    return { ok: true, groups: rows };
+    const [rows, memberRows] = await Promise.all([
+      db.select().from(accessGroups).orderBy(accessGroups.id),
+      db
+        .select({ accessGroupId: users.accessGroupId, n: count() })
+        .from(users)
+        .where(and(not(isNull(users.accessGroupId)), isNull(users.deletedAt)))
+        .groupBy(users.accessGroupId),
+    ]);
+    const membersByGroup = new Map(memberRows.map((r) => [r.accessGroupId, Number(r.n)]));
+    return {
+      ok: true,
+      groups: rows.map((g) => ({ ...g, memberCount: membersByGroup.get(g.id) ?? 0 })),
+    };
   });
 
   app.post('/admin/access-groups', async (req) => {
@@ -61,6 +72,13 @@ export const accessGroupsRoutes: FastifyPluginAsync = async (app) => {
 
   app.delete('/admin/access-groups/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
+    const [memberRow] = await db
+      .select({ n: count() })
+      .from(users)
+      .where(and(eq(users.accessGroupId, id), isNull(users.deletedAt)));
+    if (Number(memberRow?.n ?? 0) > 0) {
+      throw conflict('این گروه به کاربرانی اختصاص داده شده و قابل حذف نیست؛ ابتدا اعضای آن را جابه‌جا کنید.');
+    }
     const [deleted] = await db.delete(accessGroups).where(eq(accessGroups.id, id)).returning({ id: accessGroups.id });
     if (!deleted) throw notFound('گروه پیدا نشد.');
     return { ok: true };

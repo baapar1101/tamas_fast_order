@@ -64,6 +64,17 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
   });
 
   /**
+   * Mock endpoints for frontend Settings Page to prevent 404s
+   */
+  app.get('/crm/sync/logs', { preHandler: [app.requirePermission('manage_settings')] }, async () => {
+    return { ok: true, items: [] };
+  });
+
+  app.get('/crm/sync/products/detail', { preHandler: [app.requirePermission('manage_settings')] }, async () => {
+    return { ok: true, items: [] };
+  });
+
+  /**
    * CRM Integration Statistics (admin only)
    */
   app.get('/crm/stats', { preHandler: [app.requirePermission('manage_settings')] }, async () => {

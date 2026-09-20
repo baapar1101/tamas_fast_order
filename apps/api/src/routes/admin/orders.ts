@@ -1,7 +1,7 @@
 import { and, count, desc, eq, gte, ilike, inArray, isNull, lte, or, sql, type SQL } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { ORDER_STATUSES, orderPatchSchema } from '@tamas/shared';
+import { ORDER_STATUSES, ORDER_STATUS_LABELS, orderPatchSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { orderItems, orders, users } from '../../db/schema.js';
 import { notFound } from '../../lib/errors.js';
@@ -121,7 +121,7 @@ const routes: FastifyPluginAsync = async (app) => {
         sendTemplatedSms(updated.phone, templateKey, {
           order_code: updated.orderCode,
           name: updated.customerName || 'مشتری',
-          status: body.status,
+          status: ORDER_STATUS_LABELS[body.status],
         }).catch((err) => req.log.error({ err }, 'failed to send status sms'));
       }
 
@@ -164,7 +164,7 @@ const routes: FastifyPluginAsync = async (app) => {
         sendTemplatedSms(order.phone, templateKey, {
           order_code: order.orderCode,
           name: order.customerName || 'مشتری',
-          status: body.status,
+          status: ORDER_STATUS_LABELS[body.status],
         }).catch((err) => req.log.error({ err }, 'failed to send status sms bulk'));
       }
     }

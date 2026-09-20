@@ -41,8 +41,15 @@ export async function sendTemplatedSms(
   defaultTemplate = '',
 ): Promise<{ ok: boolean; error?: string }> {
   const settings = await getAllSettings();
+  const enabledKey = `sms_enabled_${templateKey.replace(/^sms_template_/, '')}`;
+  const enabled = (settings[enabledKey] ?? '1').trim().toLowerCase();
+  // Storage defaults to enabled whenever the key is missing.
+  if (enabled === '0' || enabled === 'false' || enabled === 'disabled' || enabled === 'off' || enabled === 'no') {
+    return { ok: true, error: 'ارسال پیامک برای این رویداد غیرفعال است.' };
+  }
+
   let text = settings[templateKey] || defaultTemplate;
-  
+
   if (!text) {
     return { ok: true, error: 'الگویی برای ارسال یافت نشد و پیامک لغو شد.' }; // Return ok if no template configured
   }

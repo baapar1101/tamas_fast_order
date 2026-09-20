@@ -75,14 +75,6 @@ const KNOWN_SETTINGS = [
   { key: 'seo_meta_description', label: 'توضیحات سئو (Meta Description)', textarea: true },
 ] as const;
 
-const SMS_SETTINGS = [
-  { key: 'sms_template_otp', label: 'متن پیامک کد تایید (متغیرها: {code})', textarea: true },
-  { key: 'sms_template_order_pending', label: 'متن پیامک ثبت سفارش (متغیرها: {name}, {order_code})', textarea: true },
-  { key: 'sms_template_order_confirmed', label: 'متن پیامک تایید سفارش (متغیرها: {name}, {order_code})', textarea: true },
-  { key: 'sms_template_order_shipped', label: 'متن پیامک ارسال سفارش (متغیرها: {name}, {order_code})', textarea: true },
-  { key: 'sms_template_order_cancelled', label: 'متن پیامک لغو سفارش (متغیرها: {name}, {order_code})', textarea: true },
-] as const;
-
 export function SettingsPage() {
   const toast = useToast();
   const qc = useQueryClient();
@@ -120,7 +112,7 @@ export function SettingsPage() {
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [testPhone, setTestPhone] = useState('');
-  const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'logs' | 'sms' | 'crm' | 'advanced-sync'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
 
   useEffect(() => {
     if (settings.data) setForm(settings.data.settings);

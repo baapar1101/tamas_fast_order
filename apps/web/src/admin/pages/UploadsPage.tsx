@@ -28,7 +28,7 @@ export function UploadsPage() {
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await api.post<{ ok: boolean; url: string }>('/admin/uploads', fd);
+      const res = await api.upload<{ ok: boolean; url: string }>('/admin/uploads', fd);
       toast.ok('تصویر با موفقیت بارگذاری شد.');
       void qc.invalidateQueries({ queryKey: ['admin', 'uploads'] });
       return res.url;
