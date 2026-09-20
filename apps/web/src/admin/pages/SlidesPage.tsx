@@ -19,6 +19,7 @@ export function SlidesPage() {
   const toast = useToast();
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -45,6 +46,7 @@ export function SlidesPage() {
       toast.ok(editingId ? 'بنر بروز شد' : 'بنر اضافه شد');
       setEditingId(null);
       setFormData({ title: '', imageUrl: '', linkUrl: '', sortOrder: 0, isActive: true });
+      setFormOpen(false);
     },
     onError: (err: any) => toast.error(err.message || 'خطا در ذخیره بنر'),
   });
@@ -67,12 +69,21 @@ export function SlidesPage() {
       sortOrder: slide.sortOrder,
       isActive: slide.isActive,
     });
+    setFormOpen(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function handleCancel() {
     setEditingId(null);
     setFormData({ title: '', imageUrl: '', linkUrl: '', sortOrder: 0, isActive: true });
+    setFormOpen(false);
+  }
+
+  function handleCreate() {
+    setEditingId(null);
+    setFormData({ title: '', imageUrl: '', linkUrl: '', sortOrder: 0, isActive: true });
+    setFormOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -89,10 +100,15 @@ export function SlidesPage() {
       <section className="a-page-head">
         <div className="a-titles">
           <h2 className="a-title">مدیریت بنرها (اسلایدر)</h2>
-          <p className="a-subtitle">{editingId ? 'ویرایش بنر نمایشی' : 'افزودن بنر جدید به اسلایدر فروشگاه'}</p>
+          <p className="a-subtitle">مدیریت بنرهای نمایشی اسلایدر فروشگاه</p>
+        </div>
+        <div className="a-page-actions">
+          <button type="button" className="a-btn a-btn--primary" onClick={handleCreate}>+ افزودن بنر</button>
         </div>
       </section>
 
+      {formOpen && (
+        <>
       {/* Reference-style create form: header card + stacked sections + save footer */}
       <form className="a-form a-fade" onSubmit={handleSubmit}>
         <div className="a-form-head">
@@ -192,6 +208,8 @@ export function SlidesPage() {
           </button>
         </div>
       </form>
+        </>
+      )}
 
       <section className="a-card a-card--flush">
         {isLoading ? (

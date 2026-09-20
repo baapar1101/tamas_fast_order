@@ -14,6 +14,47 @@ interface AuditEntry {
   createdAt: string;
 }
 
+interface SyncLogEntry {
+  id: number;
+  entity: 'order' | 'product' | 'person' | 'chat_message';
+  entityKey: string;
+  action: 'create' | 'update' | 'delete' | 'sync';
+  status: 'success' | 'error' | 'pending' | 'skipped';
+  remoteId?: string | number;
+  error?: string;
+  payload: Record<string, unknown>;
+  response?: Record<string, unknown>;
+  createdAt: string;
+  durationMs?: number;
+}
+
+interface CrmStats {
+  crm: { reachable: boolean; baseUrl: string; syncEnabled: boolean };
+  local: { activeUsers: number; totalOrders: number; activeProducts: number };
+  syncStats?: {
+    totalSynced: number;
+    totalErrors: number;
+    lastSyncAt?: string;
+    byEntity: Record<string, { synced: number; errors: number }>;
+  };
+}
+
+interface SyncProductDetail {
+  productId: string;
+  sku: string | null;
+  title: string;
+  status: string;
+  price: number;
+  stock: number;
+  kermanStock?: number;
+  tehranStock?: number;
+  imageUrl?: string | null;
+  lastSyncedAt?: string;
+  crmId?: number;
+  syncStatus: 'synced' | 'pending' | 'error' | 'never';
+  syncError?: string;
+}
+
 const KNOWN_SETTINGS = [
   { key: 'store_name', label: 'نام فروشگاه' },
   { key: 'store_tagline', label: 'شعار / توضیح کوتاه' },
@@ -49,6 +90,25 @@ export function SettingsPage() {
   const settings = useQuery({
     queryKey: ['admin', 'settings'],
     queryFn: () => api.get<{ settings: Record<string, string> }>('/admin/settings'),
+  });
+
+  const crmStats = useQuery({
+    queryKey: ['admin', 'crm-stats'],
+    queryFn: () => api.get<CrmStats>('/crm/stats'),
+    enabled: !!settings.data?.settings.CRM_API_BASE,
+    refetchInterval: 30000,
+  });
+
+  const syncLogs = useQuery({
+    queryKey: ['admin', 'sync-logs'],
+    queryFn: () => api.get<{ items: SyncLogEntry[] }>('/crm/sync/logs'),
+    enabled: !!settings.data?.settings.CRM_API_BASE,
+  });
+
+  const syncProducts = useQuery({
+    queryKey: ['admin', 'sync-products'],
+    queryFn: () => api.get<{ items: SyncProductDetail[] }>('/crm/sync/products/detail'),
+    enabled: !!settings.data?.settings.CRM_API_BASE,
   });
 
   const audit = useQuery({

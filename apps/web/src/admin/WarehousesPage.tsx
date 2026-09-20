@@ -17,6 +17,7 @@ export function WarehousesPage() {
   const toast = useToast();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ code: '', name: '', location: '', isActive: true });
+  const [formOpen, setFormOpen] = useState(false);
 
   const { data: warehouses, isLoading } = useQuery({
     queryKey: ['admin', 'warehouses'],
@@ -38,6 +39,7 @@ export function WarehousesPage() {
       toast.ok(editingId ? 'انبار بروز شد' : 'انبار اضافه شد');
       setEditingId(null);
       setFormData({ code: '', name: '', location: '', isActive: true });
+      setFormOpen(false);
     },
     onError: (err: any) => {
       toast.error(err.message || 'خطا در ذخیره انبار');
@@ -56,11 +58,19 @@ export function WarehousesPage() {
   const handleEdit = (w: Warehouse) => {
     setEditingId(w.id);
     setFormData({ code: w.code, name: w.name, location: w.location || '', isActive: w.isActive });
+    setFormOpen(true);
   };
 
   const handleCancel = () => {
     setEditingId(null);
     setFormData({ code: '', name: '', location: '', isActive: true });
+    setFormOpen(false);
+  };
+
+  const handleCreate = () => {
+    setEditingId(null);
+    setFormData({ code: '', name: '', location: '', isActive: true });
+    setFormOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -72,11 +82,16 @@ export function WarehousesPage() {
     <div className="a-page a-fade">
       <section className="a-page-head">
         <div className="a-titles">
-          <h2 className="a-title">{editingId ? 'ویرایش انبار' : 'افزودن انبار جدید'}</h2>
+          <h2 className="a-title">مدیریت انبارها</h2>
           <p className="a-subtitle">تعریف و مدیریت انبارهای نگهداری موجودی کالا</p>
+        </div>
+        <div className="a-page-actions">
+          <button type="button" className="a-btn a-btn--primary" onClick={handleCreate}>+ افزودن انبار</button>
         </div>
       </section>
 
+      {formOpen && (
+        <>
       {/* Reference-style create form: header card + stacked sections + save footer */}
       <form className="a-form a-fade" onSubmit={handleSubmit}>
         <div className="a-form-head">
@@ -169,6 +184,8 @@ export function WarehousesPage() {
           </button>
         </div>
       </form>
+        </>
+      )}
 
       <section className="a-card a-card--flush">
         <div className="a-card-head a-card-head--px">

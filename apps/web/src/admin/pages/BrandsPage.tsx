@@ -21,6 +21,7 @@ export function BrandsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<BrandForm>(EMPTY_FORM);
   const [search, setSearch] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
 
   const query = useQuery({
     queryKey: ['admin', 'brands'],
@@ -30,6 +31,14 @@ export function BrandsPage() {
   const resetForm = () => {
     setEditingId(null);
     setForm(EMPTY_FORM);
+    setFormOpen(false);
+  };
+
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setFormOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const save = useMutation({
@@ -68,6 +77,7 @@ export function BrandsPage() {
   const edit = (brand: BrandDTO) => {
     setEditingId(brand.id);
     setForm({ name: brand.name, faName: brand.faName, iconUrl: brand.iconUrl ?? '', sortOrder: brand.sortOrder });
+    setFormOpen(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -81,10 +91,13 @@ export function BrandsPage() {
           <p className="a-subtitle">ثبت نام فارسی و انگلیسی، لوگو و ترتیب نمایش برندها</p>
         </div>
         <div className="a-page-actions">
+          <button type="button" className="a-btn a-btn--primary" onClick={openCreate}>+ افزودن برند</button>
           <span className="a-badge a-badge--brand">{formatNumber(brands.length)} برند</span>
         </div>
       </section>
 
+      {formOpen && (
+        <>
       {/* Reference-style create form: header card + stacked sections + save footer */}
       <form
         className="a-form a-fade"
@@ -152,6 +165,8 @@ export function BrandsPage() {
           </button>
         </div>
       </form>
+        </>
+      )}
 
       {/* List */}
       <section className="a-card">

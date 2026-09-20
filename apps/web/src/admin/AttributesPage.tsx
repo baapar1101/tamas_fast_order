@@ -21,6 +21,7 @@ export function AttributesPage() {
   const toast = useToast();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: '', type: 'text' });
+  const [formOpen, setFormOpen] = useState(false);
 
   const { data: attributes, isLoading } = useQuery({
     queryKey: ['admin', 'attributes'],
@@ -42,6 +43,7 @@ export function AttributesPage() {
       toast.ok('ویژگی با موفقیت ذخیره شد');
       setEditingId(null);
       setFormData({ name: '', type: 'text' });
+      setFormOpen(false);
     },
     onError: (err: any) => {
       toast.error(err.message || 'خطا در ذخیره ویژگی');
@@ -60,11 +62,19 @@ export function AttributesPage() {
   const handleEdit = (a: Attribute) => {
     setEditingId(a.id);
     setFormData({ name: a.name, type: a.type });
+    setFormOpen(true);
   };
 
   const handleCancel = () => {
     setEditingId(null);
     setFormData({ name: '', type: 'text' });
+    setFormOpen(false);
+  };
+
+  const handleCreate = () => {
+    setEditingId(null);
+    setFormData({ name: '', type: 'text' });
+    setFormOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -80,10 +90,13 @@ export function AttributesPage() {
           <p className="a-subtitle">تعریف فیلدهای سفارشی که هنگام ویرایش محصول تکمیل می‌شوند</p>
         </div>
         <div className="a-page-actions">
+          <button type="button" className="a-btn a-btn--primary" onClick={handleCreate}>+ افزودن ویژگی</button>
           <span className="a-badge a-badge--brand">{attributes?.length ?? 0} ویژگی</span>
         </div>
       </section>
 
+      {formOpen && (
+        <>
       {/* Reference-style create form: header card + stacked sections + save footer */}
       <form className="a-form a-fade" onSubmit={handleSubmit}>
         <div className="a-form-head">
@@ -149,6 +162,8 @@ export function AttributesPage() {
           </button>
         </div>
       </form>
+        </>
+      )}
 
       {/* List */}
       <section className="a-card">

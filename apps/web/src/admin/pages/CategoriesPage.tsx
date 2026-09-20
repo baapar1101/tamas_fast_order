@@ -23,6 +23,7 @@ export function CategoriesPage() {
   const [form, setForm] = useState<CategoryForm>(EMPTY_FORM);
   const [search, setSearch] = useState('');
   const [brandSearch, setBrandSearch] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
 
   const categoriesQuery = useQuery({ queryKey: ['admin', 'categories'], queryFn: () => api.get<{ categories: CategoryDTO[] }>('/admin/categories') });
   const brandsQuery = useQuery({ queryKey: ['admin', 'brands'], queryFn: () => api.get<{ brands: BrandDTO[] }>('/admin/brands') });
@@ -33,6 +34,15 @@ export function CategoriesPage() {
     setEditingId(null);
     setForm(EMPTY_FORM);
     setBrandSearch('');
+    setFormOpen(false);
+  };
+
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setBrandSearch('');
+    setFormOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const save = useMutation({
@@ -78,6 +88,7 @@ export function CategoriesPage() {
       .map((brand) => brand.name);
     setEditingId(category.id);
     setForm({ name: category.name, faName: category.faName, iconUrl: category.iconUrl ?? '', sortOrder: category.sortOrder, brandNames: selected });
+    setFormOpen(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -96,10 +107,13 @@ export function CategoriesPage() {
           <p className="a-subtitle">مشخصات کامل دسته و برندهای قابل نمایش در هر دسته‌بندی</p>
         </div>
         <div className="a-page-actions">
+          <button type="button" className="a-btn a-btn--primary" onClick={openCreate}>+ افزودن دسته‌بندی</button>
           <span className="a-badge a-badge--brand">{formatNumber(categories.length)} دسته</span>
         </div>
       </section>
 
+      {formOpen && (
+        <>
       {/* Reference-style create form: header card + stacked sections + save footer */}
       <form
         className="a-form a-fade"
@@ -199,6 +213,8 @@ export function CategoriesPage() {
           </button>
         </div>
       </form>
+        </>
+      )}
 
       {/* List */}
       <section className="a-card">
