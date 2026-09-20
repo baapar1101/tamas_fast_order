@@ -96,7 +96,7 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
                   <button type="button" onClick={() => setQty(line.key, line.qty - 1)} aria-label="کاهش">
                     −
                   </button>
-                  <span className={canViewPrices ? undefined : 'price-obscured'} style={{ marginInlineStart: 'auto', fontWeight: 800, color: 'var(--primary)' }}><Price amount={line.price * line.qty} /></span>
+                  <span className={canViewPrices ? undefined : 'price-obscured'} style={{ marginInlineStart: 'auto', fontWeight: 800, color: 'var(--tamas-accent)' }}><Price amount={line.price * line.qty} /></span>
                   <button type="button" className="btn ghost sm" style={{ color: 'var(--danger)' }} onClick={() => remove(line.key)} aria-label="حذف">
                     ✕
                   </button>
@@ -107,7 +107,7 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
 
           <div className="total" style={{ borderTop: '2px dashed #e2e8f0', paddingTop: '16px', marginTop: '8px' }}>
             <span style={{ fontWeight: 800, fontSize: '16px' }}>مجموع فاکتور</span>
-            <span className={canViewPrices ? undefined : 'price-obscured'} style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '18px' }}><Price amount={total} /></span>
+            <span className={canViewPrices ? undefined : 'price-obscured'} style={{ color: 'var(--tamas-accent)', fontWeight: 900, fontSize: '18px' }}><Price amount={total} /></span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>

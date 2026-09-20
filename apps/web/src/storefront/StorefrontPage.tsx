@@ -371,7 +371,7 @@ export function StorefrontPage() {
                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '24px 12px', background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}
                   onClick={() => { setCategory(c.name); setBrands([]); resetPage(); setMobileTab('home'); }}
                 >
-                  {iconSrc ? <img src={iconSrc} alt="" loading="lazy" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span style={{ fontSize: 32, color: 'var(--primary)' }}><Icon name="box" /></span>}
+                  {iconSrc ? <img src={iconSrc} alt="" loading="lazy" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span style={{ fontSize: 32, color: 'var(--tamas-accent)' }}><Icon name="box" /></span>}
                   <span style={{ fontSize: 13, fontWeight: 700, color: '#334155' }}>{c.faName}</span>
                 </button>
               );
@@ -493,7 +493,7 @@ export function StorefrontPage() {
                   برندها
                   <Icon name="chevron" className="mobile-chevron" style={{ transform: brandsCollapsed ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', fontSize: 14 }} />
                 </span>
-                <button type="button" onClick={(e) => { e.stopPropagation(); setBrands([]); }} style={{ fontSize: 12, color: 'var(--primary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                <button type="button" onClick={(e) => { e.stopPropagation(); setBrands([]); }} style={{ fontSize: 12, color: 'var(--tamas-accent)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                   همه
                 </button>
               </div>

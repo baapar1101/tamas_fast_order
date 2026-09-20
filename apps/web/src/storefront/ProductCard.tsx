@@ -29,7 +29,7 @@ function swatchColor(product: ProductDTO, colorMap: Map<string, string>): string
     const hit = colorMap.get(key);
     if (hit) return hit;
   }
-  return 'var(--primary)';
+  return 'var(--tamas-accent)';
 }
 
 /** The sheet keeps sell types as a free-text list: "نقدی, اعتباری". */
