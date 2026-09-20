@@ -8,6 +8,7 @@ import { cartCount, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
 import { CartPanel } from './CartPanel';
 import { CheckoutDialog } from './CheckoutDialog';
+import { InstallBanner } from './InstallBanner';
 import { ProductCard } from './ProductCard';
 import { useBootstrap, useDebounced, useProducts, type CatalogFilters } from './hooks';
 import { Icon } from '../components/Icon';
@@ -802,6 +803,9 @@ export function StorefrontPage() {
 
       {/* CRM Chat Widget */}
       <CrmChat user={user || undefined} />
+
+      {/* PWA Install Banner */}
+      <InstallBanner />
     </div>
   );
 }
