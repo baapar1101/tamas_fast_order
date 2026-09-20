@@ -49,7 +49,7 @@ async function resolveTaxonomy(
 }
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_products'));
 
   app.get('/admin/products', async (req) => {
     const q = listQuery.parse(req.query);

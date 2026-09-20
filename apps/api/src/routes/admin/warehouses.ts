@@ -14,7 +14,7 @@ const warehouseSchema = z.object({
 });
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_products'));
 
   app.get('/admin/warehouses', async () => {
     const list = await db.select().from(warehouses).orderBy(desc(warehouses.createdAt));

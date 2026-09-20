@@ -15,7 +15,7 @@ const slideSchema = z.object({
 });
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_content'));
 
   app.get('/admin/slides', async () => {
     const list = await db.select().from(slides).orderBy(desc(slides.sortOrder), desc(slides.id));

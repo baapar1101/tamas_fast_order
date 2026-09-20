@@ -19,7 +19,7 @@ const listQuery = z.object({
 });
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_orders'));
 
   app.get('/admin/orders', async (req) => {
     const q = listQuery.parse(req.query);

@@ -24,6 +24,7 @@ import adminWarehouses from './routes/admin/warehouses.js';
 import adminAttributes from './routes/admin/attributes.js';
 import adminFinancial from './routes/admin/financial.js';
 import adminComments from './routes/admin/comments.js';
+import { accessGroupsRoutes } from './routes/admin/access-groups.js';
 import authRoutes from './routes/auth.js';
 import catalogRoutes from './routes/catalog.js';
 import orderRoutes from './routes/orders.js';
@@ -141,6 +142,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(adminAttributes);
         await api.register(adminFinancial);
         await api.register(adminComments);
+        await api.register(accessGroupsRoutes);
         await api.register(crmRoutes); // <-- CRM integration routes
       },
       { prefix: '/api' },

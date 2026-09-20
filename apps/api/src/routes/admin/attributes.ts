@@ -27,7 +27,7 @@ function normalizeOptions(data: z.infer<typeof attributeSchema>) {
 }
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_products'));
 
   app.get('/admin/attributes', async () => {
     const list = await db.select().from(attributes).orderBy(desc(attributes.createdAt));

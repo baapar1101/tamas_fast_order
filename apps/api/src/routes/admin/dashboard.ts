@@ -8,7 +8,7 @@ import { deleteSetting, getAllSettings, setSetting } from '../../services/settin
 import { recentAudit } from '../../services/audit.js';
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_settings'));
 
   app.get('/admin/stats', async () => {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000);

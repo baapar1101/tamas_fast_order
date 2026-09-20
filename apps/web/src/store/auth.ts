@@ -23,6 +23,8 @@ interface AuthState {
   /** False until the stored token has been checked against the server. */
   ready: boolean;
   isAdmin: boolean;
+  isOperator: boolean;
+  hasPermission: (permission: string) => boolean;
   restore: () => Promise<void>;
   applyLogin: (data: AuthResponse) => void;
   applyProfile: (data: MeResponse) => void;
@@ -36,11 +38,13 @@ export const useAuth = create<AuthState>((set) => ({
   missing: [],
   ready: false,
   isAdmin: false,
+  isOperator: false,
+  hasPermission: () => false,
 
   /** Called once on boot; a dead token is discarded rather than surfaced. */
   async restore() {
     if (!readToken()) {
-      set({ user: null, complete: false, missing: [], isAdmin: false, ready: true });
+      set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, hasPermission: () => false, ready: true });
       return;
     }
     try {
@@ -50,11 +54,14 @@ export const useAuth = create<AuthState>((set) => ({
         complete: data.complete,
         missing: data.missing,
         isAdmin: data.user.role === 'admin',
+        isOperator: data.user.role === 'operator',
+        hasPermission: (p: string) => 
+          data.user.role === 'admin' || (data.user.role === 'operator' && !!(data.user.permissions?.includes(p) || data.user.permissions?.includes('*'))),
         ready: true,
       });
     } catch (err) {
       if (err instanceof ApiRequestError && err.isExpired) writeToken(null);
-      set({ user: null, complete: false, missing: [], isAdmin: false, ready: true });
+      set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, hasPermission: () => false, ready: true });
     }
   },
 
@@ -65,6 +72,9 @@ export const useAuth = create<AuthState>((set) => ({
       complete: data.complete,
       missing: data.missing,
       isAdmin: data.user.role === 'admin',
+      isOperator: data.user.role === 'operator',
+      hasPermission: (p: string) => 
+        data.user.role === 'admin' || (data.user.role === 'operator' && !!(data.user.permissions?.includes(p) || data.user.permissions?.includes('*'))),
       ready: true,
     });
   },
@@ -75,6 +85,9 @@ export const useAuth = create<AuthState>((set) => ({
       complete: data.complete,
       missing: data.missing,
       isAdmin: data.user.role === 'admin',
+      isOperator: data.user.role === 'operator',
+      hasPermission: (p: string) => 
+        data.user.role === 'admin' || (data.user.role === 'operator' && !!(data.user.permissions?.includes(p) || data.user.permissions?.includes('*'))),
     });
   },
 
@@ -85,11 +98,11 @@ export const useAuth = create<AuthState>((set) => ({
       /* the local session is cleared either way */
     }
     writeToken(null);
-    set({ user: null, complete: false, missing: [], isAdmin: false });
+    set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, hasPermission: () => false });
   },
 
   clear() {
     writeToken(null);
-    set({ user: null, complete: false, missing: [], isAdmin: false });
+    set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, hasPermission: () => false });
   },
 }));

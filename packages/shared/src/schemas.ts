@@ -241,7 +241,8 @@ export const userPatchSchema = z.object({
   activity: z.string().trim().max(120).optional(),
   pageWebsite: z.string().trim().max(255).optional(),
   isActive: z.boolean().optional(),
-  role: z.enum(['customer', 'admin']).optional(),
+  role: z.enum(['customer', 'admin', 'operator']).optional(),
+  accessGroupId: z.number().int().positive().nullable().optional(),
 });
 
 export const settingWriteSchema = z.object({

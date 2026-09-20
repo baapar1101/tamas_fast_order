@@ -23,6 +23,7 @@ import { FinancialPage } from './pages/FinancialPage';
 import { CommentsPage } from './pages/CommentsPage';
 import { GraphifyPage } from './pages/GraphifyPage';
 import { ArchifyPage } from './pages/ArchifyPage';
+import { AccessGroupsPage } from './pages/AccessGroupsPage';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
 import './reference.css';
@@ -39,6 +40,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
       </svg>
     ),
+    requiredPermission: '*',
   },
   {
     to: '/admin/orders',
@@ -49,6 +51,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
       </svg>
     ),
+    requiredPermission: 'manage_orders',
   },
   {
     to: '/admin/products',
@@ -58,6 +61,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
       </svg>
     ),
+    requiredPermission: 'manage_products',
   },
   {
     to: '/admin/users',
@@ -68,6 +72,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
       </svg>
     ),
+    requiredPermission: 'manage_users',
   },
   {
     to: '/admin/analytics',
@@ -77,6 +82,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
       </svg>
     ),
+    requiredPermission: '*',
   },
   {
     to: '/admin/categories',
@@ -87,6 +93,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
       </svg>
     ),
+    requiredPermission: 'manage_content',
   },
   {
     to: '/admin/brands',
@@ -97,6 +104,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 8.25h1.75a4.25 4.25 0 010 8.5H16.5M6 9h6M6 12h4.5M6 15h3" />
       </svg>
     ),
+    requiredPermission: 'manage_content',
   },
   {
     to: '/admin/attributes',
@@ -107,6 +115,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.5h16.5A2.25 2.25 0 0122.5 6.75v10.5a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 17.25V6.75A2.25 2.25 0 013.75 4.5z" />
       </svg>
     ),
+    requiredPermission: 'manage_products',
   },
   {
     to: '/admin/warehouses',
@@ -116,6 +125,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 8.25V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18V8.25m-18 0V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v2.25m-18 0h18M5.25 6h.008v.008H5.25V6zM7.5 6h.008v.008H7.5V6zm2.25 0h.008v.008H9.75V6z" />
       </svg>
     ),
+    requiredPermission: 'manage_products',
   },
   {
     to: '/admin/financial',
@@ -125,6 +135,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
+    requiredPermission: 'manage_settings',
   },
   {
     to: '/admin/comments',
@@ -134,6 +145,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
       </svg>
     ),
+    requiredPermission: 'manage_settings',
   },
   {
     to: '/admin/slides',
@@ -143,6 +155,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
       </svg>
     ),
+    requiredPermission: 'manage_content',
   },
 ] as const;
 
@@ -155,6 +168,7 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
       </svg>
     ),
+    requiredPermission: 'manage_settings',
   },
   {
     to: '/admin/marketing',
@@ -165,6 +179,7 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
       </svg>
     ),
+    requiredPermission: '*',
   },
   {
     to: '/admin/uploads',
@@ -174,6 +189,7 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25z" />
       </svg>
     ),
+    requiredPermission: 'manage_content',
   },
   {
     to: '/admin/sync',
@@ -183,6 +199,7 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.9" />
       </svg>
     ),
+    requiredPermission: 'manage_settings',
   },
   {
     to: '/admin/settings',
@@ -193,6 +210,17 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
+    requiredPermission: 'manage_settings',
+  },
+  {
+    to: '/admin/access-groups',
+    label: 'گروه‌های دسترسی',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+      </svg>
+    ),
+    requiredPermission: '*', // Only superadmin should be able to create access groups probably
   },
   {
     to: '/admin/graphify',
@@ -202,6 +230,7 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
       </svg>
     ),
+    requiredPermission: '*',
   },
   {
     to: '/admin/archify',
@@ -211,11 +240,12 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
       </svg>
     ),
+    requiredPermission: '*',
   },
 ] as const;
 
 export default function AdminApp() {
-  const { user, ready, isAdmin, logout } = useAuth();
+  const { user, ready, isAdmin, isOperator, hasPermission, logout } = useAuth();
   const location = useLocation();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -316,7 +346,7 @@ export default function AdminApp() {
     );
   }
 
-  if (!user || !isAdmin) {
+  if (!user || (!isAdmin && !isOperator)) {
     return (
       <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
         {/* Background Ambient Glows */}
@@ -425,7 +455,7 @@ export default function AdminApp() {
           <div>
             <p className="mb-2 px-4 text-[11px] font-semibold tracking-wide text-slate-500">منوی اصلی</p>
             <ul className="space-y-1">
-              {NAV_MAIN.map((item) => {
+              {NAV_MAIN.filter(item => hasPermission(item.requiredPermission)).map((item) => {
                 const count = badgeValue('badge' in item ? item.badge : undefined);
                 return (
                   <li key={item.to}>
@@ -451,7 +481,7 @@ export default function AdminApp() {
           <div>
             <p className="mb-2 px-4 text-[11px] font-semibold tracking-wide text-slate-500">ابزارها و تنظیمات</p>
             <ul className="space-y-1">
-              {NAV_TOOLS.map((item) => (
+              {NAV_TOOLS.filter(item => hasPermission(item.requiredPermission)).map((item) => (
                 <li key={item.to}>
                   <NavLink
                     to={item.to}
@@ -704,6 +734,7 @@ export default function AdminApp() {
             <Route path="comments" element={<CommentsPage />} />
             <Route path="graphify" element={<GraphifyPage />} />
             <Route path="archify" element={<ArchifyPage />} />
+            <Route path="access-groups" element={<AccessGroupsPage />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
             </Routes>
           </div>

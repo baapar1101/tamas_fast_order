@@ -5,7 +5,7 @@ import { payments } from '../../db/schema.js';
 import { count, desc } from 'drizzle-orm';
 
 const financialRoutes: FastifyPluginAsync = async (app) => {
-  app.addHook('onRequest', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_settings'));
 
   // GET /admin/financial/payments/count
   app.get('/admin/financial/payments/count', async () => {

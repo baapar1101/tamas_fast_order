@@ -35,7 +35,7 @@ const syncColumns = {
 };
 
 export const productStatusEnum = pgEnum('product_status', ['active', 'inactive']);
-export const userRoleEnum = pgEnum('user_role', ['customer', 'admin']);
+export const userRoleEnum = pgEnum('user_role', ['customer', 'admin', 'operator']);
 export const orderStatusEnum = pgEnum('order_status', [
   'new',
   'confirmed',
@@ -208,6 +208,22 @@ export const products = pgTable(
 );
 
 /* ------------------------------------------------------------------ *
+ * Access Groups & Permissions
+ * ------------------------------------------------------------------ */
+
+export const accessGroups = pgTable(
+  'access_groups',
+  {
+    id: serial('id').primaryKey(),
+    name: varchar('name', { length: 160 }).notNull(),
+    permissions: jsonb('permissions').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('access_groups_name_key').on(t.name)],
+);
+
+/* ------------------------------------------------------------------ *
  * Users, OTP and sessions
  * ------------------------------------------------------------------ */
 
@@ -231,6 +247,7 @@ export const users = pgTable(
     isVerifiedIdentity: boolean('is_verified_identity').notNull().default(false),
     isActive: boolean('is_active').notNull().default(false),
     role: userRoleEnum('role').notNull().default('customer'),
+    accessGroupId: integer('access_group_id').references(() => accessGroups.id, { onDelete: 'set null' }),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     ...syncColumns,
   },
@@ -515,11 +532,16 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }),
 }));
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   orders: many(orders),
   sessions: many(sessions),
   payments: many(payments),
   comments: many(comments),
+  accessGroup: one(accessGroups, { fields: [users.accessGroupId], references: [accessGroups.id] }),
+}));
+
+export const accessGroupsRelations = relations(accessGroups, ({ many }) => ({
+  users: many(users),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({

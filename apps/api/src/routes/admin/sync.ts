@@ -17,7 +17,7 @@ const conflictQuery = z.object({
 });
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_settings'));
 
   app.get('/admin/sync/status', async () => {
     const state = await readSyncState();

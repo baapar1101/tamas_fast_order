@@ -120,7 +120,9 @@ export interface UserDTO {
   fatherName?: string;
   isVerifiedIdentity?: boolean;
   isActive: boolean;
-  role: 'customer' | 'admin';
+  role: 'customer' | 'admin' | 'operator';
+  accessGroupId?: number | null;
+  permissions?: string[];
   createdAt: string;
   updatedAt: string;
 }

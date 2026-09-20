@@ -66,7 +66,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
   /**
    * CRM Integration Statistics (admin only)
    */
-  app.get('/crm/stats', { preHandler: [app.requireAdmin] }, async () => {
+  app.get('/crm/stats', { preHandler: [app.requirePermission('manage_settings')] }, async () => {
     const config = await getCrmConfig();
     const { crmClient } = await import('../lib/crm.js');
     const reachable = await crmClient.ping(config);
@@ -103,6 +103,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
    */
   app.post(
     '/crm/sync/order',
+    { preHandler: [app.requirePermission('manage_settings')] },
     async (req: FastifyRequest, reply: FastifyReply) => {
       const body = (req.body as { orderCode?: string }) ?? {};
       const { orderCode } = body;
@@ -129,6 +130,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
    */
   app.post(
     '/crm/sync/product',
+    { preHandler: [app.requirePermission('manage_settings')] },
     async (req: FastifyRequest, reply: FastifyReply) => {
       const body = (req.body as { productId?: string }) ?? {};
       const { productId } = body;
@@ -155,6 +157,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
    */
   app.post(
     '/crm/sync/person',
+    { preHandler: [app.requirePermission('manage_settings')] },
     async (req: FastifyRequest, reply: FastifyReply) => {
       const body = (req.body as { phone?: string; name?: string; email?: string }) ?? {};
       const { phone, name, email } = body;
@@ -181,6 +184,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
      */
     app.post(
       '/crm/sync/products/push',
+      { preHandler: [app.requirePermission('manage_settings')] },
       async (req: FastifyRequest, reply: FastifyReply) => {
         const config = await getCrmConfig();
         const { crmClient } = await import('../lib/crm.js');
@@ -265,6 +269,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
    */
   app.post(
     '/crm/sync/products/pull',
+    { preHandler: [app.requirePermission('manage_settings')] },
     async (req: FastifyRequest, reply: FastifyReply) => {
       const { crmClient } = await import('../lib/crm.js');
       const { db } = await import('../db/client.js');
@@ -286,6 +291,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
    */
   app.post(
     '/crm/sync/stock',
+    { preHandler: [app.requirePermission('manage_settings')] },
     async (req: FastifyRequest, reply: FastifyReply) => {
       const { crmClient } = await import('../lib/crm.js');
       const { queryProducts } = await import('../services/catalog.js');

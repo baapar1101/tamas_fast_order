@@ -33,7 +33,7 @@ async function syncCategoryBrands(categoryId: number, brandNames: string[]): Pro
 }
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_content'));
 
   /* ---------------- categories ---------------- */
 

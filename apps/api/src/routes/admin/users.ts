@@ -12,13 +12,13 @@ import { logAction } from '../../services/audit.js';
 const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
   status: z.enum(['active', 'pending', 'all']).default('all'),
-  role: z.enum(['customer', 'admin', 'all']).default('all'),
+  role: z.enum(['customer', 'admin', 'operator', 'all']).default('all'),
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(200).default(50),
 });
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_users'));
 
   app.get('/admin/users', async (req) => {
     const q = listQuery.parse(req.query);

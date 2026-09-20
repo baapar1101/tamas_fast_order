@@ -18,11 +18,22 @@ export function UsersPage() {
   const qc = useQueryClient();
 
   const [search, setSearch] = useState('');
-  const [role, setRole] = useState<'all' | 'admin' | 'customer'>('all');
+  const [role, setRole] = useState<'all' | 'admin' | 'operator' | 'customer'>('all');
   const [page, setPage] = useState(1);
+  const [editingUser, setEditingUser] = useState<UserDTO | null>(null);
+  const [editRole, setEditRole] = useState<UserDTO['role']>('customer');
+  const [editAccessGroupId, setEditAccessGroupId] = useState<number | null>(null);
 
   const debounced = useDebounced(search);
   const query = useMemo(() => ({ q: debounced, role, page, perPage: 30 }), [debounced, role, page]);
+
+  const accessGroups = useQuery({
+    queryKey: ['admin', 'access-groups'],
+    queryFn: async () => {
+      const res = await api.get<{ groups: { id: number; name: string }[] }>('/admin/access-groups');
+      return res.groups;
+    },
+  });
 
   const users = useQuery({
     queryKey: ['admin', 'users', query],
@@ -38,8 +49,9 @@ export function UsersPage() {
   const patch = useMutation({
     mutationFn: ({ id, body }: { id: number; body: Partial<UserDTO> }) => api.patch(`/admin/users/${id}`, body),
     onSuccess: () => {
-      toast.ok('Ø§Ø·Ù„Ø§Ø¹Ø§Øª Ú©Ø§Ø±Ø¨Ø± Ø¨Ù‡â€ŒØ±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ Ø´Ø¯.');
+      toast.ok('اطلاعات کاربر به‌روزرسانی شد.');
       invalidate();
+      setEditingUser(null);
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -56,11 +68,11 @@ export function UsersPage() {
       {/* Page Header */}
       <section className="a-page-head">
         <div className="a-titles">
-          <h2 className="a-title">Ù…Ø¯ÛŒØ±ÛŒØª Ú©Ø§Ø±Ø¨Ø±Ø§Ù†</h2>
-          <p className="a-subtitle">Ù…Ø´Ø§Ù‡Ø¯Ù‡ØŒ Ø¨Ø±Ø±Ø³ÛŒ Ø§Ø­Ø±Ø§Ø² Ù‡ÙˆÛŒØª Ùˆ Ù…Ø¯ÛŒØ±ÛŒØª Ø¯Ø³ØªØ±Ø³ÛŒâ€ŒÙ‡Ø§ÛŒ Ú©Ø§Ø±Ø¨Ø±Ø§Ù†</p>
+          <h2 className="a-title">مدیریت کاربران</h2>
+          <p className="a-subtitle">مشاهده، بررسی احراز هویت و مدیریت دسترسی‌های کاربران</p>
         </div>
         <div className="a-page-actions">
-          <span className="a-badge a-badge--brand">{formatNumber(total)} Ú©Ø§Ø±Ø¨Ø± Ú©Ù„</span>
+          <span className="a-badge a-badge--brand">{formatNumber(total)} کاربر کل</span>
         </div>
       </section>
 
@@ -68,21 +80,21 @@ export function UsersPage() {
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="a-stat">
           <div className="a-stat-head">
-            <span className="a-stat-label">Ú©Ù„ Ú©Ø§Ø±Ø¨Ø±Ø§Ù†</span>
+            <span className="a-stat-label">کل کاربران</span>
             <span className="a-badge a-badge--brand">{formatNumber(total)}</span>
           </div>
           <p className="a-stat-value">{formatNumber(total)}</p>
         </div>
         <div className="a-stat">
           <div className="a-stat-head">
-            <span className="a-stat-label">Ù…Ø¯ÛŒØ±Ø§Ù† Ø³ÛŒØ³ØªÙ…</span>
+            <span className="a-stat-label">مدیران سیستم</span>
             <span className="a-badge a-badge--amber">{formatNumber(adminUsersCount)}</span>
           </div>
           <p className="a-stat-value a-stat-value--amber">{formatNumber(adminUsersCount)}</p>
         </div>
         <div className="a-stat">
           <div className="a-stat-head">
-            <span className="a-stat-label">Ú©Ø¯ Ù…Ù„ÛŒ ØªØ§ÛŒÛŒØ¯ Ø´Ø¯Ù‡</span>
+            <span className="a-stat-label">کد ملی تایید شده</span>
             <span className="a-badge a-badge--brand">{formatNumber(verifiedIdCount)}</span>
           </div>
           <p className="a-stat-value a-stat-value--green">{formatNumber(verifiedIdCount)}</p>
@@ -94,7 +106,7 @@ export function UsersPage() {
         <div className="a-filterbar">
           <input
             className="a-input a-grow"
-            placeholder="Ø¬Ø³ØªØ¬Ùˆ Ø¯Ø± Ù†Ø§Ù…ØŒ Ø´Ù…Ø§Ø±Ù‡ Ù‡Ù…Ø±Ø§Ù‡ØŒ Ú©Ø¯ Ù…Ù„ÛŒ..."
+            placeholder="جستجو در نام، شماره همراه، کد ملی..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -109,9 +121,10 @@ export function UsersPage() {
               setPage(1);
             }}
           >
-            <option value="all">Ù‡Ù…Ù‡ Ù†Ù‚Ø´â€ŒÙ‡Ø§</option>
-            <option value="admin">Ù…Ø¯ÛŒØ±Ø§Ù† (Admin)</option>
-            <option value="customer">Ù…Ø´ØªØ±ÛŒØ§Ù† Ø¹Ø§Ø¯ÛŒ</option>
+            <option value="all">همه نقش‌ها</option>
+            <option value="admin">مدیر ارشد (Admin)</option>
+            <option value="operator">اپراتور (Operator)</option>
+            <option value="customer">مشتریان عادی</option>
           </select>
         </div>
       </section>
@@ -119,20 +132,20 @@ export function UsersPage() {
       {/* Users Table */}
       <section className="a-card a-card--flush">
         {users.isLoading ? (
-          <div className="a-empty">Ø¯Ø± Ø­Ø§Ù„ Ø¯Ø±ÛŒØ§ÙØª Ù„ÛŒØ³Øª Ú©Ø§Ø±Ø¨Ø±Ø§Ù†...</div>
+          <div className="a-empty">در حال دریافت لیست کاربران...</div>
         ) : items.length === 0 ? (
-          <div className="a-empty">Ù‡ÛŒÚ† Ú©Ø§Ø±Ø¨Ø±ÛŒ ÛŒØ§ÙØª Ù†Ø´Ø¯.</div>
+          <div className="a-empty">هیچ کاربری یافت نشد.</div>
         ) : (
           <div className="a-table-wrap">
             <table className="a-table">
               <thead>
                 <tr>
-                  <th>Ú©Ø§Ø±Ø¨Ø±</th>
-                  <th>Ø´Ù…Ø§Ø±Ù‡ Ù‡Ù…Ø±Ø§Ù‡</th>
-                  <th>Ú©Ø¯ Ù…Ù„ÛŒ</th>
-                  <th>Ù†Ù‚Ø´ Ú©Ø§Ø±Ø¨Ø±</th>
-                  <th>ÙˆØ¶Ø¹ÛŒØª Ø­Ø³Ø§Ø¨</th>
-                  <th>Ø¹Ù…Ù„ÛŒØ§Øª Ùˆ Ø³Ø·Ø­ Ø¯Ø³ØªØ±Ø³ÛŒ</th>
+                  <th>کاربر</th>
+                  <th>شماره همراه</th>
+                  <th>کد ملی</th>
+                  <th>نقش کاربر</th>
+                  <th>وضعیت حساب</th>
+                  <th>عملیات و سطح دسترسی</th>
                 </tr>
               </thead>
               <tbody>
@@ -141,14 +154,14 @@ export function UsersPage() {
                     <td>
                       <div className="flex items-center gap-3">
                         <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-xs font-extrabold text-slate-950">
-                          {u.name?.[0] || 'Ú©'}
+                          {u.name?.[0] || 'ک'}
                         </span>
                         <div>
                           <div className="font-bold text-white">
                             {u.name} {u.lastName}
                           </div>
                           <div className="text-[11px] text-slate-500">
-                            Ø«Ø¨Øª Ù†Ø§Ù…: {new Date(u.createdAt).toLocaleDateString('fa-IR')}
+                            ثبت نام: {new Date(u.createdAt).toLocaleDateString('fa-IR')}
                           </div>
                         </div>
                       </div>
@@ -163,57 +176,51 @@ export function UsersPage() {
                             {u.nationalCode}
                           </span>
                           {u.isVerifiedIdentity ? (
-                            <span className="chip chip-brand !py-0.5 !px-1.5">ØªØ§ÛŒÛŒØ¯ Ø´Ø¯Ù‡</span>
+                            <span className="chip chip-brand !py-0.5 !px-1.5">تایید شده</span>
                           ) : (
                             <button
                               type="button"
                               className="a-btn a-btn--info a-btn--xs"
                               onClick={() => patch.mutate({ id: u.id, body: { isVerifiedIdentity: true } })}
                             >
-                              ØªØ§ÛŒÛŒØ¯ Ú©Ø¯ Ù…Ù„ÛŒ
+                              تایید کد ملی
                             </button>
                           )}
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-500">Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡</span>
+                        <span className="text-xs text-slate-500">ثبت نشده</span>
                       )}
                     </td>
                     <td>
-                      <span className={`chip ${u.role === 'admin' ? 'chip-amber' : 'chip-slate'}`}>
-                        {u.role === 'admin' ? 'Ù…Ø¯ÛŒØ± Ø³ÛŒØ³ØªÙ…' : 'Ù…Ø´ØªØ±ÛŒ Ø¹Ø§Ø¯ÛŒ'}
+                      <span className={`chip ${u.role === 'admin' ? 'chip-amber' : u.role === 'operator' ? 'chip-brand' : 'chip-slate'}`}>
+                        {u.role === 'admin' ? 'مدیر ارشد' : u.role === 'operator' ? 'اپراتور' : 'مشتری عادی'}
                       </span>
                     </td>
                     <td>
                       <span className={`chip ${u.isActive ? 'chip-brand' : 'chip-rose'}`}>
-                        {u.isActive ? 'ÙØ¹Ø§Ù„' : 'Ù…Ø³Ø¯ÙˆØ¯'}
+                        {u.isActive ? 'فعال' : 'مسدود'}
                       </span>
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
-                        {u.role === 'admin' ? (
-                          <button
-                            type="button"
-                            className="a-btn a-btn--secondary a-btn--xs"
-                            onClick={() => patch.mutate({ id: u.id, body: { role: 'customer' } })}
-                          >
-                            ØªÙ†Ø²Ù„ Ø¨Ù‡ Ù…Ø´ØªØ±ÛŒ
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className="a-btn a-btn--primary a-btn--xs"
-                            onClick={() => patch.mutate({ id: u.id, body: { role: 'admin' } })}
-                          >
-                            Ø§Ø±ØªÙ‚Ø§ Ø¨Ù‡ Ù…Ø¯ÛŒØ±
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          className="a-btn a-btn--secondary a-btn--xs"
+                          onClick={() => {
+                            setEditingUser(u);
+                            setEditRole(u.role);
+                            setEditAccessGroupId(u.accessGroupId || null);
+                          }}
+                        >
+                          تغییر نقش
+                        </button>
 
                         <button
                           type="button"
                           className={`a-btn a-btn--xs ${u.isActive ? 'a-btn--danger' : 'a-btn--secondary'}`}
                           onClick={() => patch.mutate({ id: u.id, body: { isActive: !u.isActive } })}
                         >
-                          {u.isActive ? 'Ù…Ø³Ø¯ÙˆØ¯Ø³Ø§Ø²ÛŒ' : 'ÙØ¹Ø§Ù„â€ŒØ³Ø§Ø²ÛŒ'}
+                          {u.isActive ? 'مسدودسازی' : 'فعال‌سازی'}
                         </button>
                       </div>
                     </td>
@@ -229,15 +236,81 @@ export function UsersPage() {
       {pageCount > 1 && (
         <section className="a-card a-pager">
           <button type="button" className="a-btn a-btn--secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-            ØµÙØ­Ù‡ Ù‚Ø¨Ù„ÛŒ
+            صفحه قبلی
           </button>
           <span className="a-pager-info">
-            ØµÙØ­Ù‡ {formatNumber(page)} Ø§Ø² {formatNumber(pageCount)}
+            صفحه {formatNumber(page)} از {formatNumber(pageCount)}
           </span>
           <button type="button" className="a-btn a-btn--secondary" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
-            ØµÙØ­Ù‡ Ø¨Ø¹Ø¯ÛŒ
+            صفحه بعدی
           </button>
         </section>
+      )}
+
+      {/* Edit Role Modal */}
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="glass-card w-full max-w-sm">
+            <h3 className="mb-4 text-lg font-bold text-white">تغییر نقش کاربر</h3>
+            <p className="mb-4 text-sm text-slate-300">
+              کاربر: <span className="font-bold">{editingUser.name} {editingUser.lastName}</span>
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-300">نقش کاربر</label>
+                <select
+                  className="huma-input w-full bg-slate-800 text-white"
+                  value={editRole}
+                  onChange={(e) => setEditRole(e.target.value as UserDTO['role'])}
+                >
+                  <option value="customer">مشتری عادی</option>
+                  <option value="operator">اپراتور</option>
+                  <option value="admin">مدیر ارشد</option>
+                </select>
+              </div>
+
+              {editRole === 'operator' && (
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-300">گروه دسترسی</label>
+                  <select
+                    className="huma-input w-full bg-slate-800 text-white"
+                    value={editAccessGroupId || ''}
+                    onChange={(e) => setEditAccessGroupId(e.target.value ? Number(e.target.value) : null)}
+                  >
+                    <option value="">-- انتخاب گروه --</option>
+                    {accessGroups.data?.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="mt-6 flex justify-end gap-2">
+                <button type="button" className="huma-btn-surface" onClick={() => setEditingUser(null)}>
+                  انصراف
+                </button>
+                <button
+                  type="button"
+                  className="huma-btn-primary"
+                  disabled={patch.isPending || (editRole === 'operator' && !editAccessGroupId)}
+                  onClick={() => {
+                    patch.mutate({
+                      id: editingUser.id,
+                      body: {
+                        role: editRole,
+                        accessGroupId: editRole === 'operator' ? editAccessGroupId : null,
+                      },
+                    });
+                  }}
+                >
+                  {patch.isPending ? 'در حال ذخیره...' : 'ذخیره'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
