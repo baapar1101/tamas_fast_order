@@ -61,7 +61,7 @@ function ProductSkeletons({ viewMode }: { viewMode: 'list' | 'grid' }) {
 
 export function StorefrontPage() {
   const toast = useToast();
-  const { user, complete, isAdmin } = useAuth();
+  const { user, complete, isAdmin, logout } = useAuth();
   const addToCart = useCart((s) => s.add);
   const lines = useCart((s) => s.lines);
 
@@ -309,9 +309,9 @@ export function StorefrontPage() {
                   <div style={{ height: '1px', backgroundColor: '#e2e8f0', margin: '4px 0' }} />
                   <button 
                     type="button" 
-                    onClick={() => {
-                      localStorage.removeItem('tamas_session');
-                      window.location.reload();
+                    onClick={async () => {
+                      await logout();
+                      toast.ok('از حساب خود خارج شدید.');
                     }}
                     style={{ width: '100%', textAlign: 'right', padding: '10px 16px', borderRadius: '8px', color: '#e11d48', backgroundColor: 'transparent', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
                   >
@@ -393,7 +393,7 @@ export function StorefrontPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <Link to="/orders" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: '#f1f5f9', borderRadius: 12, color: '#334155', textDecoration: 'none', fontWeight: 600 }}><Icon name="bag" /> سفارش‌های من</Link>
                 {isAdmin && <Link to="/admin" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: '#ecfdf5', borderRadius: 12, color: '#059669', textDecoration: 'none', fontWeight: 600 }}><Icon name="grid" /> پنل مدیریت</Link>}
-                <button type="button" onClick={() => { localStorage.removeItem('tamas_session'); window.location.reload(); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: '#fff1f2', borderRadius: 12, color: '#e11d48', border: 'none', fontWeight: 600, cursor: 'pointer' }}><Icon name="chevron" style={{ transform: 'rotate(180deg)' }} /> خروج از حساب</button>
+                <button type="button" onClick={async () => { await logout(); toast.ok('از حساب خود خارج شدید.'); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: '#fff1f2', borderRadius: 12, color: '#e11d48', border: 'none', fontWeight: 600, cursor: 'pointer' }}><Icon name="chevron" style={{ transform: 'rotate(180deg)' }} /> خروج از حساب</button>
               </div>
             </div>
           ) : (
