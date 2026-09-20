@@ -91,9 +91,13 @@ const routes: FastifyPluginAsync = async (app) => {
     
     // Check old status if we are updating it to avoid duplicate SMS
     let oldStatus: string | undefined;
-    if (body.status) {
-      const [oldRow] = await db.select({ status: orders.status }).from(orders).where(eq(orders.id, id));
-      oldStatus = oldRow?.status;
+    let oldPaymentStatus: string | undefined;
+    if (body.status || body.paymentStatus) {
+      const [oldRow] = await db.select({ status: orders.status, paymentStatus: orders.paymentStatus }).from(orders).where(eq(orders.id, id));
+      if (oldRow) {
+        oldStatus = oldRow.status;
+        oldPaymentStatus = oldRow.paymentStatus;
+      }
     }
 
     const [updated] = await db
@@ -108,14 +112,26 @@ const routes: FastifyPluginAsync = async (app) => {
       .returning();
     if (!updated) throw notFound('سفارش پیدا نشد.');
     
-    if (body.status && body.status !== oldStatus && updated.phone) {
+    if (updated.phone) {
       const { sendTemplatedSms } = await import('../../services/sms.js');
-      const templateKey = `sms_template_order_${body.status}`;
-      sendTemplatedSms(updated.phone, templateKey, {
-        order_code: updated.orderCode,
-        name: updated.customerName || 'مشتری',
-        status: body.status,
-      }).catch((err) => req.log.error({ err }, 'failed to send status sms'));
+
+      // Status update SMS
+      if (body.status && body.status !== oldStatus) {
+        const templateKey = `sms_template_order_${body.status}`;
+        sendTemplatedSms(updated.phone, templateKey, {
+          order_code: updated.orderCode,
+          name: updated.customerName || 'مشتری',
+          status: body.status,
+        }).catch((err) => req.log.error({ err }, 'failed to send status sms'));
+      }
+
+      // Payment update SMS
+      if (body.paymentStatus && body.paymentStatus === 'paid' && oldPaymentStatus !== 'paid') {
+        sendTemplatedSms(updated.phone, 'sms_template_payment_paid', {
+          order_code: updated.orderCode,
+          name: updated.customerName || 'مشتری',
+        }).catch((err) => req.log.error({ err }, 'failed to send payment sms'));
+      }
     }
 
     const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));

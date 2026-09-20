@@ -170,7 +170,48 @@ body.admin-page-active.admin-theme-light {
 .a-card-title { font-size: 0.95rem; font-weight: 700; color: var(--a-t1); }
 .a-card-sub { font-size: 0.72rem; color: var(--a-t4); margin-top: 0.2rem; line-height: 1.6; }
 .a-card-desc { font-size: 0.72rem; color: var(--a-t4); margin-top: 0.2rem; line-height: 1.6; }
-.a-card-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+/* ---------------------------
+   Attribute options builder
+   --------------------------- */
+.a-segmented--wrap { flex-wrap: wrap; width: 100%; }
+.a-option-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.a-option-row .a-input { flex: 1 1 auto; min-width: 0; }
+.a-input--warn { border-color: var(--a-amber) !important; box-shadow: 0 0 0 2px var(--a-amber-soft); }
+.a-option-index { min-width: 1.9rem; justify-content: center; }
+.a-option-dup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--a-amber);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.a-empty--small { padding: 1.5rem 1rem; }
+.a-option-preview-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.15rem 0 0.55rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--a-divider);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--a-t3);
+}
+.a-options-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  max-width: 320px;
+}
+.a-options-cell .a-badge { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
 .a-title-fallback { color: var(--a-t1); }
 .a-title-mega { font-size: 1.4rem; font-weight: 800; line-height: 1.6; }
 @media (min-width: 640px) { .a-title-mega { font-size: 1.9rem; } }
@@ -510,6 +551,25 @@ body.admin-page-active.admin-theme-light {
   .a-attr-row .a-attr-key { flex: 0 0 33.333%; }
   .a-attr-row .a-attr-val { flex: 1 1 auto; }
 }
+.a-attr-row--defined { border-color: var(--a-brand); box-shadow: 0 0 0 1px var(--a-brand-soft); }
+.a-attr-type {
+  display: inline-block;
+  margin-top: 0.4rem;
+  padding: 0.14rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--a-t4);
+  background: var(--a-slate-soft);
+}
+.a-attr-type--select { color: var(--a-amber); background: var(--a-amber-soft); }
+.a-attr-multi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding-inline-end: 2rem;
+}
+.a-attr-multi .a-chip-opt { flex: 0 0 auto; }
 
 /* Sticky editor toolbar */
 .a-stickybar {

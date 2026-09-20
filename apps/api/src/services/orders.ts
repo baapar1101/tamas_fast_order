@@ -182,6 +182,18 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       // app.log?.warn?.({ err }, 'CRM pushOrder failed (non-blocking)');
     });
 
+    // Fire-and-forget SMS notification
+    if (user.phone) {
+      import('./sms.js').then(({ sendTemplatedSms }) => {
+        sendTemplatedSms(user.phone, 'sms_template_order_new', {
+          order_code: order.orderCode,
+          name: customerName,
+        }).catch((err) => {
+          console.error('[SMS] Failed to send new order sms:', err);
+        });
+      });
+    }
+
     return toOrderDTO(order, items);
   });
 }
