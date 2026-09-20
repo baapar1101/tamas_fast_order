@@ -1,30 +1,30 @@
 /* ------------------------------------------------------------------ *
- * Exact Legacy Storefront Design & Layout Rules
+ * tamasmarket Storefront Design & Layout Rules
  * ------------------------------------------------------------------ */
 
 .shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
+  background: var(--tamas-bg);
 }
 
 /* Topbar & Promo Strip */
 .topbar {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--tamas-border);
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--tamas-shadow-sm);
 }
 
 .topbar-promo {
   width: 100%;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(90deg, #00596b, #00768f, #008da8);
+  background: var(--tamas-promo-grad);
 }
 
 .promo-sheen {
