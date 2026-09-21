@@ -264,9 +264,9 @@ export default function AdminApp() {
   const [currentTime, setCurrentTime] = useState({ date: '', time: '' });
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
-      return localStorage.getItem('tamas_admin_theme') === 'light' ? 'light' : 'dark';
+      return localStorage.getItem('tamas_admin_theme') === 'dark' ? 'dark' : 'light';
     } catch {
-      return 'dark';
+      return 'light';
     }
   });
 
