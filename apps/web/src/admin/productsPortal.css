@@ -18,17 +18,17 @@
 }
 
 .pp-root {
-  --pp-text-primary: #101828;
-  --pp-text-secondary: #344054;
-  --pp-text-tertiary: #475467;
-  --pp-text-muted: #98a2b3;
-  --pp-bg-page: #f9fafb;
-  --pp-bg-card: #ffffff;
-  --pp-bg-hover: #f2f4f7;
-  --pp-bg-active: #eaecf0;
-  --pp-border: #d0d5dd;
-  --pp-border-light: #eaecf0;
-  --pp-border-faint: #f2f4f7;
+  --pp-text-primary: var(--a-t1);
+  --pp-text-secondary: var(--a-t2);
+  --pp-text-tertiary: var(--a-t3);
+  --pp-text-muted: var(--a-t4);
+  --pp-bg-page: transparent;
+  --pp-bg-card: var(--a-surface);
+  --pp-bg-hover: var(--a-hover);
+  --pp-bg-active: var(--a-surface-2);
+  --pp-border: var(--a-border-2);
+  --pp-border-light: var(--a-border);
+  --pp-border-faint: var(--a-divider);
   --pp-brand: #0580fa;
   --pp-brand-hover: #0470dc;
   --pp-brand-press: #035cb4;
@@ -498,7 +498,8 @@
   border: 1px solid var(--pp-border-light);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgb(16 24 40 / 0.05);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(12px);
 }
 
 .pp-table-wrap {
@@ -822,17 +823,17 @@
    Default .pp-root tokens are the light palette; in dark mode the whole
    products page (cards, grid, inputs, menus) follows the shell theme. */
 body.admin-page-active:not(.admin-theme-light) .pp-root {
-  --pp-text-primary: #f2f4f7;
-  --pp-text-secondary: #d0d5dd;
-  --pp-text-tertiary: #98a2b3;
-  --pp-text-muted: #667085;
-  --pp-bg-page: #0b111d;
-  --pp-bg-card: #101828;
-  --pp-bg-hover: #1a2436;
-  --pp-bg-active: #223048;
-  --pp-border: #2b3a55;
-  --pp-border-light: #233047;
-  --pp-border-faint: #1a2436;
+  --pp-text-primary: var(--a-t1);
+  --pp-text-secondary: var(--a-t2);
+  --pp-text-tertiary: var(--a-t3);
+  --pp-text-muted: var(--a-t4);
+  --pp-bg-page: transparent;
+  --pp-bg-card: var(--a-surface);
+  --pp-bg-hover: var(--a-hover);
+  --pp-bg-active: var(--a-surface-2);
+  --pp-border: var(--a-border-2);
+  --pp-border-light: var(--a-border);
+  --pp-border-faint: var(--a-divider);
   --pp-brand: #4ca2ff;
   --pp-brand-hover: #3d94f2;
   --pp-brand-press: #2f86e3;
