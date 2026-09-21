@@ -230,7 +230,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  font-size: 1var(--tamas-radius-sm);
+  font-size: 18px;
   border: 1px solid var(--tamas-border);
   background: #ffffff;
   color: var(--tamas-fg);
@@ -760,8 +760,8 @@
 }
 
 .sort-select {
-  width: 14var(--tamas-radius-sm);
-  min-width: 14var(--tamas-radius-sm);
+  width: 148px;
+  min-width: 148px;
   padding-inline: 12px 34px;
   cursor: pointer;
   color: var(--tamas-fg);
@@ -890,7 +890,7 @@
 .variant {
   border: 1px solid #dce5ec;
   border-radius: 12px;
-  padding: 12px 1var(--tamas-radius-sm);
+  padding: 12px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -997,7 +997,7 @@
   color: #ffffff;
   border: none;
   border-radius: 10px;
-  padding: var(--tamas-radius-sm) 1var(--tamas-radius-sm);
+  padding: var(--tamas-radius-sm) 18px;
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
@@ -1092,7 +1092,7 @@
 .variant {
   border: 1px solid #dce5ec;
   border-radius: 12px;
-  padding: 12px 1var(--tamas-radius-sm);
+  padding: 12px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1199,7 +1199,7 @@
   color: #ffffff;
   border: none;
   border-radius: 10px;
-  padding: var(--tamas-radius-sm) 1var(--tamas-radius-sm);
+  padding: var(--tamas-radius-sm) 18px;
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
@@ -1221,13 +1221,13 @@
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1var(--tamas-radius-sm);
+  gap: 18px;
 }
 
 .product-card {
   background: var(--card);
   border-radius: var(--radius-lg);
-  padding: 1var(--tamas-radius-sm);
+  padding: 18px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -1586,8 +1586,8 @@
   border: 1px solid var(--tamas-border);
   background: #ffffff;
   border-radius: 6px;
-  width: 2var(--tamas-radius-sm);
-  height: 2var(--tamas-radius-sm);
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -1627,7 +1627,7 @@
   margin-top: 50px;
   background: linear-gradient(180deg, var(--tamas-accent-deep) 0%, var(--tamas-accent) 100%);
   color: #ffffff;
-  padding: 4var(--tamas-radius-sm) 6% 24px;
+  padding: 48px 6% 24px;
   border-top: 3px solid var(--tamas-accent);
 }
 
@@ -1707,7 +1707,7 @@
 
 .footer-about-text {
   position: relative;
-  max-height: 12var(--tamas-radius-sm);
+  max-height: 128px;
   overflow: hidden;
   transition: max-height 0.35s ease;
 }
@@ -1910,7 +1910,7 @@
   display: none;
 }
 
-@media (max-width: 76var(--tamas-radius-sm)) {
+@media (max-width: 768px) {
   .toolbar {
     padding: 16px;
     gap: 12px;
@@ -2205,10 +2205,10 @@
 
   .products-list .product-thumb {
     grid-area: image;
-    width: 7var(--tamas-radius-sm) !important;
-    height: 7var(--tamas-radius-sm) !important;
-    max-width: 7var(--tamas-radius-sm) !important;
-    max-height: 7var(--tamas-radius-sm) !important;
+    width: 78px !important;
+    height: 78px !important;
+    max-width: 78px !important;
+    max-height: 78px !important;
     border-radius: 10px !important;
     padding: 4px !important;
   }
@@ -2267,7 +2267,7 @@
 
   /* Mobile Bottom Navigation Bar */
   .shell {
-    padding-bottom: 6var(--tamas-radius-sm);
+    padding-bottom: 68px;
   }
 
   .tabbar {
@@ -2329,7 +2329,7 @@
   .tabbar-item .badge-count {
     position: absolute;
     top: -4px;
-    right: -var(--tamas-radius-sm);
+    right: -8px;
     left: auto;
     font-size: 9.5px;
     width: 17px;
@@ -2585,7 +2585,7 @@
   color: #ffffff;
   font-size: 13px;
   font-weight: 800;
-  padding: 9px 1var(--tamas-radius-sm);
+  padding: 9px 18px;
   border-radius: 12px;
   transition: transform 0.15s ease, background 0.2s ease;
 }
@@ -2610,7 +2610,7 @@
   }
 }
 
-@media (max-width: 76var(--tamas-radius-sm)) {
+@media (max-width: 768px) {
   .install-banner {
     left: 12px;
     right: 12px;
