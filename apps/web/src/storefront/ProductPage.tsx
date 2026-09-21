@@ -245,7 +245,7 @@ export function ProductPage() {
             <button
               type="button"
               className="pp-main-img"
-              onClick={() => setPreview(images[0])}
+              onClick={() => setPreview(images[0] || null)}
               aria-label="بزرگ‌نمایی تصویر"
             >
               {isPromo && (
