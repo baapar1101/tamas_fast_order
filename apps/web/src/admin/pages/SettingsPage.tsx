@@ -891,39 +891,39 @@ export function SettingsPage() {
               <button
                 type="button"
                 className="a-btn a-btn--secondary a-btn--block"
-                onClick={async () => {
-                  try {
+                onClick={() => {
+                  const total = crmStats.data?.local.activeProducts ?? 10;
+                  startSync('stock-sync', 'همگام‌سازی موجودی (کرمان/تهران)', total, async () => {
                     const res = await api.post<{ ok: boolean; synced: number; errors: number; errorDetails: string[] }>('/crm/sync/stock');
-                    if (res.ok) toast.ok(`${res.synced} محصول Stok همگام‌سازی شد. خطاها: ${res.errors}`);
-                    else toast.error(`خطaها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                    if (res.ok) toast.ok(`${res.synced} محصول Stok همگam‌سازی شد. خطاها: ${res.errors}`);
+                    else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
                     syncProducts.refetch();
                     syncLogs.refetch();
-                  } catch (err: any) {
-                    toast.error(err.message || 'خطa در همگام‌سازی Stok');
-                  }
+                    return res;
+                  });
                 }}
               >
                 <div className="flex items-center justify-center gap-2">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
-                  <span>همگام‌سازی Stok (کرمان/تهران)</span>
+                  <span>همگam‌سازی Stok (کرمان/تهران)</span>
                 </div>
               </button>
 
               <button
                 type="button"
                 className="a-btn a-btn--secondary a-btn--block"
-                onClick={async () => {
-                  try {
+                onClick={() => {
+                  const total = crmStats.data?.local.totalOrders ?? 10;
+                  startSync('orders-sync', 'همگam‌سازی سفارش‌های جدید', total, async () => {
                     const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/orders');
-                    if (res.ok) toast.ok(`${res.pushed} سفارش همگام‌سازی شد. خطaها: ${res.errors}`);
-                    else toast.error(`خطaها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                    if (res.ok) toast.ok(`${res.pushed} سفارش همگam‌سازی شد. خطاها: ${res.errors}`);
+                    else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
                     syncLogs.refetch();
                     crmStats.refetch();
-                  } catch (err: any) {
-                    toast.error(err.message || 'خطa در همگam‌سازی سفارش‌ها');
-                  }
+                    return res;
+                  });
                 }}
               >
                 <div className="flex items-center justify-center gap-2">
@@ -937,16 +937,16 @@ export function SettingsPage() {
               <button
                 type="button"
                 className="a-btn a-btn--secondary a-btn--block"
-                onClick={async () => {
-                  try {
+                onClick={() => {
+                  const total = crmStats.data?.local.activeUsers ?? 10;
+                  startSync('persons-sync', 'همگam‌سازی مشتریان', total, async () => {
                     const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/persons');
-                    if (res.ok) toast.ok(`${res.pushed} مشتری همگam‌سازی شد. خطaها: ${res.errors}`);
-                    else toast.error(`خطaها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                    if (res.ok) toast.ok(`${res.pushed} مشتری همگam‌سازی شد. خطاها: ${res.errors}`);
+                    else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
                     syncLogs.refetch();
                     crmStats.refetch();
-                  } catch (err: any) {
-                    toast.error(err.message || 'خطa در همگam‌سازی مشتریان');
-                  }
+                    return res;
+                  });
                 }}
               >
                 <div className="flex items-center justify-center gap-2">

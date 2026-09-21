@@ -18,8 +18,10 @@ const routes: FastifyPluginAsync = async (app) => {
       [productRow],
       [activeRow],
       [outOfStockRow],
+      [newProductRow],
       [userRow],
       [pendingUserRow],
+      [newUserRow],
       [orderRow],
       [newOrderRow],
       [revenueRow],
@@ -34,8 +36,10 @@ const routes: FastifyPluginAsync = async (app) => {
         .select({ n: count() })
         .from(products)
         .where(and(liveProducts, sql`(${products.stock} + ${products.kermanStock} + ${products.tehranStock}) = 0`)),
+      db.select({ n: count() }).from(products).where(and(liveProducts, gte(products.createdAt, thirtyDaysAgo))),
       db.select({ n: count() }).from(users).where(isNull(users.deletedAt)),
       db.select({ n: count() }).from(users).where(and(isNull(users.deletedAt), eq(users.isActive, false))),
+      db.select({ n: count() }).from(users).where(and(isNull(users.deletedAt), gte(users.createdAt, thirtyDaysAgo))),
       db.select({ n: count() }).from(orders).where(isNull(orders.deletedAt)),
       db.select({ n: count() }).from(orders).where(and(isNull(orders.deletedAt), eq(orders.status, 'new'))),
       db
@@ -86,8 +90,10 @@ const routes: FastifyPluginAsync = async (app) => {
       productCount: Number(productRow?.n ?? 0),
       activeProductCount: Number(activeRow?.n ?? 0),
       outOfStockCount: Number(outOfStockRow?.n ?? 0),
+      newProduct30: Number(newProductRow?.n ?? 0),
       userCount: Number(userRow?.n ?? 0),
       pendingUserCount: Number(pendingUserRow?.n ?? 0),
+      newUser30: Number(newUserRow?.n ?? 0),
       orderCount: Number(orderRow?.n ?? 0),
       newOrderCount: Number(newOrderRow?.n ?? 0),
       revenueTotal: Number(revenueRow?.total ?? 0),

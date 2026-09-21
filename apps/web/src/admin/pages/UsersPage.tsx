@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UserDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
+import { AdminStatStrip } from '../components/AdminStatStrip';
 import { api } from '../../lib/api';
 import { useDebounced } from '../../storefront/hooks';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
@@ -77,30 +78,8 @@ export function UsersPage() {
         </div>
       </section>
 
-      {/* Summary Cards */}
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="a-stat">
-          <div className="a-stat-head">
-            <span className="a-stat-label">کل کاربران</span>
-            <span className="a-badge a-badge--brand">{formatNumber(total)}</span>
-          </div>
-          <p className="a-stat-value">{formatNumber(total)}</p>
-        </div>
-        <div className="a-stat">
-          <div className="a-stat-head">
-            <span className="a-stat-label">مدیران سیستم</span>
-            <span className="a-badge a-badge--amber">{formatNumber(adminUsersCount)}</span>
-          </div>
-          <p className="a-stat-value a-stat-value--amber">{formatNumber(adminUsersCount)}</p>
-        </div>
-        <div className="a-stat">
-          <div className="a-stat-head">
-            <span className="a-stat-label">کد ملی تایید شده</span>
-            <span className="a-badge a-badge--brand">{formatNumber(verifiedIdCount)}</span>
-          </div>
-          <p className="a-stat-value a-stat-value--green">{formatNumber(verifiedIdCount)}</p>
-        </div>
-      </section>
+      {/* Summary strip */}
+      <AdminStatStrip kind="users" />
 
       {/* Search + Filters */}
       <section className="a-searchbar">

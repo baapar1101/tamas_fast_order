@@ -925,6 +925,71 @@ body.admin-page-active.admin-theme-light {
 .a-pager { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
 .a-pager-info { font-size: 0.74rem; font-weight: 600; color: var(--a-t4); }
 
+/* Tidy compact stat strip — users / products / orders list pages */
+.a-stat-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  width: 100%;
+  margin-inline: auto;
+}
+@media (min-width: 640px) {
+  .a-stat-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.a-page--users > .a-stat-strip { max-width: 960px; }
+.a-page--orders > .a-stat-strip,
+.pp-root > .a-stat-strip { max-width: 1140px; }
+
+.a-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--a-border);
+  border-radius: 1rem;
+  background: var(--a-surface);
+  box-shadow: var(--a-shadow);
+}
+.a-stat-card-ico {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 0.8rem;
+}
+.a-stat-card-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.a-stat-card-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--a-t1);
+  white-space: nowrap;
+}
+.a-stat-card-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--a-t3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.a-stat-card--emerald .a-stat-card-ico { background: rgba(16, 185, 129, 0.14); color: #34d399; }
+.a-stat-card--cyan .a-stat-card-ico { background: rgba(6, 182, 212, 0.14); color: #22d3ee; }
+.a-stat-card--amber .a-stat-card-ico { background: rgba(245, 158, 11, 0.16); color: #f59e0b; }
+.a-stat-card--rose .a-stat-card-ico { background: rgba(251, 113, 133, 0.14); color: #fb7185; }
+
+body.admin-page-active.admin-theme-light .a-stat-card--emerald .a-stat-card-ico { color: #0f9d6d; }
+body.admin-page-active.admin-theme-light .a-stat-card--cyan .a-stat-card-ico { color: #0e7490; }
+body.admin-page-active.admin-theme-light .a-stat-card--amber .a-stat-card-ico { color: #b54708; }
+body.admin-page-active.admin-theme-light .a-stat-card--rose .a-stat-card-ico { color: #d92d20; }
+
 /* Checkboxes inside tables / grids follow the brand accent */
 .a-table input[type='checkbox'],
 .a-grid-check { accent-color: var(--a-brand); }

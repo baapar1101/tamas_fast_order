@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
+import { Modal } from '../../components/Modal';
 import { api } from '../../lib/api';
 import { ImagePicker } from '../components/ImagePicker';
 

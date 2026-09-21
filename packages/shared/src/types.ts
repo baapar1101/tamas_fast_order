@@ -220,8 +220,10 @@ export interface DashboardStats {
   productCount: number;
   activeProductCount: number;
   outOfStockCount: number;
+  newProduct30: number;
   userCount: number;
   pendingUserCount: number;
+  newUser30: number;
   orderCount: number;
   newOrderCount: number;
   revenueTotal: number;
