@@ -123,6 +123,32 @@ async function crmRequest<T = unknown>(
 /* ------------------------------------------------------------------ */
 
 export const crmClient = {
+  /** Helper to log sync result to CRM sync logs table. */
+  async _logSyncResult(
+    entity: CrmSyncResult['entity'],
+    entityKey: string,
+    action: 'create' | 'update' | 'delete',
+    result: CrmSyncResult & { remoteId?: number },
+    payload?: Record<string, unknown>,
+  ): Promise<void> {
+    try {
+      const { db } = await import('../db/client.js');
+      const { crmSyncLogs } = await import('../db/schema.js');
+      await db.insert(crmSyncLogs).values({
+        entity,
+        entityKey,
+        action,
+        status: result.ok ? 'success' : 'error',
+        remoteId: result.remoteId?.toString() ?? null,
+        error: result.error ?? null,
+        payload: payload ?? {},
+        response: result as unknown as Record<string, unknown>,
+      });
+    } catch (err) {
+      console.error('[CRM] Failed to log sync result:', err);
+    }
+  },
+
   /** Push an order to the CRM. Returns the remote CRM order id on success. */
   async pushOrder(order: CrmOrder, config: CrmConfig): Promise<CrmSyncResult> {
     try {
@@ -174,10 +200,20 @@ export const crmClient = {
         { method: 'POST', body: JSON.stringify(payload) },
       )) as { success?: boolean; data?: { id?: number }; error?: { code?: string; message?: string } };
       if (data?.success === false || data?.error) {
+        await this._logSyncResult('order', order.orderCode, 'create', {
+          ok: false, entity: 'order', error: data.error?.message || 'CRM rejected order'
+        }, { orderCode: order.orderCode });
         return { ok: false, entity: 'order', error: data.error?.message || 'CRM rejected order' };
       }
+      // Log successful order sync with invoice ID
+      await this._logSyncResult('order', order.orderCode, 'create', {
+        ok: true, entity: 'order', remoteId: data?.data?.id
+      }, { orderCode: order.orderCode, invoiceId: data?.data?.id, total: order.total });
       return { ok: true, entity: 'order', remoteId: data?.data?.id ?? undefined };
     } catch (err: any) {
+      await this._logSyncResult('order', order.orderCode, 'create', {
+        ok: false, entity: 'order', error: err?.message ?? String(err)
+      }, { orderCode: order.orderCode });
       return { ok: false, entity: 'order', error: err?.message ?? String(err) };
     }
   },
@@ -211,6 +247,10 @@ export const crmClient = {
       if (data?.success === false || data?.error) {
         return { ok: false, entity: 'product', error: data.error?.message || 'CRM rejected product' };
       }
+      // Log successful product sync with invoice ID
+      await this._logSyncResult('product', product.productId, 'create', {
+        ok: true, entity: 'product', remoteId: data?.data?.id
+      }, { productId: product.productId, crmId: data?.data?.id, title: product.title });
       return { ok: true, entity: 'product', remoteId: data?.data?.id ?? undefined };
     } catch (err: any) {
       return { ok: false, entity: 'product', error: err?.message ?? String(err) };
@@ -359,8 +399,15 @@ export const crmClient = {
         { method: 'POST', body: JSON.stringify(payload) },
       )) as { success?: boolean; data?: { id?: number }; error?: { code?: string; message?: string } };
       if (data?.success === false || data?.error) {
+        await this._logSyncResult('person', person.phone, 'create', {
+          ok: false, entity: 'person', error: data.error?.message || 'CRM rejected person'
+        }, { phone: person.phone, aliasName: person.aliasName });
         return { ok: false, entity: 'person', error: data.error?.message || 'CRM rejected person' };
       }
+      // Log successful person sync
+      await this._logSyncResult('person', person.phone, 'create', {
+        ok: true, entity: 'person', remoteId: data?.data?.id as any
+      }, { phone: person.phone, aliasName: person.aliasName, crmId: data?.data?.id });
       return { ok: true, entity: 'person', personId: data?.data?.id };
     } catch (err: any) {
       return { ok: false, entity: 'person', error: err?.message ?? String(err) };

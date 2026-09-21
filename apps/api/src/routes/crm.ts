@@ -361,6 +361,8 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
     async (req: FastifyRequest, reply: FastifyReply) => {
       const { crmClient } = await import('../lib/crm.js');
       const { queryProducts } = await import('../services/catalog.js');
+      const { db } = await import('../db/client.js');
+      const { crmSyncLogs } = await import('../db/schema.js');
 
       const result = await queryProducts({ page: 1, perPage: 200, inStock: false, sort: 'price_asc', brands: [] });
       let synced = 0;
@@ -388,6 +390,18 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
             updatedAt: variant.updatedAt,
           }, config);
 
+          // Log each product sync result
+          await db.insert(crmSyncLogs).values({
+            entity: 'product',
+            entityKey: variant.productId,
+            action: 'update',
+            status: pushResult.ok ? 'success' : 'error',
+            remoteId: pushResult.remoteId?.toString() ?? null,
+            error: pushResult.ok ? null : String(pushResult.error),
+            payload: { productId: variant.productId, stock: variant.stock },
+            response: pushResult as unknown as Record<string, unknown>,
+          });
+
           if (pushResult.ok) synced++;
           else errors.push(`${variant.productId}: ${pushResult.error}`);
         }
@@ -396,6 +410,124 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       return {
         ok: errors.length === 0,
         synced,
+        errors: errors.length,
+        errorDetails: errors.slice(0, 20),
+      };
+    },
+  );
+
+  /**
+   * Bulk sync orders to CRM.
+   * POST /api/crm/sync/orders
+   */
+  app.post(
+    '/crm/sync/orders',
+    { preHandler: [app.requirePermission('manage_settings')] },
+    async (req: FastifyRequest, reply: FastifyReply) => {
+      const { crmClient } = await import('../lib/crm.js');
+      const { db } = await import('../db/client.js');
+      const { orders } = await import('../db/schema.js');
+      const { crmSyncLogs } = await import('../db/schema.js');
+      const { desc, isNull, eq } = await import('drizzle-orm');
+      const config = await getCrmConfig();
+
+      // Get recent orders (limit to 50)
+      const orderRows = await db.select().from(orders).orderBy(desc(orders.createdAt)).limit(50);
+      let synced = 0;
+      const errors: string[] = [];
+
+      for (const orderRow of orderRows) {
+        // Build a minimal CrmOrder from the DB row
+        const crmOrder = {
+          orderCode: orderRow.orderCode,
+          customerName: orderRow.customerName,
+          phone: orderRow.phone,
+          storeName: orderRow.storeName,
+          address: orderRow.address,
+          total: Number(orderRow.total),
+          quantity: 1,
+          status: orderRow.status,
+          paymentStatus: orderRow.paymentStatus,
+          paymentMethod: orderRow.paymentMethod,
+          note: orderRow.note ?? undefined,
+          items: [],
+        } as any;
+
+        const result = await crmClient.pushOrder(crmOrder, config);
+        if (result.ok) synced++;
+        else errors.push(`${orderRow.orderCode}: ${result.error}`);
+
+        // Log the sync attempt
+        await db.insert(crmSyncLogs).values({
+          entity: 'order',
+          entityKey: orderRow.orderCode,
+          action: 'create',
+          status: result.ok ? 'success' : 'error',
+          remoteId: result.remoteId?.toString() ?? null,
+          error: result.error ?? null,
+          payload: { orderId: orderRow.id, orderCode: orderRow.orderCode },
+          response: result as unknown as Record<string, unknown>,
+        });
+      }
+
+      return {
+        ok: errors.length === 0,
+        pushed: synced,
+        errors: errors.length,
+        errorDetails: errors.slice(0, 20),
+      };
+    },
+  );
+
+  /**
+   * Bulk sync persons to CRM.
+   * POST /api/crm/sync/persons
+   */
+  app.post(
+    '/crm/sync/persons',
+    { preHandler: [app.requirePermission('manage_settings')] },
+    async (req: FastifyRequest, reply: FastifyReply) => {
+      const { crmClient } = await import('../lib/crm.js');
+      const { db } = await import('../db/client.js');
+      const { users } = await import('../db/schema.js');
+      const { crmSyncLogs } = await import('../db/schema.js');
+      const { desc, eq } = await import('drizzle-orm');
+      const config = await getCrmConfig();
+
+      // Get active users
+      const userRows = await db.select().from(users).where(eq(users.isActive, true)).orderBy(desc(users.createdAt)).limit(50);
+      let synced = 0;
+      const errors: string[] = [];
+
+      for (const userRow of userRows) {
+        const person = {
+          firstName: userRow.name.split(' ')[0] || '',
+          lastName: userRow.name.split(' ').slice(1).join(' ') || '',
+          phone: userRow.phone,
+          email: null,
+          aliasName: userRow.name || userRow.phone,
+        } as any;
+
+        const result = await crmClient.pushPerson(person, config);
+        if (result.ok) synced++;
+        else errors.push(`${userRow.phone}: ${result.error}`);
+
+        // Log the sync attempt
+        await db.insert(crmSyncLogs).values({
+          entity: 'person',
+          entityKey: userRow.phone,
+          action: 'create',
+          status: result.ok ? 'success' : 'error',
+          remoteId: result.personId?.toString() ?? null,
+          error: result.error ?? null,
+          payload: { userId: userRow.id, phone: userRow.phone },
+          response: result as unknown as Record<string, unknown>,
+        });
+      }
+
+      return {
+        ok: errors.length === 0,
+        pushed: synced,
         errors: errors.length,
         errorDetails: errors.slice(0, 20),
       };

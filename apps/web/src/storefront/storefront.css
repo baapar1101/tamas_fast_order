@@ -2842,6 +2842,7 @@
     border-radius: 12px;
     background: var(--tamas-info-bg);
     font-size: 12.5px;
+    white-space: nowrap;
   }
 
   .sidebar-body > .switch-row:last-child {
