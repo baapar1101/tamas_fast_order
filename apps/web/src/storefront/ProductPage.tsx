@@ -464,7 +464,7 @@ export function ProductPage() {
             )}
             <div className="pp-price"><Price amount={selected.price} /></div>
           </div>
-          <button type="button" className="pp-mobile-add" onClick={() => handleAdd(selected, whButtons[0])}>
+          <button type="button" className="pp-mobile-add" onClick={() => handleAdd(selected, whButtons[0]!)}>
             افزودن به سبد
           </button>
         </div>

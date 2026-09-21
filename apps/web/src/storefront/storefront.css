@@ -2713,3 +2713,189 @@
 [data-theme="dark"] .site-footer {
   background: linear-gradient(180deg, var(--tamas-accent-deep) 0%, var(--tamas-accent) 100%);
 }
+
+/* Mobile polish — appended last so it wins the cascade */
+
+@media (max-width: 480px) {
+  .topbar-promo {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-slider {
+    height: 150px !important;
+    margin-bottom: 12px;
+    border-radius: 16px;
+  }
+
+  .slider-arrow {
+    display: none;
+  }
+
+  .slider-dots {
+    bottom: 8px;
+    gap: 5px;
+  }
+
+  .slider-dot {
+    width: 7px;
+    height: 7px;
+  }
+
+  .slider-dot.active {
+    width: 22px;
+  }
+
+  .category-toolbar {
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border-radius: 16px;
+  }
+
+  .categories {
+    gap: 8px;
+  }
+
+  .category-chip {
+    min-width: 74px;
+    height: 64px;
+    padding: 6px 8px;
+    gap: 4px;
+    border-radius: 12px;
+  }
+
+  .category-chip .chip-icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .category-chip .chip-title {
+    font-size: 10px;
+  }
+
+  .sidebar {
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    border-radius: 16px;
+  }
+
+  .sidebar-body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+  }
+
+  .sidebar-body > .side-title {
+    width: 100%;
+    flex: 1 1 100%;
+    margin: 0 !important;
+    font-size: 13px;
+  }
+
+  .sidebar-body > .side-title.accordion-title {
+    margin-bottom: 4px;
+  }
+
+  .brand-icons {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 2px 0 6px;
+  }
+
+  .brand-icons::-webkit-scrollbar {
+    display: none;
+  }
+
+  .brand-icon-btn {
+    min-height: 58px;
+    min-width: 84px;
+    width: auto;
+    padding: 6px 10px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    gap: 4px;
+  }
+
+  .brand-icon-btn img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .brand-icon-btn .brand-name {
+    font-size: 10px;
+  }
+
+  .sidebar-body > .switch-row {
+    flex: 1 1 45%;
+    width: auto;
+    margin: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--tamas-border);
+    border-radius: 12px;
+    background: var(--tamas-info-bg);
+    font-size: 12.5px;
+  }
+
+  .sidebar-body > .switch-row:last-child {
+    border-bottom: 1px solid var(--tamas-border);
+  }
+
+  .product-card {
+    padding: 12px 12px;
+    column-gap: 12px;
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .product-card.is-promotion {
+    padding-top: 0;
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .card-thumb {
+    width: 96px !important;
+    height: 96px !important;
+    max-width: 96px !important;
+    max-height: 96px !important;
+  }
+
+  .card-title {
+    font-size: 11.5px;
+  }
+
+  .card-price-box {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+
+  .card-price-box > .btn {
+    min-height: 38px;
+  }
+
+  .tabbar-item.active::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    inset-inline: 18px;
+    background: var(--tamas-info-bg);
+    border-radius: 14px;
+    z-index: 0;
+  }
+
+  .tabbar-item > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .tabbar-item.active .tabbar-icon {
+    transform: scale(1.08);
+  }
+}
