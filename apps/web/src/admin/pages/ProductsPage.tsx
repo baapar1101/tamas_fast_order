@@ -497,7 +497,6 @@ export function ProductsPage() {
                           {p.promotion && <span className="pp-chip pp-chip--amber">ویژه</span>}
                           <span className="pp-title">{p.title}</span>
                         </div>
-                        <div className="pp-meta">{p.productId}</div>
                       </td>
                       <td className="pp-td">
                         <div className="pp-price">{formatNumber(p.price)}</div>
