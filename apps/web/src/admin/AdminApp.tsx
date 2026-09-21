@@ -16,6 +16,7 @@ import { SlidesPage } from './pages/SlidesPage';
 import { UploadsPage } from './pages/UploadsPage';
 import { SyncPage } from './pages/SyncPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { CrmSyncPage } from './pages/CrmSyncPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { MessagesPage } from './pages/MessagesPage';
 import { MarketingPage } from './pages/MarketingPage';
@@ -209,6 +210,16 @@ const NAV_TOOLS = [
     icon: (
       <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.9" />
+      </svg>
+    ),
+    requiredPermission: 'manage_settings',
+  },
+  {
+    to: '/admin/crm-sync',
+    label: 'سینک CRM',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
       </svg>
     ),
     requiredPermission: 'manage_settings',
@@ -753,6 +764,7 @@ export default function AdminApp() {
             <Route path="marketing" element={<MarketingPage />} />
             <Route path="uploads" element={<UploadsPage />} />
             <Route path="sync" element={<SyncPage />} />
+            <Route path="crm-sync" element={<CrmSyncPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="financial" element={<FinancialPage />} />
             <Route path="comments" element={<CommentsPage />} />

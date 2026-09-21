@@ -2900,3 +2900,13 @@
     transform: scale(1.08);
   }
 }
+
+[data-theme="dark"] .tabbar {
+  background: rgba(11, 17, 29, 0.96);
+  border-top-color: var(--tamas-border);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .hero-slider {
+  background: linear-gradient(135deg, #131c2e, #1a2436);
+}
