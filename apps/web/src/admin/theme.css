@@ -68,46 +68,24 @@ body.admin-page-active {
 
   border-radius: 0.9rem;
 
-  /* Dark palette (default) */
-  --a-bg: #070b12;
-  --a-surface: #0e1626;
-  --a-surface-2: #131c2e;
-  --a-surface-3: #1a2438;
-  --a-border: hsla(0, 0%, 100%, 0.07);
-  --a-border-2: hsla(0, 0%, 100%, 0.14);
-  --a-divider: hsla(0, 0%, 100%, 0.06);
-  --a-t1: #f8fafc;
-  --a-t2: #cbd5e1;
-  --a-t3: #94a3b8;
-  --a-t4: #64748b;
-  --a-input-bg: #131c2e;
-  --a-field-bg: rgba(19, 28, 46, 0.55);
-  --a-check-bg: rgba(19, 28, 46, 0.35);
-  --a-hover: rgba(255, 255, 255, 0.04);
-  --a-shadow: 0 8px 30px -12px rgba(2, 8, 20, 0.7);
-  --a-shadow-2: 0 20px 45px -15px rgba(2, 8, 20, 0.85);
-}
-
-.admin-body-shell[data-theme='light'],
-body.admin-page-active.admin-theme-light {
-  /* Light palette (new_admin tokens) */
-  --a-bg: #f5f6f8;
-  --a-surface: #ffffff;
-  --a-surface-2: #f8fafc;
-  --a-surface-3: #f2f4f7;
-  --a-border: #eaecf0;
-  --a-border-2: #d0d5dd;
-  --a-divider: #eaecf0;
-  --a-t1: #101828;
-  --a-t2: #344054;
-  --a-t3: #475467;
-  --a-t4: #667085;
-  --a-input-bg: #ffffff;
-  --a-field-bg: #f8fafc;
-  --a-check-bg: #ffffff;
-  --a-hover: rgba(16, 24, 40, 0.04);
-  --a-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
-  --a-shadow-2: 0 12px 32px -12px rgba(16, 24, 40, 0.16);
+  /* Glassmorphism palette */
+  --a-bg: transparent;
+  --a-surface: rgba(255, 255, 255, 0.05);
+  --a-surface-2: rgba(255, 255, 255, 0.08);
+  --a-surface-3: rgba(255, 255, 255, 0.12);
+  --a-border: rgba(255, 255, 255, 0.15);
+  --a-border-2: rgba(255, 255, 255, 0.25);
+  --a-divider: rgba(255, 255, 255, 0.1);
+  --a-t1: #ffffff;
+  --a-t2: #e2e8f0;
+  --a-t3: #cbd5e1;
+  --a-t4: #94a3b8;
+  --a-input-bg: rgba(255, 255, 255, 0.03);
+  --a-field-bg: rgba(255, 255, 255, 0.05);
+  --a-check-bg: rgba(255, 255, 255, 0.1);
+  --a-hover: rgba(255, 255, 255, 0.1);
+  --a-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --a-shadow-2: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
 }
 
 /* ---------------------------------------------------------------------------
@@ -153,6 +131,8 @@ body.admin-page-active.admin-theme-light {
   border: 1px solid var(--a-border);
   border-radius: 1rem;
   background: var(--a-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   box-shadow: var(--a-shadow);
   min-width: 0;
 }
@@ -1249,17 +1229,15 @@ body.admin-theme-light .modal-backdrop .chip-slate { background: rgba(128, 138, 
 .admin-body-shell[data-theme='light'] .admin-topbar .mr-auto > div.hidden .text-emerald-400 { color: #059669 !important; }
 .admin-body-shell[data-theme='light'] .admin-topbar .mr-auto > div.hidden .bg-white\/10 { background-color: #eaecf0; }
 
-/* Topbar — icon buttons (theme toggle, bell, profile) */
-.admin-body-shell[data-theme='light'] .admin-topbar > div > .icon-btn,
-.admin-body-shell[data-theme='light'] .admin-topbar > div > .relative > .icon-btn,
-.admin-body-shell[data-theme='light'] .admin-sidebar .admin-sidebar-close {
+/* Topbar — icon buttons (theme toggle, bell, menu) */
+.admin-body-shell[data-theme='light'] .admin-topbar .icon-btn,
+.admin-body-shell[data-theme='light'] .admin-sidebar .icon-btn {
   background-color: #f4f7fa;
   border-color: #d0d5dd;
   color: #475467;
 }
-.admin-body-shell[data-theme='light'] .admin-topbar > div > .icon-btn:hover,
-.admin-body-shell[data-theme='light'] .admin-topbar > div > .relative > .icon-btn:hover,
-.admin-body-shell[data-theme='light'] .admin-sidebar .admin-sidebar-close:hover {
+.admin-body-shell[data-theme='light'] .admin-topbar .icon-btn:hover,
+.admin-body-shell[data-theme='light'] .admin-sidebar .icon-btn:hover {
   border-color: #10a37f;
   color: #10a37f;
   box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.16);

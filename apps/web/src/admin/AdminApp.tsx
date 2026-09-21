@@ -25,6 +25,7 @@ import { GraphifyPage } from './pages/GraphifyPage';
 import { ArchifyPage } from './pages/ArchifyPage';
 import { AccessGroupsPage } from './pages/AccessGroupsPage';
 import { SmsPage } from './pages/SmsPage';
+import { SmokeyBackground } from './components/SmokeyBackground';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
 import './reference.css';
@@ -262,31 +263,6 @@ export default function AdminApp() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState({ date: '', time: '' });
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    try {
-      return localStorage.getItem('tamas_admin_theme') === 'dark' ? 'dark' : 'light';
-    } catch {
-      return 'light';
-    }
-  });
-
-  const toggleTheme = () => {
-    setTheme((current) => {
-      const next = current === 'dark' ? 'light' : 'dark';
-      try {
-        localStorage.setItem('tamas_admin_theme', next);
-      } catch {
-        /* theme simply will not persist in private mode */
-      }
-      return next;
-    });
-  };
-
-  useEffect(() => {
-    if (theme === 'light') document.body.classList.add('admin-theme-light');
-    else document.body.classList.remove('admin-theme-light');
-    return () => document.body.classList.remove('admin-theme-light');
-  }, [theme]);
 
   // The reference stylesheet contains a complete utility/reset layer. Mark the
   // document while this lazy route is mounted so those rules never leak into
@@ -359,16 +335,11 @@ export default function AdminApp() {
 
   if (!user || (!isAdmin && !isOperator)) {
     return (
-      <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-        {/* Background Ambient Glows */}
-        <div className="ambient-glow-container" aria-hidden="true">
-          <div className="glow-orb-1" />
-          <div className="glow-orb-2" />
-          <div className="glow-orb-3" />
-          <div className="grid-dot-pattern" />
-        </div>
+      <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', position: 'relative' }}>
+        {/* Smokey WebGL Background */}
+        <SmokeyBackground className="fixed inset-0 z-0" />
 
-        <div className="glass-card-static" style={{ maxWidth: '26rem', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <div className="glass-card-static" style={{ maxWidth: '26rem', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '1rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
           {/* Shimmer top line */}
           <div className="shimmer-line animate-shimmer" style={{ position: 'absolute', insetInline: 0, top: 0, height: '1px' }} />
 
@@ -417,14 +388,9 @@ export default function AdminApp() {
   };
 
   return (
-    <div className="admin-body-shell" data-theme={theme}>
-      {/* Background Ambient Glows & Dot Pattern */}
-      <div className="ambient-glow-container" aria-hidden="true">
-        <div className="glow-orb-1" />
-        <div className="glow-orb-2" />
-        <div className="glow-orb-3" />
-        <div className="grid-dot-pattern" />
-      </div>
+    <div className="admin-body-shell">
+      {/* Background Ambient Glows & Dot Pattern Removed - Replaced with WebGL SmokeyBackground */}
+      <SmokeyBackground className="fixed inset-0 z-0 pointer-events-auto" color="#030b14" />
 
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
@@ -436,7 +402,7 @@ export default function AdminApp() {
 
       {/* Sidebar Navigation */}
       <aside
-        className={`admin-sidebar fixed right-0 top-0 z-40 flex h-screen w-72 flex-col border-l border-white/[0.06] bg-[#0b111d]/90 backdrop-blur-2xl transition-transform duration-500 lg:translate-x-0 ${
+        className={`admin-sidebar fixed right-0 top-0 z-40 flex h-screen w-72 flex-col border-l border-white/[0.15] bg-white/[0.05] backdrop-blur-2xl transition-transform duration-500 lg:translate-x-0 ${
           mobileSidebarOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -528,9 +494,9 @@ export default function AdminApp() {
       </aside>
 
       {/* Main Container */}
-      <div className="admin-main-shell flex min-h-screen flex-col lg:mr-72">
+      <div className="admin-main-shell relative z-10 flex min-h-screen flex-col lg:mr-72">
         {/* Sticky Top Header */}
-        <header className="admin-topbar sticky top-0 z-20 border-b border-white/[0.06] bg-[#070b12]/75 backdrop-blur-xl">
+        <header className="admin-topbar sticky top-0 z-20 border-b border-white/[0.15] bg-white/[0.05] backdrop-blur-xl">
           <div className="flex h-[4.5rem] items-center gap-3 px-4 sm:px-6 lg:px-8">
             {/* Mobile Menu Button */}
             <button
@@ -577,25 +543,6 @@ export default function AdminApp() {
                   {currentTime.time || '--:--:--'}
                 </span>
               </div>
-
-              {/* Theme Toggle */}
-              <button
-                type="button"
-                className="icon-btn"
-                onClick={toggleTheme}
-                aria-label={theme === 'dark' ? 'حالت روشن' : 'حالت تیره'}
-                title={theme === 'dark' ? 'تغییر به حالت روشن' : 'تغییر به حالت تیره'}
-              >
-                {theme === 'dark' ? (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-                  </svg>
-                ) : (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-                  </svg>
-                )}
-              </button>
 
               {/* Notification Bell Dropdown */}
               <div className="relative">
