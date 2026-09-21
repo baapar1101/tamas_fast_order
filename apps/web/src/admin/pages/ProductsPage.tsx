@@ -268,6 +268,7 @@ export function ProductsPage() {
         busy={save.isPending}
         onClose={() => setEditing(null)}
         onSave={(body) => save.mutate({ id: editing === 'new' ? null : editing.id, body })}
+        onManageVariants={(p) => { setEditing(null); setVariantsProduct(p); }}
       />
     );
   }

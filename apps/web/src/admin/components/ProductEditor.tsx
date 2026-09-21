@@ -52,6 +52,7 @@ interface Props {
   busy: boolean;
   onClose: () => void;
   onSave: (form: ProductForm) => void;
+  onManageVariants?: (product: ProductDTO) => void;
 }
 
 interface AttributeDef {
@@ -146,7 +147,7 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   tracking: p.tracking ?? true,
 });
 
-export function ProductEditor({ product, template, categories, brands, busy, onClose, onSave }: Props) {
+export function ProductEditor({ product, template, categories, brands, busy, onClose, onSave, onManageVariants }: Props) {
   const [form, setForm] = useState<ProductForm>(product ? fromProduct(product) : template ? fromProduct(template) : blank());
   const [error, setError] = useState('');
 
@@ -434,8 +435,8 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                   <h3 className="a-card-title">تنوع محصول (Variants)</h3>
                   <p className="a-card-sub">محصول دارای تنوع رنگ یا ویژگی‌های دیگر است</p>
                 </div>
-                {product && (
-                  <button type="button" className="a-btn a-btn--info a-btn--sm">
+                {product && onManageVariants && (
+                  <button type="button" className="a-btn a-btn--info a-btn--sm" onClick={() => onManageVariants(product)}>
                     + افزودن تنوع
                   </button>
                 )}
@@ -484,7 +485,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                               </span>
                             </td>
                             <td>
-                              <button type="button" className="a-link">ویرایش</button>
+                              <button type="button" className="a-link" onClick={() => onManageVariants?.(product!)}>ویرایش</button>
                             </td>
                           </tr>
                         );
