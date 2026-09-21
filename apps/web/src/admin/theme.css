@@ -605,6 +605,16 @@ body.admin-page-active.admin-theme-light {
   font-weight: 600;
 }
 
+.a-amber-box {
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--a-amber-soft);
+  border-radius: 0.8rem;
+  background: var(--a-amber-soft);
+  color: var(--a-amber);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 .a-fade { animation: a-fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
 @keyframes a-fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
@@ -742,6 +752,7 @@ body.admin-page-active.admin-theme-light {
   color: var(--a-brand);
 }
 .a-dropzone-icon svg { width: 1.75rem; height: 1.75rem; }
+.a-dropzone--min { min-height: 120px; padding: 1rem; height: 100%; }
 .a-dropzone-title { font-size: 0.85rem; font-weight: 700; color: var(--a-t1); }
 .a-dropzone-hint { font-size: 0.72rem; color: var(--a-t4); }
 

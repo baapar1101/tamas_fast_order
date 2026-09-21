@@ -270,51 +270,50 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
         <div className="space-y-6">
           
           {/* General Info */}
-          <section className="glass-card p-6 space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">اطلاعات پایه</h3>
-            <div className="admin-form-grid">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">کد کالا (product_id) *</label>
-                <input 
-                  className="huma-input ltr text-left" 
-                  value={form.productId} 
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">اطلاعات پایه</h3>
+            </div>
+            <div className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-product-id">کد کالا (product_id) *</label>
+                <input
+                  id="pe-product-id"
+                  className="a-input a-ltr"
+                  value={form.productId}
                   onChange={(e) => set('productId', e.target.value)}
                   readOnly={!!product}
                   title={product ? 'کد کالا قابل تغییر نیست' : ''}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">کد شناسایی (SKU)</label>
-                <input className="huma-input ltr text-left" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-sku">کد شناسایی (SKU)</label>
+                <input id="pe-sku" className="a-input a-ltr" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
               </div>
-              <div className="admin-col-span-2">
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">عنوان *</label>
-                <input className="huma-input" value={form.title} onChange={(e) => set('title', e.target.value)} />
+              <div className="a-field a-span-2">
+                <label className="a-label" htmlFor="pe-title">عنوان *</label>
+                <input id="pe-title" className="a-input" value={form.title} onChange={(e) => set('title', e.target.value)} />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">زیرعنوان (SubTitle)</label>
-                <input className="huma-input ltr text-left" value={form.subTitle} onChange={(e) => set('subTitle', e.target.value)} />
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-subtitle">زیرعنوان (SubTitle)</label>
+                <input id="pe-subtitle" className="a-input a-ltr" value={form.subTitle} onChange={(e) => set('subTitle', e.target.value)} />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">مدل</label>
-                <input className="huma-input ltr text-left" value={form.model} onChange={(e) => set('model', e.target.value)} />
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-model">مدل</label>
+                <input id="pe-model" className="a-input a-ltr" value={form.model} onChange={(e) => set('model', e.target.value)} />
               </div>
-              <div className="admin-col-span-2">
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">توضیحات (Description)</label>
-                <textarea 
-                  className="huma-input min-h-[140px] resize-y py-3" 
-                  value={form.description} 
-                  onChange={(e) => set('description', e.target.value)} 
-                />
+              <div className="a-field a-span-2">
+                <label className="a-label" htmlFor="pe-desc">توضیحات (Description)</label>
+                <textarea id="pe-desc" className="a-textarea" value={form.description} onChange={(e) => set('description', e.target.value)} />
               </div>
             </div>
           </section>
 
-          {/* Gallery */}
-          <section className="glass-card p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-4">
-              <h3 className="text-sm font-bold text-white">گالری تصاویر</h3>
-              <span className="text-xs text-slate-500">حداکثر ۵ تصویر</span>
+{/* Gallery */}
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">گالری تصاویر</h3>
+              <span className="a-hint">حداکثر ۵ تصویر</span>
             </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
@@ -355,9 +354,9 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
               ))}
               {form.gallery.length < 5 && (
                 <div className="pt-5">
-                  <div className="flex items-center justify-center border border-dashed border-white/20 rounded-xl bg-white/[0.01] hover:bg-white/[0.03] transition cursor-pointer h-full min-h-[120px]"
+                  <div className="a-dropzone a-dropzone--min flex items-center justify-center"
                         onClick={() => set('gallery', [...form.gallery, ''])}>
-                    <span className="text-2xl text-slate-400">+</span>
+                    <span className="a-muted text-xl">+</span>
                   </div>
                 </div>
               )}
@@ -365,87 +364,92 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
           </section>
 
           {/* Pricing */}
-          <section className="glass-card p-6 space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">قیمت‌گذاری و موجودی</h3>
-            <div className="admin-form-grid">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">قیمت (تومان)</label>
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">قیمت‌گذاری و موجودی</h3>
+            </div>
+            <div className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-price">قیمت (تومان)</label>
                 <input
-                  className="huma-input ltr"
+                  id="pe-price"
+                  className="a-input a-ltr"
                   inputMode="numeric"
                   value={form.price}
                   onChange={(e) => set('price', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">قیمت خط‌خورده (تومان)</label>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-old-price">قیمت خط‌خورده (تومان)</label>
                 <input
-                  className="huma-input ltr"
+                  id="pe-old-price"
+                  className="a-input a-ltr"
                   inputMode="numeric"
                   value={form.oldPrice || ''}
                   onChange={(e) => set('oldPrice', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">موجودی کلی</label>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-stock">موجودی کلی</label>
                 <input
-                  className="huma-input ltr"
+                  id="pe-stock"
+                  className="a-input a-ltr"
                   inputMode="numeric"
                   value={form.stock}
                   onChange={(e) => set('stock', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">موجودی انبار تهران</label>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-tehran-stock">موجودی انبار تهران</label>
                 <input
-                  className="huma-input ltr"
+                  id="pe-tehran-stock"
+                  className="a-input a-ltr"
                   inputMode="numeric"
                   value={form.tehranStock}
                   onChange={(e) => set('tehranStock', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">موجودی انبار کرمان</label>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-kerman-stock">موجودی انبار کرمان</label>
                 <input
-                  className="huma-input ltr"
+                  id="pe-kerman-stock"
+                  className="a-input a-ltr"
                   inputMode="numeric"
                   value={form.kermanStock}
                   onChange={(e) => set('kermanStock', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">گارانتی</label>
-                <input className="huma-input" value={form.warranty} onChange={(e) => set('warranty', e.target.value)} />
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-warranty">گارانتی</label>
+                <input id="pe-warranty" className="a-input" value={form.warranty} onChange={(e) => set('warranty', e.target.value)} />
               </div>
             </div>
           </section>
 
           {/* Variants Block */}
           {!form.parentProductId && (
-            <section className="glass-card p-6 space-y-4">
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-4">
+            <section className="a-card">
+              <div className="a-card-head">
                 <div>
-                  <h3 className="text-sm font-bold text-white">تنوع محصول (Variants)</h3>
-                  <p className="text-xs text-slate-500 mt-1">محصول دارای تنوع رنگ یا ویژگی‌های دیگر است</p>
+                  <h3 className="a-card-title">تنوع محصول (Variants)</h3>
+                  <p className="a-card-sub">محصول دارای تنوع رنگ یا ویژگی‌های دیگر است</p>
                 </div>
                 {product && (
-                  <button type="button" className="huma-btn-secondary !text-xs !py-1.5">
+                  <button type="button" className="a-btn a-btn--info a-btn--sm">
                     + افزودن تنوع
                   </button>
                 )}
               </div>
               
               {!product ? (
-                <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm p-4 rounded-xl text-center font-semibold">
-                  ابتدا اطلاعات محصول را ذخیره کنید تا امکان افزودن تنوع فراهم شود.
-                </div>
+                <div className="a-amber-box">ابتدا اطلاعات محصول را ذخیره کنید تا امکان افزودن تنوع فراهم شود.</div>
               ) : variantsLoading ? (
-                <div className="animate-pulse p-4 text-center text-slate-400">در حال بارگذاری تنوع‌ها...</div>
+                <div className="animate-pulse p-4 text-center a-muted">در حال بارگذاری تنوع‌ها...</div>
               ) : variants.length === 0 ? (
-                <div className="text-center text-slate-500 py-6 text-sm">هیچ تنوعی ثبت نشده است.</div>
+                <div className="a-empty">هیچ تنوعی ثبت نشده است.</div>
               ) : (
-                <div className="huma-table-container">
-                  <table className="huma-table">
+                <div className="a-table-wrap">
+                  <table className="a-table">
                     <thead>
                       <tr>
                         <th>رنگ / تنوع</th>
@@ -461,28 +465,26 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                         return (
                           <tr key={v.id}>
                             <td>
-                              <div className="flex items-center gap-2 font-bold text-white">
+                              <div className="a-strong flex items-center gap-2">
                                 {v.colorCode && (
                                   <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: v.colorCode }} />
                                 )}
                                 {v.color || 'بدون نام'}
                               </div>
                             </td>
-                            <td className="font-semibold text-emerald-400"><Price amount={v.price} /></td>
+                            <td><Price amount={v.price} /></td>
                             <td>
-                              <span className={`chip ${totalStock > 0 ? 'chip-brand' : 'chip-rose'}`}>
+                              <span className={`a-badge ${totalStock > 0 ? 'a-badge--green' : 'a-badge--red'}`}>
                                 {formatNumber(totalStock)}
                               </span>
                             </td>
                             <td>
-                              <span className={`chip ${v.status === 'active' ? 'chip-brand' : 'chip-slate'}`}>
+                              <span className={`a-badge ${v.status === 'active' ? 'a-badge--green' : 'a-badge--neutral'}`}>
                                 {v.status === 'active' ? 'فعال' : 'غیرفعال'}
                               </span>
                             </td>
                             <td>
-                              <button type="button" className="text-xs font-semibold text-emerald-400 hover:text-emerald-300">
-                                ویرایش
-                              </button>
+                              <button type="button" className="a-link">ویرایش</button>
                             </td>
                           </tr>
                         );
@@ -495,35 +497,38 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
           )}
 
           {/* Shipping */}
-          <section className="glass-card p-6 space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">حمل و نقل</h3>
-            <div className="admin-form-grid">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">وزن بسته (گرم)</label>
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">حمل و نقل</h3>
+            </div>
+            <div className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-weight">وزن بسته (گرم)</label>
                 <input
-                  className="huma-input ltr"
+                  id="pe-weight"
+                  className="a-input a-ltr"
                   inputMode="numeric"
                   value={form.weight}
                   onChange={(e) => set('weight', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">ابعاد بسته‌بندی</label>
-                <input className="huma-input ltr text-right" placeholder="مثال: 20x15x10" value={form.dimensions} onChange={(e) => set('dimensions', e.target.value)} />
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-dimensions">ابعاد بسته‌بندی</label>
+                <input id="pe-dimensions" className="a-input a-ltr" placeholder="مثال: 20x15x10" value={form.dimensions} onChange={(e) => set('dimensions', e.target.value)} />
               </div>
             </div>
           </section>
 
 {/* Features / Attributes */}
-          <section className="glass-card p-6 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-3 mb-4">
+          <section className="a-card">
+            <div className="a-card-head">
               <div>
-                <h3 className="text-sm font-bold text-white">ویژگی‌ها</h3>
-                <p className="text-xs text-slate-500 mt-1">ویژگی‌های فنی و مشخصات محصول</p>
+                <h3 className="a-card-title">ویژگی‌ها</h3>
+                <p className="a-card-sub">ویژگی‌های فنی و مشخصات محصول</p>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="a-actions">
                 <select
-                  className="a-input !w-auto h-9 text-xs"
+                  className="a-select a-select--auto"
                   value=""
                   onChange={quickAddAttr}
                   aria-label="انتخاب از ویژگی‌های تعریف‌شده"
@@ -535,7 +540,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                 </select>
                 <button
                   type="button"
-                  className="huma-btn-secondary !text-xs !py-1.5"
+                  className="a-btn a-btn--info a-btn--sm"
                   onClick={() => set('attributes', [...form.attributes, { key: '', value: '' }])}
                 >
                   + افزودن ویژگی
@@ -545,7 +550,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
             
             <div className="space-y-3">
               {form.attributes.length === 0 ? (
-                <div className="text-center text-slate-500 py-4 text-sm">هیچ ویژگی ثبت نشده است.</div>
+                <div className="a-empty">هیچ ویژگی ثبت نشده است.</div>
               ) : (
                 form.attributes.map((attr, idx) => {
                   const def = attrByKey.get(attr.key.trim());
@@ -578,7 +583,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                               );
                             })}
                             {(def.options ?? []).length === 0 && (
-                              <span className="text-xs text-slate-500">این ویژگی در بخش مدیریت، گزینه‌ای تعریف نشده است.</span>
+                              <span className="a-hint">این ویژگی در بخش مدیریت، گزینه‌ای تعریف نشده است.</span>
                             )}
                           </div>
                         ) : def?.type === 'boolean' ? (
@@ -640,16 +645,18 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
           </section>
 
           {/* SEO */}
-          <section className="glass-card p-6 space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">موتورهای جستجو (SEO)</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">نامک (Slug) - انتهای URL</label>
-                <input className="huma-input ltr text-right" placeholder="english-product-name" value={form.slug} onChange={(e) => set('slug', e.target.value)} />
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">موتورهای جستجو (SEO)</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-slug">نامک (Slug) - انتهای URL</label>
+                <input id="pe-slug" className="a-input a-ltr" placeholder="english-product-name" value={form.slug} onChange={(e) => set('slug', e.target.value)} />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">کلمات کلیدی (با کاما جدا کنید)</label>
-                <input className="huma-input" value={form.keywords} onChange={(e) => set('keywords', e.target.value)} />
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-keywords">کلمات کلیدی (با کاما جدا کنید)</label>
+                <input id="pe-keywords" className="a-input" value={form.keywords} onChange={(e) => set('keywords', e.target.value)} />
               </div>
             </div>
           </section>
@@ -660,35 +667,41 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
         <div className="space-y-6">
           
           {/* Categorization */}
-          <section className="glass-card p-5 space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">دسته‌بندی و برند</h3>
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5">دسته‌بندی اصلی</label>
-              <select className="huma-input !py-2.5" value={form.categoryName} onChange={(e) => set('categoryName', e.target.value)}>
-                <option value="">-- انتخاب دسته‌بندی --</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.name}>
-                    {c.faName}
-                  </option>
-                ))}
-              </select>
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">دسته‌بندی و برند</h3>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5">برند محصول</label>
-              <select className="huma-input !py-2.5" value={form.brandName} onChange={(e) => set('brandName', e.target.value)}>
-                <option value="">-- بدون برند --</option>
-                {brands.map((b) => (
-                  <option key={b.id} value={b.name}>
-                    {b.faName}
-                  </option>
-                ))}
-              </select>
+            <div className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-category">دسته‌بندی اصلی</label>
+                <select id="pe-category" className="a-select" value={form.categoryName} onChange={(e) => set('categoryName', e.target.value)}>
+                  <option value="">-- انتخاب دسته‌بندی --</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.faName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-brand">برند محصول</label>
+                <select id="pe-brand" className="a-select" value={form.brandName} onChange={(e) => set('brandName', e.target.value)}>
+                  <option value="">-- بدون برند --</option>
+                  {brands.map((b) => (
+                    <option key={b.id} value={b.name}>
+                      {b.faName}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </section>
 
           {/* Settings */}
-          <section className="glass-card p-5 space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">تنظیمات</h3>
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">تنظیمات</h3>
+            </div>
             
             <div className="space-y-3">
               <div className={`a-option-row${form.status === 'active' ? ' a-option-row--on' : ''}`}>
