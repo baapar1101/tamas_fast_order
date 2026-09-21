@@ -37,7 +37,9 @@ export type IconName =
   | 'grid'
   | 'filter'
   | 'sort'
-  | 'support';
+  | 'support'
+  | 'sun'
+  | 'moon';
 
 interface IconProps extends SVGProps<SVGSVGElement> {
   name: IconName;
@@ -93,6 +95,8 @@ export function SvgSprite() {
       <symbol id="i-filter" viewBox="0 0 24 24"><path d="M3.6 6.4h16.8M6.8 12h10.4M10 17.6h4"/></symbol>
       <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 4.6v14.8M7 19.4l-3-3M7 4.6l3 3M17 19.4V4.6M17 4.6l3 3M17 19.4l-3-3"/></symbol>
       <symbol id="i-support" viewBox="0 0 24 24"><path d="M4.6 14.2v-2.4a7.4 7.4 0 0 1 14.8 0v2.4"/><rect x="2.8" y="12.8" width="4" height="6" rx="2"/><rect x="17.2" y="12.8" width="4" height="6" rx="2"/><path d="M19.4 18.8v.6a2.6 2.6 0 0 1-2.6 2.6H13"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
     </svg>
   );
 }

@@ -1148,41 +1148,44 @@ body.admin-theme-light .modal-body input:focus {
 body.admin-theme-light .modal-body label,
 body.admin-theme-light .modal-body .faint { color: #475467 !important; }
 
-body.admin-theme-light .glass-card,
-body.admin-theme-light .glass-card-static {
+body.admin-theme-light .modal-backdrop .glass-card,
+body.admin-theme-light .modal-backdrop .glass-card-static {
   background-color: #ffffff;
   border-color: #eaecf0;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
   backdrop-filter: none;
 }
-body.admin-theme-light .glass-card:hover { transform: none; border-color: #d0d5dd; }
+body.admin-theme-light .modal-backdrop .glass-card:hover { transform: none; border-color: #d0d5dd; }
 
-body.admin-theme-light .text-white { color: #101828 !important; }
-body.admin-theme-light .text-slate-200 { color: #101828 !important; }
-body.admin-theme-light .text-slate-300 { color: #344054 !important; }
-body.admin-theme-light .text-slate-400 { color: #475467 !important; }
-body.admin-theme-light .text-slate-500 { color: #667085 !important; }
-body.admin-theme-light .text-emerald-400,
-body.admin-theme-light .text-emerald-300 { color: #10a37f !important; }
-body.admin-theme-light .text-rose-400,
-body.admin-theme-light .text-rose-300 { color: #d92d20 !important; }
-body.admin-theme-light .text-amber-400 { color: #b54708 !important; }
+/* These legacy utilities only exist within portaled admin dialogs; the main
+   content area has its own shell-scoped remaps above. Keeping the scope tight
+   here stops the hammer from re-coloring the dark sidebar chrome. */
+body.admin-theme-light .modal-backdrop .text-white { color: #101828 !important; }
+body.admin-theme-light .modal-backdrop .text-slate-200 { color: #101828 !important; }
+body.admin-theme-light .modal-backdrop .text-slate-300 { color: #344054 !important; }
+body.admin-theme-light .modal-backdrop .text-slate-400 { color: #475467 !important; }
+body.admin-theme-light .modal-backdrop .text-slate-500 { color: #667085 !important; }
+body.admin-theme-light .modal-backdrop .text-emerald-400,
+body.admin-theme-light .modal-backdrop .text-emerald-300 { color: #10a37f !important; }
+body.admin-theme-light .modal-backdrop .text-rose-400,
+body.admin-theme-light .modal-backdrop .text-rose-300 { color: #d92d20 !important; }
+body.admin-theme-light .modal-backdrop .text-amber-400 { color: #b54708 !important; }
 
-body.admin-theme-light .huma-btn-secondary {
+body.admin-theme-light .modal-backdrop .huma-btn-secondary {
   background-color: #f8fafc;
   border-color: #d0d5dd;
   color: #344054;
 }
-body.admin-theme-light .huma-btn-secondary:hover { border-color: #0580fa; color: #101828; }
-body.admin-theme-light .btn.primary { background-color: #0580fa; color: #ffffff; }
-body.admin-theme-light .btn.primary:hover { background-color: #0470dc; }
+body.admin-theme-light .modal-backdrop .huma-btn-secondary:hover { border-color: #0580fa; color: #101828; }
+body.admin-theme-light .modal-backdrop .btn.primary { background-color: #0580fa; color: #ffffff; }
+body.admin-theme-light .modal-backdrop .btn.primary:hover { background-color: #0470dc; }
 
-body.admin-theme-light .huma-table th { color: #667085; border-color: #eaecf0; }
-body.admin-theme-light .huma-table td { color: #344054; border-color: #eaecf0; }
-body.admin-theme-light .huma-table tbody tr:hover { background-color: rgba(16, 24, 40, 0.04); }
+body.admin-theme-light .modal-backdrop .huma-table th { color: #667085; border-color: #eaecf0; }
+body.admin-theme-light .modal-backdrop .huma-table td { color: #344054; border-color: #eaecf0; }
+body.admin-theme-light .modal-backdrop .huma-table tbody tr:hover { background-color: rgba(16, 24, 40, 0.04); }
 
-body.admin-theme-light .chip-brand { background: rgba(16, 163, 127, 0.14); color: #10a37f; }
-body.admin-theme-light .chip-aqua { background: rgba(14, 116, 144, 0.12); color: #0e7490; }
-body.admin-theme-light .chip-amber { background: rgba(245, 158, 11, 0.16); color: #b54708; }
-body.admin-theme-light .chip-rose { background: rgba(217, 45, 32, 0.14); color: #d92d20; }
-body.admin-theme-light .chip-slate { background: rgba(128, 138, 157, 0.18); color: #475467; }
+body.admin-theme-light .modal-backdrop .chip-brand { background: rgba(16, 163, 127, 0.14); color: #10a37f; }
+body.admin-theme-light .modal-backdrop .chip-aqua { background: rgba(14, 116, 144, 0.12); color: #0e7490; }
+body.admin-theme-light .modal-backdrop .chip-amber { background: rgba(245, 158, 11, 0.16); color: #b54708; }
+body.admin-theme-light .modal-backdrop .chip-rose { background: rgba(217, 45, 32, 0.14); color: #d92d20; }
+body.admin-theme-light .modal-backdrop .chip-slate { background: rgba(128, 138, 157, 0.18); color: #475467; }
