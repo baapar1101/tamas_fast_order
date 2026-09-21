@@ -821,7 +821,7 @@
 /* Dark theme — products page token overrides.
    Default .pp-root tokens are the light palette; in dark mode the whole
    products page (cards, grid, inputs, menus) follows the shell theme. */
-.admin-body-shell[data-theme='dark'] .pp-root {
+body.admin-page-active:not(.admin-theme-light) .pp-root {
   --pp-text-primary: #f2f4f7;
   --pp-text-secondary: #d0d5dd;
   --pp-text-tertiary: #98a2b3;
@@ -847,6 +847,6 @@
   --pp-warning-bg: #33260c;
 }
 
-.admin-body-shell[data-theme='dark'] .pp-input:focus {
+body.admin-page-active:not(.admin-theme-light) .pp-input:focus {
   box-shadow: 0 0 0 3px rgb(76 162 255 / 0.16);
 }
