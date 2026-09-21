@@ -2662,6 +2662,26 @@
   border-color: var(--tamas-border);
 }
 
+[data-theme="dark"] .search-input {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--tamas-fg);
+}
+
+[data-theme="dark"] .profile-notice {
+  background: rgba(255, 149, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 149, 0, 0.3);
+  color: #ffb84d;
+}
+
+[data-theme="dark"] .card-thumb,
+[data-theme="dark"] .product-thumb,
+[data-theme="dark"] .thumb-box {
+  mix-blend-mode: normal;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 4px;
+}
+
 [data-theme="dark"] .category-chip,
 [data-theme="dark"] .brand-icon-btn {
   background: #1a2436;
@@ -2834,8 +2854,8 @@
   }
 
   .sidebar-body > .switch-row {
-    flex: 1 1 45%;
-    width: auto;
+    flex: 1 1 100%;
+    width: 100%;
     margin: 0;
     padding: 8px 12px;
     border: 1px solid var(--tamas-border);
