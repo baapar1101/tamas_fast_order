@@ -249,17 +249,20 @@ export function UsersPage() {
 
       {/* Edit Role Modal */}
       {editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="glass-card w-full max-w-sm">
-            <h3 className="mb-4 text-lg font-bold text-white">تغییر نقش کاربر</h3>
-            <p className="mb-4 text-sm text-slate-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
+          <div className="a-card w-full max-w-sm">
+            <div className="a-card-head">
+              <h3 className="a-card-title">تغییر نقش کاربر</h3>
+            </div>
+            <p className="a-hint">
               کاربر: <span className="font-bold">{editingUser.name} {editingUser.lastName}</span>
             </p>
-            <div className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">نقش کاربر</label>
+            <div className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label" htmlFor="edit-role">نقش کاربر</label>
                 <select
-                  className="huma-input w-full bg-slate-800 text-white"
+                  id="edit-role"
+                  className="a-select"
                   value={editRole}
                   onChange={(e) => setEditRole(e.target.value as UserDTO['role'])}
                 >
@@ -270,10 +273,11 @@ export function UsersPage() {
               </div>
 
               {editRole === 'operator' && (
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-300">گروه دسترسی</label>
+                <div className="a-field">
+                  <label className="a-label" htmlFor="edit-access-group">گروه دسترسی</label>
                   <select
-                    className="huma-input w-full bg-slate-800 text-white"
+                    id="edit-access-group"
+                    className="a-select"
                     value={editAccessGroupId || ''}
                     onChange={(e) => setEditAccessGroupId(e.target.value ? Number(e.target.value) : null)}
                   >
@@ -286,28 +290,28 @@ export function UsersPage() {
                   </select>
                 </div>
               )}
+            </div>
 
-              <div className="mt-6 flex justify-end gap-2">
-                <button type="button" className="huma-btn-surface" onClick={() => setEditingUser(null)}>
-                  انصراف
-                </button>
-                <button
-                  type="button"
-                  className="huma-btn-primary"
-                  disabled={patch.isPending || (editRole === 'operator' && !editAccessGroupId)}
-                  onClick={() => {
-                    patch.mutate({
-                      id: editingUser.id,
-                      body: {
-                        role: editRole,
-                        accessGroupId: editRole === 'operator' ? editAccessGroupId : null,
-                      },
-                    });
-                  }}
-                >
-                  {patch.isPending ? 'در حال ذخیره...' : 'ذخیره'}
-                </button>
-              </div>
+            <div className="a-actions a-actions--end">
+              <button type="button" className="a-btn a-btn--secondary" onClick={() => setEditingUser(null)}>
+                انصراف
+              </button>
+              <button
+                type="button"
+                className="a-btn a-btn--primary"
+                disabled={patch.isPending || (editRole === 'operator' && !editAccessGroupId)}
+                onClick={() => {
+                  patch.mutate({
+                    id: editingUser.id,
+                    body: {
+                      role: editRole,
+                      accessGroupId: editRole === 'operator' ? editAccessGroupId : null,
+                    },
+                  });
+                }}
+              >
+                {patch.isPending ? 'در حال ذخیره...' : 'ذخیره'}
+              </button>
             </div>
           </div>
         </div>

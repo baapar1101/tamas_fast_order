@@ -185,44 +185,47 @@ export function AccessGroupsPage() {
 
       {/* Modal */}
       {(isEditing || isCreating) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="glass-card w-full max-w-md">
-            <h3 className="mb-4 text-lg font-bold text-white">{isEditing ? 'ویرایش گروه دسترسی' : 'گروه دسترسی جدید'}</h3>
-            <form onSubmit={handleSave} className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">نام گروه</label>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 overflow-y-auto">
+          <div className="a-card w-full max-w-md">
+            <div className="a-card-head">
+              <h3 className="a-card-title">{isEditing ? 'ویرایش گروه دسترسی' : 'گروه دسترسی جدید'}</h3>
+            </div>
+            <form onSubmit={handleSave} className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label" htmlFor="group-name">نام گروه</label>
                 <input
+                  id="group-name"
                   autoFocus
                   type="text"
-                  className="huma-input w-full"
+                  className="a-input"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="مثال: مدیران فروش"
                   required
                 />
-                <p className="mt-1 text-[11px] text-slate-500">
+                <span className="a-hint">
                   اپراتورها از این نام در بخش «تغییر نقش» صفحه مشتریان قابل انتخاب هستند.
-                </p>
+                </span>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">سطوح دسترسی</label>
-                <div className="space-y-2.5">
+              <div className="a-field">
+                <span className="a-label">سطوح دسترسی</span>
+                <div className="a-option-grid">
                   {AVAILABLE_PERMISSIONS.map((ap) => {
                     const checked = permissions.includes(ap.key);
                     return (
-                      <label key={ap.key} className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/[0.06] bg-slate-800/40 p-3 transition-colors hover:border-emerald-500/30">
+                      <label
+                        key={ap.key}
+                        className={`a-chip-opt ${checked ? 'a-chip-opt--on' : ''}`}
+                      >
                         <input
                           type="checkbox"
                           checked={checked}
                           onChange={() => togglePermission(ap.key)}
-                          className="mt-0.5 rounded border-slate-700 bg-slate-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900"
                         />
-                        <span className="min-w-0">
-                          <span className={`block text-sm font-semibold ${checked ? 'text-emerald-300' : 'text-slate-200'}`}>
-                            {ap.label}
-                          </span>
-                          <span className="block text-[11px] text-slate-500">{ap.desc}</span>
+                        <span className="a-chip-opt-copy">
+                          <strong>{ap.label}</strong>
+                          <small>{ap.desc}</small>
                         </span>
                       </label>
                     );
@@ -230,11 +233,11 @@ export function AccessGroupsPage() {
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end gap-2">
-                <button type="button" className="huma-btn-surface" onClick={handleClose}>
+              <div className="a-actions a-actions--end a-span-2">
+                <button type="button" className="a-btn a-btn--secondary" onClick={handleClose}>
                   انصراف
                 </button>
-                <button type="submit" className="huma-btn-primary" disabled={saveMutation.isPending}>
+                <button type="submit" className="a-btn a-btn--primary" disabled={saveMutation.isPending}>
                   {saveMutation.isPending ? 'در حال ذخیره...' : 'ذخیره گروه'}
                 </button>
               </div>
