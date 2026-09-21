@@ -217,13 +217,16 @@ export function CategoriesPage() {
       )}
 
       {/* List */}
+      <section className="a-searchbar">
+        <input className="a-input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی دسته…" />
+      </section>
+
       <section className="a-card a-container-md">
         <div className="a-card-head">
           <div>
             <h3 className="a-card-title">فهرست دسته‌بندی‌ها</h3>
             <p className="a-card-sub">برندهای متصل‌شده در هر ردیف نمایش داده می‌شوند.</p>
           </div>
-          <input className="a-input" style={{ maxWidth: 230 }} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی دسته…" />
         </div>
 
         <div className="a-list">

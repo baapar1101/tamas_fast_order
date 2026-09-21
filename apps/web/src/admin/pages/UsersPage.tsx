@@ -101,11 +101,11 @@ export function UsersPage() {
         </div>
       </section>
 
-      {/* Filters Bar */}
+      {/* Search + Filters */}
       <section className="a-card">
-        <div className="a-filterbar">
+        <div className="a-filterbar a-filterbar--stack">
           <input
-            className="a-input a-grow"
+            className="a-input"
             placeholder="جستجو در نام، شماره همراه، کد ملی..."
             value={search}
             onChange={(e) => {
@@ -113,19 +113,22 @@ export function UsersPage() {
               setPage(1);
             }}
           />
-          <select
-            className="a-select a-select--auto"
-            value={role}
-            onChange={(e) => {
-              setRole(e.target.value as typeof role);
-              setPage(1);
-            }}
-          >
-            <option value="all">همه نقش‌ها</option>
-            <option value="admin">مدیر ارشد (Admin)</option>
-            <option value="operator">اپراتور (Operator)</option>
-            <option value="customer">مشتریان عادی</option>
-          </select>
+          <div className="a-filterbar">
+            <span className="a-label">نقش کاربر</span>
+            <select
+              className="a-select a-select--auto"
+              value={role}
+              onChange={(e) => {
+                setRole(e.target.value as typeof role);
+                setPage(1);
+              }}
+            >
+              <option value="all">همه نقش‌ها</option>
+              <option value="admin">مدیر ارشد (Admin)</option>
+              <option value="operator">اپراتور (Operator)</option>
+              <option value="customer">مشتریان عادی</option>
+            </select>
+          </div>
         </div>
       </section>
 

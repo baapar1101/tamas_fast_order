@@ -145,6 +145,15 @@
   margin-right: auto;
 }
 
+/* Full-width search row above the filters toolbar */
+.pp-searchbar {
+  width: 100%;
+  margin-bottom: 10px;
+}
+.pp-searchbar .pp-search {
+  max-width: none;
+}
+
 .pp-btn {
   display: inline-flex;
   align-items: center;

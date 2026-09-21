@@ -651,6 +651,15 @@ body.admin-page-active {
 .a-filterbar .a-grow { flex: 1 1 220px; }
 .a-select--auto, .a-input--auto { width: auto; }
 
+/* Full-width search row above filters / lists */
+.a-searchbar { margin-bottom: 12px; }
+.a-searchbar .a-input { width: 100%; }
+
+/* Search above filters, stacked in one card */
+.a-filterbar--stack { flex-direction: column; align-items: stretch; row-gap: 0.5rem; }
+.a-filterbar--stack > .a-input { width: 100%; }
+.a-filterbar--stack > .a-filterbar { width: 100%; }
+
 /* Bulk operations bar */
 .a-bulkbar {
   display: flex;

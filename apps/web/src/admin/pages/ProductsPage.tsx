@@ -300,6 +300,21 @@ export function ProductsPage() {
         </div>
       </header>
 
+      <section className="pp-searchbar">
+        <div className="pp-search">
+          <SearchIcon />
+          <input
+            className="pp-input"
+            placeholder="جستجو در عنوان، کد کالا یا SKU..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
+      </section>
+
       <section className="pp-toolbar">
         <div className="pp-select">
           <button
@@ -427,19 +442,6 @@ export function ProductsPage() {
               </div>
             </>
           )}
-        </div>
-
-        <div className="pp-search">
-          <SearchIcon />
-          <input
-            className="pp-input"
-            placeholder="جستجو در عنوان، کد کالا یا SKU..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-          />
         </div>
 
         <button type="button" className="pp-btn pp-btn--primary" onClick={() => setEditing('new')}>

@@ -169,13 +169,16 @@ export function BrandsPage() {
       )}
 
       {/* List */}
+      <section className="a-searchbar">
+        <input className="a-input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی برند…" />
+      </section>
+
       <section className="a-card a-container-md">
         <div className="a-card-head">
           <div>
             <h3 className="a-card-title">فهرست برندها</h3>
             <p className="a-card-sub">برای مشاهده فرم کامل، ویرایش را انتخاب کنید.</p>
           </div>
-          <input className="a-input" style={{ maxWidth: 230 }} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی برند…" />
         </div>
 
         <div className="a-list">

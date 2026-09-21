@@ -103,6 +103,19 @@ export function OrdersPage() {
         </div>
       </section>
 
+      {/* Search Input */}
+      <section className="a-card">
+        <input
+          className="a-input"
+          placeholder="جستجو در کد سفارش، نام مشتری، شماره همراه..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
+      </section>
+
       {/* Status Filter Tabs */}
       <section className="a-tabs">
         <button
@@ -128,19 +141,6 @@ export function OrdersPage() {
             {ORDER_STATUS_LABELS[s]} ({formatNumber(counts.data?.counts[s] ?? 0)})
           </button>
         ))}
-      </section>
-
-      {/* Search Input */}
-      <section className="a-card">
-        <input
-          className="a-input"
-          placeholder="جستجو در کد سفارش، نام مشتری، شماره همراه..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
       </section>
 
       {/* Bulk Operations */}
