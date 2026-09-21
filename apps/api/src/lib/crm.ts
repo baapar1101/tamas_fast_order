@@ -212,11 +212,12 @@ export const crmClient = {
         if (query.phone) params.set('phone', query.phone);
         if (query.name) params.set('name', query.name);
         if (query.email) params.set('email', query.email);
+        // Hesabix API: GET /api/v1/contacts/business/{businessId}/search
         const data = (await crmRequest<{
           success?: boolean;
           items?: Array<{ id: number }>;
           error?: string;
-        }>(`/api/v1/crm/tamas/people/search?${params.toString()}`, config)) as {
+        }>(`/api/v1/contacts/business/${config.businessId}/search?${params.toString()}`, config)) as {
           success?: boolean;
           items?: Array<{ id: number }>;
           error?: string;
@@ -325,8 +326,9 @@ export const crmClient = {
         alias_name: person.aliasName ?? '',
         synced_at: new Date().toISOString(),
       };
+      // Hesabix API: POST /api/v1/contacts/business/{businessId}/
       const data = (await crmRequest<{ success?: boolean; id?: number; error?: string }>(
-        `/api/v1/crm/tamas/people`,
+        `/api/v1/contacts/business/${config.businessId}/`,
         config,
         { method: 'POST', body: JSON.stringify(payload) },
       )) as { success?: boolean; id?: number; error?: string };

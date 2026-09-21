@@ -3,7 +3,6 @@
  * Measured from the tamasmarket storefront + admin codebase
  */
 @import url('/fonts/fonts.css');
-@import url('/fonts/Peyda/fonts.css');
 
 :root {
   /* ---- Color · core palette (measured) ---- */
@@ -40,7 +39,7 @@
   --tamas-promo-grad-dark: linear-gradient(90deg, #06b6d4, #08798f 60%, #00596b);
 
   /* ---- Typography ---- */
-  --tamas-font: "Peyda", "Vazirmatn FD", Vazirmatn, Tahoma, "Segoe UI", sans-serif;
+  --tamas-font: "Vazirmatn FD", Vazirmatn, Tahoma, "Segoe UI", sans-serif;
 
   /* ---- Layout posture ---- */
   --tamas-radius-sm: 8px;         /* default radius */
@@ -118,82 +117,7 @@
 }
 
 /* ---- Dark Mode ---- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* ---- Color · core palette (dark) ---- */
-    --tamas-bg: #0b111d;            /* dark canvas */
-    --tamas-surface: #131c2e;       /* dark cards */
-    --tamas-fg: #eef0f6;            /* light text */
-    --tamas-muted: #9aa4b4;         /* muted text */
-    --tamas-border: #2a3548;        /* dark borders */
-    --tamas-accent: #08798f;        /* brand teal (unchanged) */
-    --tamas-accent-deep: #06b6d4;   /* cyan accent for dark mode */
 
-    /* ---- Color · state (dark) ---- */
-    --tamas-success: #34c759;
-    --tamas-success-bg: rgba(52, 199, 89, 0.2);
-    --tamas-warning: #ff9500;
-    --tamas-warning-bg: rgba(255, 149, 0, 0.2);
-    --tamas-danger: #ff3b30;
-    --tamas-danger-bg: rgba(255, 59, 48, 0.2);
-    --tamas-info-bg: rgba(8, 121, 143, 0.2);
-
-    /* ---- Color · composite brand moments (dark) ---- */
-    --tamas-promo-grad: linear-gradient(90deg, #06b6d4, #08798f 60%, #00596b);
-
-    /* ---- Shadows (dark) ---- */
-    --tamas-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-    --tamas-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
-    --tamas-shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.6);
-    --tamas-shadow-product: 0 12px 32px -4px rgba(0, 0, 0, 0.7);
-
-    /* ---- Focus rings (dark) ---- */
-    --tamas-focus-ring: 0 0 0 2px rgba(6, 182, 212, 0.4);
-    --tamas-focus-ring-dark: 0 0 0 2px rgba(6, 182, 212, 0.5);
-
-    /* ---- Legacy tokens (dark) ---- */
-    --primary-light: rgba(8, 121, 143, 0.25);
-    --surface-2: #1a2436;
-    --text-faint: #64748b;
-    --border-strong: #3a4a5f;
-
-    color-scheme: dark;
-  }
-
-  /* Dark mode specific adjustments */
-  .btn.primary {
-    box-shadow: 0 4px 12px rgba(8, 121, 143, 0.4);
-  }
-
-  .input:focus,
-  .textarea:focus,
-  .select:focus {
-    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
-  }
-
-  .skeleton {
-    background: linear-gradient(90deg, #1a2436 25%, #2a3548 50%, #1a2436 75%);
-  }
-
-  .modal-backdrop {
-    background: rgba(0, 0, 0, 0.7);
-  }
-
-  .modal-panel {
-    background: #131c2e;
-    border: 1px solid var(--tamas-border);
-  }
-
-  .modal-head {
-    background: #131c2e;
-    border-bottom-color: var(--tamas-border);
-  }
-
-  .modal-foot {
-    background: #1a2436;
-    border-top-color: var(--tamas-border);
-  }
-}
 
 /* ---- Manual Dark Mode Toggle Support ---- */
 [data-theme="dark"] {
@@ -356,6 +280,11 @@ img {
 .btn:hover:not(:disabled) {
   border-color: var(--primary);
   color: var(--primary);
+  transform: scale(1);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
 .btn:disabled {
@@ -373,7 +302,13 @@ img {
 .btn.primary:hover:not(:disabled) {
   background: var(--primary-hover);
   border-color: var(--primary-hover);
-  transform: scale(1.02);
+  transform: scale(1);
+}
+
+.btn.primary:active:not(:disabled) {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  transform: scale(0.95);
 }
 
 .btn.teal {
@@ -385,6 +320,13 @@ img {
 .btn.teal:hover:not(:disabled) {
   background: var(--primary-hover);
   border-color: var(--primary-hover);
+  transform: scale(1);
+}
+
+.btn.teal:active:not(:disabled) {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  transform: scale(0.95);
 }
 
 .btn.sm {
@@ -419,6 +361,14 @@ img {
   background: var(--danger);
   color: #ffffff;
   border-color: var(--danger);
+  transform: scale(1);
+}
+
+.btn.danger:active:not(:disabled) {
+  background: var(--danger);
+  color: #ffffff;
+  border-color: var(--danger);
+  transform: scale(0.95);
 }
 
 .badge {

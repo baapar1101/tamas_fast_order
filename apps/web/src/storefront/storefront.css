@@ -18,6 +18,7 @@
   top: 0;
   z-index: 100;
   box-shadow: var(--tamas-shadow-sm);
+  height: 44px;
 }
 
 .topbar-promo {
@@ -138,7 +139,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  min-height: 70px;
+  min-height: 44px;
 }
 
 .logo {
@@ -342,8 +343,12 @@
 }
 
 .slider-arrow:hover {
-  transform: scale(1.1);
+  transform: scale(1);
   background: #ffffff;
+}
+
+.slider-arrow:active {
+  transform: scale(0.95);
 }
 
 .slider-dots {
@@ -412,7 +417,10 @@
 .category-chip.active {
   border-color: var(--tamas-accent);
   background: var(--tamas-info-bg);
-  transform: translateY(-2px);
+}
+
+.category-chip:active {
+  transform: scale(0.95);
 }
 
 .category-chip.active {
@@ -496,6 +504,10 @@
   box-shadow: 0 2px var(--tamas-radius-sm) rgba(0, 118, 143, 0.15);
 }
 
+.brand-icon-btn:active {
+  transform: scale(0.95);
+}
+
 .brand-icon-btn img {
   width: 34px;
   height: 34px;
@@ -535,7 +547,7 @@
 
 .switch {
   position: relative;
-  width: 4var(--tamas-radius-sm);
+  width: 44px;
   height: 26px;
   background: #cbd5e1;
   border-radius: 20px;
@@ -567,7 +579,7 @@
 }
 
 .switch:active i {
-  width: 2var(--tamas-radius-sm);
+  width: 28px;
 }
 
 .switch.on:active i {
@@ -710,8 +722,12 @@
 }
 
 .color-swatch-dot:hover {
-  transform: scale(1.18);
+  transform: scale(1.12);
   box-shadow: 0 0 0 2px var(--brand-400);
+}
+
+.color-swatch-dot:active {
+  transform: scale(0.95);
 }
 
 .color-swatch-dot.active {
@@ -775,6 +791,10 @@
 
 .product:hover {
   box-shadow: 0 var(--tamas-radius-sm) 26px rgba(0, 0, 0, 0.08);
+}
+
+.product:active {
+  transform: scale(0.98);
 }
 
 .product.is-promotion {
@@ -944,7 +964,10 @@
   background: var(--tamas-accent);
   color: #ffffff;
   border-color: var(--tamas-accent);
-  transform: translateY(-1px);
+}
+
+.wh-btn:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
 .wh-btn:disabled {
@@ -986,7 +1009,11 @@
 
 .btn-lock-auth:hover {
   background: #c66646;
-  transform: translateY(-1px);
+  transform: scale(1);
+}
+
+.btn-lock-auth:active {
+  transform: scale(0.95);
 }
 
 /* Grid View Rules */
@@ -1139,7 +1166,10 @@
   background: var(--tamas-accent);
   color: #ffffff;
   border-color: var(--tamas-accent);
-  transform: translateY(-1px);
+}
+
+.wh-btn:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
 .wh-btn:disabled {
@@ -1181,7 +1211,11 @@
 
 .btn-lock-auth:hover {
   background: #c66646;
-  transform: translateY(-1px);
+  transform: scale(1);
+}
+
+.btn-lock-auth:active {
+  transform: scale(0.95);
 }
 
 /* Grid View Rules */
@@ -2559,10 +2593,11 @@
 
 .install-banner-btn:hover {
   background: var(--tamas-accent-deep);
+  transform: scale(1);
 }
 
 .install-banner-btn:active {
-  transform: scale(0.96);
+  transform: scale(0.95);
 }
 
 @keyframes install-fade-up {
@@ -2601,124 +2636,7 @@
  * Dark Mode Support
  * ------------------------------------------------------------------ */
 
-@media (prefers-color-scheme: dark) {
-  .topbar {
-    background: rgba(11, 17, 29, 0.95);
-  }
 
-  .category-toolbar,
-  .toolbar,
-  .sidebar,
-  .cart,
-  .main-content {
-    background: var(--tamas-surface);
-    border-color: var(--tamas-border);
-  }
-
-  .category-chip,
-  .brand-icon-btn {
-    background: #1a2436;
-    border-color: var(--tamas-border);
-  }
-
-  .category-chip:hover,
-  .category-chip.active,
-  .brand-icon-btn:hover,
-  .brand-icon-btn.active {
-    background: rgba(8, 121, 143, 0.2);
-    border-color: var(--tamas-accent);
-  }
-
-  .product {
-    background: var(--tamas-surface);
-    border-color: var(--tamas-border);
-  }
-
-  .variant {
-    background: #1a2436;
-    border-color: var(--tamas-border);
-  }
-
-  .wholesale-bar {
-    background: #1a2436;
-    border-color: var(--tamas-border);
-  }
-
-  .price-lock-note {
-    background: rgba(255, 149, 0, 0.15);
-    border-color: rgba(255, 149, 0, 0.3);
-    color: #ffb84d;
-  }
-
-  .install-banner {
-    background: var(--tamas-surface);
-    border-color: var(--tamas-border);
-  }
-
-  .install-banner-copy strong {
-    color: var(--tamas-fg);
-  }
-
-  .install-banner-copy span {
-    color: var(--tamas-muted);
-  }
-
-  .site-footer {
-    background: linear-gradient(180deg, var(--tamas-accent-deep) 0%, var(--tamas-accent) 100%);
-  }
-
-  .footer-text {
-    color: #d1e3e8;
-  }
-
-  .category-chip,
-  .brand-icon-btn {
-    background: #1a2436;
-    border-color: var(--tamas-border);
-  }
-
-  .category-chip:hover,
-  .category-chip.active,
-  .brand-icon-btn:hover,
-  .brand-icon-btn.active {
-    background: rgba(8, 121, 143, 0.2);
-    border-color: var(--tamas-accent);
-  }
-
-  .product {
-    background: var(--tamas-surface);
-    border-color: var(--tamas-border);
-  }
-
-  .variant {
-    background: #1a2436;
-    border-color: var(--tamas-border);
-  }
-
-  .wholesale-bar {
-    background: #1a2436;
-    border-color: var(--tamas-border);
-  }
-
-  .price-lock-note {
-    background: rgba(255, 149, 0, 0.2);
-    border-color: rgba(255, 149, 0, 0.3);
-    color: #ffb84d;
-  }
-
-  .install-banner {
-    background: var(--tamas-surface);
-    border-color: var(--tamas-border);
-  }
-
-  .install-banner-copy strong {
-    color: var(--tamas-fg);
-  }
-
-  .install-banner-copy span {
-    color: var(--tamas-muted);
-  }
-}
 
 [data-theme="dark"] .topbar {
   background: rgba(11, 17, 29, 0.95);

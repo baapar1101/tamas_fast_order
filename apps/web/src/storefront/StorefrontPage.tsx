@@ -12,6 +12,8 @@ import { InstallBanner } from './InstallBanner';
 import { ProductCard } from './ProductCard';
 import { useBootstrap, useDebounced, useProducts, type CatalogFilters } from './hooks';
 import { Icon } from '../components/Icon';
+import { ThemeToggle } from '../components/ThemeToggle';
+import { useToast } from '../components/Toast';
 import { CrmChat } from '../components/CrmChat';
 import './storefront.css';
 
@@ -269,6 +271,7 @@ export function StorefrontPage() {
           </div>
 
           <div className="user-actions">
+            <ThemeToggle />
             <button
               type="button"
               className="btn btn-icon-only"
