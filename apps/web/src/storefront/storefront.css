@@ -1293,6 +1293,18 @@
   letter-spacing: -0.37px;
 }
 
+.card-title-link,
+.product-title-link {
+  color: inherit;
+  text-decoration: none;
+  display: inline;
+}
+
+.card-title-link:hover,
+.product-title-link:hover {
+  color: var(--tamas-accent);
+}
+
 .card-title.title-long {
   font-size: 11.25px;
   line-height: 1.45;

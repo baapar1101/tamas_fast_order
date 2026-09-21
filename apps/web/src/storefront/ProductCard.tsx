@@ -1,4 +1,5 @@
 import { memo, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber, hasRealDiscount } from '@tamas/shared';
 import { Price } from '../components/Price';
@@ -97,7 +98,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
           <div className="product-head">
             <div className={`product-title ${titleClass}`}>
               {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
-              {group.title}
+              <Link className="product-title-link" to={`/p/${selectedVariant.productId}`}>{group.title}</Link>
             </div>
           </div>
 
@@ -216,7 +217,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       <div style={{ minWidth: 0 }}>
         <div className={`card-title ${titleClass}`}>
           {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
-          {group.title}
+          <Link className="card-title-link" to={`/p/${selectedVariant.productId}`}>{group.title}</Link>
         </div>
 
         <div className="card-meta-row">
@@ -323,14 +324,13 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
           </div>
         )}
 
-        <button
-          type="button"
+        <Link
+          to={`/p/${selectedVariant.productId}`}
           className="btn"
-          style={{ width: '100%', fontSize: '11.5px', padding: '5px' }}
-          onClick={() => onPreview(image)}
+          style={{ width: '100%', fontSize: '11.5px', padding: '5px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
         >
           <Icon name="eye" /> مشاهده جزئیات
-        </button>
+        </Link>
       </div>
     </article>
   );

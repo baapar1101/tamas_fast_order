@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { SvgSprite } from './components/Icon';
 import { useAuth } from './store/auth';
 import { StorefrontPage } from './storefront/StorefrontPage';
+import { ProductPage } from './storefront/ProductPage';
 import { TermsPage } from './storefront/TermsPage';
 import { OrdersPage } from './storefront/OrdersPage';
 
@@ -67,6 +68,7 @@ export function App() {
         <Route path="/" element={<StorefrontPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/terms" element={<TermsPage />} />
+        <Route path="/p/:productId" element={<ProductPage />} />
         <Route
           path="/admin/*"
           element={

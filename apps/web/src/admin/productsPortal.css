@@ -672,7 +672,9 @@
   z-index: 70;
   min-width: 190px;
   padding: 6px;
-  background: var(--pp-bg-card);
+  background: var(--a-dropdown-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--pp-border-light);
   border-radius: 12px;
   box-shadow: 0 12px 24px rgb(16 24 40 / 0.12);
