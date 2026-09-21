@@ -23,31 +23,30 @@ import { getCrmConfig } from '../services/settings.js';
  *   GET  /api/crm/stats             - CRM integration statistics (admin)
  */
 const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
-  // Capture the raw body for HMAC signature verification.
-  app.addContentTypeParser('application/json', { parseAs: 'buffer' }, (_req, body, done) => {
-    try {
-      const json = JSON.parse(body.toString('utf-8'));
-      done(null, { raw: body, json });
-    } catch {
-      done(new Error('Invalid JSON'), undefined);
-    }
-  });
 
-  app.post(
-    '/crm/webhook',
-    { config: { rateLimit: { max: 120, timeWindow: '1 minute' } } },
-    async (req: FastifyRequest, reply: FastifyReply) => {
-      const parsed = req.body as { raw: Buffer; json: unknown };
-      const rawBody = parsed.raw.toString('utf-8');
-      const signature = (req.headers['x-crm-signature'] as string) ?? undefined;
+    app.post('/crm/webhook', async (req: FastifyRequest, reply: FastifyReply) => {
+      // Read raw body for HMAC verification - use req.rawBody if available, or read from stream
       const config = await getCrmConfig();
-      const result = await processCrmWebhook(rawBody, signature, parsed.json, config);
-      if (!result.ok) {
+      let rawBodyStr: string;
+      try {
+        // Try to get raw body from Fastify's rawBody support
+        const rawBody = (req as any).rawBody;
+        if (rawBody) {
+          rawBodyStr = typeof rawBody === 'string' ? rawBody : rawBody.toString('utf-8');
+        } else {
+          rawBodyStr = JSON.stringify(req.body);
+        }
+        const signature = (req.headers['x-crm-signature'] as string) ?? undefined;
+        const result = await processCrmWebhook(rawBodyStr, signature, req.body, config);
+        if (!result.ok) {
+          reply.code(400);
+        }
+        return result;
+      } catch (err: any) {
         reply.code(400);
+        return { ok: false, error: err?.message ?? 'Webhook processing failed' };
       }
-      return result;
-    },
-  );
+    });
 
   /**
    * Health check for the CRM integration.
