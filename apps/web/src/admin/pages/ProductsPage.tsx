@@ -631,22 +631,24 @@ export function ProductsPage() {
           </div>
         )}
 
-        {pageCount > 1 && (
+        {items.length > 0 && (
           <div className="pp-pager">
             <span className="pp-pager-info">
               {formatNumber((page - 1) * 24 + 1)} تا {formatNumber(Math.min(page * 24, total))} از {formatNumber(total)} محصول
             </span>
-            <div className="pp-pager-actions">
-              <button type="button" className="pp-btn pp-btn--secondary pp-btn--sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                صفحه قبلی
-              </button>
-              <span className="pp-pager-info">
-                صفحه {formatNumber(page)} از {formatNumber(pageCount)}
-              </span>
-              <button type="button" className="pp-btn pp-btn--secondary pp-btn--sm" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
-                صفحه بعدی
-              </button>
-            </div>
+            {pageCount > 1 && (
+              <div className="pp-pager-actions">
+                <button type="button" className="pp-btn pp-btn--secondary pp-btn--sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                  صفحه قبلی
+                </button>
+                <span className="pp-pager-info">
+                  صفحه {formatNumber(page)} از {formatNumber(pageCount)}
+                </span>
+                <button type="button" className="pp-btn pp-btn--secondary pp-btn--sm" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
+                  صفحه بعدی
+                </button>
+              </div>
+            )}
           </div>
         )}
       </section>

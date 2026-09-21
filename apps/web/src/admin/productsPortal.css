@@ -855,3 +855,22 @@ body.admin-page-active:not(.admin-theme-light) .pp-root {
 body.admin-page-active:not(.admin-theme-light) .pp-input:focus {
   box-shadow: 0 0 0 3px rgb(76 162 255 / 0.16);
 }
+
+/* ==========================================================================
+   Products table layout polish (layout only — colors untouched)
+   ========================================================================== */
+.pp-table-wrap {
+  max-height: 72vh;
+  overflow-y: auto;
+  border-radius: 14px;
+}
+.pp-th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+.pp-td { padding: 13px 16px; }
+.pp-pager {
+  border-top: 1px solid var(--pp-border-faint);
+  background: var(--pp-bg-card);
+}

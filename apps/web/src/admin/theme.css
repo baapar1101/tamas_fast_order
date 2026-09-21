@@ -1333,3 +1333,67 @@ body.admin-page-active.admin-theme-light .admin-sidebar .bg-gradient-to-br {
 body.admin-page-active.admin-theme-light .admin-sidebar .bg-gradient-to-br[class*="via-"] {
   background-image: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(240, 250, 245, 0.95) 45%, rgba(238, 246, 251, 0.95));
 }
+
+/* ==========================================================================
+   Table Layout Polish (layout only — colors/glass untouched)
+   ========================================================================== */
+
+/* Bounded card scroll + sticky header */
+.a-table-wrap,
+.huma-table-container {
+  max-height: 72vh;
+  overflow-y: auto;
+  border-radius: 16px;
+}
+
+/* sticky + rounded header row for .a-table */
+.a-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: color-mix(in srgb, var(--a-surface-2) 92%, transparent);
+  backdrop-filter: blur(8px);
+  letter-spacing: 0.02em;
+}
+.a-table th > div,
+.a-table th > span { gap: 0.6rem; }
+.a-table th { padding: 1.05rem 1.1rem; }
+.a-table th:first-child,
+.a-table th:last-child { border-radius: 0; }
+.a-table th:first-child { border-start-start-radius: 14px; }
+.a-table th:last-child { border-start-end-radius: 14px; }
+.a-table td { padding: 1.05rem 1.1rem; }
+
+/* sticky + rounded header row for legacy .huma-table */
+.huma-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: color-mix(in srgb, var(--a-surface) 88%, var(--a-surface-3));
+  backdrop-filter: blur(8px);
+  letter-spacing: 0.02em;
+}
+.huma-table th:first-child { border-start-start-radius: 14px; }
+.huma-table th:last-child { border-start-end-radius: 14px; }
+.huma-table td { padding: 0.95rem 1.1rem; }
+
+/* In-card footer bar (count + pagination) */
+.a-card--flush .a-pager,
+.a-pager {
+  margin: 0;
+  border-top: 1px solid var(--a-divider);
+  border-radius: 0;
+  background: var(--a-surface);
+  box-shadow: none;
+  padding: 0.85rem 1.1rem;
+}
+.a-pager-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.a-pager-count {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--a-t1);
+}

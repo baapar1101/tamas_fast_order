@@ -109,10 +109,11 @@ export function SettingsPage() {
   });
 
   const [form, setForm] = useState<Record<string, string>>({});
-  const [newKey, setNewKey] = useState('');
-  const [newValue, setNewValue] = useState('');
-  const [testPhone, setTestPhone] = useState('');
-  const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
+    const [newKey, setNewKey] = useState('');
+    const [newValue, setNewValue] = useState('');
+    const [testPhone, setTestPhone] = useState('');
+    const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
+    const [syncProgress, setSyncProgress] = useState<{ [key: string]: { current: number; total: number; status: string } }>({});
 
   useEffect(() => {
     if (settings.data) setForm(settings.data.settings);

@@ -270,22 +270,27 @@ export function UsersPage() {
             </table>
           </div>
         )}
-      </section>
 
-      {/* Pagination */}
-      {pageCount > 1 && (
-        <section className="a-card a-pager">
-          <button type="button" className="a-btn a-btn--secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-            صفحه قبلی
-          </button>
-          <span className="a-pager-info">
-            صفحه {formatNumber(page)} از {formatNumber(pageCount)}
-          </span>
-          <button type="button" className="a-btn a-btn--secondary" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
-            صفحه بعدی
-          </button>
-        </section>
-      )}
+        {/* Table Footer: count + pagination */}
+        {items.length > 0 && (
+          <footer className="a-pager">
+            <span className="a-pager-info a-pager-count">{formatNumber(total)} کاربر</span>
+            <div className="a-pager-actions">
+              {pageCount > 1 && (
+                <>
+                  <button type="button" className="a-btn a-btn--secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                    صفحه قبلی
+                  </button>
+                  <span className="a-pager-info">صفحه {formatNumber(page)} از {formatNumber(pageCount)}</span>
+                  <button type="button" className="a-btn a-btn--secondary" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
+                    صفحه بعدی
+                  </button>
+                </>
+              )}
+            </div>
+          </footer>
+        )}
+      </section>
 
       {/* Edit Role Modal */}
       {editingUser && (
