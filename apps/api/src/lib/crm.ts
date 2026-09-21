@@ -142,15 +142,21 @@ export const crmClient = {
         resolvedPersonId = createPersonResult.personId;
       }
 
-      // Build invoice payload
+      // Build invoice payload - Hesabix uses "invoice_sales" and person_id in extra_info
       const payload = {
-        invoice_type: 'sale',
-        person_id: resolvedPersonId,
+        invoice_type: 'invoice_sales',
         invoice_date: new Date().toISOString().split('T')[0],
-        items: order.items.map((i) => ({
+        currency_id: 1,
+        extra_info: {
+          person_id: resolvedPersonId,
+        },
+        lines: order.items.map((i) => ({
           product_id: parseInt(i.productId) || 0,
           quantity: i.qty,
           unit_price: i.price,
+          discount_percent: 0,
+          tax_percent: 0,
+          warehouse_id: 1,
         })),
         description: order.note ?? '',
         payment_method: order.paymentMethod === 'card' ? 'card' : 'cash',
@@ -180,31 +186,25 @@ export const crmClient = {
   async pushProduct(product: CrmProduct, config: CrmConfig): Promise<CrmSyncResult> {
     try {
       const payload = {
-        source: 'tamas-fast-order',
-        product_id: product.productId,
-        sku: product.sku ?? '',
+        item_type: 'کالا',
+        code: product.productId,
         name: product.title,
-        model: product.model ?? '',
-        category_name: product.categoryName ?? '',
-        brand_name: product.brandName ?? '',
-        price: product.price,
-        old_price: product.oldPrice ?? null,
-        discount: product.discount,
-        stock: product.stock,
-        kerman_stock: product.kermanStock ?? 0,
-        tehran_stock: product.tehranStock ?? 0,
-        status: product.status,
-        description: product.description ?? '',
-        image_url: product.imageUrl ?? '',
-        updated_at: product.updatedAt,
+        general_barcodes: product.sku || product.productId,
+        track_inventory: product.stock > 0,
+        inventory_mode: 'bulk',
+        base_sales_price: product.price,
+        base_purchase_price: Math.floor(product.price * 0.8),
+        main_unit: 'عدد',
+        unit_conversion_factor: 1,
+        is_active: product.status === 'active',
       };
-      // Hesabix API: POST /api/v1/products/business/{businessId}/
+      // Hesabix API: POST /api/v1/products/business/{businessId}
       const data = (await crmRequest<{
         success?: boolean;
         data?: { id?: number };
         error?: { code?: string; message?: string };
       }>(
-        `/api/v1/products/business/${config.businessId}/`,
+        `/api/v1/products/business/${config.businessId}`,
         config,
         { method: 'POST', body: JSON.stringify(payload) },
       )) as { success?: boolean; data?: { id?: number }; error?: { code?: string; message?: string } };

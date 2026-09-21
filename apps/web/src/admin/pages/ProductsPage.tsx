@@ -312,7 +312,8 @@ export function ProductsPage() {
         </div>
 
         <AnimatedDropdown
-          buttonClassName="w-40 h-[38px]"
+          className="w-40"
+          buttonClassName="h-[38px]"
           value={status}
           onChange={(v) => {
             setStatus(v as typeof status);
@@ -322,78 +323,74 @@ export function ProductsPage() {
           prefix="وضعیت:"
         />
 
-        <div className="pp-select">
-          <button
-            type="button"
-            className="pp-btn pp-btn--secondary"
-            aria-expanded={filtersOpen}
-            onClick={() => setFiltersOpen((o) => !o)}
-          >
-            فیلترها
-            {activeFilterCount > 0 && <span className="pp-count">{formatNumber(activeFilterCount)}</span>}
-            <Chevron />
-          </button>
-          {filtersOpen && (
-            <>
-              <div className="pp-scrim" onClick={() => setFiltersOpen(false)} />
-              <div className="pp-filter-panel">
-                <div className="pp-field">
-                  <label>موجودی</label>
-                  <AnimatedDropdown
-                    value={stock}
-                    onChange={(v) => {
-                      setStock(v as typeof stock);
-                      setPage(1);
-                    }}
-                    options={STOCK_OPTIONS}
-                  />
-                </div>
-                <div className="pp-field">
-                  <label>دسته‌بندی</label>
-                  <AnimatedDropdown
-                    value={categoryId ? String(categoryId) : ''}
-                    onChange={(v) => {
-                      setCategoryId(v ? Number(v) : '');
-                      setPage(1);
-                    }}
-                    placeholder="همه دسته‌بندی‌ها"
-                    options={[
-                      { value: '', label: 'همه دسته‌بندی‌ها' },
-                      ...categoryOptions.map(c => ({ value: String(c.id), label: c.faName }))
-                    ]}
-                  />
-                </div>
-                <div className="pp-field">
-                  <label>برند</label>
-                  <AnimatedDropdown
-                    value={brandId ? String(brandId) : ''}
-                    onChange={(v) => {
-                      setBrandId(v ? Number(v) : '');
-                      setPage(1);
-                    }}
-                    placeholder="همه برندها"
-                    options={[
-                      { value: '', label: 'همه برندها' },
-                      ...brandOptions.map(b => ({ value: String(b.id), label: b.faName }))
-                    ]}
-                  />
-                </div>
-                <div className="pp-field">
-                  <label>مرتب‌سازی</label>
-                  <AnimatedDropdown value={sort} onChange={setSort} options={SORT_OPTIONS} />
-                </div>
-                <button type="button" className="pp-btn pp-btn--secondary pp-btn--sm" onClick={() => setFiltersOpen(false)}>
-                  بستن
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        <button
+          type="button"
+          className={`pp-btn pp-btn--secondary${filtersOpen ? ' pp-btn--active' : ''}`}
+          aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen((o) => !o)}
+        >
+          فیلترها
+          {activeFilterCount > 0 && <span className="pp-count">{formatNumber(activeFilterCount)}</span>}
+          <Chevron />
+        </button>
 
         <button type="button" className="pp-btn pp-btn--primary" onClick={() => setEditing('new')}>
           + ایجاد محصول
         </button>
       </section>
+
+      {filtersOpen && (
+        <section className="pp-filters-row">
+          <div className="pp-field">
+            <label>موجودی</label>
+            <AnimatedDropdown
+              value={stock}
+              onChange={(v) => {
+                setStock(v as typeof stock);
+                setPage(1);
+              }}
+              options={STOCK_OPTIONS}
+            />
+          </div>
+          <div className="pp-field">
+            <label>دسته‌بندی</label>
+            <AnimatedDropdown
+              value={categoryId ? String(categoryId) : ''}
+              onChange={(v) => {
+                setCategoryId(v ? Number(v) : '');
+                setPage(1);
+              }}
+              placeholder="همه دسته‌بندی‌ها"
+              options={[
+                { value: '', label: 'همه دسته‌بندی‌ها' },
+                ...categoryOptions.map(c => ({ value: String(c.id), label: c.faName }))
+              ]}
+            />
+          </div>
+          <div className="pp-field">
+            <label>برند</label>
+            <AnimatedDropdown
+              value={brandId ? String(brandId) : ''}
+              onChange={(v) => {
+                setBrandId(v ? Number(v) : '');
+                setPage(1);
+              }}
+              placeholder="همه برندها"
+              options={[
+                { value: '', label: 'همه برندها' },
+                ...brandOptions.map(b => ({ value: String(b.id), label: b.faName }))
+              ]}
+            />
+          </div>
+          <div className="pp-field">
+            <label>مرتب‌سازی</label>
+            <AnimatedDropdown value={sort} onChange={setSort} options={SORT_OPTIONS} />
+          </div>
+          <button type="button" className="pp-btn pp-btn--secondary pp-btn--sm pp-filters-close" onClick={() => setFiltersOpen(false)}>
+            بستن
+          </button>
+        </section>
+      )}
 
       {selected.size > 0 && (
         <div className="pp-bulkbar">

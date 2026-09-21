@@ -264,12 +264,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
               </span>
             )}
 
-            {selectedVariant.sku && (
-              <span className="card-sku">
-                کد: <b className="ltr-inline">{selectedVariant.sku}</b>
-              </span>
-            )}
-          </div>
+            </div>
 
           <div className="sell-types">
             {sellTypes(selectedVariant.sellType).map((t) => (

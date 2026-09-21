@@ -403,22 +403,32 @@
   font-weight: 500;
 }
 
-.pp-filter-panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 60;
-  width: 280px;
-  padding: 16px;
+.pp-filters-row {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
-  background: var(--a-dropdown-bg);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
   border: 1px solid var(--pp-border-light);
   border-radius: 12px;
-  box-shadow: 0 12px 24px rgb(16 24 40 / 0.12);
+  background: var(--pp-bg-page);
+}
+
+.pp-filters-row .pp-field {
+  flex: 1 1 180px;
+  min-width: 180px;
+  max-width: 260px;
+}
+
+.pp-filters-close {
+  margin-inline-start: auto;
+}
+
+.pp-btn--active {
+  border-color: var(--pp-brand);
+  color: var(--pp-brand);
+  background: var(--pp-brand-bg);
 }
 
 .pp-field {
