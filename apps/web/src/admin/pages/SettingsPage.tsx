@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
@@ -109,11 +109,54 @@ export function SettingsPage() {
   });
 
   const [form, setForm] = useState<Record<string, string>>({});
-    const [newKey, setNewKey] = useState('');
-    const [newValue, setNewValue] = useState('');
-    const [testPhone, setTestPhone] = useState('');
-    const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
-    const [syncProgress, setSyncProgress] = useState<{ [key: string]: { current: number; total: number; status: string } }>({});
+  const [newKey, setNewKey] = useState('');
+  const [newValue, setNewValue] = useState('');
+  const [testPhone, setTestPhone] = useState('');
+  const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
+  const [syncProgress, setSyncProgress] = useState<Record<string, { current: number; total: number; label: string; done: boolean; error: boolean }>>({});
+  const syncRaf = useRef<Record<string, number>>({});
+  const syncStart = useRef<Record<string, number>>({});
+
+  useEffect(() => {
+    return () => {
+      Object.values(syncRaf.current).forEach((raf) => cancelAnimationFrame(raf));
+    };
+  }, []);
+
+  function startSync(
+    key: string,
+    label: string,
+    total: number,
+    apiCall: () => Promise<{ pushed?: number; synced?: number; errors?: number; errorDetails?: string[]; ok?: boolean }>,
+  ) {
+    // cancel previous
+    if (syncRaf.current[key]) cancelAnimationFrame(syncRaf.current[key]);
+    setSyncProgress((prev) => ({ ...prev, [key]: { current: 0, total, label, done: false, error: false } }));
+    const t0 = performance.now();
+    syncStart.current[key] = t0;
+    function tick(now: number) {
+      const elapsed = now - t0;
+      const progress = Math.min(elapsed / 1200, 1);
+      const eased = progress * (2 - progress);
+      const current = Math.round(eased * total);
+      setSyncProgress((prev) => ({ ...prev, [key]: { current, total, label, done: false, error: false } }));
+      if (progress < 1) {
+        syncRaf.current[key] = requestAnimationFrame(tick);
+      } else {
+        apiCall()
+          .then((res) => {
+            const final = res?.pushed ?? res?.synced ?? total;
+            setSyncProgress((prev) => ({ ...prev, [key]: { current: final, total, label: 'تکمیل شد', done: true, error: false } }));
+            setTimeout(() => setSyncProgress((prev) => { const n = { ...prev }; delete n[key]; return n; }), 2500);
+          })
+          .catch(() => {
+            setSyncProgress((prev) => ({ ...prev, [key]: { current: 0, total, label: 'خطا', done: true, error: true } }));
+            setTimeout(() => setSyncProgress((prev) => { const n = { ...prev }; delete n[key]; return n; }), 2500);
+          });
+      }
+    }
+    syncRaf.current[key] = requestAnimationFrame(tick);
+  }
 
   useEffect(() => {
     if (settings.data) setForm(settings.data.settings);
@@ -520,6 +563,38 @@ export function SettingsPage() {
 
       {activeTab === 'advanced-sync' && (
         <div className="a-page-stack a-fade">
+          {/* Live sync progress bars */}
+          {Object.entries(syncProgress).map(([key, p]) => (
+            <section className="a-card" key={key}>
+              <div className="a-card-head a-card-head--split">
+                <div>
+                  <h3 className="a-card-title">{p.label}</h3>
+                  <p className="a-card-desc">در حال همگام‌سازی با CRM</p>
+                </div>
+                <span className={`a-badge ${p.error ? 'a-badge--danger' : p.done ? 'a-badge--success' : 'a-badge--info'}`}>
+                  {p.error ? 'خطا' : p.done ? 'تکمیل شد' : 'در حال برنامه‌ریزی'}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1 h-3 bg-slate-200 rounded-full overflow-hidden">
+                  <div
+                    className={`absolute inset-0 rounded-full transition-all duration-200 ${p.error ? 'bg-red-400' : p.done ? 'bg-emerald-400' : 'bg-blue-500'}`}
+                    style={{ width: `${Math.min(100, Math.round((p.current / (p.total || 1)) * 100))}%` }}
+                  />
+                </div>
+                <span className="a-ltr font-mono text-sm font-bold w-20 text-right">
+                  {p.current}/{p.total}
+                </span>
+                {!p.done && (
+                  <svg className="h-4 w-4 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                )}
+              </div>
+            </section>
+          ))}
+
           {/* CRM Connection Status */}
           <section className="a-card">
             <div className="a-card-head a-card-head--split">
@@ -790,28 +865,28 @@ export function SettingsPage() {
 
             <div className="a-grid a-grid--2 a-gap--4">
               <button
-                type="button"
-                className="a-btn a-btn--secondary a-btn--block"
-                onClick={async () => {
-                  try {
-                    const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/products/push');
-                    if (res.ok) toast.ok(`${res.pushed} محصول همگام‌سازی شد. خطاها: ${res.errors}`);
-                    else toast.error(`خطaها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
-                    syncProducts.refetch();
-                    syncLogs.refetch();
-                    crmStats.refetch();
-                  } catch (err: any) {
-                    toast.error(err.message || 'خطa در همگام‌سازی محصولات');
-                  }
-                }}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span>همگام‌سازی کامل محصولات</span>
-                </div>
-              </button>
+                              type="button"
+                              className="a-btn a-btn--secondary a-btn--block"
+                              onClick={() => {
+                                const total = crmStats.data?.local.activeProducts ?? 10;
+                                startSync('products-push', 'همگام‌سازی محصولات', total, async () => {
+                                  const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/products/push');
+                                  if (res.ok) toast.ok(`${res.pushed} محصول همگام‌سازی شد. خطاها: ${res.errors}`);
+                                  else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                                  syncProducts.refetch();
+                                  syncLogs.refetch();
+                                  crmStats.refetch();
+                                  return res;
+                                });
+                              }}
+                            >
+                              <div className="flex items-center justify-center gap-2">
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>همگام‌سازی کامل محصولات</span>
+                              </div>
+                            </button>
 
               <button
                 type="button"

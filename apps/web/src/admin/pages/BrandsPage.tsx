@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { BrandDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
+import { Modal } from '../../components/Modal';
 import { api } from '../../lib/api';
 import { ImagePicker } from '../components/ImagePicker';
 
@@ -38,7 +39,6 @@ export function BrandsPage() {
     setEditingId(null);
     setForm(EMPTY_FORM);
     setFormOpen(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const save = useMutation({
@@ -78,7 +78,6 @@ export function BrandsPage() {
     setEditingId(brand.id);
     setForm({ name: brand.name, faName: brand.faName, iconUrl: brand.iconUrl ?? '', sortOrder: brand.sortOrder });
     setFormOpen(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const canSubmit = Boolean(form.name.trim() && form.faName.trim());
@@ -96,77 +95,68 @@ export function BrandsPage() {
         </div>
       </section>
 
-      {formOpen && (
-        <>
-      {/* Reference-style create form: header card + stacked sections + save footer */}
-      <form
-        className="a-form a-fade"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (!canSubmit) {
-            toast.error('نام فارسی و انگلیسی را وارد کنید.');
-            return;
-          }
-          save.mutate();
-        }}
-      >
-        <div className="a-form-head">
-          <button type="button" className="a-form-back" onClick={resetForm} aria-label="بازگشت" title="بازگشت">
-            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-5 w-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </button>
-          <div className="a-form-title">
+      <Modal
+        open={formOpen}
+        title={
+          <>
             {editingId === null ? 'افزودن برند جدید' : 'ویرایش برند'}
             {editingId !== null && <span className="a-badge a-badge--neutral">#{editingId}</span>}
-          </div>
-          <div className="a-form-actions">
-            {editingId !== null && (
-              <button type="button" className="a-btn a-btn--ghost" onClick={resetForm}>انصراف</button>
-            )}
-            <button type="submit" className="a-btn a-btn--primary" disabled={save.isPending}>
-              {save.isPending ? 'در حال ذخیره…' : 'ذخیره'}
+          </>
+        }
+        onClose={resetForm}
+        wide
+        busy={save.isPending}
+        footer={
+          <>
+            <button type="button" className="a-btn a-btn--ghost" onClick={resetForm} disabled={save.isPending}>انصراف</button>
+            <button type="submit" form="brand-form" className="a-btn a-btn--primary" disabled={save.isPending}>
+              {save.isPending ? 'در حال ذخیره…' : editingId === null ? 'ثبت برند' : 'ذخیره تغییرات'}
             </button>
-          </div>
-        </div>
+          </>
+        }
+      >
+        <form
+          id="brand-form"
+          className="a-form a-fade"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!canSubmit) {
+              toast.error('نام فارسی و انگلیسی را وارد کنید.');
+              return;
+            }
+            save.mutate();
+          }}
+        >
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">اطلاعات پایه</h3>
+            </div>
+            <div className="a-form-grid">
+              <label className="a-field">
+                <span className="a-label">نام فارسی <span className="a-req">*</span></span>
+                <input className="a-input" value={form.faName} onChange={(e) => setForm({ ...form, faName: e.target.value })} placeholder="مثلاً انکر" />
+              </label>
+              <label className="a-field">
+                <span className="a-label">نام انگلیسی <span className="a-req">*</span></span>
+                <input className="a-input a-ltr a-mono" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="ANKER" />
+              </label>
+              <label className="a-field">
+                <span className="a-label">ترتیب نمایش</span>
+                <input className="a-input" type="number" inputMode="numeric" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) || 0 })} />
+                <span className="a-hint">عدد کوچک‌تر ابتدا نمایش داده می‌شود.</span>
+              </label>
+            </div>
+          </section>
 
-        <section className="a-card">
-          <div className="a-card-head">
-            <h3 className="a-card-title">اطلاعات پایه</h3>
-          </div>
-          <div className="a-form-grid">
-            <label className="a-field">
-              <span className="a-label">نام فارسی <span className="a-req">*</span></span>
-              <input className="a-input" value={form.faName} onChange={(e) => setForm({ ...form, faName: e.target.value })} placeholder="مثلاً انکر" />
-            </label>
-            <label className="a-field">
-              <span className="a-label">نام انگلیسی <span className="a-req">*</span></span>
-              <input className="a-input a-ltr a-mono" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="ANKER" />
-            </label>
-            <label className="a-field">
-              <span className="a-label">ترتیب نمایش</span>
-              <input className="a-input" type="number" inputMode="numeric" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) || 0 })} />
-              <span className="a-hint">عدد کوچک‌تر ابتدا نمایش داده می‌شود.</span>
-            </label>
-          </div>
-        </section>
-
-        <section className="a-card">
-          <div className="a-card-head">
-            <h3 className="a-card-title">لوگو برند</h3>
-          </div>
-          <p className="a-card-sub">تصویر یا آیکن لوگو؛ از گالری قبلی یا آدرس مستقیم.</p>
-          <ImagePicker label="لوگو / تصویر برند" value={form.iconUrl} kind="brand" onChange={(iconUrl) => setForm({ ...form, iconUrl })} />
-        </section>
-
-        <div className="a-form-foot">
-          <button type="submit" className="a-btn a-btn--primary a-btn--lg" disabled={save.isPending}>
-            {save.isPending ? 'در حال ذخیره…' : editingId === null ? '+ ثبت برند' : 'ذخیره تغییرات'}
-          </button>
-        </div>
-      </form>
-        </>
-      )}
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">لوگو برند</h3>
+            </div>
+            <p className="a-card-sub">تصویر یا آیکن لوگو؛ از گالری قبلی یا آدرس مستقیم.</p>
+            <ImagePicker label="لوگو / تصویر برند" value={form.iconUrl} kind="brand" onChange={(iconUrl) => setForm({ ...form, iconUrl })} />
+          </section>
+        </form>
+      </Modal>
 
       {/* List */}
       <section className="a-searchbar">
