@@ -81,6 +81,7 @@ body.admin-page-active {
   --a-t3: #cbd5e1;
   --a-t4: #94a3b8;
   --a-input-bg: rgba(255, 255, 255, 0.03);
+  --a-dropdown-bg: rgba(10, 15, 25, 0.85);
   --a-field-bg: rgba(255, 255, 255, 0.05);
   --a-check-bg: rgba(255, 255, 255, 0.1);
   --a-hover: rgba(255, 255, 255, 0.1);
@@ -103,6 +104,7 @@ body.admin-page-active.admin-theme-light {
   --a-t3: #475569;
   --a-t4: #64748b;
   --a-input-bg: rgba(255, 255, 255, 0.3);
+  --a-dropdown-bg: rgba(255, 255, 255, 0.85);
   --a-field-bg: rgba(255, 255, 255, 0.4);
   --a-check-bg: rgba(255, 255, 255, 0.6);
   --a-hover: rgba(255, 255, 255, 0.5);
@@ -112,6 +114,7 @@ body.admin-page-active.admin-theme-light {
 
 /* Glassmorphism utility classes */
 .glass-bg-surface { background-color: var(--a-surface) !important; }
+.glass-bg-dropdown { background-color: var(--a-dropdown-bg) !important; }
 .glass-bg-input { background-color: var(--a-input-bg) !important; }
 .glass-border { border-color: var(--a-border) !important; }
 .glass-text-t1 { color: var(--a-t1) !important; }

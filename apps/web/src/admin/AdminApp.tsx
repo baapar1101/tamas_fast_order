@@ -630,7 +630,7 @@ export default function AdminApp() {
 
                 {notifOpen && (
                   <div className="absolute left-0 top-14 w-80 max-w-[calc(100vw-2rem)] z-50">
-                    <div className="glass-card-static overflow-hidden p-0 shadow-2xl glass-bg-surface">
+                    <div className="glass-card-static overflow-hidden p-0 shadow-2xl glass-bg-dropdown">
                       <div className="flex items-center justify-between border-b glass-border px-5 py-4">
                         <h3 className="text-sm font-bold glass-text-t1">اعلان‌ها</h3>
                         <span className="chip chip-brand">۲ مورد جدید</span>
@@ -683,7 +683,7 @@ export default function AdminApp() {
 
                 {profileOpen && (
                   <div className="absolute left-0 top-14 w-72 max-w-[calc(100vw-2rem)] z-50">
-                    <div className="glass-card-static overflow-hidden p-0 shadow-2xl glass-bg-surface backdrop-blur-xl">
+                    <div className="glass-card-static overflow-hidden p-0 shadow-2xl glass-bg-dropdown backdrop-blur-xl">
                       <div className="flex items-center gap-3 border-b glass-border px-5 py-4">
                         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 text-base font-extrabold text-slate-950">
                           {user?.name?.[0] || 'م'}
