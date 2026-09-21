@@ -14,6 +14,24 @@ interface OrdersResponse {
   total: number;
 }
 
+const downloadOrderExcel = (order: OrderDTO) => {
+  const rows = [order.orderCode];
+  for (const item of order.items) {
+    const sku = item.sku || item.productId;
+    for (let i = 0; i < item.qty; i++) {
+      rows.push(sku);
+    }
+  }
+  const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + rows.join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `order-${order.orderCode}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 const CHIP_TONE: Record<OrderStatus, string> = {
   new: 'chip-brand',
   confirmed: 'chip-brand',
@@ -347,23 +365,33 @@ export function OrdersPage() {
             </button>
           }
         >
-          <div className="a-tabs mb-4">
+          <div className="a-tabs mb-4 flex justify-between">
+            <div className="flex gap-1">
+              <button
+                type="button"
+                className={`a-tab${detailTab === 'info' ? ' a-tab--on' : ''}`}
+                onClick={() => setDetailTab('info')}
+              >
+                اطلاعات سفارش
+              </button>
+              <button
+                type="button"
+                className={`a-tab${detailTab === 'items' ? ' a-tab--on' : ''}`}
+                onClick={() => setDetailTab('items')}
+              >
+                اقلام سفارش
+                <span className="mr-2 rounded-lg bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300">
+                  {detail.items.length}
+                </span>
+              </button>
+            </div>
             <button
               type="button"
-              className={`a-tab${detailTab === 'info' ? ' a-tab--on' : ''}`}
-              onClick={() => setDetailTab('info')}
+              className="a-btn a-btn--secondary a-btn--sm"
+              onClick={() => downloadOrderExcel(detail)}
             >
-              اطلاعات سفارش
-            </button>
-            <button
-              type="button"
-              className={`a-tab${detailTab === 'items' ? ' a-tab--on' : ''}`}
-              onClick={() => setDetailTab('items')}
-            >
-              اقلام سفارش
-              <span className="mr-2 rounded-lg bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300">
-                {detail.items.length}
-              </span>
+              <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+              اکسل سفارش
             </button>
           </div>
 
