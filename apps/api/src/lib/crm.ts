@@ -126,37 +126,44 @@ export const crmClient = {
   /** Push an order to the CRM. Returns the remote CRM order id on success. */
   async pushOrder(order: CrmOrder, config: CrmConfig): Promise<CrmSyncResult> {
     try {
+      // Find or create person in CRM
+      const personResult = await this.searchPerson({ phone: order.phone }, config);
+      const personId = personResult.personId;
+
+      // Create person if not exists
+      let resolvedPersonId = personId;
+      if (!resolvedPersonId && config.syncEnabled) {
+        const createPersonResult = await this.pushPerson({
+          firstName: order.customerName.split(' ')[0] || '',
+          lastName: order.customerName.split(' ').slice(1).join(' ') || '',
+          phone: order.phone,
+          aliasName: order.customerName,
+        }, config);
+        resolvedPersonId = createPersonResult.personId;
+      }
+
+      // Build invoice payload
       const payload = {
-        source: 'tamas-fast-order',
-        order_code: order.orderCode,
-        customer_name: order.customerName,
-        phone: order.phone,
-        store_name: order.storeName,
-        address: order.address,
-        total: order.total,
-        quantity: order.quantity,
-        status: order.status,
-        payment_status: order.paymentStatus,
-        payment_method: order.paymentMethod,
-        note: order.note ?? '',
+        invoice_type: 'sale',
+        person_id: resolvedPersonId,
+        invoice_date: new Date().toISOString().split('T')[0],
         items: order.items.map((i) => ({
-          product_id: i.productId,
-          sku: i.sku ?? '',
-          title: i.title,
-          price: i.price,
-          qty: i.qty,
-          warehouse: i.warehouse,
-          color: i.color ?? '',
+          product_id: parseInt(i.productId) || 0,
+          quantity: i.qty,
+          unit_price: i.price,
         })),
-        synced_at: new Date().toISOString(),
+        description: order.note ?? '',
+        payment_method: order.paymentMethod === 'card' ? 'card' : 'cash',
+        payment_amount: order.paymentStatus === 'paid' ? order.total : 0,
       };
-      // Hesabix API: POST /api/v1/orders/business/{businessId}/
+
+      // Hesabix API: POST /api/v1/invoices/business/{businessId}
       const data = (await crmRequest<{
         success?: boolean;
         data?: { id?: number };
         error?: { code?: string; message?: string };
       }>(
-        `/api/v1/orders/business/${config.businessId}/`,
+        `/api/v1/invoices/business/${config.businessId}`,
         config,
         { method: 'POST', body: JSON.stringify(payload) },
       )) as { success?: boolean; data?: { id?: number }; error?: { code?: string; message?: string } };
@@ -211,34 +218,38 @@ export const crmClient = {
   },
 
   /** Search for a person in CRM by phone or name (for order customer matching). */
-    async searchPerson(
-      query: { phone?: string; name?: string; email?: string },
-      config: CrmConfig,
-    ): Promise<CrmSyncResult & { personId?: number }> {
-      try {
-        const params = new URLSearchParams();
-        if (query.phone) params.set('phone', query.phone);
-        if (query.name) params.set('name', query.name);
-        if (query.email) params.set('email', query.email);
-        // Hesabix API: GET /api/v1/contacts/business/{businessId}/search
-        const data = (await crmRequest<{
-          success?: boolean;
-          items?: Array<{ id: number }>;
-          error?: string;
-        }>(`/api/v1/contacts/business/${config.businessId}/search?${params.toString()}`, config)) as {
-          success?: boolean;
-          items?: Array<{ id: number }>;
-          error?: string;
-        };
-        if (data?.success === false || data?.error) {
-          return { ok: false, entity: 'person', error: data.error || 'CRM search failed' };
-        }
-        const first = data?.items?.[0];
-        return { ok: true, entity: 'person', personId: first?.id };
-      } catch (err: any) {
-        return { ok: false, entity: 'person', error: err?.message ?? String(err) };
+  async searchPerson(
+    query: { phone?: string; name?: string; email?: string },
+    config: CrmConfig,
+  ): Promise<CrmSyncResult & { personId?: number }> {
+    try {
+      // Hesabix API: POST /api/v1/persons/businesses/{businessId}/persons with search query
+      const payload = {
+        query: query.phone || query.name || '',
+        take: 1,
+        skip: 0,
+      };
+      const data = (await crmRequest<{
+        success?: boolean;
+        data?: { items?: Array<{ id: number }> };
+        error?: string;
+      }>(`/api/v1/persons/businesses/${config.businessId}/persons`, config, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })) as {
+        success?: boolean;
+        data?: { items?: Array<{ id: number }> };
+        error?: string;
+      };
+      if (data?.success === false || data?.error) {
+        return { ok: false, entity: 'person', error: data.error || 'CRM search failed' };
       }
-    },
+      const first = data?.data?.items?.[0];
+      return { ok: true, entity: 'person', personId: first?.id };
+    } catch (err: any) {
+      return { ok: false, entity: 'person', error: err?.message ?? String(err) };
+    }
+  },
 
     /** Search for a product in CRM by productId. */
   async searchProduct(
@@ -330,21 +341,20 @@ export const crmClient = {
     try {
       if (!config.syncEnabled) return { ok: true, entity: 'person', deduped: true };
       const payload = {
-        source: 'tamas-fast-order',
+        alias_name: person.aliasName || `${person.firstName}${person.lastName ? ' ' + person.lastName : ''}`,
         first_name: person.firstName,
         last_name: person.lastName ?? '',
-        email: person.email ?? '',
         phone: person.phone,
-        alias_name: person.aliasName ?? '',
-        synced_at: new Date().toISOString(),
+        email: person.email ?? '',
+        person_types: ['مشتری'],
       };
-      // Hesabix API: POST /api/v1/contacts/business/{businessId}/
+      // Hesabix API: POST /api/v1/persons/businesses/{businessId}/persons/create
       const data = (await crmRequest<{
         success?: boolean;
         data?: { id?: number };
         error?: { code?: string; message?: string };
       }>(
-        `/api/v1/contacts/business/${config.businessId}/`,
+        `/api/v1/persons/businesses/${config.businessId}/persons/create`,
         config,
         { method: 'POST', body: JSON.stringify(payload) },
       )) as { success?: boolean; data?: { id?: number }; error?: { code?: string; message?: string } };
