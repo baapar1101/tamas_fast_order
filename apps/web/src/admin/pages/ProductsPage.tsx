@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ProductDTO } from '@tamas/shared';
-import { formatMoney, formatNumber } from '@tamas/shared';
-import { Price } from '../../components/Price';
+import { formatNumber } from '@tamas/shared';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 import { useDebounced } from '../../storefront/hooks';
 import { ProductEditor, type ProductForm } from '../components/ProductEditor';
 import { VariantsEditor } from '../components/VariantsEditor';
+import '../productsPortal.css';
 
 interface ProductsResponse {
   items: ProductDTO[];
@@ -18,6 +18,111 @@ interface ProductsResponse {
 }
 
 type BulkAction = 'activate' | 'deactivate' | 'delete' | 'promote' | 'demote' | 'setStock' | 'adjustPrice';
+
+function Chevron() {
+  return (
+    <svg className="pp-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg className="pp-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m21 21-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0" />
+    </svg>
+  );
+}
+
+function Dots() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+      <circle cx="5" cy="12" r="1.7" />
+      <circle cx="12" cy="12" r="1.7" />
+      <circle cx="19" cy="12" r="1.7" />
+    </svg>
+  );
+}
+
+interface Opt<T extends string> {
+  value: T;
+  label: string;
+  dot?: string;
+}
+
+function PPSelect<T extends string>({
+  value,
+  onChange,
+  options,
+  prefix,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: Opt<T>[];
+  prefix?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const cur = options.find((o) => o.value === value);
+  return (
+    <div className="pp-select">
+      <button
+        type="button"
+        className="pp-select-trigger"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {prefix && <span className="pp-select-label">{prefix}</span>}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          {cur?.dot && <span className={`pp-dot ${cur.dot}`} />}
+          {cur?.label ?? value}
+        </span>
+        <Chevron />
+      </button>
+      {open && (
+        <>
+          <div className="pp-scrim" onClick={() => setOpen(false)} />
+          <div className="pp-pop">
+            {options.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                className={`pp-pop-item${o.value === value ? ' pp-pop-item--selected' : ''}`}
+                onClick={() => {
+                  onChange(o.value);
+                  setOpen(false);
+                }}
+              >
+                {o.dot && <span className={`pp-dot ${o.dot}`} />}
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+const STATUS_OPTIONS: Opt<'all' | 'active' | 'inactive'>[] = [
+  { value: 'all', label: 'همه', dot: 'pp-dot--gray' },
+  { value: 'active', label: 'فعال', dot: 'pp-dot--green' },
+  { value: 'inactive', label: 'غیرفعال', dot: 'pp-dot--red' },
+];
+
+const STOCK_OPTIONS: Opt<'all' | 'in' | 'out'>[] = [
+  { value: 'all', label: 'همه موجودی‌ها' },
+  { value: 'in', label: 'موجود در انبار' },
+  { value: 'out', label: 'تمام شده' },
+];
+
+const SORT_OPTIONS: Opt<string>[] = [
+  { value: 'updated', label: 'آخرین تغییرات' },
+  { value: 'title', label: 'عنوان کالا' },
+  { value: 'price_asc', label: 'ارزان‌ترین' },
+  { value: 'price_desc', label: 'گران‌ترین' },
+  { value: 'stock', label: 'کم‌موجودترین' },
+];
 
 export function ProductsPage() {
   const toast = useToast();
@@ -34,8 +139,11 @@ export function ProductsPage() {
   const [editing, setEditing] = useState<ProductDTO | 'new' | null>(null);
   const [bulkPrompt, setBulkPrompt] = useState<'setStock' | 'adjustPrice' | null>(null);
   const [bulkValue, setBulkValue] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [variantsProduct, setVariantsProduct] = useState<ProductDTO | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [bulkMenuOpen, setBulkMenuOpen] = useState(false);
+  const [rowMenu, setRowMenu] = useState<number | null>(null);
 
   const debounced = useDebounced(search);
 
@@ -98,14 +206,9 @@ export function ProductsPage() {
   const total = products.data?.total ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / 24));
   const allOnPageSelected = items.length > 0 && items.every((p) => selected.has(p.id));
-
-  // Stat summary calculations
-  const activeCount = items.filter((p) => p.status === 'active').length;
-  const outOfStockCount = items.filter((p) => (p.kermanStock + p.tehranStock > 0 ? p.kermanStock + p.tehranStock : p.stock) === 0).length;
-  const lowStockCount = items.filter((p) => {
-    const s = p.kermanStock + p.tehranStock > 0 ? p.kermanStock + p.tehranStock : p.stock;
-    return s > 0 && s <= 5;
-  }).length;
+  const categoryOptions = taxonomy.data?.categories ?? [];
+  const brandOptions = taxonomy.data?.brands ?? [];
+  const activeFilterCount = (stock !== 'all' ? 1 : 0) + (categoryId !== '' ? 1 : 0) + (brandId !== '' ? 1 : 0);
 
   function toggle(id: number) {
     const next = new Set(selected);
@@ -114,7 +217,17 @@ export function ProductsPage() {
     setSelected(next);
   }
 
+  function toggleAll(checked: boolean) {
+    const next = new Set(selected);
+    for (const p of items) {
+      if (checked) next.add(p.id);
+      else next.delete(p.id);
+    }
+    setSelected(next);
+  }
+
   function runBulk(action: BulkAction) {
+    setBulkMenuOpen(false);
     if (selected.size === 0) return;
     if (action === 'setStock' || action === 'adjustPrice') {
       setBulkPrompt(action);
@@ -134,12 +247,24 @@ export function ProductsPage() {
     else bulk.mutate({ ids: [...selected], action: 'adjustPrice', percent: n });
   }
 
+  function rowActions(p: ProductDTO): Array<{ label: string; danger?: boolean; run: () => void }> {
+    return [
+      { label: 'ویرایش', run: () => setEditing(p) },
+      { label: 'مدیریت واریانت‌ها', run: () => setVariantsProduct(p) },
+      {
+        label: p.status === 'active' ? 'غیرفعال‌سازی' : 'فعال‌سازی',
+        run: () => bulk.mutate({ ids: [p.id], action: p.status === 'active' ? 'deactivate' : 'activate' }),
+      },
+      { label: 'حذف', danger: true, run: () => { if (confirm(`«${p.title}» حذف شود؟`)) remove.mutate(p.id); } },
+    ];
+  }
+
   if (editing) {
     return (
       <ProductEditor
         product={editing === 'new' ? null : editing}
-        categories={taxonomy.data?.categories ?? []}
-        brands={taxonomy.data?.brands ?? []}
+        categories={categoryOptions}
+        brands={brandOptions}
         busy={save.isPending}
         onClose={() => setEditing(null)}
         onSave={(body) => save.mutate({ id: editing === 'new' ? null : editing.id, body })}
@@ -148,362 +273,304 @@ export function ProductsPage() {
   }
 
   return (
-    <div className="a-page a-page--products a-fade">
-      {/* Header & Primary Actions */}
-      <section className="a-page-head">
-        <div className="a-titles">
-          <h2 className="a-title">مدیریت محصولات</h2>
-          <p className="a-subtitle">افزودن، ویرایش و مدیریت موجودی محصولات فروشگاه</p>
+    <div className="pp-root pp-fade">
+      <header className="pp-head">
+        <div>
+          <h1 className="pp-head-title">محصولات</h1>
+          <p className="pp-head-sub">مدیریت و ویرایش محصولات فروشگاه</p>
         </div>
-        <div className="a-page-actions">
-          <div className="a-segmented">
+        <div className="pp-head-actions">
+          <div className="pp-seg-group" role="group" aria-label="حالت نمایش">
             <button
               type="button"
-              className={`a-seg${viewMode === 'grid' ? ' a-seg--on' : ''}`}
+              className={`pp-seg${viewMode === 'grid' ? ' pp-seg--on' : ''}`}
               onClick={() => setViewMode('grid')}
             >
-              کارت‌ها (Grid)
+              کارت‌ها
             </button>
             <button
               type="button"
-              className={`a-seg${viewMode === 'table' ? ' a-seg--on' : ''}`}
+              className={`pp-seg${viewMode === 'table' ? ' pp-seg--on' : ''}`}
               onClick={() => setViewMode('table')}
             >
-              جدول (Table)
+              جدول
             </button>
           </div>
-          <button type="button" className="a-btn a-btn--primary" onClick={() => setEditing('new')}>
-            + افزودن محصول جدید
+        </div>
+      </header>
+
+      <section className="pp-toolbar">
+        <div className="pp-select">
+          <button
+            type="button"
+            className="pp-btn pp-btn--secondary"
+            disabled={selected.size === 0}
+            aria-expanded={bulkMenuOpen}
+            onClick={() => setBulkMenuOpen((o) => !o)}
+          >
+            عملیات
+            {selected.size > 0 && <span className="pp-count">{formatNumber(selected.size)}</span>}
+            <Chevron />
           </button>
+          {bulkMenuOpen && (
+            <>
+              <div className="pp-scrim" onClick={() => setBulkMenuOpen(false)} />
+              <div className="pp-pop" style={{ minWidth: 220 }}>
+                <button type="button" className="pp-pop-item" onClick={() => runBulk('activate')}>
+                  فعال‌سازی
+                </button>
+                <button type="button" className="pp-pop-item" onClick={() => runBulk('deactivate')}>
+                  غیرفعال‌سازی
+                </button>
+                <button type="button" className="pp-pop-item" onClick={() => runBulk('promote')}>
+                  نمایش در پیشنهاد ویژه
+                </button>
+                <button type="button" className="pp-pop-item" onClick={() => runBulk('demote')}>
+                  حذف از پیشنهاد ویژه
+                </button>
+                <button type="button" className="pp-pop-item" onClick={() => runBulk('setStock')}>
+                  تنظیم موجودی…
+                </button>
+                <button type="button" className="pp-pop-item" onClick={() => runBulk('adjustPrice')}>
+                  تغییر قیمت (درصدی)…
+                </button>
+                <button type="button" className="pp-pop-item pp-pop-item--danger" onClick={() => runBulk('delete')}>
+                  حذف محصولات
+                </button>
+              </div>
+            </>
+          )}
         </div>
-      </section>
 
-      {/* 4 Summary Stat Cards */}
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="a-stat">
-          <div className="a-stat-head">
-            <span className="a-stat-label">کل محصولات سیستم</span>
-            <span className="a-badge a-badge--brand">{formatNumber(total)} مورد</span>
-          </div>
-          <p className="a-stat-value">{formatNumber(total)}</p>
-        </div>
-        <div className="a-stat">
-          <div className="a-stat-head">
-            <span className="a-stat-label">محصولات فعال</span>
-            <span className="a-badge a-badge--green">فعال</span>
-          </div>
-          <p className="a-stat-value a-stat-value--green">{formatNumber(activeCount)}</p>
-        </div>
-        <div className="a-stat">
-          <div className="a-stat-head">
-            <span className="a-stat-label">موجودی رو به اتمام</span>
-            <span className="a-badge a-badge--amber">هشدار</span>
-          </div>
-          <p className="a-stat-value a-stat-value--amber">{formatNumber(lowStockCount)}</p>
-        </div>
-        <div className="a-stat">
-          <div className="a-stat-head">
-            <span className="a-stat-label">محصولات تمام‌شده</span>
-            <span className="a-badge a-badge--red">ناموجود</span>
-          </div>
-          <p className="a-stat-value a-stat-value--red">{formatNumber(outOfStockCount)}</p>
-        </div>
-      </section>
+        <PPSelect
+          value={status}
+          onChange={(v) => {
+            setStatus(v);
+            setPage(1);
+          }}
+          options={STATUS_OPTIONS}
+          prefix="وضعیت:"
+        />
 
-      {/* Filters Bar */}
-      <section className="a-card">
-        <div className="a-filterbar">
+        <div className="pp-select">
+          <button
+            type="button"
+            className="pp-btn pp-btn--secondary"
+            aria-expanded={filtersOpen}
+            onClick={() => setFiltersOpen((o) => !o)}
+          >
+            فیلترها
+            {activeFilterCount > 0 && <span className="pp-count">{formatNumber(activeFilterCount)}</span>}
+            <Chevron />
+          </button>
+          {filtersOpen && (
+            <>
+              <div className="pp-scrim" onClick={() => setFiltersOpen(false)} />
+              <div className="pp-filter-panel">
+                <div className="pp-field">
+                  <label>موجودی</label>
+                  <PPSelect
+                    value={stock}
+                    onChange={(v) => {
+                      setStock(v);
+                      setPage(1);
+                    }}
+                    options={STOCK_OPTIONS}
+                  />
+                </div>
+                <div className="pp-field">
+                  <label>دسته‌بندی</label>
+                  <select
+                    className="pp-input"
+                    dir="rtl"
+                    value={categoryId}
+                    onChange={(e) => {
+                      setCategoryId(e.target.value ? Number(e.target.value) : '');
+                      setPage(1);
+                    }}
+                  >
+                    <option value="">همه دسته‌بندی‌ها</option>
+                    {categoryOptions.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.faName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="pp-field">
+                  <label>برند</label>
+                  <select
+                    className="pp-input"
+                    dir="rtl"
+                    value={brandId}
+                    onChange={(e) => {
+                      setBrandId(e.target.value ? Number(e.target.value) : '');
+                      setPage(1);
+                    }}
+                  >
+                    <option value="">همه برندها</option>
+                    {brandOptions.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.faName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="pp-field">
+                  <label>مرتب‌سازی</label>
+                  <PPSelect value={sort} onChange={setSort} options={SORT_OPTIONS} />
+                </div>
+                <button type="button" className="pp-btn pp-btn--secondary pp-btn--sm" onClick={() => setFiltersOpen(false)}>
+                  بستن
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="pp-search">
+          <SearchIcon />
           <input
-            className="a-input a-grow"
-            placeholder="جستجو در عنوان، کد کالا، SKU..."
+            className="pp-input"
+            placeholder="جستجو در عنوان، کد کالا یا SKU..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               setPage(1);
             }}
           />
-          <select
-            className="a-select a-select--auto"
-            value={status}
-            onChange={(e) => { setStatus(e.target.value as typeof status); setPage(1); }}
-          >
-            <option value="all">همه وضعیت‌ها</option>
-            <option value="active">فقط فعال</option>
-            <option value="inactive">فقط غیرفعال</option>
-          </select>
-          <select
-            className="a-select a-select--auto"
-            value={stock}
-            onChange={(e) => { setStock(e.target.value as typeof stock); setPage(1); }}
-          >
-            <option value="all">همه موجودی‌ها</option>
-            <option value="in">موجود در انبار</option>
-            <option value="out">تمام شده</option>
-          </select>
-          <select
-            className="a-select a-select--auto"
-            value={categoryId}
-            onChange={(e) => { setCategoryId(e.target.value ? Number(e.target.value) : ''); setPage(1); }}
-          >
-            <option value="">همه دسته‌بندی‌ها</option>
-            {(taxonomy.data?.categories ?? []).map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.faName}
-              </option>
-            ))}
-          </select>
-          <select
-            className="a-select a-select--auto"
-            value={brandId}
-            onChange={(e) => { setBrandId(e.target.value ? Number(e.target.value) : ''); setPage(1); }}
-          >
-            <option value="">همه برندها</option>
-            {(taxonomy.data?.brands ?? []).map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.faName}
-              </option>
-            ))}
-          </select>
-          <select className="a-select a-select--auto" value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="updated">آخرین تغییرات</option>
-            <option value="title">عنوان کالا</option>
-            <option value="price_asc">ارزان‌ترین</option>
-            <option value="price_desc">گران‌ترین</option>
-            <option value="stock">کم‌موجودترین</option>
-          </select>
         </div>
+
+        <button type="button" className="pp-btn pp-btn--primary" onClick={() => setEditing('new')}>
+          + ایجاد محصول
+        </button>
       </section>
 
-      {/* Bulk Operations Toolbar */}
       {selected.size > 0 && (
-        <section className="a-bulkbar">
-          <span className="a-bulkbar-label">{formatNumber(selected.size)} محصول انتخاب شده:</span>
-          <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => runBulk('activate')}>
-            فعال‌سازی
-          </button>
-          <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => runBulk('deactivate')}>
-            غیرفعال‌سازی
-          </button>
-          <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => runBulk('promote')}>
-            پیشنهاد ویژه
-          </button>
-          <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => runBulk('setStock')}>
-            تنظیم موجودی
-          </button>
-          <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => runBulk('adjustPrice')}>
-            تغییر قیمت (درصدی)
-          </button>
-          <span className="a-bulkbar-spacer" />
-          <button
-            type="button"
-            className="a-btn a-btn--danger a-btn--sm"
-            onClick={() => runBulk('delete')}
-          >
-            حذف محصولات
-          </button>
-          <button type="button" className="a-bulkbar-link" onClick={() => setSelected(new Set())}>
+        <div className="pp-bulkbar">
+          <span>{formatNumber(selected.size)} محصول انتخاب شده است.</span>
+          <button type="button" onClick={() => setSelected(new Set())}>
             لغو انتخاب
           </button>
-        </section>
+        </div>
       )}
 
-      {/* Main Products Rendering (Grid vs Table) */}
-      {products.isLoading ? (
-        <div className="a-card"><div className="a-empty">در حال دریافت لیست محصولات...</div></div>
-      ) : products.isError ? (
-        <div className="a-card"><div className="a-empty">خطا در دریافت لیست محصولات.</div></div>
-      ) : items.length === 0 ? (
-        <div className="a-card"><div className="a-empty">هیچ محصولی با مشخصات جستجویافته پیدا نشد.</div></div>
-      ) : viewMode === 'grid' ? (
-        <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {items.map((p) => {
-            const totalStock = p.kermanStock + p.tehranStock > 0 ? p.kermanStock + p.tehranStock : p.stock;
-            return (
-              <div key={p.id} className="a-card a-card--flush group">
-                <div className="a-thumb" style={{ height: '11rem' }}>
-                  <img
-                    src={p.imageUrl || '/logo.png'}
-                    alt={p.title}
-                    className="transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = '/logo.png';
-                    }}
-                  />
-                  <div className="absolute top-3 right-3">
-                    <input
-                      type="checkbox"
-                      checked={selected.has(p.id)}
-                      onChange={() => toggle(p.id)}
-                      className="a-grid-check h-4 w-4 cursor-pointer"
-                    />
-                  </div>
-                  {p.promotion && (
-                    <span className="absolute top-3 left-3 a-badge a-badge--amber">ویژه</span>
-                  )}
-                </div>
-
-                <div className="a-card-body">
-                  <div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
-                      <span>{p.categoryFaName || p.categoryName || 'دسته‌بندی'}</span>
-                      <span>{p.brandFaName || p.brandName || ''}</span>
-                    </div>
-                    <h3 className="font-bold text-sm text-white line-clamp-2">{p.title}</h3>
-                    <div className="admin-product-stock-row">
-                      <span className={`admin-product-stock chip ${totalStock > 0 ? 'chip-brand' : 'chip-rose'}`}>
-                        <span className="admin-product-stock-dot" aria-hidden="true" />
-                        {totalStock > 0 ? `موجودی: ${formatNumber(totalStock)} عدد` : 'ناموجود در انبار'}
-                      </span>
-                    </div>
-                    {p.color && <p className="text-xs text-slate-400 mt-1">رنگ: {p.color}</p>}
-                  </div>
-
-                  <div className="a-divider" />
-                  <div className="flex items-center justify-between">
-                    <p className="text-lg font-extrabold text-emerald-300">
-                      <Price amount={p.price} />
-                    </p>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        className="a-icon-btn"
-                        onClick={() => setEditing(p)}
-                        title="ویرایش"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        className="a-icon-btn a-icon-btn--info"
-                        onClick={() => setVariantsProduct(p)}
-                        title="مدیریت واریانت‌ها"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        className="a-icon-btn a-icon-btn--danger"
-                        onClick={() => {
-                          if (confirm(`«${p.title}» حذف شود؟`)) remove.mutate(p.id);
-                        }}
-                        title="حذف"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </section>
-      ) : (
-        <section className="a-card a-card--flush">
-          <div className="a-table-wrap">
-            <table className="a-table">
+      <section className="pp-card">
+        {products.isLoading ? (
+          <div className="pp-state">
+            <div className="pp-state-icon"><SearchIcon /></div>
+            <div className="pp-state-title">در حال دریافت محصولات...</div>
+          </div>
+        ) : products.isError ? (
+          <div className="pp-state">
+            <div className="pp-state-icon"><SearchIcon /></div>
+            <div className="pp-state-title">خطا در دریافت لیست محصولات</div>
+            <div className="pp-state-sub">{products.error?.message ?? 'دوباره تلاش کنید.'}</div>
+            <button type="button" className="pp-btn pp-btn--secondary pp-btn--sm" onClick={() => void products.refetch()}>
+              تلاش مجدد
+            </button>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="pp-state">
+            <div className="pp-state-icon"><SearchIcon /></div>
+            <div className="pp-state-title">محصولی یافت نشد</div>
+            <div className="pp-state-sub">هیچ محصولی با مشخصات جستجو‌یافته پیدا نشد.</div>
+            <button type="button" className="pp-btn pp-btn--primary pp-btn--sm" onClick={() => setEditing('new')}>
+              + ایجاد محصول
+            </button>
+          </div>
+        ) : viewMode === 'table' ? (
+          <div className="pp-table-wrap">
+            <table className="pp-table">
               <thead>
                 <tr>
-                  <th style={{ width: 36 }}>
-                    <input
-                      type="checkbox"
-                      checked={allOnPageSelected}
-                      onChange={(e) => {
-                        const next = new Set(selected);
-                        for (const p of items) {
-                          if (e.target.checked) next.add(p.id);
-                          else next.delete(p.id);
-                        }
-                        setSelected(next);
-                      }}
-                    />
+                  <th className="pp-th pp-col-num">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <input
+                        type="checkbox"
+                        className="pp-check"
+                        checked={allOnPageSelected}
+                        onChange={(e) => toggleAll(e.target.checked)}
+                      />
+                      <span>#</span>
+                    </div>
                   </th>
-                  <th style={{ width: 56 }}>تصویر</th>
-                  <th>عنوان محصول</th>
-                  <th>برند / رنگ</th>
-                  <th>قیمت</th>
-                  <th>کرمان</th>
-                  <th>تهران</th>
-                  <th>کل موجودی</th>
-                  <th>وضعیت</th>
-                  <th>عملیات</th>
+                  <th className="pp-th">عنوان</th>
+                  <th className="pp-th">قیمت (تومان)</th>
+                  <th className="pp-th">موجودی (عدد)</th>
+                  <th className="pp-th">وضعیت</th>
+                  <th className="pp-th">تاریخ ایجاد</th>
+                  <th className="pp-th pp-col-actions" />
                 </tr>
               </thead>
-              <tbody>
-                {items.map((p) => {
+              <tbody className="pp-tbody">
+                {items.map((p, i) => {
                   const totalStock = p.kermanStock + p.tehranStock > 0 ? p.kermanStock + p.tehranStock : p.stock;
+                  const created = p.createdAt ? new Date(p.createdAt).toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
                   return (
-                    <tr key={p.id}>
-                      <td>
-                        <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggle(p.id)} />
-                      </td>
-                      <td>
-                        <img
-                          src={p.imageUrl || '/logo.png'}
-                          alt=""
-                          className="h-10 w-10 object-contain rounded-lg bg-[#131c2e] p-1 border border-white/10"
-                          loading="lazy"
-                          onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).src = '/logo.png';
-                          }}
+                    <tr key={p.id} className="pp-tr">
+                      <td className="pp-td pp-col-num">
+                        <input
+                          type="checkbox"
+                          className="pp-check"
+                          checked={selected.has(p.id)}
+                          onChange={() => toggle(p.id)}
                         />
                       </td>
-                      <td>
-                        <div className="font-bold text-white">
-                          {p.promotion && <span className="chip chip-amber ml-2">ویژه</span>}
-                          {p.title}
+                      <td className="pp-td pp-cell-title">
+                        <div className="pp-cell-title-row">
+                          {p.promotion && <span className="pp-chip pp-chip--amber">ویژه</span>}
+                          <span className="pp-title">{p.title}</span>
                         </div>
-                        <div className="text-[11px] text-slate-500 font-mono" dir="ltr">
-                          {p.productId}
-                        </div>
+                        <div className="pp-meta">{p.productId}{p.sku ? ` • ${p.sku}` : ''}</div>
                       </td>
-                      <td className="text-xs text-slate-400">
-                        {p.brandFaName || p.brandName || '—'} / {p.color || '—'}
+                      <td className="pp-td">
+                        <div className="pp-price">{formatNumber(p.price)}</div>
+                        {p.oldPrice && p.oldPrice > p.price && <div className="pp-oldprice">{formatNumber(p.oldPrice)}</div>}
                       </td>
-                      <td className="font-bold text-emerald-300"><Price amount={p.price} /></td>
-                      <td className="text-xs">{formatNumber(p.kermanStock)}</td>
-                      <td className="text-xs">{formatNumber(p.tehranStock)}</td>
-                      <td>
-                        <span className={`chip ${totalStock > 0 ? 'chip-brand' : 'chip-rose'}`}>
-                          {formatNumber(totalStock)}
-                        </span>
+                      <td className="pp-td">
+                        {totalStock === 0 ? (
+                          <span className="pp-text-off">ناموجود</span>
+                        ) : (
+                          <span className="pp-text-ok">{formatNumber(totalStock)}</span>
+                        )}
                       </td>
-                      <td>
-                        <span className={`chip ${p.status === 'active' ? 'chip-brand' : 'chip-slate'}`}>
+                      <td className="pp-td">
+                        <span className={`pp-chip ${p.status === 'active' ? 'pp-chip--green' : 'pp-chip--gray'}`}>
                           {p.status === 'active' ? 'فعال' : 'غیرفعال'}
                         </span>
                       </td>
-                      <td>
-                        <div className="flex items-center gap-2">
+                      <td className="pp-td">{created}</td>
+                      <td className="pp-td pp-col-actions">
+                        <div className="pp-row-actions">
                           <button
                             type="button"
-                            className="a-btn a-btn--secondary a-btn--xs"
-                            onClick={() => setEditing(p)}
+                            className="pp-icon-btn"
+                            aria-label="عملیات"
+                            onClick={() => setRowMenu(rowMenu === p.id ? null : p.id)}
                           >
-                            ویرایش
+                            <Dots />
                           </button>
-                          <button
-                            type="button"
-                            className="a-btn a-btn--info a-btn--xs"
-                            onClick={() => setVariantsProduct(p)}
-                          >
-                            واریانت‌ها
-                          </button>
-                          <button
-                            type="button"
-                            className="a-btn a-btn--danger a-btn--xs"
-                            onClick={() => {
-                              if (confirm(`«${p.title}» حذف شود؟`)) remove.mutate(p.id);
-                            }}
-                          >
-                            حذف
-                          </button>
+                          {rowMenu === p.id && (
+                            <>
+                              <div className="pp-scrim" onClick={() => setRowMenu(null)} />
+                              <div className="pp-row-menu">
+                                {rowActions(p).map((a) => (
+                                  <button
+                                    key={a.label}
+                                    type="button"
+                                    className={`pp-pop-item${a.danger ? ' pp-pop-item--danger' : ''}`}
+                                    onClick={() => {
+                                      setRowMenu(null);
+                                      a.run();
+                                    }}
+                                  >
+                                    {a.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -512,35 +579,103 @@ export function ProductsPage() {
               </tbody>
             </table>
           </div>
-        </section>
-      )}
+        ) : (
+          <div className="pp-grid">
+            {items.map((p) => {
+              const totalStock = p.kermanStock + p.tehranStock > 0 ? p.kermanStock + p.tehranStock : p.stock;
+              return (
+                <div key={p.id} className="pp-gcard">
+                  <div className="pp-gimg">
+                    <img
+                      src={p.imageUrl || '/logo.png'}
+                      alt={p.title}
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = '/logo.png';
+                      }}
+                    />
+                    <input
+                      type="checkbox"
+                      className="pp-check pp-gcheck"
+                      checked={selected.has(p.id)}
+                      onChange={() => toggle(p.id)}
+                    />
+                    {p.promotion && <span className="pp-chip pp-chip--amber pp-gbadge">ویژه</span>}
+                  </div>
+                  <div className="pp-gbody">
+                    <div className="pp-gcat">
+                      {p.categoryFaName || p.categoryName || 'دسته‌بندی'}{p.color ? ` • ${p.color}` : ''}
+                    </div>
+                    <div className="pp-gtitle">{p.title}</div>
+                    <div className="pp-gfoot">
+                      <div>
+                        <div className="pp-gprice">{formatNumber(p.price)}</div>
+                        {p.oldPrice && p.oldPrice > p.price && <div className="pp-goldprice">{formatNumber(p.oldPrice)}</div>}
+                      </div>
+                      <div className="pp-actions-gap">
+                        <button type="button" className="pp-icon-btn" title="ویرایش" onClick={() => setEditing(p)}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          className="pp-icon-btn"
+                          style={{ color: 'var(--pp-brand)' }}
+                          title="مدیریت واریانت‌ها"
+                          onClick={() => setVariantsProduct(p)}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          className="pp-icon-btn"
+                          style={{ color: 'var(--pp-danger-strong)' }}
+                          title="حذف"
+                          onClick={() => {
+                            if (confirm(`«${p.title}» حذف شود؟`)) remove.mutate(p.id);
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <span className={`pp-chip ${totalStock === 0 ? 'pp-chip--red' : 'pp-chip--green'}`}>
+                        {totalStock === 0 ? 'ناموجود' : `${formatNumber(totalStock)} عدد`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
-      {/* Pagination Controls */}
-      {pageCount > 1 && (
-        <section className="a-card a-pager">
-          <button
-            type="button"
-            className="a-btn a-btn--secondary"
-            disabled={page <= 1}
-            onClick={() => setPage(page - 1)}
-          >
-            صفحه قبلی
-          </button>
-          <span className="a-pager-info">
-            صفحه {formatNumber(page)} از {formatNumber(pageCount)}
-          </span>
-          <button
-            type="button"
-            className="a-btn a-btn--secondary"
-            disabled={page >= pageCount}
-            onClick={() => setPage(page + 1)}
-          >
-            صفحه بعدی
-          </button>
-        </section>
-      )}
+        {pageCount > 1 && (
+          <div className="pp-pager">
+            <span className="pp-pager-info">
+              {formatNumber((page - 1) * 24 + 1)} تا {formatNumber(Math.min(page * 24, total))} از {formatNumber(total)} محصول
+            </span>
+            <div className="pp-pager-actions">
+              <button type="button" className="pp-btn pp-btn--secondary pp-btn--sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                صفحه قبلی
+              </button>
+              <span className="pp-pager-info">
+                صفحه {formatNumber(page)} از {formatNumber(pageCount)}
+              </span>
+              <button type="button" className="pp-btn pp-btn--secondary pp-btn--sm" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
+                صفحه بعدی
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
 
-      {/* Bulk Modal */}
       <Modal
         open={bulkPrompt !== null}
         title={bulkPrompt === 'setStock' ? 'تنظیم موجودی گروهی' : 'تغییر درصدی قیمت'}
@@ -580,8 +715,8 @@ export function ProductsPage() {
       {variantsProduct && (
         <VariantsEditor
           product={variantsProduct}
-          categories={taxonomy.data?.categories ?? []}
-          brands={taxonomy.data?.brands ?? []}
+          categories={categoryOptions}
+          brands={brandOptions}
           onClose={() => setVariantsProduct(null)}
         />
       )}

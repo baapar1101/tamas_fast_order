@@ -51,6 +51,7 @@ export function toProductDTO(
     gallery: row.gallery ?? [],
     attributes: row.attributes ?? [],
     sortOrder: row.sortOrder,
+    createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
 }

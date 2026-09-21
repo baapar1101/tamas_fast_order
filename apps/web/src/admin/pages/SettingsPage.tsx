@@ -518,6 +518,374 @@ export function SettingsPage() {
         </div>
       )}
 
+      {activeTab === 'advanced-sync' && (
+        <div className="a-page-stack a-fade">
+          {/* CRM Connection Status */}
+          <section className="a-card">
+            <div className="a-card-head a-card-head--split">
+              <div>
+                <h3 className="a-card-title">وضعیت اتصال CRM</h3>
+                <p className="a-card-desc">مشاهده وضعیت لحظه‌ای اتصال و تنظیمات همگام‌سازی</p>
+              </div>
+              <span className={`a-badge ${crmStats.data?.crm.reachable ? 'a-badge--success' : 'a-badge--danger'}`}>
+                {crmStats.data?.crm.reachable ? 'متصل' : 'قطع'}
+              </span>
+            </div>
+
+            {crmStats.isLoading ? (
+              <div className="a-skeleton a-skeleton--text" />
+            ) : crmStats.error ? (
+              <div className="a-alert a-alert--error">
+                خطا در بارگذاری وضعیت: {crmStats.error.message}
+              </div>
+            ) : crmStats.data && (
+              <div className="a-grid a-grid--4 a-gap--4">
+                <div className="a-stat-card">
+                  <div className="a-stat-label">آدرس CRM</div>
+                  <div className="a-stat-value a-ltr a-break-all">{crmStats.data.crm.baseUrl}</div>
+                </div>
+                <div className="a-stat-card">
+                  <div className="a-stat-label">همگام‌سازی خودکار</div>
+                  <div className="a-stat-value">
+                    <span className={`a-badge ${crmStats.data.crm.syncEnabled ? 'a-badge--success' : 'a-badge--warning'}`}>
+                      {crmStats.data.crm.syncEnabled ? 'فعال' : 'غیرفعال'}
+                    </span>
+                  </div>
+                </div>
+                <div className="a-stat-card">
+                  <div className="a-stat-label">کاربران فعال</div>
+                  <div className="a-stat-value">{crmStats.data.local.activeUsers.toLocaleString('fa-IR')}</div>
+                </div>
+                <div className="a-stat-card">
+                  <div className="a-stat-label">کل سفارش‌ها</div>
+                  <div className="a-stat-value">{crmStats.data.local.totalOrders.toLocaleString('fa-IR')}</div>
+                </div>
+                <div className="a-stat-card">
+                  <div className="a-stat-label">محصولات فعال</div>
+                  <div className="a-stat-value">{crmStats.data.local.activeProducts.toLocaleString('fa-IR')}</div>
+                </div>
+                <div className="a-stat-card">
+                  <div className="a-stat-label">کل همگام‌سازی شده</div>
+                  <div className="a-stat-value">{crmStats.data.syncStats?.totalSynced?.toLocaleString('fa-IR') ?? 0}</div>
+                </div>
+                <div className="a-stat-card">
+                  <div className="a-stat-label">خطاهای همگام‌سازی</div>
+                  <div className="a-stat-value text-red-400">{crmStats.data.syncStats?.totalErrors?.toLocaleString('fa-IR') ?? 0}</div>
+                </div>
+                <div className="a-stat-card">
+                  <div className="a-stat-label">آخرین همگام‌سازی</div>
+                  <div className="a-stat-value a-ltr">
+                    {crmStats.data.syncStats?.lastSyncAt
+                      ? new Date(crmStats.data.syncStats.lastSyncAt).toLocaleString('fa-IR')
+                      : '—'}
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Product Sync Detail Table */}
+          <section className="a-card">
+            <div className="a-card-head a-card-head--split">
+              <div>
+                <h3 className="a-card-title">جزئیات همگام‌سازی محصولات</h3>
+                <p className="a-card-desc">مشاهده وضعیت هر محصول، پارامترهای سینک شده و خطاها</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="a-btn a-btn--secondary"
+                  onClick={() => syncProducts.refetch()}
+                  disabled={syncProducts.isFetching}
+                >
+                  {syncProducts.isFetching ? 'بارگذاری...' : 'بازآوری'}
+                </button>
+                <button
+                  type="button"
+                  className="a-btn a-btn--primary"
+                  onClick={async () => {
+                    try {
+                      const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/products/push');
+                      if (res.ok) toast.ok(`${res.pushed} محصول همگام‌سازی شد. خطاها: ${res.errors}`);
+                      else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                      syncProducts.refetch();
+                    } catch (err: any) {
+                      toast.error(err.message || 'خطa در همگام‌سازی محصولات');
+                    }
+                  }}
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  همگام‌سازی همه
+                </button>
+              </div>
+            </div>
+
+            {syncProducts.isLoading ? (
+              <div className="a-skeleton a-skeleton--text" />
+            ) : syncProducts.error ? (
+              <div className="a-alert a-alert--error">
+                خطa در بارگذاری جزئیات محصولات: {syncProducts.error.message}
+              </div>
+            ) : syncProducts.data?.items && syncProducts.data.items.length > 0 ? (
+              <div className="a-table-wrap">
+                <table className="a-table">
+                  <thead>
+                    <tr>
+                      <th>تصویر</th>
+                      <th>محصول / SKU</th>
+                      <th>قیمت</th>
+                      <th>موجودی</th>
+                      <th>وضعیت CRM</th>
+                      <th>ID در CRM</th>
+                      <th>آخرین همگام‌سازی</th>
+                      <th>خطa</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {syncProducts.data.items.map((p) => (
+                      <tr key={p.productId} className={p.syncStatus === 'error' ? 'a-row--error' : ''}>
+                        <td>
+                          {p.imageUrl && (
+                            <img src={p.imageUrl} alt={p.title} className="w-12 h-12 object-cover rounded" />
+                          )}
+                        </td>
+                        <td>
+                          <div className="font-medium">{p.title}</div>
+                          <div className="text-xs text-slate-400 a-ltr">{p.sku ?? '—'}</div>
+                          <div className="text-xs text-slate-400 a-ltr">ID: {p.productId}</div>
+                        </td>
+                        <td className="a-ltr font-mono">{p.price.toLocaleString('fa-IR')}</td>
+                        <td>
+                          <div className="a-ltr font-mono">
+                            {p.kermanStock !== undefined || p.tehranStock !== undefined
+                              ? `کرمان: ${p.kermanStock ?? 0} | تهران: ${p.tehranStock ?? 0} | کل: ${p.stock}`
+                              : `کل: ${p.stock}`}
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`a-badge ${
+                            p.syncStatus === 'synced' ? 'a-badge--success' :
+                            p.syncStatus === 'pending' ? 'a-badge--warning' :
+                            p.syncStatus === 'error' ? 'a-badge--danger' :
+                            'a-badge--muted'
+                          }`}>
+                            {p.syncStatus === 'synced' ? 'همگام‌سازی شده' :
+                             p.syncStatus === 'pending' ? 'در صف' :
+                             p.syncStatus === 'error' ? 'خطa' :
+                             'هرگز همگام‌سازی نشده'}
+                          </span>
+                        </td>
+                        <td className="a-ltr font-mono">{p.crmId ?? '—'}</td>
+                        <td className="text-xs text-slate-400">
+                          {p.lastSyncedAt
+                            ? new Date(p.lastSyncedAt).toLocaleString('fa-IR')
+                            : '—'}
+                        </td>
+                        <td className="text-red-400 text-xs max-w-xs truncate block" title={p.syncError}>
+                          {p.syncError ?? '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="a-note">هیچ محصولی برای نمایش وجود ندارد.</p>
+            )}
+          </section>
+
+          {/* Sync Logs */}
+          <section className="a-card">
+            <div className="a-card-head a-card-head--split">
+              <div>
+                <h3 className="a-card-title">لاگ همگام‌سازی</h3>
+                <p className="a-card-desc">تاریخچه کامل عملیات همگام‌سازی با جزئیات درخواست و پاسخ</p>
+              </div>
+              <button
+                type="button"
+                className="a-btn a-btn--secondary"
+                onClick={() => syncLogs.refetch()}
+                disabled={syncLogs.isFetching}
+              >
+                {syncLogs.isFetching ? 'بارگذاری...' : 'بازآوری'}
+              </button>
+            </div>
+
+            {syncLogs.isLoading ? (
+              <div className="a-skeleton a-skeleton--text" />
+            ) : syncLogs.error ? (
+              <div className="a-alert a-alert--error">
+                خطa در بارگذاری لاگ‌ها: {syncLogs.error.message}
+              </div>
+            ) : syncLogs.data?.items && syncLogs.data.items.length > 0 ? (
+              <div className="a-table-wrap">
+                <table className="a-table">
+                  <thead>
+                    <tr>
+                      <th>زمان</th>
+                      <th>موجودیت</th>
+                      <th>عملیات</th>
+                      <th>شناسه</th>
+                      <th>وضعیت</th>
+                      <th>ID در CRM</th>
+                      <th>جزئیات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {syncLogs.data.items.slice(0, 100).map((log) => (
+                      <tr key={log.id} className={log.status === 'error' ? 'a-row--error' : ''}>
+                        <td className="text-xs text-slate-400">
+                          {new Date(log.createdAt).toLocaleString('fa-IR')}
+                        </td>
+                        <td className="font-mono text-xs">
+                          {log.entity === 'order' ? 'سفارش' :
+                           log.entity === 'product' ? 'محصول' :
+                           log.entity === 'person' ? 'مشتری' : 'چت'}
+                        </td>
+                        <td>
+                          <span className={`a-badge ${
+                            log.action === 'create' ? 'a-badge--success' :
+                            log.action === 'update' ? 'a-badge--info' :
+                            log.action === 'delete' ? 'a-badge--danger' :
+                            'a-badge--muted'
+                          }`}>
+                            {log.action}
+                          </span>
+                        </td>
+                        <td className="a-ltr font-mono text-xs">{log.entityKey}</td>
+                        <td>
+                          <span className={`a-badge ${
+                            log.status === 'success' ? 'a-badge--success' :
+                            log.status === 'error' ? 'a-badge--danger' :
+                            log.status === 'pending' ? 'a-badge--warning' :
+                            'a-badge--muted'
+                          }`}>
+                            {log.status}
+                          </span>
+                        </td>
+                        <td className="a-ltr font-mono text-xs">{log.remoteId ?? '—'}</td>
+                        <td className="a-ltr text-xs max-w-md truncate block" title={log.error || JSON.stringify(log.response?.detail ?? log.response)}>
+                          {log.error || (log.response ? 'مشاهده پاسخ' : '—')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="a-note">هنوز لاگی ثبت نشده است.</p>
+            )}
+          </section>
+
+          {/* Manual Sync Actions */}
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">عملیات همگام‌سازی دستی</h3>
+            </div>
+            <p className="a-note mb-4">
+              این عملیات مستقیمااً API را صدا می‌زنند و نتیجه را در جدول لاگ‌ها و آمارها منعکس می‌کنند.
+            </p>
+
+            <div className="a-grid a-grid--2 a-gap--4">
+              <button
+                type="button"
+                className="a-btn a-btn--secondary a-btn--block"
+                onClick={async () => {
+                  try {
+                    const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/products/push');
+                    if (res.ok) toast.ok(`${res.pushed} محصول همگام‌سازی شد. خطاها: ${res.errors}`);
+                    else toast.error(`خطaها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                    syncProducts.refetch();
+                    syncLogs.refetch();
+                    crmStats.refetch();
+                  } catch (err: any) {
+                    toast.error(err.message || 'خطa در همگام‌سازی محصولات');
+                  }
+                }}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span>همگام‌سازی کامل محصولات</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className="a-btn a-btn--secondary a-btn--block"
+                onClick={async () => {
+                  try {
+                    const res = await api.post<{ ok: boolean; synced: number; errors: number; errorDetails: string[] }>('/crm/sync/stock');
+                    if (res.ok) toast.ok(`${res.synced} محصول Stok همگام‌سازی شد. خطاها: ${res.errors}`);
+                    else toast.error(`خطaها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                    syncProducts.refetch();
+                    syncLogs.refetch();
+                  } catch (err: any) {
+                    toast.error(err.message || 'خطa در همگام‌سازی Stok');
+                  }
+                }}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  <span>همگام‌سازی Stok (کرمان/تهران)</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className="a-btn a-btn--secondary a-btn--block"
+                onClick={async () => {
+                  try {
+                    const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/orders');
+                    if (res.ok) toast.ok(`${res.pushed} سفارش همگام‌سازی شد. خطaها: ${res.errors}`);
+                    else toast.error(`خطaها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                    syncLogs.refetch();
+                    crmStats.refetch();
+                  } catch (err: any) {
+                    toast.error(err.message || 'خطa در همگam‌سازی سفارش‌ها');
+                  }
+                }}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  <span>همگam‌سازی سفارش‌های جدید</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className="a-btn a-btn--secondary a-btn--block"
+                onClick={async () => {
+                  try {
+                    const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/persons');
+                    if (res.ok) toast.ok(`${res.pushed} مشتری همگam‌سازی شد. خطaها: ${res.errors}`);
+                    else toast.error(`خطaها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                    syncLogs.refetch();
+                    crmStats.refetch();
+                  } catch (err: any) {
+                    toast.error(err.message || 'خطa در همگam‌سازی مشتریان');
+                  }
+                }}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 9V6a2 2 0 00-2-2H8a2 2 0 00-2 2v3m8-6v12a2 2 0 01-2 2H8a2 2 0 01-2-2V9m8-6h-6" />
+                  </svg>
+                  <span>همگam‌سازی مشتریان</span>
+                </div>
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
       {activeTab === 'logs' && (
         <section className="a-card a-card--flush a-fade">
           <div className="a-card-head">

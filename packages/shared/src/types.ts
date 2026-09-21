@@ -63,9 +63,10 @@ export interface ProductDTO {
   imageUrl: string | null;
   gallery: string[];
   attributes: ProductAttribute[];
-  sortOrder: number;
-  updatedAt: string;
-}
+sortOrder: number;
+    createdAt: string;
+    updatedAt: string;
+  }
 
 /** Variants of one model are grouped so the storefront renders a single card. */
 export interface ProductGroupDTO {
