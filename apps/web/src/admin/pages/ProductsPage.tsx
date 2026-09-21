@@ -8,6 +8,7 @@ import { api } from '../../lib/api';
 import { useDebounced } from '../../storefront/hooks';
 import { ProductEditor, type ProductForm } from '../components/ProductEditor';
 import { VariantsEditor } from '../components/VariantsEditor';
+import { AnimatedDropdown } from '../components/AnimatedDropdown';
 import '../productsPortal.css';
 
 interface ProductsResponse {
@@ -51,72 +52,21 @@ interface Opt<T extends string> {
   dot?: string;
 }
 
-function PPSelect<T extends string>({
-  value,
-  onChange,
-  options,
-  prefix,
-}: {
-  value: T;
-  onChange: (v: T) => void;
-  options: Opt<T>[];
-  prefix?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const cur = options.find((o) => o.value === value);
-  return (
-    <div className="pp-select">
-      <button
-        type="button"
-        className="pp-select-trigger"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-      >
-        {prefix && <span className="pp-select-label">{prefix}</span>}
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-          {cur?.dot && <span className={`pp-dot ${cur.dot}`} />}
-          {cur?.label ?? value}
-        </span>
-        <Chevron />
-      </button>
-      {open && (
-        <>
-          <div className="pp-scrim" onClick={() => setOpen(false)} />
-          <div className="pp-pop">
-            {options.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                className={`pp-pop-item${o.value === value ? ' pp-pop-item--selected' : ''}`}
-                onClick={() => {
-                  onChange(o.value);
-                  setOpen(false);
-                }}
-              >
-                {o.dot && <span className={`pp-dot ${o.dot}`} />}
-                {o.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
 
-const STATUS_OPTIONS: Opt<'all' | 'active' | 'inactive'>[] = [
-  { value: 'all', label: 'همه', dot: 'pp-dot--gray' },
-  { value: 'active', label: 'فعال', dot: 'pp-dot--green' },
-  { value: 'inactive', label: 'غیرفعال', dot: 'pp-dot--red' },
+
+const STATUS_OPTIONS = [
+  { value: 'all', label: <span className="flex items-center gap-2"><span className="pp-dot pp-dot--gray" />همه</span> },
+  { value: 'active', label: <span className="flex items-center gap-2"><span className="pp-dot pp-dot--green" />فعال</span> },
+  { value: 'inactive', label: <span className="flex items-center gap-2"><span className="pp-dot pp-dot--red" />غیرفعال</span> },
 ];
 
-const STOCK_OPTIONS: Opt<'all' | 'in' | 'out'>[] = [
+const STOCK_OPTIONS = [
   { value: 'all', label: 'همه موجودی‌ها' },
   { value: 'in', label: 'موجود در انبار' },
   { value: 'out', label: 'تمام شده' },
 ];
 
-const SORT_OPTIONS: Opt<string>[] = [
+const SORT_OPTIONS = [
   { value: 'updated', label: 'آخرین تغییرات' },
   { value: 'title', label: 'عنوان کالا' },
   { value: 'price_asc', label: 'ارزان‌ترین' },
@@ -358,10 +308,11 @@ export function ProductsPage() {
           )}
         </div>
 
-        <PPSelect
+        <AnimatedDropdown
+          buttonClassName="w-40 h-[38px]"
           value={status}
           onChange={(v) => {
-            setStatus(v);
+            setStatus(v as typeof status);
             setPage(1);
           }}
           options={STATUS_OPTIONS}
@@ -385,10 +336,10 @@ export function ProductsPage() {
               <div className="pp-filter-panel">
                 <div className="pp-field">
                   <label>موجودی</label>
-                  <PPSelect
+                  <AnimatedDropdown
                     value={stock}
                     onChange={(v) => {
-                      setStock(v);
+                      setStock(v as typeof stock);
                       setPage(1);
                     }}
                     options={STOCK_OPTIONS}
@@ -396,45 +347,37 @@ export function ProductsPage() {
                 </div>
                 <div className="pp-field">
                   <label>دسته‌بندی</label>
-                  <select
-                    className="pp-input"
-                    dir="rtl"
-                    value={categoryId}
-                    onChange={(e) => {
-                      setCategoryId(e.target.value ? Number(e.target.value) : '');
+                  <AnimatedDropdown
+                    value={categoryId ? String(categoryId) : ''}
+                    onChange={(v) => {
+                      setCategoryId(v ? Number(v) : '');
                       setPage(1);
                     }}
-                  >
-                    <option value="">همه دسته‌بندی‌ها</option>
-                    {categoryOptions.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.faName}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="همه دسته‌بندی‌ها"
+                    options={[
+                      { value: '', label: 'همه دسته‌بندی‌ها' },
+                      ...categoryOptions.map(c => ({ value: String(c.id), label: c.faName }))
+                    ]}
+                  />
                 </div>
                 <div className="pp-field">
                   <label>برند</label>
-                  <select
-                    className="pp-input"
-                    dir="rtl"
-                    value={brandId}
-                    onChange={(e) => {
-                      setBrandId(e.target.value ? Number(e.target.value) : '');
+                  <AnimatedDropdown
+                    value={brandId ? String(brandId) : ''}
+                    onChange={(v) => {
+                      setBrandId(v ? Number(v) : '');
                       setPage(1);
                     }}
-                  >
-                    <option value="">همه برندها</option>
-                    {brandOptions.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.faName}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="همه برندها"
+                    options={[
+                      { value: '', label: 'همه برندها' },
+                      ...brandOptions.map(b => ({ value: String(b.id), label: b.faName }))
+                    ]}
+                  />
                 </div>
                 <div className="pp-field">
                   <label>مرتب‌سازی</label>
-                  <PPSelect value={sort} onChange={setSort} options={SORT_OPTIONS} />
+                  <AnimatedDropdown value={sort} onChange={setSort} options={SORT_OPTIONS} />
                 </div>
                 <button type="button" className="pp-btn pp-btn--secondary pp-btn--sm" onClick={() => setFiltersOpen(false)}>
                   بستن
@@ -498,12 +441,41 @@ export function ProductsPage() {
                       <span>#</span>
                     </div>
                   </th>
-                  <th className="pp-th">عنوان</th>
-                  <th className="pp-th">قیمت (تومان)</th>
-                  <th className="pp-th">موجودی (عدد)</th>
-                  <th className="pp-th">وضعیت</th>
-                  <th className="pp-th">تاریخ ایجاد</th>
-                  <th className="pp-th pp-col-actions" />
+                  <th className="pp-th">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
+                      <span>عنوان</span>
+                    </div>
+                  </th>
+                  <th className="pp-th">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                      <span>قیمت (تومان)</span>
+                    </div>
+                  </th>
+                  <th className="pp-th">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m6 4.125 2.25 2.25m0 0 2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
+                      <span>موجودی (عدد)</span>
+                    </div>
+                  </th>
+                  <th className="pp-th">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" /></svg>
+                      <span>وضعیت</span>
+                    </div>
+                  </th>
+                  <th className="pp-th">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+                      <span>تاریخ ایجاد</span>
+                    </div>
+                  </th>
+                  <th className="pp-th pp-col-actions">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody className="pp-tbody">

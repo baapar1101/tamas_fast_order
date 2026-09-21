@@ -5,6 +5,7 @@ import { formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
 import { ImagePicker } from './ImagePicker';
 import { Price } from '../../components/Price';
+import { AnimatedDropdown } from './AnimatedDropdown';
 
 export interface ProductForm {
   productId: string;
@@ -528,17 +529,19 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                 <p className="a-card-sub">ویژگی‌های فنی و مشخصات محصول</p>
               </div>
               <div className="a-actions">
-                <select
-                  className="a-select a-select--auto"
+                <AnimatedDropdown
+                  buttonClassName="a-select--auto"
                   value=""
-                  onChange={quickAddAttr}
-                  aria-label="انتخاب از ویژگی‌های تعریف‌شده"
-                >
-                  <option value="" disabled>از ویژگی‌های تعریف‌شده…</option>
-                  {(attributeDefs ?? []).map((d) => (
-                    <option key={d.id} value={d.name}>{d.name} ({ATTR_TYPE_LABELS[d.type] ?? d.type})</option>
-                  ))}
-                </select>
+                  onChange={(val) => quickAddAttr({ target: { value: val } } as React.ChangeEvent<HTMLSelectElement>)}
+                  placeholder="از ویژگی‌های تعریف‌شده…"
+                  options={[
+                    { value: '', label: 'از ویژگی‌های تعریف‌شده…' },
+                    ...(attributeDefs ?? []).map((d) => ({
+                      value: d.name,
+                      label: `${d.name} (${ATTR_TYPE_LABELS[d.type] ?? d.type})`
+                    }))
+                  ]}
+                />
                 <button
                   type="button"
                   className="a-btn a-btn--info a-btn--sm"
@@ -675,25 +678,29 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
             <div className="a-form-grid">
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-category">دسته‌بندی اصلی</label>
-                <select id="pe-category" className="a-select" value={form.categoryName} onChange={(e) => set('categoryName', e.target.value)}>
-                  <option value="">-- انتخاب دسته‌بندی --</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.name}>
-                      {c.faName}
-                    </option>
-                  ))}
-                </select>
+                <AnimatedDropdown
+                  id="pe-category"
+                  value={form.categoryName}
+                  onChange={(val) => set('categoryName', val)}
+                  placeholder="-- انتخاب دسته‌بندی --"
+                  options={[
+                    { value: '', label: '-- انتخاب دسته‌بندی --' },
+                    ...categories.map((c) => ({ value: c.name, label: c.faName }))
+                  ]}
+                />
               </div>
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-brand">برند محصول</label>
-                <select id="pe-brand" className="a-select" value={form.brandName} onChange={(e) => set('brandName', e.target.value)}>
-                  <option value="">-- بدون برند --</option>
-                  {brands.map((b) => (
-                    <option key={b.id} value={b.name}>
-                      {b.faName}
-                    </option>
-                  ))}
-                </select>
+                <AnimatedDropdown
+                  id="pe-brand"
+                  value={form.brandName}
+                  onChange={(val) => set('brandName', val)}
+                  placeholder="-- بدون برند --"
+                  options={[
+                    { value: '', label: '-- بدون برند --' },
+                    ...brands.map((b) => ({ value: b.name, label: b.faName }))
+                  ]}
+                />
               </div>
             </div>
           </section>

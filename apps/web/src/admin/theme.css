@@ -101,8 +101,8 @@ body.admin-page-active.admin-theme-light {
   --a-divider: rgba(255, 255, 255, 0.5);
   --a-t1: #000000;
   --a-t2: #111111;
-  --a-t3: #222222;
-  --a-t4: #64748b;
+  --a-t3: #111111;
+  --a-t4: #111111;
   --a-input-bg: rgba(255, 255, 255, 0.3);
   --a-dropdown-bg: rgba(255, 255, 255, 0.85);
   --a-field-bg: rgba(255, 255, 255, 0.4);
@@ -110,6 +110,7 @@ body.admin-page-active.admin-theme-light {
   --a-hover: rgba(255, 255, 255, 0.5);
   --a-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
   --a-shadow-2: 0 8px 24px 0 rgba(0, 0, 0, 0.15);
+  color: var(--a-t1);
 }
 
 /* Glassmorphism utility classes */
@@ -512,20 +513,26 @@ body.admin-page-active.admin-theme-light {
 /* ---------------------------------------------------------------------------
    Tables (attributes, existing huma tables reused where possible)
    -------------------------------------------------------------------------- */
-.a-table-wrap { overflow-x: auto; border-radius: 0.8rem; border: 1px solid var(--a-border); }
-.a-table { width: 100%; min-width: 34rem; border-collapse: collapse; font-size: 0.82rem; text-align: right; }
+.a-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--a-border); background: var(--a-surface); backdrop-filter: blur(12px); }
+.a-table { width: 100%; min-width: 34rem; border-collapse: collapse; font-size: 0.85rem; text-align: center; }
 .a-table th {
-  padding: 0.7rem 1rem;
-  text-align: right;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--a-t4);
-  background: var(--a-surface-2);
+  padding: 1rem 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--a-t1);
+  background: transparent;
   border-bottom: 1px solid var(--a-divider);
   white-space: nowrap;
 }
+.a-table th > div, .a-table th > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
 .a-table td {
-  padding: 0.8rem 1rem;
+  padding: 1rem 1rem;
   color: var(--a-t2);
   border-bottom: 1px solid var(--a-divider);
   vertical-align: middle;
@@ -1304,12 +1311,15 @@ body.admin-page-active.admin-theme-light .admin-topbar .mr-auto > .relative > bu
 
 /* Sidebar — brand + sections */
 body.admin-page-active.admin-theme-light .admin-sidebar .text-white { color: #101828 !important; }
-body.admin-page-active.admin-theme-light .admin-sidebar .text-slate-500 { color: #667085 !important; }
-body.admin-page-active.admin-theme-light .admin-sidebar .text-slate-400 { color: #475467 !important; }
+body.admin-page-active.admin-theme-light .admin-sidebar .text-slate-500 { color: #101828 !important; }
+body.admin-page-active.admin-theme-light .admin-sidebar .text-slate-400 { color: #101828 !important; }
 
 /* Sidebar — nav items */
-body.admin-page-active.admin-theme-light .admin-sidebar .nav-item { color: #475467; }
-body.admin-page-active.admin-theme-light .admin-sidebar .nav-item:hover { color: #101828; }
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-item { color: #101828; }
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-item:hover { 
+  font-weight: 700;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
 body.admin-page-active.admin-theme-light .admin-sidebar .nav-item.active {
   background-image: linear-gradient(to left, rgba(16, 185, 129, 0.14), transparent);
   color: #059669;
