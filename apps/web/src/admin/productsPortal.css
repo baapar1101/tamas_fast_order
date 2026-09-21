@@ -197,7 +197,7 @@
 
 .pp-btn--secondary {
   border-color: var(--pp-border);
-  background: #fff;
+  background: var(--pp-bg-card);
   color: var(--pp-text-secondary);
 }
 
@@ -206,7 +206,7 @@
 }
 
 .pp-btn--secondary:disabled {
-  background: #fff;
+  background: var(--pp-bg-card);
   border-color: var(--pp-border-light);
   color: var(--pp-text-muted);
   box-shadow: none;
@@ -269,7 +269,7 @@
   padding: 0 40px 0 14px;
   border: 1px solid var(--pp-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--pp-bg-card);
   box-shadow: 0 1px 2px rgb(16 24 40 / 0.05);
   font-family: inherit;
   font-size: 14px;
@@ -305,7 +305,7 @@
   padding: 0 14px;
   border: 1px solid var(--pp-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--pp-bg-card);
   box-shadow: 0 1px 2px rgb(16 24 40 / 0.05);
   font-family: inherit;
   font-size: 14px;
@@ -360,7 +360,7 @@
   z-index: 60;
   min-width: 200px;
   padding: 6px;
-  background: #fff;
+  background: var(--pp-bg-card);
   border: 1px solid var(--pp-border-light);
   border-radius: 12px;
   box-shadow: 0 12px 24px rgb(16 24 40 / 0.12);
@@ -411,7 +411,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  background: #fff;
+  background: var(--pp-bg-card);
   border: 1px solid var(--pp-border-light);
   border-radius: 12px;
   box-shadow: 0 12px 24px rgb(16 24 40 / 0.12);
@@ -667,7 +667,7 @@
   z-index: 70;
   min-width: 190px;
   padding: 6px;
-  background: #fff;
+  background: var(--pp-bg-card);
   border: 1px solid var(--pp-border-light);
   border-radius: 12px;
   box-shadow: 0 12px 24px rgb(16 24 40 / 0.12);
@@ -731,7 +731,7 @@
 .pp-gcard {
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--pp-bg-card);
   border: 1px solid var(--pp-border-light);
   border-radius: 12px;
   overflow: hidden;
@@ -816,4 +816,37 @@
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+/* Dark theme — products page token overrides.
+   Default .pp-root tokens are the light palette; in dark mode the whole
+   products page (cards, grid, inputs, menus) follows the shell theme. */
+.admin-body-shell[data-theme='dark'] .pp-root {
+  --pp-text-primary: #f2f4f7;
+  --pp-text-secondary: #d0d5dd;
+  --pp-text-tertiary: #98a2b3;
+  --pp-text-muted: #667085;
+  --pp-bg-page: #0b111d;
+  --pp-bg-card: #101828;
+  --pp-bg-hover: #1a2436;
+  --pp-bg-active: #223048;
+  --pp-border: #2b3a55;
+  --pp-border-light: #233047;
+  --pp-border-faint: #1a2436;
+  --pp-brand: #4ca2ff;
+  --pp-brand-hover: #3d94f2;
+  --pp-brand-press: #2f86e3;
+  --pp-brand-soft: #16304b;
+  --pp-brand-bg: #101f33;
+  --pp-success: #2dd4a7;
+  --pp-success-chip-bg: #123027;
+  --pp-danger: #f97066;
+  --pp-danger-strong: #f04438;
+  --pp-danger-bg: #3d1d21;
+  --pp-warning: #f5a524;
+  --pp-warning-bg: #33260c;
+}
+
+.admin-body-shell[data-theme='dark'] .pp-input:focus {
+  box-shadow: 0 0 0 3px rgb(76 162 255 / 0.16);
 }

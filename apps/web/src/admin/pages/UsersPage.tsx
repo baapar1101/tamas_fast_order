@@ -102,7 +102,7 @@ export function UsersPage() {
       </section>
 
       {/* Search + Filters */}
-      <section className="a-card">
+      <section className="a-searchbar">
         <div className="a-filterbar a-filterbar--stack">
           <input
             className="a-input"

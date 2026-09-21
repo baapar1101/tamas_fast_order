@@ -104,7 +104,7 @@ export function OrdersPage() {
       </section>
 
       {/* Search Input */}
-      <section className="a-card">
+      <section className="a-searchbar">
         <input
           className="a-input"
           placeholder="جستجو در کد سفارش، نام مشتری، شماره همراه..."
