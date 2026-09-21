@@ -544,7 +544,7 @@
   padding: 12px 14px;
   border-top: 1px solid var(--pp-border-faint);
   vertical-align: middle;
-  height: 60px;
+  min-height: 60px;
 }
 
 .pp-tbody .pp-tr:hover {
@@ -576,13 +576,16 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .pp-title {
   font-size: 14px;
   font-weight: 600;
   color: var(--pp-text-primary);
-  line-height: 1.5;
+  line-height: 1.6;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .pp-meta {
