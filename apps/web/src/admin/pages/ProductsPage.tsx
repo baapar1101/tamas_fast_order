@@ -458,12 +458,12 @@ export function ProductsPage() {
       <section className="pp-card">
         {products.isLoading ? (
           <div className="pp-state">
-            <div className="pp-state-icon"><SearchIcon /></div>
+            <div className="pp-state-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg></div>
             <div className="pp-state-title">در حال دریافت محصولات...</div>
           </div>
         ) : products.isError ? (
           <div className="pp-state">
-            <div className="pp-state-icon"><SearchIcon /></div>
+            <div className="pp-state-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg></div>
             <div className="pp-state-title">خطا در دریافت لیست محصولات</div>
             <div className="pp-state-sub">{products.error?.message ?? 'دوباره تلاش کنید.'}</div>
             <button type="button" className="pp-btn pp-btn--secondary pp-btn--sm" onClick={() => void products.refetch()}>
@@ -472,7 +472,7 @@ export function ProductsPage() {
           </div>
         ) : items.length === 0 ? (
           <div className="pp-state">
-            <div className="pp-state-icon"><SearchIcon /></div>
+            <div className="pp-state-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg></div>
             <div className="pp-state-title">محصولی یافت نشد</div>
             <div className="pp-state-sub">هیچ محصولی با مشخصات جستجو‌یافته پیدا نشد.</div>
             <button type="button" className="pp-btn pp-btn--primary pp-btn--sm" onClick={() => setEditing('new')}>
