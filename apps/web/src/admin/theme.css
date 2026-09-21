@@ -89,7 +89,7 @@ body.admin-page-active {
   --a-shadow-2: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
 }
 
-body.admin-page-active.admin-theme-light,
+body.admin-page-active.admin-theme-light .admin-body-shell,
 body.admin-page-active.admin-theme-light {
   /* Light Glassmorphism palette */
   --a-bg: transparent;
