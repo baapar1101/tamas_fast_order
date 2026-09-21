@@ -185,7 +185,7 @@
 }
 
 .search-input:focus {
-  background: #ffffff;
+  background: var(--tamas-surface);
   border-color: var(--tamas-accent);
   box-shadow: 0 0 0 4px rgba(8, 121, 143, 0.1);
 }
@@ -232,7 +232,7 @@
   position: relative;
   font-size: 18px;
   border: 1px solid var(--tamas-border);
-  background: #ffffff;
+  background: var(--tamas-surface);
   color: var(--tamas-fg);
   transition: all 0.2s ease;
 }
@@ -681,7 +681,7 @@
 .view-btn {
   padding: var(--tamas-radius-sm) 14px;
   border: 1px solid var(--tamas-border);
-  background: #f8fafc;
+  background: var(--tamas-surface);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -738,7 +738,7 @@
   padding: var(--tamas-radius-sm) 12px;
   border-radius: var(--tamas-radius-sm);
   border: 1px solid var(--tamas-border);
-  background: #ffffff;
+  background: var(--tamas-surface);
   outline: none;
   font-size: 13px;
   width: auto;
@@ -1243,7 +1243,7 @@
   position: absolute;
   top: 12px;
   left: 12px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--tamas-surface);
   border-radius: 50%;
   width: 32px;
   height: 32px;
