@@ -15,21 +15,42 @@ interface OrdersResponse {
 }
 
 const downloadOrderExcel = (order: OrderDTO) => {
-  const rows = [order.orderCode];
+  const rows: string[] = [];
+  rows.push(`<tr><td class="text">${order.orderCode}</td></tr>`);
+  
   for (const item of order.items) {
     const sku = item.sku || item.productId;
     for (let i = 0; i < item.qty; i++) {
-      rows.push(sku);
+      rows.push(`<tr><td class="text">${sku}</td></tr>`);
     }
   }
-  const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + rows.join("\n");
-  const encodedUri = encodeURI(csvContent);
+
+  const htmlContent = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="utf-8" />
+      <style>
+        .text { mso-number-format: "\\@"; } 
+      </style>
+    </head>
+    <body>
+      <table>
+        ${rows.join('\n')}
+      </table>
+    </body>
+    </html>
+  `.trim();
+
+  const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
+  const url = URL.createObjectURL(blob);
+  
   const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `order-${order.orderCode}.csv`);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `order-${order.orderCode}.xls`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
 
 const CHIP_TONE: Record<OrderStatus, string> = {
