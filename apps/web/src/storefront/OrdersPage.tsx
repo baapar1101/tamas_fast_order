@@ -3,12 +3,15 @@ import { flushSync } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { OrderDTO } from '@tamas/shared';
-import { ORDER_STATUS_LABELS, WAREHOUSE_LABELS, formatMoney, formatNumber } from '@tamas/shared';
+import { ORDER_STATUS_LABELS, WAREHOUSE_LABELS, formatNumber } from '@tamas/shared';
 import { Price } from '../components/Price';
 import { PrintInvoiceLayout, type PrintInvoiceItem } from '../components/PrintInvoiceLayout';
+import { Icon } from '../components/Icon';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import './storefront.css';
+import './orders-page.css';
 
 const STATUS_TONE: Record<string, string> = {
   new: 'brand',
@@ -37,112 +40,127 @@ export function OrdersPage() {
   return (
     <div className="shell">
       <header className="topbar">
-        <div className="topbar-inner">
-          <Link to="/" className="logo">
-            <img src="/logo.png" alt="تماس مارکت" />
+        <div className="topbar-inner ord-header">
+          <Link to="/" className="ord-header-back" aria-label="بازگشت به فروشگاه">
+            <Icon name="home" />
           </Link>
+          <Link to="/" className="logo ord-header-logo">
+            <img src="/logo.png" alt="تماس مارکت" />
+            <span className="logo-tagline">مرجع تخصصی فروش عمده کالای دیجیتال</span>
+          </Link>
+          <h1 className="ord-header-title">سفارش‌های من</h1>
           <span className="spacer" />
-          <Link to="/" className="top-btn">
+          <Link to="/" className="top-btn ord-header-shop">
             بازگشت به فروشگاه
           </Link>
+          <ThemeToggle />
         </div>
       </header>
 
-      <main className="container">
-        <h2 style={{ marginTop: 0 }}>سفارش‌های من</h2>
+      <main className="container ord-page">
+        <div className="ord-main-title">
+          <h1>سفارش‌های من</h1>
+          <p>پیگیری وضعیت سفارش‌ها و دانلود فاکتور</p>
+        </div>
 
         {!ready ? (
           <div className="skeleton" style={{ height: 120 }} />
         ) : !user ? (
-          <div className="card empty">برای دیدن سفارش‌ها ابتدا وارد حساب خود شوید.</div>
+          <div className="card ord-state">
+            <Icon name="user" />
+            <p>برای دیدن سفارش‌ها ابتدا وارد حساب خود شوید.</p>
+            <Link to="/" className="btn">بازگشت به فروشگاه</Link>
+          </div>
         ) : orders.isLoading ? (
           <div className="skeleton" style={{ height: 160 }} />
         ) : orders.isError ? (
           <div className="alert error">دریافت سفارش‌ها ناموفق بود.</div>
         ) : (orders.data?.orders.length ?? 0) === 0 ? (
-          <div className="card empty">هنوز سفارشی ثبت نکرده‌اید.</div>
+          <div className="card ord-state">
+            <Icon name="box" />
+            <p>هنوز سفارشی ثبت نکرده‌اید.</p>
+            <Link to="/" className="btn primary">مشاهده کالاها</Link>
+          </div>
         ) : (
-          <div className="stack">
-            {orders.data!.orders.map((order) => (
-              <div className="card" key={order.id} style={{ padding: 24, borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', marginBottom: 24, backgroundColor: '#fff' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: 16, marginBottom: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>کد پیگیری:</span>
-                    <b style={{ fontSize: 16, color: '#0f172a' }} className="ltr-inline">{order.orderCode}</b>
-                    <span className={`badge ${STATUS_TONE[order.status] ?? ''}`} style={{ fontSize: 12, padding: '4px 10px' }}>{ORDER_STATUS_LABELS[order.status]}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                      <span style={{ fontSize: 12, color: '#64748b' }}>تاریخ ثبت</span>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: '#334155' }}>{new Date(order.createdAt).toLocaleDateString('fa-IR')}</span>
+          <div className="stack ord-list">
+            {orders.data!.orders.map((order) => {
+              const items: PrintInvoiceItem[] = order.items.map((i) => ({
+                key: i.id.toString(),
+                title: i.title,
+                color: i.color,
+                warehouse: i.warehouse,
+                qty: i.qty,
+                price: i.price,
+              }));
+              return (
+                <section className="card ord-card" key={order.id}>
+                  <header className="ord-head">
+                    <div className="ord-head-main">
+                      <div className="ord-track">
+                        <span className="ord-track-label">کد پیگیری</span>
+                        <b className="ord-track-code ltr-inline">{order.orderCode}</b>
+                      </div>
+                      <span className={`badge ${STATUS_TONE[order.status] ?? ''}`}>{ORDER_STATUS_LABELS[order.status]}</span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-                      <span style={{ fontSize: 12, color: '#64748b' }}>مبلغ کل</span>
-                      <b style={{ fontSize: 16, color: '#0ea5e9' }}><Price amount={order.total} /></b>
+                    <div className="ord-head-side">
+                      <div className="ord-stat">
+                        <span className="ord-stat-label">تاریخ ثبت</span>
+                        <b className="ord-stat-value">{new Date(order.createdAt).toLocaleDateString('fa-IR')}</b>
+                      </div>
+                      <div className="ord-stat ord-stat--total">
+                        <span className="ord-stat-label">مبلغ کل</span>
+                        <b className="ord-stat-value"><Price amount={order.total} /></b>
+                      </div>
                     </div>
+                  </header>
+
+                  <div className="ord-items-head" aria-hidden="true">
+                    <span>کالا</span>
+                    <span>مشخصات</span>
+                    <span>مبلغ</span>
                   </div>
-                </div>
-                
-                <div style={{ padding: '0 20px 16px', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button type="button" className="btn ghost sm" onClick={() => printOrder(order.id)} style={{ border: '1px solid #cbd5e1' }}>
-                    چاپ فاکتور
-                  </button>
-                </div>
+                  <ul className="ord-items">
+                    {order.items.map((item) => (
+                      <li className="ord-item" key={item.id}>
+                        <span className="ord-item-title wrap">{item.title}</span>
+                        <span className="ord-item-specs">
+                          {item.color && <span className="ord-spec">{item.color}</span>}
+                          <span className="ord-spec">{WAREHOUSE_LABELS[item.warehouse]}</span>
+                          <span className="ord-spec ord-spec--qty">{formatNumber(item.qty)} عدد</span>
+                        </span>
+                        <span className="ord-item-price"><Price amount={item.price * item.qty} /></span>
+                      </li>
+                    ))}
+                  </ul>
 
-                <div className="table-wrap" style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                  <table className="data" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
-                    <thead style={{ backgroundColor: '#f8fafc' }}>
-                      <tr>
-                        <th style={{ padding: '12px 16px', fontSize: 13, color: '#475569', fontWeight: 700, borderBottom: '1px solid #e2e8f0' }}>کالا</th>
-                        <th style={{ padding: '12px 16px', fontSize: 13, color: '#475569', fontWeight: 700, borderBottom: '1px solid #e2e8f0' }}>رنگ</th>
-                        <th style={{ padding: '12px 16px', fontSize: 13, color: '#475569', fontWeight: 700, borderBottom: '1px solid #e2e8f0' }}>انبار</th>
-                        <th style={{ padding: '12px 16px', fontSize: 13, color: '#475569', fontWeight: 700, borderBottom: '1px solid #e2e8f0' }}>تعداد</th>
-                        <th style={{ padding: '12px 16px', fontSize: 13, color: '#475569', fontWeight: 700, borderBottom: '1px solid #e2e8f0' }}>مبلغ</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {order.items.map((item, idx) => (
-                        <tr key={item.id} style={{ borderBottom: idx !== order.items.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                          <td style={{ padding: '12px 16px', fontSize: 14, color: '#1e293b', fontWeight: 600 }} className="wrap">{item.title}</td>
-                          <td style={{ padding: '12px 16px', fontSize: 13, color: '#64748b' }}>{item.color || '—'}</td>
-                          <td style={{ padding: '12px 16px', fontSize: 13, color: '#64748b' }}>{WAREHOUSE_LABELS[item.warehouse]}</td>
-                          <td style={{ padding: '12px 16px', fontSize: 14, color: '#334155', fontWeight: 700 }}>{formatNumber(item.qty)}</td>
-                          <td style={{ padding: '12px 16px', fontSize: 14, color: '#0ea5e9', fontWeight: 700 }}><Price amount={item.price * item.qty} /></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                  {order.address && (
+                    <div className="ord-address">
+                      <Icon name="pin" />
+                      <span>
+                        <strong>آدرس ارسال:</strong> {order.address}
+                      </span>
+                    </div>
+                  )}
 
-                {order.address && (
-                  <div style={{ marginTop: 16, padding: '12px 16px', backgroundColor: '#f8fafc', borderRadius: 8, border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ color: '#64748b' }}>📍</span>
-                    <span style={{ fontSize: 13, color: '#475569', fontWeight: 500, lineHeight: 1.6 }}>
-                      <strong style={{ color: '#334155', marginLeft: 4 }}>آدرس ارسال:</strong>
-                      {order.address}
-                    </span>
-                  </div>
-                )}
+                  <footer className="ord-foot">
+                    <button type="button" className="btn ghost sm ord-print" onClick={() => printOrder(order.id)}>
+                      <Icon name="printer" /> چاپ فاکتور
+                    </button>
+                  </footer>
 
-                <PrintInvoiceLayout
-                  title="فاکتور فروش"
-                  active={printOrderId === order.id}
-                  orderId={order.orderCode}
-                  date={new Date(order.createdAt).toLocaleDateString('fa-IR')}
-                  customerName={user?.name}
-                  customerPhone={user?.phone}
-                  total={order.total}
-                  items={order.items.map(i => ({
-                    key: i.id.toString(),
-                    title: i.title,
-                    color: i.color,
-                    warehouse: i.warehouse,
-                    qty: i.qty,
-                    price: i.price
-                  }))}
-                />
-              </div>
-            ))}
+                  <PrintInvoiceLayout
+                    title="فاکتور فروش"
+                    active={printOrderId === order.id}
+                    orderId={order.orderCode}
+                    date={new Date(order.createdAt).toLocaleDateString('fa-IR')}
+                    customerName={user?.name}
+                    customerPhone={user?.phone}
+                    total={order.total}
+                    items={items}
+                  />
+                </section>
+              );
+            })}
           </div>
         )}
       </main>
