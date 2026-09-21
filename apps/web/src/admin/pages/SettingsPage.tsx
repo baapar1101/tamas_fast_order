@@ -396,14 +396,13 @@ export function SettingsPage() {
                 <div className="a-option-title">فعال‌سازی همگام‌سازی خودکار (سفارش/مشتری/محصول)</div>
                 <div className="a-option-desc">پس از ذخیره، همگام‌سازی به صورت خودکار اجرا می‌شود</div>
               </div>
-              <label className="a-switch">
-                <input
-                  type="checkbox"
-                  checked={form.CRM_SYNC_ENABLED === 'true'}
-                  onChange={(e) => setForm({ ...form, CRM_SYNC_ENABLED: e.target.checked ? 'true' : 'false' })}
-                />
-                <span className="a-switch-track"><span className="a-switch-thumb" /></span>
-              </label>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.CRM_SYNC_ENABLED === 'true'}
+                className="a-switch"
+                onClick={() => setForm({ ...form, CRM_SYNC_ENABLED: form.CRM_SYNC_ENABLED === 'true' ? 'false' : 'true' })}
+              />
             </div>
 
             <div className="a-option-row">

@@ -191,14 +191,13 @@ export function SlidesPage() {
               <div className="a-option-title">فعال باشد</div>
               <div className="a-option-desc">بنرهای غیرفعال در اسلایدر نمایش داده نمی‌شوند</div>
             </div>
-            <label className="a-switch">
-              <input
-                type="checkbox"
-                checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              />
-              <span className="a-switch-track"><span className="a-switch-thumb" /></span>
-            </label>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={formData.isActive}
+              className="a-switch"
+              onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
+            />
           </div>
         </section>
 

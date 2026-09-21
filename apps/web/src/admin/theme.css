@@ -1200,3 +1200,98 @@ body.admin-theme-light .modal-backdrop .chip-aqua { background: rgba(14, 116, 14
 body.admin-theme-light .modal-backdrop .chip-amber { background: rgba(245, 158, 11, 0.16); color: #b54708; }
 body.admin-theme-light .modal-backdrop .chip-rose { background: rgba(217, 45, 32, 0.14); color: #d92d20; }
 body.admin-theme-light .modal-backdrop .chip-slate { background: rgba(128, 138, 157, 0.18); color: #475467; }
+
+/* ============================================================================
+   LIGHT MODE — admin chrome (topbar + sidebar).
+   The header/nav shell followed the dark palette even in light mode. In light
+   the whole chrome now follows the light palette so nothing stays dark on a
+   light page. Dropdown/popover panels under the topbar keep their own dark
+   look (not part of this pass).
+   ========================================================================== */
+.admin-body-shell[data-theme='light'] .admin-topbar {
+  background-color: rgba(255, 255, 255, 0.86);
+  border-bottom-color: #eaecf0;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.admin-body-shell[data-theme='light'] .admin-sidebar {
+  background-color: rgba(255, 255, 255, 0.92);
+  border-color: #eaecf0;
+}
+
+/* Topbar — quick search */
+.admin-body-shell[data-theme='light'] .admin-topbar input[type="text"] {
+  background-color: #f4f7fa;
+  border-color: #d0d5dd;
+  color: #101828;
+}
+.admin-body-shell[data-theme='light'] .admin-topbar input[type="text"]::placeholder { color: #667085; }
+.admin-body-shell[data-theme='light'] .admin-topbar input[type="text"]:focus {
+  background-color: #ffffff;
+  border-color: #0580fa;
+  box-shadow: 0 0 0 3px rgba(5, 128, 250, 0.18);
+}
+.admin-body-shell[data-theme='light'] .admin-topbar .text-slate-500 { color: #667085 !important; }
+.admin-body-shell[data-theme='light'] .admin-topbar .group:focus-within svg { color: #059669 !important; }
+.admin-body-shell[data-theme='light'] .admin-topbar kbd {
+  background-color: #f2f4f7;
+  border-color: #eaecf0;
+  color: #98a2b3;
+}
+
+/* Topbar — date / clock chip */
+.admin-body-shell[data-theme='light'] .admin-topbar .mr-auto > div.hidden {
+  background-color: #f4f7fa;
+  border-color: #eaecf0;
+}
+.admin-body-shell[data-theme='light'] .admin-topbar .mr-auto > div.hidden .text-slate-300 { color: #344054 !important; }
+.admin-body-shell[data-theme='light'] .admin-topbar .mr-auto > div.hidden .text-emerald-300,
+.admin-body-shell[data-theme='light'] .admin-topbar .mr-auto > div.hidden .text-emerald-400 { color: #059669 !important; }
+.admin-body-shell[data-theme='light'] .admin-topbar .mr-auto > div.hidden .bg-white\/10 { background-color: #eaecf0; }
+
+/* Topbar — icon buttons (theme toggle, bell, profile) */
+.admin-body-shell[data-theme='light'] .admin-topbar > div > .icon-btn,
+.admin-body-shell[data-theme='light'] .admin-topbar > div > .relative > .icon-btn,
+.admin-body-shell[data-theme='light'] .admin-sidebar .admin-sidebar-close {
+  background-color: #f4f7fa;
+  border-color: #d0d5dd;
+  color: #475467;
+}
+.admin-body-shell[data-theme='light'] .admin-topbar > div > .icon-btn:hover,
+.admin-body-shell[data-theme='light'] .admin-topbar > div > .relative > .icon-btn:hover,
+.admin-body-shell[data-theme='light'] .admin-sidebar .admin-sidebar-close:hover {
+  border-color: #10a37f;
+  color: #10a37f;
+  box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.16);
+}
+.admin-body-shell[data-theme='light'] .admin-topbar .ring-slate-950 { --tw-ring-color: #ffffff; }
+
+/* Topbar — profile button */
+.admin-body-shell[data-theme='light'] .admin-topbar .mr-auto > .relative > button.group {
+  background-color: #f4f7fa;
+  border-color: #d0d5dd;
+}
+.admin-body-shell[data-theme='light'] .admin-topbar .mr-auto > .relative > button.group:hover { border-color: #10a37f; }
+.admin-body-shell[data-theme='light'] .admin-topbar .mr-auto > .relative > button.group .text-white { color: #101828 !important; }
+
+/* Sidebar — brand + sections */
+.admin-body-shell[data-theme='light'] .admin-sidebar .text-white { color: #101828 !important; }
+.admin-body-shell[data-theme='light'] .admin-sidebar .text-slate-500 { color: #667085 !important; }
+.admin-body-shell[data-theme='light'] .admin-sidebar .text-slate-400 { color: #475467 !important; }
+
+/* Sidebar — nav items */
+.admin-body-shell[data-theme='light'] .admin-sidebar .nav-item { color: #475467; }
+.admin-body-shell[data-theme='light'] .admin-sidebar .nav-item:hover { color: #101828; }
+.admin-body-shell[data-theme='light'] .admin-sidebar .nav-item.active {
+  background-image: linear-gradient(to left, rgba(16, 185, 129, 0.14), transparent);
+  color: #059669;
+}
+.admin-body-shell[data-theme='light'] .admin-sidebar .bg-emerald-500\/15 { color: #059669 !important; }
+
+/* Sidebar — pro card */
+.admin-body-shell[data-theme='light'] .admin-sidebar .bg-gradient-to-br {
+  background-image: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(240, 250, 245, 0.95) 45%, rgba(238, 246, 251, 0.95));
+}
+.admin-body-shell[data-theme='light'] .admin-sidebar .bg-gradient-to-br[class*="via-"] {
+  background-image: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(240, 250, 245, 0.95) 45%, rgba(238, 246, 251, 0.95));
+}
