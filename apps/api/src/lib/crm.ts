@@ -151,15 +151,19 @@ export const crmClient = {
         synced_at: new Date().toISOString(),
       };
       // Hesabix API: POST /api/v1/orders/business/{businessId}/
-      const data = (await crmRequest<{ success?: boolean; id?: number; error?: string }>(
+      const data = (await crmRequest<{
+        success?: boolean;
+        data?: { id?: number };
+        error?: { code?: string; message?: string };
+      }>(
         `/api/v1/orders/business/${config.businessId}/`,
         config,
         { method: 'POST', body: JSON.stringify(payload) },
-      )) as { success?: boolean; id?: number; error?: string };
+      )) as { success?: boolean; data?: { id?: number }; error?: { code?: string; message?: string } };
       if (data?.success === false || data?.error) {
-        return { ok: false, entity: 'order', error: data.error || 'CRM rejected order' };
+        return { ok: false, entity: 'order', error: data.error?.message || 'CRM rejected order' };
       }
-      return { ok: true, entity: 'order', remoteId: data?.id ?? undefined };
+      return { ok: true, entity: 'order', remoteId: data?.data?.id ?? undefined };
     } catch (err: any) {
       return { ok: false, entity: 'order', error: err?.message ?? String(err) };
     }
@@ -188,15 +192,19 @@ export const crmClient = {
         updated_at: product.updatedAt,
       };
       // Hesabix API: POST /api/v1/products/business/{businessId}/
-      const data = (await crmRequest<{ success?: boolean; id?: number; error?: string }>(
+      const data = (await crmRequest<{
+        success?: boolean;
+        data?: { id?: number };
+        error?: { code?: string; message?: string };
+      }>(
         `/api/v1/products/business/${config.businessId}/`,
         config,
         { method: 'POST', body: JSON.stringify(payload) },
-      )) as { success?: boolean; id?: number; error?: string };
+      )) as { success?: boolean; data?: { id?: number }; error?: { code?: string; message?: string } };
       if (data?.success === false || data?.error) {
-        return { ok: false, entity: 'product', error: data.error || 'CRM rejected product' };
+        return { ok: false, entity: 'product', error: data.error?.message || 'CRM rejected product' };
       }
-      return { ok: true, entity: 'product', remoteId: data?.id ?? undefined };
+      return { ok: true, entity: 'product', remoteId: data?.data?.id ?? undefined };
     } catch (err: any) {
       return { ok: false, entity: 'product', error: err?.message ?? String(err) };
     }
@@ -233,44 +241,48 @@ export const crmClient = {
     },
 
     /** Search for a product in CRM by productId. */
-    async searchProduct(
-      query: { productId: string },
-      config: CrmConfig,
-    ): Promise<CrmSyncResult & { remoteId?: number }> {
-      try {
-        // MarkStreet API: GET /api/v1/products/business/{businessId}/search
-        const params = new URLSearchParams();
-        params.set('take', '1');
-        params.set('skip', '0');
-        params.set('sort_desc', 'false');
-        params.set('include_inventory', 'true');
-
-        const data = (await crmRequest<{
-          success?: boolean;
-          items?: Array<{ id: number; sku?: string; title?: string }>;
-          error?: string;
-        }>(`/api/v1/products/business/${config.businessId}/search?${params.toString()}`, config)) as {
-          success?: boolean;
-          items?: Array<{ id: number; sku?: string; title?: string }>;
-          error?: string;
+  async searchProduct(
+    query: { productId: string },
+    config: CrmConfig,
+  ): Promise<CrmSyncResult & { remoteId?: number }> {
+    try {
+      // Hesabix API: POST /api/v1/products/business/{businessId}/search
+      const payload = {
+        take: 1,
+        skip: 0,
+        sort_desc: false,
+        include_inventory: true,
+      };
+      const data = (await crmRequest<{
+        success?: boolean;
+        data?: {
+          items?: Array<{ id: number; code?: string; name?: string; general_barcodes?: string }>;
         };
-        if (data?.success === false || data?.error) {
-          return { ok: false, entity: 'product', error: data.error || 'CRM product search failed' };
-        }
-        const first = data?.items?.[0];
-        if (!first) {
-          return { ok: true, entity: 'product', remoteId: undefined };
-        }
-        // Check if this matches our productId
-        if (first.sku === query.productId || first.title === query.productId) {
-          return { ok: true, entity: 'product', remoteId: first.id };
-        }
-        // No match found
-        return { ok: true, entity: 'product', remoteId: undefined };
-      } catch (err: any) {
-        return { ok: false, entity: 'product', error: err?.message ?? String(err) };
+        error?: { code?: string; message?: string };
+      }>(`/api/v1/products/business/${config.businessId}/search`, config, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })) as {
+        success?: boolean;
+        data?: { items?: Array<{ id: number; code?: string; name?: string; general_barcodes?: string }> };
+        error?: { code?: string; message?: string };
+      };
+      if (data?.success === false || data?.error) {
+        return { ok: false, entity: 'product', error: data.error?.message || 'CRM product search failed' };
       }
-    },
+      const first = data?.data?.items?.[0];
+      if (!first) {
+        return { ok: true, entity: 'product', remoteId: undefined };
+      }
+      // Hesabix uses 'code' for product ID and 'general_barcodes' for SKU
+      if (first.code === query.productId || first.general_barcodes === query.productId) {
+        return { ok: true, entity: 'product', remoteId: first.id };
+      }
+      return { ok: true, entity: 'product', remoteId: undefined };
+    } catch (err: any) {
+      return { ok: false, entity: 'product', error: err?.message ?? String(err) };
+    }
+  },
 
     /** Send a chat message from the site visitor to the CRM conversation. */
   async sendChatMessage(
@@ -327,15 +339,19 @@ export const crmClient = {
         synced_at: new Date().toISOString(),
       };
       // Hesabix API: POST /api/v1/contacts/business/{businessId}/
-      const data = (await crmRequest<{ success?: boolean; id?: number; error?: string }>(
+      const data = (await crmRequest<{
+        success?: boolean;
+        data?: { id?: number };
+        error?: { code?: string; message?: string };
+      }>(
         `/api/v1/contacts/business/${config.businessId}/`,
         config,
         { method: 'POST', body: JSON.stringify(payload) },
-      )) as { success?: boolean; id?: number; error?: string };
+      )) as { success?: boolean; data?: { id?: number }; error?: { code?: string; message?: string } };
       if (data?.success === false || data?.error) {
-        return { ok: false, entity: 'person', error: data.error || 'CRM rejected person' };
+        return { ok: false, entity: 'person', error: data.error?.message || 'CRM rejected person' };
       }
-      return { ok: true, entity: 'person', personId: data?.id };
+      return { ok: true, entity: 'person', personId: data?.data?.id };
     } catch (err: any) {
       return { ok: false, entity: 'person', error: err?.message ?? String(err) };
     }
