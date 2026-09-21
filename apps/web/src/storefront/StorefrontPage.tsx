@@ -13,7 +13,6 @@ import { ProductCard } from './ProductCard';
 import { useBootstrap, useDebounced, useProducts, type CatalogFilters } from './hooks';
 import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { useToast } from '../components/Toast';
 import { CrmChat } from '../components/CrmChat';
 import './storefront.css';
 
