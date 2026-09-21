@@ -112,7 +112,7 @@ export async function queryProducts(q: CatalogQuery): Promise<{
    * has to count models rather than rows: page the distinct titles first, then
    * fetch every variant belonging to that page.
    */
-  const groupKeyExpr = sql<string>`COALESCE(${products.parentProductId}, ${products.title})`;
+  const groupKeyExpr = sql<string>`COALESCE(NULLIF(${products.parentProductId}, ''), ${products.title})`;
 
   const titleRows = await db
     .selectDistinct({ title: groupKeyExpr })
@@ -125,7 +125,7 @@ export async function queryProducts(q: CatalogQuery): Promise<{
     .offset(offsetOf(q));
 
   const [totalRow] = await db
-    .select({ n: sql<number>`count(distinct COALESCE(${products.parentProductId}, ${products.title}))::int` })
+    .select({ n: sql<number>`count(distinct COALESCE(NULLIF(${products.parentProductId}, ''), ${products.title}))::int` })
     .from(products)
     .leftJoin(categories, eq(categories.id, products.categoryId))
     .leftJoin(brands, eq(brands.id, products.brandId))
