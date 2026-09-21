@@ -47,21 +47,38 @@ export const useAuth = create<AuthState>((set) => ({
       set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, hasPermission: () => false, ready: true });
       return;
     }
-    try {
-      const data = await api.get<MeResponse>('/auth/me');
+
+    const apply = (data: MeResponse) => {
       set({
         user: data.user,
         complete: data.complete,
         missing: data.missing,
         isAdmin: data.user.role === 'admin',
         isOperator: data.user.role === 'operator',
-        hasPermission: (p: string) => 
+        hasPermission: (p: string) =>
           data.user.role === 'admin' || (data.user.role === 'operator' && !!(data.user.permissions?.includes(p) || data.user.permissions?.includes('*'))),
         ready: true,
       });
-    } catch (err) {
+    };
+    const reject = (err: unknown) => {
       if (err instanceof ApiRequestError && err.isExpired) writeToken(null);
       set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, hasPermission: () => false, ready: true });
+    };
+
+    // A transient backend hiccup (500 through the proxy) must not bounce a
+    // logged-in admin to the gate; retry briefly before surrendering.
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        apply(await api.get<MeResponse>('/auth/me'));
+        return;
+      } catch (err) {
+        const expired = err instanceof ApiRequestError && err.isExpired;
+        if (expired || attempt === 3) {
+          reject(err);
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 700));
+      }
     }
   },
 

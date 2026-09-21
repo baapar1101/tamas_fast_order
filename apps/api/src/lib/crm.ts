@@ -150,8 +150,9 @@ export const crmClient = {
         })),
         synced_at: new Date().toISOString(),
       };
+      // Hesabix API: POST /api/v1/orders/business/{businessId}/
       const data = (await crmRequest<{ success?: boolean; id?: number; error?: string }>(
-        `/api/v1/crm/tamas/orders`,
+        `/api/v1/orders/business/${config.businessId}/`,
         config,
         { method: 'POST', body: JSON.stringify(payload) },
       )) as { success?: boolean; id?: number; error?: string };
@@ -186,8 +187,9 @@ export const crmClient = {
         image_url: product.imageUrl ?? '',
         updated_at: product.updatedAt,
       };
+      // Hesabix API: POST /api/v1/products/business/{businessId}/
       const data = (await crmRequest<{ success?: boolean; id?: number; error?: string }>(
-        `/api/v1/crm/tamas/products`,
+        `/api/v1/products/business/${config.businessId}/`,
         config,
         { method: 'POST', body: JSON.stringify(payload) },
       )) as { success?: boolean; id?: number; error?: string };

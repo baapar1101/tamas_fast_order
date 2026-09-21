@@ -1,0 +1,16 @@
+{
+  "name": "tamasmarket · Design System Builder",
+  "id": "tamasmarket-design-system",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": [
+    "figma"
+  ],
+  "networkAccess": {
+    "allowedDomains": ["none"],
+    "reasoning": "All data (tokens, icons, SVG assets) is embedded in the plugin bundle; no network access needed."
+  },
+  "documentAccess": "document"
+}

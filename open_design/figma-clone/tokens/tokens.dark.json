@@ -1,0 +1,324 @@
+{
+  "colorPrimary": {
+    "$type": "color",
+    "$value": "#207a88"
+  },
+  "colorPrimaryBg": {
+    "$type": "color",
+    "$value": "#111e21"
+  },
+  "colorPrimaryBgHover": {
+    "$type": "color",
+    "$value": "#112d33"
+  },
+  "colorPrimaryBorder": {
+    "$type": "color",
+    "$value": "#18383d"
+  },
+  "colorPrimaryBorderHover": {
+    "$type": "color",
+    "$value": "#1a4a51"
+  },
+  "colorPrimaryHover": {
+    "$type": "color",
+    "$value": "#3c9099"
+  },
+  "colorPrimaryActive": {
+    "$type": "color",
+    "$value": "#1d626c"
+  },
+  "colorPrimaryText": {
+    "$type": "color",
+    "$value": "#85bbbd"
+  },
+  "colorSuccess": {
+    "$type": "color",
+    "$value": "#64b537"
+  },
+  "colorSuccessBg": {
+    "$type": "color",
+    "$value": "#192913"
+  },
+  "colorSuccessBorder": {
+    "$type": "color",
+    "$value": "#304d20"
+  },
+  "colorSuccessHover": {
+    "$type": "color",
+    "$value": "#87ca5c"
+  },
+  "colorSuccessActive": {
+    "$type": "color",
+    "$value": "#518f2f"
+  },
+  "colorWarning": {
+    "$type": "color",
+    "$value": "#dcaa37"
+  },
+  "colorWarningBg": {
+    "$type": "color",
+    "$value": "#312512"
+  },
+  "colorWarningBorder": {
+    "$type": "color",
+    "$value": "#5b4920"
+  },
+  "colorWarningHover": {
+    "$type": "color",
+    "$value": "#e8c35e"
+  },
+  "colorWarningActive": {
+    "$type": "color",
+    "$value": "#ad872f"
+  },
+  "colorError": {
+    "$type": "color",
+    "$value": "#dc6966"
+  },
+  "colorErrorBg": {
+    "$type": "color",
+    "$value": "#32191a"
+  },
+  "colorErrorBorder": {
+    "$type": "color",
+    "$value": "#5b3231"
+  },
+  "colorErrorHover": {
+    "$type": "color",
+    "$value": "#e89590"
+  },
+  "colorErrorActive": {
+    "$type": "color",
+    "$value": "#ad5553"
+  },
+  "colorInfo": {
+    "$type": "color",
+    "$value": "#207a88"
+  },
+  "colorInfoBg": {
+    "$type": "color",
+    "$value": "#111e21"
+  },
+  "colorInfoBorder": {
+    "$type": "color",
+    "$value": "#18383d"
+  },
+  "colorLink": {
+    "$type": "color",
+    "$value": "#135d69"
+  },
+  "colorLinkHover": {
+    "$type": "color",
+    "$value": "#28717a"
+  },
+  "colorLinkActive": {
+    "$type": "color",
+    "$value": "#134c55"
+  },
+  "colorText": {
+    "$type": "color",
+    "$value": "#dcdcdc"
+  },
+  "colorTextSecondary": {
+    "$type": "color",
+    "$value": "#adadad"
+  },
+  "colorTextTertiary": {
+    "$type": "color",
+    "$value": "#7e7e7e"
+  },
+  "colorTextQuaternary": {
+    "$type": "color",
+    "$value": "#4f4f4f"
+  },
+  "colorFill": {
+    "$type": "color",
+    "$value": "#3e3e3e"
+  },
+  "colorFillSecondary": {
+    "$type": "color",
+    "$value": "#303030"
+  },
+  "colorFillTertiary": {
+    "$type": "color",
+    "$value": "#272727"
+  },
+  "colorFillQuaternary": {
+    "$type": "color",
+    "$value": "#1d1d1d"
+  },
+  "colorBgLayout": {
+    "$type": "color",
+    "$value": "#1d1d1d"
+  },
+  "colorBgContainer": {
+    "$type": "color",
+    "$value": "#141414"
+  },
+  "colorBgElevated": {
+    "$type": "color",
+    "$value": "#272727"
+  },
+  "colorBorder": {
+    "$type": "color",
+    "$value": "#3e3e3e"
+  },
+  "colorBorderSecondary": {
+    "$type": "color",
+    "$value": "#303030"
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "$value": "'Vazirmatn FD', Vazirmatn, Tahoma, 'Segoe UI', sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'"
+  },
+  "fontFamilyCode": {
+    "$type": "fontFamily",
+    "$value": "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace"
+  },
+  "fontSize": {
+    "$type": "dimension",
+    "$value": "14px"
+  },
+  "fontSizeSM": {
+    "$type": "dimension",
+    "$value": "12px"
+  },
+  "fontSizeLG": {
+    "$type": "dimension",
+    "$value": "18px"
+  },
+  "fontSizeXL": {
+    "$type": "dimension",
+    "$value": "22px"
+  },
+  "fontSizeHeading1": {
+    "$type": "dimension",
+    "$value": "38px"
+  },
+  "fontSizeHeading2": {
+    "$type": "dimension",
+    "$value": "32px"
+  },
+  "fontSizeHeading3": {
+    "$type": "dimension",
+    "$value": "26px"
+  },
+  "fontSizeHeading4": {
+    "$type": "dimension",
+    "$value": "22px"
+  },
+  "fontSizeHeading5": {
+    "$type": "dimension",
+    "$value": "18px"
+  },
+  "lineHeight": {
+    "$type": "number",
+    "$value": 1.5714285714285714
+  },
+  "lineHeightHeading": {
+    "$type": "number",
+    "$value": 1.25
+  },
+  "fontWeightStrong": {
+    "$type": "fontWeight",
+    "$value": "600"
+  },
+  "sizeXXS": {
+    "$type": "dimension",
+    "$value": "4px"
+  },
+  "sizeXS": {
+    "$type": "dimension",
+    "$value": "8px"
+  },
+  "sizeSM": {
+    "$type": "dimension",
+    "$value": "12px"
+  },
+  "size": {
+    "$type": "dimension",
+    "$value": "16px"
+  },
+  "sizeMD": {
+    "$type": "dimension",
+    "$value": "20px"
+  },
+  "sizeLG": {
+    "$type": "dimension",
+    "$value": "24px"
+  },
+  "sizeXL": {
+    "$type": "dimension",
+    "$value": "32px"
+  },
+  "sizeXXL": {
+    "$type": "dimension",
+    "$value": "48px"
+  },
+  "borderRadiusXS": {
+    "$type": "dimension",
+    "$value": "3px"
+  },
+  "borderRadiusSM": {
+    "$type": "dimension",
+    "$value": "5px"
+  },
+  "borderRadius": {
+    "$type": "dimension",
+    "$value": "8px"
+  },
+  "borderRadiusLG": {
+    "$type": "dimension",
+    "$value": "10px"
+  },
+  "lineWidth": {
+    "$type": "dimension",
+    "$value": "1px"
+  },
+  "controlHeightXS": {
+    "$type": "dimension",
+    "$value": "16px"
+  },
+  "controlHeightSM": {
+    "$type": "dimension",
+    "$value": "24px"
+  },
+  "controlHeight": {
+    "$type": "dimension",
+    "$value": "32px"
+  },
+  "controlHeightLG": {
+    "$type": "dimension",
+    "$value": "40px"
+  },
+  "motionDurationFast": {
+    "$type": "duration",
+    "$value": "0.1s"
+  },
+  "motionDurationMid": {
+    "$type": "duration",
+    "$value": "0.2s"
+  },
+  "motionDurationSlow": {
+    "$type": "duration",
+    "$value": "0.3s"
+  },
+  "motionEaseInOut": {
+    "$type": "cubicBezier",
+    "$value": [
+      0.645,
+      0.045,
+      0.355,
+      1.0
+    ]
+  },
+  "motionEaseOut": {
+    "$type": "cubicBezier",
+    "$value": [
+      0.215,
+      0.61,
+      0.355,
+      1.0
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "fileName": "preview/brand-assets.html",
-  "currentVersionId": "faa48848-2fe5-4fd1-9cf6-9089b830f52d",
+  "currentVersionId": "d585b6f4-505c-474d-be82-7839e680b7be",
   "entries": [
     {
       "id": "faa48848-2fe5-4fd1-9cf6-9089b830f52d",
@@ -15,7 +15,22 @@
       "mime": "text/html; charset=utf-8",
       "kind": "html",
       "contentPath": "0001-faa48848-2fe5-4fd1-9cf6-9089b830f52d.html",
-      "contentDigest": "40443dbe73e265446585d97b3571e2f7acb42d4d96c4cbee37363e0c8c345f0d",
+      "promptSource": "message",
+      "contentDigest": "40443dbe73e265446585d97b3571e2f7acb42d4d96c4cbee37363e0c8c345f0d"
+    },
+    {
+      "id": "d585b6f4-505c-474d-be82-7839e680b7be",
+      "fileName": "preview/brand-assets.html",
+      "version": 2,
+      "label": "Version 2",
+      "createdAt": 1789980880536,
+      "source": "ai",
+      "prompt": "see new design in my project folder ?\nand update my project and match my design with these\n\n<active-workspace-context>\nOpenDesign selected or inferred these workspace contexts for this turn. Treat absolute paths as reference context unless the user explicitly asks to edit them.\n1. file: components-buttons.html | path: preview/components-buttons.html | absolute: C:\\Users\\Albert\\AppData\\Roaming\\Open Design\\namespaces\\release-stable-win\\data\\projects\\brand-anker-535220/preview/components-buttons.html | tab: preview/components-buttons.html\n</active-workspace-context>",
+      "size": 10064,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0002-d585b6f4-505c-474d-be82-7839e680b7be.html",
+      "contentDigest": "3c53887106e612b93c04c23d8d6c17b8a59cc322aefe361c0a6eb4c71e2fde87",
       "promptSource": "message"
     }
   ]
