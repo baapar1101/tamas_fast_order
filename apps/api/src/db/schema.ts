@@ -58,6 +58,9 @@ export const syncSideEnum = pgEnum('sync_side', ['db', 'sheet']);
 export const paymentGatewayEnum = pgEnum('payment_gateway', ['zarinpal', 'mellat', 'saman', 'pasargad', 'card_to_card']);
 export const paymentTransactionStatusEnum = pgEnum('payment_transaction_status', ['pending', 'success', 'failed']);
 export const commentStatusEnum = pgEnum('comment_status', ['pending', 'approved', 'rejected']);
+export const crmSyncEntityEnum = pgEnum('crm_sync_entity', ['order', 'product', 'person', 'chat_message']);
+export const crmSyncActionEnum = pgEnum('crm_sync_action', ['create', 'update', 'delete', 'sync']);
+export const crmSyncStatusEnum = pgEnum('crm_sync_status', ['success', 'error', 'pending', 'skipped']);
 
 /* ------------------------------------------------------------------ *
  * Warehouses & Attributes
@@ -463,6 +466,28 @@ export const syncConflicts = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('sync_conflicts_entity_idx').on(t.entity), index('sync_conflicts_created_idx').on(t.createdAt)],
+);
+
+export const crmSyncLogs = pgTable(
+  'crm_sync_logs',
+  {
+    id: serial('id').primaryKey(),
+    entity: crmSyncEntityEnum('entity').notNull(),
+    entityKey: varchar('entity_key', { length: 200 }).notNull(),
+    action: crmSyncActionEnum('action').notNull(),
+    status: crmSyncStatusEnum('status').notNull(),
+    remoteId: varchar('remote_id', { length: 200 }),
+    error: text('error'),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    response: jsonb('response').$type<Record<string, unknown>>(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    durationMs: integer('duration_ms'),
+  },
+  (t) => [
+    index('crm_sync_logs_entity_idx').on(t.entity, t.entityKey),
+    index('crm_sync_logs_status_idx').on(t.status),
+    index('crm_sync_logs_created_idx').on(t.createdAt),
+  ]
 );
 
 /* ------------------------------------------------------------------ *

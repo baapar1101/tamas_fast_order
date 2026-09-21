@@ -63,14 +63,57 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
   });
 
   /**
-   * Mock endpoints for frontend Settings Page to prevent 404s
+   * CRM Sync Logs and Product details
    */
   app.get('/crm/sync/logs', { preHandler: [app.requirePermission('manage_settings')] }, async () => {
-    return { ok: true, items: [] };
+    const { db } = await import('../db/client.js');
+    const { crmSyncLogs } = await import('../db/schema.js');
+    const { desc } = await import('drizzle-orm');
+    
+    const logs = await db.select().from(crmSyncLogs).orderBy(desc(crmSyncLogs.createdAt)).limit(100);
+    return { ok: true, items: logs };
   });
 
   app.get('/crm/sync/products/detail', { preHandler: [app.requirePermission('manage_settings')] }, async () => {
-    return { ok: true, items: [] };
+    const { db } = await import('../db/client.js');
+    const { products, crmSyncLogs } = await import('../db/schema.js');
+    const { desc, eq } = await import('drizzle-orm');
+
+    const activeProducts = await db.select().from(products).where(eq(products.status, 'active'));
+    
+    const productLogs = await db.query.crmSyncLogs.findMany({
+      where: eq(crmSyncLogs.entity, 'product'),
+      orderBy: [desc(crmSyncLogs.createdAt)],
+    });
+    
+    const logMap = new Map();
+    // Since ordered by desc, the first one we set will be the most recent
+    for (const log of productLogs) {
+      if (!logMap.has(log.entityKey)) {
+        logMap.set(log.entityKey, log);
+      }
+    }
+    
+    const items = activeProducts.map(p => {
+        const log = logMap.get(p.productId);
+        return {
+          productId: p.productId,
+          sku: null,
+          title: p.title,
+          status: p.status,
+          price: p.price,
+          stock: p.stock,
+          kermanStock: p.kermanStock,
+          tehranStock: p.tehranStock,
+          imageUrl: p.imageUrl,
+          lastSyncedAt: log?.createdAt,
+          crmId: log?.remoteId ? parseInt(log.remoteId, 10) : undefined,
+          syncStatus: log ? (log.status === 'success' ? 'synced' : log.status === 'error' ? 'error' : 'pending') : 'never',
+          syncError: log?.error || undefined
+        };
+    });
+    
+    return { ok: true, items };
   });
 
   /**
@@ -228,35 +271,48 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
           for (const group of result.groups) {
             for (const variant of group.variants) {
-              // Search product in CRM first
               const searchResult = await crmClient.searchProduct(
                 { productId: variant.productId },
                 config,
               );
 
+              let action: 'update' | 'create' = 'create';
+              let resultObj;
               if (searchResult.ok && searchResult.remoteId) {
                 // Product exists - update it
-                const updateResult = await crmClient.pushProduct(
+                action = 'update';
+                resultObj = await crmClient.pushProduct(
                   { ...variant, productId: variant.productId },
                   config,
                 );
-                if (updateResult.ok) totalPushed++;
-                else {
-                  totalErrors++;
-                  errors.push(`${variant.productId}: ${updateResult.error}`);
-                }
               } else {
                 // Product doesn't exist - create it
-                const createResult = await crmClient.pushProduct(
+                action = 'create';
+                resultObj = await crmClient.pushProduct(
                   { ...variant, productId: variant.productId },
                   config,
                 );
-                if (createResult.ok) totalPushed++;
-                else {
-                  totalErrors++;
-                  errors.push(`${variant.productId}: ${createResult.error}`);
-                }
               }
+
+              if (resultObj.ok) {
+                totalPushed++;
+              } else {
+                totalErrors++;
+                errors.push(`${variant.productId}: ${resultObj.error}`);
+              }
+
+              // Log it
+              const { db } = await import('../db/client.js');
+              const { crmSyncLogs } = await import('../db/schema.js');
+              await db.insert(crmSyncLogs).values({
+                entity: 'product',
+                entityKey: variant.productId,
+                action,
+                status: resultObj.ok ? 'success' : 'error',
+                error: resultObj.ok ? null : String(resultObj.error),
+                payload: { productId: variant.productId },
+                response: resultObj as unknown as Record<string, unknown>,
+              });
             }
           }
 

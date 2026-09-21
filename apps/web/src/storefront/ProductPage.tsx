@@ -222,7 +222,7 @@ export function ProductPage() {
             <span className="logo-tagline">مرجع تخصصی فروش عمده کالای دیجیتال</span>
           </Link>
           <div className="pp-header-actions">
-            <Link to="/" className="btn pp-back-btn"><Icon name="home" /> بازگشت به فروشگاه</Link>
+            <Link to="/" className="btn pp-back-btn"><Icon name="home" /> <span className="pp-back-text">بازگشت به فروشگاه</span></Link>
             <Link to="/" className="btn btn-icon-only pp-cart-btn" title="سبد خرید">
               <Icon name="bag" />
               {cartTotalQty > 0 && <span className="badge-count">{formatNumber(cartTotalQty)}</span>}
@@ -455,6 +455,50 @@ export function ProductPage() {
           <span>© تمامی حقوق برای تماس مارکت محفوظ است.</span>
         </footer>
       </main>
+
+      {whButtons.length > 0 && canViewPrices && (
+        <div className="pp-mobile-bar">
+          <div className="pp-mobile-price">
+            {hasRealDiscount(selected.price, selected.oldPrice) && (
+              <span className="card-old-price"><Price amount={selected.oldPrice!} /></span>
+            )}
+            <div className="pp-price"><Price amount={selected.price} /></div>
+          </div>
+          <button type="button" className="pp-mobile-add" onClick={() => handleAdd(selected, whButtons[0])}>
+            افزودن به سبد
+          </button>
+        </div>
+      )}
+      {whButtons.length > 0 && !canViewPrices && (
+        <div className="pp-mobile-bar">
+          <div className="pp-mobile-price">
+            <span className="pp-mobile-price-note">{user ? 'پس از تأیید حساب' : 'قیمت عمده پس از ورود'}</span>
+          </div>
+          <button
+            type="button"
+            className="pp-mobile-add"
+            onClick={() => {
+              if (!user) {
+                setAuthStep('phone');
+                setAuthOpen(true);
+              } else {
+                setAuthStep('profile');
+                setAuthOpen(true);
+              }
+            }}
+          >
+            {user ? 'تکمیل حساب' : 'ورود / ثبت‌نام'}
+          </button>
+        </div>
+      )}
+      {whButtons.length === 0 && (
+        <div className="pp-mobile-bar">
+          <span className="pp-mobile-price-note">این کالا فعلاً موجود نیست.</span>
+          <button type="button" className="pp-mobile-add pp-mobile-add--muted" disabled>
+            ناموجود
+          </button>
+        </div>
+      )}
 
       {preview && (
         <div className="lightbox" onClick={() => setPreview(null)} role="presentation">

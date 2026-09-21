@@ -43,6 +43,13 @@
       "when": 1789918378306,
       "tag": "0005_windy_payback",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790021106660,
+      "tag": "0006_broad_skin",
+      "breakpoints": true
     }
   ]
 }
