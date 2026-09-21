@@ -450,14 +450,14 @@ form.glass-card:hover {
   padding: 0.625rem 1rem;
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--slate-300);
+  color: var(--a-t2);
   text-decoration: none;
   transition: all 0.2s;
 }
 
 .profile-menu-item:hover {
-  background-color: hsla(0,0%,100%,.03);
-  color: #ffffff;
+  background-color: var(--a-hover);
+  color: var(--a-t1);
 }
 
 /* Table Order Rows */

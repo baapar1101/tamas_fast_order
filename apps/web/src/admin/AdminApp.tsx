@@ -263,6 +263,29 @@ export default function AdminApp() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState({ date: '', time: '' });
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      return localStorage.getItem('tamas_admin_theme') === 'light' ? 'light' : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  const toggleTheme = () => {
+    setTheme((current) => {
+      const next = current === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('tamas_admin_theme', next);
+      } catch {}
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (theme === 'light') document.body.classList.add('admin-theme-light');
+    else document.body.classList.remove('admin-theme-light');
+    return () => document.body.classList.remove('admin-theme-light');
+  }, [theme]);
 
   // The reference stylesheet contains a complete utility/reset layer. Mark the
   // document while this lazy route is mounted so those rules never leak into
@@ -321,7 +344,7 @@ export default function AdminApp() {
     return (
       <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', position: 'relative' }}>
         {/* Smokey WebGL Background */}
-        <SmokeyBackground className="fixed inset-0 z-0" />
+        <SmokeyBackground className="fixed inset-0 z-0" color={theme === 'light' ? '#cbd5e1' : '#030b14'} />
 
         <div className="glass-card-static" style={{ maxWidth: '24rem', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '1rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
           {/* Shimmer top line */}
@@ -360,7 +383,7 @@ export default function AdminApp() {
     return (
       <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', position: 'relative' }}>
         {/* Smokey WebGL Background */}
-        <SmokeyBackground className="fixed inset-0 z-0" />
+        <SmokeyBackground className="fixed inset-0 z-0" color={theme === 'light' ? '#cbd5e1' : '#030b14'} />
 
         <div className="glass-card-static" style={{ maxWidth: '26rem', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '1rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
           {/* Shimmer top line */}
@@ -412,8 +435,8 @@ export default function AdminApp() {
 
   return (
     <div className="admin-body-shell">
-      {/* Background Ambient Glows & Dot Pattern Removed - Replaced with WebGL SmokeyBackground */}
-      <SmokeyBackground className="fixed inset-0 z-0 pointer-events-auto" color="#030b14" />
+      {/* Smokey WebGL Background */}
+      <SmokeyBackground className="fixed inset-0 z-0 pointer-events-auto" color={theme === 'light' ? '#cbd5e1' : '#030b14'} />
 
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
@@ -425,17 +448,17 @@ export default function AdminApp() {
 
       {/* Sidebar Navigation */}
       <aside
-        className={`admin-sidebar fixed right-0 top-0 z-40 flex h-screen w-72 flex-col border-l border-white/[0.15] bg-white/[0.05] backdrop-blur-2xl transition-transform duration-500 lg:translate-x-0 ${
+        className={`admin-sidebar fixed right-0 top-0 z-40 flex h-screen w-72 flex-col border-l border-[var(--a-border)] bg-[var(--a-surface)] backdrop-blur-2xl transition-transform duration-500 lg:translate-x-0 ${
           mobileSidebarOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Brand Logo Header */}
-        <div className="flex items-center gap-3 px-6 pb-6 pt-7 border-b border-white/[0.06] mb-4">
+        <div className="flex items-center gap-3 px-6 pb-6 pt-7 border-b border-[var(--a-border)] mb-4">
           <div className="relative grid place-items-center">
             <img src="/admin-logo.svg" alt="Tamas Logo" className="h-11 w-11 object-contain" />
           </div>
           <div>
-            <h1 className="text-lg font-extrabold text-white leading-none">تماس مارکت</h1>
+            <h1 className="text-lg font-extrabold text-[var(--a-t1)] leading-none">تماس مارکت</h1>
             <p className="mt-1 text-[11px] text-slate-500">پنل مدیریت هوشمند</p>
           </div>
           <button
@@ -503,9 +526,9 @@ export default function AdminApp() {
             <div className="absolute inset-x-0 top-0 h-px shimmer-line animate-shimmer" />
             <div className="flex items-center gap-2 mb-1">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <h3 className="text-xs font-bold text-white">نسخه حرفه‌ای تماس مارکت</h3>
+              <h3 className="text-xs font-bold text-[var(--a-t1)]">نسخه حرفه‌ای تماس مارکت</h3>
             </div>
-            <p className="text-[11px] leading-5 text-slate-400">اتصال هوشمند دیتابیس و مدیریت سفارش‌ها</p>
+            <p className="text-[11px] leading-5 text-[var(--a-t2)]">اتصال هوشمند دیتابیس و مدیریت سفارش‌ها</p>
             <Link
               to="/admin/settings"
               className="mt-3 block text-center w-full rounded-xl bg-gradient-to-l from-emerald-500 to-cyan-500 py-2 text-xs font-bold text-slate-950 shadow-glow transition-all duration-300 hover:brightness-110 active:scale-95"
@@ -519,7 +542,7 @@ export default function AdminApp() {
       {/* Main Container */}
       <div className="admin-main-shell relative z-10 flex min-h-screen flex-col lg:mr-72">
         {/* Sticky Top Header */}
-        <header className="admin-topbar sticky top-0 z-20 border-b border-white/[0.15] bg-white/[0.05] backdrop-blur-xl">
+        <header className="admin-topbar sticky top-0 z-20 border-b border-[var(--a-border)] bg-[var(--a-surface)] backdrop-blur-xl">
           <div className="flex h-[4.5rem] items-center gap-3 px-4 sm:px-6 lg:px-8">
             {/* Mobile Menu Button */}
             <button
@@ -547,25 +570,44 @@ export default function AdminApp() {
               <input
                 type="text"
                 placeholder="جستجو در بخش مدیریت..."
-                className="w-full rounded-xl border border-white/[0.06] bg-[#131c2e]/60 py-2 pr-11 pl-4 text-xs text-slate-200 placeholder:text-slate-500 outline-none transition-all duration-300 focus:border-emerald-500/40 focus:bg-[#131c2e] focus:shadow-glow"
+                className="w-full rounded-xl border border-[var(--a-border)] bg-[var(--a-input-bg)] py-2 pr-11 pl-4 text-xs text-[var(--a-t1)] placeholder-[var(--a-t4)] outline-none transition-all duration-300 focus:border-[var(--a-border-2)] focus:bg-[var(--a-field-bg)] focus:shadow-glow"
               />
-              <kbd className="absolute left-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-white/10 bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-500 md:block">
+              <kbd className="absolute left-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--a-border)] bg-[var(--a-surface)] px-1.5 py-0.5 text-[10px] text-[var(--a-t4)] md:block">
                 ⌘K
               </kbd>
             </div>
 
             {/* Real-time Jalali Date & Clock */}
             <div className="mr-auto flex items-center gap-2 sm:gap-3">
-              <div className="hidden items-center gap-2.5 rounded-xl border border-white/[0.06] bg-[#131c2e]/60 px-4 py-2 md:flex">
+              <div className="hidden items-center gap-2.5 rounded-xl border border-[var(--a-border)] bg-[var(--a-surface)] px-4 py-2 md:flex">
                 <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
-                <span className="text-xs font-medium text-slate-300">{currentTime.date || 'در حال دریافت...'}</span>
-                <span className="h-3 w-px bg-white/10" />
+                <span className="text-xs font-medium text-[var(--a-t2)]">{currentTime.date || 'در حال دریافت...'}</span>
+                <span className="h-3 w-px bg-[var(--a-divider)]" />
                 <span dir="ltr" className="text-xs font-semibold tabular-nums text-emerald-300">
                   {currentTime.time || '--:--:--'}
                 </span>
               </div>
+
+              {/* Theme Toggle */}
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={toggleTheme}
+                aria-label={theme === 'dark' ? 'حالت روشن' : 'حالت تیره'}
+                title={theme === 'dark' ? 'تغییر به حالت روشن' : 'تغییر به حالت تیره'}
+              >
+                {theme === 'dark' ? (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                  </svg>
+                ) : (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                  </svg>
+                )}
+              </button>
 
               {/* Notification Bell Dropdown */}
               <div className="relative">
@@ -588,16 +630,16 @@ export default function AdminApp() {
 
                 {notifOpen && (
                   <div className="absolute left-0 top-14 w-80 max-w-[calc(100vw-2rem)] z-50">
-                    <div className="glass-card-static overflow-hidden !bg-[#0e1626]/95 p-0 shadow-2xl">
-                      <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
-                        <h3 className="text-sm font-bold text-white">اعلان‌ها</h3>
+                    <div className="glass-card-static overflow-hidden p-0 shadow-2xl bg-[var(--a-surface)]">
+                      <div className="flex items-center justify-between border-b border-[var(--a-border)] px-5 py-4">
+                        <h3 className="text-sm font-bold text-[var(--a-t1)]">اعلان‌ها</h3>
                         <span className="chip chip-brand">۲ مورد جدید</span>
                       </div>
-                      <ul className="max-h-72 overflow-y-auto divide-y divide-white/[0.04]">
+                      <ul className="max-h-72 overflow-y-auto divide-y divide-[var(--a-divider)]">
                         <li className="notif-item">
                           <span className="notif-dot bg-emerald-400" />
                           <div>
-                            <p className="text-xs font-semibold text-slate-200">سفارش جدید دریافت شد</p>
+                            <p className="text-xs font-semibold text-[var(--a-t1)]">سفارش جدید دریافت شد</p>
                             <p className="mt-0.5 text-[11px] text-slate-500">سفارش به ارزش ۲,۴۵۰,۰۰۰ <img src="/toman.svg" alt="تومان" style={{ width: '1em', height: '1em', display: 'inline' }} /> · ۳ دقیقه پیش</p>
                           </div>
                         </li>
@@ -618,7 +660,7 @@ export default function AdminApp() {
               <div className="relative">
                 <button
                   type="button"
-                  className="group flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-[#131c2e]/60 py-1.5 pl-3 pr-1.5 transition-all duration-300 hover:border-emerald-500/30"
+                  className="group flex items-center gap-2.5 rounded-xl border border-[var(--a-border)] bg-[var(--a-surface)] py-1.5 pl-3 pr-1.5 transition-all duration-300 hover:border-emerald-500/30"
                   onClick={() => {
                     setProfileOpen(!profileOpen);
                     setNotifOpen(false);
@@ -631,8 +673,8 @@ export default function AdminApp() {
                     <span className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
                   </span>
                   <span className="hidden text-right md:block">
-                    <span className="block text-xs font-bold text-white">{user?.name} {user?.lastName}</span>
-                    <span className="block text-[10px] text-slate-500">مدیر سیستم</span>
+                    <span className="block text-xs font-bold text-[var(--a-t1)]">{user?.name} {user?.lastName}</span>
+                    <span className="block text-[10px] text-[var(--a-t2)]">مدیر سیستم</span>
                   </span>
                   <svg className="hidden h-4 w-4 text-slate-500 transition-transform duration-300 md:block" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -641,14 +683,14 @@ export default function AdminApp() {
 
                 {profileOpen && (
                   <div className="absolute left-0 top-14 w-72 max-w-[calc(100vw-2rem)] z-50">
-                    <div className="glass-card-static overflow-hidden !bg-[#0e1626]/95 p-0 shadow-2xl">
-                      <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4">
+                    <div className="glass-card-static overflow-hidden p-0 shadow-2xl bg-[var(--a-surface)] backdrop-blur-xl">
+                      <div className="flex items-center gap-3 border-b border-[var(--a-border)] px-5 py-4">
                         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 text-base font-extrabold text-slate-950">
                           {user?.name?.[0] || 'م'}
                         </span>
                         <div>
-                          <p className="text-sm font-bold text-white">{user?.name} {user?.lastName}</p>
-                          <p className="mt-0.5 text-xs text-slate-400">{user?.phone}</p>
+                          <p className="text-sm font-bold text-[var(--a-t1)]">{user?.name} {user?.lastName}</p>
+                          <p className="mt-0.5 text-xs text-[var(--a-t2)]">{user?.phone}</p>
                           <span className="chip chip-brand mt-1.5">مدیر ارشد</span>
                         </div>
                       </div>
@@ -671,7 +713,7 @@ export default function AdminApp() {
                           </Link>
                         </li>
                       </ul>
-                      <div className="border-t border-white/[0.06] p-2">
+                      <div className="border-t border-[var(--a-border)] p-2">
                         <button
                           type="button"
                           className="profile-menu-item text-rose-400 w-full hover:bg-rose-500/10 rounded-lg text-right"

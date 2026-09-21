@@ -88,6 +88,28 @@ body.admin-page-active {
   --a-shadow-2: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
 }
 
+.admin-body-shell[data-theme='light'],
+body.admin-page-active.admin-theme-light {
+  /* Light Glassmorphism palette */
+  --a-bg: transparent;
+  --a-surface: rgba(255, 255, 255, 0.4);
+  --a-surface-2: rgba(255, 255, 255, 0.5);
+  --a-surface-3: rgba(255, 255, 255, 0.6);
+  --a-border: rgba(255, 255, 255, 0.6);
+  --a-border-2: rgba(255, 255, 255, 0.8);
+  --a-divider: rgba(255, 255, 255, 0.5);
+  --a-t1: #0f172a;
+  --a-t2: #334155;
+  --a-t3: #475569;
+  --a-t4: #64748b;
+  --a-input-bg: rgba(255, 255, 255, 0.3);
+  --a-field-bg: rgba(255, 255, 255, 0.4);
+  --a-check-bg: rgba(255, 255, 255, 0.6);
+  --a-hover: rgba(255, 255, 255, 0.5);
+  --a-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+  --a-shadow-2: 0 8px 24px 0 rgba(0, 0, 0, 0.15);
+}
+
 /* ---------------------------------------------------------------------------
    Page scaffolding
    -------------------------------------------------------------------------- */
