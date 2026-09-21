@@ -436,7 +436,7 @@ export default function AdminApp() {
   return (
     <div className="admin-body-shell">
       {/* Smokey WebGL Background */}
-      <SmokeyBackground className="fixed inset-0 z-0 pointer-events-auto" bgColor={theme === 'light' ? '#ffffff' : '#000000'} color={theme === 'light' ? '#d1d5db' : '#030b14'} />
+      <SmokeyBackground className="fixed inset-0 z-0 pointer-events-auto" bgColor={theme === 'light' ? '#e2e8f0' : '#000000'} color={theme === 'light' ? '#d1d5db' : '#030b14'} />
 
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
