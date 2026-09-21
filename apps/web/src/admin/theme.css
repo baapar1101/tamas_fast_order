@@ -1462,3 +1462,16 @@ body.admin-page-active.admin-theme-light .admin-sidebar .bg-gradient-to-br[class
   font-weight: 700;
   color: var(--a-t1);
 }
+
+/* ==========================================================================
+   Form dialogs (brands / categories / attributes) — layout only
+   ========================================================================== */
+.admin-page-active .modal-panel .a-form { max-width: none; }
+.admin-page-active .modal-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  overflow: hidden;
+}
+.admin-page-active .modal-head h3 .a-badge { flex: 0 0 auto; margin: 0; }

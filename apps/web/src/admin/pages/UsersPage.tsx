@@ -62,9 +62,6 @@ export function UsersPage() {
   const total = users.data?.total ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / 30));
 
-  const adminUsersCount = items.filter((u) => u.role === 'admin').length;
-  const verifiedIdCount = items.filter((u) => u.isVerifiedIdentity).length;
-
   return (
     <div className="a-page a-page--users a-fade">
       {/* Page Header */}

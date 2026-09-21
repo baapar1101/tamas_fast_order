@@ -5,6 +5,7 @@ import { ORDER_STATUSES, ORDER_STATUS_LABELS, formatMoney, formatNumber } from '
 import { Price } from '../../components/Price';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
+import { AdminStatStrip } from '../components/AdminStatStrip';
 import { api } from '../../lib/api';
 import { useDebounced } from '../../storefront/hooks';
 
@@ -102,6 +103,9 @@ export function OrdersPage() {
           </button>
         </div>
       </section>
+
+      {/* Summary strip */}
+      <AdminStatStrip kind="orders" />
 
       {/* Search Input */}
       <section className="a-searchbar">

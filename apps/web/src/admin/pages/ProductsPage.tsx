@@ -4,6 +4,7 @@ import type { BrandDTO, CategoryDTO, ProductDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
+import { AdminStatStrip } from '../components/AdminStatStrip';
 import { api } from '../../lib/api';
 import { useDebounced } from '../../storefront/hooks';
 import { ProductEditor, type ProductForm } from '../components/ProductEditor';
@@ -249,6 +250,8 @@ export function ProductsPage() {
           </div>
         </div>
       </header>
+
+      <AdminStatStrip kind="products" />
 
       <section className="pp-searchbar">
         <div className="pp-search">

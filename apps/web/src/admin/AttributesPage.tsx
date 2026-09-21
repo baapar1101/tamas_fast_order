@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
+import { Modal } from '../components/Modal';
 import { api } from '../lib/api';
 import { useToast } from '../components/Toast';
 
@@ -138,156 +139,142 @@ export function AttributesPage() {
         </div>
       </section>
 
-      {formOpen && (
-        <>
-      {/* Reference-style create form: header card + stacked sections + save footer */}
-      <form className="a-form a-fade" onSubmit={handleSubmit}>
-        <div className="a-form-head">
-          <button type="button" className="a-form-back" onClick={handleCancel} aria-label="بازگشت" title="بازگشت">
-            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-5 w-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </button>
-          <div className="a-form-title">
+      <Modal
+        open={formOpen}
+        title={
+          <>
             {editingId ? 'ویرایش ویژگی' : 'افزودن ویژگی جدید'}
             {editingId && <span className="a-badge a-badge--neutral">{editingId}</span>}
-          </div>
-          <div className="a-form-actions">
-            {editingId && (
-              <button type="button" className="a-btn a-btn--ghost" onClick={handleCancel}>انصراف</button>
-            )}
-            <button type="submit" className="a-btn a-btn--primary" disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? 'در حال ذخیره…' : 'ذخیره'}
+          </>
+        }
+        onClose={handleCancel}
+        wide
+        busy={saveMutation.isPending}
+        footer={
+          <>
+            <button type="button" className="a-btn a-btn--ghost" onClick={handleCancel} disabled={saveMutation.isPending}>انصراف</button>
+            <button type="submit" form="attribute-form" className="a-btn a-btn--primary" disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? 'در حال ذخیره…' : editingId ? 'ذخیره تغییرات' : 'افزودن ویژگی'}
             </button>
-          </div>
-        </div>
-
-        <section className="a-card">
-          <div className="a-card-head">
-            <h3 className="a-card-title">اطلاعات ویژگی</h3>
-          </div>
-          <p className="a-card-sub">نوع فیلد مشخص می‌کند گزینه‌ها در فرم محصول چگونه نمایش داده شوند.</p>
-          <div className="a-form-grid">
-            <label className="a-field">
-              <span className="a-label">نام ویژگی <span className="a-req">*</span></span>
-              <input
-                type="text"
-                required
-                className="a-input"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="مثلا: حافظه داخلی"
-              />
-            </label>
-            <label className="a-field">
-              <span className="a-label">نوع فیلد <span className="a-req">*</span></span>
-              <div className="a-segmented a-segmented--wrap" role="group" aria-label="نوع فیلد">
-                {Object.entries(TYPE_LABELS).map(([val, label]) => (
-                  <button
-                    key={val}
-                    type="button"
-                    className={`a-seg ${formData.type === val ? 'a-seg--on' : ''}`}
-                    onClick={() => setFormData({ ...formData, type: val })}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </label>
-          </div>
-        </section>
-
-        {formData.type === 'select' && (
+          </>
+        }
+      >
+        <form id="attribute-form" className="a-form a-fade" onSubmit={handleSubmit}>
           <section className="a-card">
             <div className="a-card-head">
-              <div>
-                <h3 className="a-card-title">گزینه‌ها</h3>
-                <p className="a-card-sub">این موارد به‌صورت چندگزینه‌ای در فرم محصول ظاهر می‌شوند.</p>
-              </div>
-              <button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={addOption}>
-                + افزودن گزینه
-              </button>
+              <h3 className="a-card-title">اطلاعات ویژگی</h3>
             </div>
-
-            <div className="space-y-2">
-              {formData.options.length === 0 && (
-                <div className="a-empty a-empty--small">
-                  <p>هنوز گزینه‌ای اضافه نشده است.</p>
-                  <span>با دکمه «+ افزودن گزینه» شروع کنید؛ حداقل یک گزینه لازم است.</span>
-                </div>
-              )}
-              {formData.options.map((opt, idx) => (
-                <div key={idx} className="a-option-row">
-                  <span className="a-badge a-badge--neutral a-option-index">{idx + 1}</span>
-                  <input
-                    type="text"
-                    className={`a-input ${isDuplicate(opt, idx) ? 'a-input--warn' : ''}`}
-                    value={opt}
-                    autoFocus={idx === focusRow}
-                    onChange={(e) => setOption(idx, e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        addOption();
-                      }
-                    }}
-                    placeholder={`گزینه ${idx + 1} (مثلا: ۱۲۸ گیگابایت)`}
-                  />
-                  {isDuplicate(opt, idx) && (
-                    <span className="a-option-dup">
-                      <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                      </svg>
-                      تکراری
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    className="a-btn a-btn--ghost a-btn--xs shrink-0"
-                    onClick={() => removeOption(idx)}
-                    aria-label="حذف گزینه"
-                    title="حذف گزینه"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {previewOptions.length > 0 && (
-              <>
-                <div className="a-option-preview-title">
-                  پیش‌نمایش در فرم محصول
-                  <span className="a-badge a-badge--neutral">{previewOptions.length} گزینه</span>
-                </div>
-                <div className="a-option-grid">
-                  {previewOptions.map((o, i) => (
-                    <label key={o + i} className="a-chip-opt">
-                      <input type="checkbox" readOnly />
-                      <span className="a-chip-opt-copy">
-                        <strong>{o}</strong>
-                        <small>گزینه {i + 1}</small>
-                      </span>
-                    </label>
+            <p className="a-card-sub">نوع فیلد مشخص می‌کند گزینه‌ها در فرم محصول چگونه نمایش داده شوند.</p>
+            <div className="a-form-grid">
+              <label className="a-field">
+                <span className="a-label">نام ویژگی <span className="a-req">*</span></span>
+                <input
+                  type="text"
+                  required
+                  className="a-input"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="مثلا: حافظه داخلی"
+                />
+              </label>
+              <label className="a-field">
+                <span className="a-label">نوع فیلد <span className="a-req">*</span></span>
+                <div className="a-segmented a-segmented--wrap" role="group" aria-label="نوع فیلد">
+                  {Object.entries(TYPE_LABELS).map(([val, label]) => (
+                    <button
+                      key={val}
+                      type="button"
+                      className={`a-seg ${formData.type === val ? 'a-seg--on' : ''}`}
+                      onClick={() => setFormData({ ...formData, type: val })}
+                    >
+                      {label}
+                    </button>
                   ))}
                 </div>
-              </>
-            )}
+              </label>
+            </div>
           </section>
-        )}
 
-        <div className="a-form-foot">
-          <button
-            type="submit"
-            disabled={saveMutation.isPending}
-            className="a-btn a-btn--primary a-btn--lg"
-          >
-            {saveMutation.isPending ? 'در حال ثبت...' : editingId ? 'ذخیره تغییرات' : '+ افزودن ویژگی'}
-          </button>
-        </div>
-      </form>
-        </>
-      )}
+          {formData.type === 'select' && (
+            <section className="a-card">
+              <div className="a-card-head">
+                <div>
+                  <h3 className="a-card-title">گزینه‌ها</h3>
+                  <p className="a-card-sub">این موارد به‌صورت چندگزینه‌ای در فرم محصول ظاهر می‌شوند.</p>
+                </div>
+                <button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={addOption}>
+                  + افزودن گزینه
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {formData.options.length === 0 && (
+                  <div className="a-empty a-empty--small">
+                    <p>هنوز گزینه‌ای اضافه نشده است.</p>
+                    <span>با دکمه «+ افزودن گزینه» شروع کنید؛ حداقل یک گزینه لازم است.</span>
+                  </div>
+                )}
+                {formData.options.map((opt, idx) => (
+                  <div key={idx} className="a-option-row">
+                    <span className="a-badge a-badge--neutral a-option-index">{idx + 1}</span>
+                    <input
+                      type="text"
+                      className={`a-input ${isDuplicate(opt, idx) ? 'a-input--warn' : ''}`}
+                      value={opt}
+                      autoFocus={idx === focusRow}
+                      onChange={(e) => setOption(idx, e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addOption();
+                        }
+                      }}
+                      placeholder={`گزینه ${idx + 1} (مثلا: ۱۲۸ گیگابایت)`}
+                    />
+                    {isDuplicate(opt, idx) && (
+                      <span className="a-option-dup">
+                        <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                        </svg>
+                        تکراری
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      className="a-btn a-btn--ghost a-btn--xs shrink-0"
+                      onClick={() => removeOption(idx)}
+                      aria-label="حذف گزینه"
+                      title="حذف گزینه"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {previewOptions.length > 0 && (
+                <>
+                  <div className="a-option-preview-title">
+                    پیش‌نمایش در فرم محصول
+                    <span className="a-badge a-badge--neutral">{previewOptions.length} گزینه</span>
+                  </div>
+                  <div className="a-option-grid">
+                    {previewOptions.map((o, i) => (
+                      <label key={o + i} className="a-chip-opt">
+                        <input type="checkbox" readOnly />
+                        <span className="a-chip-opt-copy">
+                          <strong>{o}</strong>
+                          <small>گزینه {i + 1}</small>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
+          )}
+        </form>
+      </Modal>
 
       {/* List */}
       <section className="a-card a-container-md">

@@ -43,7 +43,6 @@ export function CategoriesPage() {
     setForm(EMPTY_FORM);
     setBrandSearch('');
     setFormOpen(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const save = useMutation({
@@ -90,7 +89,6 @@ export function CategoriesPage() {
     setEditingId(category.id);
     setForm({ name: category.name, faName: category.faName, iconUrl: category.iconUrl ?? '', sortOrder: category.sortOrder, brandNames: selected });
     setFormOpen(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const toggleBrand = (name: string) => setForm((current) => ({
@@ -113,109 +111,100 @@ export function CategoriesPage() {
         </div>
       </section>
 
-      {formOpen && (
-        <>
-      {/* Reference-style create form: header card + stacked sections + save footer */}
-      <form
-        className="a-form a-fade"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (!canSubmit) {
-            toast.error('نام فارسی و انگلیسی را وارد کنید.');
-            return;
-          }
-          save.mutate();
-        }}
-      >
-        <div className="a-form-head">
-          <button type="button" className="a-form-back" onClick={resetForm} aria-label="بازگشت" title="بازگشت">
-            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-5 w-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </button>
-          <div className="a-form-title">
+      <Modal
+        open={formOpen}
+        title={
+          <>
             {editingId === null ? 'افزودن دسته‌بندی جدید' : 'ویرایش دسته‌بندی'}
             {editingId !== null && <span className="a-badge a-badge--neutral">#{editingId}</span>}
-          </div>
-          <div className="a-form-actions">
-            {editingId !== null && (
-              <button type="button" className="a-btn a-btn--ghost" onClick={resetForm}>انصراف</button>
-            )}
-            <button type="submit" className="a-btn a-btn--primary" disabled={save.isPending}>
-              {save.isPending ? 'در حال ذخیره…' : 'ذخیره'}
+          </>
+        }
+        onClose={resetForm}
+        wide
+        busy={save.isPending}
+        footer={
+          <>
+            <button type="button" className="a-btn a-btn--ghost" onClick={resetForm} disabled={save.isPending}>انصراف</button>
+            <button type="submit" form="category-form" className="a-btn a-btn--primary" disabled={save.isPending}>
+              {save.isPending ? 'در حال ذخیره…' : editingId === null ? 'ثبت دسته‌بندی' : 'ذخیره تغییرات'}
             </button>
-          </div>
-        </div>
-
-        <section className="a-card">
-          <div className="a-card-head">
-            <h3 className="a-card-title">اطلاعات پایه</h3>
-          </div>
-          <div className="a-form-grid">
-            <label className="a-field">
-              <span className="a-label">نام فارسی <span className="a-req">*</span></span>
-              <input className="a-input" value={form.faName} onChange={(e) => setForm({ ...form, faName: e.target.value })} placeholder="مثلاً ساعت هوشمند" />
-            </label>
-            <label className="a-field">
-              <span className="a-label">نام انگلیسی <span className="a-req">*</span></span>
-              <input className="a-input a-ltr a-mono" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Smart Watch" />
-            </label>
-            <label className="a-field">
-              <span className="a-label">ترتیب نمایش</span>
-              <input className="a-input" type="number" inputMode="numeric" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) || 0 })} />
-              <span className="a-hint">عدد کوچک‌تر ابتدا نمایش داده می‌شود.</span>
-            </label>
-          </div>
-        </section>
-
-        <section className="a-card">
-          <div className="a-card-head">
-            <h3 className="a-card-title">تصویر دسته‌بندی</h3>
-          </div>
-          <p className="a-card-sub">آیکن یا تصویر شاخص دسته؛ از گالری قبلی یا آدرس مستقیم.</p>
-          <ImagePicker label="آیکن / تصویر" value={form.iconUrl} kind="category" onChange={(iconUrl) => setForm({ ...form, iconUrl })} />
-        </section>
-
-        <section className="a-card">
-          <div className="a-card-head">
-            <h3 className="a-card-title">برندهای این دسته</h3>
-            <div className="a-card-actions">
-              <button type="button" className="a-btn a-btn--ghost a-btn--xs" onClick={() => setForm({ ...form, brandNames: brands.map((brand) => brand.name) })}>انتخاب همه</button>
-              <button type="button" className="a-btn a-btn--ghost a-btn--xs" onClick={() => setForm({ ...form, brandNames: [] })}>پاک کردن</button>
+          </>
+        }
+      >
+        <form
+          id="category-form"
+          className="a-form a-fade"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!canSubmit) {
+              toast.error('نام فارسی و انگلیسی را وارد کنید.');
+              return;
+            }
+            save.mutate();
+          }}
+        >
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">اطلاعات پایه</h3>
             </div>
-          </div>
-          <p className="a-card-sub">{formatNumber(form.brandNames.length)} برند انتخاب شده</p>
-          <input
-            className="a-input"
-            value={brandSearch}
-            onChange={(e) => setBrandSearch(e.target.value)}
-            placeholder="جستجو میان برندها…"
-          />
-          <div className="a-option-grid">
-            {filteredBrands.map((brand) => {
-              const on = form.brandNames.includes(brand.name);
-              return (
-                <label key={brand.id} className={`a-chip-opt${on ? ' a-chip-opt--on' : ''}`}>
-                  <input type="checkbox" checked={on} onChange={() => toggleBrand(brand.name)} />
-                  <span className="a-chip-opt-copy">
-                    <strong>{brand.faName}</strong>
-                    <small className="a-ltr">{brand.name}</small>
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-          {filteredBrands.length === 0 && <div className="a-empty">برندی پیدا نشد.</div>}
-        </section>
+            <div className="a-form-grid">
+              <label className="a-field">
+                <span className="a-label">نام فارسی <span className="a-req">*</span></span>
+                <input className="a-input" value={form.faName} onChange={(e) => setForm({ ...form, faName: e.target.value })} placeholder="مثلاً ساعت هوشمند" />
+              </label>
+              <label className="a-field">
+                <span className="a-label">نام انگلیسی <span className="a-req">*</span></span>
+                <input className="a-input a-ltr a-mono" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Smart Watch" />
+              </label>
+              <label className="a-field">
+                <span className="a-label">ترتیب نمایش</span>
+                <input className="a-input" type="number" inputMode="numeric" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) || 0 })} />
+                <span className="a-hint">عدد کوچک‌تر ابتدا نمایش داده می‌شود.</span>
+              </label>
+            </div>
+          </section>
 
-        <div className="a-form-foot">
-          <button type="submit" className="a-btn a-btn--primary a-btn--lg" disabled={save.isPending}>
-            {save.isPending ? 'در حال ذخیره…' : editingId === null ? '+ ثبت دسته‌بندی' : 'ذخیره تغییرات'}
-          </button>
-        </div>
-      </form>
-        </>
-      )}
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">تصویر دسته‌بندی</h3>
+            </div>
+            <p className="a-card-sub">آیکن یا تصویر شاخص دسته؛ از گالری قبلی یا آدرس مستقیم.</p>
+            <ImagePicker label="آیکن / تصویر" value={form.iconUrl} kind="category" onChange={(iconUrl) => setForm({ ...form, iconUrl })} />
+          </section>
+
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">برندهای این دسته</h3>
+              <div className="a-card-actions">
+                <button type="button" className="a-btn a-btn--ghost a-btn--xs" onClick={() => setForm({ ...form, brandNames: brands.map((brand) => brand.name) })}>انتخاب همه</button>
+                <button type="button" className="a-btn a-btn--ghost a-btn--xs" onClick={() => setForm({ ...form, brandNames: [] })}>پاک کردن</button>
+              </div>
+            </div>
+            <p className="a-card-sub">{formatNumber(form.brandNames.length)} برند انتخاب شده</p>
+            <input
+              className="a-input"
+              value={brandSearch}
+              onChange={(e) => setBrandSearch(e.target.value)}
+              placeholder="جستجو میان برندها…"
+            />
+            <div className="a-option-grid">
+              {filteredBrands.map((brand) => {
+                const on = form.brandNames.includes(brand.name);
+                return (
+                  <label key={brand.id} className={`a-chip-opt${on ? ' a-chip-opt--on' : ''}`}>
+                    <input type="checkbox" checked={on} onChange={() => toggleBrand(brand.name)} />
+                    <span className="a-chip-opt-copy">
+                      <strong>{brand.faName}</strong>
+                      <small className="a-ltr">{brand.name}</small>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+            {filteredBrands.length === 0 && <div className="a-empty">برندی پیدا نشد.</div>}
+          </section>
+        </form>
+      </Modal>
 
       {/* List */}
       <section className="a-searchbar">
