@@ -65,19 +65,25 @@ export const useAuth = create<AuthState>((set) => ({
       set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, hasPermission: () => false, ready: true });
     };
 
-    // A transient backend hiccup (500 through the proxy) must not bounce a
-    // logged-in admin to the gate; retry briefly before surrendering.
-    for (let attempt = 1; attempt <= 3; attempt++) {
+    // A transient backend hiccup (500 through the proxy / a dev-server
+    // restart that lasts a few seconds) must not bounce a logged-in admin to
+    // the gate. Retry with backoff for a patient window; only a definite 401
+    // (expired/revoked token) gives up immediately.
+    const started = Date.now();
+    const MAX_WAIT = 30_000;
+    let delay = 700;
+    for (;;) {
       try {
         apply(await api.get<MeResponse>('/auth/me'));
         return;
       } catch (err) {
         const expired = err instanceof ApiRequestError && err.isExpired;
-        if (expired || attempt === 3) {
+        if (expired || Date.now() - started >= MAX_WAIT) {
           reject(err);
           return;
         }
-        await new Promise((r) => setTimeout(r, 700));
+        await new Promise((r) => setTimeout(r, delay));
+        delay = Math.min(3000, Math.round(delay * 1.6));
       }
     }
   },
