@@ -17,6 +17,7 @@ uniform vec2 iResolution;
 uniform float iTime;
 uniform vec2 iMouse;
 uniform vec3 u_color;
+uniform vec3 u_bg_color;
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord){
     vec2 uv = fragCoord / iResolution;
@@ -39,7 +40,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
     float wave = abs(sin(distortion.x + distortion.y + time));
     float glow = smoothstep(0.9, 0.2, wave);
 
-    fragColor = vec4(u_color * glow, 1.0);
+    fragColor = vec4(mix(u_bg_color, u_color, glow), 1.0);
 }
 
 void main() {
@@ -58,6 +59,7 @@ type BlurSize = "none" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
 interface SmokeyBackgroundProps {
   backdropBlurAmount?: string;
   color?: string;
+  bgColor?: string;
   className?: string;
 }
 
@@ -80,6 +82,7 @@ const blurClassMap: Record<BlurSize, string> = {
 export function SmokeyBackground({
   backdropBlurAmount = "sm",
   color = "#1E40AF", // Default dark blue
+  bgColor = "#000000", // Default black
   className = "",
 }: SmokeyBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -146,10 +149,13 @@ export function SmokeyBackground({
     const iTimeLocation = gl.getUniformLocation(program, "iTime");
     const iMouseLocation = gl.getUniformLocation(program, "iMouse");
     const uColorLocation = gl.getUniformLocation(program, "u_color");
+    const uBgColorLocation = gl.getUniformLocation(program, "u_bg_color");
 
     let startTime = Date.now();
     const [r, g, b] = hexToRgb(color);
+    const [br, bg, bb] = hexToRgb(bgColor);
     gl.uniform3f(uColorLocation, r, g, b);
+    gl.uniform3f(uBgColorLocation, br, bg, bb);
 
     const render = () => {
       const width = canvas.clientWidth;
@@ -186,7 +192,7 @@ export function SmokeyBackground({
       canvas.removeEventListener("mouseenter", handleMouseEnter);
       canvas.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [isHovering, mousePosition, color]);
+  }, [isHovering, mousePosition, color, bgColor]);
 
   const finalBlurClass = blurClassMap[backdropBlurAmount as BlurSize] || blurClassMap["sm"];
 

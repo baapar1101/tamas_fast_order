@@ -344,7 +344,7 @@ export default function AdminApp() {
     return (
       <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', position: 'relative' }}>
         {/* Smokey WebGL Background */}
-        <SmokeyBackground className="fixed inset-0 z-0" color={theme === 'light' ? '#cbd5e1' : '#030b14'} />
+        <SmokeyBackground className="fixed inset-0 z-0" bgColor={theme === 'light' ? '#ffffff' : '#000000'} color={theme === 'light' ? '#000000' : '#030b14'} />
 
         <div className="glass-card-static" style={{ maxWidth: '24rem', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '1rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
           {/* Shimmer top line */}
@@ -383,7 +383,7 @@ export default function AdminApp() {
     return (
       <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', position: 'relative' }}>
         {/* Smokey WebGL Background */}
-        <SmokeyBackground className="fixed inset-0 z-0" color={theme === 'light' ? '#cbd5e1' : '#030b14'} />
+        <SmokeyBackground className="fixed inset-0 z-0" bgColor={theme === 'light' ? '#ffffff' : '#000000'} color={theme === 'light' ? '#000000' : '#030b14'} />
 
         <div className="glass-card-static" style={{ maxWidth: '26rem', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '1rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
           {/* Shimmer top line */}
@@ -436,7 +436,7 @@ export default function AdminApp() {
   return (
     <div className="admin-body-shell">
       {/* Smokey WebGL Background */}
-      <SmokeyBackground className="fixed inset-0 z-0 pointer-events-auto" color={theme === 'light' ? '#cbd5e1' : '#030b14'} />
+      <SmokeyBackground className="fixed inset-0 z-0 pointer-events-auto" bgColor={theme === 'light' ? '#ffffff' : '#000000'} color={theme === 'light' ? '#000000' : '#030b14'} />
 
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
