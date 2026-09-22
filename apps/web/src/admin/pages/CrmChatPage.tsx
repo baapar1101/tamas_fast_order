@@ -79,15 +79,15 @@ export function CrmChatPage() {
       <div className="a-page-content" style={{ display: 'flex', gap: '1rem', height: 'calc(100vh - 150px)', paddingBottom: '1rem' }}>
         
         {/* Sidebar */}
-        <div style={{ width: '320px', backgroundColor: 'var(--tamas-surface)', borderRadius: '12px', border: '1px solid var(--tamas-border)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '1rem', borderBottom: '1px solid var(--tamas-border)', fontWeight: 'bold', backgroundColor: 'var(--tamas-surface)' }}>
+        <div style={{ width: '320px', backgroundColor: 'var(--a-surface)', borderRadius: '12px', border: '1px solid var(--a-border)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '1rem', borderBottom: '1px solid var(--a-border)', fontWeight: 'bold', backgroundColor: 'var(--a-surface)' }}>
             مکالمات
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {isLoadingConvs ? (
-              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--tamas-fg-muted)' }}>در حال دریافت اطلاعات...</div>
+              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--a-t4)' }}>در حال دریافت اطلاعات...</div>
             ) : conversations.length === 0 ? (
-              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--tamas-fg-muted)' }}>هیچ مکالمه‌ای یافت نشد.</div>
+              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--a-t4)' }}>هیچ مکالمه‌ای یافت نشد.</div>
             ) : (
               conversations.map((c) => (
                 <div 
@@ -95,17 +95,17 @@ export function CrmChatPage() {
                   onClick={() => setActiveConvId(c.id)}
                   style={{
                     padding: '1rem', 
-                    borderBottom: '1px solid var(--tamas-border)',
+                    borderBottom: '1px solid var(--a-border)',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
-                    backgroundColor: activeConvId === c.id ? 'var(--tamas-info-bg)' : 'transparent',
-                    borderRight: activeConvId === c.id ? '3px solid var(--tamas-accent)' : '3px solid transparent',
+                    backgroundColor: activeConvId === c.id ? 'var(--a-brand-soft)' : 'transparent',
+                    borderRight: activeConvId === c.id ? '3px solid var(--a-brand)' : '3px solid transparent',
                   }}
                 >
-                  <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', color: activeConvId === c.id ? 'var(--tamas-accent)' : 'var(--tamas-fg)' }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', color: activeConvId === c.id ? 'var(--a-brand)' : 'var(--a-t1)' }}>
                     {c.first_name} {c.last_name}
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--tamas-fg-muted)' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--a-t4)' }}>
                     {c.phone || c.email || 'بدون اطلاعات تماس'}
                   </div>
                 </div>
@@ -115,9 +115,9 @@ export function CrmChatPage() {
         </div>
 
         {/* Main Chat Area */}
-        <div style={{ flex: 1, backgroundColor: 'var(--tamas-surface)', borderRadius: '12px', border: '1px solid var(--tamas-border)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, backgroundColor: 'var(--a-surface)', borderRadius: '12px', border: '1px solid var(--a-border)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {!activeConvId ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tamas-fg-muted)', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--a-t4)', flexDirection: 'column', gap: '1rem' }}>
               <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
               </svg>
@@ -126,11 +126,11 @@ export function CrmChatPage() {
           ) : (
             <>
               {/* Header */}
-              <div style={{ padding: '1rem', borderBottom: '1px solid var(--tamas-border)', backgroundColor: 'var(--tamas-surface)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ padding: '1rem', borderBottom: '1px solid var(--a-border)', backgroundColor: 'var(--a-surface)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ fontWeight: 'bold' }}>
                   {conversations.find(c => c.id === activeConvId)?.first_name} {conversations.find(c => c.id === activeConvId)?.last_name}
                 </div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--tamas-fg-muted)' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--a-t4)' }}>
                   شناسه مکالمه: {activeConvId}
                 </div>
               </div>
@@ -138,28 +138,28 @@ export function CrmChatPage() {
               {/* Messages */}
               <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {isLoadingMsgs ? (
-                  <div style={{ textAlign: 'center', color: 'var(--tamas-fg-muted)' }}>در حال بارگذاری پیام‌ها...</div>
+                  <div style={{ textAlign: 'center', color: 'var(--a-t4)' }}>در حال بارگذاری پیام‌ها...</div>
                 ) : messages.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: 'var(--tamas-fg-muted)' }}>پیامی وجود ندارد.</div>
+                  <div style={{ textAlign: 'center', color: 'var(--a-t4)' }}>پیامی وجود ندارد.</div>
                 ) : (
                   messages.map(m => {
                     const isAgent = m.sender_role === 'agent' || m.sender_role === 'system';
                     return (
                       <div key={m.id} style={{ alignSelf: isAgent ? 'flex-end' : 'flex-start', maxWidth: '75%', display: 'flex', flexDirection: 'column' }}>
                         <div style={{ 
-                          backgroundColor: isAgent ? 'var(--tamas-accent)' : 'var(--tamas-bg)', 
-                          color: isAgent ? '#ffffff' : 'var(--tamas-fg)',
+                          backgroundColor: isAgent ? 'var(--a-brand)' : 'var(--a-field-bg)', 
+                          color: isAgent ? '#ffffff' : 'var(--a-t1)',
                           padding: '0.75rem 1.25rem', 
                           borderRadius: '16px',
                           borderBottomRightRadius: isAgent ? '4px' : '16px',
                           borderBottomLeftRadius: isAgent ? '16px' : '4px',
-                          border: isAgent ? 'none' : '1px solid var(--tamas-border)',
+                          border: isAgent ? 'none' : '1px solid var(--a-border)',
                           lineHeight: '1.6',
                           whiteSpace: 'pre-wrap'
                         }}>
                           {m.body}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--tamas-fg-muted)', marginTop: '0.35rem', textAlign: isAgent ? 'left' : 'right', padding: '0 0.25rem' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--a-t4)', marginTop: '0.35rem', textAlign: isAgent ? 'left' : 'right', padding: '0 0.25rem' }}>
                           {new Date(m.created_at).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
@@ -170,7 +170,7 @@ export function CrmChatPage() {
               </div>
 
               {/* Input Area */}
-              <div style={{ padding: '1rem', borderTop: '1px solid var(--tamas-border)', backgroundColor: 'var(--tamas-surface)' }}>
+              <div style={{ padding: '1rem', borderTop: '1px solid var(--a-border)', backgroundColor: 'var(--a-surface)' }}>
                 <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.75rem' }}>
                   <input 
                     type="text" 
