@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { api } from '../lib/api';
 import { useToast } from '../components/Toast';
+import { Modal } from '../components/Modal';
 
 interface Warehouse {
   id: string;
@@ -90,101 +91,86 @@ export function WarehousesPage() {
         </div>
       </section>
 
-      {formOpen && (
-        <>
-      {/* Reference-style create form: header card + stacked sections + save footer */}
-      <form className="a-form a-fade" onSubmit={handleSubmit}>
-        <div className="a-form-head">
-          <button type="button" className="a-form-back" onClick={handleCancel} aria-label="بازگشت" title="بازگشت">
-            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-5 w-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </button>
-          <div className="a-form-title">
+      <Modal
+        open={formOpen}
+        title={
+          <>
             {editingId ? 'ویرایش انبار' : 'افزودن انبار جدید'}
             {editingId && <span className="a-badge a-badge--neutral">{editingId}</span>}
-          </div>
-          <div className="a-form-actions">
-            {editingId && (
-              <button type="button" className="a-btn a-btn--ghost" onClick={handleCancel}>انصراف</button>
-            )}
-            <button type="submit" className="a-btn a-btn--primary" disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? 'در حال ذخیره…' : 'ذخیره'}
+          </>
+        }
+        onClose={handleCancel}
+        busy={saveMutation.isPending}
+        footer={
+          <>
+            <button type="button" className="a-btn a-btn--ghost" onClick={handleCancel} disabled={saveMutation.isPending}>انصراف</button>
+            <button type="submit" form="warehouse-form" className="a-btn a-btn--primary" disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? 'در حال ذخیره…' : editingId ? 'ذخیره تغییرات' : 'ثبت انبار'}
             </button>
-          </div>
-        </div>
+          </>
+        }
+      >
+        <form id="warehouse-form" className="a-form a-fade" onSubmit={handleSubmit}>
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">مشخصات انبار</h3>
+            </div>
+            <div className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label">کد انبار (انگلیسی)</label>
+                <input
+                  type="text"
+                  required
+                  className="a-input"
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                  placeholder="مثلا: kerman"
+                  dir="ltr"
+                />
+              </div>
+              <div className="a-field">
+                <label className="a-label">نام انبار</label>
+                <input
+                  type="text"
+                  required
+                  className="a-input"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="مثلا: انبار مرکزی کرمان"
+                />
+              </div>
+              <div className="a-field">
+                <label className="a-label">موقعیت / شهر</label>
+                <input
+                  type="text"
+                  className="a-input"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                />
+              </div>
+            </div>
+          </section>
 
-        <section className="a-card">
-          <div className="a-card-head">
-            <h3 className="a-card-title">مشخصات انبار</h3>
-          </div>
-          <div className="a-form-grid">
-            <div className="a-field">
-              <label className="a-label">کد انبار (انگلیسی)</label>
-              <input
-                type="text"
-                required
-                className="a-input"
-                value={formData.code}
-                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                placeholder="مثلا: kerman"
-                dir="ltr"
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">وضعیت انبار</h3>
+            </div>
+            <div className="a-option-row">
+              <div className="a-option-copy">
+                <div className="a-option-title">انبار فعال است</div>
+                <div className="a-option-desc">انبارهای غیرفعال در فرم‌ها نمایش داده نمی‌شوند</div>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={formData.isActive}
+                className="a-switch"
+                onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
               />
             </div>
-            <div className="a-field">
-              <label className="a-label">نام انبار</label>
-              <input
-                type="text"
-                required
-                className="a-input"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="مثلا: انبار مرکزی کرمان"
-              />
-            </div>
-            <div className="a-field">
-              <label className="a-label">موقعیت / شهر</label>
-              <input
-                type="text"
-                className="a-input"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="a-card">
-          <div className="a-card-head">
-            <h3 className="a-card-title">وضعیت انبار</h3>
-          </div>
-          <div className="a-option-row">
-            <div className="a-option-copy">
-              <div className="a-option-title">انبار فعال است</div>
-              <div className="a-option-desc">انبارهای غیرفعال در فرم‌ها نمایش داده نمی‌شوند</div>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={formData.isActive}
-              className="a-switch"
-              onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
-            />
-          </div>
-        </section>
-
-        <div className="a-form-foot">
-          <button
-            type="submit"
-            disabled={saveMutation.isPending}
-            className="a-btn a-btn--primary a-btn--lg"
-          >
-            {saveMutation.isPending ? 'در حال ثبت...' : 'ذخیره انبار'}
-          </button>
-        </div>
-      </form>
-        </>
-      )}
+          </section>
+        </form>
+      </Modal>
 
       {/* List */}
       <section className="a-card a-card--flush a-container-md">

@@ -322,7 +322,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
           </div>
 
           {/* Advanced Validation: National Identity Inquiry */}
-          <div className="card" style={{ padding: 14, background: '#f8fafc', border: '1px solid var(--border)', borderRadius: 8 }}>
+          <div className="card" style={{ padding: 14, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8 }}>
             <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--primary)' }}>
               <Icon name="shield" /> <span>استعلام و تایید اطلاعات هویتی (ثبت احوال)</span>
               {inquirySuccess && <span className="badge success" style={{ marginInlineStart: 'auto' }}>✓ هویتی تاییدشده</span>}

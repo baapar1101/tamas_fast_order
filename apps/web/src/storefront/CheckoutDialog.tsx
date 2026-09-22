@@ -156,14 +156,14 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
           </table>
         </div>
 
-        <label className="card" style={{ padding: 12, display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', background: '#fffcf5', borderColor: '#f7dda5' }}>
+        <label className="card" style={{ padding: 12, display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>
           <input
             type="checkbox"
             checked={agreeTerms}
             onChange={(e) => setAgreeTerms(e.target.checked)}
             style={{ marginTop: 3, width: 18, height: 18, cursor: 'pointer' }}
           />
-          <span style={{ fontSize: 12.5, lineHeight: 1.8, color: '#4a2d00' }}>
+          <span style={{ fontSize: 12.5, lineHeight: 1.8, color: 'var(--text)' }}>
             با تیک زدن این گزینه، اینجانب تمامی شرایط و مفاد مندرج در این فاکتور (از جمله شرایط حفظ مالکیت کالا و تعهدات بازپرداخت) را مطالعه کرده و به عنوان «امضای دیجیتال» خود تأیید می‌نمایم. من آگاه هستم که این تأییدیه در حکم قرارداد رسمی بوده و برای من لازم‌الاجراست.{' '}
             <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}>
               (مشاهده کامل شرایط و قوانین)

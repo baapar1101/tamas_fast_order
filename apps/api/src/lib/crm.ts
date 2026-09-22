@@ -168,6 +168,15 @@ export const crmClient = {
         resolvedPersonId = createPersonResult.personId;
       }
 
+      // If no items, return error
+      if (!order.items || order.items.length === 0) {
+        const errorMsg = 'سفارش فاقد آیتم است';
+        await this._logSyncResult('order', order.orderCode, 'create', {
+          ok: false, entity: 'order', error: errorMsg
+        }, { orderCode: order.orderCode });
+        return { ok: false, entity: 'order', error: errorMsg };
+      }
+
       // Build invoice payload - Hesabix uses "invoice_sales" and person_id in extra_info
       const payload = {
         invoice_type: 'invoice_sales',
@@ -188,6 +197,9 @@ export const crmClient = {
         payment_method: order.paymentMethod === 'card' ? 'card' : 'cash',
         payment_amount: order.paymentStatus === 'paid' ? order.total : 0,
       };
+
+      console.log('[CRM] Syncing order:', order.orderCode, 'with', order.items.length, 'items');
+      console.log('[CRM] Items:', JSON.stringify(order.items));
 
       // Hesabix API: POST /api/v1/invoices/business/{businessId}
       const data = (await crmRequest<{

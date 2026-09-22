@@ -296,27 +296,27 @@ export function StorefrontPage() {
                   className="profile-dropdown-menu" 
                   style={{ 
                     display: 'none', position: 'absolute', top: '110%', left: 0, 
-                    backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', 
-                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)', minWidth: '180px', padding: '8px', zIndex: 100,
+                    backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', 
+                    boxShadow: 'var(--shadow-lg)', minWidth: '180px', padding: '8px', zIndex: 100,
                     flexDirection: 'column', gap: '4px'
                   }}
                 >
-                  <Link to="/orders" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: '#334155', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
+                  <Link to="/orders" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--text)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
                     <Icon name="bag" style={{ marginInlineEnd: 8 }} /> سفارش‌های من
                   </Link>
                   {isAdmin && (
-                    <Link to="/admin" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: '#059669', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
+                    <Link to="/admin" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--tamas-admin-emerald)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
                       <Icon name="grid" style={{ marginInlineEnd: 8 }} /> پنل مدیریت
                     </Link>
                   )}
-                  <div style={{ height: '1px', backgroundColor: '#e2e8f0', margin: '4px 0' }} />
+                  <div style={{ height: '1px', backgroundColor: 'var(--border)', margin: '4px 0' }} />
                   <button 
                     type="button" 
                     onClick={async () => {
                       await logout();
                       toast.ok('از حساب خود خارج شدید.');
                     }}
-                    style={{ width: '100%', textAlign: 'right', padding: '10px 16px', borderRadius: '8px', color: '#e11d48', backgroundColor: 'transparent', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+                    style={{ width: '100%', textAlign: 'right', padding: '10px 16px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'transparent', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
                   >
                     <Icon name="chevron" style={{ marginInlineEnd: 8, transform: 'rotate(180deg)' }} /> خروج از حساب
                   </button>

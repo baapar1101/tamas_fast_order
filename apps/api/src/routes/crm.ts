@@ -437,7 +437,25 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       const errors: string[] = [];
 
       for (const orderRow of orderRows) {
-        // Build a minimal CrmOrder from the DB row
+        // Fetch order items from database
+        const { orderItems } = await import('../db/schema.js');
+        const orderItemsRows = await db.select().from(orderItems).where(eq(orderItems.orderId, orderRow.id));
+
+        if (orderItemsRows.length === 0) {
+          const errorMsg = `سفارش ${orderRow.orderCode} فاقد آیتم است`;
+          await db.insert(crmSyncLogs).values({
+            entity: 'order',
+            entityKey: orderRow.orderCode,
+            action: 'create',
+            status: 'error',
+            error: errorMsg,
+            payload: { orderId: orderRow.id },
+          });
+          errors.push(errorMsg);
+          continue;
+        }
+
+        // Build CrmOrder with items
         const crmOrder = {
           orderCode: orderRow.orderCode,
           customerName: orderRow.customerName,
@@ -445,12 +463,19 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
           storeName: orderRow.storeName,
           address: orderRow.address,
           total: Number(orderRow.total),
-          quantity: 1,
+          quantity: orderItemsRows.reduce((sum, item) => sum + item.qty, 0),
           status: orderRow.status,
           paymentStatus: orderRow.paymentStatus,
           paymentMethod: orderRow.paymentMethod,
           note: orderRow.note ?? undefined,
-          items: [],
+          items: orderItemsRows.map((item) => ({
+            productId: item.productId,
+            sku: item.sku ?? '',
+            title: item.title,
+            price: Number(item.price),
+            qty: item.qty,
+            warehouse: item.warehouse,
+          })),
         } as any;
 
         const result = await crmClient.pushOrder(crmOrder, config);
