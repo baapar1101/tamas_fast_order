@@ -949,6 +949,7 @@ body.admin-page-active .modal-foot {
   gap: 0.8rem;
   width: 100%;
   margin-inline: auto;
+  margin-bottom: 1.25rem;
 }
 @media (min-width: 640px) {
   .a-stat-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
