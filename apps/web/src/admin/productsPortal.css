@@ -769,8 +769,10 @@
 .pp-gimg {
   position: relative;
   height: 150px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   background: var(--pp-bg-page);
   border-bottom: 1px solid var(--pp-border-faint);
 }
