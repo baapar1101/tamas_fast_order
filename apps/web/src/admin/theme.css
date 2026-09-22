@@ -180,6 +180,23 @@ body.admin-page-active.admin-theme-light {
 }
 @media (max-width: 640px) { .a-card { padding: 1.1rem 1rem; } }
 
+/* Glassmorphism for admin modals */
+body.admin-page-active .modal-panel {
+  background: var(--a-surface);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--a-border);
+  box-shadow: var(--a-shadow-2);
+}
+body.admin-page-active .modal-head {
+  background: transparent;
+  border-bottom-color: var(--a-divider);
+}
+body.admin-page-active .modal-foot {
+  background: transparent;
+  border-top-color: var(--a-divider);
+}
+
 .a-card-head {
   display: flex;
   align-items: center;
