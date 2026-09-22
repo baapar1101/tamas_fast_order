@@ -36,6 +36,7 @@ export function CrmChatPage() {
   let conversations: Conversation[] = [];
   if (Array.isArray(convData)) conversations = convData;
   else if (Array.isArray(convData?.data)) conversations = convData.data;
+  else if (Array.isArray(convData?.data?.items)) conversations = convData.data.items;
   else if (Array.isArray(convData?.items)) conversations = convData.items;
 
   const { data: msgData, isLoading: isLoadingMsgs } = useQuery({
@@ -48,6 +49,7 @@ export function CrmChatPage() {
   let messages: Message[] = [];
   if (Array.isArray(msgData)) messages = msgData;
   else if (Array.isArray(msgData?.data)) messages = msgData.data;
+  else if (Array.isArray(msgData?.data?.items)) messages = msgData.data.items;
   else if (Array.isArray(msgData?.items)) messages = msgData.items;
 
   const sendMutation = useMutation({
