@@ -360,8 +360,8 @@ export function StorefrontPage() {
       <main className="container" data-mobile-tab={mobileTab}>
         {/* Mobile-only Categories View */}
         <div className="mobile-only-categories">
-          <div style={{ padding: '20px 16px', background: '#fff', borderBottom: '1px solid #f1f5f9', position: 'sticky', top: 0, zIndex: 10 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a' }}>دسته‌بندی محصولات</h2>
+          <div style={{ padding: '20px 16px', background: 'var(--card)', borderBottom: '1px solid var(--tamas-border)', position: 'sticky', top: 0, zIndex: 10 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--tamas-fg)' }}>دسته‌بندی محصولات</h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, padding: 16 }}>
             {(bootstrap.data?.categories ?? []).map((c) => {
@@ -370,11 +370,11 @@ export function StorefrontPage() {
                 <button
                   key={c.id}
                   type="button"
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '24px 12px', background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '24px 12px', background: 'var(--card)', borderRadius: 16, border: '1px solid var(--tamas-border)', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}
                   onClick={() => { setCategory(c.name); setBrands([]); resetPage(); setMobileTab('home'); }}
                 >
                   {iconSrc ? <img src={iconSrc} alt="" loading="lazy" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span style={{ fontSize: 32, color: 'var(--tamas-accent)' }}><Icon name="box" /></span>}
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#334155' }}>{c.faName}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--tamas-fg)' }}>{c.faName}</span>
                 </button>
               );
             })}
@@ -382,20 +382,20 @@ export function StorefrontPage() {
         </div>
 
         {/* Mobile-only Cart View */}
-        <div className="mobile-only-cart" style={{ background: '#f8fafc', paddingBottom: 100 }}>
+        <div className="mobile-only-cart" style={{ paddingBottom: 100 }}>
           <CartPanel onCheckout={openCheckout} canViewPrices={canViewPrices} />
         </div>
 
         {/* Mobile-only Profile View */}
-        <div className="mobile-only-profile" style={{ padding: 16, paddingBottom: 100, background: '#f8fafc' }}>
+        <div className="mobile-only-profile" style={{ padding: 16, paddingBottom: 100 }}>
           {user ? (
-            <div style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center' }}>
-              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--brand)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 800, margin: '0 auto 16px' }}>{user.name?.[0] || 'U'}</div>
-              <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>{user.name} {user.lastName}</h2>
-              <p style={{ fontSize: 14, color: '#64748b', marginBottom: 24 }}>{user.phone}</p>
+            <div style={{ background: 'var(--card)', borderRadius: 16, padding: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center', border: '1px solid var(--tamas-border)' }}>
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--tamas-accent)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 800, margin: '0 auto 16px' }}>{user.name?.[0] || 'U'}</div>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--tamas-fg)', marginBottom: 4 }}>{user.name} {user.lastName}</h2>
+              <p style={{ fontSize: 14, color: 'var(--tamas-muted)', marginBottom: 24 }}>{user.phone}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <Link to="/orders" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: '#f1f5f9', borderRadius: 12, color: '#334155', textDecoration: 'none', fontWeight: 600 }}><Icon name="bag" /> سفارش‌های من</Link>
-                {isAdmin && <Link to="/admin" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: '#ecfdf5', borderRadius: 12, color: '#059669', textDecoration: 'none', fontWeight: 600 }}><Icon name="grid" /> پنل مدیریت</Link>}
+                <Link to="/orders" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'var(--tamas-info-bg)', borderRadius: 12, color: 'var(--tamas-fg)', textDecoration: 'none', fontWeight: 600 }}><Icon name="bag" /> سفارش‌های من</Link>
+                {isAdmin && <Link to="/admin" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'rgba(5, 150, 105, 0.1)', borderRadius: 12, color: '#10b981', textDecoration: 'none', fontWeight: 600 }}><Icon name="grid" /> پنل مدیریت</Link>}
                 <button type="button" onClick={async () => { await logout(); toast.ok('از حساب خود خارج شدید.'); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: '#fff1f2', borderRadius: 12, color: '#e11d48', border: 'none', fontWeight: 600, cursor: 'pointer' }}><Icon name="chevron" style={{ transform: 'rotate(180deg)' }} /> خروج از حساب</button>
               </div>
             </div>
