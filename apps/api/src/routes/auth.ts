@@ -135,11 +135,11 @@ const routes: FastifyPluginAsync = async (app) => {
 
     try {
       const response = await fetch(
-        'https://tamastore.ir/api/v1/businesses/4952/zohal/inquiry/national_identity_inquiry',
+        'https://service.zohal.io/api/v0/services/inquiry/national_identity_inquiry',
         {
           method: 'POST',
           headers: {
-            'Authorization': 'ApiKey ak_live_W6ldKkI0-IS9WiQtgX6jizFFUwBofrAtOUrI-Bky4Ts',
+            'Authorization': 'Bearer 0c23148ee07366592d9fc19dd8bb1528c2a0f1bb',
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({

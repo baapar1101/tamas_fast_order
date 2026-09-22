@@ -7,6 +7,7 @@ import { orderItems, orders, users } from '../../db/schema.js';
 import { notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { toOrderDTO } from '../../services/orders.js';
+import { upsertOrderPayment } from '../../services/payments.js';
 import { logAction } from '../../services/audit.js';
 
 const listQuery = z.object({
@@ -111,6 +112,10 @@ const routes: FastifyPluginAsync = async (app) => {
       .where(eq(orders.id, id))
       .returning();
     if (!updated) throw notFound('سفارش پیدا نشد.');
+
+    if (body.paymentStatus) {
+      await upsertOrderPayment(db, id, updated.userId ?? null, updated.total, body.paymentStatus);
+    }
     
     if (updated.phone) {
       const { sendTemplatedSms } = await import('../../services/sms.js');

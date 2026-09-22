@@ -74,7 +74,7 @@ export function CrmChatPage() {
   return (
     <div className="a-page">
       <div className="a-page-header">
-        <h1 className="a-page-title">چت مشتریان (پشتیبانی)</h1>
+        <h1 className="a-page-title">چت مشتریان</h1>
       </div>
       <div className="a-page-content" style={{ display: 'flex', gap: '1rem', height: 'calc(100vh - 150px)', paddingBottom: '1rem' }}>
         

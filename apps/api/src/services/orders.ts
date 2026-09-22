@@ -6,6 +6,7 @@ import { orderItems, orders, products } from '../db/schema.js';
 import { badRequest, conflict, profileIncomplete } from '../lib/errors.js';
 import { invalidateCatalog } from './catalog.js';
 import { missingProfileFields, type UserRow } from './auth.js';
+import { upsertOrderPayment } from './payments.js';
 
 type OrderRow = typeof orders.$inferSelect;
 type OrderItemRow = typeof orderItems.$inferSelect;
@@ -152,6 +153,8 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       .insert(orderItems)
       .values(toInsert.map((i) => ({ ...i, orderId: order.id })))
       .returning();
+
+    await upsertOrderPayment(tx, order.id, user.id, total, order.paymentStatus);
 
     for (const update of stockUpdates) {
       const now = new Date();
