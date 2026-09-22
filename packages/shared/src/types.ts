@@ -63,7 +63,8 @@ export interface ProductDTO {
   imageUrl: string | null;
   gallery: string[];
   attributes: ProductAttribute[];
-sortOrder: number;
+  digikalaLink: string | null;
+  sortOrder: number;
     createdAt: string;
     updatedAt: string;
   }

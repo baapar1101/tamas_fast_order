@@ -50,6 +50,7 @@ export function toProductDTO(
     imageUrl: row.imageUrl,
     gallery: row.gallery ?? [],
     attributes: row.attributes ?? [],
+    digikalaLink: row.digikalaLink ?? null,
     sortOrder: row.sortOrder,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

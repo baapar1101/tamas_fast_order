@@ -43,6 +43,7 @@ export interface ProductForm {
   weight: number;
   dimensions: string;
   tracking: boolean;
+  digikalaLink: string;
 }
 
 interface Props {
@@ -108,6 +109,7 @@ const blank = (): ProductForm => ({
   weight: 0,
   dimensions: '',
   tracking: true,
+  digikalaLink: '',
 });
 
 const fromProduct = (p: ProductDTO): ProductForm => ({
@@ -146,6 +148,7 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   weight: p.weight ?? 0,
   dimensions: p.dimensions ?? '',
   tracking: p.tracking ?? true,
+  digikalaLink: p.digikalaLink ?? '',
 });
 
 export function ProductEditor({ product, template, categories, brands, busy, onClose, onSave, onManageVariants }: Props) {
@@ -424,6 +427,10 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-warranty">گارانتی</label>
                 <input id="pe-warranty" className="a-input" value={form.warranty} onChange={(e) => set('warranty', e.target.value)} />
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-digikala">لینک دیجی‌کالا</label>
+                <input id="pe-digikala" className="a-input a-ltr" placeholder="https://www.digikala.com/product/dkp-..." value={form.digikalaLink} onChange={(e) => set('digikalaLink', e.target.value)} />
               </div>
             </div>
           </section>

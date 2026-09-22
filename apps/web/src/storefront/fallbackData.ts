@@ -150,6 +150,7 @@ const allProducts: ProductDTO[] = rawProducts.map<ProductDTO>((p, i) => {
     gallery: [],
     attributes: [],
     sortOrder: i,
+    digikalaLink: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

@@ -425,6 +425,24 @@ export function ProductPage() {
               </div>
             )}
 
+            {selected.digikalaLink && (
+              <div className="pp-digikala-row mt-4">
+                <a 
+                  href={selected.digikalaLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="btn" 
+                  style={{ backgroundColor: '#ef4056', color: 'white', width: '100%', justifyContent: 'center', gap: '8px' }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 6H5C3.89543 6 3 6.89543 3 8V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V8C21 6.89543 20.1046 6 19 6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M16 10C16 7.79086 14.2091 6 12 6C9.79086 6 8 7.79086 8 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  مشاهده و خرید از دیجی‌کالا
+                </a>
+              </div>
+            )}
+
             <div className="pp-share" ref={shareRef}>
               <button
                 type="button"
