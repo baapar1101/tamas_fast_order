@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import type { ProductDTO, Warehouse } from '@tamas/shared';
+import type { ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS, formatNumber, hasRealDiscount } from '@tamas/shared';
 import { api } from '../lib/api';
 import { useToast } from '../components/Toast';
@@ -12,6 +12,9 @@ import { CrmChat } from '../components/CrmChat';
 import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { ProductCard } from './ProductCard';
+import { StoreFooter } from './StoreFooter';
+import { useBootstrap } from './hooks';
 import './storefront.css';
 import './product-page.css';
 
@@ -97,6 +100,43 @@ export function ProductPage() {
     if (list.length === 0) list.push('/logo.png');
     return [...new Set(list)];
   }, [selected]);
+
+  const bootstrap = useBootstrap();
+
+  const colorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of bootstrap.data?.colors ?? []) {
+      const hex = c.code?.trim();
+      if (!hex) continue;
+      const value = hex.startsWith('#') ? hex : `#${hex}`;
+      if (c.name) map.set(c.name.toLowerCase(), value);
+      if (c.faName) map.set(c.faName.toLowerCase(), value);
+    }
+    return map;
+  }, [bootstrap.data?.colors]);
+
+  const relatedQuery = useQuery({
+    queryKey: ['related', selected?.productId],
+    queryFn: async ({ signal }) => {
+      const response = await api.get<{ groups: ProductGroupDTO[]; total: number }>(
+        '/catalog/products',
+        {
+          category: selected?.categoryName ?? selected?.categoryFaName ?? undefined,
+          page: 1,
+          perPage: 10,
+        },
+        signal,
+      );
+      return (response.groups ?? [])
+        .filter((g) => !g.variants.some((v) => v.productId === selected?.productId))
+        .slice(0, 6);
+    },
+    enabled: Boolean(selected?.productId) && Boolean(selected?.categoryName || selected?.categoryFaName),
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  const relatedGroups = relatedQuery.data ?? [];
 
   const isPromo = Boolean(selected?.promotion);
   const canViewPrices = Boolean(user?.isActive);
@@ -235,7 +275,7 @@ export function ProductPage() {
       <main className="pp-wrap">
         <nav className="pp-crumbs" aria-label="مسیر">
           <Link to="/">خانه</Link>
-          {category && <><span className="pp-crumb-sep">/</span><span>{category}</span></>}
+          {category && <><span className="pp-crumb-sep">/</span><Link to={`/?cat=${encodeURIComponent(category)}`}>{category}</Link></>}
           <span className="pp-crumb-sep">/</span>
           <span className="pp-crumb-current">{selected.title}</span>
         </nav>
@@ -449,11 +489,30 @@ export function ProductPage() {
           </div>
         )}
 
-        <footer className="pp-footer">
-          <Link to="/"><Icon name="home" /> صفحه اصلی فروشگاه</Link>
-          <Link to="/terms"><Icon name="book" /> شرایط و قوانین</Link>
-          <span>© تمامی حقوق برای تماس مارکت محفوظ است.</span>
-        </footer>
+        {relatedGroups.length > 0 && (
+          <section className="pp-related">
+            <h2 className="pp-related-title">
+              <Icon name="grid" /> کالاهای مرتبط
+            </h2>
+            <div className="products-grid">
+              {relatedGroups.map((g) => (
+                <ProductCard
+                  key={g.key}
+                  group={g}
+                  colorMap={colorMap}
+                  canViewPrices={canViewPrices}
+                  viewMode="grid"
+                  cartLines={lines}
+                  onAdd={handleAdd}
+                  onUpdateQty={handleUpdateQty}
+                  onPreview={setPreview}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <StoreFooter />
       </main>
 
       {whButtons.length > 0 && canViewPrices && (
