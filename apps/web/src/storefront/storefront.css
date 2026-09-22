@@ -1596,7 +1596,8 @@
 
 .qty button {
   border: 1px solid var(--tamas-border);
-  background: #ffffff;
+  background: var(--tamas-surface);
+  color: var(--tamas-fg);
   border-radius: 6px;
   width: 28px;
   height: 28px;
