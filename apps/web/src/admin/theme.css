@@ -259,7 +259,7 @@ body.admin-page-active.admin-theme-light {
 /* Soft list rows (taxonomy etc.) */
 .a-soft-row { background: var(--a-field-bg); border: 1px solid var(--a-border); transition: border-color 0.15s ease, background-color 0.15s ease; }
 .a-soft-row:hover { border-color: var(--a-border-2); background: var(--a-hover); }
-.a-inline-add { display: flex; flex-direction: column; gap: 0.55rem; padding: 0.85rem 1rem; border: 1px solid var(--a-divider); border-radius: 0.8rem; background: var(--a-surface-2); }
+.a-inline-add { display: flex; flex-direction: column; gap: 0.55rem; padding: 0.85rem 1rem; border: 1px solid var(--a-divider); border-radius: 0.8rem; background: var(--a-surface-2); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); }
 
 /* ---------------------------------------------------------------------------
    Buttons
