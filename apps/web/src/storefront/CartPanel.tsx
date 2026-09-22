@@ -67,15 +67,15 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
         </div>
       ) : (
         <>
-          <div className="wholesale-progress" style={{ margin: '12px 0 14px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+          <div className="wholesale-progress" style={{ margin: '12px 0 14px', padding: '16px', backgroundColor: 'var(--card)', borderRadius: '12px', border: '1px solid var(--tamas-border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px', fontWeight: 700, color: 'var(--tamas-fg)' }}>
               <span>حد نصاب سفارش عمده</span>
               <span>{progressPercent}%</span>
             </div>
-            <div style={{ height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
+            <div style={{ height: '6px', backgroundColor: 'var(--tamas-border)', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
               <div style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: progressPercent >= 100 ? '#10b981' : '#0ea5e9', transition: 'width 0.3s ease' }} />
             </div>
-            <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
+            <div style={{ fontSize: '11px', color: 'var(--tamas-muted)', textAlign: 'center' }}>
               حداقل مبلغ سفارش: <Price amount={WHOLESALE_THRESHOLD} />
             </div>
           </div>
@@ -105,7 +105,7 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
             ))}
           </div>
 
-          <div className="total" style={{ borderTop: '2px dashed #e2e8f0', paddingTop: '16px', marginTop: '8px' }}>
+          <div className="total" style={{ borderTop: '2px dashed var(--tamas-border)', paddingTop: '16px', marginTop: '8px' }}>
             <span style={{ fontWeight: 800, fontSize: '16px' }}>مجموع فاکتور</span>
             <span className={canViewPrices ? undefined : 'price-obscured'} style={{ color: 'var(--tamas-accent)', fontWeight: 900, fontSize: '18px' }}><Price amount={total} /></span>
           </div>
@@ -115,7 +115,7 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
               placeholder="توضیحات سفارش (اختیاری)..." 
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', resize: 'vertical', minHeight: '60px', fontFamily: 'inherit' }}
+              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: '13px', resize: 'vertical', minHeight: '60px', fontFamily: 'inherit', background: 'var(--tamas-surface)', color: 'var(--tamas-fg)' }}
             />
             <button type="button" className="btn primary checkout" onClick={onCheckout} style={{ padding: '12px', fontSize: '14px', borderRadius: '8px' }}>
               ثبت سفارش نهایی
@@ -123,7 +123,7 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
             <button type="button" className="btn" onClick={handleWhatsApp} style={{ backgroundColor: '#10b981', color: 'white', padding: '12px', fontSize: '14px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: 'none' }}>
               ارسال سفارش در واتساپ
             </button>
-            <button type="button" className="btn ghost" onClick={handlePrint} style={{ padding: '10px', fontSize: '13px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1px solid #cbd5e1', color: '#475569' }}>
+            <button type="button" className="btn ghost" onClick={handlePrint} style={{ padding: '10px', fontSize: '13px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1px solid var(--tamas-border)', color: 'var(--tamas-fg)' }}>
               پیش‌فاکتور چاپی
             </button>
           </div>

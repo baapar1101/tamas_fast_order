@@ -396,14 +396,14 @@ export function StorefrontPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <Link to="/orders" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'var(--tamas-info-bg)', borderRadius: 12, color: 'var(--tamas-fg)', textDecoration: 'none', fontWeight: 600 }}><Icon name="bag" /> سفارش‌های من</Link>
                 {isAdmin && <Link to="/admin" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'rgba(5, 150, 105, 0.1)', borderRadius: 12, color: '#10b981', textDecoration: 'none', fontWeight: 600 }}><Icon name="grid" /> پنل مدیریت</Link>}
-                <button type="button" onClick={async () => { await logout(); toast.ok('از حساب خود خارج شدید.'); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: '#fff1f2', borderRadius: 12, color: '#e11d48', border: 'none', fontWeight: 600, cursor: 'pointer' }}><Icon name="chevron" style={{ transform: 'rotate(180deg)' }} /> خروج از حساب</button>
+                <button type="button" onClick={async () => { await logout(); toast.ok('از حساب خود خارج شدید.'); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'rgba(225, 29, 72, 0.1)', borderRadius: 12, color: 'var(--danger)', border: 'none', fontWeight: 600, cursor: 'pointer' }}><Icon name="chevron" style={{ transform: 'rotate(180deg)' }} /> خروج از حساب</button>
               </div>
             </div>
           ) : (
-            <div style={{ background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center', marginTop: 40 }}>
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#f1f5f9', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, margin: '0 auto 16px' }}><Icon name="user" /></div>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 12 }}>وارد حساب کاربری شوید</h2>
-              <p style={{ fontSize: 13, color: '#64748b', marginBottom: 24, lineHeight: 1.6 }}>برای مشاهده قیمت‌های همکاری و ثبت سفارش، لطفاً وارد شوید.</p>
+            <div style={{ background: 'var(--card)', borderRadius: 16, padding: 32, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center', marginTop: 40, border: '1px solid var(--tamas-border)' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--tamas-info-bg)', color: 'var(--tamas-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, margin: '0 auto 16px' }}><Icon name="user" /></div>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--tamas-fg)', marginBottom: 12 }}>وارد حساب کاربری شوید</h2>
+              <p style={{ fontSize: 13, color: 'var(--tamas-muted)', marginBottom: 24, lineHeight: 1.6 }}>برای مشاهده قیمت‌های همکاری و ثبت سفارش، لطفاً وارد شوید.</p>
               <button type="button" className="btn primary w-full" onClick={() => { setAuthStep('phone'); setAuthOpen(true); }}>ورود / ثبت‌نام</button>
             </div>
           )}
