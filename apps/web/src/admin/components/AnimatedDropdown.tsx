@@ -57,7 +57,7 @@ export function AnimatedDropdown({
         id={id}
         type="button"
         className={cn(
-          "flex w-full items-center justify-between px-3.5 py-2.5 text-sm font-medium transition-all duration-200 border border-[var(--a-border)] bg-[var(--a-input-bg)] rounded-xl hover:bg-[var(--a-hover)] text-[var(--a-t2)]",
+          "pp-btn pp-btn--secondary w-full justify-between",
           buttonClassName
         )}
         aria-haspopup="listbox"
@@ -87,7 +87,7 @@ export function AnimatedDropdown({
               duration: 0.2,
               ease: 'easeOut',
             }}
-            className="absolute top-[calc(100%+0.3rem)] left-0 z-50 w-full min-w-[150px] overflow-hidden rounded-xl border border-[var(--a-border-2)] bg-[var(--a-dropdown-bg)] shadow-xl backdrop-blur-2xl"
+            className="absolute top-[calc(100%+0.3rem)] left-0 z-50 w-full min-w-[150px] overflow-hidden rounded-xl border border-[var(--pp-border)] bg-[var(--pp-bg-card)] shadow-xl"
           >
             <motion.div
               initial="hidden"

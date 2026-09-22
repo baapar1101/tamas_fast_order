@@ -313,7 +313,6 @@ export function ProductsPage() {
 
         <AnimatedDropdown
           className="w-40"
-          buttonClassName="h-[38px]"
           value={status}
           onChange={(v) => {
             setStatus(v as typeof status);
