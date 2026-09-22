@@ -165,6 +165,35 @@ const routes: FastifyPluginAsync = async (app) => {
         throw badRequest('امکان استعلام و تایید برای این کد ملی وجود ندارد.');
       }
 
+      // 2. Bounced Cheque Inquiry
+      const chequeResponse = await fetch(
+        'https://service.zohal.io/api/v0/services/inquiry/bounced_cheque',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer 0c23148ee07366592d9fc19dd8bb1528c2a0f1bb',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            national_code: cleanNationalCode,
+            nationality_type: 1,
+          }),
+        },
+      );
+
+      if (!chequeResponse.ok) {
+        throw badRequest(`ارتباط با سامانه استعلام چک برگشتی ناموفق بود (${chequeResponse.status})`);
+      }
+
+      const chequeData = await chequeResponse.json();
+      const chequeFirst = Array.isArray(chequeData) ? chequeData[0] : chequeData;
+      // Zohal payload might be nested depending on gateway wrapping
+      const chequeCount = chequeFirst?.response_body?.data?.count ?? chequeFirst?.data?.result?.response_body?.data?.count ?? 0;
+
+      if (chequeCount > 0) {
+        throw badRequest(`کد ملی وارد شده دارای ${chequeCount} چک برگشتی است و امکان تأیید حساب وجود ندارد.`);
+      }
+
       const current = req.currentUser!;
       let updatedUser: UserDTO;
       try {
