@@ -80,7 +80,7 @@ export function CrmChatPage() {
         
         {/* Sidebar */}
         <div style={{ width: '320px', backgroundColor: 'var(--tamas-surface)', borderRadius: '12px', border: '1px solid var(--tamas-border)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '1rem', borderBottom: '1px solid var(--tamas-border)', fontWeight: 'bold', backgroundColor: 'var(--tamas-bg-elevated)' }}>
+          <div style={{ padding: '1rem', borderBottom: '1px solid var(--tamas-border)', fontWeight: 'bold', backgroundColor: 'var(--tamas-surface)' }}>
             مکالمات
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -98,11 +98,11 @@ export function CrmChatPage() {
                     borderBottom: '1px solid var(--tamas-border)',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
-                    backgroundColor: activeConvId === c.id ? 'var(--tamas-primary-muted)' : 'transparent',
-                    borderRight: activeConvId === c.id ? '3px solid var(--tamas-primary)' : '3px solid transparent',
+                    backgroundColor: activeConvId === c.id ? 'var(--tamas-info-bg)' : 'transparent',
+                    borderRight: activeConvId === c.id ? '3px solid var(--tamas-accent)' : '3px solid transparent',
                   }}
                 >
-                  <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', color: activeConvId === c.id ? 'var(--tamas-primary)' : 'var(--tamas-fg)' }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', color: activeConvId === c.id ? 'var(--tamas-accent)' : 'var(--tamas-fg)' }}>
                     {c.first_name} {c.last_name}
                   </div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--tamas-fg-muted)' }}>
@@ -126,7 +126,7 @@ export function CrmChatPage() {
           ) : (
             <>
               {/* Header */}
-              <div style={{ padding: '1rem', borderBottom: '1px solid var(--tamas-border)', backgroundColor: 'var(--tamas-bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ padding: '1rem', borderBottom: '1px solid var(--tamas-border)', backgroundColor: 'var(--tamas-surface)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ fontWeight: 'bold' }}>
                   {conversations.find(c => c.id === activeConvId)?.first_name} {conversations.find(c => c.id === activeConvId)?.last_name}
                 </div>
@@ -147,8 +147,8 @@ export function CrmChatPage() {
                     return (
                       <div key={m.id} style={{ alignSelf: isAgent ? 'flex-end' : 'flex-start', maxWidth: '75%', display: 'flex', flexDirection: 'column' }}>
                         <div style={{ 
-                          backgroundColor: isAgent ? 'var(--tamas-primary)' : 'var(--tamas-bg)', 
-                          color: isAgent ? 'var(--tamas-primary-fg)' : 'var(--tamas-fg)',
+                          backgroundColor: isAgent ? 'var(--tamas-accent)' : 'var(--tamas-bg)', 
+                          color: isAgent ? '#ffffff' : 'var(--tamas-fg)',
                           padding: '0.75rem 1.25rem', 
                           borderRadius: '16px',
                           borderBottomRightRadius: isAgent ? '4px' : '16px',
@@ -170,7 +170,7 @@ export function CrmChatPage() {
               </div>
 
               {/* Input Area */}
-              <div style={{ padding: '1rem', borderTop: '1px solid var(--tamas-border)', backgroundColor: 'var(--tamas-bg-elevated)' }}>
+              <div style={{ padding: '1rem', borderTop: '1px solid var(--tamas-border)', backgroundColor: 'var(--tamas-surface)' }}>
                 <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.75rem' }}>
                   <input 
                     type="text" 
