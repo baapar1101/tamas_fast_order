@@ -558,6 +558,58 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       };
     },
   );
+
+  /**
+   * CRM Web Chat Proxy Routes
+   */
+  const chatApiPrefix = '/crm/chat';
+  
+  app.get(`${chatApiPrefix}/conversations`, { preHandler: [app.requirePermission('manage_settings')] }, async (req, reply) => {
+    const config = await getCrmConfig();
+    if (!config.apiBase || !config.apiKey) return reply.status(400).send({ ok: false, error: 'CRM not configured' });
+    const url = `${config.apiBase.replace(/\/$/, '')}/api/v1/crm/businesses/${config.businessId}/chat/conversations`;
+    const res = await fetch(url, { headers: { 'Authorization': `ApiKey ${config.apiKey}` } });
+    const data = await res.json();
+    return reply.status(res.status).send(data);
+  });
+
+  app.get(`${chatApiPrefix}/conversations/:id/messages`, { preHandler: [app.requirePermission('manage_settings')] }, async (req, reply) => {
+    const config = await getCrmConfig();
+    const { id } = req.params as { id: string };
+    if (!config.apiBase || !config.apiKey) return reply.status(400).send({ ok: false, error: 'CRM not configured' });
+    const url = `${config.apiBase.replace(/\/$/, '')}/api/v1/crm/businesses/${config.businessId}/chat/conversations/${id}/messages`;
+    const res = await fetch(url, { headers: { 'Authorization': `ApiKey ${config.apiKey}` } });
+    const data = await res.json();
+    return reply.status(res.status).send(data);
+  });
+
+  app.post(`${chatApiPrefix}/conversations/:id/messages`, { preHandler: [app.requirePermission('manage_settings')] }, async (req, reply) => {
+    const config = await getCrmConfig();
+    const { id } = req.params as { id: string };
+    if (!config.apiBase || !config.apiKey) return reply.status(400).send({ ok: false, error: 'CRM not configured' });
+    const url = `${config.apiBase.replace(/\/$/, '')}/api/v1/crm/businesses/${config.businessId}/chat/conversations/${id}/messages`;
+    const res = await fetch(url, { 
+      method: 'POST',
+      headers: { 'Authorization': `ApiKey ${config.apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    const data = await res.json();
+    return reply.status(res.status).send(data);
+  });
+  
+  app.patch(`${chatApiPrefix}/conversations/:id`, { preHandler: [app.requirePermission('manage_settings')] }, async (req, reply) => {
+    const config = await getCrmConfig();
+    const { id } = req.params as { id: string };
+    if (!config.apiBase || !config.apiKey) return reply.status(400).send({ ok: false, error: 'CRM not configured' });
+    const url = `${config.apiBase.replace(/\/$/, '')}/api/v1/crm/businesses/${config.businessId}/chat/conversations/${id}`;
+    const res = await fetch(url, { 
+      method: 'PATCH',
+      headers: { 'Authorization': `ApiKey ${config.apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    const data = await res.json();
+    return reply.status(res.status).send(data);
+  });
 };
 
 export default routes;

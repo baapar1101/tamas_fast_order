@@ -26,6 +26,7 @@ import { GraphifyPage } from './pages/GraphifyPage';
 import { ArchifyPage } from './pages/ArchifyPage';
 import { AccessGroupsPage } from './pages/AccessGroupsPage';
 import { SmsPage } from './pages/SmsPage';
+import { CrmChatPage } from './pages/CrmChatPage';
 import { SmokeyBackground } from './components/SmokeyBackground';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
@@ -149,6 +150,16 @@ const NAV_MAIN = [
       </svg>
     ),
     requiredPermission: 'manage_settings',
+  },
+  {
+    to: '/admin/chat',
+    label: 'چت مشتریان',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_orders',
   },
   {
     to: '/admin/slides',
@@ -771,6 +782,7 @@ export default function AdminApp() {
             <Route path="graphify" element={<GraphifyPage />} />
             <Route path="archify" element={<ArchifyPage />} />
             <Route path="access-groups" element={<AccessGroupsPage />} />
+            <Route path="chat" element={<CrmChatPage />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
             </Routes>
           </div>
