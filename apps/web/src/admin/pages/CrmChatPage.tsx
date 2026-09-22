@@ -5,10 +5,14 @@ import { api } from '../../lib/api';
 
 interface Conversation {
   id: number;
-  first_name: string;
-  last_name: string;
-  email: string | null;
-  phone: string | null;
+  first_name?: string;
+  last_name?: string;
+  email?: string | null;
+  phone?: string | null;
+  visitor_first_name?: string;
+  visitor_last_name?: string;
+  visitor_phone?: string;
+  visitor_email?: string;
   status: string;
   created_at: string;
 }
@@ -103,10 +107,11 @@ export function CrmChatPage() {
                   }}
                 >
                   <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', color: activeConvId === c.id ? 'var(--a-brand)' : 'var(--a-t1)' }}>
-                    {c.first_name} {c.last_name}
+                    {c.first_name || c.visitor_first_name} {c.last_name || c.visitor_last_name}
+                    {!(c.first_name || c.visitor_first_name) && 'کاربر ناشناس'}
                   </div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--a-t4)' }}>
-                    {c.phone || c.email || 'بدون اطلاعات تماس'}
+                    {c.phone || c.visitor_phone || c.email || c.visitor_email || 'بدون اطلاعات تماس'}
                   </div>
                 </div>
               ))
@@ -128,7 +133,13 @@ export function CrmChatPage() {
               {/* Header */}
               <div style={{ padding: '1rem', borderBottom: '1px solid var(--a-border)', backgroundColor: 'var(--a-surface)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ fontWeight: 'bold' }}>
-                  {conversations.find(c => c.id === activeConvId)?.first_name} {conversations.find(c => c.id === activeConvId)?.last_name}
+                  {(() => {
+                    const c = conversations.find(x => x.id === activeConvId);
+                    if (!c) return '';
+                    const f = c.first_name || c.visitor_first_name;
+                    const l = c.last_name || c.visitor_last_name;
+                    return (f || l) ? `${f || ''} ${l || ''}` : 'کاربر ناشناس';
+                  })()}
                 </div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--a-t4)' }}>
                   شناسه مکالمه: {activeConvId}

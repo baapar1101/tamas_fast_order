@@ -570,6 +570,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
     const url = `${config.apiBase.replace(/\/$/, '')}/api/v1/crm/businesses/${config.businessId}/chat/conversations`;
     const res = await fetch(url, { headers: { 'Authorization': `ApiKey ${config.apiKey}` } });
     const data = await res.json();
+    console.log('CRM CHAT CONVS:', JSON.stringify(data.items?.[0] || data.data?.[0] || data[0], null, 2));
     return reply.status(res.status).send(data);
   });
 
