@@ -29,6 +29,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
 
   const [address, setAddress] = useState('');
   const [note, setNote] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('online');
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -52,6 +53,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
         items: lines.map((l) => ({ productId: l.productId, warehouse: l.warehouse, qty: l.qty })),
         address: address.trim() || undefined,
         note: note.trim() || undefined,
+        paymentMethod,
       });
       clear();
       setAddress('');
@@ -128,6 +130,39 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
         <div className="field">
           <label htmlFor="co-note">توضیحات (اختیاری)</label>
           <input id="co-note" className="input" value={note} onChange={(e) => setNote(e.target.value)} />
+        </div>
+
+        <div className="field">
+          <label>روش پرداخت و تسویه حساب</label>
+          <div style={{ display: 'grid', gap: '8px', marginTop: '4px' }}>
+            {[
+              { id: 'online', label: 'پرداخت نقدی / آنلاین (سریع‌ترین ارسال)', desc: 'تسویه از طریق درگاه یا واریز مستقیم به حساب' },
+              { id: 'credit_weekly', label: 'اعتباری هفتگی', desc: 'تسویه پنجشنبه‌ها (نیاز به تأیید واحد مالی)' },
+              { id: 'check_2_month', label: 'چکی دو ماهه', desc: 'با ارائه چک صیادی و ثبت قرارداد' },
+              { id: 'check_4_month', label: 'چکی چهار ماهه', desc: 'مخصوص سفارشات عمده (با تأیید مالی)' },
+            ].map(method => (
+              <label key={method.id} style={{
+                display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '12px',
+                border: paymentMethod === method.id ? '2px solid var(--primary)' : '1px solid var(--border)',
+                borderRadius: '10px', cursor: 'pointer', background: paymentMethod === method.id ? 'var(--primary-light)' : 'var(--card)'
+              }}>
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value={method.id}
+                  checked={paymentMethod === method.id}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  style={{ marginTop: '4px', width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span style={{ fontWeight: 600, fontSize: '14px', color: paymentMethod === method.id ? 'var(--primary-dark)' : 'var(--text)' }}>
+                    {method.label}
+                  </span>
+                  <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{method.desc}</span>
+                </div>
+              </label>
+            ))}
+          </div>
         </div>
 
         <div className="table-wrap">
