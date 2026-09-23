@@ -55,7 +55,7 @@ export const uploadKindEnum = pgEnum('upload_kind', [
   'other',
 ]);
 export const syncSideEnum = pgEnum('sync_side', ['db', 'sheet']);
-export const paymentGatewayEnum = pgEnum('payment_gateway', ['zarinpal', 'mellat', 'saman', 'pasargad', 'card_to_card']);
+export const paymentGatewayEnum = pgEnum('payment_gateway', ['zarinpal', 'mellat', 'saman', 'pasargad', 'card_to_card', 'aqayepardakht']);
 export const paymentTransactionStatusEnum = pgEnum('payment_transaction_status', ['pending', 'success', 'failed']);
 export const commentStatusEnum = pgEnum('comment_status', ['pending', 'approved', 'rejected']);
 export const crmSyncEntityEnum = pgEnum('crm_sync_entity', ['order', 'product', 'person', 'chat_message']);

@@ -1,0 +1,1 @@
+ALTER TYPE "public"."payment_gateway" ADD VALUE 'aqayepardakht';

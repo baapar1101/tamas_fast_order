@@ -57,6 +57,13 @@
       "when": 1790092516545,
       "tag": "0007_lame_kitty_pryde",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790180424285,
+      "tag": "0008_bumpy_miss_america",
+      "breakpoints": true
     }
   ]
 }

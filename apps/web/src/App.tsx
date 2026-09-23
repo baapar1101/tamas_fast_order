@@ -7,6 +7,8 @@ import { ProductPage } from './storefront/ProductPage';
 import { TermsPage } from './storefront/TermsPage';
 import { OrdersPage } from './storefront/OrdersPage';
 
+import { PaymentResultPage } from './storefront/PaymentResultPage';
+
 /*
  * The admin panel is a lazy chunk. A shopper on a phone never downloads the
  * tables, editors and charts that only a manager needs.
@@ -69,6 +71,7 @@ export function App() {
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/p/:productId" element={<ProductPage />} />
+        <Route path="/payment/result" element={<PaymentResultPage />} />
         <Route
           path="/admin/*"
           element={

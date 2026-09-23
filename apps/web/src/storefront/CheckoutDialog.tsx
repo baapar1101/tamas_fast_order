@@ -29,7 +29,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
 
   const [address, setAddress] = useState('');
   const [note, setNote] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('online');
+  const [paymentMethod, setPaymentMethod] = useState('aqayepardakht');
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -59,6 +59,18 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
       setAddress('');
       setNote('');
       setAgreeTerms(false);
+      
+      if (paymentMethod === 'aqayepardakht') {
+        toast.ok('سفارش ثبت شد، در حال انتقال به درگاه پرداخت...');
+        const paymentRes = await api.post<{ok: boolean, url: string}>('/payment/create', {
+          orderId: res.order.id,
+        });
+        if (paymentRes.url) {
+           window.location.href = paymentRes.url;
+           return;
+        }
+      }
+
       toast.ok(res.message);
       onClose();
     } catch (err) {
@@ -136,7 +148,8 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
           <label>روش پرداخت و تسویه حساب</label>
           <div style={{ display: 'grid', gap: '8px', marginTop: '4px' }}>
             {[
-              { id: 'online', label: 'پرداخت نقدی / آنلاین (سریع‌ترین ارسال)', desc: 'تسویه از طریق درگاه یا واریز مستقیم به حساب' },
+              { id: 'aqayepardakht', label: 'پرداخت آنلاین (درگاه بانکی)', desc: 'تسویه از طریق درگاه امن بانکی و تایید آنی سفارش' },
+              { id: 'online', label: 'کارت به کارت / واریز به حساب', desc: 'تسویه به صورت دستی و ثبت فیش در واتساپ' },
               { id: 'credit_weekly', label: 'اعتباری هفتگی', desc: 'تسویه پنجشنبه‌ها (نیاز به تأیید واحد مالی)' },
               { id: 'check_2_month', label: 'چکی دو ماهه', desc: 'با ارائه چک صیادی و ثبت قرارداد' },
               { id: 'check_4_month', label: 'چکی چهار ماهه', desc: 'مخصوص سفارشات عمده (با تأیید مالی)' },

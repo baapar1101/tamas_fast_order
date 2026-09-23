@@ -29,6 +29,7 @@ import { smsRoutes } from './routes/admin/sms.js';
 import authRoutes from './routes/auth.js';
 import catalogRoutes from './routes/catalog.js';
 import orderRoutes from './routes/orders.js';
+import paymentRoutes from './routes/payment.js';
 import crmRoutes from './routes/crm.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -131,6 +132,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(catalogRoutes);
         await api.register(authRoutes);
         await api.register(orderRoutes);
+        await api.register(paymentRoutes);
         await api.register(adminDashboard);
         await api.register(adminProducts);
         await api.register(adminTaxonomy);
