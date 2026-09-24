@@ -5,7 +5,7 @@ import { db } from '../db/client.js';
 import { orders, payments } from '../db/schema.js';
 import { badRequest, notFound } from '../lib/errors.js';
 // @ts-ignore
-import paymentGateway from '../../../../payment/index.js';
+import paymentGateway from '@tamas/payment';
 import { env } from '../env.js';
 
 const routes: FastifyPluginAsync = async (app) => {

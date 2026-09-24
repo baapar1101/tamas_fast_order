@@ -28,6 +28,7 @@
     "@fastify/multipart": "^9.0.3",
     "@fastify/rate-limit": "^10.2.2",
     "@fastify/static": "^8.0.4",
+    "@tamas/payment": "*",
     "@tamas/shared": "*",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.38.3",
