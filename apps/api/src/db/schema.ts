@@ -59,12 +59,13 @@ export const paymentGatewayEnum = pgEnum('payment_gateway', ['zarinpal', 'mellat
 export const paymentTransactionStatusEnum = pgEnum('payment_transaction_status', ['pending', 'success', 'failed']);
 export const commentStatusEnum = pgEnum('comment_status', ['pending', 'approved', 'rejected']);
 export const creditStatusEnum = pgEnum('credit_status', ['pending', 'reviewing', 'active', 'action_required']);
+export const chequeStatusEnum = pgEnum('cheque_status', ['pending', 'passed', 'bounced', 'returned']);
 export const crmSyncEntityEnum = pgEnum('crm_sync_entity', ['order', 'product', 'person', 'chat_message']);
 export const crmSyncActionEnum = pgEnum('crm_sync_action', ['create', 'update', 'delete', 'sync']);
 export const crmSyncStatusEnum = pgEnum('crm_sync_status', ['success', 'error', 'pending', 'skipped']);
 
 /* ------------------------------------------------------------------ *
- * Credit Applications
+ * Credit Applications & Cheques
  * ------------------------------------------------------------------ */
 
 export const creditApplications = pgTable(
@@ -97,6 +98,40 @@ export const creditApplications = pgTable(
 
 export const creditApplicationsRelations = relations(creditApplications, ({ one }) => ({
   user: one(users, { fields: [creditApplications.userId], references: [users.id] }),
+}));
+
+export const creditCheques = pgTable(
+  'credit_cheques',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    creditApplicationId: integer('credit_application_id')
+      .references(() => creditApplications.id, { onDelete: 'set null' }),
+    orderId: integer('order_id')
+      .references(() => orders.id, { onDelete: 'set null' }),
+    chequeNumber: varchar('cheque_number', { length: 80 }).notNull(),
+    bankName: varchar('bank_name', { length: 120 }).notNull(),
+    accountHolder: varchar('account_holder', { length: 160 }).notNull(),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    dueDate: varchar('due_date', { length: 30 }).notNull(),
+    status: chequeStatusEnum('status').notNull().default('pending'),
+    imageUrl: text('image_url'),
+    notes: text('notes'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('credit_cheques_user_idx').on(t.userId),
+    index('credit_cheques_status_idx').on(t.status),
+    index('credit_cheques_due_date_idx').on(t.dueDate),
+  ],
+);
+
+export const creditChequesRelations = relations(creditCheques, ({ one }) => ({
+  user: one(users, { fields: [creditCheques.userId], references: [users.id] }),
+  creditApplication: one(creditApplications, { fields: [creditCheques.creditApplicationId], references: [creditApplications.id] }),
 }));
 
 

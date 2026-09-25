@@ -1,4 +1,4 @@
-import type { CreditStatus, OrderStatus, UploadKind, Warehouse } from './schemas.js';
+import type { ChequeStatus, CreditStatus, OrderStatus, UploadKind, Warehouse } from './schemas.js';
 
 export interface ApiError {
   ok: false;
@@ -284,4 +284,43 @@ export interface CreditApplicationDTO {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CreditChequeDTO {
+  id: number;
+  userId: number;
+  creditApplicationId: number | null;
+  orderId: number | null;
+  chequeNumber: string;
+  bankName: string;
+  accountHolder: string;
+  amount: number;
+  dueDate: string;
+  status: ChequeStatus;
+  imageUrl: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChequeNotificationDTO {
+  id: string;
+  type: 'due_soon' | 'due_today' | 'overdue' | 'bounced' | 'general';
+  title: string;
+  message: string;
+  daysLeft: number;
+  chequeNumber: string;
+  amount: number;
+  dueDate: string;
+  severity: 'info' | 'warning' | 'danger';
+}
+
+export interface CreditDashboardDTO {
+  application: CreditApplicationDTO | null;
+  totalCreditLimit: number;
+  usedCredit: number;
+  remainingCredit: number;
+  cheques: CreditChequeDTO[];
+  notifications: ChequeNotificationDTO[];
+}
+
 

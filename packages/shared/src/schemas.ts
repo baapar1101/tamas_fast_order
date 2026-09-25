@@ -325,3 +325,36 @@ export const creditApplicationAdminPatchSchema = z.object({
 });
 export type CreditApplicationAdminPatch = z.infer<typeof creditApplicationAdminPatchSchema>;
 
+export const CHEQUE_STATUSES = ['pending', 'passed', 'bounced', 'returned'] as const;
+export type ChequeStatus = (typeof CHEQUE_STATUSES)[number];
+
+export const CHEQUE_STATUS_LABELS: Record<ChequeStatus, string> = {
+  pending: 'در انتظار سررسید',
+  passed: 'پاس شده',
+  bounced: 'برگشتی',
+  returned: 'عودت داده شده',
+};
+
+export const creditChequeWriteSchema = z.object({
+  chequeNumber: z.string().trim().min(3, 'شماره چک/صیادی را وارد کنید'),
+  bankName: z.string().trim().min(2, 'نام بانک را وارد کنید'),
+  accountHolder: z.string().trim().min(2, 'نام صاحب حساب را وارد کنید'),
+  amount: z.coerce.number().int().min(1000, 'مبلغ چک را وارد کنید'),
+  dueDate: z.string().trim().min(8, 'تاریخ سررسید چک الزامی است'),
+  imageUrl: z.string().trim().optional().nullable(),
+  notes: z.string().trim().optional().nullable(),
+});
+export type CreditChequeWrite = z.infer<typeof creditChequeWriteSchema>;
+
+export const creditChequePatchSchema = z.object({
+  status: z.enum(CHEQUE_STATUSES).optional(),
+  chequeNumber: z.string().trim().optional(),
+  bankName: z.string().trim().optional(),
+  accountHolder: z.string().trim().optional(),
+  amount: z.coerce.number().int().min(0).optional(),
+  dueDate: z.string().trim().optional(),
+  notes: z.string().trim().optional().nullable(),
+});
+export type CreditChequePatch = z.infer<typeof creditChequePatchSchema>;
+
+

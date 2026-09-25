@@ -117,6 +117,101 @@ export const adminCreditRoutes: FastifyPluginAsync = async (app) => {
       },
     });
   });
+
+  // Admin list all customer cheques
+  app.get('/admin/credit-cheques', async (_req, reply) => {
+    const list = await db
+      .select({
+        id: schema.creditCheques.id,
+        userId: schema.creditCheques.userId,
+        userName: schema.users.name,
+        userLastName: schema.users.lastName,
+        userPhone: schema.users.phone,
+        userStoreName: schema.users.storeName,
+        creditApplicationId: schema.creditCheques.creditApplicationId,
+        orderId: schema.creditCheques.orderId,
+        chequeNumber: schema.creditCheques.chequeNumber,
+        bankName: schema.creditCheques.bankName,
+        accountHolder: schema.creditCheques.accountHolder,
+        amount: schema.creditCheques.amount,
+        dueDate: schema.creditCheques.dueDate,
+        status: schema.creditCheques.status,
+        imageUrl: schema.creditCheques.imageUrl,
+        notes: schema.creditCheques.notes,
+        createdAt: schema.creditCheques.createdAt,
+        updatedAt: schema.creditCheques.updatedAt,
+      })
+      .from(schema.creditCheques)
+      .innerJoin(schema.users, eq(schema.creditCheques.userId, schema.users.id))
+      .orderBy(desc(schema.creditCheques.createdAt));
+
+    const formatted = list.map((item) => ({
+      id: item.id,
+      userId: item.userId,
+      userName: `${item.userName || ''} ${item.userLastName || ''}`.trim() || 'کاربر',
+      userPhone: item.userPhone,
+      userStoreName: item.userStoreName || '',
+      creditApplicationId: item.creditApplicationId,
+      orderId: item.orderId,
+      chequeNumber: item.chequeNumber,
+      bankName: item.bankName,
+      accountHolder: item.accountHolder,
+      amount: Number(item.amount),
+      dueDate: item.dueDate,
+      status: item.status,
+      imageUrl: item.imageUrl,
+      notes: item.notes,
+      createdAt: item.createdAt.toISOString(),
+      updatedAt: item.updatedAt.toISOString(),
+    }));
+
+    return reply.send({ ok: true, items: formatted });
+  });
+
+  // Admin update cheque status (pending, passed, bounced, returned)
+  app.patch('/admin/credit-cheques/:id/status', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const numericId = Number(id);
+    if (isNaN(numericId)) throw badRequest('شناسه چک معتبر نیست.');
+
+    const body = req.body as { status: 'pending' | 'passed' | 'bounced' | 'returned'; notes?: string };
+    if (!['pending', 'passed', 'bounced', 'returned'].includes(body.status)) {
+      throw badRequest('وضعیت چک معتبر نیست.');
+    }
+
+    const [updated] = await db
+      .update(schema.creditCheques)
+      .set({
+        status: body.status,
+        notes: body.notes !== undefined ? body.notes : undefined,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.creditCheques.id, numericId))
+      .returning();
+
+    if (!updated) throw notFound('چک یافت نشد.');
+
+    return reply.send({
+      ok: true,
+      cheque: {
+        id: updated.id,
+        userId: updated.userId,
+        creditApplicationId: updated.creditApplicationId,
+        orderId: updated.orderId,
+        chequeNumber: updated.chequeNumber,
+        bankName: updated.bankName,
+        accountHolder: updated.accountHolder,
+        amount: Number(updated.amount),
+        dueDate: updated.dueDate,
+        status: updated.status,
+        imageUrl: updated.imageUrl,
+        notes: updated.notes,
+        createdAt: updated.createdAt.toISOString(),
+        updatedAt: updated.updatedAt.toISOString(),
+      },
+    });
+  });
 };
 
 export default adminCreditRoutes;
+
