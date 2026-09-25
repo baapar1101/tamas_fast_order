@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { UserDTO } from '@tamas/shared';
-import { PROFILE_FIELD_LABELS, formatNumber, isValidPhone, normalizePhone, toAsciiDigits } from '@tamas/shared';
+import type { CreditApplicationDTO, UserDTO } from '@tamas/shared';
+import { PROFILE_FIELD_LABELS, formatMoney, formatNumber, isValidPhone, normalizePhone, toAsciiDigits } from '@tamas/shared';
 import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { ApiRequestError, api } from '../lib/api';
@@ -13,6 +13,7 @@ interface Props {
   open: boolean;
   initialStep?: Step;
   onClose: () => void;
+  onOpenCredit?: () => void;
   /** Called once the user is signed in *and* has a complete profile. */
   onReady?: () => void;
 }
@@ -59,7 +60,7 @@ const emptyProfile = (user: UserDTO | null): ProfileForm => ({
   certificateFileUrl: user?.certificateFileUrl ?? '',
 });
 
-export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Props) {
+export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit, onReady }: Props) {
   const toast = useToast();
   const { user, complete, missing, applyLogin, applyProfile, logout } = useAuth();
 
@@ -79,6 +80,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
   const [verifiedInfo, setVerifiedInfo] = useState<{ firstName?: string; lastName?: string; fatherName?: string } | null>(
     user?.isVerifiedIdentity ? { firstName: user.name, lastName: user.lastName, fatherName: user.fatherName } : null,
   );
+  const [creditApp, setCreditApp] = useState<CreditApplicationDTO | null>(null);
 
   // Reopening the dialog must not show whatever was left on screen last time.
   useEffect(() => {
@@ -94,6 +96,13 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
       setVerifiedInfo(user.isVerifiedIdentity ? { firstName: user.name, lastName: user.lastName, fatherName: user.fatherName } : null);
       setStep(complete ? (initialStep === 'profile' ? 'profile' : 'account') : 'profile');
       setInvalid(complete ? [] : missing);
+
+      api
+        .get<{ ok: true; application: CreditApplicationDTO | null }>('/credit/my-application')
+        .then((res) => {
+          if (res.ok) setCreditApp(res.application);
+        })
+        .catch(() => {});
     } else {
       setStep('phone');
     }
@@ -101,7 +110,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
 
   useEffect(() => {
     if (cooldown <= 0) return undefined;
-    timerRef.current = window.setInterval(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
+    timerRef.current = window.setInterval(() => setCooldown((c: number) => Math.max(0, c - 1)), 1000);
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
     };
@@ -190,7 +199,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
       });
 
       applyProfile({ user: res.user, complete: true, missing: [] });
-      setForm((prev) => ({
+      setForm((prev: ProfileForm) => ({
         ...prev,
         name: res.identity.firstName || prev.name || '',
         lastName: res.identity.lastName || prev.lastName || '',
@@ -448,9 +457,60 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
                   {user.isActive ? 'تایید شده' : 'در انتظار تایید'}
                 </span>
               </div>
+              <div className="row">
+                <span className="muted">وضعیت اعتبارسنجی</span>
+                <span className="spacer" />
+                {creditApp ? (
+                  <span
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      backgroundColor:
+                        creditApp.status === 'active'
+                          ? '#dcfce7'
+                          : creditApp.status === 'action_required'
+                          ? '#fee2e2'
+                          : '#fef3c7',
+                      color:
+                        creditApp.status === 'active'
+                          ? '#15803d'
+                          : creditApp.status === 'action_required'
+                          ? '#dc2626'
+                          : '#d97706',
+                    }}
+                  >
+                    ● {creditApp.status === 'active'
+                        ? 'تأیید شده'
+                        : creditApp.status === 'action_required'
+                        ? 'رد شده (نیازمند اصلاح)'
+                        : 'در حال بررسی'}
+                  </span>
+                ) : (
+                  <span className="muted" style={{ fontSize: '12px' }}>ثبت نشده</span>
+                )}
+              </div>
+              {creditApp?.status === 'active' && creditApp.assignedCreditLimit > 0 && (
+                <div className="row">
+                  <span className="muted">سقف اعتبار خرید</span>
+                  <span className="spacer" />
+                  <b style={{ color: 'var(--tamas-accent)' }}>{formatMoney(creditApp.assignedCreditLimit)}</b>
+                </div>
+              )}
             </div>
           </div>
 
+          <button
+            type="button"
+            className="btn primary block"
+            onClick={() => {
+              onClose();
+              if (onOpenCredit) onOpenCredit();
+            }}
+          >
+            💳 {creditApp ? 'مدیریت و تضامین پرونده اعتباری' : 'درخواست فعال‌سازی پنل اعتباری'}
+          </button>
           <button type="button" className="btn block" onClick={() => setStep('profile')}>
             ویرایش اطلاعات
           </button>

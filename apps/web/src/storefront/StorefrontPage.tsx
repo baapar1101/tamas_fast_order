@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import type { ProductDTO, Warehouse } from '@tamas/shared';
+import type { CreditApplicationDTO, ProductDTO, Warehouse } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { useToast } from '../components/Toast';
+import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { cartCount, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
@@ -72,6 +73,7 @@ export function StorefrontPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [creditOpen, setCreditOpen] = useState(false);
+  const [userCreditApp, setUserCreditApp] = useState<CreditApplicationDTO | null>(null);
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const [category, setCategory] = useState<string | null>(searchParams.get('cat') || null);
   const [brands, setBrands] = useState<string[]>(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
@@ -248,6 +250,20 @@ export function StorefrontPage() {
     }
   }, [user]);
 
+  // Fetch user credit application status for header & profile dropdown
+  useEffect(() => {
+    if (!user) {
+      setUserCreditApp(null);
+      return;
+    }
+    api
+      .get<{ ok: true; application: CreditApplicationDTO | null }>('/credit/my-application')
+      .then((res) => {
+        if (res.ok) setUserCreditApp(res.application);
+      })
+      .catch(() => {});
+  }, [user, creditOpen]);
+
   const groups = products.data?.groups ?? [];
   const total = products.data?.total ?? 0;
   const perPage = products.data?.perPage ?? 24;
@@ -355,9 +371,54 @@ export function StorefrontPage() {
                   <button
                     type="button"
                     onClick={() => setCreditOpen(true)}
-                    style={{ width: '100%', textAlign: 'right', padding: '10px 16px', borderRadius: '8px', color: 'var(--tamas-accent)', backgroundColor: 'transparent', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    style={{
+                      width: '100%',
+                      textAlign: 'right',
+                      padding: '10px 16px',
+                      borderRadius: '8px',
+                      color: 'var(--tamas-accent)',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '8px',
+                    }}
                   >
-                    💳 درخواست پنل اعتباری
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      💳 پرونده اعتباری
+                    </span>
+                    {userCreditApp && (
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          padding: '3px 8px',
+                          borderRadius: '12px',
+                          backgroundColor:
+                            userCreditApp.status === 'active'
+                              ? '#dcfce7'
+                              : userCreditApp.status === 'action_required'
+                              ? '#fee2e2'
+                              : '#fef3c7',
+                          color:
+                            userCreditApp.status === 'active'
+                              ? '#15803d'
+                              : userCreditApp.status === 'action_required'
+                              ? '#dc2626'
+                              : '#d97706',
+                        }}
+                      >
+                        ● {userCreditApp.status === 'active'
+                          ? 'تأیید شده'
+                          : userCreditApp.status === 'action_required'
+                          ? 'رد شده'
+                          : 'در حال بررسی'}
+                      </span>
+                    )}
                   </button>
                   {isAdmin && (
                     <Link to="/admin" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--tamas-admin-emerald)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
@@ -749,6 +810,7 @@ export function StorefrontPage() {
         open={authOpen}
         initialStep={authStep}
         onClose={() => setAuthOpen(false)}
+        onOpenCredit={() => setCreditOpen(true)}
         onReady={() => {
           if (lines.length > 0) setCheckoutOpen(true);
         }}
