@@ -400,7 +400,11 @@ export function ProductPage() {
                     <div key={wh} className="warehouse-row pp-wh-row">
                       <div className="wh-details">
                         <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
-                        {n === 1 && <span className="wh-count"><b className="stock-warn">تنها ۱ عدد باقیست!</b></span>}
+                        {n === 1 && (
+                          <span className="wh-count">
+                            <b className="stock-warn">تنها ۱ عدد باقیست!</b>
+                          </span>
+                        )}
                       </div>
                       <span className="pp-stock-inline">موجودی: {formatNumber(n)}</span>
                       {qty > 0 ? (

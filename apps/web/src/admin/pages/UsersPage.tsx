@@ -270,16 +270,16 @@ export function UsersPage() {
 
       {/* Edit Role Modal */}
       {editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
-          <div className="a-card w-full max-w-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 overflow-y-auto">
+          <div className="a-card w-full max-w-md">
             <div className="a-card-head">
               <h3 className="a-card-title">تغییر نقش کاربر</h3>
             </div>
-            <p className="a-hint">
-              کاربر: <span className="font-bold">{editingUser.name} {editingUser.lastName}</span>
+            <p className="a-hint mb-4">
+              کاربر: <span className="font-bold text-[var(--a-t1)]">{editingUser.name} {editingUser.lastName} ({editingUser.phone})</span>
             </p>
             <div className="a-form-grid">
-              <div className="a-field">
+              <div className="a-field a-span-2">
                 <label className="a-label" htmlFor="edit-role">نقش کاربر</label>
                 <AnimatedDropdown
                   id="edit-role"
@@ -294,7 +294,7 @@ export function UsersPage() {
               </div>
 
               {editRole === 'operator' && (
-                <div className="a-field">
+                <div className="a-field a-span-2">
                   <label className="a-label" htmlFor="edit-access-group">گروه دسترسی</label>
                   <AnimatedDropdown
                     id="edit-access-group"
@@ -310,7 +310,7 @@ export function UsersPage() {
               )}
             </div>
 
-            <div className="a-actions a-actions--end">
+            <div className="a-actions a-actions--end mt-6">
               <button type="button" className="a-btn a-btn--secondary" onClick={() => setEditingUser(null)}>
                 انصراف
               </button>

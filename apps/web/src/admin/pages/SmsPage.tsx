@@ -61,11 +61,19 @@ function enabledKeyFor(def: SmsEventDef): string {
   return `sms_enabled_${def.key}`;
 }
 
+function getInitialDrafts(): Record<string, string> {
+  const initial: Record<string, string> = {};
+  for (const def of ALL_EVENTS) {
+    initial[def.templateKey] = def.placeholder;
+  }
+  return initial;
+}
+
 export function SmsPage() {
   const toast = useToast();
   const qc = useQueryClient();
 
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [drafts, setDrafts] = useState<Record<string, string>>(getInitialDrafts);
   const [toggles, setToggles] = useState<Record<string, boolean>>({});
   const [testPhone, setTestPhone] = useState('');
 
@@ -81,7 +89,8 @@ export function SmsPage() {
     const nextText: Record<string, string> = {};
     const nextToggles: Record<string, boolean> = {};
     for (const def of ALL_EVENTS) {
-      nextText[def.templateKey] = all[def.templateKey] ?? '';
+      const serverVal = all[def.templateKey];
+      nextText[def.templateKey] = serverVal && serverVal.trim() !== '' ? serverVal : def.placeholder;
       nextToggles[def.templateKey] = !FALSY.has((all[enabledKeyFor(def)] ?? '1').trim().toLowerCase());
     }
     setDrafts(nextText);
@@ -92,7 +101,7 @@ export function SmsPage() {
     mutationFn: () => {
       const payload: Record<string, string> = {};
       for (const def of ALL_EVENTS) {
-        payload[def.templateKey] = drafts[def.templateKey] ?? '';
+        payload[def.templateKey] = drafts[def.templateKey] ?? def.placeholder;
         payload[enabledKeyFor(def)] = toggles[def.templateKey] !== false ? '1' : '0';
       }
       return api.put<{ message: string }>('/admin/settings', payload);
@@ -116,13 +125,13 @@ export function SmsPage() {
   });
 
   const savedCount = useMemo(
-    () => ALL_EVENTS.filter((def) => toggles[def.templateKey] !== false && (drafts[def.templateKey] ?? '').trim()).length,
+    () => ALL_EVENTS.filter((def) => toggles[def.templateKey] !== false && (drafts[def.templateKey] ?? def.placeholder).trim()).length,
     [drafts, toggles],
   );
 
   const renderEvent = (def: SmsEventDef, first: boolean) => {
     const enabled = toggles[def.templateKey] !== false;
-    const text = drafts[def.templateKey] ?? '';
+    const text = drafts[def.templateKey] ?? def.placeholder;
     return (
       <div key={def.templateKey} className={`space-y-3 py-4 ${first ? '' : 'border-t border-white/[0.06]'}`}>
         <div className="a-option-row">
@@ -150,9 +159,9 @@ export function SmsPage() {
         </div>
 
         <textarea
-          className="a-textarea"
+          className="a-textarea text-right"
           rows={2}
-          dir="auto"
+          dir="rtl"
           value={text}
           placeholder={def.placeholder}
           disabled={!enabled}

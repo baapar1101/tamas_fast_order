@@ -566,9 +566,10 @@ export function ProductsPage() {
                 <div key={p.id} className="relative flex flex-col bg-[var(--a-field-bg)] border border-[var(--a-border)] rounded-xl overflow-hidden hover:border-[var(--a-border-2)] transition-colors">
                   <div className="relative aspect-square bg-[var(--a-surface-2)] flex items-center justify-center p-4">
                     <img
-                      src={p.imageUrl || '/logo.png'}
+                      src={p.imageUrl ? (p.imageUrl.startsWith('http') || p.imageUrl.startsWith('/') ? p.imageUrl : `/uploads/${p.imageUrl}`) : '/logo.png'}
                       alt={p.title}
                       loading="lazy"
+                      className="w-full h-full object-contain"
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).src = '/logo.png';
                       }}

@@ -186,12 +186,12 @@ export function AccessGroupsPage() {
       {/* Modal */}
       {(isEditing || isCreating) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 overflow-y-auto">
-          <div className="a-card w-full max-w-md">
+          <div className="a-card w-full max-w-xl">
             <div className="a-card-head">
               <h3 className="a-card-title">{isEditing ? 'ویرایش گروه دسترسی' : 'گروه دسترسی جدید'}</h3>
             </div>
             <form onSubmit={handleSave} className="a-form-grid">
-              <div className="a-field">
+              <div className="a-field a-span-2">
                 <label className="a-label" htmlFor="group-name">نام گروه</label>
                 <input
                   id="group-name"
@@ -208,7 +208,7 @@ export function AccessGroupsPage() {
                 </span>
               </div>
 
-              <div className="a-field">
+              <div className="a-field a-span-2">
                 <span className="a-label">سطوح دسترسی</span>
                 <div className="a-option-grid">
                   {AVAILABLE_PERMISSIONS.map((ap) => {

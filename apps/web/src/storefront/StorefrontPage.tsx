@@ -80,11 +80,13 @@ export function StorefrontPage() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'grid');
   const [mobileTab, setMobileTab] = useState<'home' | 'categories' | 'search' | 'cart' | 'profile'>('home');
 
+  const brandsStr = brands.join(',');
+
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
     if (search) params.set('q', search); else params.delete('q');
     if (category) params.set('cat', category); else params.delete('cat');
-    if (brands.length > 0) params.set('brand', brands.join(',')); else params.delete('brand');
+    if (brandsStr) params.set('brand', brandsStr); else params.delete('brand');
     if (promotion) params.set('promo', '1'); else params.delete('promo');
     if (!inStockOnly) params.set('stock', '0'); else params.delete('stock');
     if (sort !== 'price_asc') params.set('sort', sort); else params.delete('sort');
@@ -94,17 +96,34 @@ export function StorefrontPage() {
     if (params.toString() !== searchParams.toString()) {
       setSearchParams(params, { replace: true });
     }
-  }, [search, category, brands, promotion, inStockOnly, sort, page, viewMode, searchParams, setSearchParams]);
+  }, [search, category, brandsStr, promotion, inStockOnly, sort, page, viewMode, searchParams, setSearchParams]);
 
   useEffect(() => {
-    setSearch(searchParams.get('q') || '');
-    setCategory(searchParams.get('cat') || null);
-    setBrands(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
-    setPromotion(searchParams.get('promo') === '1');
-    setInStockOnly(searchParams.get('stock') !== '0');
-    setSort((searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc');
-    setPage(Number(searchParams.get('page')) || 1);
-    setViewMode((searchParams.get('view') as 'list' | 'grid') || 'grid');
+    const q = searchParams.get('q') || '';
+    if (search !== q) setSearch(q);
+
+    const cat = searchParams.get('cat') || null;
+    if (category !== cat) setCategory(cat);
+
+    const brandParam = searchParams.get('brand') || '';
+    if (brands.join(',') !== brandParam) {
+      setBrands(brandParam ? brandParam.split(',') : []);
+    }
+
+    const promo = searchParams.get('promo') === '1';
+    if (promotion !== promo) setPromotion(promo);
+
+    const stock = searchParams.get('stock') !== '0';
+    if (inStockOnly !== stock) setInStockOnly(stock);
+
+    const s = (searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc';
+    if (sort !== s) setSort(s);
+
+    const p = Number(searchParams.get('page')) || 1;
+    if (page !== p) setPage(p);
+
+    const v = (searchParams.get('view') as 'list' | 'grid') || 'grid';
+    if (viewMode !== v) setViewMode(v);
   }, [searchParams]);
 
   const [activeSlide, setActiveSlide] = useState(0);

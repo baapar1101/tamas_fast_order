@@ -295,7 +295,11 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                 <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
                   <div className="wh-details">
                     <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
-                    {n === 1 && <span className="wh-count"><b className="stock-warn">تنها ۱ عدد باقیست!</b></span>}
+                    {n === 1 && (
+                      <span className="wh-count">
+                        <b className="stock-warn">تنها ۱ عدد باقیست!</b>
+                      </span>
+                    )}
                   </div>
                   {qty > 0 ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: '2px 4px' }}>

@@ -87,7 +87,7 @@ export function AnimatedDropdown({
               duration: 0.2,
               ease: 'easeOut',
             }}
-            className="absolute top-[calc(100%+0.3rem)] left-0 z-50 w-full min-w-[150px] overflow-hidden rounded-xl border border-[var(--pp-border)] bg-[var(--pp-bg-card)] shadow-xl"
+            className="absolute top-[calc(100%+0.3rem)] left-0 z-50 w-full min-w-[150px] overflow-hidden rounded-xl border border-[var(--a-border,var(--pp-border,#475569))] bg-[var(--a-dropdown-bg,var(--pp-bg-card,#0f172a))] shadow-2xl backdrop-blur-2xl"
           >
             <motion.div
               initial="hidden"

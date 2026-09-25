@@ -355,6 +355,10 @@ body.admin-page-active .modal-foot {
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
+.a-textarea {
+  direction: rtl;
+  text-align: right;
+}
 .a-input::placeholder, .a-textarea::placeholder { color: var(--a-t4); }
 .a-input:focus, .a-select:focus, .a-textarea:focus {
   border-color: var(--a-brand);
@@ -429,36 +433,33 @@ body.admin-page-active .modal-foot {
 .a-switch[aria-checked='true']::after { transform: translateX(0.9rem); }
 .a-switch[aria-checked='true']:dir(rtl)::after { transform: translateX(-0.9rem); }
 
-/* Checkbox chip grid — used for brand selection */
+/* Checkbox chip grid — used for permission & brand selection */
 .a-option-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
-  max-height: 15.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 0.6rem;
+  max-height: 18rem;
   overflow-y: auto;
   padding-inline-end: 0.2rem;
 }
-@media (min-width: 900px) {
-  .a-option-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
 .a-chip-opt {
   display: flex;
-  align-items: center;
-  gap: 0.55rem;
+  align-items: flex-start;
+  gap: 0.6rem;
   min-width: 0;
-  padding: 0.5rem 0.65rem;
+  padding: 0.6rem 0.75rem;
   border: 1px solid var(--a-border);
-  border-radius: 0.7rem;
+  border-radius: 0.75rem;
   background: var(--a-check-bg);
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 .a-chip-opt:hover { border-color: var(--a-border-2); }
 .a-chip-opt--on { border-color: var(--a-brand); background: var(--a-brand-soft); }
-.a-chip-opt input { accent-color: var(--a-brand); flex: 0 0 auto; }
-.a-chip-opt-copy { display: flex; flex-direction: column; min-width: 0; }
-.a-chip-opt-copy strong { font-size: 0.74rem; color: var(--a-t1); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
-.a-chip-opt-copy small { font-size: 0.62rem; color: var(--a-t4); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+.a-chip-opt input { accent-color: var(--a-brand); flex: 0 0 auto; margin-top: 0.15rem; }
+.a-chip-opt-copy { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.a-chip-opt-copy strong { font-size: 0.78rem; font-weight: 600; color: var(--a-t1); line-height: 1.35; white-space: normal; word-break: break-word; }
+.a-chip-opt-copy small { font-size: 0.68rem; color: var(--a-t4); line-height: 1.35; margin-top: 0.2rem; white-space: normal; word-break: break-word; }
 
 /* ---------------------------------------------------------------------------
    Badges / chips

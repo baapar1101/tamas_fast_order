@@ -1570,10 +1570,28 @@
   gap: 6px;
 }
 
+.wh-details {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .wh-badge {
   font-size: 12px;
   color: var(--text-muted);
   font-weight: 600;
+}
+
+.wh-count {
+  display: inline-flex;
+  align-items: center;
+}
+
+.stock-warn {
+  color: #d97a5a;
+  font-weight: 700;
+  font-size: 11px;
 }
 
 .add-wh-btn {

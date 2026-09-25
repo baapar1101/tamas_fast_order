@@ -86,8 +86,8 @@ export function SmokeyBackground({
   className = "",
 }: SmokeyBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
+  const mousePosRef = useRef({ x: 0, y: 0 });
+  const isHoveringRef = useRef(false);
 
   // Helper to convert hex color to RGB (0-1 range)
   const hexToRgb = (hex: string): [number, number, number] => {
@@ -157,29 +157,36 @@ export function SmokeyBackground({
     gl.uniform3f(uColorLocation, r, g, b);
     gl.uniform3f(uBgColorLocation, br, bg, bb);
 
+    let animId: number;
     const render = () => {
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
-      canvas.width = width;
-      canvas.height = height;
-      gl.viewport(0, 0, width, height);
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+        gl.viewport(0, 0, width, height);
+      }
 
       const currentTime = (Date.now() - startTime) / 1000;
 
       gl.uniform2f(iResolutionLocation, width, height);
       gl.uniform1f(iTimeLocation, currentTime);
-      gl.uniform2f(iMouseLocation, isHovering ? mousePosition.x : width / 2, isHovering ? height - mousePosition.y : height / 2);
+      gl.uniform2f(
+        iMouseLocation,
+        isHoveringRef.current ? mousePosRef.current.x : width / 2,
+        isHoveringRef.current ? height - mousePosRef.current.y : height / 2
+      );
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
-      requestAnimationFrame(render);
+      animId = requestAnimationFrame(render);
     };
 
     const handleMouseMove = (event: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
-      setMousePosition({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+      mousePosRef.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
     };
-    const handleMouseEnter = () => setIsHovering(true);
-    const handleMouseLeave = () => setIsHovering(false);
+    const handleMouseEnter = () => { isHoveringRef.current = true; };
+    const handleMouseLeave = () => { isHoveringRef.current = false; };
 
     canvas.addEventListener("mousemove", handleMouseMove);
     canvas.addEventListener("mouseenter", handleMouseEnter);
@@ -188,11 +195,12 @@ export function SmokeyBackground({
     render();
 
     return () => {
+      cancelAnimationFrame(animId);
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseenter", handleMouseEnter);
       canvas.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [isHovering, mousePosition, color, bgColor]);
+  }, [color, bgColor]);
 
   const finalBlurClass = blurClassMap[backdropBlurAmount as BlurSize] || blurClassMap["sm"];
 
