@@ -113,6 +113,7 @@ export const catalogQuerySchema = z.object({
     .transform((v) => (v == null ? [] : Array.isArray(v) ? v : v.split(',')))
     .pipe(z.array(z.string().trim().min(1)).max(50)),
   promotion: z.coerce.boolean().optional(),
+  creditOnly: z.coerce.boolean().optional(),
   inStock: z.coerce.boolean().default(true),
   sort: z.enum(['price_asc', 'price_desc', 'newest', 'title']).default('price_asc'),
   page: z.coerce.number().int().min(1).default(1),

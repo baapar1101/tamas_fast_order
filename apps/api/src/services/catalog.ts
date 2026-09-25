@@ -97,6 +97,14 @@ export async function queryProducts(q: CatalogQuery): Promise<{
 
   const filters = [sellableProduct()];
   if (q.promotion) filters.push(eq(products.promotion, true));
+  if (q.creditOnly) {
+    filters.push(
+      or(
+        sql`${products.sellType} ILIKE ${'%چک%'}`,
+        sql`${products.sellType} ILIKE ${'%اعتبار%'}`,
+      )!,
+    );
+  }
   if (q.q) filters.push(sql`${products.searchText} like ${'%' + q.q.toLowerCase() + '%'}`);
   if (q.category) {
     filters.push(or(eq(categories.name, q.category), eq(categories.faName, q.category))!);

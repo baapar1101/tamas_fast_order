@@ -74,6 +74,7 @@ export function StorefrontPage() {
   const [category, setCategory] = useState<string | null>(searchParams.get('cat') || null);
   const [brands, setBrands] = useState<string[]>(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
   const [promotion, setPromotion] = useState(searchParams.get('promo') === '1');
+  const [creditOnly, setCreditOnly] = useState(searchParams.get('credit') === '1');
   const [inStockOnly, setInStockOnly] = useState(searchParams.get('stock') !== '0');
   const [sort, setSort] = useState<CatalogFilters['sort']>((searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc');
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
@@ -88,6 +89,7 @@ export function StorefrontPage() {
     if (category) params.set('cat', category); else params.delete('cat');
     if (brandsStr) params.set('brand', brandsStr); else params.delete('brand');
     if (promotion) params.set('promo', '1'); else params.delete('promo');
+    if (creditOnly) params.set('credit', '1'); else params.delete('credit');
     if (!inStockOnly) params.set('stock', '0'); else params.delete('stock');
     if (sort !== 'price_asc') params.set('sort', sort); else params.delete('sort');
     if (page > 1) params.set('page', String(page)); else params.delete('page');
@@ -96,7 +98,7 @@ export function StorefrontPage() {
     if (params.toString() !== searchParams.toString()) {
       setSearchParams(params, { replace: true });
     }
-  }, [search, category, brandsStr, promotion, inStockOnly, sort, page, viewMode, searchParams, setSearchParams]);
+  }, [search, category, brandsStr, promotion, creditOnly, inStockOnly, sort, page, viewMode, searchParams, setSearchParams]);
 
   useEffect(() => {
     const q = searchParams.get('q') || '';
@@ -112,6 +114,9 @@ export function StorefrontPage() {
 
     const promo = searchParams.get('promo') === '1';
     if (promotion !== promo) setPromotion(promo);
+
+    const credit = searchParams.get('credit') === '1';
+    if (creditOnly !== credit) setCreditOnly(credit);
 
     const stock = searchParams.get('stock') !== '0';
     if (inStockOnly !== stock) setInStockOnly(stock);
@@ -145,8 +150,8 @@ export function StorefrontPage() {
 
   const debouncedSearch = useDebounced(search);
   const filters: CatalogFilters = useMemo(
-    () => ({ q: debouncedSearch, category, brands, promotion, sort, page }),
-    [debouncedSearch, category, brands, promotion, sort, page],
+    () => ({ q: debouncedSearch, category, brands, promotion, creditOnly, sort, page }),
+    [debouncedSearch, category, brands, promotion, creditOnly, sort, page],
   );
 
   const bootstrap = useBootstrap();
@@ -227,6 +232,20 @@ export function StorefrontPage() {
 
   const settings = bootstrap.data?.settings ?? {};
   const canViewPrices = Boolean(user?.isActive);
+  const [promoOrange, setPromoOrange] = useState(false);
+
+  // Switch topbar promo to orange credit banner a few seconds after login
+  useEffect(() => {
+    if (user) {
+      const timer = setTimeout(() => {
+        setPromoOrange(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    } else {
+      setPromoOrange(false);
+    }
+  }, [user]);
+
   const groups = products.data?.groups ?? [];
   const total = products.data?.total ?? 0;
   const perPage = products.data?.perPage ?? 24;
@@ -236,24 +255,33 @@ export function StorefrontPage() {
     <div className="shell">
       <header className="topbar">
         {/* Top promo strip */}
-        <div className="topbar-promo">
+        <div className={`topbar-promo${promoOrange ? ' promo-orange' : ''}`}>
           <div className="promo-sheen" aria-hidden="true" />
           <div className="promo-inner">
             <div className="promo-copy">
-              <strong className="promo-title">با هم، سریع‌تر و بهتر رشد می‌کنیم!</strong>
+              <strong className="promo-title">
+                {promoOrange ? 'رشد کسب‌وکار خود را با اعتبار ما تسریع کنید!' : 'با هم، سریع‌تر و بهتر رشد می‌کنیم!'}
+              </strong>
               <span className="promo-text">
-                همکاری با ما از چیزی که فکرش رو می‌کنید راحت‌تره. با ثبت‌نام در پنل همکاران، بلافاصله به قیمت‌های ویژه، تامین مطمئن و پشتیبانی اختصاصی دسترسی پیدا کنید.
+                {promoOrange
+                  ? 'برای خرید کالاهای پرگردش، نیازی به پرداخت نقدی ندارید، فایل اعتباری خود را بسازید و با خرید چکی یا اعتبار هفتگی، بدون پرداخت نقدی موجودی فروشگاهتان را تأمین کنید.'
+                  : 'همکاری با ما از چیزی که فکرش رو می‌کنید راحت‌تره. با ثبت‌نام در پنل همکاران، بلافاصله به قیمت‌های ویژه، تامین مطمئن و پشتیبانی اختصاصی دسترسی پیدا کنید.'}
               </span>
             </div>
             <button
               type="button"
               className="promo-cta"
               onClick={() => {
-                setAuthStep('phone');
-                setAuthOpen(true);
+                if (promoOrange || user) {
+                  setAuthStep('profile');
+                  setAuthOpen(true);
+                } else {
+                  setAuthStep('phone');
+                  setAuthOpen(true);
+                }
               }}
             >
-              ثبت‌نام در چند ثانیه
+              {promoOrange ? 'ایجاد فایل اعتباری' : 'ثبت‌نام در چند ثانیه'}
             </button>
           </div>
         </div>
@@ -512,37 +540,41 @@ export function StorefrontPage() {
               <div className="side-title accordion-title" onClick={() => setBrandsCollapsed(!brandsCollapsed)} style={{ cursor: 'pointer', userSelect: 'none' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   برندها
-                  <Icon name="chevron" className="mobile-chevron" style={{ transform: brandsCollapsed ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', fontSize: 14 }} />
+                  <Icon name="chevron" className="accordion-chevron" style={{ transform: brandsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.25s ease', fontSize: 14 }} />
                 </span>
-                <button type="button" onClick={(e) => { e.stopPropagation(); setBrands([]); }} style={{ fontSize: 12, color: 'var(--tamas-accent)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
-                  همه
-                </button>
-              </div>
-              <div className={`brand-icons${brandsCollapsed ? ' collapsed-mobile' : ''}`}>
-              {visibleBrands.slice(0, 18).map((b) => {
-                const on = brands.includes(b.name);
-                const iconSrc = b.iconUrl
-                  ? b.iconUrl.startsWith('http') || b.iconUrl.startsWith('/')
-                    ? b.iconUrl
-                    : b.iconUrl.startsWith('img_')
-                      ? `/uploads/${b.iconUrl}`
-                      : `/assets/brand/${b.iconUrl}`
-                  : null;
-                return (
-                  <button
-                    key={b.id}
-                    type="button"
-                    className={`brand-icon-btn${on ? ' active' : ''}`}
-                    onClick={() => {
-                      setBrands(on ? brands.filter((x) => x !== b.name) : [...brands, b.name]);
-                      resetPage();
-                    }}
-                  >
-                    {iconSrc ? <img src={iconSrc} alt={b.faName} loading="lazy" /> : <Icon name="mobile" style={{ fontSize: 16 }} />}
-                    <span className="brand-name">{b.name}</span>
+                {brands.length > 0 && (
+                  <button type="button" onClick={(e) => { e.stopPropagation(); setBrands([]); }} style={{ fontSize: 12, color: 'var(--tamas-accent)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                    همه (پاک‌سازی)
                   </button>
-                );
-              })}
+                )}
+              </div>
+              <div className={`brand-icons-wrapper${brandsCollapsed ? ' collapsed' : ''}`}>
+                <div className="brand-icons">
+                  {visibleBrands.slice(0, 18).map((b) => {
+                    const on = brands.includes(b.name);
+                    const iconSrc = b.iconUrl
+                      ? b.iconUrl.startsWith('http') || b.iconUrl.startsWith('/')
+                        ? b.iconUrl
+                        : b.iconUrl.startsWith('img_')
+                          ? `/uploads/${b.iconUrl}`
+                          : `/assets/brand/${b.iconUrl}`
+                      : null;
+                    return (
+                      <button
+                        key={b.id}
+                        type="button"
+                        className={`brand-icon-btn${on ? ' active' : ''}`}
+                        onClick={() => {
+                          setBrands(on ? brands.filter((x) => x !== b.name) : [...brands, b.name]);
+                          resetPage();
+                        }}
+                      >
+                        {iconSrc ? <img src={iconSrc} alt={b.faName} loading="lazy" /> : <Icon name="mobile" style={{ fontSize: 16 }} />}
+                        <span className="brand-name">{b.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="side-title" style={{ marginTop: 20 }}>فیلترهای سریع</div>
@@ -559,6 +591,19 @@ export function StorefrontPage() {
                   className={`switch${promotion ? ' on' : ''}`}
                   onClick={() => {
                     setPromotion(!promotion);
+                    resetPage();
+                  }}
+                >
+                  <i />
+                </button>
+              </div>
+              <div className="switch-row">
+                <span>تسویه چکی و اعتباری</span>
+                <button
+                  type="button"
+                  className={`switch${creditOnly ? ' on' : ''}`}
+                  onClick={() => {
+                    setCreditOnly(!creditOnly);
                     resetPage();
                   }}
                 >
@@ -612,7 +657,7 @@ export function StorefrontPage() {
               </div>
 
               <div className="toolbar-right">
-                {(brands.length > 0 || category || promotion || search) && (
+                {(brands.length > 0 || category || promotion || creditOnly || search) && (
                   <button
                     type="button"
                     className="btn sm"
@@ -621,6 +666,7 @@ export function StorefrontPage() {
                       setCategory(null);
                       setBrands([]);
                       setPromotion(false);
+                      setCreditOnly(false);
                       setInStockOnly(false);
                       resetPage();
                     }}

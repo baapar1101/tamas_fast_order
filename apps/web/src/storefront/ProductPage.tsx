@@ -406,7 +406,6 @@ export function ProductPage() {
                           </span>
                         )}
                       </div>
-                      <span className="pp-stock-inline">موجودی: {formatNumber(n)}</span>
                       {qty > 0 ? (
                         <div className="pp-qty-stepper">
                           <button type="button" className="add-wh-btn" onClick={() => handleUpdateQty(cartKey, qty - 1)}>-</button>

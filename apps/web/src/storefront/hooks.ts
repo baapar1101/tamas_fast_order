@@ -31,6 +31,7 @@ export interface CatalogFilters {
   category: string | null;
   brands: string[];
   promotion: boolean;
+  creditOnly?: boolean;
   sort: 'price_asc' | 'price_desc' | 'newest' | 'title';
   page: number;
 }
@@ -76,6 +77,7 @@ export function useProducts(filters: CatalogFilters) {
             category: filters.category ?? undefined,
             brands: filters.brands,
             promotion: filters.promotion || undefined,
+            creditOnly: filters.creditOnly || undefined,
             sort: filters.sort,
             page: filters.page,
             perPage: 24,
