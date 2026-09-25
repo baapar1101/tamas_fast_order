@@ -58,9 +58,47 @@ export const syncSideEnum = pgEnum('sync_side', ['db', 'sheet']);
 export const paymentGatewayEnum = pgEnum('payment_gateway', ['zarinpal', 'mellat', 'saman', 'pasargad', 'card_to_card', 'aqayepardakht']);
 export const paymentTransactionStatusEnum = pgEnum('payment_transaction_status', ['pending', 'success', 'failed']);
 export const commentStatusEnum = pgEnum('comment_status', ['pending', 'approved', 'rejected']);
+export const creditStatusEnum = pgEnum('credit_status', ['pending', 'reviewing', 'active', 'action_required']);
 export const crmSyncEntityEnum = pgEnum('crm_sync_entity', ['order', 'product', 'person', 'chat_message']);
 export const crmSyncActionEnum = pgEnum('crm_sync_action', ['create', 'update', 'delete', 'sync']);
 export const crmSyncStatusEnum = pgEnum('crm_sync_status', ['success', 'error', 'pending', 'skipped']);
+
+/* ------------------------------------------------------------------ *
+ * Credit Applications
+ * ------------------------------------------------------------------ */
+
+export const creditApplications = pgTable(
+  'credit_applications',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    nationalId: varchar('national_id', { length: 20 }).notNull(),
+    businessType: varchar('business_type', { length: 100 }).notNull(),
+    nationalCardUrl: text('national_card_url').notNull(),
+    businessDocsUrl: text('business_docs_url').notNull(),
+    checkImageUrl: text('check_image_url').notNull(),
+    bankStatementUrl: text('bank_statement_url'),
+    referralInfo: text('referral_info'),
+    status: creditStatusEnum('status').notNull().default('pending'),
+    rejectionReason: text('rejection_reason'),
+    adminCreditScore: integer('admin_credit_score').notNull().default(0),
+    assignedCreditLimit: bigint('assigned_credit_limit', { mode: 'number' }).notNull().default(0),
+    internalNotes: text('internal_notes'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('credit_applications_user_idx').on(t.userId),
+    index('credit_applications_status_idx').on(t.status),
+  ],
+);
+
+export const creditApplicationsRelations = relations(creditApplications, ({ one }) => ({
+  user: one(users, { fields: [creditApplications.userId], references: [users.id] }),
+}));
+
 
 /* ------------------------------------------------------------------ *
  * Warehouses & Attributes

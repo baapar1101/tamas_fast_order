@@ -283,3 +283,45 @@ export const uploadQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(100).default(40),
 });
+
+/* ------------------------------------------------------------------ *
+ * Credit Applications
+ * ------------------------------------------------------------------ */
+
+export const CREDIT_STATUSES = ['pending', 'reviewing', 'active', 'action_required'] as const;
+export type CreditStatus = (typeof CREDIT_STATUSES)[number];
+
+export const CREDIT_STATUS_LABELS: Record<CreditStatus, string> = {
+  pending: 'در انتظار',
+  reviewing: 'در حال بررسی',
+  active: 'تأیید شده',
+  action_required: 'نیاز به ویرایش',
+};
+
+export const CREDIT_STATUS_DESCRIPTIONS: Record<CreditStatus, string> = {
+  pending: 'درخواست شما دریافت شد، در حال بررسی هستیم.',
+  reviewing: 'کارشناسان ما در حال بررسی مدارک مالی شما هستند.',
+  active: 'پنل اعتباری شما فعال شد.',
+  action_required: 'متأسفانه مدارک شما ناقص است. لطفاً موارد مشخص شده را اصلاح کنید.',
+};
+
+export const creditApplicationWriteSchema = z.object({
+  nationalId: z.string().trim().min(10, 'کد ملی باید ۱۰ رقم باشد').max(10, 'کد ملی باید ۱۰ رقم باشد'),
+  businessType: z.string().trim().min(1, 'نوع کسب‌وکار را انتخاب کنید'),
+  nationalCardUrl: z.string().trim().min(1, 'تصویر کارت ملی الزامی است'),
+  businessDocsUrl: z.string().trim().min(1, 'تصویر جواز کسب یا اجاره‌نامه الزامی است'),
+  checkImageUrl: z.string().trim().min(1, 'تصویر برگ چک صیادی الزامی است'),
+  bankStatementUrl: z.string().trim().optional().nullable(),
+  referralInfo: z.string().trim().optional().nullable(),
+});
+export type CreditApplicationWrite = z.infer<typeof creditApplicationWriteSchema>;
+
+export const creditApplicationAdminPatchSchema = z.object({
+  status: z.enum(CREDIT_STATUSES),
+  assignedCreditLimit: z.coerce.number().min(0).optional(),
+  adminCreditScore: z.coerce.number().min(0).max(100).optional(),
+  rejectionReason: z.string().trim().optional().nullable(),
+  internalNotes: z.string().trim().optional().nullable(),
+});
+export type CreditApplicationAdminPatch = z.infer<typeof creditApplicationAdminPatchSchema>;
+

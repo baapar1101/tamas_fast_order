@@ -32,7 +32,11 @@ import orderRoutes from './routes/orders.js';
 import paymentRoutes from './routes/payment.js';
 import crmRoutes from './routes/crm.js';
 
+import creditRoutes from './routes/credit.js';
+import adminCreditRoutes from './routes/admin/credit.js';
+
 export async function buildApp(): Promise<FastifyInstance> {
+
   const app = Fastify({
     logger: isProd
       ? { level: env.LOG_LEVEL }
@@ -148,6 +152,8 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(accessGroupsRoutes);
         await api.register(smsRoutes);
         await api.register(crmRoutes); // <-- CRM integration routes
+        await api.register(creditRoutes);
+        await api.register(adminCreditRoutes);
       },
       { prefix: '/api' },
     );

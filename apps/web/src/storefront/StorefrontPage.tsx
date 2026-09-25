@@ -8,6 +8,7 @@ import { cartCount, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
 import { CartPanel } from './CartPanel';
 import { CheckoutDialog } from './CheckoutDialog';
+import { CreditDialog } from './CreditDialog';
 import { InstallBanner } from './InstallBanner';
 import { ProductCard } from './ProductCard';
 import { useBootstrap, useDebounced, useProducts, type CatalogFilters } from './hooks';
@@ -70,6 +71,7 @@ export function StorefrontPage() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const [creditOpen, setCreditOpen] = useState(false);
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const [category, setCategory] = useState<string | null>(searchParams.get('cat') || null);
   const [brands, setBrands] = useState<string[]>(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
@@ -272,9 +274,8 @@ export function StorefrontPage() {
               type="button"
               className="promo-cta"
               onClick={() => {
-                if (promoOrange || user) {
-                  setAuthStep('profile');
-                  setAuthOpen(true);
+                if (user) {
+                  setCreditOpen(true);
                 } else {
                   setAuthStep('phone');
                   setAuthOpen(true);
@@ -351,6 +352,13 @@ export function StorefrontPage() {
                   <Link to="/orders" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--text)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
                     <Icon name="bag" style={{ marginInlineEnd: 8 }} /> سفارش‌های من
                   </Link>
+                  <button
+                    type="button"
+                    onClick={() => setCreditOpen(true)}
+                    style={{ width: '100%', textAlign: 'right', padding: '10px 16px', borderRadius: '8px', color: 'var(--tamas-accent)', backgroundColor: 'transparent', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                  >
+                    💳 درخواست پنل اعتباری
+                  </button>
                   {isAdmin && (
                     <Link to="/admin" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--tamas-admin-emerald)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
                       <Icon name="grid" style={{ marginInlineEnd: 8 }} /> پنل مدیریت
@@ -753,6 +761,11 @@ export function StorefrontPage() {
           setAuthStep('profile');
           setAuthOpen(true);
         }}
+      />
+
+      <CreditDialog
+        open={creditOpen}
+        onClose={() => setCreditOpen(false)}
       />
 
       {preview && (

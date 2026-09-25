@@ -1,4 +1,4 @@
-import type { OrderStatus, UploadKind, Warehouse } from './schemas.js';
+import type { CreditStatus, OrderStatus, UploadKind, Warehouse } from './schemas.js';
 
 export interface ApiError {
   ok: false;
@@ -262,3 +262,26 @@ export interface CommentDTO {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CreditApplicationDTO {
+  id: number;
+  userId: number;
+  userPhone?: string;
+  userName?: string;
+  userStoreName?: string;
+  nationalId: string;
+  businessType: string;
+  nationalCardUrl: string;
+  businessDocsUrl: string;
+  checkImageUrl: string;
+  bankStatementUrl: string | null;
+  referralInfo: string | null;
+  status: CreditStatus;
+  rejectionReason: string | null;
+  adminCreditScore: number;
+  assignedCreditLimit: number;
+  internalNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
