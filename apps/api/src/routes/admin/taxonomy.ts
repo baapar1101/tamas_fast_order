@@ -94,6 +94,24 @@ const routes: FastifyPluginAsync = async (app) => {
     return { ok: true, message: 'دسته‌بندی حذف شد.' };
   });
 
+  app.post('/admin/categories/reorder', async (req) => {
+    const { ids } = req.body as { ids: number[] };
+    if (!Array.isArray(ids) || ids.length === 0) return { ok: true };
+
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      if (id !== undefined) {
+        await db
+          .update(categories)
+          .set({ sortOrder: i + 1, updatedAt: new Date() })
+          .where(eq(categories.id, id));
+      }
+    }
+    invalidateCatalog();
+    await logAction(req.currentUser!.id, 'update', 'category', 'reorder');
+    return { ok: true };
+  });
+
   /* ---------------- brands ---------------- */
 
   app.get('/admin/brands', async () => ({ ok: true, brands: await listBrands() }));
@@ -143,6 +161,24 @@ const routes: FastifyPluginAsync = async (app) => {
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'delete', 'brand', updated.name);
     return { ok: true, message: 'برند حذف شد.' };
+  });
+
+  app.post('/admin/brands/reorder', async (req) => {
+    const { ids } = req.body as { ids: number[] };
+    if (!Array.isArray(ids) || ids.length === 0) return { ok: true };
+
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      if (id !== undefined) {
+        await db
+          .update(brands)
+          .set({ sortOrder: i + 1, updatedAt: new Date() })
+          .where(eq(brands.id, id));
+      }
+    }
+    invalidateCatalog();
+    await logAction(req.currentUser!.id, 'update', 'brand', 'reorder');
+    return { ok: true };
   });
 
   /* ---------------- colors ---------------- */

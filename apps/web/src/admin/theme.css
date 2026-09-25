@@ -488,16 +488,50 @@ body.admin-page-active .modal-foot {
 .a-list { display: flex; flex-direction: column; gap: 0.6rem; max-height: calc(100vh - 16rem); overflow-y: auto; padding-inline-end: 0.15rem; }
 .a-list-item {
   display: grid;
-  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  grid-template-columns: auto 3.25rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.85rem;
   padding: 0.75rem 0.85rem;
   border: 1px solid var(--a-border);
   border-radius: 0.85rem;
   background: var(--a-field-bg);
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
 }
 .a-list-item:hover, .a-list-item--active { border-color: var(--a-brand); background: var(--a-brand-soft); }
+
+.a-list-item.is-dragging {
+  opacity: 0.45;
+  border: 2px dashed var(--a-brand);
+  background: var(--a-brand-soft);
+}
+
+.a-list-item.is-drag-over {
+  border-color: var(--a-brand);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.18);
+}
+
+.a-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2.2rem;
+  border-radius: 0.5rem;
+  color: var(--a-t4);
+  cursor: grab;
+  transition: all 0.15s ease;
+}
+
+.a-drag-handle:hover {
+  background: var(--a-border);
+  color: var(--a-brand);
+}
+
+.a-drag-handle:active {
+  cursor: grabbing;
+}
 .a-list-icon {
   display: grid;
   place-items: center;

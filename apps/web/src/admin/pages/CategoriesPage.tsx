@@ -70,11 +70,64 @@ export function CategoriesPage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [localCategories, setLocalCategories] = useState<CategoryDTO[]>([]);
+
   const filteredCategories = useMemo(() => {
     const needle = search.trim().toLowerCase();
-    if (!needle) return categories;
+    if (!needle) return localCategories.length > 0 ? localCategories : categories;
     return categories.filter((category) => `${category.faName} ${category.name}`.toLowerCase().includes(needle));
-  }, [categories, search]);
+  }, [categories, localCategories, search]);
+
+  useMemo(() => {
+    if (categories.length > 0 && localCategories.length === 0) {
+      setLocalCategories(categories);
+    }
+  }, [categories]);
+
+  const reorder = useMutation({
+    mutationFn: (ids: number[]) => api.post('/admin/categories/reorder', { ids }),
+    onSuccess: () => {
+      toast.ok('ترتیب جدید دسته‌بندی‌ها ذخیره شد.');
+      void qc.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      void qc.invalidateQueries({ queryKey: ['admin', 'taxonomy'] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const currentList = search.trim() ? filteredCategories : (localCategories.length > 0 ? localCategories : categories);
+    const next = [...currentList];
+    const [moved] = next.splice(draggedIndex, 1);
+    if (moved) {
+      next.splice(dropIndex, 0, moved);
+      setLocalCategories(next);
+      reorder.mutate(next.map((c) => c.id));
+    }
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   const filteredBrands = useMemo(() => {
     const needle = brandSearch.trim().toLowerCase();
@@ -103,7 +156,7 @@ export function CategoriesPage() {
       <section className="a-page-head">
         <div className="a-titles">
           <h2 className="a-title">مدیریت دسته‌بندی‌ها</h2>
-          <p className="a-subtitle">مشخصات کامل دسته و برندهای قابل نمایش در هر دسته‌بندی</p>
+          <p className="a-subtitle">جابجایی ترتیب نمایش دسته‌بندی‌ها با کلیک و درگ (Drag & Drop)</p>
         </div>
         <div className="a-page-actions">
           <button type="button" className="a-btn a-btn--primary" onClick={openCreate}>+ افزودن دسته‌بندی</button>
@@ -155,11 +208,6 @@ export function CategoriesPage() {
               <label className="a-field">
                 <span className="a-label">نام انگلیسی <span className="a-req">*</span></span>
                 <input className="a-input a-ltr a-mono" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Smart Watch" />
-              </label>
-              <label className="a-field">
-                <span className="a-label">ترتیب نمایش</span>
-                <input className="a-input" type="number" inputMode="numeric" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) || 0 })} />
-                <span className="a-hint">عدد کوچک‌تر ابتدا نمایش داده می‌شود.</span>
               </label>
             </div>
           </section>
@@ -215,13 +263,31 @@ export function CategoriesPage() {
         <div className="a-card-head">
           <div>
             <h3 className="a-card-title">فهرست دسته‌بندی‌ها</h3>
-            <p className="a-card-sub">برندهای متصل‌شده در هر ردیف نمایش داده می‌شوند.</p>
+            <p className="a-card-sub">برای جابجایی ترتیب نمایش، آیکون ۶ نقطه سمت راست را بکشید و رها کنید.</p>
           </div>
         </div>
 
         <div className="a-list">
-          {filteredCategories.map((category) => (
-            <article key={category.id} className={`a-list-item${editingId === category.id ? ' a-list-item--active' : ''}`}>
+          {filteredCategories.map((category, index) => (
+            <article
+              key={category.id}
+              draggable
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={() => { setDraggedIndex(null); setDragOverIndex(null); }}
+              className={`a-list-item${editingId === category.id ? ' a-list-item--active' : ''}${draggedIndex === index ? ' is-dragging' : ''}${dragOverIndex === index ? ' is-drag-over' : ''}`}
+            >
+              <div className="a-drag-handle" title="برای جابجایی بکشید">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <circle cx="5" cy="3" r="1.5" />
+                  <circle cx="11" cy="3" r="1.5" />
+                  <circle cx="5" cy="8" r="1.5" />
+                  <circle cx="11" cy="8" r="1.5" />
+                  <circle cx="5" cy="13" r="1.5" />
+                  <circle cx="11" cy="13" r="1.5" />
+                </svg>
+              </div>
               <div className="a-list-icon">
                 {category.iconUrl ? (
                   <img src={category.iconUrl.startsWith('/') || category.iconUrl.startsWith('http') ? category.iconUrl : `/assets/category/${category.iconUrl}`} alt="" />
@@ -232,7 +298,7 @@ export function CategoriesPage() {
               <div className="a-list-copy">
                 <strong>{category.faName}</strong>
                 <span className="a-ltr">{category.name}</span>
-                <small>{formatNumber(category.productCount ?? 0)} محصول · ترتیب {formatNumber(category.sortOrder)}</small>
+                <small>{formatNumber(category.productCount ?? 0)} محصول</small>
                 {category.brandNames.length > 0 && (
                   <div className="a-list-meta">
                     {category.brandNames.slice(0, 7).map((name) => <i key={name}>{name}</i>)}
