@@ -1494,3 +1494,31 @@ body.admin-page-active.admin-theme-light .admin-sidebar .bg-gradient-to-br[class
   overflow: hidden;
 }
 .admin-page-active .modal-head h3 .a-badge { flex: 0 0 auto; margin: 0; }
+
+/* ==========================================================================
+   Small Monitors & Responsive Section Scroll Utilities
+   ========================================================================== */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--a-border-2, rgba(255, 255, 255, 0.2));
+  border-radius: 999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--a-brand, #3b82f6);
+}
+
+@media (max-height: 850px) {
+  .a-page-content {
+    min-height: 480px;
+  }
+  .a-table-wrap {
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+  }
+}

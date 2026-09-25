@@ -135,6 +135,7 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
         title="پیش‌فاکتور فروش"
         items={printItems}
         total={total}
+        showStamp={false}
       />
     </aside>
   );

@@ -20,9 +20,10 @@ interface Props {
   orderId?: string;
   date?: string;
   active?: boolean;
+  showStamp?: boolean;
 }
 
-export function PrintInvoiceLayout({ title, items, total, customerName, customerPhone, orderId, date, active = true }: Props) {
+export function PrintInvoiceLayout({ title, items, total, customerName, customerPhone, orderId, date, active = true, showStamp = true }: Props) {
   return createPortal(
     <div className={`print-invoice-layout${active ? ' is-print-target' : ''}`}>
       <div className="invoice-header">
@@ -82,7 +83,7 @@ export function PrintInvoiceLayout({ title, items, total, customerName, customer
         </div>
         <div className="invoice-signature">
           <p>مهر و امضای فروشنده</p>
-          <img src="/sign.png" alt="امضا" className="sign-img" />
+          {showStamp && <img src="/sign.png" alt="امضا" className="sign-img" />}
         </div>
       </div>
     </div>,

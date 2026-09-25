@@ -157,6 +157,7 @@ export function OrdersPage() {
                     customerPhone={user?.phone}
                     total={order.total}
                     items={items}
+                    showStamp={order.status !== 'cancelled'}
                   />
                 </section>
               );

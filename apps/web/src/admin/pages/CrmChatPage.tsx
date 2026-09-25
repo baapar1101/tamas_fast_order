@@ -76,41 +76,36 @@ export function CrmChatPage() {
   }, [messages]);
 
   return (
-    <div className="a-page">
-      <div className="a-page-header">
-        <h1 className="a-page-title">چت مشتریان</h1>
+    <div className="a-page a-fade">
+      <div className="a-page-header mb-4">
+        <h1 className="a-page-title text-xl font-bold text-[var(--a-t1)]">چت مشتریان</h1>
       </div>
-      <div className="a-page-content" style={{ display: 'flex', gap: '1rem', height: 'calc(100vh - 150px)', paddingBottom: '1rem' }}>
-        
-        {/* Sidebar */}
-        <div style={{ width: '320px', backgroundColor: 'var(--a-surface)', borderRadius: '12px', border: '1px solid var(--a-border)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '1rem', borderBottom: '1px solid var(--a-border)', fontWeight: 'bold', backgroundColor: 'var(--a-surface)' }}>
-            مکالمات
+      <div className="a-page-content flex flex-col lg:flex-row gap-4 h-[calc(100vh-140px)] min-h-[500px] pb-4">
+        {/* Section 1: Conversations List */}
+        <div className="w-full lg:w-80 h-48 lg:h-auto shrink-0 bg-[var(--a-surface)] rounded-xl border border-[var(--a-border)] flex flex-col overflow-hidden">
+          <div className="p-3 border-b border-[var(--a-border)] font-bold text-sm bg-[var(--a-surface)] flex items-center justify-between">
+            <span>مکالمات</span>
+            <span className="text-xs font-normal text-[var(--a-t4)]">{conversations.length} مکالمه</span>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
             {isLoadingConvs ? (
-              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--a-t4)' }}>در حال دریافت اطلاعات...</div>
+              <div className="p-6 text-center text-[var(--a-t4)] text-xs">در حال دریافت اطلاعات...</div>
             ) : conversations.length === 0 ? (
-              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--a-t4)' }}>هیچ مکالمه‌ای یافت نشد.</div>
+              <div className="p-6 text-center text-[var(--a-t4)] text-xs">هیچ مکالمه‌ای یافت نشد.</div>
             ) : (
               conversations.map((c) => (
                 <div 
                   key={c.id} 
                   onClick={() => setActiveConvId(c.id)}
-                  style={{
-                    padding: '1rem', 
-                    borderBottom: '1px solid var(--a-border)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    backgroundColor: activeConvId === c.id ? 'var(--a-brand-soft)' : 'transparent',
-                    borderRight: activeConvId === c.id ? '3px solid var(--a-brand)' : '3px solid transparent',
-                  }}
+                  className={`p-3 border-b border-[var(--a-border)] cursor-pointer transition-all ${
+                    activeConvId === c.id ? 'bg-[var(--a-brand-soft)] border-r-4 border-r-[var(--a-brand)]' : 'hover:bg-white/5'
+                  }`}
                 >
-                  <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', color: activeConvId === c.id ? 'var(--a-brand)' : 'var(--a-t1)' }}>
+                  <div className={`font-bold text-sm mb-1 ${activeConvId === c.id ? 'text-[var(--a-brand)]' : 'text-[var(--a-t1)]'}`}>
                     {c.first_name || c.visitor_first_name} {c.last_name || c.visitor_last_name}
                     {!(c.first_name || c.visitor_first_name) && 'کاربر ناشناس'}
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--a-t4)' }}>
+                  <div className="text-xs text-[var(--a-t4)]">
                     {c.phone || c.visitor_phone || c.email || c.visitor_email || 'بدون اطلاعات تماس'}
                   </div>
                 </div>
@@ -119,20 +114,20 @@ export function CrmChatPage() {
           </div>
         </div>
 
-        {/* Main Chat Area */}
-        <div style={{ flex: 1, backgroundColor: 'var(--a-surface)', borderRadius: '12px', border: '1px solid var(--a-border)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Section 2 & 3: Chat Area (Messages + Reply Form) */}
+        <div className="flex-1 bg-[var(--a-surface)] rounded-xl border border-[var(--a-border)] flex flex-col overflow-hidden min-w-0">
           {!activeConvId ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--a-t4)', flexDirection: 'column', gap: '1rem' }}>
-              <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor">
+            <div className="flex-1 flex flex-col items-center justify-center text-[var(--a-t4)] gap-3 p-6 text-center">
+              <svg className="w-14 h-14 opacity-40" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
               </svg>
-              <span>یک مکالمه را برای نمایش انتخاب کنید</span>
+              <span className="text-sm">یک مکالمه را برای نمایش انتخاب کنید</span>
             </div>
           ) : (
             <>
               {/* Header */}
-              <div style={{ padding: '1rem', borderBottom: '1px solid var(--a-border)', backgroundColor: 'var(--a-surface)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontWeight: 'bold' }}>
+              <div className="p-3.5 border-b border-[var(--a-border)] bg-[var(--a-surface)] flex items-center justify-between">
+                <div className="font-bold text-sm text-[var(--a-t1)]">
                   {(() => {
                     const c = conversations.find(x => x.id === activeConvId);
                     if (!c) return '';
@@ -141,36 +136,30 @@ export function CrmChatPage() {
                     return (f || l) ? `${f || ''} ${l || ''}` : 'کاربر ناشناس';
                   })()}
                 </div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--a-t4)' }}>
+                <div className="text-xs text-[var(--a-t4)]">
                   شناسه مکالمه: {activeConvId}
                 </div>
               </div>
 
-              {/* Messages */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Section 2: Messages Stream */}
+              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar">
                 {isLoadingMsgs ? (
-                  <div style={{ textAlign: 'center', color: 'var(--a-t4)' }}>در حال بارگذاری پیام‌ها...</div>
+                  <div className="text-center text-[var(--a-t4)] text-xs py-4">در حال بارگذاری پیام‌ها...</div>
                 ) : messages.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: 'var(--a-t4)' }}>پیامی وجود ندارد.</div>
+                  <div className="text-center text-[var(--a-t4)] text-xs py-4">پیامی وجود ندارد.</div>
                 ) : (
                   messages.map(m => {
                     const isAgent = m.sender_role === 'agent' || m.sender_role === 'system';
                     return (
-                      <div key={m.id} style={{ alignSelf: isAgent ? 'flex-end' : 'flex-start', maxWidth: '75%', display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ 
-                          backgroundColor: isAgent ? 'var(--a-brand)' : 'var(--a-field-bg)', 
-                          color: isAgent ? '#ffffff' : 'var(--a-t1)',
-                          padding: '0.75rem 1.25rem', 
-                          borderRadius: '16px',
-                          borderBottomRightRadius: isAgent ? '4px' : '16px',
-                          borderBottomLeftRadius: isAgent ? '16px' : '4px',
-                          border: isAgent ? 'none' : '1px solid var(--a-border)',
-                          lineHeight: '1.6',
-                          whiteSpace: 'pre-wrap'
-                        }}>
+                      <div key={m.id} className={`flex flex-col max-w-[85%] sm:max-w-[75%] ${isAgent ? 'self-end' : 'self-start'}`}>
+                        <div className={`p-3 px-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                          isAgent 
+                            ? 'bg-[var(--a-brand)] text-white rounded-br-none' 
+                            : 'bg-[var(--a-field-bg)] text-[var(--a-t1)] border border-[var(--a-border)] rounded-bl-none'
+                        }`}>
                           {m.body}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--a-t4)', marginTop: '0.35rem', textAlign: isAgent ? 'left' : 'right', padding: '0 0.25rem' }}>
+                        <div className={`text-[10px] text-[var(--a-t4)] mt-1 px-1 ${isAgent ? 'text-left' : 'text-right'}`}>
                           {new Date(m.created_at).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
@@ -180,13 +169,12 @@ export function CrmChatPage() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input Area */}
-              <div style={{ padding: '1rem', borderTop: '1px solid var(--a-border)', backgroundColor: 'var(--a-surface)' }}>
-                <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.75rem' }}>
+              {/* Section 3: Reply Box */}
+              <div className="p-3 border-t border-[var(--a-border)] bg-[var(--a-surface)]">
+                <form onSubmit={handleSend} className="flex gap-2">
                   <input 
                     type="text" 
-                    className="a-input" 
-                    style={{ flex: 1, padding: '0.75rem 1rem' }}
+                    className="a-input flex-1 py-2.5 px-3.5 text-sm" 
                     placeholder="پاسخ خود را بنویسید..." 
                     value={replyText}
                     onChange={e => setReplyText(e.target.value)}
@@ -195,14 +183,13 @@ export function CrmChatPage() {
                   />
                   <button 
                     type="submit" 
-                    className="a-btn a-btn--primary" 
-                    style={{ padding: '0 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    className="a-btn a-btn--primary px-4 shrink-0 flex items-center gap-1.5" 
                     disabled={sendMutation.isPending || !replyText.trim()}
                   >
-                    {sendMutation.isPending ? 'در حال ارسال...' : (
+                    {sendMutation.isPending ? '...' : (
                       <>
                         <span>ارسال</span>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                         </svg>
                       </>
