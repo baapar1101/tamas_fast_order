@@ -44,6 +44,7 @@ export interface ProductForm {
   dimensions: string;
   tracking: boolean;
   digikalaLink: string;
+  bundleItems: Array<{ productId: string; qty: number }>;
 }
 
 interface Props {
@@ -52,6 +53,7 @@ interface Props {
   categories: CategoryDTO[];
   brands: BrandDTO[];
   busy: boolean;
+  isBundleMode?: boolean;
   onClose: () => void;
   onSave: (form: ProductForm) => void;
   onManageVariants?: (product: ProductDTO) => void;
@@ -110,6 +112,7 @@ const blank = (): ProductForm => ({
   dimensions: '',
   tracking: true,
   digikalaLink: '',
+  bundleItems: [],
 });
 
 const fromProduct = (p: ProductDTO): ProductForm => ({
@@ -149,9 +152,10 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   dimensions: p.dimensions ?? '',
   tracking: p.tracking ?? true,
   digikalaLink: p.digikalaLink ?? '',
+  bundleItems: p.bundleItems ?? [],
 });
 
-export function ProductEditor({ product, template, categories, brands, busy, onClose, onSave, onManageVariants }: Props) {
+export function ProductEditor({ product, template, categories, brands, busy, isBundleMode, onClose, onSave, onManageVariants }: Props) {
   const [form, setForm] = useState<ProductForm>(product ? fromProduct(product) : template ? fromProduct(template) : blank());
   const [error, setError] = useState('');
 
@@ -418,6 +422,73 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
               )}
             </div>
           </section>
+
+          {/* Bundle Items */}
+          {isBundleMode && (
+            <section className="a-card">
+              <div className="a-card-head">
+                <h3 className="a-card-title">محصولات باندل</h3>
+                <p className="a-card-sub">محصولات موجود در این باندل را مشخص کنید. موجودی باندل بر اساس این محصولات کسر خواهد شد.</p>
+              </div>
+              <div className="p-4 flex flex-col gap-4">
+                {form.bundleItems.map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-4 bg-[var(--a-surface)] p-3 rounded-xl border border-[var(--a-border)]">
+                    <div className="flex-1">
+                      <label className="a-label text-xs">شناسه کالا (Product ID)</label>
+                      <input
+                        className="a-input font-mono"
+                        value={item.productId}
+                        onChange={(e) => {
+                          const copy = [...form.bundleItems];
+                          if (copy[idx]) {
+                            copy[idx]!.productId = e.target.value;
+                            set('bundleItems', copy);
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="w-24">
+                      <label className="a-label text-xs">تعداد</label>
+                      <input
+                        type="number"
+                        min="1"
+                        className="a-input text-center"
+                        value={item.qty || 1}
+                        onChange={(e) => {
+                          const copy = [...form.bundleItems];
+                          if (copy[idx]) {
+                            copy[idx]!.qty = parseInt(e.target.value, 10) || 1;
+                            set('bundleItems', copy);
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="pt-5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const copy = [...form.bundleItems];
+                          copy.splice(idx, 1);
+                          set('bundleItems', copy);
+                        }}
+                        className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 flex items-center justify-center transition-colors"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                
+                <button 
+                  type="button" 
+                  className="a-btn a-btn--secondary w-full"
+                  onClick={() => set('bundleItems', [...form.bundleItems, { productId: '', qty: 1 }])}
+                >
+                  + افزودن محصول به باندل
+                </button>
+              </div>
+            </section>
+          )}
 
           {/* Pricing */}
           <section className="a-card">

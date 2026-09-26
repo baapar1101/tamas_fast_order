@@ -89,13 +89,33 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
   const productIds = [...new Set(lines.map((l) => l.productId))];
 
   return db.transaction(async (tx) => {
-    const rows = await tx
+    let rows = await tx
       .select()
       .from(products)
       .where(and(inArray(products.productId, productIds), isNull(products.deletedAt)))
       .for('update');
 
     const byId = new Map(rows.map((r) => [r.productId, r]));
+    const additionalIds = new Set<string>();
+
+    for (const row of rows) {
+      if (row.type === 'bundle' && row.bundleItems && Array.isArray(row.bundleItems)) {
+        for (const item of row.bundleItems) {
+          if (!byId.has(item.productId)) additionalIds.add(item.productId);
+        }
+      }
+    }
+
+    if (additionalIds.size > 0) {
+      const extraRows = await tx
+        .select()
+        .from(products)
+        .where(and(inArray(products.productId, [...additionalIds]), isNull(products.deletedAt)))
+        .for('update');
+      for (const r of extraRows) {
+        byId.set(r.productId, r);
+      }
+    }
 
     let total = 0;
     const toInsert: Array<typeof orderItems.$inferInsert> = [];
@@ -106,26 +126,56 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       if (!product) throw badRequest(`محصول «${line.productId}» دیگر موجود نیست.`);
       if (product.status !== 'active') throw conflict(`«${product.title}» در حال حاضر قابل سفارش نیست.`);
 
-      const available = stockIn(product, line.warehouse);
-      if (available < line.qty) {
-        throw conflict(
-          `موجودی «${product.title}» در ${WAREHOUSE_LABELS[line.warehouse]} فقط ${available} عدد است.`,
-          { productId: product.productId, available },
-        );
-      }
+      if (product.type === 'bundle' && product.bundleItems && Array.isArray(product.bundleItems)) {
+        // Bundle stock validation
+        for (const bItem of product.bundleItems) {
+          const part = byId.get(bItem.productId);
+          if (!part) throw badRequest(`جزء «${bItem.productId}» از باندل پیدا نشد.`);
+          const requiredQty = line.qty * bItem.qty;
+          const available = stockIn(part, line.warehouse);
+          if (available < requiredQty) {
+            throw conflict(
+              `موجودی جزء «${part.title}» در ${WAREHOUSE_LABELS[line.warehouse]} برای این باندل کافی نیست (فقط ${available} عدد).`,
+              { productId: part.productId, available },
+            );
+          }
+          stockUpdates.push({ id: part.id, warehouse: line.warehouse, qty: requiredQty });
+        }
+        // Add bundle itself to order line items (but stockUpdates only has parts)
+        total += product.price * line.qty;
+        toInsert.push({
+          orderId: 0,
+          productId: product.productId,
+          sku: product.sku,
+          title: product.title,
+          color: product.color,
+          price: product.price,
+          qty: line.qty,
+          warehouse: line.warehouse,
+        });
+      } else {
+        // Normal product stock validation
+        const available = stockIn(product, line.warehouse);
+        if (available < line.qty) {
+          throw conflict(
+            `موجودی «${product.title}» در ${WAREHOUSE_LABELS[line.warehouse]} فقط ${available} عدد است.`,
+            { productId: product.productId, available },
+          );
+        }
 
-      total += product.price * line.qty;
-      toInsert.push({
-        orderId: 0,
-        productId: product.productId,
-        sku: product.sku,
-        title: product.title,
-        color: product.color,
-        price: product.price,
-        qty: line.qty,
-        warehouse: line.warehouse,
-      });
-      stockUpdates.push({ id: product.id, warehouse: line.warehouse, qty: line.qty });
+        total += product.price * line.qty;
+        toInsert.push({
+          orderId: 0,
+          productId: product.productId,
+          sku: product.sku,
+          title: product.title,
+          color: product.color,
+          price: product.price,
+          qty: line.qty,
+          warehouse: line.warehouse,
+        });
+        stockUpdates.push({ id: product.id, warehouse: line.warehouse, qty: line.qty });
+      }
     }
 
     const customerName = [user.name, user.lastName].filter(Boolean).join(' ').trim() || user.phone;

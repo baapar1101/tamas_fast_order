@@ -74,7 +74,7 @@ const SORT_OPTIONS = [
   { value: 'stock', label: 'کم‌موجودترین' },
 ];
 
-export function ProductsPage() {
+export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle' }) {
   const toast = useToast();
   const qc = useQueryClient();
 
@@ -104,8 +104,8 @@ export function ProductsPage() {
   });
 
   const query = useMemo(
-    () => ({ q: debounced, status, stock, categoryId: categoryId || undefined, brandId: brandId || undefined, sort, page, perPage: 24, parentOnly: true }),
-    [debounced, status, stock, categoryId, brandId, sort, page],
+    () => ({ q: debounced, status, stock, categoryId: categoryId || undefined, brandId: brandId || undefined, sort, page, perPage: 24, parentOnly: true, type: typeFilter || undefined }),
+    [debounced, status, stock, categoryId, brandId, sort, page, typeFilter],
   );
 
   const products = useQuery({
@@ -234,8 +234,8 @@ export function ProductsPage() {
     <div className="a-page a-fade">
       <header className="a-page-head">
         <div>
-          <h1 className="a-title-mega-sm">محصولات</h1>
-          <p className="a-subtitle">مدیریت و ویرایش محصولات فروشگاه</p>
+          <h1 className="a-title-mega-sm">{typeFilter === 'bundle' ? 'باندل‌ها' : 'محصولات'}</h1>
+          <p className="a-subtitle">مدیریت و ویرایش {typeFilter === 'bundle' ? 'باندل‌های' : 'محصولات'} فروشگاه</p>
         </div>
         <div className="a-page-actions">
           <div className="a-segmented" role="group" aria-label="حالت نمایش">
@@ -340,7 +340,7 @@ export function ProductsPage() {
         </button>
 
         <button type="button" className="a-btn a-btn--primary" onClick={() => setEditing('new')}>
-          + ایجاد محصول
+          + {typeFilter === 'bundle' ? 'ایجاد باندل' : 'ایجاد محصول'}
         </button>
       </section>
 
@@ -424,10 +424,10 @@ export function ProductsPage() {
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-center">
             <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mb-4"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg></div>
-            <div className="text-lg font-bold mb-2 text-[var(--a-t1)]">محصولی یافت نشد</div>
-            <div className="text-sm text-[var(--a-t4)] mb-6">هیچ محصولی با مشخصات جستجو‌یافته پیدا نشد.</div>
+            <div className="text-lg font-bold mb-2 text-[var(--a-t1)]">{typeFilter === 'bundle' ? 'باندلی یافت نشد' : 'محصولی یافت نشد'}</div>
+            <div className="text-sm text-[var(--a-t4)] mb-6">هیچ {typeFilter === 'bundle' ? 'باندلی' : 'محصولی'} با مشخصات جستجو‌یافته پیدا نشد.</div>
             <button type="button" className="a-btn a-btn--primary a-btn--sm" onClick={() => setEditing('new')}>
-              + ایجاد محصول
+              + {typeFilter === 'bundle' ? 'ایجاد باندل' : 'ایجاد محصول'}
             </button>
           </div>
         ) : viewMode === 'table' ? (

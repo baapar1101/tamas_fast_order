@@ -265,6 +265,7 @@ export const products = pgTable(
     imageUrl: varchar('image_url', { length: 1000 }),
     gallery: jsonb('gallery').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
     attributes: jsonb('attributes').$type<ProductAttribute[]>().notNull().default(sql`'[]'::jsonb`),
+    bundleItems: jsonb('bundle_items').$type<{ productId: string, qty: number }[]>().notNull().default(sql`'[]'::jsonb`),
     sortOrder: integer('sort_order').notNull().default(0),
     digikalaLink: varchar('digikala_link', { length: 1000 }),
     /** Lowercased haystack (title + model + brand + colour + sku) for fast ILIKE search. */

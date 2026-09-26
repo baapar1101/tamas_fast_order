@@ -64,6 +64,13 @@
       "when": 1790180424285,
       "tag": "0008_bumpy_miss_america",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790438165776,
+      "tag": "0009_abnormal_guardsmen",
+      "breakpoints": true
     }
   ]
 }

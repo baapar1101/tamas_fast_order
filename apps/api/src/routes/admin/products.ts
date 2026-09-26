@@ -21,6 +21,7 @@ const listQuery = z.object({
   perPage: z.coerce.number().int().min(1).max(200).default(50),
   parentProductId: z.string().max(80).optional(),
   parentOnly: z.coerce.boolean().default(false),
+  type: z.string().max(50).optional(),
 });
 
 const bulkSchema = z.object({
@@ -77,6 +78,10 @@ const routes: FastifyPluginAsync = async (app) => {
       filters.push(sql`(${products.stock} + ${products.kermanStock} + ${products.tehranStock}) > 0`);
     } else if (q.stock === 'out') {
       filters.push(sql`(${products.stock} + ${products.kermanStock} + ${products.tehranStock}) = 0`);
+    }
+
+    if (q.type) {
+      filters.push(eq(products.type, q.type));
     }
 
     const where = filters.length > 0 ? and(...filters) : undefined;

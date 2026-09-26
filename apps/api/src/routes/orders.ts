@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { eq, and, isNull } from 'drizzle-orm';
 import { orderCreateSchema } from '@tamas/shared';
 import { createOrder, listOrdersForUser } from '../services/orders.js';
+import { processUpload } from '../services/uploads.js';
 import { db } from '../db/client.js';
 import { orders } from '../db/schema.js';
 
@@ -32,6 +33,7 @@ const routes: FastifyPluginAsync = async (app) => {
         depositorName: z.string().optional(),
         refNumber: z.string().optional(),
         receiptNote: z.string().optional(),
+        receiptImageUrl: z.string().optional(),
         businessName: z.string().optional(),
         creditNote: z.string().optional(),
         checkNumber: z.string().optional(),
@@ -60,6 +62,34 @@ const routes: FastifyPluginAsync = async (app) => {
         .where(eq(orders.id, orderId));
 
       return { ok: true, message: 'اطلاعات پرداخت با موفقیت ثبت شد.' };
+    },
+  );
+
+  /** Upload receipt for an order */
+  app.post(
+    '/orders/upload-receipt',
+    { preHandler: [app.requireUser], config: { rateLimit: { max: 10, timeWindow: '10 minutes' } } },
+    async (req) => {
+      if (!req.isMultipart()) return { ok: false, message: 'درخواست نامعتبر است.' };
+
+      let uploadedUrl = '';
+      for await (const part of req.parts()) {
+        if (part.type === 'file') {
+          const buffer = await part.toBuffer();
+          const result = await processUpload({
+            buffer,
+            filename: part.filename || 'receipt.jpg',
+            mimeType: part.mimetype,
+            kind: 'other',
+            uploadedBy: req.currentUser!.id,
+          });
+          uploadedUrl = result.url;
+          break; // only one receipt
+        }
+      }
+
+      if (!uploadedUrl) return { ok: false, message: 'فایلی یافت نشد.' };
+      return { ok: true, url: uploadedUrl };
     },
   );
 };

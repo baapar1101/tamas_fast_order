@@ -74,6 +74,10 @@ export const productWriteSchema = z.object({
   imageUrl: z.string().trim().max(1000).optional().nullable(),
   gallery: z.array(z.string().max(1000)).max(12).default([]),
   attributes: z.array(productAttributeSchema).max(60).default([]),
+  bundleItems: z.array(z.object({
+    productId: z.string().trim().min(1).max(80),
+    qty: z.coerce.number().int().min(1).max(1000)
+  })).max(20).default([]),
   sortOrder: z.coerce.number().int().default(0),
 });
 export type ProductWrite = z.infer<typeof productWriteSchema>;

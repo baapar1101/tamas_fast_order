@@ -69,6 +69,16 @@ const NAV_MAIN = [
     requiredPermission: 'manage_products',
   },
   {
+    to: '/admin/bundles',
+    label: 'باندل‌ها',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-2.25-1.313M21 7.5v2.25m0-2.25l-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3l2.25-1.313M12 12.75l-2.25-1.313M12 12.75V15m0 6.75l2.25-1.313M12 21.75V19.5m0 2.25l-2.25-1.313m0-9.687L12 9.25l2.25 1.313M6.75 9.188L9 10.5m0 0v2.25m0-2.25l-2.25-1.313m10.5 1.313L15 10.5m0 0v2.25m0-2.25l2.25-1.313" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
+  },
+  {
     to: '/admin/users',
     label: 'مشتریان',
     badge: 'users',
@@ -771,7 +781,8 @@ export default function AdminApp() {
           <div className="max-w-6xl mx-auto w-full">
             <Routes>
             <Route index element={<DashboardPage />} />
-            <Route path="products" element={<ProductsPage />} />
+            <Route path="products" element={<ProductsPage key="products" typeFilter="physical" />} />
+            <Route path="bundles" element={<ProductsPage key="bundles" typeFilter="bundle" />} />
             <Route path="categories" element={<CategoriesPage />} />
             <Route path="brands" element={<BrandsPage />} />
             <Route path="taxonomy" element={<Navigate to="/admin/categories" replace />} />

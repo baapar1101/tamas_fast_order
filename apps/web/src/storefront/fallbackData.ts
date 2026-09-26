@@ -151,6 +151,7 @@ const allProducts: ProductDTO[] = rawProducts.map<ProductDTO>((p, i) => {
     attributes: [],
     sortOrder: i,
     digikalaLink: null,
+    bundleItems: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

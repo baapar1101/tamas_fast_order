@@ -25,6 +25,11 @@ export interface ProductAttribute {
   value: string;
 }
 
+export interface BundleItem {
+  productId: string;
+  qty: number;
+}
+
 export interface ProductDTO {
   id: number;
   productId: string;
@@ -63,9 +68,10 @@ export interface ProductDTO {
   imageUrl: string | null;
   gallery: string[];
   attributes: ProductAttribute[];
+  bundleItems: BundleItem[];
   digikalaLink: string | null;
   sortOrder: number;
-    createdAt: string;
+  createdAt: string;
     updatedAt: string;
   }
 
