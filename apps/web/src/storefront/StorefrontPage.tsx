@@ -17,6 +17,7 @@ import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { CrmChat } from '../components/CrmChat';
 import { StoreFooter } from './StoreFooter';
+import { IncompleteProfilePopup } from './IncompleteProfilePopup';
 import './storefront.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
@@ -814,6 +815,11 @@ export function StorefrontPage() {
         onReady={() => {
           if (lines.length > 0) setCheckoutOpen(true);
         }}
+      />
+
+      <IncompleteProfilePopup
+        show={!!user && !complete}
+        onComplete={() => { setAuthStep('profile'); setAuthOpen(true); }}
       />
 
       <CheckoutDialog

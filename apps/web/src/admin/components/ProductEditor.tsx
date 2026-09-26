@@ -314,6 +314,57 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
             </div>
           </section>
 
+          {/* Color & Appearance */}
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">رنگ و ظاهر</h3>
+            </div>
+            <div className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-color">نام رنگ (فارسی)</label>
+                <input id="pe-color" className="a-input" placeholder="مثال: مشکی" value={form.color} onChange={(e) => set('color', e.target.value)} />
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-color-en">نام رنگ (انگلیسی)</label>
+                <input id="pe-color-en" className="a-input a-ltr" placeholder="e.g. Black" value={form.colorEn} onChange={(e) => set('colorEn', e.target.value)} />
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-color-code">کد رنگ (هگز)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input
+                    id="pe-color-code"
+                    className="a-input a-ltr"
+                    placeholder="#000000"
+                    value={form.colorCode}
+                    onChange={(e) => set('colorCode', e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <span
+                    style={{
+                      width: '2.2rem',
+                      height: '2.2rem',
+                      borderRadius: '0.5rem',
+                      border: '2px solid var(--a-border-2)',
+                      background: form.colorCode && /^#?[0-9a-f]{3,8}$/i.test(form.colorCode.trim())
+                        ? (form.colorCode.trim().startsWith('#') ? form.colorCode.trim() : `#${form.colorCode.trim()}`)
+                        : 'var(--a-surface)',
+                      flexShrink: 0,
+                      transition: 'background 0.15s ease',
+                    }}
+                    title="پیش‌نمایش رنگ"
+                  />
+                  <input
+                    type="color"
+                    value={form.colorCode && /^#[0-9a-f]{6}$/i.test(form.colorCode.trim()) ? form.colorCode.trim() : '#000000'}
+                    onChange={(e) => set('colorCode', e.target.value)}
+                    style={{ width: '2.2rem', height: '2.2rem', padding: 0, border: 'none', cursor: 'pointer', background: 'transparent' }}
+                    title="انتخاب رنگ"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
 {/* Gallery */}
           <section className="a-card">
             <div className="a-card-head">
@@ -431,6 +482,58 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-digikala">لینک دیجی‌کالا</label>
                 <input id="pe-digikala" className="a-input a-ltr" placeholder="https://www.digikala.com/product/dkp-..." value={form.digikalaLink} onChange={(e) => set('digikalaLink', e.target.value)} />
+              </div>
+            </div>
+          </section>
+
+          {/* Sell Type */}
+          <section className="a-card">
+            <div className="a-card-head">
+              <div>
+                <h3 className="a-card-title">نحوه فروش</h3>
+                <p className="a-card-sub">روش‌های مجاز فروش این محصول را انتخاب کنید</p>
+              </div>
+            </div>
+            <div className="a-form-grid">
+              <div className="a-field a-span-2">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {[
+                    { value: 'نقدی', icon: '💵' },
+                    { value: 'اعتباری', icon: '💳' },
+                    { value: 'چکی', icon: '📄' },
+                    { value: 'کارت به کارت', icon: '🏦' },
+                  ].map((st) => {
+                    const current = form.sellType.split(/[,،]+/).map(s => s.trim()).filter(Boolean);
+                    const isOn = current.includes(st.value);
+                    return (
+                      <button
+                        key={st.value}
+                        type="button"
+                        className={`a-chip-opt ${isOn ? 'a-chip-opt--on' : ''}`}
+                        style={{ padding: '0.5rem 0.85rem', cursor: 'pointer' }}
+                        onClick={() => {
+                          const next = isOn
+                            ? current.filter(v => v !== st.value)
+                            : [...current, st.value];
+                          set('sellType', next.join('، '));
+                        }}
+                      >
+                        <span>{st.icon}</span>
+                        <span className="a-chip-opt-copy"><strong>{st.value}</strong></span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="a-field a-span-2">
+                <label className="a-label" htmlFor="pe-sell-type">یا ورود دستی (با کاما جدا کنید)</label>
+                <input
+                  id="pe-sell-type"
+                  className="a-input"
+                  placeholder="مثال: نقدی، اعتباری، چکی"
+                  value={form.sellType}
+                  onChange={(e) => set('sellType', e.target.value)}
+                />
               </div>
             </div>
           </section>

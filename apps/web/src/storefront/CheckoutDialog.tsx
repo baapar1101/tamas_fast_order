@@ -21,6 +21,71 @@ interface OrderResponse {
   message: string;
 }
 
+/** Payment method definitions */
+const PAYMENT_METHODS = [
+  { id: 'aqayepardakht', label: 'پرداخت آنلاین (درگاه بانکی)', desc: 'تسویه از طریق درگاه امن بانکی و تایید آنی سفارش' },
+  { id: 'online', label: 'کارت به کارت / واریز به حساب', desc: 'تسویه به صورت دستی و ثبت فیش در واتساپ' },
+  { id: 'credit_weekly', label: 'اعتباری هفتگی', desc: 'تسویه پنجشنبه‌ها (نیاز به تأیید واحد مالی)' },
+  { id: 'check_2_month', label: 'چکی دو ماهه', desc: 'با ارائه چک صیادی و ثبت قرارداد' },
+  { id: 'check_4_month', label: 'چکی چهار ماهه', desc: 'مخصوص سفارشات عمده (با تأیید مالی)' },
+] as const;
+
+/** Secondary form instructions by payment method */
+const SECONDARY_INFO: Record<string, { title: string; instructions: string[]; fields: Array<{ key: string; label: string; placeholder: string; type?: string }> }> = {
+  online: {
+    title: 'اطلاعات واریز — کارت به کارت',
+    instructions: [
+      'مبلغ سفارش را به شماره حساب زیر واریز کنید:',
+      '💳 شماره کارت: ۶۰۳۷-۹۹۷۱-XXXX-XXXX',
+      '🏦 بانک ملی — به نام تماس مارکت',
+      'پس از واریز، اطلاعات فیش را در فرم زیر وارد کنید.',
+    ],
+    fields: [
+      { key: 'depositorName', label: 'نام واریزکننده', placeholder: 'نام صاحب کارت مبدأ' },
+      { key: 'refNumber', label: 'شماره پیگیری / ارجاع', placeholder: 'شماره پیگیری تراکنش بانکی' },
+      { key: 'receiptNote', label: 'توضیحات (اختیاری)', placeholder: 'مثلاً: ساعت واریز، توضیح اضافی' },
+    ],
+  },
+  credit_weekly: {
+    title: 'تأیید خرید اعتباری هفتگی',
+    instructions: [
+      'سفارش شما با روش اعتباری هفتگی ثبت شد.',
+      'تسویه حساب هر پنجشنبه انجام می‌شود.',
+      'لطفاً اطلاعات تکمیلی زیر را وارد کنید:',
+    ],
+    fields: [
+      { key: 'businessName', label: 'نام فروشگاه / کسب‌وکار', placeholder: 'نام تجاری' },
+      { key: 'creditNote', label: 'توضیحات (اختیاری)', placeholder: 'توضیح اضافی' },
+    ],
+  },
+  check_2_month: {
+    title: 'ثبت اطلاعات چک — دو ماهه',
+    instructions: [
+      'سفارش شما با روش چکی دو ماهه ثبت شد.',
+      'لطفاً اطلاعات چک صیادی را وارد کنید:',
+    ],
+    fields: [
+      { key: 'checkNumber', label: 'شماره چک صیادی', placeholder: 'شماره ۱۶ رقمی چک' },
+      { key: 'checkBankName', label: 'نام بانک', placeholder: 'مثال: بانک ملت' },
+      { key: 'checkDate', label: 'تاریخ سررسید', placeholder: 'مثال: ۱۴۰۵/۰۸/۱۵', type: 'text' },
+      { key: 'checkNote', label: 'توضیحات (اختیاری)', placeholder: '' },
+    ],
+  },
+  check_4_month: {
+    title: 'ثبت اطلاعات چک — چهار ماهه',
+    instructions: [
+      'سفارش شما با روش چکی چهار ماهه ثبت شد.',
+      'لطفاً اطلاعات چک صیادی را وارد کنید:',
+    ],
+    fields: [
+      { key: 'checkNumber', label: 'شماره چک صیادی', placeholder: 'شماره ۱۶ رقمی چک' },
+      { key: 'checkBankName', label: 'نام بانک', placeholder: 'مثال: بانک ملت' },
+      { key: 'checkDate', label: 'تاریخ سررسید', placeholder: 'مثال: ۱۴۰۵/۱۰/۱۵', type: 'text' },
+      { key: 'checkNote', label: 'توضیحات (اختیاری)', placeholder: '' },
+    ],
+  },
+};
+
 export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
   const toast = useToast();
   const user = useAuth((s) => s.user);
@@ -34,8 +99,21 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
+  // Secondary form state (post-order)
+  const [completedOrder, setCompletedOrder] = useState<OrderDTO | null>(null);
+  const [completedMethod, setCompletedMethod] = useState('');
+  const [secondaryData, setSecondaryData] = useState<Record<string, string>>({});
+  const [secondaryBusy, setSecondaryBusy] = useState(false);
+
   const total = cartTotal(lines);
   const deliveryAddress = address.trim() || user?.address || '';
+
+  function handleClose() {
+    setCompletedOrder(null);
+    setCompletedMethod('');
+    setSecondaryData({});
+    onClose();
+  }
 
   async function submit() {
     if (lines.length === 0) {
@@ -71,6 +149,15 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
         }
       }
 
+      // For non-gateway methods, show secondary form
+      if (SECONDARY_INFO[paymentMethod]) {
+        setCompletedOrder(res.order);
+        setCompletedMethod(paymentMethod);
+        setSecondaryData({});
+        toast.ok(res.message);
+        return;
+      }
+
       toast.ok(res.message);
       onClose();
     } catch (err) {
@@ -85,6 +172,96 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
     }
   }
 
+  async function submitSecondary() {
+    if (!completedOrder) return;
+    setSecondaryBusy(true);
+    try {
+      await api.post('/orders/payment-info', {
+        orderId: completedOrder.id,
+        paymentMethod: completedMethod,
+        ...secondaryData,
+      });
+      toast.ok('اطلاعات پرداخت با موفقیت ثبت شد.');
+      handleClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'ثبت اطلاعات ناموفق بود.');
+    } finally {
+      setSecondaryBusy(false);
+    }
+  }
+
+  // ── Secondary form view (post-order) ────────────────────────────
+  if (completedOrder && SECONDARY_INFO[completedMethod]) {
+    const info = SECONDARY_INFO[completedMethod];
+    return (
+      <Modal
+        open={open}
+        title={info.title}
+        onClose={handleClose}
+        busy={secondaryBusy}
+        footer={
+          <>
+            <button type="button" className="btn primary" style={{ flex: 1 }} disabled={secondaryBusy} onClick={() => void submitSecondary()}>
+              {secondaryBusy ? 'در حال ثبت…' : 'ثبت اطلاعات پرداخت'}
+            </button>
+            <button type="button" className="btn" onClick={handleClose} disabled={secondaryBusy}>
+              بعداً تکمیل می‌کنم
+            </button>
+          </>
+        }
+      >
+        <div className="stack">
+          {/* Order summary */}
+          <div className="card" style={{ padding: 12, background: 'var(--primary-light)', borderColor: 'var(--primary)' }}>
+            <div className="stack" style={{ gap: 4, fontSize: 13 }}>
+              <div className="row">
+                <span className="muted">شماره سفارش</span>
+                <span className="spacer" />
+                <b className="ltr-inline">{completedOrder.orderCode}</b>
+              </div>
+              <div className="row">
+                <span className="muted">مبلغ کل</span>
+                <span className="spacer" />
+                <b style={{ color: 'var(--primary-dark)' }}><Price amount={completedOrder.total} /></b>
+              </div>
+            </div>
+          </div>
+
+          {/* Instructions */}
+          <div className="card" style={{ padding: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {info.instructions.map((line, i) => (
+                <p key={i} style={{ margin: 0, fontSize: 13, lineHeight: 1.8, color: i === 0 ? 'var(--text)' : 'var(--muted)' }}>
+                  {line}
+                </p>
+              ))}
+            </div>
+          </div>
+
+          {/* Fields */}
+          {info.fields.map((f) => (
+            <div key={f.key} className="field">
+              <label htmlFor={`sf-${f.key}`}>{f.label}</label>
+              <input
+                id={`sf-${f.key}`}
+                className="input"
+                type={f.type || 'text'}
+                placeholder={f.placeholder}
+                value={secondaryData[f.key] || ''}
+                onChange={(e) => setSecondaryData({ ...secondaryData, [f.key]: e.target.value })}
+              />
+            </div>
+          ))}
+
+          <p className="faint" style={{ margin: 0, fontSize: 12 }}>
+            در صورت عدم تکمیل فرم، می‌توانید اطلاعات را بعداً از بخش «سفارش‌های من» ارسال کنید.
+          </p>
+        </div>
+      </Modal>
+    );
+  }
+
+  // ── Main checkout form ──────────────────────────────────────────
   return (
     <Modal
       open={open}
@@ -147,13 +324,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
         <div className="field">
           <label>روش پرداخت و تسویه حساب</label>
           <div style={{ display: 'grid', gap: '8px', marginTop: '4px' }}>
-            {[
-              { id: 'aqayepardakht', label: 'پرداخت آنلاین (درگاه بانکی)', desc: 'تسویه از طریق درگاه امن بانکی و تایید آنی سفارش' },
-              { id: 'online', label: 'کارت به کارت / واریز به حساب', desc: 'تسویه به صورت دستی و ثبت فیش در واتساپ' },
-              { id: 'credit_weekly', label: 'اعتباری هفتگی', desc: 'تسویه پنجشنبه‌ها (نیاز به تأیید واحد مالی)' },
-              { id: 'check_2_month', label: 'چکی دو ماهه', desc: 'با ارائه چک صیادی و ثبت قرارداد' },
-              { id: 'check_4_month', label: 'چکی چهار ماهه', desc: 'مخصوص سفارشات عمده (با تأیید مالی)' },
-            ].map(method => (
+            {PAYMENT_METHODS.map(method => (
               <label key={method.id} style={{
                 display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '12px',
                 border: paymentMethod === method.id ? '2px solid var(--primary)' : '1px solid var(--border)',

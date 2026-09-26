@@ -14,6 +14,7 @@ import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { ProductCard } from './ProductCard';
 import { StoreFooter } from './StoreFooter';
+import { IncompleteProfilePopup } from './IncompleteProfilePopup';
 import { useBootstrap } from './hooks';
 import './storefront.css';
 import './product-page.css';
@@ -633,6 +634,11 @@ export function ProductPage() {
         initialStep={authStep}
         onClose={() => setAuthOpen(false)}
         onReady={() => undefined}
+      />
+
+      <IncompleteProfilePopup
+        show={!!user && !complete}
+        onComplete={() => { setAuthStep('profile'); setAuthOpen(true); }}
       />
 
       <CrmChat user={user || undefined} />
