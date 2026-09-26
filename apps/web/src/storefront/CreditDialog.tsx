@@ -459,6 +459,28 @@ export function CreditDialog({ open, onClose }: Props) {
               </div>
             </div>
 
+            <div
+              style={{
+                padding: '14px 16px',
+                borderRadius: '12px',
+                backgroundColor: 'var(--card)',
+                border: '1px solid var(--tamas-border)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
+              <span style={{ fontSize: '20px' }}>📈</span>
+              <div>
+                <strong style={{ fontSize: '13.5px', color: 'var(--tamas-fg)', display: 'block', marginBottom: '4px' }}>
+                  نحوه ارتقاء سقف اعتبار
+                </strong>
+                <span style={{ fontSize: '12.5px', color: 'var(--tamas-muted)', lineHeight: 1.6, display: 'block' }}>
+                  سقف اعتبار شما به صورت خودکار بر اساس <strong>خوش‌حسابی (تسویه به‌موقع)</strong> و <strong>خریدهای منظم</strong> توسط سیستم بررسی و افزایش می‌یابد.
+                </span>
+              </div>
+            </div>
+
             {/* Quick Notifications List */}
             {dashboard?.notifications && dashboard.notifications.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
