@@ -380,7 +380,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
                         formData.append('file', file);
                         setSecondaryBusy(true);
                         try {
-                          const res = await api.upload<{ok: boolean; url?: string; message?: string}>('/orders/upload-receipt', formData);
+                          const res = await api.upload<{ok: boolean; url?: string; message?: string}>('/uploads', formData);
                           if (res.ok && res.url) {
                             setSecondaryData({ ...secondaryData, [f.key]: res.url });
                             toast.ok('فایل با موفقیت آپلود شد.');

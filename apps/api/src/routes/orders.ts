@@ -65,10 +65,10 @@ const routes: FastifyPluginAsync = async (app) => {
     },
   );
 
-  /** Upload receipt for an order */
+  /** Generic file upload for authenticated users (receipts, credit docs, etc) */
   app.post(
-    '/orders/upload-receipt',
-    { preHandler: [app.requireUser], config: { rateLimit: { max: 10, timeWindow: '10 minutes' } } },
+    '/uploads',
+    { preHandler: [app.requireUser], config: { rateLimit: { max: 20, timeWindow: '10 minutes' } } },
     async (req) => {
       if (!req.isMultipart()) return { ok: false, message: 'درخواست نامعتبر است.' };
 
