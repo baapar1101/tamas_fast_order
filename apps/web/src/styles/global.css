@@ -639,6 +639,11 @@ select.select {
 }
 
 @media print {
+  html, body {
+    overflow: visible !important;
+    height: auto !important;
+  }
+  
   /* Invoice layouts are rendered directly under body, outside the hidden app. */
   body > #root {
     display: none !important;
