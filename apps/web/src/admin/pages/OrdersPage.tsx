@@ -14,43 +14,27 @@ interface OrdersResponse {
   total: number;
 }
 
+import * as XLSX from 'xlsx';
+
 const downloadOrderExcel = (order: OrderDTO) => {
-  const rows: string[] = [];
-  rows.push(`<tr><td class="text">${order.orderCode}</td></tr>`);
+  const data: string[][] = [];
   
+  // Row 1: Customer Name (and Order Code) so Sepidar can read it as the header
+  data.push([order.customerName || order.orderCode]);
+  
+  // Rows 2+: Barcodes (each item qty times)
   for (const item of order.items) {
     const sku = item.sku || item.productId;
     for (let i = 0; i < item.qty; i++) {
-      rows.push(`<tr><td class="text">${sku}</td></tr>`);
+      data.push([sku]);
     }
   }
 
-  const htmlContent = `
-    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-    <head>
-      <meta charset="utf-8" />
-      <style>
-        .text { mso-number-format: "\\@"; } 
-      </style>
-    </head>
-    <body>
-      <table>
-        ${rows.join('\n')}
-      </table>
-    </body>
-    </html>
-  `.trim();
-
-  const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
-  const url = URL.createObjectURL(blob);
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
   
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", `order-${order.orderCode}.xls`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  XLSX.writeFile(wb, `order-${order.orderCode}.xlsx`);
 };
 
 const CHIP_TONE: Record<OrderStatus, string> = {

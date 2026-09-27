@@ -457,24 +457,6 @@ export function StorefrontPage() {
         </div>
       </header>
 
-      {user && !complete && (
-        <div className="profile-notice">
-          <div className="profile-notice-inner">
-            <span>برای ثبت سفارش، اطلاعات حساب خود را کامل کنید.</span>
-            <button
-              type="button"
-              className="btn sm teal"
-              onClick={() => {
-                setAuthStep('profile');
-                setAuthOpen(true);
-              }}
-            >
-              تکمیل اطلاعات
-            </button>
-          </div>
-        </div>
-      )}
-
       <main className="container" data-mobile-tab={mobileTab}>
         {/* Mobile-only Categories View */}
         <div className="mobile-only-categories">
@@ -821,6 +803,10 @@ export function StorefrontPage() {
       <IncompleteProfilePopup
         show={!!user && !complete}
         onComplete={() => { setAuthStep('profile'); setAuthOpen(true); }}
+        onLogout={async () => {
+          await logout();
+          toast.ok('از حساب خارج شدید.');
+        }}
       />
 
       <GuestPromoPopup

@@ -6,6 +6,8 @@ interface Props {
   show: boolean;
   /** Called when user clicks "complete profile" */
   onComplete: () => void;
+  /** Called when user clicks logout */
+  onLogout?: () => void;
 }
 
 /**
@@ -13,7 +15,7 @@ interface Props {
  * Shows a clear message + CTA to complete profile + a dismiss/close button.
  * Dismissal is per-session (reappears on next page load).
  */
-export function IncompleteProfilePopup({ show, onComplete }: Props) {
+export function IncompleteProfilePopup({ show, onComplete, onLogout }: Props) {
   const [dismissed, setDismissed] = useState(false);
 
   if (!show || dismissed) return null;
@@ -52,13 +54,19 @@ export function IncompleteProfilePopup({ show, onComplete }: Props) {
           >
             تکمیل حساب کاربری
           </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={() => setDismissed(true)}
-          >
-            بعداً
-          </button>
+          {onLogout && (
+            <button
+              type="button"
+              className="btn"
+              style={{ color: 'var(--danger)', borderColor: 'var(--danger)', background: 'rgba(225, 29, 72, 0.1)' }}
+              onClick={() => {
+                setDismissed(true);
+                onLogout();
+              }}
+            >
+              خروج از حساب
+            </button>
+          )}
         </div>
       </div>
     </div>
