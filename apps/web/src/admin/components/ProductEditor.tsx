@@ -423,11 +423,10 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
             </div>
           </section>
 
-          {/* Bundle Items */}
-          {isBundleMode && (
-            <section className="a-card">
-              <div className="a-card-head">
-                <h3 className="a-card-title">محصولات باندل</h3>
+          {/* Bundle Items (always available to attach to any product) */}
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">محصولات باندل / قطعات</h3>
                 <p className="a-card-sub">محصولات موجود در این باندل را مشخص کنید. موجودی باندل بر اساس این محصولات کسر خواهد شد.</p>
               </div>
               <div className="p-4 flex flex-col gap-4">
@@ -488,7 +487,6 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 </button>
               </div>
             </section>
-          )}
 
           {/* Pricing */}
           <section className="a-card">

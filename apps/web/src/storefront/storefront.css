@@ -2459,16 +2459,13 @@
 @media (max-width: 1024px) {
   /* Native App-like Layout Rules */
   html, body {
-    overflow: hidden !important; /* Lock document scrolling on mobile */
-    height: 100dvh;
-    width: 100vw;
+    overflow-x: hidden !important; /* Allow vertical scroll but prevent horizontal */
+    height: 100%;
+    width: 100%;
   }
   
   .shell {
-    height: 100dvh;
-    min-height: 100dvh;
-    max-height: 100dvh;
-    overflow: hidden;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     padding-bottom: 0;
@@ -2477,8 +2474,6 @@
   /* The main content area that holds the tabs */
   .shell > main.container {
     flex: 1;
-    overflow-y: auto; /* Let the container scroll all active tabs naturally */
-    -webkit-overflow-scrolling: touch;
     position: relative;
     padding-bottom: 80px; /* Space for bottom tab bar */
     margin-bottom: 0;
@@ -2489,11 +2484,6 @@
   /* Tab view containers */
   .mobile-tab-view {
     display: none;
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 80px; /* Space for bottom tab bar */
     width: 100%;
     flex-direction: column;
   }
@@ -2969,7 +2959,7 @@
     margin-bottom: 4px;
   }
 
-  .brand-icons {
+  .brand-icons-wrapper > .brand-icons {
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
