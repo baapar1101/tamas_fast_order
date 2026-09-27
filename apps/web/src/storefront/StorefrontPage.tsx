@@ -501,7 +501,7 @@ export function StorefrontPage() {
 
         {/* Mobile-only Cart View */}
         <div className="mobile-only-cart" style={{ paddingBottom: 100 }}>
-          <CartPanel onCheckout={openCheckout} canViewPrices={canViewPrices} />
+          <CartPanel onCheckout={openCheckout} canViewPrices={canViewPrices} hidePrintLayout />
         </div>
 
         {/* Mobile-only Profile View */}

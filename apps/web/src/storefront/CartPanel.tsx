@@ -8,9 +8,10 @@ import { Icon } from '../components/Icon';
 interface Props {
   onCheckout: () => void;
   canViewPrices: boolean;
+  hidePrintLayout?: boolean;
 }
 
-export function CartPanel({ onCheckout, canViewPrices }: Props) {
+export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout }: Props) {
   const lines = useCart((s) => s.lines);
   const setQty = useCart((s) => s.setQty);
   const remove = useCart((s) => s.remove);
@@ -131,12 +132,14 @@ export function CartPanel({ onCheckout, canViewPrices }: Props) {
       )}
 
       {/* Hidden print layout, revealed only during window.print() via global CSS */}
-      <PrintInvoiceLayout
-        title="پیش‌فاکتور فروش"
-        items={printItems}
-        total={total}
-        showStamp={false}
-      />
+      {!hidePrintLayout && (
+        <PrintInvoiceLayout
+          title="پیش‌فاکتور فروش"
+          items={printItems}
+          total={total}
+          showStamp={false}
+        />
+      )}
     </aside>
   );
 }
