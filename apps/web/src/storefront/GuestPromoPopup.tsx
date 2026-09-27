@@ -29,13 +29,13 @@ export function GuestPromoPopup({ show, onAuth }: Props) {
           type="button"
           className="ipp-close"
           onClick={() => setVisible(false)}
-          title="بستن"
+          aria-label="بستن"
         >
-          <Icon name="x" />
+          &times;
         </button>
         
         <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--tamas-promo-grad)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, margin: '0 auto 20px' }}>
-          <Icon name="lock" />
+          <Icon name="shield" />
         </div>
         
         <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 12, color: 'var(--tamas-fg)' }}>
