@@ -8,6 +8,7 @@ import { env } from '../../env.js';
 import { badRequest } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { clearSyncError, isSyncRunning, readSyncState, runSync } from '../../services/sheets/sync.js';
+import { isPriceStockSyncRunning, syncPriceStockFromSheet } from '../../services/sheets/price-stock-sync.js';
 import { logAction } from '../../services/audit.js';
 
 const conflictQuery = z.object({
@@ -17,7 +18,7 @@ const conflictQuery = z.object({
 });
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_settings'));
 
   app.get('/admin/sync/status', async () => {
     const state = await readSyncState();
@@ -93,6 +94,29 @@ const routes: FastifyPluginAsync = async (app) => {
     const { entity } = z.object({ entity: z.enum(SYNC_ENTITIES) }).parse(req.body);
     await clearSyncError(entity);
     return { ok: true };
+  });
+
+  /**
+   * Lightweight price & stock sync from the public Google Sheet.
+   * Google Sheet is the source of truth — this only updates price,
+   * old_price, discount, sell_type, kerman_stock, tehran_stock, stock.
+   */
+  app.post('/admin/sync/price-stock', async (req) => {
+    if (isPriceStockSyncRunning()) {
+      throw badRequest('همگام‌سازی قیمت/موجودی در حال اجراست. صبر کنید.');
+    }
+    const report = await syncPriceStockFromSheet();
+    await logAction(req.currentUser!.id, 'sync:price-stock', 'sheets', null, {
+      updated: report.updated,
+      skipped: report.skipped,
+      totalRows: report.totalRows,
+    });
+    return { ok: true, report };
+  });
+
+  /** Returns the current status of the price-stock sync. */
+  app.get('/admin/sync/price-stock/status', async () => {
+    return { ok: true, running: isPriceStockSyncRunning() };
   });
 };
 
