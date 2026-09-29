@@ -1,6 +1,16 @@
-CREATE TYPE "public"."cheque_status" AS ENUM('pending', 'passed', 'bounced', 'returned');--> statement-breakpoint
-CREATE TYPE "public"."credit_status" AS ENUM('pending', 'reviewing', 'active', 'action_required');--> statement-breakpoint
-CREATE TABLE "credit_applications" (
+DO $$ BEGIN
+ CREATE TYPE "public"."cheque_status" AS ENUM('pending', 'passed', 'bounced', 'returned');
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ CREATE TYPE "public"."credit_status" AS ENUM('pending', 'reviewing', 'active', 'action_required');
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "credit_applications" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"national_id" varchar(20) NOT NULL,
@@ -19,7 +29,7 @@ CREATE TABLE "credit_applications" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "credit_cheques" (
+CREATE TABLE IF NOT EXISTS "credit_cheques" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"credit_application_id" integer,
@@ -36,13 +46,13 @@ CREATE TABLE "credit_cheques" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "products" ADD COLUMN "bundle_items" jsonb DEFAULT '[]'::jsonb NOT NULL;--> statement-breakpoint
-ALTER TABLE "credit_applications" ADD CONSTRAINT "credit_applications_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "credit_cheques" ADD CONSTRAINT "credit_cheques_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "credit_cheques" ADD CONSTRAINT "credit_cheques_credit_application_id_credit_applications_id_fk" FOREIGN KEY ("credit_application_id") REFERENCES "public"."credit_applications"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "credit_cheques" ADD CONSTRAINT "credit_cheques_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "credit_applications_user_idx" ON "credit_applications" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "credit_applications_status_idx" ON "credit_applications" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "credit_cheques_user_idx" ON "credit_cheques" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "credit_cheques_status_idx" ON "credit_cheques" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "credit_cheques_due_date_idx" ON "credit_cheques" USING btree ("due_date");
+ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "bundle_items" jsonb DEFAULT '[]'::jsonb NOT NULL;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "credit_applications" ADD CONSTRAINT "credit_applications_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "credit_cheques" ADD CONSTRAINT "credit_cheques_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "credit_cheques" ADD CONSTRAINT "credit_cheques_credit_application_id_credit_applications_id_fk" FOREIGN KEY ("credit_application_id") REFERENCES "public"."credit_applications"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "credit_cheques" ADD CONSTRAINT "credit_cheques_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "credit_applications_user_idx" ON "credit_applications" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "credit_applications_status_idx" ON "credit_applications" USING btree ("status");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "credit_cheques_user_idx" ON "credit_cheques" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "credit_cheques_status_idx" ON "credit_cheques" USING btree ("status");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "credit_cheques_due_date_idx" ON "credit_cheques" USING btree ("due_date");
