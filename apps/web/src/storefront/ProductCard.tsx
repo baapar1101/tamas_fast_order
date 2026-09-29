@@ -109,9 +109,16 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
               return (
                 <div key={v.productId} className="variant">
                   <div className="variant-info">
-                    <div className="color-title">
-                      <span className="color-dot" style={{ background: swatchColor(v, colorMap) }} aria-hidden />
-                      <span>{v.color || v.colorEn || 'مشکی'}</span>
+                    <div className="color-title" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className="color-dot" style={{ background: swatchColor(v, colorMap) }} aria-hidden />
+                        <span>{v.color || v.colorEn || 'مشکی'}</span>
+                      </div>
+                      {v.sku && (
+                        <span className="variant-sku" style={{ fontSize: '11px', color: 'var(--tamas-muted, #737373)', background: 'var(--tamas-surface-alt, #f5f5f5)', padding: '2px 6px', borderRadius: '4px' }}>
+                          کد: {v.sku}
+                        </span>
+                      )}
                     </div>
                     <div className="sell-types">
                       {types.map((t) => (
