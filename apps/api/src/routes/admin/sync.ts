@@ -9,7 +9,9 @@ import { badRequest } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { clearSyncError, isSyncRunning, readSyncState, runSync } from '../../services/sheets/sync.js';
 import { isPriceStockSyncRunning, syncPriceStockFromSheet } from '../../services/sheets/price-stock-sync.js';
+import { processExcelUpload } from '../../services/sheets/excel-sync.js';
 import { logAction } from '../../services/audit.js';
+import * as xlsx from 'xlsx';
 
 const conflictQuery = z.object({
   entity: z.enum(SYNC_ENTITIES).optional(),
@@ -117,6 +119,48 @@ const routes: FastifyPluginAsync = async (app) => {
   /** Returns the current status of the price-stock sync. */
   app.get('/admin/sync/price-stock/status', async () => {
     return { ok: true, running: isPriceStockSyncRunning() };
+  });
+
+  /** Download sample Excel for updating price/stock */
+  app.get('/admin/sync/excel-template', async (req, reply) => {
+    const wb = xlsx.utils.book_new();
+    const ws = xlsx.utils.aoa_to_sheet([
+      ['sku', 'price', 'kerman_stock', 'tehran_stock'],
+      ['1001', '1500000', '10', '5'],
+      ['1002', '2000000', '0', '20'],
+    ]);
+    // Adjust column widths
+    ws['!cols'] = [{ wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+    xlsx.utils.book_append_sheet(wb, ws, 'Prices');
+
+    const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    
+    reply.header('Content-Disposition', 'attachment; filename="price-update-template.xlsx"');
+    reply.type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    return reply.send(buffer);
+  });
+
+  /** Upload Excel to update price/stock in Google Sheets & DB */
+  app.post('/admin/sync/excel-upload', async (req, reply) => {
+    if (isPriceStockSyncRunning()) {
+      throw badRequest('همگام‌سازی قیمت/موجودی در حال اجراست. صبر کنید.');
+    }
+    
+    const file = await req.file();
+    if (!file) {
+      throw badRequest('فایلی برای آپلود انتخاب نشده است.');
+    }
+
+    const buffer = await file.toBuffer();
+    const report = await processExcelUpload(buffer);
+    
+    await logAction(req.currentUser!.id, 'sync:excel-upload', 'sheets', null, {
+      updated: report.updated,
+      skipped: report.skipped,
+      totalRows: report.totalRows,
+    });
+    
+    return { ok: true, report };
   });
 };
 

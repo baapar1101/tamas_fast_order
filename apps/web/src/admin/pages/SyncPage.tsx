@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { SyncEntity, SyncStateDTO } from '@tamas/shared';
 import { SYNC_ENTITIES, SYNC_ENTITY_LABELS, formatNumber } from '@tamas/shared';
@@ -11,6 +11,13 @@ interface PriceStockReport {
   totalRows: number;
   updated: number;
   created: number;
+  skipped: number;
+  errors: string[];
+}
+
+interface ExcelSyncReport {
+  totalRows: number;
+  updated: number;
   skipped: number;
   errors: string[];
 }
@@ -100,6 +107,43 @@ export function SyncPage() {
     },
     onError: (err: Error) => toast.error(err.message),
   });
+
+  /* ---------- Excel Sync ---------- */
+  const [excelReport, setExcelReport] = useState<ExcelSyncReport | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const excelSync = useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append('excel', file);
+      return api.upload<{ ok: boolean; report: ExcelSyncReport }>('/admin/sync/excel-upload', formData);
+    },
+    onSuccess: (data) => {
+      const r = (data as any).report ?? data;
+      setExcelReport(r);
+      toast.ok(`بروزرسانی با اکسل موفق بود: ${r.updated} محصول بروز شد.`);
+      invalidate();
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    },
+  });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    excelSync.mutate(file);
+  };
+
+  const downloadTemplate = async () => {
+    try {
+      await api.download('/admin/sync/excel-template', {}, 'price-update-template.xlsx');
+    } catch (err: any) {
+      toast.error(err.message || 'خطا در دانلود فایل نمونه');
+    }
+  };
 
   const isRunning = status.data?.running ?? false;
   const enabled = status.data?.enabled ?? false;
@@ -193,6 +237,74 @@ export function SyncPage() {
         {priceStockReport && priceStockReport.errors.length > 0 && (
           <div className="a-error-box mt-3 text-xs font-mono" dir="ltr" style={{ maxHeight: 160, overflow: 'auto' }}>
             {priceStockReport.errors.map((e, i) => (
+              <div key={i}>{e}</div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* === Excel Upload Card === */}
+      <section className="a-card" style={{ borderColor: 'var(--clr-aqua)', borderWidth: 2, marginTop: 16 }}>
+        <div className="a-card-head a-card-head--split">
+          <div>
+            <h3 className="a-card-title">آپدیت گروهی قیمت و موجودی با اکسل</h3>
+            <p className="a-card-desc">
+              ابتدا فایل نمونه را دانلود کنید، مقادیر (قیمت به ریال) را وارد کرده و سپس فایل را آپلود کنید.
+            </p>
+          </div>
+          <div className="a-card-actions">
+            <button
+              type="button"
+              className="a-btn a-btn--secondary"
+              onClick={downloadTemplate}
+            >
+              دانلود فایل نمونه
+            </button>
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+            />
+            <button
+              type="button"
+              className="a-btn a-btn--primary"
+              disabled={excelSync.isPending || isRunning}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {excelSync.isPending ? 'در حال آپلود...' : 'آپلود اکسل و بروزرسانی'}
+            </button>
+          </div>
+        </div>
+
+        {/* Excel Report */}
+        {excelReport && (
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="a-stat">
+              <span className="a-stat-label">کل ردیف‌ها</span>
+              <span className="a-stat-value">{formatNumber(excelReport.totalRows)}</span>
+            </div>
+            <div className="a-stat">
+              <span className="a-stat-label">بروزرسانی شده</span>
+              <span className="a-stat-value" style={{ color: 'var(--clr-aqua)' }}>{formatNumber(excelReport.updated)}</span>
+            </div>
+            <div className="a-stat">
+              <span className="a-stat-label">رد شده</span>
+              <span className="a-stat-value">{formatNumber(excelReport.skipped)}</span>
+            </div>
+            <div className="a-stat">
+              <span className="a-stat-label">خطا</span>
+              <span className="a-stat-value" style={{ color: excelReport.errors.length > 0 ? 'var(--clr-rose)' : undefined }}>
+                {excelReport.errors.length}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {excelReport && excelReport.errors.length > 0 && (
+          <div className="a-error-box mt-3 text-xs font-mono" dir="ltr" style={{ maxHeight: 160, overflow: 'auto' }}>
+            {excelReport.errors.map((e, i) => (
               <div key={i}>{e}</div>
             ))}
           </div>
