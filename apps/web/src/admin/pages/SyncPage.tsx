@@ -5,6 +5,16 @@ import { SYNC_ENTITIES, SYNC_ENTITY_LABELS, formatNumber } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 
+interface PriceStockReport {
+  startedAt: string;
+  finishedAt: string;
+  totalRows: number;
+  updated: number;
+  created: number;
+  skipped: number;
+  errors: string[];
+}
+
 interface SyncStatusResponse {
   ok: boolean;
   enabled: boolean;
@@ -77,6 +87,20 @@ export function SyncPage() {
     },
   });
 
+  /* ---------- Price & Stock Sync (Google Sheet → DB only) ---------- */
+  const [priceStockReport, setPriceStockReport] = useState<PriceStockReport | null>(null);
+
+  const priceStockSync = useMutation({
+    mutationFn: () => api.post<{ ok: boolean; report: PriceStockReport }>('/admin/sync/price-stock', {}),
+    onSuccess: (data) => {
+      const r = (data as any).report ?? data;
+      setPriceStockReport(r);
+      toast.ok(`قیمت و موجودی بروزرسانی شد: ${r.updated} محصول بروز شد.`);
+      invalidate();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   const isRunning = status.data?.running ?? false;
   const enabled = status.data?.enabled ?? false;
 
@@ -117,6 +141,62 @@ export function SyncPage() {
             </a>
           )}
         </div>
+      </section>
+
+      {/* === Price & Stock Sync Card === */}
+      <section className="a-card" style={{ borderColor: 'var(--clr-brand)', borderWidth: 2 }}>
+        <div className="a-card-head a-card-head--split">
+          <div>
+            <h3 className="a-card-title">بروزرسانی قیمت و موجودی از گوگل شیت</h3>
+            <p className="a-card-desc">
+              فقط قیمت، تخفیف، نوع فروش و موجودی انبارها را از گوگل شیت دریافت و در دیتابیس بروزرسانی می‌کند.
+              <br />
+              <strong>گوگل شیت = منبع اصلی قیمت و موجودی</strong>
+            </p>
+          </div>
+          <div className="a-card-actions">
+            <button
+              type="button"
+              className="a-btn a-btn--primary"
+              disabled={priceStockSync.isPending}
+              onClick={() => priceStockSync.mutate()}
+            >
+              {priceStockSync.isPending ? 'در حال بروزرسانی...' : 'بروزرسانی قیمت و موجودی'}
+            </button>
+          </div>
+        </div>
+
+        {/* Report */}
+        {priceStockReport && (
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="a-stat">
+              <span className="a-stat-label">کل ردیف</span>
+              <span className="a-stat-value">{formatNumber(priceStockReport.totalRows)}</span>
+            </div>
+            <div className="a-stat">
+              <span className="a-stat-label">بروزرسانی شده</span>
+              <span className="a-stat-value" style={{ color: 'var(--clr-brand)' }}>{formatNumber(priceStockReport.updated)}</span>
+            </div>
+            <div className="a-stat">
+              <span className="a-stat-label">رد شده</span>
+              <span className="a-stat-value">{formatNumber(priceStockReport.skipped)}</span>
+            </div>
+            <div className="a-stat">
+              <span className="a-stat-label">خطا</span>
+              <span className="a-stat-value" style={{ color: priceStockReport.errors.length > 0 ? 'var(--clr-rose)' : undefined }}>
+                {priceStockReport.errors.length}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {priceStockReport && priceStockReport.errors.length > 0 && (
+          <div className="a-error-box mt-3 text-xs font-mono" dir="ltr" style={{ maxHeight: 160, overflow: 'auto' }}>
+            {priceStockReport.errors.map((e, i) => (
+              <div key={i}>{e}</div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Sync Control Bar with Advanced Options */}
