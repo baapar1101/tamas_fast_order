@@ -260,13 +260,25 @@ async function syncEntity(
     const fresh = await mapping.loadDbRows();
     const out: string[][] = [mapping.columns];
     const marks: Array<{ key: string; hash: string }> = [];
+    const sheetAuthoritative = new Set(mapping.sheetAuthoritativeColumns ?? []);
 
     for (const row of fresh) {
       const sheetRow = sheetByKey.get(row.key);
-      const dbHash = hashCells(mapping, row.cells);
-      if (!sheetRow || sheetRow.hash !== dbHash) result.pushed += 1;
-      out.push(mapping.columns.map((c) => row.cells[c] ?? ''));
-      marks.push({ key: row.key, hash: dbHash });
+      const outputCells: SheetCells = { ...row.cells };
+
+      // A push-only run must not publish cached DB price/inventory over the
+      // authoritative values already in Sheets. New rows have no Sheet value,
+      // so their initial cached values are used when they are appended.
+      if (sheetRow) {
+        for (const col of sheetAuthoritative) {
+          outputCells[col] = sheetRow.cells[col] ?? '';
+        }
+      }
+
+      const outputHash = hashCells(mapping, outputCells);
+      if (!sheetRow || sheetRow.hash !== outputHash) result.pushed += 1;
+      out.push(mapping.columns.map((c) => outputCells[c] ?? ''));
+      marks.push({ key: row.key, hash: outputHash });
     }
 
     // Rows the sheet has that the database does not are kept, so a person's

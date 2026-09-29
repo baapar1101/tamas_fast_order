@@ -117,7 +117,7 @@ const bool = (v: unknown): boolean => {
 const boolCell = (v: boolean): string => (v ? 'TRUE' : 'FALSE');
 const iso = (d: Date | null | undefined): string => (d ? d.toISOString() : '');
 
-/** Attributes live in the sheet as two parallel `a | b | c` columns, as before. */
+/** Attributes live in the sheet as two parallel `a | b | c` columns. */
 function packAttributes(list: Array<{ key: string; value: string }>): { keys: string; values: string } {
   return {
     keys: list.map((a) => a.key).join(' | '),
@@ -224,7 +224,32 @@ async function ensureCategory(name: string): Promise<number | null> {
  * Products
  * ------------------------------------------------------------------ */
 
-const PRODUCT_COLUMNS = ['product_id', 'Category', 'Brand', 'title', 'model', 'color', 'sku', 'price', 'old_price', 'sell_type', 'discount%', 'kerman_stock', 'tehran_stock', 'warranty', 'promotion', 'status', 'image_url', 'attribute_key', 'attribute_value', UPDATED_AT_COLUMN];
+/**
+ * Exact A:T contract of the live Products tab. Column order matters because
+ * the sync rewrites the tab with this list.
+ */
+const PRODUCT_COLUMNS = [
+  'product_id',
+  'Category',
+  'Brand',
+  'title',
+  'model',
+  'color',
+  'sku',
+  'price',
+  'old_price',
+  'sell_type',
+  'discount%',
+  'kerman_stock',
+  'tehran_stock',
+  'warranty',
+  'promotion',
+  'status',
+  'image_url',
+  'attribute_key',
+  'attribute_value',
+  UPDATED_AT_COLUMN,
+];
 
 export const productMapping: EntityMapping = {
   entity: 'products',
@@ -253,24 +278,19 @@ export const productMapping: EntityMapping = {
           title: r.title,
           model: r.model ?? '',
           color: r.color ?? '',
-          color_en: r.colorEn ?? '',
-          color_code: r.colorCode ?? '',
           sku: r.sku ?? '',
           price: String(r.price),
           old_price: r.oldPrice == null ? '' : String(r.oldPrice),
           'discount%': String(r.discount),
           kerman_stock: String(r.kermanStock),
           tehran_stock: String(r.tehranStock),
-          warranty: r.warranty ?? '',
           sell_type: r.sellType ?? '',
-          seller: r.seller ?? '',
+          warranty: r.warranty ?? '',
           promotion: boolCell(r.promotion),
           status: r.status,
           image_url: r.imageUrl ?? '',
-          gallery: (r.gallery ?? []).join(' | '),
           attribute_key: attrs.keys,
           attribute_value: attrs.values,
-          sort_order: String(r.sortOrder),
           [UPDATED_AT_COLUMN]: iso(r.updatedAt),
         },
       };
@@ -298,8 +318,6 @@ export const productMapping: EntityMapping = {
       categoryId,
       brandId,
       color: str(cells.color) || null,
-      colorEn: str(cells.color_en) || null,
-      colorCode: str(cells.color_code) || null,
       // `price` is the sole source of truth and is always expressed in toman.
       price: num(cells.price),
       oldPrice: str(cells.old_price) ? num(cells.old_price) : null,
@@ -307,16 +325,13 @@ export const productMapping: EntityMapping = {
       stock: kermanStock + tehranStock,
       kermanStock,
       tehranStock,
-      warranty: str(cells.warranty) || null,
       sellType: str(cells.sell_type) || null,
-      seller: str(cells.seller) || null,
+      warranty: str(cells.warranty) || null,
       promotion: bool(cells.promotion),
       status: (str(cells.status).toLowerCase() === 'inactive' ? 'inactive' : 'active') as 'active' | 'inactive',
       imageUrl: str(cells.image_url) || null,
-      gallery: splitList(cells.gallery ?? ''),
       attributes: unpackAttributes(cells.attribute_key ?? '', cells.attribute_value ?? ''),
-      sortOrder: num(cells.sort_order),
-      searchText: buildSearchText([title, cells.model, brandLabel, cells.color, cells.color_en, cells.sku, key]),
+      searchText: buildSearchText([title, cells.model, brandLabel, cells.color, cells.sku, key]),
       updatedAt,
       deletedAt: null,
     };
