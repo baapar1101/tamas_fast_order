@@ -1,1 +1,1 @@
-ALTER TYPE "public"."payment_gateway" ADD VALUE 'aqayepardakht';
+ALTER TYPE "public"."payment_gateway" ADD VALUE IF NOT EXISTS 'aqayepardakht';
