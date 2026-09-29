@@ -112,32 +112,39 @@ async function main(): Promise<void> {
   const [conflictCount] = await db.select({ n: sql<number>`count(*)::int` }).from(syncConflicts);
   check('a one-sided edit is not logged as a conflict', (conflictCount?.n ?? 0) === 0, `logged ${conflictCount?.n}`);
 
-  /* ---------------- 4. an edit in the database goes back to the sheet ---------------- */
+  /* ---------------- 4. Sheet remains authoritative for price ---------------- */
   await db.update(products).set({ price: 777000, updatedAt: new Date() }).where(eq(products.productId, sampleKey));
   await runSync({ direction: 'both', entities: [...CATALOGUE], dryRun: false }, sheet);
-  check('database edit is pushed to the sheet', sheet.cell('Products', sampleKey, 'price') === '777000', `sheet shows ${sheet.cell('Products', sampleKey, 'price')}`);
+  check('database-only price edit is overwritten from the sheet', (await priceOf(sampleKey)) === 123456, `price is ${await priceOf(sampleKey)}`);
+  check('database-only price edit never overwrites the sheet', sheet.cell('Products', sampleKey, 'price') === '123456', `sheet shows ${sheet.cell('Products', sampleKey, 'price')}`);
 
-  /* ---------------- 5. both sides edited: newer updated_at wins ---------------- */
-  // Database edited now; sheet claims an hour in the future, so the sheet wins.
-  await db.update(products).set({ price: 111, updatedAt: new Date() }).where(eq(products.productId, sampleKey));
+  /* ---------------- 5. conflicts are resolved per column ---------------- */
+  // Even with a newer sheet timestamp, price is Sheet-owned and metadata is
+  // DB-owned when both sides changed.
+  await db.update(products).set({ price: 111, title: 'عنوان دیتابیس', updatedAt: new Date() }).where(eq(products.productId, sampleKey));
   sheet.setCell('Products', sampleKey, 'price', '222');
+  sheet.setCell('Products', sampleKey, 'title', 'عنوان شیت');
   sheet.setCell('Products', sampleKey, 'updated_at', new Date(Date.now() + 3600_000).toISOString());
   await runSync({ direction: 'both', entities: [...CATALOGUE], dryRun: false }, sheet);
-  check('newer sheet timestamp wins the conflict', (await priceOf(sampleKey)) === 222, `price is ${await priceOf(sampleKey)}`);
+  check('sheet wins a price conflict', (await priceOf(sampleKey)) === 222, `price is ${await priceOf(sampleKey)}`);
+  check('database wins a metadata conflict', (await titleOf(sampleKey)) === 'عنوان دیتابیس', `title is ${await titleOf(sampleKey)}`);
+  check('database metadata is written back to the sheet', sheet.cell('Products', sampleKey, 'title') === 'عنوان دیتابیس', `sheet shows ${sheet.cell('Products', sampleKey, 'title')}`);
 
   const logged = await db.select().from(syncConflicts).where(eq(syncConflicts.entityKey, sampleKey));
   check('the conflict is logged per column', logged.length > 0, `${logged.length} rows`);
   const priceConflict = logged.find((c) => c.field === 'price');
-  check('the log names both values and the winner', priceConflict?.dbValue === '111' && priceConflict?.sheetValue === '222' && priceConflict?.resolvedTo === 'sheet', JSON.stringify(priceConflict));
+  const titleConflict = logged.find((c) => c.field === 'title');
+  check('price conflict log records Sheet as winner', priceConflict?.dbValue === '111' && priceConflict?.sheetValue === '222' && priceConflict?.resolvedTo === 'sheet', JSON.stringify(priceConflict));
+  check('metadata conflict log records DB as winner', titleConflict?.dbValue === 'عنوان دیتابیس' && titleConflict?.sheetValue === 'عنوان شیت' && titleConflict?.resolvedTo === 'db', JSON.stringify(titleConflict));
 
-  // Now the other way: the database is newer, so it wins.
+  // A newer database timestamp still cannot override a Sheet-owned price.
   await db.delete(syncConflicts);
   sheet.setCell('Products', sampleKey, 'price', '333');
   sheet.setCell('Products', sampleKey, 'updated_at', new Date(Date.now() - 3600_000).toISOString());
   await db.update(products).set({ price: 444, updatedAt: new Date() }).where(eq(products.productId, sampleKey));
   await runSync({ direction: 'both', entities: [...CATALOGUE], dryRun: false }, sheet);
-  check('newer database timestamp wins the conflict', (await priceOf(sampleKey)) === 444, `price is ${await priceOf(sampleKey)}`);
-  check('the database value is written back to the sheet', sheet.cell('Products', sampleKey, 'price') === '444', `sheet shows ${sheet.cell('Products', sampleKey, 'price')}`);
+  check('sheet wins price despite an older timestamp', (await priceOf(sampleKey)) === 333, `price is ${await priceOf(sampleKey)}`);
+  check('sheet price remains unchanged', sheet.cell('Products', sampleKey, 'price') === '333', `sheet shows ${sheet.cell('Products', sampleKey, 'price')}`);
 
   /* ---------------- 6. a brand new row typed into the sheet ---------------- */
   const header = sheet.tabs.get('Products')![0]!;

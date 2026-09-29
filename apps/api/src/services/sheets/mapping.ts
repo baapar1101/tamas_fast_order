@@ -16,10 +16,11 @@ import {
 import { buildSearchText } from '../catalog.js';
 
 /**
- * Every tab carries an `updated_at` column. It is what makes the two-way sync
- * honest: whichever side has the newer timestamp wins, and both sides can see
- * why. Editing a cell by hand and leaving `updated_at` alone still works —
- * the row hash catches the change and the sync stamps a fresh timestamp.
+ * Every tab carries an `updated_at` column. Together with the saved row hash,
+ * it identifies one-sided edits and genuine conflicts. Conflict ownership is
+ * then applied per column: product price/inventory belong to Sheets and the
+ * remaining fields belong to the database. Editing a cell by hand and leaving
+ * `updated_at` alone still works because the row hash catches the change.
  */
 export const UPDATED_AT_COLUMN = 'updated_at';
 
@@ -52,6 +53,12 @@ export interface EntityMapping {
   private?: boolean;
   /** Columns a person may edit in the sheet; everything else is pushed only. */
   editableColumns: string[];
+  /**
+   * Columns for which Google Sheets is authoritative even when only the
+   * database changed. In a genuine two-sided conflict, every other column is
+   * resolved to the database.
+   */
+  sheetAuthoritativeColumns?: string[];
   loadDbRows(): Promise<DbSideRow[]>;
   applySheetRow(key: string, cells: SheetCells, updatedAt: Date): Promise<ApplyOutcome>;
 }
@@ -227,6 +234,9 @@ export const productMapping: EntityMapping = {
   tableName: 'products',
   keyDbColumn: 'product_id',
   editableColumns: PRODUCT_COLUMNS.filter((c) => c !== 'product_id'),
+  // Price and warehouse inventory are caches in Postgres. Google Sheets is
+  // their source of truth, regardless of timestamps or which side changed.
+  sheetAuthoritativeColumns: ['price', 'old_price', 'discount%', 'kerman_stock', 'tehran_stock'],
 
   async loadDbRows() {
     const rows = await db.select().from(products).where(isNull(products.deletedAt));
@@ -278,6 +288,8 @@ export const productMapping: EntityMapping = {
     const brandId = await ensureBrand(str(cells.Brand));
     const brandLabel = brandId ? (L().brandNameById.get(brandId) ?? '') : '';
 
+    const kermanStock = num(cells.kerman_stock);
+    const tehranStock = num(cells.tehran_stock);
     const values = {
       productId: key,
       sku: str(cells.sku) || null,
@@ -292,9 +304,9 @@ export const productMapping: EntityMapping = {
       price: num(cells.price),
       oldPrice: str(cells.old_price) ? num(cells.old_price) : null,
       discount: num(cells.discount ?? cells['discount%']),
-      stock: num(cells.stock),
-      kermanStock: num(cells.kerman_stock),
-      tehranStock: num(cells.tehran_stock),
+      stock: kermanStock + tehranStock,
+      kermanStock,
+      tehranStock,
       warranty: str(cells.warranty) || null,
       sellType: str(cells.sell_type) || null,
       seller: str(cells.seller) || null,

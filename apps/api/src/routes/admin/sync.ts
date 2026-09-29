@@ -99,7 +99,7 @@ const routes: FastifyPluginAsync = async (app) => {
   /**
    * Lightweight price & stock sync from the public Google Sheet.
    * Google Sheet is the source of truth — this only updates price,
-   * old_price, discount, sell_type, kerman_stock, tehran_stock, stock.
+   * old_price, discount, kerman_stock, tehran_stock, stock.
    */
   app.post('/admin/sync/price-stock', async (req) => {
     if (isPriceStockSyncRunning()) {
