@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ProductDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
@@ -237,7 +238,10 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           <h1 className="a-title-mega-sm">{typeFilter === 'bundle' ? 'باندل‌ها' : 'محصولات'}</h1>
           <p className="a-subtitle">مدیریت و ویرایش {typeFilter === 'bundle' ? 'باندل‌های' : 'محصولات'} فروشگاه</p>
         </div>
-        <div className="a-page-actions">
+        <div className="a-page-actions flex items-center gap-4">
+          <Link to="/admin/sync" className="a-btn a-btn--secondary">
+            ورود قیمت/موجودی با اکسل
+          </Link>
           <div className="a-segmented" role="group" aria-label="حالت نمایش">
             <button
               type="button"
