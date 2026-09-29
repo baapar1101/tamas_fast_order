@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
-import { normalizeLandline, otpRequestSchema, otpVerifySchema, profileWriteSchema, type UserDTO } from '@tamas/shared';
+import { normalizeLandline, otpRequestSchema, otpVerifySchema, profileWriteSchema, passwordLoginSchema, setPasswordSchema, type UserDTO } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { users } from '../db/schema.js';
 import { env } from '../env.js';
@@ -8,6 +8,7 @@ import { badRequest } from '../lib/errors.js';
 import { createSession, destroySession, missingProfileFields, findOrCreateUser, toUserDTO } from '../services/auth.js';
 import { resendCooldown, sendOtp, verifyOtp } from '../services/otp.js';
 import { crmClient } from '../lib/crm.js';
+import { hashPassword, verifyPassword } from '../lib/hash.js';
 
 /**
  * The whole point of this file: verification now happens on the server. The
@@ -54,6 +55,55 @@ const routes: FastifyPluginAsync = async (app) => {
         complete: missing.length === 0,
         missing,
       };
+    },
+  );
+
+  app.post(
+    '/auth/password/login',
+    { config: { rateLimit: { max: 20, timeWindow: '10 minutes' } } },
+    async (req) => {
+      const { phone, password } = passwordLoginSchema.parse(req.body);
+      const user = await db.query.users.findFirst({
+        where: eq(users.phone, phone),
+      });
+
+      if (!user) throw badRequest('کاربری با این شماره یافت نشد.');
+      if (!user.passwordHash) throw badRequest('رمز عبور برای این کاربر تنظیم نشده است. لطفاً با کد یکبار مصرف وارد شوید.');
+      
+      const isValid = verifyPassword(password, user.passwordHash);
+      if (!isValid) throw badRequest('رمز عبور اشتباه است.');
+
+      const token = await createSession(user.id, { ip: req.ip, userAgent: req.headers['user-agent'] });
+      const missing = missingProfileFields(user);
+
+      return {
+        ok: true,
+        token,
+        user: toUserDTO(user),
+        isNew: false,
+        complete: missing.length === 0,
+        missing,
+      };
+    },
+  );
+
+  app.post(
+    '/auth/password/set',
+    { preHandler: [app.requireUser] },
+    async (req) => {
+      const { oldPassword, newPassword } = setPasswordSchema.parse(req.body);
+      const current = req.currentUser!;
+
+      if (current.passwordHash) {
+        if (!oldPassword) throw badRequest('برای تغییر رمز عبور، وارد کردن رمز عبور فعلی الزامی است.');
+        const isValid = verifyPassword(oldPassword, current.passwordHash);
+        if (!isValid) throw badRequest('رمز عبور فعلی اشتباه است.');
+      }
+
+      const newHash = hashPassword(newPassword);
+      await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, current.id));
+
+      return { ok: true, message: 'رمز عبور با موفقیت تنظیم شد.' };
     },
   );
 

@@ -71,6 +71,13 @@
       "when": 1790438165776,
       "tag": "0009_abnormal_guardsmen",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790701006875,
+      "tag": "0010_fast_blizzard",
+      "breakpoints": true
     }
   ]
 }

@@ -107,6 +107,7 @@ export async function findOrCreateUser(phone: string): Promise<{ row: UserRow; i
         isActive: true,
         role: isAdmin ? 'admin' : 'customer',
         accessGroupId: null,
+        passwordHash: null,
         lastLoginAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),

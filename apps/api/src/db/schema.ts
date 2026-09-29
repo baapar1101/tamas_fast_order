@@ -326,6 +326,7 @@ export const users = pgTable(
     isActive: boolean('is_active').notNull().default(false),
     role: userRoleEnum('role').notNull().default('customer'),
     accessGroupId: integer('access_group_id').references(() => accessGroups.id, { onDelete: 'set null' }),
+    passwordHash: varchar('password_hash', { length: 255 }),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     ...syncColumns,
   },

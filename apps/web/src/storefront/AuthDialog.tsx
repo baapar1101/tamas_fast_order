@@ -7,7 +7,7 @@ import { ApiRequestError, api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { Icon } from '../components/Icon';
 
-type Step = 'phone' | 'code' | 'profile' | 'account';
+type Step = 'phone' | 'code' | 'password-login' | 'password-set' | 'profile' | 'account';
 
 interface Props {
   open: boolean;
@@ -67,6 +67,9 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
   const [step, setStep] = useState<Step>(initialStep);
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
+  const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -87,6 +90,9 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
     if (!open) return;
     setError('');
     setCode('');
+    setPassword('');
+    setNewPassword('');
+    setOldPassword('');
     setInvalid([]);
     if (user) {
       setForm(emptyProfile(user));
@@ -173,6 +179,53 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
     }
   }, [code, phone, applyLogin, toast, onReady, onClose]);
 
+  const loginWithPassword = useCallback(async () => {
+    if (!password) {
+      setError('رمز عبور را وارد کنید.');
+      return;
+    }
+    setError('');
+    setBusy(true);
+    try {
+      const data = await api.post<AuthResponse>('/auth/password/login', { phone: normalizePhone(phone), password });
+      applyLogin(data);
+      setForm(emptyProfile(data.user));
+      if (!data.complete) {
+        setInvalid(data.missing);
+        setStep('profile');
+        toast.show('اطلاعات حساب شما کامل نیست.');
+      } else {
+        toast.ok('با موفقیت وارد شدید.');
+        onReady?.();
+        onClose();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ورود با رمز عبور ناموفق بود.');
+    } finally {
+      setBusy(false);
+    }
+  }, [password, phone, applyLogin, toast, onReady, onClose]);
+
+  const savePassword = useCallback(async () => {
+    if (!newPassword || newPassword.length < 6) {
+      setError('رمز عبور جدید باید حداقل ۶ کاراکتر باشد.');
+      return;
+    }
+    setError('');
+    setBusy(true);
+    try {
+      const data = await api.post<{ ok: true; message: string }>('/auth/password/set', { oldPassword, newPassword });
+      toast.ok(data.message);
+      setStep('account');
+      setNewPassword('');
+      setOldPassword('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'تغییر رمز عبور ناموفق بود.');
+    } finally {
+      setBusy(false);
+    }
+  }, [oldPassword, newPassword, toast]);
+
   const inquireIdentity = useCallback(async () => {
     const cleanNational = toAsciiDigits(nationalCode).replace(/\D/g, '');
     const cleanBirth = toAsciiDigits(birthDate).trim();
@@ -249,11 +302,15 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
       ? 'ورود / ثبت نام'
       : step === 'code'
         ? 'تایید شماره موبایل'
-        : step === 'profile'
-          ? complete
-            ? 'ویرایش اطلاعات'
-            : 'تکمیل اطلاعات'
-          : 'حساب کاربری';
+        : step === 'password-login'
+          ? 'ورود با رمز عبور'
+          : step === 'password-set'
+            ? 'تعیین رمز عبور'
+            : step === 'profile'
+              ? complete
+                ? 'ویرایش اطلاعات'
+                : 'تکمیل اطلاعات'
+              : 'حساب کاربری';
 
   return (
     <Modal open={open} title={title} onClose={onClose} busy={busy}>
@@ -285,7 +342,49 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
             />
           </div>
           <button type="button" className="btn primary block" disabled={busy} onClick={() => void requestCode(false)}>
-            {busy ? 'در حال ارسال…' : 'ارسال کد تایید'}
+            {busy ? 'در حال ارسال…' : 'ارسال کد تایید پیامکی'}
+          </button>
+          <button type="button" className="btn block" onClick={() => {
+            const clean = normalizePhone(phone);
+            if (!isValidPhone(clean)) {
+              setError('شماره موبایل را درست وارد کنید (مثل 09121234567).');
+              return;
+            }
+            setError('');
+            setStep('password-login');
+          }}>
+            ورود با رمز عبور
+          </button>
+        </div>
+      )}
+
+      {step === 'password-login' && (
+        <div className="stack">
+          <p className="muted" style={{ margin: 0 }}>
+            رمز عبور حساب کاربری خود را وارد کنید.
+            <button type="button" className="btn ghost sm" onClick={() => setStep('phone')}>
+              بازگشت
+            </button>
+          </p>
+          <div className="field">
+            <label htmlFor="auth-password">رمز عبور</label>
+            <input
+              id="auth-password"
+              type="password"
+              className="input ltr"
+              value={password}
+              autoFocus
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void loginWithPassword();
+              }}
+            />
+          </div>
+          <button type="button" className="btn primary block" disabled={busy} onClick={() => void loginWithPassword()}>
+            {busy ? 'در حال بررسی…' : 'ورود'}
+          </button>
+          <button type="button" className="btn ghost block" onClick={() => void requestCode(false)}>
+            رمز عبور را فراموش کرده‌ام (ارسال پیامک)
           </button>
         </div>
       )}
@@ -514,6 +613,9 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
           <button type="button" className="btn block" onClick={() => setStep('profile')}>
             ویرایش اطلاعات
           </button>
+          <button type="button" className="btn block" onClick={() => setStep('password-set')}>
+            تغییر / تعیین رمز عبور
+          </button>
           <button
             type="button"
             className="btn danger block"
@@ -524,6 +626,41 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
             }}
           >
             خروج از حساب
+          </button>
+        </div>
+      )}
+
+      {step === 'password-set' && user && (
+        <div className="stack">
+          <p className="muted" style={{ margin: 0 }}>
+            با تعیین رمز عبور می‌توانید در مراجعات بعدی سریع‌تر وارد حساب شوید.
+          </p>
+          <div className="field">
+            <label htmlFor="auth-old-password">رمز عبور فعلی (در صورت وجود)</label>
+            <input
+              id="auth-old-password"
+              type="password"
+              className="input ltr"
+              placeholder="اگر رمز عبور ندارید خالی بگذارید"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="auth-new-password">رمز عبور جدید</label>
+            <input
+              id="auth-new-password"
+              type="password"
+              className="input ltr"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </div>
+          <button type="button" className="btn primary block" disabled={busy} onClick={() => void savePassword()}>
+            {busy ? 'در حال ذخیره…' : 'ذخیره رمز عبور'}
+          </button>
+          <button type="button" className="btn block" onClick={() => setStep('account')} disabled={busy}>
+            انصراف
           </button>
         </div>
       )}

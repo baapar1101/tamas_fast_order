@@ -139,6 +139,17 @@ export const otpVerifySchema = z.object({
     .pipe(z.string().min(4).max(8)),
 });
 
+export const passwordLoginSchema = z.object({
+  phone: phoneSchema,
+  password: z.string().min(1, 'رمز عبور الزامی است'),
+});
+
+export const setPasswordSchema = z.object({
+  oldPassword: z.string().optional(),
+  newPassword: z.string().min(6, 'رمز عبور باید حداقل ۶ کاراکتر باشد'),
+});
+
+
 export const PROFILE_FIELDS = [
   'name',
   'lastName',
