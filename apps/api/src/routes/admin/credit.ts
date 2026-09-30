@@ -106,6 +106,31 @@ export const adminCreditRoutes: FastifyPluginAsync = async (app) => {
           { label: 'سقف اعتبار', value: Number(updated.assignedCreditLimit).toLocaleString('fa-IR') },
         ],
       }).catch((err) => req.log.error({ err }, 'failed to send Telegram credit status notification'));
+
+      // Send SMS to user
+      const [user] = await db
+        .select({ phone: schema.users.phone, name: schema.users.name })
+        .from(schema.users)
+        .where(eq(schema.users.id, updated.userId))
+        .limit(1);
+
+      if (user && user.phone) {
+        const { sendTemplatedSms } = await import('../../services/sms.js');
+        const defaultTexts: Record<string, string> = {
+          pending: `کاربر گرامی ${user.name || ''}، درخواست اعتباری شما در صف بررسی قرار گرفت.`,
+          reviewing: `کاربر گرامی ${user.name || ''}، مدارک اعتباری شما در حال بررسی است.`,
+          active: `کاربر گرامی ${user.name || ''}، درخواست اعتباری شما تایید شد.`,
+          action_required: `کاربر گرامی ${user.name || ''}، درخواست اعتباری شما رد شد.`
+        };
+        const defaultText = defaultTexts[updated.status] || `کاربر گرامی ${user.name || ''}، وضعیت درخواست اعتباری شما تغییر کرد.`;
+        
+        void sendTemplatedSms(
+          user.phone,
+          `sms_template_credit_${updated.status}`,
+          { name: user.name || 'کاربر', status: updated.status },
+          defaultText
+        ).catch(err => req.log.error({ err }, 'failed to send SMS'));
+      }
     }
 
     return reply.send({

@@ -161,10 +161,10 @@ export function CreditApplicationsPage() {
         <div style={{ display: 'flex', gap: '6px' }}>
           {[
             { id: 'all', label: 'همه' },
-            { id: 'pending', label: 'در انتظار' },
+            { id: 'pending', label: 'در صف بررسی' },
             { id: 'reviewing', label: 'در حال بررسی' },
-            { id: 'active', label: 'تأیید شده' },
-            { id: 'action_required', label: 'نیاز به ویرایش' },
+            { id: 'active', label: 'تایید شده' },
+            { id: 'action_required', label: 'رد شده' },
           ].map((tab) => (
             <button
               key={tab.id}

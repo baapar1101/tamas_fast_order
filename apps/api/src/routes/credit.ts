@@ -372,6 +372,14 @@ const routes: FastifyPluginAsync = async (app) => {
       ],
     }).catch((err) => req.log.error({ err }, 'failed to send Telegram credit application notification'));
 
+    const { sendTemplatedSms } = await import('../services/sms.js');
+    void sendTemplatedSms(
+      user.phone,
+      'sms_template_credit_pending',
+      { name: user.name || 'کاربر' },
+      `کاربر گرامی ${user.name || ''}، درخواست اعتباری شما دریافت شد و در صف بررسی قرار گرفت.`
+    ).catch(err => req.log.error({ err }, 'failed to send SMS'));
+
     return reply.send({
       ok: true,
       application: {

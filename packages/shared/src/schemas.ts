@@ -307,17 +307,17 @@ export const CREDIT_STATUSES = ['pending', 'reviewing', 'active', 'action_requir
 export type CreditStatus = (typeof CREDIT_STATUSES)[number];
 
 export const CREDIT_STATUS_LABELS: Record<CreditStatus, string> = {
-  pending: 'در انتظار',
+  pending: 'در صف بررسی',
   reviewing: 'در حال بررسی',
-  active: 'تأیید شده',
-  action_required: 'نیاز به ویرایش',
+  active: 'تایید شده',
+  action_required: 'رد شده',
 };
 
 export const CREDIT_STATUS_DESCRIPTIONS: Record<CreditStatus, string> = {
-  pending: 'درخواست شما دریافت شد، در حال بررسی هستیم.',
+  pending: 'درخواست شما دریافت شد، در صف بررسی هستیم.',
   reviewing: 'کارشناسان ما در حال بررسی مدارک مالی شما هستند.',
-  active: 'پنل اعتباری شما فعال شد.',
-  action_required: 'متأسفانه مدارک شما ناقص است. لطفاً موارد مشخص شده را اصلاح کنید.',
+  active: 'پنل اعتباری شما فعال شد و تایید شده است.',
+  action_required: 'متأسفانه درخواست اعتباری شما رد شده است.',
 };
 
 export const creditApplicationWriteSchema = z.object({
