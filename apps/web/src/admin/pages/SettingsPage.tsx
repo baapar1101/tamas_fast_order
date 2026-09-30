@@ -230,6 +230,7 @@ export function SettingsPage() {
     ...KNOWN_SETTINGS.map((s) => s.key),
     'TELEGRAM_ENABLED',
     'private_TELEGRAM_BOT_TOKEN',
+    'TELEGRAM_BOT_TOKEN',
     'TELEGRAM_PROXY_URL',
     'TELEGRAM_GROUPS',
     'TELEGRAM_ROUTES',
@@ -356,7 +357,7 @@ export function SettingsPage() {
                   type="password"
                   placeholder="123456:ABC..."
                   autoComplete="new-password"
-                  value={form.private_TELEGRAM_BOT_TOKEN ?? ''}
+                  value={form.private_TELEGRAM_BOT_TOKEN ?? form.TELEGRAM_BOT_TOKEN ?? ''}
                   onChange={(e) => setForm({ ...form, private_TELEGRAM_BOT_TOKEN: e.target.value })}
                 />
               </div>

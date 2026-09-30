@@ -68,7 +68,7 @@ export async function getTelegramConfig(): Promise<TelegramConfig> {
 
   return {
     enabled: parseBool(settings.TELEGRAM_ENABLED ?? envValue('TELEGRAM_ENABLED')),
-    botToken: (settings.private_TELEGRAM_BOT_TOKEN ?? envValue('TELEGRAM_BOT_TOKEN')).trim(),
+    botToken: (settings.private_TELEGRAM_BOT_TOKEN ?? settings.TELEGRAM_BOT_TOKEN ?? envValue('TELEGRAM_BOT_TOKEN')).trim(),
     proxyUrl: (settings.TELEGRAM_PROXY_URL ?? envValue('TELEGRAM_PROXY_URL')).trim(),
     groups: Array.isArray(groups)
       ? groups.filter((group) => group && group.id && group.chatId).map((group) => ({ ...group, enabled: group.enabled !== false }))
