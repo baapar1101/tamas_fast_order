@@ -1,15 +1,39 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import type { ProductDTO, CategoryDTO, BrandDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 
+// Helper: load a TTF font from URL and return as base64
+async function loadFontAsBase64(url: string): Promise<string> {
+  const res = await fetch(url);
+  const buf = await res.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]!);
+  return btoa(binary);
+}
+
+// Helper: load image as base64 data URL
+async function loadImageAsDataUrl(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, { mode: 'cors' });
+    const blob = await res.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 export function CatalogExportPage() {
   const toast = useToast();
-  const contentRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfProgress, setPdfProgress] = useState(0);
 
@@ -36,13 +60,20 @@ export function CatalogExportPage() {
         categoryId: selectedCategory === 'all' ? undefined : selectedCategory,
         brandId: selectedBrand === 'all' ? undefined : selectedBrand,
         stock: stockStatus,
-        status: 'active', // Only active products for catalog
+        status: 'active',
         page: 1,
         perPage: 5000,
       }),
   });
 
-  const products = Array.isArray(productsData?.items) ? productsData.items : [];
+  const responseData: any = productsData;
+  const products: ProductDTO[] = Array.isArray(responseData?.items)
+    ? responseData.items
+    : Array.isArray(responseData?.data?.items)
+      ? responseData.data.items
+      : Array.isArray(responseData)
+        ? responseData
+        : [];
 
   const handleGeneratePdf = async () => {
     if (products.length === 0) {
@@ -55,25 +86,150 @@ export function CatalogExportPage() {
     toast.ok('در حال آماده‌سازی فایل PDF، لطفاً شکیبا باشید...');
 
     try {
-      const PRODUCTS_PER_PAGE = 20; // 4 columns * 5 rows
-      const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
+      // Load Vazirmatn fonts
+      const [regularBase64, boldBase64] = await Promise.all([
+        loadFontAsBase64('/fonts/Vazirmatn-Regular.ttf'),
+        loadFontAsBase64('/fonts/Vazirmatn-Bold.ttf'),
+      ]);
+
       const pdf = new jsPDF('p', 'mm', 'a4');
 
-      for (let i = 0; i < totalPages; i++) {
-        setPdfProgress(Math.round(((i) / totalPages) * 100));
-        const pageEl = document.getElementById(`pdf-page-${i}`);
-        if (!pageEl) continue;
+      // Register fonts
+      pdf.addFileToVFS('Vazirmatn-Regular.ttf', regularBase64);
+      pdf.addFont('Vazirmatn-Regular.ttf', 'Vazirmatn', 'normal');
+      pdf.addFileToVFS('Vazirmatn-Bold.ttf', boldBase64);
+      pdf.addFont('Vazirmatn-Bold.ttf', 'Vazirmatn', 'bold');
 
-        // Render to canvas
-        const canvas = await html2canvas(pageEl, { scale: 2, useCORS: true, logging: false });
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      // Page dimensions
+      const PAGE_W = 210;
+      const PAGE_H = 297;
+      const MARGIN = 12;
+      const CONTENT_W = PAGE_W - MARGIN * 2;
 
-        if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+      // Grid: 4 columns, 5 rows = 20 products per page
+      const COLS = 4;
+      const ROWS = 5;
+      const GAP = 4;
+      const CARD_W = (CONTENT_W - (COLS - 1) * GAP) / COLS;
+      const HEADER_H = 20;
+      const GRID_START_Y = MARGIN + HEADER_H + 5;
+      const AVAIL_H = PAGE_H - GRID_START_Y - MARGIN - 8; // leave room for footer
+      const CARD_H = (AVAIL_H - (ROWS - 1) * GAP) / ROWS;
+      const PER_PAGE = COLS * ROWS;
+      const totalPages = Math.ceil(products.length / PER_PAGE);
+
+      const today = new Date().toLocaleDateString('fa-IR');
+
+      for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
+        setPdfProgress(Math.round((pageIdx / totalPages) * 100));
+        if (pageIdx > 0) pdf.addPage();
+
+        // ------- Header -------
+        pdf.setFillColor(31, 41, 55); // dark
+        pdf.rect(MARGIN, MARGIN, CONTENT_W, HEADER_H, 'F');
+
+        pdf.setFont('Vazirmatn', 'bold');
+        pdf.setFontSize(16);
+        pdf.setTextColor(255, 255, 255);
+        // RTL: align right
+        pdf.text('کاتالوگ محصولات تماس مارکت', PAGE_W - MARGIN - 4, MARGIN + 9, { align: 'right' });
+
+        pdf.setFont('Vazirmatn', 'normal');
+        pdf.setFontSize(9);
+        pdf.setTextColor(200, 200, 200);
+        pdf.text(`تعداد کالاها: ${formatNumber(products.length)}`, PAGE_W - MARGIN - 4, MARGIN + 15, { align: 'right' });
+
+        // Left side: date + page
+        pdf.setFontSize(8);
+        pdf.text(`تاریخ: ${today}`, MARGIN + 4, MARGIN + 9, { align: 'left' });
+        pdf.text(`صفحه ${pageIdx + 1} از ${totalPages}`, MARGIN + 4, MARGIN + 15, { align: 'left' });
+
+        // ------- Product Cards -------
+        const pageProducts = products.slice(pageIdx * PER_PAGE, (pageIdx + 1) * PER_PAGE);
+
+        for (let i = 0; i < pageProducts.length; i++) {
+          const p = pageProducts[i]!;
+          const col = i % COLS;
+          const row = Math.floor(i / COLS);
+          // RTL: rightmost column first
+          const x = PAGE_W - MARGIN - (col + 1) * CARD_W - col * GAP;
+          const y = GRID_START_Y + row * (CARD_H + GAP);
+
+          // Card background
+          pdf.setFillColor(249, 250, 251);
+          pdf.setDrawColor(229, 231, 235);
+          pdf.roundedRect(x, y, CARD_W, CARD_H, 2, 2, 'FD');
+
+          const innerPad = 2.5;
+          const imgAreaH = CARD_H * 0.42;
+          const textStartY = y + imgAreaH + innerPad;
+
+          // Product image
+          if (p.imageUrl) {
+            try {
+              const imgData = await loadImageAsDataUrl(p.imageUrl);
+              if (imgData) {
+                const imgSize = Math.min(CARD_W - innerPad * 2, imgAreaH - 2);
+                const imgX = x + (CARD_W - imgSize) / 2;
+                const imgY = y + (imgAreaH - imgSize) / 2;
+                pdf.addImage(imgData, 'JPEG', imgX, imgY, imgSize, imgSize);
+              }
+            } catch {
+              // skip image
+            }
+          }
+
+          // Product title (RTL)
+          pdf.setFont('Vazirmatn', 'bold');
+          pdf.setFontSize(7);
+          pdf.setTextColor(31, 41, 55);
+          const titleLines = pdf.splitTextToSize(p.title || '', CARD_W - innerPad * 2);
+          const maxTitleLines = 2;
+          const shownTitle = titleLines.slice(0, maxTitleLines);
+          pdf.text(shownTitle, x + CARD_W - innerPad, textStartY, { align: 'right', lineHeightFactor: 1.5 });
+
+          // Brand
+          const brandName = (p as any).brandFaName || (p as any).brandName || '';
+          if (brandName) {
+            pdf.setFont('Vazirmatn', 'normal');
+            pdf.setFontSize(6);
+            pdf.setTextColor(107, 114, 128);
+            pdf.text(brandName, x + CARD_W - innerPad, textStartY + maxTitleLines * 3.2 + 1, { align: 'right' });
+          }
+
+          // Divider line
+          const dividerY = y + CARD_H - 10;
+          pdf.setDrawColor(229, 231, 235);
+          pdf.line(x + innerPad, dividerY, x + CARD_W - innerPad, dividerY);
+
+          // Price
+          pdf.setFont('Vazirmatn', 'bold');
+          pdf.setFontSize(7.5);
+          pdf.setTextColor(14, 165, 233); // sky-500
+          const priceText = p.price > 0 ? `${formatNumber(p.price)} تومان` : 'تماس بگیرید';
+          pdf.text(priceText, x + CARD_W / 2, dividerY + 4.5, { align: 'center' });
+
+          // Stock
+          pdf.setFont('Vazirmatn', 'normal');
+          pdf.setFontSize(6);
+          if (p.stock > 0) {
+            pdf.setTextColor(16, 185, 129); // green
+            pdf.text('موجود', x + CARD_W / 2, dividerY + 8, { align: 'center' });
+          } else {
+            pdf.setTextColor(239, 68, 68); // red
+            pdf.text('ناموجود', x + CARD_W / 2, dividerY + 8, { align: 'center' });
+          }
+        }
+
+        // ------- Footer -------
+        pdf.setFont('Vazirmatn', 'normal');
+        pdf.setFontSize(7);
+        pdf.setTextColor(156, 163, 175);
+        pdf.text('تهیه شده توسط سیستم مدیریت تماس مارکت — TamasMarket.com', PAGE_W / 2, PAGE_H - MARGIN + 2, { align: 'center' });
       }
 
       setPdfProgress(100);
-      pdf.save(`کاتالوگ-تماس-مارکت-${new Date().toLocaleDateString('fa-IR').replace(/\//g, '-')}.pdf`);
+      pdf.save(`کاتالوگ-تماس-مارکت-${today.replace(/\//g, '-')}.pdf`);
       toast.ok('فایل PDF با موفقیت دانلود شد.');
     } catch (error) {
       console.error('PDF Generation error:', error);
@@ -185,90 +341,6 @@ export function CatalogExportPage() {
             </div>
           </div>
         </section>
-      </div>
-
-      {/* Hidden container for rendering individual pages */}
-      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '210mm' }}>
-        {Array.from({ length: Math.max(1, Math.ceil(products.length / 20)) }).map((_, i) => {
-          const pageProducts = products.slice(i * 20, (i + 1) * 20);
-          return (
-            <div
-              key={i}
-              id={`pdf-page-${i}`}
-              style={{
-                width: '210mm',
-                height: '297mm', // strict A4 height
-                padding: '15mm',
-                backgroundColor: '#ffffff',
-                color: '#111827',
-                direction: 'rtl',
-                fontFamily: 'Vazirmatn, sans-serif',
-                boxSizing: 'border-box',
-                position: 'relative',
-              }}
-            >
-              {/* PDF Header */}
-              <div style={{ borderBottom: '3px solid #1f2937', paddingBottom: '15px', marginBottom: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                <div>
-                  <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#111827', margin: '0 0 5px 0' }}>کاتالوگ محصولات تماس مارکت</h1>
-                  <p style={{ fontSize: '14px', color: '#4b5563', margin: 0 }}>تعداد کل کالاها: {formatNumber(products.length)}</p>
-                </div>
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '4px' }}>
-                    تاریخ: {new Date().toLocaleDateString('fa-IR')}
-                  </div>
-                  <div style={{ fontSize: '13px', color: '#6b7280' }}>صفحه {i + 1} از {Math.ceil(products.length / 20)}</div>
-                </div>
-              </div>
-
-              {/* Products Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px' }}>
-                {pageProducts.map((p) => (
-                  <div
-                    key={p.id}
-                    style={{
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '12px',
-                      padding: '12px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      backgroundColor: '#f9fafb',
-                      height: '46mm', // approximate height for 5 rows
-                    }}
-                  >
-                    <div style={{ width: '100%', height: '22mm', backgroundColor: '#fff', borderRadius: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                      {p.imageUrl ? (
-                        <img src={p.imageUrl} alt={p.title} style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain' }} crossOrigin="anonymous" />
-                      ) : (
-                        <span style={{ fontSize: '12px', color: '#9ca3af' }}>بدون تصویر</span>
-                      )}
-                    </div>
-                    
-                    <h3 style={{ fontSize: '10px', fontWeight: 800, textAlign: 'center', margin: '0 0 4px 0', color: '#1f2937', lineHeight: 1.4, maxHeight: '28px', overflow: 'hidden' }}>
-                      {p.title}
-                    </h3>
-                    
-                    {(p.brandFaName || p.brandName) && (
-                      <p style={{ fontSize: '9px', color: '#6b7280', margin: '0 0 6px 0' }}>
-                        {p.brandFaName || p.brandName}
-                      </p>
-                    )}
-                    
-                    <div style={{ marginTop: 'auto', width: '100%', borderTop: '1px solid #e5e7eb', paddingTop: '6px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 900, color: '#0ea5e9', marginBottom: '2px' }}>
-                        {p.price > 0 ? `${formatNumber(p.price)} تومان` : 'تماس بگیرید'}
-                      </div>
-                      <div style={{ fontSize: '9px', fontWeight: 700, color: p.stock > 0 ? '#10b981' : '#ef4444' }}>
-                        {p.stock > 0 ? 'موجود' : 'ناموجود'}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
       </div>
     </div>
   );
