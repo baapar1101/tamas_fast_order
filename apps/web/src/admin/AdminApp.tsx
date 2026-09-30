@@ -299,10 +299,24 @@ const NAV_TOOLS = [
   },
 ] as const;
 
+const PRODUCT_NAV_PATHS = new Set([
+  '/admin/products',
+  '/admin/bundles',
+  '/admin/categories',
+  '/admin/brands',
+  '/admin/attributes',
+  '/admin/warehouses',
+]);
+
+function isProductPath(pathname: string): boolean {
+  return [...PRODUCT_NAV_PATHS].some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
+
 export default function AdminApp() {
   const { user, ready, isAdmin, isOperator, hasPermission, logout } = useAuth();
   const location = useLocation();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [productsMenuOpen, setProductsMenuOpen] = useState(() => isProductPath(location.pathname));
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState({ date: '', time: '' });
@@ -368,6 +382,7 @@ export default function AdminApp() {
     setNotifOpen(false);
     setProfileOpen(false);
     setMobileSidebarOpen(false);
+    if (isProductPath(location.pathname)) setProductsMenuOpen(true);
   }, [location.pathname]);
 
   const counters = useQuery({
@@ -476,6 +491,14 @@ export default function AdminApp() {
     return 0;
   };
 
+  const visibleMainItems = NAV_MAIN.filter(
+    (item) => hasPermission(item.requiredPermission) && !PRODUCT_NAV_PATHS.has(item.to),
+  );
+  const visibleProductItems = NAV_MAIN.filter(
+    (item) => hasPermission(item.requiredPermission) && PRODUCT_NAV_PATHS.has(item.to),
+  );
+  const productSectionActive = isProductPath(location.pathname);
+
   return (
     <div className="admin-body-shell">
       {/* Smokey WebGL Background */}
@@ -521,7 +544,7 @@ export default function AdminApp() {
           <div>
             <p className="mb-2 px-4 text-[11px] font-semibold tracking-wide text-slate-500">منوی اصلی</p>
             <ul className="space-y-1">
-              {NAV_MAIN.filter(item => hasPermission(item.requiredPermission)).map((item) => {
+              {visibleMainItems.map((item) => {
                 const count = badgeValue('badge' in item ? item.badge : undefined);
                 return (
                   <li key={item.to}>
@@ -541,6 +564,41 @@ export default function AdminApp() {
                   </li>
                 );
               })}
+              {visibleProductItems.length > 0 && (
+                <li className={`nav-accordion${productsMenuOpen ? ' is-open' : ''}`}>
+                  <button
+                    type="button"
+                    className={`nav-item nav-accordion-toggle${productSectionActive ? ' active' : ''}`}
+                    aria-expanded={productsMenuOpen}
+                    aria-controls="admin-products-submenu"
+                    onClick={() => setProductsMenuOpen((open) => !open)}
+                  >
+                    <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m-.375 0h17.25M9 11.25h6m-6 3h6" />
+                    </svg>
+                    <span>مدیریت محصولات</span>
+                    <span className="nav-accordion-count">{formatNumber(visibleProductItems.length)}</span>
+                    <svg className="nav-accordion-chevron" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 9l-7.5 7.5L4.5 9" />
+                    </svg>
+                  </button>
+                  <div id="admin-products-submenu" className="nav-submenu-shell" aria-hidden={!productsMenuOpen}>
+                    <ul className="nav-submenu">
+                      {visibleProductItems.map((item) => (
+                        <li key={item.to}>
+                          <NavLink
+                            to={item.to}
+                            className={({ isActive }) => `nav-item nav-subitem${isActive ? ' active' : ''}`}
+                          >
+                            {item.icon}
+                            <span>{item.label}</span>
+                          </NavLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
+              )}
             </ul>
           </div>
 

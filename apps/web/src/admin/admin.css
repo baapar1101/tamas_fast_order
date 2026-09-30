@@ -193,6 +193,86 @@ form.glass-card:hover {
   transform: scale(1.05);
 }
 
+/* Compact accordion for product-management navigation. */
+.nav-accordion-toggle {
+  width: 100%;
+  border: 0;
+  text-align: right;
+}
+
+.nav-accordion-count {
+  margin-right: auto;
+  min-width: 1.5rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.08);
+  color: var(--slate-400);
+  font-size: 0.65rem;
+  line-height: 1.25rem;
+  text-align: center;
+}
+
+.nav-accordion-chevron {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: 0 0 0.9rem;
+  color: var(--slate-500);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease;
+}
+
+.nav-accordion.is-open .nav-accordion-chevron {
+  transform: rotate(180deg);
+  color: var(--brand-300);
+}
+
+.nav-submenu-shell {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+}
+
+.nav-accordion.is-open .nav-submenu-shell {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.nav-submenu {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  margin: 0.25rem 0.7rem 0 0;
+  padding-right: 0.8rem;
+  border-right: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.nav-subitem {
+  min-height: 2.35rem;
+  gap: 0.6rem;
+  margin-top: 0.15rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.65rem;
+  font-size: 0.8rem;
+}
+
+.nav-subitem .icon-svg {
+  width: 1rem;
+  height: 1rem;
+  min-width: 1rem;
+  min-height: 1rem;
+  flex-basis: 1rem;
+  opacity: 0.8;
+}
+
+.nav-subitem::before {
+  width: 0.18rem;
+}
+
+.nav-subitem.active {
+  background: rgba(16, 185, 129, 0.1);
+}
+
 /* Chips & Badges */
 .chip {
   display: inline-flex;

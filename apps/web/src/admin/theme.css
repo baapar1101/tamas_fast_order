@@ -181,12 +181,33 @@ body.admin-page-active.admin-theme-light {
 @media (max-width: 640px) { .a-card { padding: 1.1rem 1rem; } }
 
 /* Glassmorphism for admin modals */
+body.admin-page-active .modal-backdrop,
+body.admin-page-active .admin-modal-backdrop {
+  background: rgba(2, 6, 23, 0.74) !important;
+  backdrop-filter: blur(18px) saturate(72%) brightness(58%);
+  -webkit-backdrop-filter: blur(18px) saturate(72%) brightness(58%);
+  isolation: isolate;
+}
+
 body.admin-page-active .modal-panel {
-  background: var(--a-surface);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--a-border);
-  box-shadow: var(--a-shadow-2);
+  background: rgba(14, 22, 38, 0.96);
+  backdrop-filter: blur(32px) saturate(120%);
+  -webkit-backdrop-filter: blur(32px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 32px 90px -20px rgba(0, 0, 0, 0.92), 0 0 0 1px rgba(16, 185, 129, 0.05);
+}
+
+body.admin-page-active .admin-modal-surface {
+  background: rgba(14, 22, 38, 0.96);
+  backdrop-filter: blur(32px) saturate(120%);
+  -webkit-backdrop-filter: blur(32px) saturate(120%);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 32px 90px -20px rgba(0, 0, 0, 0.92), 0 0 0 1px rgba(16, 185, 129, 0.05);
+}
+
+body.admin-page-active .admin-modal-surface:hover {
+  transform: none;
+  border-color: rgba(255, 255, 255, 0.12);
 }
 body.admin-page-active .modal-head {
   background: transparent;
@@ -1326,10 +1347,24 @@ body.admin-page-active.admin-theme-light .admin-main-content .progress-amber { b
    primitives (modal panel, tables, chips, cards, buttons) accordingly.
    ========================================================================== */
 body.admin-theme-light .modal-panel {
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.97);
   border: 1px solid #eaecf0;
   color: #101828;
   box-shadow: 0 25px 50px -12px rgba(16, 24, 40, 0.22);
+}
+body.admin-page-active.admin-theme-light .modal-backdrop,
+body.admin-page-active.admin-theme-light .admin-modal-backdrop {
+  background: rgba(15, 23, 42, 0.42) !important;
+  backdrop-filter: blur(18px) saturate(70%) brightness(84%);
+  -webkit-backdrop-filter: blur(18px) saturate(70%) brightness(84%);
+}
+body.admin-page-active.admin-theme-light .admin-modal-surface {
+  background: rgba(255, 255, 255, 0.97);
+  border-color: rgba(15, 23, 42, 0.14);
+  box-shadow: 0 32px 90px -24px rgba(15, 23, 42, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.72);
+}
+body.admin-page-active.admin-theme-light .admin-modal-surface:hover {
+  border-color: rgba(15, 23, 42, 0.14);
 }
 body.admin-theme-light .modal-head,
 body.admin-theme-light .modal-foot {
@@ -1484,6 +1519,17 @@ body.admin-page-active.admin-theme-light .admin-sidebar .nav-item:hover {
 body.admin-page-active.admin-theme-light .admin-sidebar .nav-item.active {
   background-image: linear-gradient(to left, rgba(16, 185, 129, 0.14), transparent);
   color: #059669;
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-accordion-count {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.05);
+  color: #475569;
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-submenu {
+  border-right-color: rgba(15, 23, 42, 0.12);
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-subitem.active {
+  background: rgba(16, 185, 129, 0.1);
 }
 body.admin-page-active.admin-theme-light .admin-sidebar .bg-emerald-500\/15 { color: #059669 !important; }
 

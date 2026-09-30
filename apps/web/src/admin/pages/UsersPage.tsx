@@ -270,10 +270,10 @@ export function UsersPage() {
 
       {/* Edit Role Modal */}
       {editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 overflow-y-auto">
-          <div className="a-card w-full max-w-md">
+        <div className="admin-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 overflow-y-auto">
+          <div className="admin-modal-surface a-card w-full max-w-md" role="dialog" aria-modal="true" aria-labelledby="edit-user-role-title">
             <div className="a-card-head">
-              <h3 className="a-card-title">تغییر نقش کاربر</h3>
+              <h3 id="edit-user-role-title" className="a-card-title">تغییر نقش کاربر</h3>
             </div>
             <p className="a-hint mb-4">
               کاربر: <span className="font-bold text-[var(--a-t1)]">{editingUser.name} {editingUser.lastName} ({editingUser.phone})</span>

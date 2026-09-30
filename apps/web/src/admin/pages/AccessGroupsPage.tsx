@@ -185,10 +185,10 @@ export function AccessGroupsPage() {
 
       {/* Modal */}
       {(isEditing || isCreating) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 overflow-y-auto">
-          <div className="a-card w-full max-w-xl">
+        <div className="admin-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 overflow-y-auto">
+          <div className="admin-modal-surface a-card w-full max-w-xl" role="dialog" aria-modal="true" aria-labelledby="access-group-dialog-title">
             <div className="a-card-head">
-              <h3 className="a-card-title">{isEditing ? 'ویرایش گروه دسترسی' : 'گروه دسترسی جدید'}</h3>
+              <h3 id="access-group-dialog-title" className="a-card-title">{isEditing ? 'ویرایش گروه دسترسی' : 'گروه دسترسی جدید'}</h3>
             </div>
             <form onSubmit={handleSave} className="a-form-grid">
               <div className="a-field a-span-2">

@@ -57,7 +57,7 @@ export function AnimatedDropdown({
         id={id}
         type="button"
         className={cn(
-          "pp-btn pp-btn--secondary w-full justify-between",
+          "a-btn a-btn--secondary w-full justify-between",
           buttonClassName
         )}
         aria-haspopup="listbox"
