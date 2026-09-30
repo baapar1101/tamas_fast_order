@@ -28,7 +28,7 @@ const routes: FastifyPluginAsync = async (app) => {
       const amount = order.total;
       
       // Calculate frontend redirect URL for callback
-      const callbackUrl = `${req.headers.origin || 'https://tamas-fast-order.ir'}/payment/result`;
+      const callbackUrl = `${req.headers.origin || 'https://tamasmarket.com'}/payment/result`;
 
       try {
         const response = await paymentGateway.Create({
@@ -56,9 +56,10 @@ const routes: FastifyPluginAsync = async (app) => {
         } else {
           throw new Error('خطا در ارتباط با درگاه پرداخت: ' + (data?.code || ''));
         }
-      } catch (err) {
-        req.log.error({ err }, 'Payment create failed');
-        throw badRequest('خطا در ایجاد تراکنش بانکی. لطفاً کمی بعد تلاش کنید.');
+      } catch (err: any) {
+        req.log.error({ err: err.response?.data || err.message }, 'Payment create failed');
+        const bankError = err.response?.data?.code || err.response?.data?.message || err.message;
+        throw badRequest(`خطا در ایجاد تراکنش بانکی (${bankError}).`);
       }
     }
   );
