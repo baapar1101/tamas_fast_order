@@ -132,17 +132,21 @@ export function CatalogExportPage() {
         pdf.setFontSize(16);
         pdf.setTextColor(255, 255, 255);
         // RTL: align right
-        pdf.text('کاتالوگ محصولات تماس مارکت', PAGE_W - MARGIN - 4, MARGIN + 9, { align: 'right' });
+        const hTitle = pdf.processArabic ? pdf.processArabic('کاتالوگ محصولات تماس مارکت') : 'کاتالوگ محصولات تماس مارکت';
+        pdf.text(hTitle, PAGE_W - MARGIN - 4, MARGIN + 9, { align: 'right', isInputRtl: true, isOutputRtl: true });
 
         pdf.setFont('Vazirmatn', 'normal');
         pdf.setFontSize(9);
         pdf.setTextColor(200, 200, 200);
-        pdf.text(`تعداد کالاها: ${formatNumber(products.length)}`, PAGE_W - MARGIN - 4, MARGIN + 15, { align: 'right' });
+        const hCount = pdf.processArabic ? pdf.processArabic(`تعداد کالاها: ${formatNumber(products.length)}`) : `تعداد کالاها: ${formatNumber(products.length)}`;
+        pdf.text(hCount, PAGE_W - MARGIN - 4, MARGIN + 15, { align: 'right', isInputRtl: true, isOutputRtl: true });
 
         // Left side: date + page
         pdf.setFontSize(8);
-        pdf.text(`تاریخ: ${today}`, MARGIN + 4, MARGIN + 9, { align: 'left' });
-        pdf.text(`صفحه ${pageIdx + 1} از ${totalPages}`, MARGIN + 4, MARGIN + 15, { align: 'left' });
+        const hDate = pdf.processArabic ? pdf.processArabic(`تاریخ: ${today}`) : `تاریخ: ${today}`;
+        const hPage = pdf.processArabic ? pdf.processArabic(`صفحه ${pageIdx + 1} از ${totalPages}`) : `صفحه ${pageIdx + 1} از ${totalPages}`;
+        pdf.text(hDate, MARGIN + 4, MARGIN + 9, { align: 'left' });
+        pdf.text(hPage, MARGIN + 4, MARGIN + 15, { align: 'left' });
 
         // ------- Product Cards -------
         const pageProducts = products.slice(pageIdx * PER_PAGE, (pageIdx + 1) * PER_PAGE);
@@ -179,22 +183,40 @@ export function CatalogExportPage() {
             }
           }
 
-          // Product title (RTL)
+          // Product title (RTL, right-aligned)
           pdf.setFont('Vazirmatn', 'bold');
-          pdf.setFontSize(7);
+          pdf.setFontSize(7.5);
           pdf.setTextColor(31, 41, 55);
-          const titleLines = pdf.splitTextToSize(p.title || '', CARD_W - innerPad * 2);
+
+          const rawTitle = p.title || '';
+          const titleLines: string[] = pdf.splitTextToSize(rawTitle, CARD_W - innerPad * 2);
           const maxTitleLines = 2;
           const shownTitle = titleLines.slice(0, maxTitleLines);
-          pdf.text(shownTitle, x + CARD_W - innerPad, textStartY, { align: 'right', lineHeightFactor: 1.5 });
+
+          const rightX = x + CARD_W - innerPad;
+
+          shownTitle.forEach((lineStr, lineIdx) => {
+            const formatted = pdf.processArabic ? pdf.processArabic(lineStr) : lineStr;
+            pdf.text(formatted, rightX, textStartY + lineIdx * 3.6, {
+              align: 'right',
+              isInputRtl: true,
+              isOutputRtl: true,
+            });
+          });
 
           // Brand
           const brandName = (p as any).brandFaName || (p as any).brandName || '';
           if (brandName) {
             pdf.setFont('Vazirmatn', 'normal');
-            pdf.setFontSize(6);
+            pdf.setFontSize(6.5);
             pdf.setTextColor(107, 114, 128);
-            pdf.text(brandName, x + CARD_W - innerPad, textStartY + maxTitleLines * 3.2 + 1, { align: 'right' });
+            const brandY = textStartY + shownTitle.length * 3.6 + 0.5;
+            const formattedBrand = pdf.processArabic ? pdf.processArabic(brandName) : brandName;
+            pdf.text(formattedBrand, rightX, brandY, {
+              align: 'right',
+              isInputRtl: true,
+              isOutputRtl: true,
+            });
           }
 
           // Divider line
@@ -207,17 +229,20 @@ export function CatalogExportPage() {
           pdf.setFontSize(7.5);
           pdf.setTextColor(14, 165, 233); // sky-500
           const priceText = p.price > 0 ? `${formatNumber(p.price)} تومان` : 'تماس بگیرید';
-          pdf.text(priceText, x + CARD_W / 2, dividerY + 4.5, { align: 'center' });
+          const formattedPrice = pdf.processArabic ? pdf.processArabic(priceText) : priceText;
+          pdf.text(formattedPrice, x + CARD_W / 2, dividerY + 4.5, { align: 'center' });
 
           // Stock
           pdf.setFont('Vazirmatn', 'normal');
           pdf.setFontSize(6);
           if (p.stock > 0) {
             pdf.setTextColor(16, 185, 129); // green
-            pdf.text('موجود', x + CARD_W / 2, dividerY + 8, { align: 'center' });
+            const inStockText = pdf.processArabic ? pdf.processArabic('موجود') : 'موجود';
+            pdf.text(inStockText, x + CARD_W / 2, dividerY + 8, { align: 'center' });
           } else {
             pdf.setTextColor(239, 68, 68); // red
-            pdf.text('ناموجود', x + CARD_W / 2, dividerY + 8, { align: 'center' });
+            const outStockText = pdf.processArabic ? pdf.processArabic('ناموجود') : 'ناموجود';
+            pdf.text(outStockText, x + CARD_W / 2, dividerY + 8, { align: 'center' });
           }
         }
 
@@ -225,7 +250,8 @@ export function CatalogExportPage() {
         pdf.setFont('Vazirmatn', 'normal');
         pdf.setFontSize(7);
         pdf.setTextColor(156, 163, 175);
-        pdf.text('تهیه شده توسط سیستم مدیریت تماس مارکت — TamasMarket.com', PAGE_W / 2, PAGE_H - MARGIN + 2, { align: 'center' });
+        const footerStr = pdf.processArabic ? pdf.processArabic('تهیه شده توسط سیستم مدیریت تماس مارکت — TamasMarket.com') : 'تهیه شده توسط سیستم مدیریت تماس مارکت — TamasMarket.com';
+        pdf.text(footerStr, PAGE_W / 2, PAGE_H - MARGIN + 2, { align: 'center' });
       }
 
       setPdfProgress(100);
