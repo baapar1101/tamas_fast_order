@@ -16,16 +16,15 @@ export function CatalogExportPage() {
   const [selectedBrand, setSelectedBrand] = useState<number | 'all'>('all');
   const [stockStatus, setStockStatus] = useState<'all' | 'in' | 'out'>('all');
 
-  // Fetch reference data
-  const { data: categoriesData } = useQuery({
-    queryKey: ['admin', 'categories'],
-    queryFn: () => api.get<{ items: CategoryDTO[] }>('/admin/categories'),
+  const taxonomy = useQuery({
+    queryKey: ['admin', 'taxonomy'],
+    queryFn: () => api.get<{ categories: CategoryDTO[]; brands: BrandDTO[] }>('/admin/taxonomy'),
+    staleTime: 5 * 60_000,
   });
 
-  const { data: brandsData } = useQuery({
-    queryKey: ['admin', 'brands'],
-    queryFn: () => api.get<{ items: BrandDTO[] }>('/admin/brands'),
-  });
+  const taxonomyData: any = taxonomy.data;
+  const categories = taxonomyData?.categories ?? taxonomyData?.data?.categories ?? [];
+  const brands = taxonomyData?.brands ?? taxonomyData?.data?.brands ?? [];
 
   // Fetch products based on filters
   const { data: productsData, isLoading: isLoadingProducts } = useQuery({
@@ -98,7 +97,7 @@ export function CatalogExportPage() {
                   onChange={(e) => setSelectedCategory(e.target.value === 'all' ? 'all' : Number(e.target.value))}
                 >
                   <option value="all">همه دسته‌بندی‌ها</option>
-                  {categoriesData?.items?.map((cat) => (
+                  {categories.map((cat: CategoryDTO) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.faName || cat.name}
                     </option>
@@ -115,7 +114,7 @@ export function CatalogExportPage() {
                   onChange={(e) => setSelectedBrand(e.target.value === 'all' ? 'all' : Number(e.target.value))}
                 >
                   <option value="all">همه برندها</option>
-                  {brandsData?.items?.map((brand) => (
+                  {brands.map((brand: BrandDTO) => (
                     <option key={brand.id} value={brand.id}>
                       {brand.faName || brand.name}
                     </option>
