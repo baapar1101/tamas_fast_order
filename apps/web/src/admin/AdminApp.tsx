@@ -28,6 +28,7 @@ import { AccessGroupsPage } from './pages/AccessGroupsPage';
 import { SmsPage } from './pages/SmsPage';
 import { CrmChatPage } from './pages/CrmChatPage';
 import { CreditApplicationsPage } from './pages/CreditApplicationsPage';
+import { CatalogExportPage } from './pages/CatalogExportPage';
 import { SmokeyBackground } from './components/SmokeyBackground';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
@@ -196,6 +197,16 @@ const NAV_MAIN = [
 
 const NAV_TOOLS = [
   {
+    to: '/admin/catalog-export',
+    label: 'خروجی کاتالوگ PDF',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
+  },
+  {
     to: '/admin/messages',
     label: 'پیام‌ها',
     icon: (
@@ -245,6 +256,16 @@ const NAV_TOOLS = [
       </svg>
     ),
     requiredPermission: 'manage_settings',
+  },
+  {
+    to: '/admin/catalog-export',
+    label: 'خروجی کاتالوگ PDF',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
   },
   {
     to: '/admin/crm-sync',
@@ -850,6 +871,7 @@ export default function AdminApp() {
             <Route path="orders" element={<OrdersPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="credit" element={<CreditApplicationsPage />} />
+            <Route path="catalog-export" element={<CatalogExportPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="sms" element={<SmsPage />} />
