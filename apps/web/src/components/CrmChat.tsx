@@ -514,7 +514,7 @@ export function CrmChat({ user }: CrmChatProps) {
           color: '#fff', border: 'none', cursor: 'pointer',
           boxShadow: '0 8px 22px rgba(8, 121, 143, 0.34)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 9999, ...PRESS_SCALE,
+          zIndex: 100000, ...PRESS_SCALE,
         }}
         {...togglePress}
       >
@@ -550,7 +550,7 @@ export function CrmChat({ user }: CrmChatProps) {
         background: 'var(--tamas-surface)', borderRadius: widgetRadius,
         boxShadow: 'var(--tamas-shadow-lg), 0 4px 16px rgba(0, 0, 0, 0.06)',
         display: 'flex', flexDirection: 'column',
-        zIndex: 9999, overflow: 'hidden',
+        zIndex: 100005, overflow: 'hidden',
         border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)',
         fontFamily: 'var(--tamas-font)',
         animation: 'chatSlideUp 0.28s cubic-bezier(0.2, 0.8, 0.2, 1)',
