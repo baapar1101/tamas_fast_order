@@ -122,7 +122,7 @@ export const api = {
   patch: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PATCH', body }),
   del: <T>(path: string, query?: Query) => request<T>(path, { method: 'DELETE', query }),
   upload: <T>(path: string, form: FormData) => request<T>(path, { method: 'POST', form }),
-  /** Downloads a CSV the API generated, honouring the session token. */
+  /** Downloads a file the API generated, honouring the session token. */
   async download(path: string, query: Query, filename: string): Promise<void> {
     const token = readToken();
     const res = await fetch(`/api${path}${toSearch(query)}`, {
@@ -134,9 +134,13 @@ export const api = {
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
+    a.style.display = 'none';
     document.body.append(a);
     a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    // Give the browser time to start the download before cleaning up
+    setTimeout(() => {
+      a.remove();
+      URL.revokeObjectURL(url);
+    }, 1000);
   },
 };

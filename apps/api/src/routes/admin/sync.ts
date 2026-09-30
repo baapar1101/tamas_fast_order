@@ -133,9 +133,12 @@ const routes: FastifyPluginAsync = async (app) => {
     ws['!cols'] = [{ wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
     xlsx.utils.book_append_sheet(wb, ws, 'Prices');
 
-    const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    // xlsx.write returns an ArrayBuffer — wrap it in a proper Node.js Buffer
+    const raw = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const buffer = Buffer.from(raw);
     
     reply.header('Content-Disposition', 'attachment; filename="price-update-template.xlsx"');
+    reply.header('Content-Length', buffer.length);
     reply.type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     return reply.send(buffer);
   });
