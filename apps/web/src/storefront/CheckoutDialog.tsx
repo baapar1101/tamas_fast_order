@@ -8,6 +8,8 @@ import { ApiRequestError, api } from "../lib/api";
 import { useAuth } from "../store/auth";
 import { cartTotal, useCart } from "../store/cart";
 import { Icon } from "../components/Icon";
+import { useBootstrap } from "./hooks";
+import { parsePaymentMethods } from "../lib/payment-methods";
 
 interface Props {
   open: boolean;
@@ -178,12 +180,24 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
   // Secondary form state (post-order)
   const [completedOrder, setCompletedOrder] = useState<OrderDTO | null>(null);
   const [completedMethod, setCompletedMethod] = useState("");
-  const [secondaryData, setSecondaryData] = useState<Record<string, string>>(
-    {},
-  );
+  const [secondaryData, setSecondaryData] = useState<Record<string, string>>({});
   const [secondaryBusy, setSecondaryBusy] = useState(false);
 
+  const bootstrap = useBootstrap();
   const total = cartTotal(lines);
+
+  const configuredMethods = parsePaymentMethods(bootstrap.data?.settings.payment_methods);
+  const availableMethods = configuredMethods.filter(
+    (m) =>
+      m.enabled !== false &&
+      (!m.minAmount || total >= m.minAmount) &&
+      (!m.maxAmount || total <= m.maxAmount)
+  );
+
+  const activePaymentMethod = availableMethods.some((m) => m.id === paymentMethod)
+    ? paymentMethod
+    : availableMethods[0]?.id || 'aqayepardakht';
+
   const deliveryAddress = address.trim() || user?.address || "";
 
   function handleClose() {
@@ -215,14 +229,14 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
         })),
         address: address.trim() || undefined,
         note: note.trim() || undefined,
-        paymentMethod,
+        paymentMethod: activePaymentMethod,
       });
       clear();
       setAddress("");
       setNote("");
       setAgreeTerms(false);
 
-      if (paymentMethod === "aqayepardakht") {
+      if (activePaymentMethod === "aqayepardakht") {
         toast.ok("سفارش ثبت شد، در حال انتقال به درگاه پرداخت...");
         const paymentRes = await api.post<{ ok: boolean; url: string }>(
           "/payment/create",
@@ -236,10 +250,11 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
         }
       }
 
-      // For non-gateway methods, show secondary form
-      if (SECONDARY_INFO[paymentMethod]) {
+      // For non-gateway methods, show secondary form if configured or standard
+      const hasSecondary = SECONDARY_INFO[activePaymentMethod] || availableMethods.find(m => m.id === activePaymentMethod)?.instructions;
+      if (hasSecondary) {
         setCompletedOrder(res.order);
-        setCompletedMethod(paymentMethod);
+        setCompletedMethod(activePaymentMethod);
         setSecondaryData({});
         toast.ok(res.message);
         return;
@@ -280,36 +295,39 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
   }
 
   // ── Secondary form view (post-order) ────────────────────────────
-  if (completedOrder && SECONDARY_INFO[completedMethod]) {
+  if (completedOrder) {
     const info = SECONDARY_INFO[completedMethod];
-    return (
-      <Modal
-        open={open}
-        title={info.title}
-        onClose={handleClose}
-        busy={secondaryBusy}
-        footer={
-          <>
-            <button
-              type="button"
-              className="btn primary"
-              style={{ flex: 1 }}
-              disabled={secondaryBusy}
-              onClick={() => void submitSecondary()}
-            >
-              {secondaryBusy ? "در حال ثبت…" : "ثبت اطلاعات پرداخت"}
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={handleClose}
-              disabled={secondaryBusy}
-            >
-              بعداً تکمیل می‌کنم
-            </button>
-          </>
-        }
-      >
+    const customMethodObj = availableMethods.find(m => m.id === completedMethod);
+
+    if (info) {
+      return (
+        <Modal
+          open={open}
+          title={info.title}
+          onClose={handleClose}
+          busy={secondaryBusy}
+          footer={
+            <>
+              <button
+                type="button"
+                className="btn primary"
+                style={{ flex: 1 }}
+                disabled={secondaryBusy}
+                onClick={() => void submitSecondary()}
+              >
+                {secondaryBusy ? "در حال ثبت…" : "ثبت اطلاعات پرداخت"}
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={handleClose}
+                disabled={secondaryBusy}
+              >
+                بعداً تکمیل می‌کنم
+              </button>
+            </>
+          }
+        >
         <div className="stack">
           {/* Order summary */}
           <div
@@ -427,6 +445,60 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
         </div>
       </Modal>
     );
+    } else if (customMethodObj) {
+      return (
+        <Modal
+          open={open}
+          title={`ثبت سفارش — ${customMethodObj.label}`}
+          onClose={handleClose}
+          footer={
+            <button
+              type="button"
+              className="btn primary"
+              style={{ flex: 1 }}
+              onClick={handleClose}
+            >
+              متوجه شدم / بستن
+            </button>
+          }
+        >
+          <div className="stack">
+            <div
+              className="card"
+              style={{
+                padding: 12,
+                background: "var(--primary-light)",
+                borderColor: "var(--primary)",
+              }}
+            >
+              <div className="stack" style={{ gap: 4, fontSize: 13 }}>
+                <div className="row">
+                  <span className="muted">شماره سفارش</span>
+                  <span className="spacer" />
+                  <b className="ltr-inline">{completedOrder.orderCode}</b>
+                </div>
+                <div className="row">
+                  <span className="muted">مبلغ کل</span>
+                  <span className="spacer" />
+                  <b style={{ color: "var(--primary-dark)" }}>
+                    <Price amount={completedOrder.total} />
+                  </b>
+                </div>
+              </div>
+            </div>
+
+            {customMethodObj.instructions && (
+              <div className="card" style={{ padding: 14 }}>
+                <h4 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 700 }}>دستورالعمل و راهنمای پرداخت:</h4>
+                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.8, whiteSpace: 'pre-line', color: 'var(--text)' }}>
+                  {customMethodObj.instructions}
+                </p>
+              </div>
+            )}
+          </div>
+        </Modal>
+      );
+    }
   }
 
   // ── Main checkout form ──────────────────────────────────────────
@@ -530,65 +602,84 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
         <div className="field">
           <label>روش پرداخت و تسویه حساب</label>
           <div style={{ display: "grid", gap: "8px", marginTop: "4px" }}>
-            {PAYMENT_METHODS.map((method) => (
-              <label
-                key={method.id}
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "10px",
-                  padding: "12px",
-                  border:
-                    paymentMethod === method.id
-                      ? "2px solid var(--primary)"
-                      : "1px solid var(--border)",
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  background:
-                    paymentMethod === method.id
-                      ? "var(--primary-light)"
-                      : "var(--card)",
-                }}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value={method.id}
-                  checked={paymentMethod === method.id}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  style={{
-                    marginTop: "4px",
-                    width: "16px",
-                    height: "16px",
-                    cursor: "pointer",
-                    accentColor: "var(--primary)",
-                  }}
-                />
-                <div
+            {availableMethods.map((method) => {
+              const isSelected = activePaymentMethod === method.id;
+              return (
+                <label
+                  key={method.id}
                   style={{
                     display: "flex",
-                    flexDirection: "column",
-                    gap: "2px",
+                    alignItems: "flex-start",
+                    gap: "10px",
+                    padding: "12px",
+                    border: isSelected
+                      ? "2px solid var(--primary)"
+                      : "1px solid var(--border)",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    background: isSelected
+                      ? "var(--primary-light)"
+                      : "var(--card)",
                   }}
                 >
-                  <span
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value={method.id}
+                    checked={isSelected}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
                     style={{
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      color:
-                        paymentMethod === method.id
-                          ? "var(--primary-dark)"
-                          : "var(--text)",
+                      marginTop: "4px",
+                      width: "16px",
+                      height: "16px",
+                      cursor: "pointer",
+                      accentColor: "var(--primary)",
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "2px",
+                      width: "100%",
                     }}
                   >
-                    {method.label}
-                  </span>
-                  <span style={{ fontSize: "12px", color: "var(--muted)" }}>
-                    {method.desc}
-                  </span>
-                </div>
-              </label>
-            ))}
+                    <span
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "14px",
+                        color: isSelected
+                          ? "var(--primary-dark)"
+                          : "var(--text)",
+                      }}
+                    >
+                      {method.label}
+                    </span>
+                    {method.desc && (
+                      <span style={{ fontSize: "12px", color: "var(--muted)" }}>
+                        {method.desc}
+                      </span>
+                    )}
+                    {method.instructions && isSelected && (
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "var(--primary-dark)",
+                          background: "rgba(14, 165, 233, 0.08)",
+                          padding: "8px 10px",
+                          borderRadius: "6px",
+                          marginTop: "6px",
+                          whiteSpace: "pre-line",
+                          lineHeight: "1.6",
+                        }}
+                      >
+                        ℹ️ {method.instructions}
+                      </div>
+                    )}
+                  </div>
+                </label>
+              );
+            })}
           </div>
         </div>
 

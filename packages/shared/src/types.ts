@@ -329,4 +329,17 @@ export interface CreditDashboardDTO {
   notifications: ChequeNotificationDTO[];
 }
 
+export interface PaymentMethodConfig {
+  id: string;
+  label: string;
+  desc: string;
+  enabled: boolean;
+  type: 'online' | 'manual' | 'credit' | 'cheque' | 'custom';
+  instructions?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  sortOrder?: number;
+}
+
+
 

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 import { ImagePicker } from '../components/ImagePicker';
+import { PaymentMethodsSettings } from '../components/PaymentMethodsSettings';
 
 interface AuditEntry {
   id: number;
@@ -158,7 +159,7 @@ export function SettingsPage() {
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [testPhone, setTestPhone] = useState('');
-  const [activeTab, setActiveTab] = useState<'general' | 'telegram' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'payment' | 'telegram' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
   const [syncProgress, setSyncProgress] = useState<Record<string, { current: number; total: number; label: string; done: boolean; error: boolean }>>({});
   const syncRaf = useRef<Record<string, number>>({});
   const syncStart = useRef<Record<string, number>>({});
@@ -228,6 +229,7 @@ export function SettingsPage() {
 
   const knownKeys = new Set<string>([
     ...KNOWN_SETTINGS.map((s) => s.key),
+    'payment_methods',
     'TELEGRAM_ENABLED',
     'private_TELEGRAM_BOT_TOKEN',
     'TELEGRAM_BOT_TOKEN',
@@ -248,8 +250,9 @@ export function SettingsPage() {
     setForm((current) => ({ ...current, TELEGRAM_ROUTES: JSON.stringify(routes) }));
   };
 
-  const TABS: { id: 'general' | 'telegram' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
+  const TABS: { id: 'general' | 'payment' | 'telegram' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
     { id: 'general', label: 'تنظیمات عمومی' },
+    { id: 'payment', label: '💳 روش‌های پرداخت' },
     { id: 'telegram', label: 'ربات تلگرام' },
     { id: 'tools', label: 'ابزارها و پیشرفته' },
     { id: 'crm', label: 'اتصال CRM' },
@@ -290,6 +293,15 @@ export function SettingsPage() {
           </button>
         ))}
       </div>
+
+      {activeTab === 'payment' && (
+        <PaymentMethodsSettings
+          value={form.payment_methods}
+          onChange={(newValue) => setForm({ ...form, payment_methods: newValue })}
+          onSave={() => save.mutate(form)}
+          isSaving={save.isPending}
+        />
+      )}
 
       {activeTab === 'general' && (
         <section className="a-card a-fade">
