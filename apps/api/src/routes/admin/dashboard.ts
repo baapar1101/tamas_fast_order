@@ -6,6 +6,8 @@ import { db } from '../../db/client.js';
 import { orderItems, orders, products, syncState, users } from '../../db/schema.js';
 import { deleteSetting, getAllSettings, setSetting } from '../../services/settings.js';
 import { recentAudit } from '../../services/audit.js';
+import { TELEGRAM_EVENTS, testTelegramGroup } from '../../services/telegram.js';
+import { badRequest } from '../../lib/errors.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   // Operational overview is safe for every admin/operator; the sensitive
@@ -113,9 +115,25 @@ const routes: FastifyPluginAsync = async (app) => {
   );
 
   app.put('/admin/settings', { preHandler: app.requirePermission('manage_settings') }, async (req) => {
-    const body = z.record(z.string().max(120), z.string().max(4000)).parse(req.body);
+    const body = z.record(z.string().max(120), z.string().max(20_000)).parse(req.body);
     for (const [key, value] of Object.entries(body)) await setSetting(key, value);
     return { ok: true, settings: await getAllSettings(), message: 'تنظیمات ذخیره شد.' };
+  });
+
+  app.get('/admin/telegram/events', { preHandler: app.requirePermission('manage_settings') }, async () => ({
+    ok: true,
+    events: TELEGRAM_EVENTS,
+  }));
+
+  app.post('/admin/telegram/test', { preHandler: app.requirePermission('manage_settings') }, async (req) => {
+    const { groupId } = z.object({ groupId: z.string().min(1).max(120) }).parse(req.body);
+    try {
+      const result = await testTelegramGroup(groupId);
+      return { ok: true, ...result, message: `پیام آزمایشی به «${result.groupName}» ارسال شد.` };
+    } catch (error) {
+      req.log.warn({ err: error }, 'Telegram connection test failed');
+      throw badRequest(`تست تلگرام ناموفق بود: ${(error as Error).message}`);
+    }
   });
 
   app.delete(

@@ -112,11 +112,37 @@ const routes: FastifyPluginAsync = async (app) => {
            }
         });
 
+        if (paymentRecord.orderId) {
+          const [paidOrder] = await db.select().from(orders).where(eq(orders.id, paymentRecord.orderId)).limit(1);
+          if (paidOrder) {
+            const { sendTelegramNotification } = await import('../services/telegram.js');
+            void sendTelegramNotification('payment.paid', {
+              title: '✅ پرداخت آنلاین موفق',
+              fields: [
+                { label: 'شماره سفارش', value: paidOrder.orderCode },
+                { label: 'مشتری', value: paidOrder.customerName },
+                { label: 'مبلغ', value: `${paymentRecord.amount.toLocaleString('fa-IR')} تومان` },
+                { label: 'کد پیگیری', value: trackingCode },
+              ],
+            }).catch((err) => req.log.error({ err }, 'failed to send Telegram payment notification'));
+          }
+        }
+
         return reply.redirect(`/payment/result?status=success&orderId=${paymentRecord.orderId}&trackingCode=${trackingCode}`);
       } else {
         await db.update(payments)
            .set({ status: 'failed', updatedAt: new Date() })
            .where(eq(payments.id, paymentRecord.id));
+
+        const { sendTelegramNotification } = await import('../services/telegram.js');
+        void sendTelegramNotification('payment.failed', {
+          title: '❌ پرداخت آنلاین ناموفق',
+          fields: [
+            { label: 'شناسه سفارش', value: paymentRecord.orderId },
+            { label: 'مبلغ', value: `${paymentRecord.amount.toLocaleString('fa-IR')} تومان` },
+            { label: 'خطا', value: verifyData?.code || 'verification_failed' },
+          ],
+        }).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send Telegram payment failure notification'));
            
         return reply.redirect(`/payment/result?status=failed&orderId=${paymentRecord.orderId}&error=${verifyData?.code || 'verification_failed'}`);
       }
@@ -126,6 +152,16 @@ const routes: FastifyPluginAsync = async (app) => {
       await db.update(payments)
          .set({ status: 'failed', updatedAt: new Date() })
          .where(eq(payments.id, paymentRecord.id));
+
+      const { sendTelegramNotification } = await import('../services/telegram.js');
+      void sendTelegramNotification('payment.failed', {
+        title: '❌ خطا در بررسی پرداخت',
+        fields: [
+          { label: 'شناسه سفارش', value: paymentRecord.orderId },
+          { label: 'مبلغ', value: `${paymentRecord.amount.toLocaleString('fa-IR')} تومان` },
+          { label: 'خطا', value: (err as Error).message },
+        ],
+      }).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send Telegram payment failure notification'));
          
       return reply.redirect(`/payment/result?status=failed&orderId=${paymentRecord.orderId}&error=server_error`);
     }

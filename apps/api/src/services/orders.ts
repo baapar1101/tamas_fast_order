@@ -247,6 +247,23 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       });
     }
 
+    import('./telegram.js').then(({ sendTelegramNotification }) => {
+      void sendTelegramNotification('order.created', {
+        title: '🛒 سفارش جدید',
+        fields: [
+          { label: 'شماره سفارش', value: order.orderCode },
+          { label: 'مشتری', value: customerName },
+          { label: 'فروشگاه', value: order.storeName },
+          { label: 'تلفن', value: order.phone },
+          { label: 'مبلغ', value: `${order.total.toLocaleString('fa-IR')} تومان` },
+          { label: 'تعداد', value: order.quantity },
+          { label: 'روش پرداخت', value: order.paymentMethod },
+        ],
+      }).then((result) => {
+        if (result.errors.length) console.error('[Telegram] order.created:', result.errors.join('; '));
+      }).catch((err) => console.error('[Telegram] order.created failed:', err));
+    });
+
     return toOrderDTO(order, items);
   });
 }

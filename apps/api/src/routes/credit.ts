@@ -267,6 +267,19 @@ const routes: FastifyPluginAsync = async (app) => {
 
     if (!inserted) throw badRequest('خطا در ثبت چک.');
 
+    const { sendTelegramNotification } = await import('../services/telegram.js');
+    void sendTelegramNotification('credit.cheque_submitted', {
+      title: '🧾 چک اعتباری جدید',
+      fields: [
+        { label: 'کاربر', value: [user.name, user.lastName].filter(Boolean).join(' ') || user.phone },
+        { label: 'تلفن', value: user.phone },
+        { label: 'شماره چک', value: inserted.chequeNumber },
+        { label: 'بانک', value: inserted.bankName },
+        { label: 'مبلغ', value: `${Number(inserted.amount).toLocaleString('fa-IR')} تومان` },
+        { label: 'سررسید', value: inserted.dueDate },
+      ],
+    }).catch((err) => req.log.error({ err }, 'failed to send Telegram cheque notification'));
+
     return reply.send({
       ok: true,
       cheque: {
@@ -347,6 +360,17 @@ const routes: FastifyPluginAsync = async (app) => {
       .limit(1);
 
     if (!record) throw notFound('پرونده یافت نشد.');
+
+    const { sendTelegramNotification } = await import('../services/telegram.js');
+    void sendTelegramNotification('credit.application_submitted', {
+      title: '💳 درخواست اعتبار جدید',
+      fields: [
+        { label: 'کاربر', value: [user.name, user.lastName].filter(Boolean).join(' ') || user.phone },
+        { label: 'تلفن', value: user.phone },
+        { label: 'نوع کسب‌وکار', value: record.businessType },
+        { label: 'کد ملی', value: record.nationalId },
+      ],
+    }).catch((err) => req.log.error({ err }, 'failed to send Telegram credit application notification'));
 
     return reply.send({
       ok: true,

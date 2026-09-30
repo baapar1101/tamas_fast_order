@@ -61,6 +61,19 @@ const routes: FastifyPluginAsync = async (app) => {
         .set({ note: existingNote + paymentNote, updatedAt: new Date() })
         .where(eq(orders.id, orderId));
 
+      const { sendTelegramNotification } = await import('../services/telegram.js');
+      void sendTelegramNotification('payment.info_submitted', {
+        title: '🧾 اطلاعات پرداخت دستی',
+        fields: [
+          { label: 'شماره سفارش', value: order.orderCode },
+          { label: 'مشتری', value: order.customerName },
+          { label: 'روش پرداخت', value: body.paymentMethod },
+          { label: 'واریزکننده', value: body.depositorName },
+          { label: 'شماره پیگیری', value: body.refNumber },
+          { label: 'شماره چک', value: body.checkNumber },
+        ],
+      }).catch((err) => req.log.error({ err }, 'failed to send Telegram payment info notification'));
+
       return { ok: true, message: 'اطلاعات پرداخت با موفقیت ثبت شد.' };
     },
   );

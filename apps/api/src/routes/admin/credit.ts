@@ -95,6 +95,19 @@ export const adminCreditRoutes: FastifyPluginAsync = async (app) => {
 
     if (!updated) throw notFound('به‌روزرسانی پرونده اعتباری انجام نشد.');
 
+    if (updated.status !== existing.status) {
+      const { sendTelegramNotification } = await import('../../services/telegram.js');
+      void sendTelegramNotification('credit.application_status_changed', {
+        title: '💳 تغییر وضعیت اعتبار',
+        fields: [
+          { label: 'شناسه پرونده', value: updated.id },
+          { label: 'وضعیت قبلی', value: existing.status },
+          { label: 'وضعیت جدید', value: updated.status },
+          { label: 'سقف اعتبار', value: Number(updated.assignedCreditLimit).toLocaleString('fa-IR') },
+        ],
+      }).catch((err) => req.log.error({ err }, 'failed to send Telegram credit status notification'));
+    }
+
     return reply.send({
       ok: true,
       application: {
@@ -179,6 +192,13 @@ export const adminCreditRoutes: FastifyPluginAsync = async (app) => {
       throw badRequest('وضعیت چک معتبر نیست.');
     }
 
+    const [existing] = await db
+      .select()
+      .from(schema.creditCheques)
+      .where(eq(schema.creditCheques.id, numericId))
+      .limit(1);
+    if (!existing) throw notFound('چک یافت نشد.');
+
     const [updated] = await db
       .update(schema.creditCheques)
       .set({
@@ -190,6 +210,19 @@ export const adminCreditRoutes: FastifyPluginAsync = async (app) => {
       .returning();
 
     if (!updated) throw notFound('چک یافت نشد.');
+
+    if (updated.status !== existing.status) {
+      const { sendTelegramNotification } = await import('../../services/telegram.js');
+      void sendTelegramNotification('credit.cheque_status_changed', {
+        title: '🧾 تغییر وضعیت چک',
+        fields: [
+          { label: 'شماره چک', value: updated.chequeNumber },
+          { label: 'وضعیت قبلی', value: existing.status },
+          { label: 'وضعیت جدید', value: updated.status },
+          { label: 'مبلغ', value: `${Number(updated.amount).toLocaleString('fa-IR')} تومان` },
+        ],
+      }).catch((err) => req.log.error({ err }, 'failed to send Telegram cheque status notification'));
+    }
 
     return reply.send({
       ok: true,

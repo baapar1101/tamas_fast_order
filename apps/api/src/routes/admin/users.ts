@@ -90,6 +90,18 @@ const routes: FastifyPluginAsync = async (app) => {
     }
 
     await logAction(req.currentUser!.id, 'update', 'user', updated.phone, body as Record<string, unknown>);
+    if (body.isActive !== undefined || body.role !== undefined) {
+      const { sendTelegramNotification } = await import('../../services/telegram.js');
+      void sendTelegramNotification('user.status_changed', {
+        title: '👥 تغییر وضعیت کاربر',
+        fields: [
+          { label: 'کاربر', value: [updated.name, updated.lastName].filter(Boolean).join(' ') || updated.phone },
+          { label: 'تلفن', value: updated.phone },
+          { label: 'وضعیت', value: updated.isActive ? 'فعال' : 'غیرفعال' },
+          { label: 'نقش', value: updated.role },
+        ],
+      }).catch((err) => req.log.error({ err }, 'failed to send Telegram user notification'));
+    }
     return { ok: true, user: toUserDTO(updated) };
   });
 
@@ -111,6 +123,14 @@ const routes: FastifyPluginAsync = async (app) => {
       .returning({ id: users.id });
 
     if (!isActive) await db.delete(sessions).where(inArray(sessions.userId, ids));
+    const { sendTelegramNotification } = await import('../../services/telegram.js');
+    void sendTelegramNotification('user.status_changed', {
+      title: '👥 تغییر گروهی وضعیت کاربران',
+      fields: [
+        { label: 'تعداد کاربران', value: changed.length },
+        { label: 'وضعیت جدید', value: isActive ? 'فعال' : 'غیرفعال' },
+      ],
+    }).catch((err) => req.log.error({ err }, 'failed to send Telegram bulk user notification'));
     await logAction(req.currentUser!.id, `bulk:${body.action}`, 'user', null, { count: changed.length });
     return { ok: true, changed: changed.length };
   });

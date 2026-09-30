@@ -139,6 +139,29 @@ const routes: FastifyPluginAsync = async (app) => {
       }
     }
 
+    const { sendTelegramNotification } = await import('../../services/telegram.js');
+    if (body.status && body.status !== oldStatus) {
+      void sendTelegramNotification('order.status_changed', {
+        title: '📦 تغییر وضعیت سفارش',
+        fields: [
+          { label: 'شماره سفارش', value: updated.orderCode },
+          { label: 'مشتری', value: updated.customerName },
+          { label: 'وضعیت قبلی', value: oldStatus ?? '-' },
+          { label: 'وضعیت جدید', value: ORDER_STATUS_LABELS[body.status] },
+        ],
+      }).catch((err) => req.log.error({ err }, 'failed to send Telegram order status notification'));
+    }
+    if (body.paymentStatus === 'paid' && oldPaymentStatus !== 'paid') {
+      void sendTelegramNotification('payment.paid', {
+        title: '✅ پرداخت سفارش',
+        fields: [
+          { label: 'شماره سفارش', value: updated.orderCode },
+          { label: 'مشتری', value: updated.customerName },
+          { label: 'مبلغ', value: `${updated.total.toLocaleString('fa-IR')} تومان` },
+        ],
+      }).catch((err) => req.log.error({ err }, 'failed to send Telegram payment notification'));
+    }
+
     const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
     await logAction(req.currentUser!.id, 'update', 'order', updated.orderCode, body as Record<string, unknown>);
     return { ok: true, order: toOrderDTO(updated, items) };
@@ -173,6 +196,16 @@ const routes: FastifyPluginAsync = async (app) => {
         }).catch((err) => req.log.error({ err }, 'failed to send status sms bulk'));
       }
     }
+
+    const { sendTelegramNotification } = await import('../../services/telegram.js');
+    void sendTelegramNotification('order.status_changed', {
+      title: '📦 تغییر گروهی وضعیت سفارش‌ها',
+      fields: [
+        { label: 'تعداد سفارش', value: changed.length },
+        { label: 'وضعیت جدید', value: ORDER_STATUS_LABELS[body.status] },
+        { label: 'سفارش‌ها', value: changed.map((order) => order.orderCode).join('، ') },
+      ],
+    }).catch((err) => req.log.error({ err }, 'failed to send Telegram bulk order status notification'));
 
     await logAction(req.currentUser!.id, 'bulk:status', 'order', null, { count: changed.length, status: body.status });
     return { ok: true, changed: changed.length };

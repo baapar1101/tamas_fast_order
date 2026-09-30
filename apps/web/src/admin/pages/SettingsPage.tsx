@@ -55,6 +55,52 @@ interface SyncProductDetail {
   syncError?: string;
 }
 
+interface TelegramGroup {
+  id: string;
+  name: string;
+  chatId: string;
+  enabled: boolean;
+  messageThreadId?: number;
+}
+
+type TelegramEvent =
+  | 'order.created'
+  | 'order.status_changed'
+  | 'payment.paid'
+  | 'payment.failed'
+  | 'payment.info_submitted'
+  | 'user.registered'
+  | 'user.profile_updated'
+  | 'user.status_changed'
+  | 'credit.application_submitted'
+  | 'credit.application_status_changed'
+  | 'credit.cheque_submitted'
+  | 'credit.cheque_status_changed';
+
+const TELEGRAM_EVENT_LABELS: Record<TelegramEvent, string> = {
+  'order.created': 'سفارش جدید',
+  'order.status_changed': 'تغییر وضعیت سفارش',
+  'payment.paid': 'پرداخت موفق',
+  'payment.failed': 'پرداخت ناموفق',
+  'payment.info_submitted': 'ثبت اطلاعات پرداخت دستی',
+  'user.registered': 'ثبت‌نام کاربر جدید',
+  'user.profile_updated': 'تکمیل / ویرایش پروفایل',
+  'user.status_changed': 'تغییر وضعیت کاربر',
+  'credit.application_submitted': 'درخواست اعتبار جدید',
+  'credit.application_status_changed': 'تغییر وضعیت اعتبار',
+  'credit.cheque_submitted': 'چک جدید',
+  'credit.cheque_status_changed': 'تغییر وضعیت چک',
+};
+
+function parseJsonSetting<T>(value: string | undefined, fallback: T): T {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 const KNOWN_SETTINGS = [
   { key: 'store_name', label: 'نام فروشگاه' },
   { key: 'store_tagline', label: 'شعار / توضیح کوتاه' },
@@ -112,7 +158,7 @@ export function SettingsPage() {
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [testPhone, setTestPhone] = useState('');
-  const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'telegram' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
   const [syncProgress, setSyncProgress] = useState<Record<string, { current: number; total: number; label: string; done: boolean; error: boolean }>>({});
   const syncRaf = useRef<Record<string, number>>({});
   const syncStart = useRef<Record<string, number>>({});
@@ -180,11 +226,30 @@ export function SettingsPage() {
     },
   });
 
-  const knownKeys = new Set<string>(KNOWN_SETTINGS.map((s) => s.key));
+  const knownKeys = new Set<string>([
+    ...KNOWN_SETTINGS.map((s) => s.key),
+    'TELEGRAM_ENABLED',
+    'private_TELEGRAM_BOT_TOKEN',
+    'TELEGRAM_PROXY_URL',
+    'TELEGRAM_GROUPS',
+    'TELEGRAM_ROUTES',
+  ]);
   const extraKeys = Object.keys(form).filter((k) => !knownKeys.has(k)).sort();
 
-  const TABS: { id: 'general' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
+  const telegramGroups = parseJsonSetting<TelegramGroup[]>(form.TELEGRAM_GROUPS, []);
+  const telegramRoutes = parseJsonSetting<Partial<Record<TelegramEvent, string[]>>>(form.TELEGRAM_ROUTES, {});
+
+  const updateTelegramGroups = (groups: TelegramGroup[]) => {
+    setForm((current) => ({ ...current, TELEGRAM_GROUPS: JSON.stringify(groups) }));
+  };
+
+  const updateTelegramRoutes = (routes: Partial<Record<TelegramEvent, string[]>>) => {
+    setForm((current) => ({ ...current, TELEGRAM_ROUTES: JSON.stringify(routes) }));
+  };
+
+  const TABS: { id: 'general' | 'telegram' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
     { id: 'general', label: 'تنظیمات عمومی' },
+    { id: 'telegram', label: 'ربات تلگرام' },
     { id: 'tools', label: 'ابزارها و پیشرفته' },
     { id: 'crm', label: 'اتصال CRM' },
     { id: 'logs', label: 'لاگ سیستم' },
@@ -264,6 +329,155 @@ export function SettingsPage() {
             )}
           </div>
         </section>
+      )}
+
+      {activeTab === 'telegram' && (
+        <div className="a-page-stack a-fade">
+          <section className="a-card">
+            <div className="a-card-head a-card-head--split">
+              <div>
+                <h3 className="a-card-title">اتصال ربات تلگرام</h3>
+                <p className="a-card-desc">توکن BotFather، پروکسی SOCKS اختیاری و مقصدهای اعلان را مدیریت کنید.</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.TELEGRAM_ENABLED === 'true'}
+                className="a-switch"
+                onClick={() => setForm({ ...form, TELEGRAM_ENABLED: form.TELEGRAM_ENABLED === 'true' ? 'false' : 'true' })}
+              />
+            </div>
+            <div className="a-form-grid a-cols--2">
+              <div className="a-field">
+                <label className="a-label">توکن ربات</label>
+                <input
+                  className="a-input a-ltr"
+                  dir="ltr"
+                  type="password"
+                  placeholder="123456:ABC..."
+                  autoComplete="new-password"
+                  value={form.private_TELEGRAM_BOT_TOKEN ?? ''}
+                  onChange={(e) => setForm({ ...form, private_TELEGRAM_BOT_TOKEN: e.target.value })}
+                />
+              </div>
+              <div className="a-field">
+                <label className="a-label">پروکسی SOCKS (اختیاری)</label>
+                <input
+                  className="a-input a-ltr"
+                  dir="ltr"
+                  placeholder="socks5h://user:pass@127.0.0.1:1080"
+                  value={form.TELEGRAM_PROXY_URL ?? ''}
+                  onChange={(e) => setForm({ ...form, TELEGRAM_PROXY_URL: e.target.value })}
+                />
+              </div>
+            </div>
+            <p className="a-note">ربات را به هر گروه اضافه و اجازه ارسال پیام بدهید. شناسه گروه معمولاً عددی منفی مانند <code>-1001234567890</code> است.</p>
+          </section>
+
+          <section className="a-card">
+            <div className="a-card-head a-card-head--split">
+              <div>
+                <h3 className="a-card-title">گروه‌های مقصد</h3>
+                <p className="a-card-desc">هر تعداد گروه یا سوپرگروه می‌توانید تعریف کنید.</p>
+              </div>
+              <button
+                type="button"
+                className="a-btn a-btn--secondary a-btn--xs"
+                onClick={() => updateTelegramGroups([...telegramGroups, { id: `group-${Date.now()}`, name: 'گروه جدید', chatId: '', enabled: true }])}
+              >
+                + افزودن گروه
+              </button>
+            </div>
+
+            <div className="a-page-stack">
+              {telegramGroups.map((group, index) => (
+                <div className="a-card" key={group.id}>
+                  <div className="a-form-grid a-cols--2">
+                    <div className="a-field">
+                      <label className="a-label">نام نمایشی</label>
+                      <input className="a-input" value={group.name} onChange={(e) => {
+                        const next = [...telegramGroups];
+                        next[index] = { ...group, name: e.target.value };
+                        updateTelegramGroups(next);
+                      }} />
+                    </div>
+                    <div className="a-field">
+                      <label className="a-label">Chat ID</label>
+                      <input className="a-input a-ltr" dir="ltr" placeholder="-1001234567890" value={group.chatId} onChange={(e) => {
+                        const next = [...telegramGroups];
+                        next[index] = { ...group, chatId: e.target.value };
+                        updateTelegramGroups(next);
+                      }} />
+                    </div>
+                    <div className="a-field">
+                      <label className="a-label">Topic ID (اختیاری)</label>
+                      <input className="a-input a-ltr" dir="ltr" type="number" value={group.messageThreadId ?? ''} onChange={(e) => {
+                        const next = [...telegramGroups];
+                        next[index] = { ...group, messageThreadId: e.target.value ? Number(e.target.value) : undefined };
+                        updateTelegramGroups(next);
+                      }} />
+                    </div>
+                    <div className="a-field">
+                      <label className="a-label">عملیات</label>
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" className={`a-btn a-btn--xs ${group.enabled ? 'a-btn--primary' : 'a-btn--secondary'}`} onClick={() => {
+                          const next = [...telegramGroups];
+                          next[index] = { ...group, enabled: !group.enabled };
+                          updateTelegramGroups(next);
+                        }}>{group.enabled ? 'فعال' : 'غیرفعال'}</button>
+                        <button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={async () => {
+                          try {
+                            await save.mutateAsync(form);
+                            const res = await api.post<{ message: string }>('/admin/telegram/test', { groupId: group.id });
+                            toast.ok(res.message);
+                          } catch (err) {
+                            toast.error((err as Error).message);
+                          }
+                        }}>ذخیره و تست</button>
+                        <button type="button" className="a-btn a-btn--danger a-btn--xs" onClick={() => {
+                          updateTelegramGroups(telegramGroups.filter((item) => item.id !== group.id));
+                          const nextRoutes = { ...telegramRoutes };
+                          (Object.keys(nextRoutes) as TelegramEvent[]).forEach((event) => {
+                            nextRoutes[event] = nextRoutes[event]?.filter((id) => id !== group.id);
+                          });
+                          updateTelegramRoutes(nextRoutes);
+                        }}>حذف</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {telegramGroups.length === 0 && <p className="a-note">هنوز گروهی تعریف نشده است.</p>}
+            </div>
+          </section>
+
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">مسیریابی اعلان‌ها</h3>
+              <p className="a-card-desc">برای هر نوع اعلان، یک یا چند گروه را انتخاب کنید.</p>
+            </div>
+            <div className="a-table-wrap">
+              <table className="a-table">
+                <thead><tr><th>اعلان</th>{telegramGroups.map((group) => <th key={group.id}>{group.name}</th>)}</tr></thead>
+                <tbody>
+                  {(Object.keys(TELEGRAM_EVENT_LABELS) as TelegramEvent[]).map((event) => (
+                    <tr key={event}>
+                      <td>{TELEGRAM_EVENT_LABELS[event]}</td>
+                      {telegramGroups.map((group) => {
+                        const checked = (telegramRoutes[event] ?? []).includes(group.id);
+                        return <td key={group.id}><input type="checkbox" checked={checked} onChange={() => {
+                          const ids = new Set(telegramRoutes[event] ?? []);
+                          if (checked) ids.delete(group.id); else ids.add(group.id);
+                          updateTelegramRoutes({ ...telegramRoutes, [event]: [...ids] });
+                        }} /></td>;
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       )}
 
       {activeTab === 'tools' && (

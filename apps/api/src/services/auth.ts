@@ -82,6 +82,17 @@ export async function findOrCreateUser(phone: string): Promise<{ row: UserRow; i
       // CRM sync failure shouldn't block user creation
     });
 
+    import('./telegram.js').then(({ sendTelegramNotification }) => {
+      void sendTelegramNotification('user.registered', {
+        title: '👤 کاربر جدید',
+        fields: [
+          { label: 'تلفن', value: created.phone },
+          { label: 'نقش', value: created.role },
+          { label: 'فعال', value: created.isActive ? 'بله' : 'خیر' },
+        ],
+      }).catch((err) => console.error('[Telegram] user.registered failed:', err));
+    });
+
     return { row: created, isNew: true };
   } catch (err) {
     if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
