@@ -360,7 +360,18 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
               </div>
               <div className="a-field a-span-2">
                 <label className="a-label" htmlFor="pe-title">عنوان *</label>
-                <input id="pe-title" className="a-input" value={form.title} onChange={(e) => set('title', e.target.value)} />
+                <input
+                  id="pe-title"
+                  className="a-input"
+                  value={form.title}
+                  onChange={(e) => {
+                    const formatted = e.target.value.replace(
+                      /([a-zA-Z]+)/g,
+                      (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
+                    );
+                    set('title', formatted);
+                  }}
+                />
               </div>
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-subtitle">زیرعنوان (SubTitle)</label>
