@@ -11,6 +11,7 @@ import { useDebounced } from '../../storefront/hooks';
 import { ProductEditor, type ProductForm } from '../components/ProductEditor';
 import { VariantsEditor } from '../components/VariantsEditor';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
+import { CatalogPrintView } from '../components/CatalogPrintView';
 
 interface ProductsResponse {
   items: ProductDTO[];
@@ -95,6 +96,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [bulkMenuOpen, setBulkMenuOpen] = useState(false);
   const [rowMenu, setRowMenu] = useState<number | null>(null);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   const debounced = useDebounced(search);
 
@@ -239,6 +241,9 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           <p className="a-subtitle">مدیریت و ویرایش {typeFilter === 'bundle' ? 'باندل‌های' : 'محصولات'} فروشگاه</p>
         </div>
         <div className="a-page-actions flex items-center gap-4">
+          <button onClick={() => setIsPrinting(true)} className="a-btn a-btn--secondary">
+            خروجی کاتالوگ PDF
+          </button>
           <Link to="/admin/sync" className="a-btn a-btn--secondary">
             ورود قیمت/موجودی با اکسل
           </Link>
@@ -705,6 +710,10 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           brands={brandOptions}
           onClose={() => setVariantsProduct(null)}
         />
+      )}
+
+      {isPrinting && (
+        <CatalogPrintView query={query} onClose={() => setIsPrinting(false)} />
       )}
     </div>
   );

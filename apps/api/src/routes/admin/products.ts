@@ -18,7 +18,7 @@ const listQuery = z.object({
   includeDeleted: z.coerce.boolean().default(false),
   sort: z.enum(['updated', 'title', 'price_asc', 'price_desc', 'stock']).default('updated'),
   page: z.coerce.number().int().min(1).default(1),
-  perPage: z.coerce.number().int().min(1).max(200).default(50),
+  perPage: z.coerce.number().int().min(1).max(5000).default(50),
   parentProductId: z.string().max(80).optional(),
   parentOnly: z.coerce.boolean().default(false),
   type: z.string().max(50).optional(),
