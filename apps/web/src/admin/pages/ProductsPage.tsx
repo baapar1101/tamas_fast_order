@@ -579,17 +579,17 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
             </table>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="admin-product-grid">
             {items.map((p) => {
               const totalStock = p.kermanStock + p.tehranStock > 0 ? p.kermanStock + p.tehranStock : p.stock;
               return (
-                <div key={p.id} className="relative flex flex-col bg-[var(--a-field-bg)] border border-[var(--a-border)] rounded-xl overflow-hidden hover:border-[var(--a-border-2)] transition-colors">
-                  <div className="relative aspect-square bg-[var(--a-surface-2)] flex items-center justify-center p-4">
+                <article key={p.id} className="admin-product-card">
+                  <div className="admin-product-card__media">
                     <img
                       src={p.imageUrl ? (p.imageUrl.startsWith('http') || p.imageUrl.startsWith('/') ? p.imageUrl : `/uploads/${p.imageUrl}`) : '/logo.png'}
                       alt={p.title}
                       loading="lazy"
-                      className="w-full h-full object-contain"
+                      className="admin-product-card__image"
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).src = '/logo.png';
                       }}
@@ -599,30 +599,32 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                       className="w-4 h-4 rounded border-gray-300 text-brand focus:ring-brand pp-gcheck"
                       checked={selected.has(p.id)}
                       onChange={() => toggle(p.id)}
+                      aria-label={`انتخاب ${p.title}`}
                     />
                     {p.promotion && <span className="a-badge a-badge--amber pp-gbadge">ویژه</span>}
                   </div>
-                  <div className="p-4 flex flex-col gap-2">
-                    <div className="text-xs text-[var(--a-t4)]">
+                  <div className="admin-product-card__body">
+                    <div className="admin-product-card__meta">
                       {p.categoryFaName || p.categoryName || 'دسته‌بندی'}{p.color ? ` • ${p.color}` : ''}
                     </div>
-                    <div className="text-sm font-bold text-[var(--a-t1)] line-clamp-2">{p.title}</div>
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-[var(--a-divider)]">
-                      <div>
-                        <div className="text-[var(--a-t1)] font-bold">{formatNumber(p.price)}</div>
-                        {p.oldPrice && p.oldPrice > p.price && <div className="text-xs text-[var(--a-t4)] line-through">{formatNumber(p.oldPrice)}</div>}
+                    <div className="admin-product-card__title">{p.title}</div>
+                    <div className="admin-product-card__footer">
+                      <div className="admin-product-card__price">
+                        <strong>{formatNumber(p.price)}</strong>
+                        <span>تومان</span>
+                        {p.oldPrice && p.oldPrice > p.price && <del>{formatNumber(p.oldPrice)}</del>}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <button type="button" className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--a-t3)] hover:text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" title="ویرایش" onClick={() => setEditing(p)}>
+                      <div className="admin-product-card__actions">
+                        <button type="button" className="admin-product-card__action" title="ویرایش" aria-label={`ویرایش ${p.title}`} onClick={() => setEditing(p)}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
                           </svg>
                         </button>
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--a-t3)] hover:text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors"
-                          style={{ color: 'var(--pp-brand)' }}
+                          className="admin-product-card__action admin-product-card__action--brand"
                           title="مدیریت واریانت‌ها"
+                          aria-label={`مدیریت تنوع‌های ${p.title}`}
                           onClick={() => setVariantsProduct(p)}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -631,9 +633,9 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                         </button>
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--a-t3)] hover:text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors"
-                          style={{ color: 'var(--pp-danger-strong)' }}
+                          className="admin-product-card__action admin-product-card__action--danger"
                           title="حذف"
+                          aria-label={`حذف ${p.title}`}
                           onClick={() => setDeleteTarget(p)}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -642,29 +644,29 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                         </button>
                       </div>
                     </div>
-                    <div>
+                    <div className="admin-product-card__stock">
                       <span className={`a-badge ${totalStock === 0 ? 'a-badge--red' : 'a-badge--green'}`}>
                         {totalStock === 0 ? 'ناموجود' : `${formatNumber(totalStock)} عدد`}
                       </span>
                     </div>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
         )}
 
         {items.length > 0 && (
-          <div className="flex items-center justify-between pt-4 border-t border-[var(--a-divider)] mt-4">
-            <span className="text-xs text-[var(--a-t4)]">
+          <div className="admin-product-pager">
+            <span className="admin-product-pager__info">
               {formatNumber((page - 1) * 24 + 1)} تا {formatNumber(Math.min(page * 24, total))} از {formatNumber(total)} محصول
             </span>
             {pageCount > 1 && (
-              <div className="flex items-center gap-2">
+              <div className="admin-product-pager__actions">
                 <button type="button" className="a-btn a-btn--secondary a-btn--sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
                   صفحه قبلی
                 </button>
-                <span className="text-xs text-[var(--a-t4)]">
+                <span className="admin-product-pager__page">
                   صفحه {formatNumber(page)} از {formatNumber(pageCount)}
                 </span>
                 <button type="button" className="a-btn a-btn--secondary a-btn--sm" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
