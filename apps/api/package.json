@@ -22,6 +22,7 @@
     "sync:push": "tsx scripts/sync-cli.ts push"
   },
   "dependencies": {
+    "@e965/xlsx": "^0.20.3",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^10.0.2",
     "@fastify/helmet": "^13.0.1",
@@ -32,7 +33,6 @@
     "@tamas/shared": "*",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.45.3",
-    "exceljs": "^4.4.0",
     "fastify": "^5.12.5",
     "fastify-plugin": "^5.0.1",
     "googleapis": "^170.1.0",

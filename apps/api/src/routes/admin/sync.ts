@@ -11,7 +11,7 @@ import { clearSyncError, isSyncRunning, readSyncState, runSync } from '../../ser
 import { isPriceStockSyncRunning, syncPriceStockFromSheet } from '../../services/sheets/price-stock-sync.js';
 import { processExcelUpload } from '../../services/sheets/excel-sync.js';
 import { logAction } from '../../services/audit.js';
-import ExcelJS from 'exceljs';
+import * as xlsx from '@e965/xlsx';
 
 const conflictQuery = z.object({
   entity: z.enum(SYNC_ENTITIES).optional(),
@@ -123,16 +123,16 @@ const routes: FastifyPluginAsync = async (app) => {
 
   /** Download sample Excel for updating price/stock */
   app.get('/admin/sync/excel-template', async (req, reply) => {
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet('Prices');
-    ws.addRows([
+    const wb = xlsx.utils.book_new();
+    const ws = xlsx.utils.aoa_to_sheet([
       ['sku', 'price', 'kerman_stock', 'tehran_stock'],
       ['1001', '1500000', '10', '5'],
       ['1002', '2000000', '0', '20'],
     ]);
-    ws.columns = Array.from({ length: 4 }, () => ({ width: 15 }));
+    ws['!cols'] = Array.from({ length: 4 }, () => ({ wch: 15 }));
+    xlsx.utils.book_append_sheet(wb, ws, 'Prices');
 
-    const raw = await wb.xlsx.writeBuffer();
+    const raw = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
     const buffer = Buffer.from(raw);
     
     reply.header('Content-Disposition', 'attachment; filename="price-update-template.xlsx"');

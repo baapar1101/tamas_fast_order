@@ -1,6 +1,6 @@
 import { and, count, desc, eq, gte, ilike, inArray, isNull, lte, or, sql, type SQL } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
-import ExcelJS from 'exceljs';
+import * as xlsx from '@e965/xlsx';
 import { z } from 'zod';
 import { ORDER_STATUSES, ORDER_STATUS_LABELS, orderPatchSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
@@ -94,14 +94,14 @@ const routes: FastifyPluginAsync = async (app) => {
     if (!row) throw notFound('سفارش پیدا نشد.');
     const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Sheet1');
-    worksheet.addRow([row.customerName || row.orderCode]);
+    const data: string[][] = [[row.customerName || row.orderCode]];
     for (const item of items) {
       const sku = item.sku || item.productId;
-      for (let index = 0; index < item.qty; index += 1) worksheet.addRow([sku]);
+      for (let index = 0; index < item.qty; index += 1) data.push([sku]);
     }
-    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, xlsx.utils.aoa_to_sheet(data), 'Sheet1');
+    const buffer = Buffer.from(xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' }));
     reply
       .type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
       .header('content-disposition', `attachment; filename="order-${row.orderCode}.xlsx"`)

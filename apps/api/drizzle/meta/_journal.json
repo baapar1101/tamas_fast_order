@@ -78,6 +78,13 @@
       "when": 1790701006875,
       "tag": "0010_fast_blizzard",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791036044794,
+      "tag": "0011_bright_karnak",
+      "breakpoints": true
     }
   ]
 }
