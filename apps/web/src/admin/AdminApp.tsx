@@ -654,7 +654,7 @@ export default function AdminApp() {
                     <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d={group.iconPath} />
                     </svg>
-                    <span className="nav-domain-copy">
+                    <span className="nav-domain-copy" title={`${group.label} — ${group.description}`}>
                       <strong>{group.label}</strong>
                       <small>{group.description}</small>
                     </span>
