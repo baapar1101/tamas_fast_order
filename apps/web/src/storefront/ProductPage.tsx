@@ -144,6 +144,7 @@ export function ProductPage() {
   const canViewPrices = Boolean(user?.isActive);
   const cartTotalQty = cartCount(lines);
   const shareUrl = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : '';
+  const trackedShareUrl = (source: string) => `${shareUrl}?utm_source=${encodeURIComponent(source)}&utm_medium=share&utm_campaign=product-share`;
 
   function handleAdd(product: ProductDTO, warehouse: Warehouse) {
     if (!user) {
@@ -167,7 +168,7 @@ export function ProductPage() {
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(trackedShareUrl('copy-link'));
       toast.ok('لینک محصول کپی شد.');
     } catch {
       toast.error('کپی لینک ممکن نشد.');
@@ -179,7 +180,7 @@ export function ProductPage() {
     const title = selected?.title ?? 'تماس مارکت';
     try {
       if (navigator.share) {
-        await navigator.share({ title, url: shareUrl });
+        await navigator.share({ title, url: trackedShareUrl('native-share') });
       } else {
         await copyLink();
       }
@@ -189,10 +190,10 @@ export function ProductPage() {
     setShareOpen(false);
   }
 
-  const shareText = `${selected?.title ?? 'محصول'} — ${shareUrl}`;
+  const shareText = `${selected?.title ?? 'محصول'} — ${trackedShareUrl('whatsapp')}`;
   const waLink = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-  const tgLink = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(selected?.title ?? '')}`;
-  const eitaaLink = `https://eitaa.com/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(selected?.title ?? '')}`;
+  const tgLink = `https://t.me/share/url?url=${encodeURIComponent(trackedShareUrl('telegram'))}&text=${encodeURIComponent(selected?.title ?? '')}`;
+  const eitaaLink = `https://eitaa.com/share/url?url=${encodeURIComponent(trackedShareUrl('eitaa'))}&text=${encodeURIComponent(selected?.title ?? '')}`;
 
   if (query.isLoading) {
     return (
