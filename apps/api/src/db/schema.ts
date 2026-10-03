@@ -396,6 +396,11 @@ export const orders = pgTable(
     paymentStatus: paymentStatusEnum('payment_status').notNull().default('unpaid'),
     paymentMethod: varchar('payment_method', { length: 100 }),
     note: text('note'),
+    acquisitionSource: varchar('acquisition_source', { length: 120 }),
+    acquisitionMedium: varchar('acquisition_medium', { length: 120 }),
+    acquisitionCampaign: varchar('acquisition_campaign', { length: 200 }),
+    acquisitionReferrer: text('acquisition_referrer'),
+    acquisitionLandingPage: text('acquisition_landing_page'),
     ...syncColumns,
   },
   (t) => [
@@ -403,6 +408,7 @@ export const orders = pgTable(
     index('orders_user_idx').on(t.userId),
     index('orders_status_idx').on(t.status),
     index('orders_created_idx').on(t.createdAt),
+    index('orders_acquisition_source_idx').on(t.acquisitionSource),
   ],
 );
 

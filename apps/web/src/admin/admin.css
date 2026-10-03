@@ -457,6 +457,12 @@ form.glass-card:hover {
   overflow: visible;
 }
 
+.admin-real-grid { stroke: rgba(100, 116, 139, 0.16); stroke-width: 1; stroke-dasharray: 4 7; vector-effect: non-scaling-stroke; }
+.admin-revenue-current { stroke: #10b981; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.admin-revenue-previous { stroke: #94a3b8; stroke-width: 2; stroke-dasharray: 7 7; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.admin-sparkline { width: 100%; height: 2.75rem; margin-top: 1rem; overflow: hidden; direction: ltr; }
+.admin-sparkline > svg { display: block; width: 100%; height: 100%; }
+
 .admin-x-axis {
   direction: rtl;
   display: grid;
@@ -521,6 +527,8 @@ form.glass-card:hover {
 .admin-donut-legend > div > span:first-child { min-width: 0; }
 .admin-legend-dot { width: 0.625rem; height: 0.625rem; flex: 0 0 0.625rem; border-radius: 999px; }
 .admin-legend-dot-slate { background: #64748b; }
+.attribution-channel-row { padding: 0.85rem; }
+.attribution-color { width: 2.8rem; min-width: 2.8rem; height: 2.75rem; padding: 0.2rem; border: 1px solid var(--a-border); border-radius: 0.7rem; background: transparent; cursor: pointer; }
 
 .admin-product-stock-row {
   display: flex;

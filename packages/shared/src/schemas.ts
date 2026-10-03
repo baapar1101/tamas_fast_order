@@ -234,6 +234,13 @@ export const orderCreateSchema = z.object({
   address: z.string().trim().max(1000).optional(),
   paymentMethod: z.string().trim().max(100).optional(),
   note: z.string().trim().max(1000).optional(),
+  attribution: z.object({
+    source: z.string().trim().max(120).optional(),
+    medium: z.string().trim().max(120).optional(),
+    campaign: z.string().trim().max(200).optional(),
+    referrer: z.string().trim().max(1000).optional(),
+    landingPage: z.string().trim().max(1000).optional(),
+  }).optional(),
 });
 export type OrderCreate = z.infer<typeof orderCreateSchema>;
 

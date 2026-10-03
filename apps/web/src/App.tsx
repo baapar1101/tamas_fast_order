@@ -8,6 +8,7 @@ import { TermsPage } from './storefront/TermsPage';
 import { OrdersPage } from './storefront/OrdersPage';
 
 import { PaymentResultPage } from './storefront/PaymentResultPage';
+import { captureAttribution } from './lib/attribution';
 
 /*
  * The admin panel is a lazy chunk. A shopper on a phone never downloads the
@@ -61,6 +62,7 @@ export function App() {
 
   useEffect(() => {
     void restore();
+    captureAttribution();
   }, [restore]);
 
   return (

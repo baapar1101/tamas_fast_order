@@ -228,7 +228,7 @@ function ArvanVisitors({ analytics }: { analytics: ArvanAnalyticsDTO }) {
         </div>
         {coordinates.length > 0 ? (
           <>
-            <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="نمودار بازدیدکنندگان اروان کلاد" preserveAspectRatio="none">
+            <svg width="1000" height="260" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="نمودار بازدیدکنندگان اروان کلاد" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="arvanVisitorArea" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.4" />

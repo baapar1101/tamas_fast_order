@@ -26,6 +26,9 @@ export function toOrderDTO(row: OrderRow, items: OrderItemRow[]): OrderDTO {
     paymentStatus: row.paymentStatus,
     paymentMethod: row.paymentMethod,
     note: row.note,
+    acquisitionSource: row.acquisitionSource,
+    acquisitionMedium: row.acquisitionMedium,
+    acquisitionCampaign: row.acquisitionCampaign,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     items: items.map((i) => ({
@@ -195,6 +198,11 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
         paymentStatus: 'unpaid',
         paymentMethod: input.paymentMethod?.trim() || null,
         note: input.note?.trim() || null,
+        acquisitionSource: input.attribution?.source?.trim().toLowerCase() || null,
+        acquisitionMedium: input.attribution?.medium?.trim().toLowerCase() || null,
+        acquisitionCampaign: input.attribution?.campaign?.trim() || null,
+        acquisitionReferrer: input.attribution?.referrer?.trim() || null,
+        acquisitionLandingPage: input.attribution?.landingPage?.trim() || null,
       })
       .returning();
     if (!order) throw new Error('order insert failed');

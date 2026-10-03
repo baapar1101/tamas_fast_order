@@ -31,6 +31,11 @@ const routes: FastifyPluginAsync = async (app) => {
       perDay,
       top,
       syncRows,
+      usersPerDay,
+      productsPerDay,
+      revenuePerMonth,
+      acquisitionRows,
+      dashboardSettings,
     ] = await Promise.all([
       db.select({ n: count() }).from(products).where(liveProducts),
       db.select({ n: count() }).from(products).where(and(liveProducts, eq(products.status, 'active'))),
@@ -81,7 +86,78 @@ const routes: FastifyPluginAsync = async (app) => {
         .orderBy(sql`sum(${orderItems.qty}) desc`)
         .limit(10),
       db.select().from(syncState),
+      db
+        .select({ day: sql<string>`to_char(${users.createdAt}, 'YYYY-MM-DD')`, n: count() })
+        .from(users)
+        .where(and(isNull(users.deletedAt), gte(users.createdAt, thirtyDaysAgo)))
+        .groupBy(sql`to_char(${users.createdAt}, 'YYYY-MM-DD')`),
+      db
+        .select({ day: sql<string>`to_char(${products.createdAt}, 'YYYY-MM-DD')`, n: count() })
+        .from(products)
+        .where(and(isNull(products.deletedAt), gte(products.createdAt, thirtyDaysAgo)))
+        .groupBy(sql`to_char(${products.createdAt}, 'YYYY-MM-DD')`),
+      db
+        .select({
+          month: sql<string>`to_char(date_trunc('month', ${orders.createdAt}), 'YYYY-MM-01')`,
+          total: sql<string>`coalesce(sum(${orders.total}), 0)`,
+        })
+        .from(orders)
+        .where(and(isNull(orders.deletedAt), sql`${orders.status} <> 'cancelled'`, gte(orders.createdAt, new Date(Date.now() - 550 * 86_400_000))))
+        .groupBy(sql`date_trunc('month', ${orders.createdAt})`),
+      db
+        .select({
+          source: sql<string>`coalesce(nullif(${orders.acquisitionSource}, ''), 'direct')`,
+          n: count(),
+          revenue: sql<string>`coalesce(sum(${orders.total}), 0)`,
+        })
+        .from(orders)
+        .where(and(isNull(orders.deletedAt), sql`${orders.status} <> 'cancelled'`))
+        .groupBy(sql`coalesce(nullif(${orders.acquisitionSource}, ''), 'direct')`)
+        .orderBy(sql`count(*) desc`),
+      getAllSettings(),
     ]);
+
+    const defaultChannels: Array<{ id: string; label: string; color: string }> = [
+      { id: 'google', label: 'گوگل و موتورهای جستجو', color: '#34d399' },
+      { id: 'instagram', label: 'اینستاگرام', color: '#22d3ee' },
+      { id: 'telegram', label: 'تلگرام', color: '#38bdf8' },
+      { id: 'whatsapp', label: 'واتساپ', color: '#4ade80' },
+      { id: 'eitaa', label: 'ایتا', color: '#f59e0b' },
+      { id: 'direct', label: 'ورود مستقیم / نامشخص', color: '#94a3b8' },
+    ];
+    let configuredChannels = defaultChannels;
+    try {
+      const parsed = JSON.parse(dashboardSettings.ATTRIBUTION_CHANNELS || '[]') as Array<{ id?: unknown; label?: unknown; color?: unknown }>;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        configuredChannels = parsed
+          .filter((item) => typeof item.id === 'string' && typeof item.label === 'string')
+          .map((item) => ({ id: String(item.id).toLowerCase(), label: String(item.label), color: typeof item.color === 'string' ? item.color : '#94a3b8' }));
+      }
+    } catch { /* fall back to the built-in channel labels */ }
+    const channelMap = new Map(configuredChannels.map((channel) => [channel.id, channel]));
+
+    const orderDays = new Map(perDay.map((row) => [row.day, { orders: Number(row.n), revenue: Number(row.total) }]));
+    const userDays = new Map(usersPerDay.map((row) => [row.day, Number(row.n)]));
+    const productDays = new Map(productsPerDay.map((row) => [row.day, Number(row.n)]));
+    const dailySeries = Array.from({ length: 14 }, (_, index) => {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - (13 - index));
+      const day = date.toISOString().slice(0, 10);
+      const order = orderDays.get(day);
+      return { day, revenue: order?.revenue ?? 0, orders: order?.orders ?? 0, users: userDays.get(day) ?? 0, products: productDays.get(day) ?? 0 };
+    });
+
+    const revenueMonths = new Map(revenuePerMonth.map((row) => [row.month.slice(0, 7), Number(row.total)]));
+    const monthlyRevenue = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date();
+      date.setDate(1);
+      date.setHours(0, 0, 0, 0);
+      date.setMonth(date.getMonth() - (5 - index));
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const previousKey = `${date.getFullYear() - 1}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      return { month: `${key}-01`, current: revenueMonths.get(key) ?? 0, previous: revenueMonths.get(previousKey) ?? 0 };
+    });
 
     const lastSync = syncRows
       .flatMap((s) => [s.lastPulledAt, s.lastPushedAt])
@@ -103,6 +179,18 @@ const routes: FastifyPluginAsync = async (app) => {
       ordersPerDay: perDay.map((r) => ({ day: r.day, count: Number(r.n), total: Number(r.total) })),
       topProducts: top.map((r) => ({ title: r.title, qty: Number(r.qty), total: Number(r.total) })),
       lastSyncAt: lastSync?.toISOString() ?? null,
+      dailySeries,
+      monthlyRevenue,
+      acquisitionSources: acquisitionRows.map((row, index) => {
+        const channel = channelMap.get(row.source);
+        return {
+          source: row.source,
+          label: channel?.label ?? row.source,
+          color: channel?.color ?? ['#a78bfa', '#fb7185', '#fbbf24', '#60a5fa'][index % 4]!,
+          count: Number(row.n),
+          revenue: Number(row.revenue),
+        };
+      }),
     };
 
     return { ok: true, stats };

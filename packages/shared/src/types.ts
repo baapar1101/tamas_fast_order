@@ -169,6 +169,9 @@ export interface OrderDTO {
   paymentStatus: 'paid' | 'unpaid' | 'pending';
   paymentMethod: string | null;
   note: string | null;
+  acquisitionSource?: string | null;
+  acquisitionMedium?: string | null;
+  acquisitionCampaign?: string | null;
   items: OrderItemDTO[];
   createdAt: string;
   updatedAt: string;
@@ -239,6 +242,9 @@ export interface DashboardStats {
   ordersPerDay: Array<{ day: string; count: number; total: number }>;
   topProducts: Array<{ title: string; qty: number; total: number }>;
   lastSyncAt: string | null;
+  dailySeries: Array<{ day: string; revenue: number; orders: number; users: number; products: number }>;
+  monthlyRevenue: Array<{ month: string; current: number; previous: number }>;
+  acquisitionSources: Array<{ source: string; label: string; color: string; count: number; revenue: number }>;
 }
 
 export interface PaymentDTO {

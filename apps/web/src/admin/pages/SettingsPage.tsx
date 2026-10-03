@@ -64,6 +64,21 @@ interface TelegramGroup {
   messageThreadId?: number;
 }
 
+interface AttributionChannel {
+  id: string;
+  label: string;
+  color: string;
+}
+
+const DEFAULT_ATTRIBUTION_CHANNELS: AttributionChannel[] = [
+  { id: 'google', label: 'گوگل و موتورهای جستجو', color: '#34d399' },
+  { id: 'instagram', label: 'اینستاگرام', color: '#22d3ee' },
+  { id: 'telegram', label: 'تلگرام', color: '#38bdf8' },
+  { id: 'whatsapp', label: 'واتساپ', color: '#4ade80' },
+  { id: 'eitaa', label: 'ایتا', color: '#f59e0b' },
+  { id: 'direct', label: 'ورود مستقیم / نامشخص', color: '#94a3b8' },
+];
+
 type TelegramEvent =
   | 'order.created'
   | 'order.status_changed'
@@ -242,11 +257,13 @@ export function SettingsPage() {
     'private_ARVAN_SECRET_KEY',
     'ARVAN_API_KEY',
     'ARVAN_SECRET_KEY',
+    'ATTRIBUTION_CHANNELS',
   ]);
   const extraKeys = Object.keys(form).filter((k) => !knownKeys.has(k)).sort();
 
   const telegramGroups = parseJsonSetting<TelegramGroup[]>(form.TELEGRAM_GROUPS, []);
   const telegramRoutes = parseJsonSetting<Partial<Record<TelegramEvent, string[]>>>(form.TELEGRAM_ROUTES, {});
+  const attributionChannels = parseJsonSetting<AttributionChannel[]>(form.ATTRIBUTION_CHANNELS, DEFAULT_ATTRIBUTION_CHANNELS);
 
   const updateTelegramGroups = (groups: TelegramGroup[]) => {
     setForm((current) => ({ ...current, TELEGRAM_GROUPS: JSON.stringify(groups) }));
@@ -254,6 +271,10 @@ export function SettingsPage() {
 
   const updateTelegramRoutes = (routes: Partial<Record<TelegramEvent, string[]>>) => {
     setForm((current) => ({ ...current, TELEGRAM_ROUTES: JSON.stringify(routes) }));
+  };
+
+  const updateAttributionChannels = (channels: AttributionChannel[]) => {
+    setForm((current) => ({ ...current, ATTRIBUTION_CHANNELS: JSON.stringify(channels) }));
   };
 
   const TABS: { id: 'general' | 'payment' | 'telegram' | 'arvan' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
@@ -586,6 +607,68 @@ export function SettingsPage() {
               برای ماشین‌کاربر، دسترسی خواندن دامنه و گزارش‌های CDN را فعال کنید. API رسمی CDN برای هویت‌سنجی یک مقدار
               Authorization می‌گیرد؛ اگر پنل شما یک جفت Key/Secret نمایش می‌دهد، هر دو را وارد کنید تا اتصال به‌صورت خودکار بررسی شود.
             </p>
+          </section>
+
+          <section className="a-card">
+            <div className="a-card-head a-card-head--split">
+              <div>
+                <h3 className="a-card-title">لینک‌های قابل رهگیری جذب مشتری</h3>
+                <p className="a-card-desc">برای هر کانال یک لینک اختصاصی بسازید؛ سفارش‌های ورودی با همان منبع در داشبورد ثبت می‌شوند.</p>
+              </div>
+              <button
+                type="button"
+                className="a-btn a-btn--secondary a-btn--xs"
+                onClick={() => updateAttributionChannels([...attributionChannels, { id: `source-${Date.now()}`, label: 'منبع جدید', color: '#a78bfa' }])}
+              >
+                + افزودن منبع
+              </button>
+            </div>
+
+            <div className="a-page-stack">
+              {attributionChannels.map((channel, index) => {
+                const origin = typeof window === 'undefined' ? 'https://tamasmarket.com' : window.location.origin;
+                const trackingUrl = `${origin}/?utm_source=${encodeURIComponent(channel.id)}&utm_medium=share`;
+                return (
+                  <div className="a-card attribution-channel-row" key={`${channel.id}-${index}`}>
+                    <div className="a-form-grid a-cols--2">
+                      <div className="a-field">
+                        <label className="a-label">نام نمایشی</label>
+                        <input className="a-input" value={channel.label} onChange={(event) => {
+                          const next = [...attributionChannels];
+                          next[index] = { ...channel, label: event.target.value };
+                          updateAttributionChannels(next);
+                        }} />
+                      </div>
+                      <div className="a-field">
+                        <label className="a-label">مقدار utm_source</label>
+                        <input className="a-input a-ltr" dir="ltr" value={channel.id} onChange={(event) => {
+                          const next = [...attributionChannels];
+                          next[index] = { ...channel, id: event.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '') };
+                          updateAttributionChannels(next);
+                        }} />
+                      </div>
+                      <div className="a-field sm:col-span-2">
+                        <label className="a-label">لینک اشتراک‌گذاری</label>
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <input className="a-input a-ltr a-grow" dir="ltr" readOnly value={trackingUrl} />
+                          <input type="color" className="attribution-color" value={channel.color} aria-label="رنگ نمودار" onChange={(event) => {
+                            const next = [...attributionChannels];
+                            next[index] = { ...channel, color: event.target.value };
+                            updateAttributionChannels(next);
+                          }} />
+                          <button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={async () => {
+                            await navigator.clipboard.writeText(trackingUrl);
+                            toast.ok('لینک رهگیری کپی شد.');
+                          }}>کپی لینک</button>
+                          {channel.id !== 'direct' && <button type="button" className="a-btn a-btn--danger a-btn--xs" onClick={() => updateAttributionChannels(attributionChannels.filter((_, itemIndex) => itemIndex !== index))}>حذف</button>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="a-note">پارامترهای استاندارد <code>utm_source</code>، <code>utm_medium</code> و <code>utm_campaign</code> پشتیبانی می‌شوند و انتساب اولین ورودی تا ۹۰ روز نگهداری می‌شود.</p>
           </section>
         </div>
       )}

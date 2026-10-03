@@ -10,6 +10,7 @@ import { cartTotal, useCart } from "../store/cart";
 import { Icon } from "../components/Icon";
 import { useBootstrap } from "./hooks";
 import { parsePaymentMethods } from "../lib/payment-methods";
+import { readAttribution } from "../lib/attribution";
 
 interface Props {
   open: boolean;
@@ -230,6 +231,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
         address: address.trim() || undefined,
         note: note.trim() || undefined,
         paymentMethod: activePaymentMethod,
+        attribution: readAttribution(),
       });
       clear();
       setAddress("");

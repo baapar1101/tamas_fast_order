@@ -85,6 +85,13 @@
       "when": 1791036044794,
       "tag": "0011_bright_karnak",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791042472813,
+      "tag": "0012_purple_talisman",
+      "breakpoints": true
     }
   ]
 }
