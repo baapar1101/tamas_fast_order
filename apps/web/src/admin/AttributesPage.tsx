@@ -159,7 +159,7 @@ export function AttributesPage() {
           </>
         }
       >
-        <form id="attribute-form" className="a-form a-fade" onSubmit={handleSubmit}>
+        <form id="attribute-form" className="a-form a-form--standard a-fade" onSubmit={handleSubmit}>
           <section className="a-card">
             <div className="a-card-head">
               <h3 className="a-card-title">اطلاعات ویژگی</h3>

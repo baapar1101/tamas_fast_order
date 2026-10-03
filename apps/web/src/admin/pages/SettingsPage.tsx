@@ -294,7 +294,7 @@ export function SettingsPage() {
   ];
 
   return (
-    <div className="a-page a-fade">
+    <div className="a-page a-page--form a-fade">
       {/* Header */}
       <section className="a-page-head">
         <div className="a-titles">

@@ -110,7 +110,7 @@ export function WarehousesPage() {
           </>
         }
       >
-        <form id="warehouse-form" className="a-form a-fade" onSubmit={handleSubmit}>
+        <form id="warehouse-form" className="a-form a-form--standard a-fade" onSubmit={handleSubmit}>
           <section className="a-card">
             <div className="a-card-head">
               <h3 className="a-card-title">مشخصات انبار</h3>

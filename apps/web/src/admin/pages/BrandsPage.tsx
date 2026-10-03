@@ -171,7 +171,7 @@ export function BrandsPage() {
       >
         <form
           id="brand-form"
-          className="a-form a-fade"
+          className="a-form a-form--standard a-fade"
           onSubmit={(event) => {
             event.preventDefault();
             if (!canSubmit) {

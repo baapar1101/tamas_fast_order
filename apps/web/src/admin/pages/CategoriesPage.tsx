@@ -186,7 +186,7 @@ export function CategoriesPage() {
       >
         <form
           id="category-form"
-          className="a-form a-fade"
+          className="a-form a-form--standard a-fade"
           onSubmit={(event) => {
             event.preventDefault();
             if (!canSubmit) {

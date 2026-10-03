@@ -141,7 +141,7 @@ export function SlidesPage() {
       </section>
 
       {formOpen && (
-        <form className="a-form a-fade" onSubmit={handleSubmit}>
+        <form className="a-form a-form--wide a-fade" onSubmit={handleSubmit}>
           <div className="a-form-head">
             <button type="button" className="a-form-back" onClick={closeForm} aria-label="بازگشت" title="بازگشت">
               <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-5 w-5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
