@@ -416,7 +416,9 @@ function isPrivateAddress(address: string): boolean {
 
   const mappedV4 = lower.startsWith('::ffff:') ? address.slice(7) : address;
   if (isIP(mappedV4) !== 4) return false;
-  const [a, b] = mappedV4.split('.').map(Number);
+  const octets = mappedV4.split('.').map(Number);
+  const a = octets[0] ?? 0;
+  const b = octets[1] ?? 0;
   return (
     a === 0 ||
     a === 10 ||

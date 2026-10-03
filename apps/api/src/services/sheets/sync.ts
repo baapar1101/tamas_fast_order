@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { eq, lt, sql } from 'drizzle-orm';
 import type { SyncEntity, SyncReport, SyncRun } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { syncConflicts, syncState } from '../../db/schema.js';
@@ -368,7 +368,7 @@ export async function pruneConflicts(): Promise<number> {
   const cutoff = new Date(Date.now() - 30 * 86_400_000);
   const rows = await db
     .delete(syncConflicts)
-    .where(sql`${syncConflicts.createdAt} < ${cutoff}`)
+    .where(lt(syncConflicts.createdAt, cutoff))
     .returning({ id: syncConflicts.id });
   return rows.length;
 }

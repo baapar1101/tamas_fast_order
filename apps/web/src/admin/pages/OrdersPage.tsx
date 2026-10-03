@@ -8,15 +8,14 @@ import { useToast } from '../../components/Toast';
 import { AdminStatStrip } from '../components/AdminStatStrip';
 import { api } from '../../lib/api';
 import { useDebounced } from '../../storefront/hooks';
+import ExcelJS from 'exceljs';
 
 interface OrdersResponse {
   items: OrderDTO[];
   total: number;
 }
 
-import * as XLSX from 'xlsx';
-
-const downloadOrderExcel = (order: OrderDTO) => {
+const downloadOrderExcel = async (order: OrderDTO) => {
   const data: string[][] = [];
   
   // Row 1: Customer Name (and Order Code) so Sepidar can read it as the header
@@ -30,11 +29,16 @@ const downloadOrderExcel = (order: OrderDTO) => {
     }
   }
 
-  const ws = XLSX.utils.aoa_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-  
-  XLSX.writeFile(wb, `order-${order.orderCode}.xlsx`);
+  const wb = new ExcelJS.Workbook();
+  wb.addWorksheet('Sheet1').addRows(data);
+  const bytes = await wb.xlsx.writeBuffer();
+  const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const href = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = href;
+  anchor.download = `order-${order.orderCode}.xlsx`;
+  anchor.click();
+  URL.revokeObjectURL(href);
 };
 
 const CHIP_TONE: Record<OrderStatus, string> = {
@@ -393,7 +397,7 @@ export function OrdersPage() {
             <button
               type="button"
               className="a-btn a-btn--secondary a-btn--sm"
-              onClick={() => downloadOrderExcel(detail)}
+              onClick={() => void downloadOrderExcel(detail)}
             >
               <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
               اکسل سفارش

@@ -1,4 +1,4 @@
-import * as xlsx from 'xlsx';
+import ExcelJS from 'exceljs';
 import { readTab, writeTab } from './client.js';
 import { syncPriceStockFromSheet } from './price-stock-sync.js';
 import { env } from '../../env.js';
@@ -21,19 +21,20 @@ export async function processExcelUpload(buffer: Buffer): Promise<ExcelSyncRepor
     errors: [],
   };
 
-  let workbook;
+  const workbook = new ExcelJS.Workbook();
   try {
-    workbook = xlsx.read(buffer, { type: 'buffer' });
+    await workbook.xlsx.load(buffer as unknown as ArrayBuffer);
   } catch (e) {
     throw badRequest('فرمت فایل نامعتبر است. فقط فایل‌های اکسل (xlsx/xls) مجاز هستند.');
   }
 
-  const sheetName = workbook.SheetNames[0];
-  if (!sheetName) throw badRequest('فایل خالی است.');
-  
-  const worksheet = workbook.Sheets[sheetName];
+  const worksheet = workbook.worksheets[0];
   if (!worksheet) throw badRequest('تب اکسل نامعتبر است.');
-  const jsonRows = xlsx.utils.sheet_to_json<any>(worksheet, { header: 1 }); // Array of Arrays
+  const jsonRows: string[][] = [];
+  worksheet.eachRow({ includeEmpty: true }, (row) => {
+    const values = Array.isArray(row.values) ? row.values.slice(1) : [];
+    jsonRows.push(values.map((_, index) => row.getCell(index + 1).text));
+  });
 
   if (jsonRows.length < 2) {
     throw badRequest('فایل باید حداقل شامل یک سطر عنوان و یک سطر داده باشد.');
