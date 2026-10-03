@@ -159,7 +159,7 @@ export function SettingsPage() {
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [testPhone, setTestPhone] = useState('');
-  const [activeTab, setActiveTab] = useState<'general' | 'payment' | 'telegram' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'payment' | 'telegram' | 'arvan' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
   const [syncProgress, setSyncProgress] = useState<Record<string, { current: number; total: number; label: string; done: boolean; error: boolean }>>({});
   const syncRaf = useRef<Record<string, number>>({});
   const syncStart = useRef<Record<string, number>>({});
@@ -236,6 +236,12 @@ export function SettingsPage() {
     'TELEGRAM_PROXY_URL',
     'TELEGRAM_GROUPS',
     'TELEGRAM_ROUTES',
+    'ARVAN_CDN_DOMAIN',
+    'ARVAN_CDN_API_BASE',
+    'private_ARVAN_API_KEY',
+    'private_ARVAN_SECRET_KEY',
+    'ARVAN_API_KEY',
+    'ARVAN_SECRET_KEY',
   ]);
   const extraKeys = Object.keys(form).filter((k) => !knownKeys.has(k)).sort();
 
@@ -250,10 +256,11 @@ export function SettingsPage() {
     setForm((current) => ({ ...current, TELEGRAM_ROUTES: JSON.stringify(routes) }));
   };
 
-  const TABS: { id: 'general' | 'payment' | 'telegram' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
+  const TABS: { id: 'general' | 'payment' | 'telegram' | 'arvan' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
     { id: 'general', label: 'تنظیمات عمومی' },
     { id: 'payment', label: '💳 روش‌های پرداخت' },
     { id: 'telegram', label: 'ربات تلگرام' },
+    { id: 'arvan', label: 'تحلیل اروان کلاد' },
     { id: 'tools', label: 'ابزارها و پیشرفته' },
     { id: 'crm', label: 'اتصال CRM' },
     { id: 'logs', label: 'لاگ سیستم' },
@@ -489,6 +496,96 @@ export function SettingsPage() {
                 </tbody>
               </table>
             </div>
+          </section>
+        </div>
+      )}
+
+      {activeTab === 'arvan' && (
+        <div className="a-page-stack a-fade">
+          <section className="a-card">
+            <div className="a-card-head a-card-head--split">
+              <div>
+                <h3 className="a-card-title">اتصال تحلیل کاربران به اروان کلاد</h3>
+                <p className="a-card-desc">آمار بازدیدکنندگان و مصرف CDN مستقیماً از API نسخه ۴ اروان دریافت می‌شود.</p>
+              </div>
+              <span className="a-badge a-badge--brand">CDN API 4.0</span>
+            </div>
+
+            <div className="a-form-grid a-cols--2">
+              <div className="a-field">
+                <label className="a-label">دامنه متصل به CDN</label>
+                <input
+                  className="a-input a-ltr"
+                  dir="ltr"
+                  placeholder="tamasmarket.com"
+                  value={form.ARVAN_CDN_DOMAIN ?? form.custom_domain ?? ''}
+                  onChange={(e) => setForm({ ...form, ARVAN_CDN_DOMAIN: e.target.value })}
+                />
+              </div>
+              <div className="a-field">
+                <label className="a-label">آدرس API</label>
+                <input
+                  className="a-input a-ltr"
+                  dir="ltr"
+                  placeholder="https://napi.arvancloud.ir/cdn/4.0"
+                  value={form.ARVAN_CDN_API_BASE ?? 'https://napi.arvancloud.ir/cdn/4.0'}
+                  onChange={(e) => setForm({ ...form, ARVAN_CDN_API_BASE: e.target.value })}
+                />
+              </div>
+              <div className="a-field">
+                <label className="a-label">API Key</label>
+                <input
+                  className="a-input a-ltr"
+                  dir="ltr"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="کلید ماشین‌کاربر اروان"
+                  value={form.private_ARVAN_API_KEY ?? form.ARVAN_API_KEY ?? ''}
+                  onChange={(e) => setForm({ ...form, private_ARVAN_API_KEY: e.target.value })}
+                />
+              </div>
+              <div className="a-field">
+                <label className="a-label">Secret Key (در صورت وجود)</label>
+                <input
+                  className="a-input a-ltr"
+                  dir="ltr"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="اختیاری"
+                  value={form.private_ARVAN_SECRET_KEY ?? form.ARVAN_SECRET_KEY ?? ''}
+                  onChange={(e) => setForm({ ...form, private_ARVAN_SECRET_KEY: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                className="a-btn a-btn--primary"
+                disabled={save.isPending}
+                onClick={async () => {
+                  try {
+                    await save.mutateAsync(form);
+                    const result = await api.post<{ message: string }>('/admin/analytics/arvan/test');
+                    toast.ok(result.message);
+                    void qc.invalidateQueries({ queryKey: ['admin', 'arvan-analytics'] });
+                  } catch (error) {
+                    toast.error((error as Error).message);
+                  }
+                }}
+              >
+                {save.isPending ? 'در حال بررسی...' : 'ذخیره و بررسی اتصال'}
+              </button>
+              <p className="a-note m-0">کلیدها فقط توسط بک‌اند استفاده می‌شوند و در درخواست‌های مستقیم مرورگر به اروان ارسال نمی‌شوند.</p>
+            </div>
+          </section>
+
+          <section className="a-card">
+            <h3 className="a-card-title">دسترسی لازم در اروان</h3>
+            <p className="a-card-desc mt-2 leading-7">
+              برای ماشین‌کاربر، دسترسی خواندن دامنه و گزارش‌های CDN را فعال کنید. API رسمی CDN برای هویت‌سنجی یک مقدار
+              Authorization می‌گیرد؛ اگر پنل شما یک جفت Key/Secret نمایش می‌دهد، هر دو را وارد کنید تا اتصال به‌صورت خودکار بررسی شود.
+            </p>
           </section>
         </div>
       )}
