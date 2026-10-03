@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ProductDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
@@ -134,6 +134,59 @@ const ATTR_TYPE_LABELS: Record<string, string> = {
 };
 
 const MULTI_SEP = '، ';
+
+interface ProductAccordionSectionProps {
+  id: string;
+  title: string;
+  description?: string;
+  summary?: string;
+  className?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}
+
+function ProductAccordionSection({
+  id,
+  title,
+  description,
+  summary,
+  className = '',
+  defaultOpen = false,
+  children,
+}: ProductAccordionSectionProps) {
+  const [open, setOpen] = useState(defaultOpen);
+  const triggerId = `${id}-trigger`;
+  const panelId = `${id}-panel`;
+
+  return (
+    <section className={`a-card pe-accordion${open ? ' pe-accordion--open' : ''}${className ? ` ${className}` : ''}`}>
+      <h3 className="pe-accordion-heading">
+        <button
+          id={triggerId}
+          type="button"
+          className="pe-accordion-trigger"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="pe-accordion-copy">
+            <span className="a-card-title">{title}</span>
+            {description && <span className="a-card-sub">{description}</span>}
+          </span>
+          {summary && <span className="pe-accordion-summary">{summary}</span>}
+          <svg className="pe-accordion-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+      </h3>
+      {open && (
+        <div id={panelId} className="pe-accordion-panel" role="region" aria-labelledby={triggerId}>
+          {children}
+        </div>
+      )}
+    </section>
+  );
+}
 
 const blank = (): ProductForm => ({
   productId: '',
@@ -392,10 +445,11 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
           </section>
 
           {/* Color & Appearance */}
-          <section className="a-card">
-            <div className="a-card-head">
-              <h3 className="a-card-title">رنگ و ظاهر</h3>
-            </div>
+          <ProductAccordionSection
+            id="pe-color-section"
+            title="رنگ و ظاهر"
+            summary={form.color || form.colorEn || 'رنگ انتخاب نشده'}
+          >
             <div className="a-form-grid">
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-color">نام رنگ (فارسی)</label>
@@ -440,15 +494,15 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 </div>
               </div>
             </div>
-          </section>
+          </ProductAccordionSection>
 
 {/* Gallery */}
-          <section className="a-card">
-            <div className="a-card-head">
-              <h3 className="a-card-title">گالری تصاویر</h3>
-              <span className="a-hint">حداکثر ۵ تصویر</span>
-            </div>
-            
+          <ProductAccordionSection
+            id="pe-gallery-section"
+            title="گالری تصاویر"
+            description="حداکثر ۵ تصویر"
+            summary={form.imageUrl || form.gallery.some(Boolean) ? `${(form.imageUrl ? 1 : 0) + form.gallery.filter(Boolean).length} تصویر` : 'بدون تصویر'}
+          >
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
               {/* Main Image */}
               <div className="relative group">
@@ -494,14 +548,15 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 </div>
               )}
             </div>
-          </section>
+          </ProductAccordionSection>
 
           {/* Bundle Items (always available to attach to any product) */}
-          <section className="a-card">
-            <div className="a-card-head">
-              <h3 className="a-card-title">محصولات باندل / قطعات</h3>
-                <p className="a-card-sub">محصولات موجود در این باندل را مشخص کنید. موجودی باندل بر اساس این محصولات کسر خواهد شد.</p>
-              </div>
+          <ProductAccordionSection
+            id="pe-bundle-section"
+            title="محصولات باندل / قطعات"
+            description="موجودی باندل بر اساس محصولات انتخاب‌شده کسر می‌شود"
+            summary={form.bundleItems.length ? `${formatNumber(form.bundleItems.length)} قلم` : 'بدون قطعه'}
+          >
               <div className="p-4 flex flex-col gap-4">
                 {form.bundleItems.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-4 bg-[var(--a-surface)] p-3 rounded-xl border border-[var(--a-border)]">
@@ -558,13 +613,14 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                   + افزودن محصول به باندل
                 </button>
               </div>
-            </section>
+          </ProductAccordionSection>
 
           {/* Pricing */}
-          <section className="a-card">
-            <div className="a-card-head">
-              <h3 className="a-card-title">قیمت‌گذاری و موجودی</h3>
-            </div>
+          <ProductAccordionSection
+            id="pe-pricing-section"
+            title="قیمت‌گذاری و موجودی"
+            summary={`${formatNumber(form.price)} تومان · موجودی ${formatNumber(form.stock)}`}
+          >
             <div className="a-form-grid">
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-price">قیمت (تومان)</label>
@@ -625,32 +681,31 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 <input id="pe-digikala" className="a-input a-ltr" placeholder="https://www.digikala.com/product/dkp-..." value={form.digikalaLink} onChange={(e) => set('digikalaLink', e.target.value)} />
               </div>
             </div>
-          </section>
+          </ProductAccordionSection>
 
           {/* Target Site / Tehran Warehouse Integration */}
-          <section className="a-card border-2 border-emerald-500/20">
-            <div className="a-card-head bg-emerald-500/5">
-              <div>
-                <h3 className="a-card-title text-emerald-600">افزودن سایت هدف (انبار تهران)</h3>
-                <p className="a-card-sub text-emerald-600/70">سیستم بررسی موجودی سایت‌های دیگر و اتصال به انبار تهران</p>
-              </div>
-            </div>
+          <ProductAccordionSection
+            id="pe-target-site-section"
+            title="سایت هدف (انبار تهران)"
+            description="بررسی موجودی سایت‌های دیگر و اتصال به انبار تهران"
+            summary={form.targetSiteUrl ? 'اتصال تنظیم شده' : 'تنظیم نشده'}
+            className="pe-accordion--accent"
+          >
             <div className="p-4">
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-target-site">لینک سایت هدف (انبار تهران)</label>
                 <input id="pe-target-site" className="a-input a-ltr" placeholder="https://example.com/product/..." value={form.targetSiteUrl} onChange={(e) => set('targetSiteUrl', e.target.value)} />
               </div>
             </div>
-          </section>
+          </ProductAccordionSection>
 
           {/* Sell Type */}
-          <section className="a-card">
-            <div className="a-card-head">
-              <div>
-                <h3 className="a-card-title">نحوه فروش</h3>
-                <p className="a-card-sub">روش‌های مجاز فروش این محصول را انتخاب کنید</p>
-              </div>
-            </div>
+          <ProductAccordionSection
+            id="pe-sell-type-section"
+            title="نحوه فروش"
+            description="روش‌های مجاز فروش این محصول"
+            summary={form.sellType || 'روش فروش انتخاب نشده'}
+          >
             <div className="a-form-grid">
               <div className="a-field a-span-2">
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -693,16 +748,17 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 />
               </div>
             </div>
-          </section>
+          </ProductAccordionSection>
 
           {/* Variants Block */}
           {!form.parentProductId && (
-            <section className="a-card">
-              <div className="a-card-head">
-                <div>
-                  <h3 className="a-card-title">تنوع محصول (Variants)</h3>
-                  <p className="a-card-sub">محصول دارای تنوع رنگ یا ویژگی‌های دیگر است</p>
-                </div>
+            <ProductAccordionSection
+              id="pe-variants-section"
+              title="تنوع محصول (Variants)"
+              description="رنگ‌ها و تنوع‌های وابسته به این محصول"
+              summary={!product ? 'پس از ذخیره فعال می‌شود' : variants.length ? `${formatNumber(variants.length)} تنوع` : 'بدون تنوع'}
+            >
+              <div className="pe-accordion-actions">
                 {product && onManageVariants && (
                   <button type="button" className="a-btn a-btn--info a-btn--sm" onClick={() => onManageVariants(product)}>
                     + افزودن تنوع
@@ -762,14 +818,15 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                   </table>
                 </div>
               )}
-            </section>
+            </ProductAccordionSection>
           )}
 
           {/* Shipping */}
-          <section className="a-card">
-            <div className="a-card-head">
-              <h3 className="a-card-title">حمل و نقل</h3>
-            </div>
+          <ProductAccordionSection
+            id="pe-shipping-section"
+            title="حمل و نقل"
+            summary={form.weight ? `${formatNumber(form.weight)} گرم${form.dimensions ? ` · ${form.dimensions}` : ''}` : 'وزن و ابعاد ثبت نشده'}
+          >
             <div className="a-form-grid">
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-weight">وزن بسته (گرم)</label>
@@ -786,15 +843,15 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 <input id="pe-dimensions" className="a-input a-ltr" placeholder="مثال: 20x15x10" value={form.dimensions} onChange={(e) => set('dimensions', e.target.value)} />
               </div>
             </div>
-          </section>
+          </ProductAccordionSection>
 
 {/* Features / Attributes */}
-          <section className="a-card">
-            <div className="a-card-head">
-              <div>
-                <h3 className="a-card-title">ویژگی‌ها</h3>
-                <p className="a-card-sub">ویژگی‌های فنی و مشخصات محصول</p>
-              </div>
+          <ProductAccordionSection
+            id="pe-attributes-section"
+            title="ویژگی‌ها"
+            description="ویژگی‌های فنی و مشخصات محصول"
+            summary={form.attributes.length ? `${formatNumber(form.attributes.length)} ویژگی` : 'بدون ویژگی'}
+          >
               <div className="a-actions">
                 <AnimatedDropdown
                   buttonClassName="a-select--auto"
@@ -817,8 +874,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                   + افزودن ویژگی
                 </button>
               </div>
-            </div>
-            
+
             <div className="space-y-3">
               {form.attributes.length === 0 ? (
                 <div className="a-empty">هیچ ویژگی ثبت نشده است.</div>
@@ -913,13 +969,14 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 ))}
               </datalist>
             )}
-          </section>
+          </ProductAccordionSection>
 
           {/* SEO */}
-          <section className="a-card">
-            <div className="a-card-head">
-              <h3 className="a-card-title">موتورهای جستجو (SEO)</h3>
-            </div>
+          <ProductAccordionSection
+            id="pe-seo-section"
+            title="موتورهای جستجو (SEO)"
+            summary={form.slug ? `/${form.slug}` : 'نامک ثبت نشده'}
+          >
             <div className="space-y-3">
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-slug">نامک (Slug) - انتهای URL</label>
@@ -930,7 +987,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 <input id="pe-keywords" className="a-input" value={form.keywords} onChange={(e) => set('keywords', e.target.value)} />
               </div>
             </div>
-          </section>
+          </ProductAccordionSection>
 
         </div>
 
@@ -938,10 +995,11 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
         <div className="space-y-6">
           
           {/* Categorization */}
-          <section className="a-card">
-            <div className="a-card-head">
-              <h3 className="a-card-title">دسته‌بندی و برند</h3>
-            </div>
+          <ProductAccordionSection
+            id="pe-taxonomy-section"
+            title="دسته‌بندی و برند"
+            summary={[form.categoryName, form.brandName].filter(Boolean).join(' · ') || 'انتخاب نشده'}
+          >
             <div className="a-form-grid">
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-category">دسته‌بندی اصلی</label>
@@ -970,14 +1028,14 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 />
               </div>
             </div>
-          </section>
+          </ProductAccordionSection>
 
           {/* Settings */}
-          <section className="a-card">
-            <div className="a-card-head">
-              <h3 className="a-card-title">تنظیمات</h3>
-            </div>
-            
+          <ProductAccordionSection
+            id="pe-settings-section"
+            title="تنظیمات"
+            summary={`${form.status === 'active' ? 'فعال' : 'غیرفعال'}${form.promotion ? ' · پیشنهاد ویژه' : ''}`}
+          >
             <div className="space-y-3">
               <div className={`a-option-row${form.status === 'active' ? ' a-option-row--on' : ''}`}>
                 <div className="a-option-copy">
@@ -1028,7 +1086,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 </label>
               </div>
             </div>
-          </section>
+          </ProductAccordionSection>
 
         </div>
       </div>

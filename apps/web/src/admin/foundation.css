@@ -65,6 +65,117 @@ body.admin-page-active:not(.admin-theme-light) {
 .a-card:hover { transform: none; }
 .a-card-head { min-height: 42px; }
 
+/* Product editor accordion: compact by default, with a readable state summary. */
+.pe-accordion {
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow: visible;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+.pe-accordion-heading { margin: 0; }
+.pe-accordion-trigger {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 22px;
+  align-items: center;
+  width: 100%;
+  min-height: 68px;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--a-t1);
+  text-align: right;
+  cursor: pointer;
+}
+.pe-accordion-trigger:hover { background: var(--a-hover); }
+.pe-accordion-trigger:focus-visible {
+  outline: 2px solid var(--a-brand);
+  outline-offset: -3px;
+}
+.pe-accordion-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.pe-accordion-copy .a-card-title,
+.pe-accordion-copy .a-card-sub {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.pe-accordion-summary {
+  max-width: 260px;
+  padding: 5px 9px;
+  overflow: hidden;
+  border: 1px solid var(--a-border);
+  border-radius: 999px;
+  background: var(--a-surface-2);
+  color: var(--a-t3);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pe-accordion-chevron {
+  color: var(--a-t3);
+  transition: transform 180ms ease, color 180ms ease;
+}
+.pe-accordion--open {
+  border-color: var(--a-border-2);
+  box-shadow: var(--a-shadow-2);
+}
+.pe-accordion--open .pe-accordion-trigger { border-radius: inherit inherit 0 0; }
+.pe-accordion--open .pe-accordion-chevron {
+  color: var(--a-brand);
+  transform: rotate(180deg);
+}
+.pe-accordion-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px 16px 20px;
+  border-top: 1px solid var(--a-divider);
+  animation: pe-accordion-panel-in 170ms ease-out both;
+}
+.pe-accordion-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.pe-accordion-actions:empty { display: none; }
+.pe-accordion--accent { border-color: color-mix(in srgb, var(--a-brand) 30%, var(--a-border)); }
+
+@keyframes pe-accordion-panel-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .pe-accordion-trigger {
+    grid-template-columns: minmax(0, 1fr) 20px;
+    min-height: 62px;
+    padding: 12px 13px;
+  }
+  .pe-accordion-summary {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+    max-width: 100%;
+    white-space: normal;
+  }
+  .pe-accordion-chevron { grid-column: 2; grid-row: 1; }
+  .pe-accordion-panel { padding: 15px 13px 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pe-accordion,
+  .pe-accordion-chevron,
+  .pe-accordion-panel { animation: none; transition: none; }
+}
+
 /* One control contract, including legacy/classless admin controls. */
 .admin-body-shell :where(.a-input,.a-select,.a-textarea,input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="color"]):not([type="range"]):not([type="hidden"]):not([type="button"]):not([type="submit"]),select,textarea),
 body.admin-page-active :where(.modal-backdrop,.admin-modal-backdrop) :where(.a-input,.a-select,.a-textarea,input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="color"]):not([type="range"]):not([type="hidden"]):not([type="button"]):not([type="submit"]),select,textarea) {
