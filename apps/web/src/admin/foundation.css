@@ -176,6 +176,45 @@ body.admin-page-active :where(.modal-backdrop,.admin-modal-backdrop) .a-label { 
 }
 
 /* Unified dialog / bottom-sheet architecture. */
+/*
+ * Lightweight scrim for anchored glass popovers. Unlike a full dialog this
+ * keeps the current page visible, but removes enough detail that table text
+ * cannot visually bleed through the floating menu.
+ */
+body.admin-page-active .admin-popover-backdrop {
+  background: rgba(2, 6, 23, .18);
+  backdrop-filter: blur(6px) saturate(82%);
+  -webkit-backdrop-filter: blur(6px) saturate(82%);
+  animation: admin-popover-scrim-in 140ms ease-out both;
+}
+
+body.admin-page-active.admin-theme-light .admin-popover-backdrop {
+  background: rgba(15, 23, 42, .10);
+  backdrop-filter: blur(6px) saturate(78%) brightness(96%);
+  -webkit-backdrop-filter: blur(6px) saturate(78%) brightness(96%);
+}
+
+body.admin-page-active .admin-glass-popover {
+  isolation: isolate;
+  background: var(--a-dropdown-bg) !important;
+  backdrop-filter: blur(28px) saturate(112%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(112%) !important;
+  box-shadow: 0 20px 56px -18px rgba(0, 0, 0, .62), 0 0 0 1px rgba(255, 255, 255, .04) !important;
+}
+
+body.admin-page-active.admin-theme-light .admin-glass-popover {
+  box-shadow: 0 20px 48px -20px rgba(15, 23, 42, .38), 0 0 0 1px rgba(255, 255, 255, .74) !important;
+}
+
+@keyframes admin-popover-scrim-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.admin-page-active .admin-popover-backdrop { animation: none; }
+}
+
 body.admin-page-active .modal-backdrop,
 body.admin-page-active .admin-modal-backdrop {
   z-index: 100000 !important;

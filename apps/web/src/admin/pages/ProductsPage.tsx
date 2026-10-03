@@ -294,8 +294,8 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           </button>
           {bulkMenuOpen && (
             <>
-              <div className="fixed inset-0 z-40" onClick={() => setBulkMenuOpen(false)} />
-              <div className="absolute right-0 mt-2 w-56 bg-[var(--a-dropdown-bg)] border border-[var(--a-border)] rounded-lg shadow-xl z-50 py-1 overflow-hidden backdrop-blur-xl" style={{ minWidth: 220 }}>
+              <div className="admin-popover-backdrop fixed inset-0 z-40" onClick={() => setBulkMenuOpen(false)} />
+              <div className="admin-glass-popover absolute right-0 mt-2 w-56 bg-[var(--a-dropdown-bg)] border border-[var(--a-border)] rounded-lg shadow-xl z-50 py-1 overflow-hidden backdrop-blur-xl" style={{ minWidth: 220 }}>
                 <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('activate')}>
                   فعال‌سازی
                 </button>
@@ -552,8 +552,8 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                           </button>
                           {rowMenu === p.id && (
                             <>
-                              <div className="fixed inset-0 z-40" onClick={() => setRowMenu(null)} />
-                              <div className="absolute left-0 mt-2 w-48 bg-[var(--a-dropdown-bg)] border border-[var(--a-border)] rounded-lg shadow-xl z-50 py-1 overflow-hidden backdrop-blur-xl">
+                              <div className="admin-popover-backdrop fixed inset-0 z-40" onClick={() => setRowMenu(null)} />
+                              <div className="admin-glass-popover absolute left-0 mt-2 w-48 bg-[var(--a-dropdown-bg)] border border-[var(--a-border)] rounded-lg shadow-xl z-50 py-1 overflow-hidden backdrop-blur-xl">
                                 {rowActions(p).map((a) => (
                                   <button
                                     key={a.label}
