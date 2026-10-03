@@ -78,6 +78,8 @@ export const productWriteSchema = z.object({
     productId: z.string().trim().min(1).max(80),
     qty: z.coerce.number().int().min(1).max(1000)
   })).max(20).default([]),
+  digikalaLink: z.string().trim().max(1000).optional().nullable(),
+  targetSiteUrl: z.string().trim().max(1000).optional().nullable(),
   sortOrder: z.coerce.number().int().default(0),
 });
 export type ProductWrite = z.infer<typeof productWriteSchema>;

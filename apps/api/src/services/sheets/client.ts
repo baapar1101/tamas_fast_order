@@ -1,6 +1,5 @@
 import { readFile } from 'node:fs/promises';
 import { google, type sheets_v4 } from 'googleapis';
-import { JWT } from 'google-auth-library';
 import { env } from '../../env.js';
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
@@ -21,13 +20,14 @@ async function loadCredentials(): Promise<{ client_email: string; private_key: s
 export async function sheetsClient(): Promise<sheets_v4.Sheets> {
   if (cached) return cached;
   const creds = await loadCredentials();
-  const auth = new JWT({
-    email: creds.client_email,
-    // Keys pasted into .env arrive with literal \n sequences.
-    key: creds.private_key.replace(/\\n/g, '\n'),
+  const auth = new google.auth.GoogleAuth({
+    credentials: {
+      client_email: creds.client_email,
+      // Keys pasted into .env arrive with literal \n sequences.
+      private_key: creds.private_key.replace(/\\n/g, '\n'),
+    },
     scopes: SCOPES,
   });
-  await auth.authorize();
   cached = google.sheets({ version: 'v4', auth });
   return cached;
 }

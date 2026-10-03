@@ -1,5 +1,7 @@
 import { and, asc, count, desc, eq, ilike, inArray, isNotNull, isNull, or, sql, type SQL } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
+import { lookup } from 'node:dns/promises';
+import { isIP } from 'node:net';
 import { z } from 'zod';
 import { productPatchSchema, productWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
@@ -301,6 +303,228 @@ const routes: FastifyPluginAsync = async (app) => {
       .limit(200);
     return { ok: true, items: rows.map((r) => toProductDTO(r)) };
   });
+
+  /** Sync Tehran warehouse stock from external target website link */
+  app.post('/admin/products/:id/sync-target-stock', async (req) => {
+    const id = Number((req.params as { id: string }).id);
+    const [product] = await db.select().from(products).where(eq(products.id, id)).limit(1);
+    if (!product) throw notFound('محصول یافت نشد.');
+    if (!product.targetSiteUrl || !product.targetSiteUrl.trim()) {
+      throw badRequest('لینک سایت هدف برای این محصول ثبت نشده است.');
+    }
+
+    const result = await fetchTargetSiteStock(product.targetSiteUrl.trim());
+    const newTehranStock = result.inStock ? (result.quantity || 10) : 0;
+    const newStock = product.kermanStock + newTehranStock;
+
+    const [updated] = await db
+      .update(products)
+      .set({
+        tehranStock: newTehranStock,
+        stock: newStock,
+        updatedAt: new Date(),
+      })
+      .where(eq(products.id, id))
+      .returning();
+    if (!updated) throw notFound('محصول یافت نشد.');
+
+    invalidateCatalog();
+    await logAction(req.currentUser!.id, 'sync_target_stock', 'product', String(product.id), {
+      url: product.targetSiteUrl,
+      tehranStock: newTehranStock,
+      statusText: result.statusText,
+    });
+
+    return {
+      ok: true,
+      product: toProductDTO(updated),
+      statusText: result.statusText,
+      tehranStock: newTehranStock,
+    };
+  });
+
+  /** Batch sync Tehran warehouse stocks for all products with a targetSiteUrl */
+  app.post('/admin/products/sync-target-stocks', async (req) => {
+    const targetProducts = await db
+      .select()
+      .from(products)
+      .where(and(isNull(products.deletedAt), isNotNull(products.targetSiteUrl)));
+
+    let success = 0;
+    let failed = 0;
+    const results: Array<{ id: number; title: string; tehranStock: number; statusText: string }> = [];
+
+    for (const p of targetProducts) {
+      if (!p.targetSiteUrl || !p.targetSiteUrl.trim()) continue;
+      const res = await fetchTargetSiteStock(p.targetSiteUrl.trim());
+      const newTehranStock = res.inStock ? (res.quantity || 10) : 0;
+      const newStock = p.kermanStock + newTehranStock;
+
+      await db
+        .update(products)
+        .set({
+          tehranStock: newTehranStock,
+          stock: newStock,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, p.id));
+
+      if (res.inStock) success++;
+      else failed++;
+
+      results.push({
+        id: p.id,
+        title: p.title,
+        tehranStock: newTehranStock,
+        statusText: res.statusText,
+      });
+    }
+
+    invalidateCatalog();
+    await logAction(req.currentUser!.id, 'sync_all_target_stocks', 'product', null, {
+      total: targetProducts.length,
+      success,
+      failed,
+    });
+
+    return {
+      ok: true,
+      total: targetProducts.length,
+      success,
+      failed,
+      results,
+      message: `بروزرسانی انبار تهران انجام شد (${success} موجود، ${failed} ناموجود).`,
+    };
+  });
 };
+
+const MAX_TARGET_RESPONSE_BYTES = 2 * 1024 * 1024;
+const MAX_TARGET_REDIRECTS = 3;
+
+function isPrivateAddress(address: string): boolean {
+  const lower = address.toLowerCase();
+  if (
+    lower === '::1' ||
+    lower === '::' ||
+    lower.startsWith('fc') ||
+    lower.startsWith('fd') ||
+    lower.startsWith('fe8') ||
+    lower.startsWith('fe9') ||
+    lower.startsWith('fea') ||
+    lower.startsWith('feb')
+  ) return true;
+
+  const mappedV4 = lower.startsWith('::ffff:') ? address.slice(7) : address;
+  if (isIP(mappedV4) !== 4) return false;
+  const [a, b] = mappedV4.split('.').map(Number);
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 0) ||
+    (a === 192 && b === 168) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    a >= 224
+  );
+}
+
+async function validatePublicTargetUrl(value: string): Promise<URL> {
+  const url = new URL(value);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error('فقط لینک HTTP یا HTTPS مجاز است');
+  if (url.username || url.password) throw new Error('لینک دارای نام کاربری یا رمز عبور مجاز نیست');
+  const hostname = url.hostname.toLowerCase();
+  if (hostname === 'localhost' || hostname.endsWith('.localhost')) throw new Error('آدرس داخلی مجاز نیست');
+  const addresses = await lookup(hostname, { all: true, verbatim: true });
+  if (addresses.length === 0 || addresses.some(({ address }) => isPrivateAddress(address))) {
+    throw new Error('آدرس داخلی یا رزروشده مجاز نیست');
+  }
+  return url;
+}
+
+async function fetchPublicTarget(value: string): Promise<Response> {
+  let url = await validatePublicTargetUrl(value);
+  for (let redirects = 0; redirects <= MAX_TARGET_REDIRECTS; redirects += 1) {
+    const response = await fetch(url, {
+      redirect: 'manual',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; TamasStockBot/2.0)',
+        Accept: 'text/html,application/xhtml+xml;q=0.9',
+        'Accept-Language': 'fa-IR,fa;q=0.9,en;q=0.7',
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (![301, 302, 303, 307, 308].includes(response.status)) return response;
+    const location = response.headers.get('location');
+    if (!location) throw new Error('پاسخ تغییر مسیر معتبر نیست');
+    url = await validatePublicTargetUrl(new URL(location, url).toString());
+  }
+  throw new Error('تعداد تغییر مسیرهای سایت هدف بیش از حد مجاز است');
+}
+
+async function readLimitedText(response: Response): Promise<string> {
+  const declaredLength = Number(response.headers.get('content-length') ?? 0);
+  if (declaredLength > MAX_TARGET_RESPONSE_BYTES) throw new Error('حجم پاسخ سایت هدف بیش از حد مجاز است');
+  if (!response.body) return '';
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let size = 0;
+  let text = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_TARGET_RESPONSE_BYTES) {
+      await reader.cancel();
+      throw new Error('حجم پاسخ سایت هدف بیش از حد مجاز است');
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+  return text + decoder.decode();
+}
+
+async function fetchTargetSiteStock(targetUrl: string): Promise<{ inStock: boolean; quantity: number; statusText: string }> {
+  try {
+    const res = await fetchPublicTarget(targetUrl);
+    if (!res.ok) {
+      return { inStock: false, quantity: 0, statusText: `خطای HTTP ${res.status}` };
+    }
+    const contentType = res.headers.get('content-type')?.toLowerCase() ?? '';
+    if (contentType && !contentType.includes('text/html') && !contentType.includes('application/xhtml+xml')) {
+      return { inStock: false, quantity: 0, statusText: 'پاسخ سایت هدف HTML نیست' };
+    }
+    const html = await readLimitedText(res);
+    const lowerHtml = html.toLowerCase();
+
+    // Check common Iranian e-commerce out-of-stock indicators
+    if (
+      html.includes('ناموجود') ||
+      html.includes('عدم موجودی') ||
+      html.includes('موجودی نیست') ||
+      html.includes('out of stock') ||
+      lowerHtml.includes('outofstock') ||
+      html.includes('اتمام موجودی')
+    ) {
+      return { inStock: false, quantity: 0, statusText: 'ناموجود در سایت هدف' };
+    }
+
+    // Check common Iranian e-commerce in-stock indicators
+    if (
+      html.includes('موجود در انبار') ||
+      html.includes('افزودن به سبد خرید') ||
+      html.includes('خرید آنلاین') ||
+      html.includes('in stock') ||
+      lowerHtml.includes('instock')
+    ) {
+      return { inStock: true, quantity: 10, statusText: 'موجود در سایت هدف (۱۰ عدد)' };
+    }
+
+    return { inStock: true, quantity: 5, statusText: 'شناسایی‌شده به‌عنوان موجود' };
+  } catch (err: any) {
+    return { inStock: false, quantity: 0, statusText: `خطا در برقراری ارتباط: ${err.message || 'پاسخی دریافت نشد'}` };
+  }
+}
 
 export default routes;

@@ -29,6 +29,7 @@ import { SmsPage } from './pages/SmsPage';
 import { CrmChatPage } from './pages/CrmChatPage';
 import { CreditApplicationsPage } from './pages/CreditApplicationsPage';
 import { CatalogExportPage } from './pages/CatalogExportPage';
+import { TargetSitesPage } from './pages/TargetSitesPage';
 import { SmokeyBackground } from './components/SmokeyBackground';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
@@ -149,6 +150,17 @@ const NAV_MAIN = [
     icon: (
       <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 8.25V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18V8.25m-18 0V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v2.25m-18 0h18M5.25 6h.008v.008H5.25V6zM7.5 6h.008v.008H7.5V6zm2.25 0h.008v.008H9.75V6z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
+  },
+  {
+    to: '/admin/target-sites',
+    label: 'افزودن سایت هدف',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v8m-4-4h8" />
       </svg>
     ),
     requiredPermission: 'manage_products',
@@ -867,6 +879,7 @@ export default function AdminApp() {
             <Route path="taxonomy" element={<Navigate to="/admin/categories" replace />} />
             <Route path="attributes" element={<AttributesPage />} />
             <Route path="warehouses" element={<WarehousesPage />} />
+            <Route path="target-sites" element={<TargetSitesPage />} />
             <Route path="slides" element={<SlidesPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="users" element={<UsersPage />} />

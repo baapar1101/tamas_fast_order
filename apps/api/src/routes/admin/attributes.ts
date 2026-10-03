@@ -42,7 +42,7 @@ const routes: FastifyPluginAsync = async (app) => {
         .insert(attributes)
         .values({ ...data, options: normalizeOptions(data) })
         .returning();
-      await logAction((req as any).user.id, 'CREATE_ATTRIBUTE', 'attributes', String(created?.id), data);
+      await logAction(req.currentUser!.id, 'CREATE_ATTRIBUTE', 'attributes', String(created?.id), data);
       reply.code(201);
       return created;
     } catch (err: any) {
@@ -63,7 +63,7 @@ const routes: FastifyPluginAsync = async (app) => {
         .returning();
         
       if (!updated) throw notFound('ویژگی یافت نشد');
-      await logAction((req as any).user.id, 'UPDATE_ATTRIBUTE', 'attributes', String(id), data);
+      await logAction(req.currentUser!.id, 'UPDATE_ATTRIBUTE', 'attributes', String(id), data);
       return updated;
     } catch (err: any) {
       if (err.code === '23505') throw badRequest('نام ویژگی تکراری است');
@@ -75,7 +75,7 @@ const routes: FastifyPluginAsync = async (app) => {
     const id = Number((req.params as { id: string }).id);
     const [deleted] = await db.delete(attributes).where(eq(attributes.id, id)).returning();
     if (!deleted) throw notFound('ویژگی یافت نشد');
-    await logAction((req as any).user.id, 'DELETE_ATTRIBUTE', 'attributes', String(id));
+    await logAction(req.currentUser!.id, 'DELETE_ATTRIBUTE', 'attributes', String(id));
     return { success: true };
   });
 };

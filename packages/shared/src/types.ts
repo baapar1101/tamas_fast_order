@@ -70,6 +70,7 @@ export interface ProductDTO {
   attributes: ProductAttribute[];
   bundleItems: BundleItem[];
   digikalaLink: string | null;
+  targetSiteUrl: string | null;
   sortOrder: number;
   createdAt: string;
     updatedAt: string;

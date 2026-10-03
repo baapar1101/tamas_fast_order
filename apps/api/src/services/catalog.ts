@@ -52,6 +52,7 @@ export function toProductDTO(
     attributes: row.attributes ?? [],
     bundleItems: row.bundleItems ?? [],
     digikalaLink: row.digikalaLink ?? null,
+    targetSiteUrl: row.targetSiteUrl ?? null,
     sortOrder: row.sortOrder,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

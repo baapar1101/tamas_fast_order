@@ -103,6 +103,7 @@ export interface ProductForm {
   dimensions: string;
   tracking: boolean;
   digikalaLink: string;
+  targetSiteUrl: string;
   bundleItems: Array<{ productId: string; qty: number }>;
 }
 
@@ -171,6 +172,7 @@ const blank = (): ProductForm => ({
   dimensions: '',
   tracking: true,
   digikalaLink: '',
+  targetSiteUrl: '',
   bundleItems: [],
 });
 
@@ -211,6 +213,7 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   dimensions: p.dimensions ?? '',
   tracking: p.tracking ?? true,
   digikalaLink: p.digikalaLink ?? '',
+  targetSiteUrl: p.targetSiteUrl ?? '',
   bundleItems: p.bundleItems ?? [],
 });
 
@@ -620,6 +623,10 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-digikala">لینک دیجی‌کالا</label>
                 <input id="pe-digikala" className="a-input a-ltr" placeholder="https://www.digikala.com/product/dkp-..." value={form.digikalaLink} onChange={(e) => set('digikalaLink', e.target.value)} />
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-target-site">لینک سایت هدف (انبار تهران)</label>
+                <input id="pe-target-site" className="a-input a-ltr" placeholder="https://example.com/product/..." value={form.targetSiteUrl} onChange={(e) => set('targetSiteUrl', e.target.value)} />
               </div>
             </div>
           </section>
