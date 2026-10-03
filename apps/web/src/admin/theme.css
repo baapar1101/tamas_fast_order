@@ -1689,3 +1689,20 @@ body.admin-page-active.admin-theme-light .admin-sidebar .bg-gradient-to-br[class
 .a-chip-opt-copy strong {
   font-weight: 600;
 }
+
+/* Ensure native select popup options have dark background and readable text in dark mode */
+select option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  padding: 8px 12px;
+}
+
+body.admin-theme-light select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+select.a-input {
+  cursor: pointer;
+}
+

@@ -6,6 +6,7 @@ import type { ProductDTO, CategoryDTO, BrandDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
+import { AnimatedDropdown } from '../components/AnimatedDropdown';
 
 // Convert image URL to Data URL for html2canvas reliability
 async function loadImageAsDataUrl(url: string): Promise<string | null> {
@@ -150,49 +151,47 @@ export function CatalogExportPage() {
             {/* Category Filter */}
             <div>
               <label className="a-label">دسته‌بندی</label>
-              <select
-                className="a-input"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-              >
-                <option value="all">همه دسته‌بندی‌ها</option>
-                {categories.map((cat: CategoryDTO) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.faName || cat.name}
-                  </option>
-                ))}
-              </select>
+              <AnimatedDropdown
+                value={String(selectedCategory)}
+                onChange={(val) => setSelectedCategory(val === 'all' ? 'all' : Number(val))}
+                options={[
+                  { value: 'all', label: 'همه دسته‌بندی‌ها' },
+                  ...categories.map((cat: CategoryDTO) => ({
+                    value: String(cat.id),
+                    label: cat.faName || cat.name,
+                  })),
+                ]}
+              />
             </div>
 
             {/* Brand Filter */}
             <div>
               <label className="a-label">برند</label>
-              <select
-                className="a-input"
-                value={selectedBrand}
-                onChange={(e) => setSelectedBrand(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-              >
-                <option value="all">همه برندها</option>
-                {brands.map((brand: BrandDTO) => (
-                  <option key={brand.id} value={brand.id}>
-                    {brand.faName || brand.name}
-                  </option>
-                ))}
-              </select>
+              <AnimatedDropdown
+                value={String(selectedBrand)}
+                onChange={(val) => setSelectedBrand(val === 'all' ? 'all' : Number(val))}
+                options={[
+                  { value: 'all', label: 'همه برندها' },
+                  ...brands.map((brand: BrandDTO) => ({
+                    value: String(brand.id),
+                    label: brand.faName || brand.name,
+                  })),
+                ]}
+              />
             </div>
 
             {/* Stock Filter */}
             <div>
               <label className="a-label">وضعیت موجودی</label>
-              <select
-                className="a-input"
+              <AnimatedDropdown
                 value={stockStatus}
-                onChange={(e) => setStockStatus(e.target.value as any)}
-              >
-                <option value="all">همه موارد</option>
-                <option value="in">فقط موجود</option>
-                <option value="out">فقط ناموجود</option>
-              </select>
+                onChange={(val) => setStockStatus(val as any)}
+                options={[
+                  { value: 'all', label: 'همه موارد' },
+                  { value: 'in', label: 'فقط موجود' },
+                  { value: 'out', label: 'فقط ناموجود' },
+                ]}
+              />
             </div>
           </div>
 
