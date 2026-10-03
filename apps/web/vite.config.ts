@@ -1,8 +1,35 @@
-import { defineConfig } from 'vite';
+import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import fs from 'fs';
+import path from 'path';
+
+const buildTime = Date.now();
+
+function generateVersionJsonPlugin(): Plugin {
+  return {
+    name: 'generate-version-json',
+    writeBundle() {
+      try {
+        const outDir = path.resolve(__dirname, 'dist');
+        if (!fs.existsSync(outDir)) {
+          fs.mkdirSync(outDir, { recursive: true });
+        }
+        fs.writeFileSync(
+          path.resolve(outDir, 'version.json'),
+          JSON.stringify({ buildTime })
+        );
+      } catch (e) {
+        console.error('Failed to write version.json:', e);
+      }
+    },
+  };
+}
 
 export default defineConfig({
-  plugins: [react()],
+  define: {
+    __BUILD_TIME__: JSON.stringify(buildTime),
+  },
+  plugins: [react(), generateVersionJsonPlugin()],
   server: {
     host: '0.0.0.0',
     port: 5173,
@@ -43,3 +70,4 @@ export default defineConfig({
     },
   },
 });
+
