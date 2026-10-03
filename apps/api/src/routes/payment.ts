@@ -7,6 +7,7 @@ import { badRequest, notFound } from '../lib/errors.js';
 // @ts-ignore
 import paymentGateway from '@tamas/payment';
 import { env } from '../env.js';
+import { applyWalletTransaction } from '../services/wallet.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   // Create a payment transaction and return the bank URL
@@ -85,8 +86,11 @@ const routes: FastifyPluginAsync = async (app) => {
        return reply.redirect('/payment/result?status=failed&error=invalid_transid');
     }
 
+    const isWalletTopup = paymentRecord.note?.startsWith('wallet_topup:') && paymentRecord.userId;
+    const resultPath = isWalletTopup ? '/wallet' : '/payment/result';
+
     if (paymentRecord.status === 'success') {
-       return reply.redirect(`/payment/result?status=success&orderId=${paymentRecord.orderId}&trackingCode=${paymentRecord.trackingCode}`);
+       return reply.redirect(`${resultPath}?status=success&orderId=${paymentRecord.orderId ?? ''}&trackingCode=${paymentRecord.trackingCode ?? ''}`);
     }
 
     try {
@@ -111,6 +115,17 @@ const routes: FastifyPluginAsync = async (app) => {
                .set({ paymentStatus: 'paid', status: 'confirmed', updatedAt: new Date() })
                .where(eq(orders.id, paymentRecord.orderId));
            }
+           if (isWalletTopup && paymentRecord.userId) {
+             await applyWalletTransaction(tx, {
+               userId: paymentRecord.userId,
+               direction: 'credit',
+               type: 'deposit',
+               amount: paymentRecord.amount,
+               description: 'شارژ آنلاین کیف پول',
+               reference: trackingCode,
+               idempotencyKey: `payment:${paymentRecord.id}`,
+             });
+           }
         });
 
         if (paymentRecord.orderId) {
@@ -129,7 +144,7 @@ const routes: FastifyPluginAsync = async (app) => {
           }
         }
 
-        return reply.redirect(`/payment/result?status=success&orderId=${paymentRecord.orderId}&trackingCode=${trackingCode}`);
+        return reply.redirect(`${resultPath}?status=success&orderId=${paymentRecord.orderId ?? ''}&trackingCode=${trackingCode}`);
       } else {
         await db.update(payments)
            .set({ status: 'failed', updatedAt: new Date() })
@@ -145,7 +160,7 @@ const routes: FastifyPluginAsync = async (app) => {
           ],
         }).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send Telegram payment failure notification'));
            
-        return reply.redirect(`/payment/result?status=failed&orderId=${paymentRecord.orderId}&error=${verifyData?.code || 'verification_failed'}`);
+        return reply.redirect(`${resultPath}?status=failed&orderId=${paymentRecord.orderId ?? ''}&error=${verifyData?.code || 'verification_failed'}`);
       }
     } catch (err) {
       req.log.error({ err }, 'Payment verify failed');
@@ -164,7 +179,7 @@ const routes: FastifyPluginAsync = async (app) => {
         ],
       }).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send Telegram payment failure notification'));
          
-      return reply.redirect(`/payment/result?status=failed&orderId=${paymentRecord.orderId}&error=server_error`);
+      return reply.redirect(`${resultPath}?status=failed&orderId=${paymentRecord.orderId ?? ''}&error=server_error`);
     }
   });
 };

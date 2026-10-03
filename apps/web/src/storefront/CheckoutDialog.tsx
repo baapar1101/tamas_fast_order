@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { OrderDTO } from "@tamas/shared";
 import { WAREHOUSE_LABELS, formatMoney, formatNumber } from "@tamas/shared";
 import { Price } from "../components/Price";
@@ -186,6 +187,11 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
 
   const bootstrap = useBootstrap();
   const total = cartTotal(lines);
+  const walletQuery = useQuery({
+    queryKey: ['wallet', 'checkout'],
+    queryFn: () => api.get<{ wallet: { balance: number; isFrozen: boolean }; config: { enabled: boolean; orderPaymentEnabled: boolean } }>('/wallet'),
+    enabled: open && Boolean(user),
+  });
 
   const configuredMethods = parsePaymentMethods(bootstrap.data?.settings.payment_methods);
   const availableMethods = configuredMethods.filter(
@@ -195,9 +201,11 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
       (!m.maxAmount || total <= m.maxAmount)
   );
 
-  const activePaymentMethod = availableMethods.some((m) => m.id === paymentMethod)
+  const canUseWallet = Boolean(walletQuery.data?.config.enabled && walletQuery.data.config.orderPaymentEnabled && !walletQuery.data.wallet.isFrozen && walletQuery.data.wallet.balance >= total);
+
+  const activePaymentMethod = availableMethods.some((m) => m.id === paymentMethod && (m.id !== 'wallet' || canUseWallet))
     ? paymentMethod
-    : availableMethods[0]?.id || 'aqayepardakht';
+    : availableMethods.find((m) => m.id !== 'wallet' || canUseWallet)?.id || 'aqayepardakht';
 
   const deliveryAddress = address.trim() || user?.address || "";
 
@@ -606,6 +614,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
           <div style={{ display: "grid", gap: "8px", marginTop: "4px" }}>
             {availableMethods.map((method) => {
               const isSelected = activePaymentMethod === method.id;
+              const disabled = method.id === 'wallet' && !canUseWallet;
               return (
                 <label
                   key={method.id}
@@ -618,7 +627,8 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
                       ? "2px solid var(--primary)"
                       : "1px solid var(--border)",
                     borderRadius: "10px",
-                    cursor: "pointer",
+                    cursor: disabled ? "not-allowed" : "pointer",
+                    opacity: disabled ? .55 : 1,
                     background: isSelected
                       ? "var(--primary-light)"
                       : "var(--card)",
@@ -629,6 +639,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
                     name="paymentMethod"
                     value={method.id}
                     checked={isSelected}
+                    disabled={disabled}
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     style={{
                       marginTop: "4px",
@@ -659,7 +670,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
                     </span>
                     {method.desc && (
                       <span style={{ fontSize: "12px", color: "var(--muted)" }}>
-                        {method.desc}
+                        {method.id === 'wallet' && walletQuery.data ? `موجودی: ${walletQuery.data.wallet.balance.toLocaleString('fa-IR')} تومان${disabled ? ' — موجودی کافی نیست' : ''}` : method.desc}
                       </span>
                     )}
                     {method.instructions && isSelected && (

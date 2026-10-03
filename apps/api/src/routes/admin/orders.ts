@@ -10,6 +10,7 @@ import { offsetOf } from '../../lib/pagination.js';
 import { toOrderDTO } from '../../services/orders.js';
 import { upsertOrderPayment } from '../../services/payments.js';
 import { logAction } from '../../services/audit.js';
+import { refundWalletOrder } from '../../services/wallet.js';
 
 const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
@@ -136,6 +137,10 @@ const routes: FastifyPluginAsync = async (app) => {
       .returning();
     if (!updated) throw notFound('سفارش پیدا نشد.');
 
+    if (updated.status === 'cancelled') {
+      await db.transaction((tx) => refundWalletOrder(tx, updated));
+    }
+
     if (body.paymentStatus) {
       await upsertOrderPayment(db, id, updated.userId ?? null, updated.total, body.paymentStatus);
     }
@@ -197,7 +202,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.post('/admin/orders/bulk-status', async (req) => {
     const body = bulkStatus.parse(req.body);
-    const oldOrders = await db.select({ id: orders.id, status: orders.status }).from(orders).where(inArray(orders.id, body.ids));
+    const oldOrders = await db.select({ id: orders.id, status: orders.status, userId: orders.userId, total: orders.total, orderCode: orders.orderCode, paymentMethod: orders.paymentMethod }).from(orders).where(inArray(orders.id, body.ids));
     const changedIds = oldOrders.filter((o) => o.status !== body.status).map((o) => o.id);
 
     if (changedIds.length === 0) return { ok: true, changed: 0 };
@@ -207,6 +212,13 @@ const routes: FastifyPluginAsync = async (app) => {
       .set({ status: body.status, updatedAt: new Date() })
       .where(inArray(orders.id, changedIds))
       .returning({ id: orders.id, phone: orders.phone, orderCode: orders.orderCode, customerName: orders.customerName });
+
+    if (body.status === 'cancelled') {
+      const changedSet = new Set(changed.map((item) => item.id));
+      await db.transaction(async (tx) => {
+        for (const order of oldOrders) if (changedSet.has(order.id)) await refundWalletOrder(tx, order);
+      });
+    }
 
     const { sendTemplatedSms } = await import('../../services/sms.js');
     const templateKey = `sms_template_order_${body.status}`;

@@ -21,6 +21,7 @@ export async function upsertOrderPayment(
   userId: number | null,
   amount: number,
   paymentStatus: OrderPaymentStatus,
+  gateway?: 'wallet',
 ): Promise<void> {
   const [existing] = await tx
     .select({ id: payments.id })
@@ -33,6 +34,6 @@ export async function upsertOrderPayment(
   if (existing) {
     await tx.update(payments).set({ status, updatedAt: new Date() }).where(eq(payments.id, existing.id));
   } else {
-    await tx.insert(payments).values({ orderId, userId, amount, status });
+    await tx.insert(payments).values({ orderId, userId, amount, status, ...(gateway ? { gateway } : {}) });
   }
 }

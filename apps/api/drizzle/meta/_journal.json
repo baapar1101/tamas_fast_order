@@ -92,6 +92,13 @@
       "when": 1791042472813,
       "tag": "0012_purple_talisman",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791044269771,
+      "tag": "0013_remarkable_wolverine",
+      "breakpoints": true
     }
   ]
 }

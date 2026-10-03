@@ -31,6 +31,8 @@ import authRoutes from './routes/auth.js';
 import catalogRoutes from './routes/catalog.js';
 import orderRoutes from './routes/orders.js';
 import paymentRoutes from './routes/payment.js';
+import walletRoutes from './routes/wallet.js';
+import adminWalletRoutes from './routes/admin/wallets.js';
 import crmRoutes from './routes/crm.js';
 
 import creditRoutes from './routes/credit.js';
@@ -138,6 +140,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(authRoutes);
         await api.register(orderRoutes);
         await api.register(paymentRoutes);
+        await api.register(walletRoutes);
         await api.register(adminDashboard);
         await api.register(adminProducts);
         await api.register(adminTaxonomy);
@@ -151,6 +154,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(adminFinancial);
         await api.register(adminComments);
         await api.register(adminAnalytics);
+        await api.register(adminWalletRoutes);
         await api.register(accessGroupsRoutes);
         await api.register(smsRoutes);
         await api.register(crmRoutes); // <-- CRM integration routes

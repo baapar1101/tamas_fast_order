@@ -7,6 +7,8 @@ import { badRequest, conflict, profileIncomplete } from '../lib/errors.js';
 import { invalidateCatalog } from './catalog.js';
 import { missingProfileFields, type UserRow } from './auth.js';
 import { upsertOrderPayment } from './payments.js';
+import { applyWalletTransaction } from './wallet.js';
+import { getSetting } from './settings.js';
 
 type OrderRow = typeof orders.$inferSelect;
 type OrderItemRow = typeof orderItems.$inferSelect;
@@ -90,6 +92,17 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
   }
   const lines = [...wanted.values()];
   const productIds = [...new Set(lines.map((l) => l.productId))];
+
+  const walletPayment = input.paymentMethod?.trim() === 'wallet';
+  if (walletPayment) {
+    const [walletEnabled, orderPaymentEnabled] = await Promise.all([
+      getSetting('WALLET_ENABLED'),
+      getSetting('WALLET_ORDER_PAYMENT_ENABLED'),
+    ]);
+    if (walletEnabled === 'false' || orderPaymentEnabled === 'false') {
+      throw badRequest('پرداخت با کیف پول موقتاً غیرفعال است.');
+    }
+  }
 
   return db.transaction(async (tx) => {
     let rows = await tx
@@ -194,8 +207,8 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
         address: (input.address || user.address).trim(),
         total,
         quantity: lines.reduce((acc, l) => acc + l.qty, 0),
-        status: 'new',
-        paymentStatus: 'unpaid',
+        status: walletPayment ? 'confirmed' : 'new',
+        paymentStatus: walletPayment ? 'paid' : 'unpaid',
         paymentMethod: input.paymentMethod?.trim() || null,
         note: input.note?.trim() || null,
         acquisitionSource: input.attribution?.source?.trim().toLowerCase() || null,
@@ -212,7 +225,18 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       .values(toInsert.map((i) => ({ ...i, orderId: order.id })))
       .returning();
 
-    await upsertOrderPayment(tx, order.id, user.id, total, order.paymentStatus);
+    if (walletPayment) {
+      await applyWalletTransaction(tx, {
+        userId: user.id,
+        direction: 'debit',
+        type: 'purchase',
+        amount: total,
+        orderId: order.id,
+        description: `پرداخت سفارش ${order.orderCode}`,
+        idempotencyKey: `order-purchase:${order.id}`,
+      });
+    }
+    await upsertOrderPayment(tx, order.id, user.id, total, order.paymentStatus, walletPayment ? 'wallet' : undefined);
 
     for (const update of stockUpdates) {
       const now = new Date();

@@ -2,6 +2,14 @@ import type { PaymentMethodConfig } from '@tamas/shared';
 
 export const DEFAULT_PAYMENT_METHODS: PaymentMethodConfig[] = [
   {
+    id: 'wallet',
+    label: 'کیف پول تماس مارکت',
+    desc: 'پرداخت فوری از موجودی کیف پول؛ بازگشت وجه لغو سفارش نیز خودکار است',
+    enabled: true,
+    type: 'wallet',
+    sortOrder: 0,
+  },
+  {
     id: 'aqayepardakht',
     label: 'پرداخت آنلاین (درگاه بانکی)',
     desc: 'تسویه از طریق درگاه امن بانکی و تایید آنی سفارش',
@@ -49,7 +57,7 @@ export function parsePaymentMethods(jsonStr: string | undefined): PaymentMethodC
   try {
     const parsed = JSON.parse(jsonStr);
     if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_PAYMENT_METHODS;
-    return parsed.map((m, idx) => ({
+    const methods = parsed.map((m, idx) => ({
       id: String(m.id || `pm_${idx}`),
       label: String(m.label || 'روش پرداخت'),
       desc: String(m.desc || ''),
@@ -60,6 +68,7 @@ export function parsePaymentMethods(jsonStr: string | undefined): PaymentMethodC
       maxAmount: m.maxAmount ? Number(m.maxAmount) : undefined,
       sortOrder: m.sortOrder ?? idx + 1,
     }));
+    return methods.some((method) => method.id === 'wallet') ? methods : [DEFAULT_PAYMENT_METHODS[0]!, ...methods];
   } catch {
     return DEFAULT_PAYMENT_METHODS;
   }

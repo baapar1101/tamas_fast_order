@@ -341,7 +341,7 @@ export interface PaymentMethodConfig {
   label: string;
   desc: string;
   enabled: boolean;
-  type: 'online' | 'manual' | 'credit' | 'cheque' | 'custom';
+  type: 'online' | 'manual' | 'credit' | 'cheque' | 'wallet' | 'custom';
   instructions?: string;
   minAmount?: number;
   maxAmount?: number;

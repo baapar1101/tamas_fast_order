@@ -55,8 +55,10 @@ export const uploadKindEnum = pgEnum('upload_kind', [
   'other',
 ]);
 export const syncSideEnum = pgEnum('sync_side', ['db', 'sheet']);
-export const paymentGatewayEnum = pgEnum('payment_gateway', ['zarinpal', 'mellat', 'saman', 'pasargad', 'card_to_card', 'aqayepardakht']);
+export const paymentGatewayEnum = pgEnum('payment_gateway', ['zarinpal', 'mellat', 'saman', 'pasargad', 'card_to_card', 'aqayepardakht', 'wallet']);
 export const paymentTransactionStatusEnum = pgEnum('payment_transaction_status', ['pending', 'success', 'failed']);
+export const walletDirectionEnum = pgEnum('wallet_direction', ['credit', 'debit']);
+export const walletTransactionTypeEnum = pgEnum('wallet_transaction_type', ['deposit', 'purchase', 'refund', 'adjustment', 'withdrawal']);
 export const commentStatusEnum = pgEnum('comment_status', ['pending', 'approved', 'rejected']);
 export const creditStatusEnum = pgEnum('credit_status', ['pending', 'reviewing', 'active', 'action_required']);
 export const chequeStatusEnum = pgEnum('cheque_status', ['pending', 'passed', 'bounced', 'returned']);
@@ -429,6 +431,51 @@ export const orderItems = pgTable(
     warehouse: warehouseEnum('warehouse').notNull().default('kerman'),
   },
   (t) => [index('order_items_order_idx').on(t.orderId)],
+);
+
+/* ------------------------------------------------------------------ *
+ * Wallets — the account is a cached balance; the immutable ledger is
+ * the source of truth. Every mutation is performed while row-locked.
+ * ------------------------------------------------------------------ */
+
+export const walletAccounts = pgTable(
+  'wallet_accounts',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    balance: bigint('balance', { mode: 'number' }).notNull().default(0),
+    lifetimeCredit: bigint('lifetime_credit', { mode: 'number' }).notNull().default(0),
+    lifetimeDebit: bigint('lifetime_debit', { mode: 'number' }).notNull().default(0),
+    isFrozen: boolean('is_frozen').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('wallet_accounts_user_key').on(t.userId), index('wallet_accounts_balance_idx').on(t.balance)],
+);
+
+export const walletTransactions = pgTable(
+  'wallet_transactions',
+  {
+    id: serial('id').primaryKey(),
+    walletId: integer('wallet_id').notNull().references(() => walletAccounts.id, { onDelete: 'cascade' }),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    orderId: integer('order_id').references(() => orders.id, { onDelete: 'set null' }),
+    direction: walletDirectionEnum('direction').notNull(),
+    type: walletTransactionTypeEnum('type').notNull(),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    balanceAfter: bigint('balance_after', { mode: 'number' }).notNull(),
+    description: text('description').notNull(),
+    reference: varchar('reference', { length: 200 }),
+    idempotencyKey: varchar('idempotency_key', { length: 200 }).notNull(),
+    createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+    metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('wallet_transactions_idempotency_key').on(t.idempotencyKey),
+    index('wallet_transactions_user_created_idx').on(t.userId, t.createdAt),
+    index('wallet_transactions_order_idx').on(t.orderId),
+  ],
 );
 
 /* ------------------------------------------------------------------ *

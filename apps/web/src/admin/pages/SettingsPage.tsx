@@ -174,7 +174,7 @@ export function SettingsPage() {
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [testPhone, setTestPhone] = useState('');
-  const [activeTab, setActiveTab] = useState<'general' | 'payment' | 'telegram' | 'arvan' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'payment' | 'wallet' | 'telegram' | 'arvan' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
   const [syncProgress, setSyncProgress] = useState<Record<string, { current: number; total: number; label: string; done: boolean; error: boolean }>>({});
   const syncRaf = useRef<Record<string, number>>({});
   const syncStart = useRef<Record<string, number>>({});
@@ -245,6 +245,10 @@ export function SettingsPage() {
   const knownKeys = new Set<string>([
     ...KNOWN_SETTINGS.map((s) => s.key),
     'payment_methods',
+    'WALLET_ENABLED',
+    'WALLET_ORDER_PAYMENT_ENABLED',
+    'WALLET_MIN_TOPUP',
+    'WALLET_MAX_TOPUP',
     'TELEGRAM_ENABLED',
     'private_TELEGRAM_BOT_TOKEN',
     'TELEGRAM_BOT_TOKEN',
@@ -277,9 +281,10 @@ export function SettingsPage() {
     setForm((current) => ({ ...current, ATTRIBUTION_CHANNELS: JSON.stringify(channels) }));
   };
 
-  const TABS: { id: 'general' | 'payment' | 'telegram' | 'arvan' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
+  const TABS: { id: 'general' | 'payment' | 'wallet' | 'telegram' | 'arvan' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
     { id: 'general', label: 'تنظیمات عمومی' },
     { id: 'payment', label: '💳 روش‌های پرداخت' },
+    { id: 'wallet', label: 'کیف پول' },
     { id: 'telegram', label: 'ربات تلگرام' },
     { id: 'arvan', label: 'تحلیل اروان کلاد' },
     { id: 'tools', label: 'ابزارها و پیشرفته' },
@@ -329,6 +334,19 @@ export function SettingsPage() {
           onSave={() => save.mutate(form)}
           isSaving={save.isPending}
         />
+      )}
+
+      {activeTab === 'wallet' && (
+        <section className="a-card a-fade">
+          <div className="a-card-head"><div><h3 className="a-card-title">تنظیمات کیف پول</h3><p className="a-card-subtitle">محدوده شارژ و امکان پرداخت سفارش با موجودی</p></div></div>
+          <div className="a-form-grid a-cols--2">
+            <div className="a-field"><label className="a-label">فعال بودن کیف پول</label><select className="a-select" value={form.WALLET_ENABLED ?? 'true'} onChange={e=>setForm({...form,WALLET_ENABLED:e.target.value})}><option value="true">فعال</option><option value="false">غیرفعال</option></select></div>
+            <div className="a-field"><label className="a-label">پرداخت سفارش از کیف پول</label><select className="a-select" value={form.WALLET_ORDER_PAYMENT_ENABLED ?? 'true'} onChange={e=>setForm({...form,WALLET_ORDER_PAYMENT_ENABLED:e.target.value})}><option value="true">فعال</option><option value="false">غیرفعال</option></select></div>
+            <div className="a-field"><label className="a-label">حداقل شارژ (تومان)</label><input className="a-input a-ltr" type="number" value={form.WALLET_MIN_TOPUP ?? '50000'} onChange={e=>setForm({...form,WALLET_MIN_TOPUP:e.target.value})}/></div>
+            <div className="a-field"><label className="a-label">حداکثر شارژ (تومان)</label><input className="a-input a-ltr" type="number" value={form.WALLET_MAX_TOPUP ?? '100000000'} onChange={e=>setForm({...form,WALLET_MAX_TOPUP:e.target.value})}/></div>
+          </div>
+          <div className="mt-5"><button className="a-btn a-btn--primary" disabled={save.isPending} onClick={()=>save.mutate(form)}>ذخیره تنظیمات کیف پول</button></div>
+        </section>
       )}
 
       {activeTab === 'general' && (

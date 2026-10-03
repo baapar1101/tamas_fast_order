@@ -370,6 +370,9 @@ export function StorefrontPage() {
                   <Link to="/orders" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--text)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
                     <Icon name="bag" style={{ marginInlineEnd: 8 }} /> سفارش‌های من
                   </Link>
+                  <Link to="/wallet" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--tamas-accent)', textDecoration: 'none', fontSize: '14px', fontWeight: 700 }}>
+                    <span style={{ marginInlineEnd: 8 }}>◈</span> کیف پول من
+                  </Link>
                   <button
                     type="button"
                     onClick={() => setCreditOpen(true)}

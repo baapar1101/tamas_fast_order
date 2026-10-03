@@ -30,6 +30,7 @@ import { CrmChatPage } from './pages/CrmChatPage';
 import { CreditApplicationsPage } from './pages/CreditApplicationsPage';
 import { CatalogExportPage } from './pages/CatalogExportPage';
 import { TargetSitesPage } from './pages/TargetSitesPage';
+import { WalletsPage } from './pages/WalletsPage';
 import { SmokeyBackground } from './components/SmokeyBackground';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
@@ -174,6 +175,12 @@ const NAV_MAIN = [
       </svg>
     ),
     requiredPermission: 'manage_settings',
+  },
+  {
+    to: '/admin/wallets',
+    label: 'کیف پول‌ها',
+    icon: (<svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75A2.25 2.25 0 016 4.5h12a2.25 2.25 0 012.25 2.25v10.5A2.25 2.25 0 0118 19.5H6a2.25 2.25 0 01-2.25-2.25V6.75zm12 4.5h4.5v3h-4.5a1.5 1.5 0 010-3z" /></svg>),
+    requiredPermission: 'manage_orders',
   },
   {
     to: '/admin/comments',
@@ -341,7 +348,7 @@ const NAV_GROUPS = [
     id: 'sales',
     label: 'فروش و سفارش‌ها',
     description: 'سفارش، اعتبار و امور مالی',
-    paths: ['/admin/orders', '/admin/credit', '/admin/financial'],
+    paths: ['/admin/orders', '/admin/credit', '/admin/financial', '/admin/wallets'],
     iconPath: 'M3.75 7.5h16.5l-1.5 12H5.25l-1.5-12zm4.5 0V6a3.75 3.75 0 117.5 0v1.5',
   },
   {
@@ -924,6 +931,7 @@ export default function AdminApp() {
             <Route path="crm-sync" element={<CrmSyncPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="financial" element={<FinancialPage />} />
+            <Route path="wallets" element={<WalletsPage />} />
             <Route path="comments" element={<CommentsPage />} />
             <Route path="graphify" element={<GraphifyPage />} />
             <Route path="archify" element={<ArchifyPage />} />

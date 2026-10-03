@@ -12,6 +12,7 @@ interface Props {
 }
 
 const TYPE_LABELS: Record<PaymentMethodConfig['type'], { label: string; badgeClass: string; icon: string }> = {
+  wallet: { label: 'کیف پول', badgeClass: 'a-badge--success', icon: '◈' },
   online: { label: 'درگاه آنلاین', badgeClass: 'a-badge--success', icon: '💳' },
   manual: { label: 'کارت به کارت / واریز', badgeClass: 'a-badge--info', icon: '🏦' },
   credit: { label: 'خرید اعتباری', badgeClass: 'a-badge--warning', icon: '⏳' },
