@@ -8,6 +8,7 @@ import { useToast } from '../../components/Toast';
 import { AdminStatStrip } from '../components/AdminStatStrip';
 import { api } from '../../lib/api';
 import { useDebounced } from '../../storefront/hooks';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 interface OrdersResponse {
   items: OrderDTO[];
@@ -37,6 +38,7 @@ export function OrdersPage() {
   const [detail, setDetail] = useState<OrderDTO | null>(null);
   const [detailTab, setDetailTab] = useState<'info' | 'items'>('info');
   const [note, setNote] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<{ kind: 'one'; order: OrderDTO } | { kind: 'bulk'; ids: number[] } | null>(null);
 
   const debounced = useDebounced(search);
   const query = useMemo(() => ({ q: debounced, status, page, perPage: 30 }), [debounced, status, page]);
@@ -74,6 +76,28 @@ export function OrdersPage() {
     mutationFn: (body: { ids: number[]; status: OrderStatus }) => api.post<{ changed: number }>('/admin/orders/bulk-status', body),
     onSuccess: (res) => {
       toast.ok(`${formatNumber(res.changed)} سفارش تغییر یافت.`);
+      setSelected(new Set());
+      refresh();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: number) => api.del<{ message: string }>(`/admin/orders/${id}`),
+    onSuccess: (res) => {
+      toast.ok(res.message || 'سفارش حذف شد.');
+      setDeleteTarget(null);
+      setDetail(null);
+      refresh();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const bulkRemove = useMutation({
+    mutationFn: (ids: number[]) => api.post<{ changed: number; message: string }>('/admin/orders/bulk-delete', { ids }),
+    onSuccess: (res) => {
+      toast.ok(res.message || `${formatNumber(res.changed)} سفارش حذف شد.`);
+      setDeleteTarget(null);
       setSelected(new Set());
       refresh();
     },
@@ -164,6 +188,13 @@ export function OrdersPage() {
               به {ORDER_STATUS_LABELS[s]}
             </button>
           ))}
+          <button
+            type="button"
+            className="a-btn a-btn--danger a-btn--sm"
+            onClick={() => setDeleteTarget({ kind: 'bulk', ids: [...selected] })}
+          >
+            حذف انتخاب‌شده‌ها
+          </button>
           <span className="a-bulkbar-spacer" />
           <button type="button" className="a-bulkbar-link" onClick={() => setSelected(new Set())}>
             لغو انتخاب
@@ -297,17 +328,28 @@ export function OrdersPage() {
                       {new Date(o.createdAt).toLocaleDateString('fa-IR')}
                     </td>
                     <td>
-                      <button
-                        type="button"
-                        className="a-btn a-btn--secondary a-btn--sm"
-                        onClick={() => {
-                          setDetail(o);
-                          setDetailTab('info');
-                          setNote(o.note ?? '');
-                        }}
-                      >
-                        بررسی و ویرایش
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          className="a-btn a-btn--secondary a-btn--sm"
+                          onClick={() => {
+                            setDetail(o);
+                            setDetailTab('info');
+                            setNote(o.note ?? '');
+                          }}
+                        >
+                          بررسی و ویرایش
+                        </button>
+                        <button
+                          type="button"
+                          className="a-btn a-btn--danger a-btn--sm"
+                          disabled={o.status !== 'cancelled'}
+                          title={o.status === 'cancelled' ? 'حذف سفارش' : 'ابتدا سفارش را لغو کنید'}
+                          onClick={() => setDeleteTarget({ kind: 'one', order: o })}
+                        >
+                          حذف
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -345,9 +387,23 @@ export function OrdersPage() {
           title={`جزئیات سفارش #${detail.orderCode}`}
           onClose={() => setDetail(null)}
           footer={
-            <button type="button" className="a-btn a-btn--secondary" onClick={() => setDetail(null)}>
-              بستن
-            </button>
+            <>
+              <button
+                type="button"
+                className="a-btn a-btn--danger"
+                disabled={detail.status !== 'cancelled'}
+                title={detail.status === 'cancelled' ? 'حذف سفارش' : 'برای حذف، ابتدا وضعیت سفارش را به لغوشده تغییر دهید'}
+                onClick={() => {
+                  setDeleteTarget({ kind: 'one', order: detail });
+                  setDetail(null);
+                }}
+              >
+                حذف سفارش
+              </button>
+              <button type="button" className="a-btn a-btn--secondary" onClick={() => setDetail(null)}>
+                بستن
+              </button>
+            </>
           }
         >
           <div className="a-tabs mb-4 flex justify-between">
@@ -487,6 +543,24 @@ export function OrdersPage() {
           )}
         </Modal>
       )}
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={deleteTarget?.kind === 'bulk' ? 'حذف سفارش‌های انتخاب‌شده' : 'حذف سفارش'}
+        busy={remove.isPending || bulkRemove.isPending}
+        description={
+          deleteTarget?.kind === 'bulk' ? (
+            <>تعداد <strong>{formatNumber(deleteTarget.ids.length)}</strong> سفارش حذف شود؟ فقط سفارش‌های لغوشده قابل حذف‌اند و سوابق مالی آن‌ها محفوظ می‌ماند.</>
+          ) : (
+            <>سفارش <strong>#{deleteTarget?.order.orderCode}</strong> از فهرست حذف شود؟ اقلام و سوابق مالی برای حسابرسی باقی می‌مانند.</>
+          )
+        }
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget?.kind === 'one') remove.mutate(deleteTarget.order.id);
+          else if (deleteTarget?.kind === 'bulk') bulkRemove.mutate(deleteTarget.ids);
+        }}
+      />
     </div>
   );
 }

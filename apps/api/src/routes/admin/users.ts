@@ -55,7 +55,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.get('/admin/users/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
-    const [row] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    const [row] = await db.select().from(users).where(and(eq(users.id, id), isNull(users.deletedAt))).limit(1);
     if (!row) throw notFound('کاربر پیدا نشد.');
     return { ok: true, user: toUserDTO(row) };
   });
@@ -80,7 +80,7 @@ const routes: FastifyPluginAsync = async (app) => {
     const [updated] = await db
       .update(users)
       .set({ ...body, updatedAt: new Date() })
-      .where(eq(users.id, id))
+      .where(and(eq(users.id, id), isNull(users.deletedAt)))
       .returning();
     if (!updated) throw notFound('کاربر پیدا نشد.');
 
@@ -105,6 +105,76 @@ const routes: FastifyPluginAsync = async (app) => {
     return { ok: true, user: toUserDTO(updated) };
   });
 
+  app.delete('/admin/users/:id', async (req) => {
+    const id = z.coerce.number().int().positive().parse((req.params as { id: string }).id);
+    if (id === req.currentUser!.id) throw badRequest('نمی‌توانید حساب کاربری خودتان را حذف کنید.');
+
+    const deleted = await db.transaction(async (tx) => {
+      const [target] = await tx
+        .select()
+        .from(users)
+        .where(and(eq(users.id, id), isNull(users.deletedAt)))
+        .for('update')
+        .limit(1);
+      if (!target) throw notFound('کاربر پیدا نشد یا قبلاً حذف شده است.');
+
+      if (target.role === 'admin') {
+        if (req.currentUser!.role !== 'admin') {
+          throw forbidden('فقط مدیر ارشد می‌تواند حساب یک مدیر را حذف کند.');
+        }
+        if (target.isActive) {
+          const [activeAdmins] = await tx
+            .select({ n: count() })
+            .from(users)
+            .where(and(eq(users.role, 'admin'), eq(users.isActive, true), isNull(users.deletedAt)));
+          if (Number(activeAdmins?.n ?? 0) <= 1) {
+            throw badRequest('آخرین مدیر فعال قابل حذف نیست. ابتدا یک مدیر دیگر ایجاد کنید.');
+          }
+        }
+      }
+
+      // Keep the row for orders, wallet and audit references, but remove all
+      // personal data and release the unique phone number for future signup.
+      const replacementPhone = `9${String(id).padStart(7, '0').slice(-7)}${String(Date.now()).slice(-7)}`;
+      const now = new Date();
+      const [updated] = await tx
+        .update(users)
+        .set({
+          phone: replacementPhone,
+          name: 'کاربر حذف‌شده',
+          lastName: '',
+          storeName: '',
+          landline: '',
+          address: '',
+          postalCode: '',
+          certificateFileUrl: '',
+          activity: '',
+          pageWebsite: '',
+          nationalCode: '',
+          birthDate: '',
+          fatherName: '',
+          isVerifiedIdentity: false,
+          isActive: false,
+          role: 'customer',
+          accessGroupId: null,
+          passwordHash: null,
+          deletedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(users.id, id))
+        .returning({ id: users.id });
+      await tx.delete(sessions).where(eq(sessions.userId, id));
+      return { id: updated!.id, phone: target.phone, role: target.role };
+    });
+
+    await logAction(req.currentUser!.id, 'delete', 'user', deleted.phone, {
+      userId: deleted.id,
+      previousRole: deleted.role,
+      mode: 'soft-delete-and-anonymize',
+    });
+    return { ok: true, message: 'کاربر حذف و اطلاعات شخصی او ناشناس‌سازی شد.' };
+  });
+
   const bulkSchema = z.object({
     ids: z.array(z.coerce.number().int().positive()).min(1).max(300),
     action: z.enum(['activate', 'deactivate']),
@@ -119,7 +189,7 @@ const routes: FastifyPluginAsync = async (app) => {
     const changed = await db
       .update(users)
       .set({ isActive, updatedAt: new Date() })
-      .where(inArray(users.id, ids))
+      .where(and(inArray(users.id, ids), isNull(users.deletedAt)))
       .returning({ id: users.id });
 
     if (!isActive) await db.delete(sessions).where(inArray(sessions.userId, ids));

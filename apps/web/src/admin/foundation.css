@@ -121,6 +121,11 @@ body.admin-page-active :where(.modal-backdrop,.admin-modal-backdrop) .a-label { 
 .a-btn:focus-visible,.modal-close:focus-visible { outline: 0; box-shadow: var(--a-focus); }
 .a-btn--primary { box-shadow: 0 7px 18px color-mix(in srgb,var(--a-brand) 20%,transparent); }
 .a-btn--danger { border-color: color-mix(in srgb,var(--a-red) 28%,var(--a-border)); }
+.a-confirm { display:flex; align-items:flex-start; gap:14px; }
+.a-confirm__icon { display:grid; place-items:center; width:44px; height:44px; flex:0 0 44px; border-radius:14px; color:var(--a-red); background:color-mix(in srgb,var(--a-red) 12%,transparent); border:1px solid color-mix(in srgb,var(--a-red) 24%,var(--a-border)); }
+.a-confirm__icon svg { width:23px; height:23px; }
+.a-confirm__text { margin:2px 0 8px; color:var(--a-t1); font-size:14px; line-height:1.9; }
+.a-confirm__hint { margin:0; color:var(--a-t3); font-size:12px; line-height:1.8; }
 
 /* Unified dialog / bottom-sheet architecture. */
 body.admin-page-active .modal-backdrop,

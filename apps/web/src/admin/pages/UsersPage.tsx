@@ -7,6 +7,8 @@ import { AdminStatStrip } from '../components/AdminStatStrip';
 import { api } from '../../lib/api';
 import { useDebounced } from '../../storefront/hooks';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { useAuth } from '../../store/auth';
 
 interface UsersResponse {
   items: UserDTO[];
@@ -18,6 +20,7 @@ interface UsersResponse {
 export function UsersPage() {
   const toast = useToast();
   const qc = useQueryClient();
+  const currentUser = useAuth((state) => state.user);
 
   const [search, setSearch] = useState('');
   const [role, setRole] = useState<'all' | 'admin' | 'operator' | 'customer'>('all');
@@ -25,6 +28,7 @@ export function UsersPage() {
   const [editingUser, setEditingUser] = useState<UserDTO | null>(null);
   const [editRole, setEditRole] = useState<UserDTO['role']>('customer');
   const [editAccessGroupId, setEditAccessGroupId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<UserDTO | null>(null);
 
   const debounced = useDebounced(search);
   const query = useMemo(() => ({ q: debounced, role, page, perPage: 30 }), [debounced, role, page]);
@@ -54,6 +58,17 @@ export function UsersPage() {
       toast.ok('اطلاعات کاربر به‌روزرسانی شد.');
       invalidate();
       setEditingUser(null);
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: number) => api.del<{ message: string }>(`/admin/users/${id}`),
+    onSuccess: (res) => {
+      toast.ok(res.message || 'کاربر حذف شد.');
+      setDeleteTarget(null);
+      invalidate();
+      void qc.invalidateQueries({ queryKey: ['admin', 'wallets'] });
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -238,6 +253,17 @@ export function UsersPage() {
                           {u.isActive ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg> : <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>}
                           {u.isActive ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                         </button>
+
+                        <button
+                          type="button"
+                          className="a-btn a-btn--danger a-btn--xs rounded-full"
+                          disabled={u.id === currentUser?.id}
+                          title={u.id === currentUser?.id ? 'حذف حساب خودتان مجاز نیست' : 'حذف کاربر'}
+                          onClick={() => setDeleteTarget(u)}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9 14.4 18m-4.8 0L9.26 9m9.97-3.21L18.16 19.67a2.25 2.25 0 0 1-2.24 2.08H8.08a2.25 2.25 0 0 1-2.24-2.08L4.77 5.79m14.46 0a48 48 0 0 0-14.46 0m10.98-.4v-.91a2.2 2.2 0 0 0-2.09-2.2 52 52 0 0 0-3.32 0 2.2 2.2 0 0 0-2.09 2.2v.91" /></svg>
+                          حذف
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -334,6 +360,20 @@ export function UsersPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="حذف کاربر"
+        busy={remove.isPending}
+        confirmLabel="حذف و ناشناس‌سازی"
+        description={
+          <>
+            کاربر <strong>{deleteTarget ? `${deleteTarget.name} ${deleteTarget.lastName}`.trim() || deleteTarget.phone : ''}</strong> حذف شود؟ اطلاعات شخصی پاک و همه نشست‌های فعال بسته می‌شوند؛ سفارش‌ها و تراکنش‌های مالی برای حسابرسی باقی می‌مانند.
+          </>
+        }
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && remove.mutate(deleteTarget.id)}
+      />
     </div>
   );
 }

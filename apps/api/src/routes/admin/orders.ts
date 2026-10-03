@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { ORDER_STATUSES, ORDER_STATUS_LABELS, orderPatchSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { orderItems, orders, users } from '../../db/schema.js';
-import { notFound } from '../../lib/errors.js';
+import { badRequest, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { toOrderDTO } from '../../services/orders.js';
 import { upsertOrderPayment } from '../../services/payments.js';
@@ -79,7 +79,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.get('/admin/orders/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
-    const [row] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+    const [row] = await db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1);
     if (!row) throw notFound('سفارش پیدا نشد.');
     const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
     const [customer] = row.userId
@@ -91,7 +91,7 @@ const routes: FastifyPluginAsync = async (app) => {
   /** Minimal one-column workbook used by Sepidar: customer header, then one SKU per unit. */
   app.get('/admin/orders/:id/sepidar-excel', async (req, reply) => {
     const id = Number((req.params as { id: string }).id);
-    const [row] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+    const [row] = await db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1);
     if (!row) throw notFound('سفارش پیدا نشد.');
     const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
 
@@ -118,7 +118,7 @@ const routes: FastifyPluginAsync = async (app) => {
     let oldStatus: string | undefined;
     let oldPaymentStatus: string | undefined;
     if (body.status || body.paymentStatus) {
-      const [oldRow] = await db.select({ status: orders.status, paymentStatus: orders.paymentStatus }).from(orders).where(eq(orders.id, id));
+      const [oldRow] = await db.select({ status: orders.status, paymentStatus: orders.paymentStatus }).from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt)));
       if (oldRow) {
         oldStatus = oldRow.status;
         oldPaymentStatus = oldRow.paymentStatus;
@@ -133,7 +133,7 @@ const routes: FastifyPluginAsync = async (app) => {
         ...(body.note !== undefined ? { note: body.note } : {}),
         updatedAt: new Date(),
       })
-      .where(eq(orders.id, id))
+      .where(and(eq(orders.id, id), isNull(orders.deletedAt)))
       .returning();
     if (!updated) throw notFound('سفارش پیدا نشد.');
 
@@ -195,6 +195,23 @@ const routes: FastifyPluginAsync = async (app) => {
     return { ok: true, order: toOrderDTO(updated, items) };
   });
 
+  app.delete('/admin/orders/:id', async (req) => {
+    const id = z.coerce.number().int().positive().parse((req.params as { id: string }).id);
+    const [current] = await db
+      .select({ id: orders.id, orderCode: orders.orderCode, status: orders.status })
+      .from(orders)
+      .where(and(eq(orders.id, id), isNull(orders.deletedAt)))
+      .limit(1);
+    if (!current) throw notFound('سفارش پیدا نشد یا قبلاً حذف شده است.');
+    if (current.status !== 'cancelled') {
+      throw badRequest('برای حفظ موجودی و سوابق مالی، ابتدا سفارش را لغو و سپس حذف کنید.');
+    }
+
+    await db.update(orders).set({ deletedAt: new Date(), updatedAt: new Date() }).where(eq(orders.id, id));
+    await logAction(req.currentUser!.id, 'delete', 'order', current.orderCode, { mode: 'soft-delete' });
+    return { ok: true, message: 'سفارش از فهرست حذف شد و سوابق مالی آن محفوظ ماند.' };
+  });
+
   const bulkStatus = z.object({
     ids: z.array(z.coerce.number().int().positive()).min(1).max(300),
     status: z.enum(ORDER_STATUSES),
@@ -202,7 +219,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.post('/admin/orders/bulk-status', async (req) => {
     const body = bulkStatus.parse(req.body);
-    const oldOrders = await db.select({ id: orders.id, status: orders.status, userId: orders.userId, total: orders.total, orderCode: orders.orderCode, paymentMethod: orders.paymentMethod }).from(orders).where(inArray(orders.id, body.ids));
+    const oldOrders = await db.select({ id: orders.id, status: orders.status, userId: orders.userId, total: orders.total, orderCode: orders.orderCode, paymentMethod: orders.paymentMethod }).from(orders).where(and(inArray(orders.id, body.ids), isNull(orders.deletedAt)));
     const changedIds = oldOrders.filter((o) => o.status !== body.status).map((o) => o.id);
 
     if (changedIds.length === 0) return { ok: true, changed: 0 };
@@ -210,7 +227,7 @@ const routes: FastifyPluginAsync = async (app) => {
     const changed = await db
       .update(orders)
       .set({ status: body.status, updatedAt: new Date() })
-      .where(inArray(orders.id, changedIds))
+      .where(and(inArray(orders.id, changedIds), isNull(orders.deletedAt)))
       .returning({ id: orders.id, phone: orders.phone, orderCode: orders.orderCode, customerName: orders.customerName });
 
     if (body.status === 'cancelled') {
@@ -244,6 +261,33 @@ const routes: FastifyPluginAsync = async (app) => {
 
     await logAction(req.currentUser!.id, 'bulk:status', 'order', null, { count: changed.length, status: body.status });
     return { ok: true, changed: changed.length };
+  });
+
+  app.post('/admin/orders/bulk-delete', async (req) => {
+    const body = z.object({ ids: z.array(z.coerce.number().int().positive()).min(1).max(300) }).parse(req.body);
+    const current = await db
+      .select({ id: orders.id, orderCode: orders.orderCode, status: orders.status })
+      .from(orders)
+      .where(and(inArray(orders.id, body.ids), isNull(orders.deletedAt)));
+    const blocked = current.filter((order) => order.status !== 'cancelled');
+    if (blocked.length > 0) {
+      throw badRequest(`${blocked.length.toLocaleString('fa-IR')} سفارش هنوز لغو نشده است. ابتدا همه سفارش‌های انتخاب‌شده را لغو کنید.`, {
+        orderCodes: blocked.slice(0, 10).map((order) => order.orderCode),
+      });
+    }
+    if (current.length === 0) return { ok: true, changed: 0, message: 'سفارشی برای حذف پیدا نشد.' };
+
+    const changed = await db
+      .update(orders)
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
+      .where(inArray(orders.id, current.map((order) => order.id)))
+      .returning({ id: orders.id });
+    await logAction(req.currentUser!.id, 'bulk:delete', 'order', null, {
+      count: changed.length,
+      orderCodes: current.map((order) => order.orderCode),
+      mode: 'soft-delete',
+    });
+    return { ok: true, changed: changed.length, message: `${changed.length.toLocaleString('fa-IR')} سفارش حذف شد.` };
   });
 
   /** CSV for accounting; Excel needs the BOM to read Persian correctly. */

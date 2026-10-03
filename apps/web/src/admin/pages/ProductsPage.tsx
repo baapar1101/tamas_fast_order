@@ -12,6 +12,7 @@ import { ProductEditor, type ProductForm } from '../components/ProductEditor';
 import { VariantsEditor } from '../components/VariantsEditor';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
 import { CatalogPrintView } from '../components/CatalogPrintView';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 interface ProductsResponse {
   items: ProductDTO[];
@@ -97,6 +98,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [bulkMenuOpen, setBulkMenuOpen] = useState(false);
   const [rowMenu, setRowMenu] = useState<number | null>(null);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ProductDTO | 'bulk' | null>(null);
 
   const debounced = useDebounced(search);
 
@@ -137,6 +139,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
     mutationFn: (id: number) => api.del(`/admin/products/${id}`),
     onSuccess: () => {
       toast.ok('محصول حذف شد.');
+      setDeleteTarget(null);
       invalidate();
     },
     onError: (err: Error) => toast.error(err.message),
@@ -150,6 +153,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
       setSelected(new Set());
       setBulkPrompt(null);
       setBulkValue('');
+      setDeleteTarget(null);
       invalidate();
     },
     onError: (err: Error) => toast.error(err.message),
@@ -193,7 +197,10 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
       setBulkPrompt(action);
       return;
     }
-    if (action === 'delete' && !confirm(`${formatNumber(selected.size)} محصول حذف شود؟`)) return;
+    if (action === 'delete') {
+      setDeleteTarget('bulk');
+      return;
+    }
     bulk.mutate({ ids: [...selected], action });
   }
 
@@ -215,7 +222,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
         label: p.status === 'active' ? 'غیرفعال‌سازی' : 'فعال‌سازی',
         run: () => bulk.mutate({ ids: [p.id], action: p.status === 'active' ? 'deactivate' : 'activate' }),
       },
-      { label: 'حذف', danger: true, run: () => { if (confirm(`«${p.title}» حذف شود؟`)) remove.mutate(p.id); } },
+      { label: 'حذف', danger: true, run: () => setDeleteTarget(p) },
     ];
   }
 
@@ -627,9 +634,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                           className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--a-t3)] hover:text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors"
                           style={{ color: 'var(--pp-danger-strong)' }}
                           title="حذف"
-                          onClick={() => {
-                            if (confirm(`«${p.title}» حذف شود؟`)) remove.mutate(p.id);
-                          }}
+                          onClick={() => setDeleteTarget(p)}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -706,6 +711,24 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           />
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={deleteTarget === 'bulk' ? 'حذف گروهی محصولات' : 'حذف محصول'}
+        busy={remove.isPending || bulk.isPending}
+        description={
+          deleteTarget === 'bulk' ? (
+            <>تعداد <strong>{formatNumber(selected.size)}</strong> محصول حذف شود؟ محصولات از فروشگاه و نتایج جستجو خارج می‌شوند و سابقه آن‌ها برای گزارش‌ها باقی می‌ماند.</>
+          ) : (
+            <>محصول <strong>«{deleteTarget?.title}»</strong> حذف شود؟ این محصول دیگر در فروشگاه نمایش داده نخواهد شد.</>
+          )
+        }
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget === 'bulk') bulk.mutate({ ids: [...selected], action: 'delete' });
+          else if (deleteTarget) remove.mutate(deleteTarget.id);
+        }}
+      />
 
       {variantsProduct && (
         <VariantsEditor

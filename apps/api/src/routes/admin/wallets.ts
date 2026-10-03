@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { count, desc, eq, ilike, or, sql } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db/client.js';
 import { users, walletAccounts, walletTransactions } from '../../db/schema.js';
@@ -12,7 +12,8 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.get('/admin/wallets', async (req) => {
     const q = z.object({ q: z.string().trim().max(120).optional(), page: z.coerce.number().int().min(1).default(1), perPage: z.coerce.number().int().min(1).max(100).default(30) }).parse(req.query);
-    const where = q.q ? or(ilike(users.phone, `%${q.q}%`), ilike(users.name, `%${q.q}%`), ilike(users.lastName, `%${q.q}%`), ilike(users.storeName, `%${q.q}%`)) : undefined;
+    const search = q.q ? or(ilike(users.phone, `%${q.q}%`), ilike(users.name, `%${q.q}%`), ilike(users.lastName, `%${q.q}%`), ilike(users.storeName, `%${q.q}%`)) : undefined;
+    const where = search ? and(isNull(users.deletedAt), search) : isNull(users.deletedAt);
     const [items, [total], [stats]] = await Promise.all([
       db.select({ userId: users.id, name: users.name, lastName: users.lastName, phone: users.phone, storeName: users.storeName, balance: walletAccounts.balance, lifetimeCredit: walletAccounts.lifetimeCredit, lifetimeDebit: walletAccounts.lifetimeDebit, isFrozen: walletAccounts.isFrozen, updatedAt: walletAccounts.updatedAt })
         .from(users).leftJoin(walletAccounts, eq(walletAccounts.userId, users.id)).where(where).orderBy(desc(walletAccounts.balance)).limit(q.perPage).offset((q.page - 1) * q.perPage),
@@ -31,7 +32,7 @@ const routes: FastifyPluginAsync = async (app) => {
   app.post('/admin/wallets/:userId/adjust', async (req) => {
     const userId = z.coerce.number().int().positive().parse((req.params as any).userId);
     const body = z.object({ direction: z.enum(['credit', 'debit']), amount: z.coerce.number().int().positive(), description: z.string().trim().min(3).max(500), reference: z.string().trim().max(200).optional() }).parse(req.body);
-    const [user] = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+    const [user] = await db.select({ id: users.id }).from(users).where(and(eq(users.id, userId), isNull(users.deletedAt))).limit(1);
     if (!user) throw notFound('کاربر پیدا نشد.');
     const entry = await db.transaction((tx) => applyWalletTransaction(tx, { userId, direction: body.direction, type: 'adjustment', amount: body.amount, description: body.description, reference: body.reference, createdBy: req.currentUser!.id, idempotencyKey: `admin:${req.currentUser!.id}:${userId}:${crypto.randomUUID()}` }));
     await logAction(req.currentUser!.id, `wallet:${body.direction}`, 'wallet', String(userId), { amount: body.amount, description: body.description });
