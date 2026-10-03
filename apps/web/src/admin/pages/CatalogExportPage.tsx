@@ -75,58 +75,15 @@ export function CatalogExportPage() {
   const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
   const today = new Date().toLocaleDateString('fa-IR');
 
-  const handleGeneratePdf = async () => {
+  const handleGeneratePdf = () => {
     if (products.length === 0) {
       toast.error('هیچ محصولی برای تهیه کاتالوگ یافت نشد.');
       return;
     }
-
-    const container = printContainerRef.current;
-    if (!container) {
-      toast.error('خطا در دسترسی به کانتینر چاپ.');
-      return;
-    }
-
-    setIsGenerating(true);
-    setPdfProgress(5);
-    toast.ok('در حال پردازش کاتالوگ و رندر فونت‌های فارسی...');
-
-    try {
-      const pageElements = container.querySelectorAll<HTMLElement>('.pdf-page-sheet');
-      if (pageElements.length === 0) {
-        throw new Error('صفحات کاتالوگ ایجاد نشدند.');
-      }
-
-      const pdf = new jsPDF('p', 'mm', 'a4');
-
-      for (let idx = 0; idx < pageElements.length; idx++) {
-        const pageEl = pageElements[idx]!;
-        setPdfProgress(Math.round(15 + (idx / pageElements.length) * 75));
-
-        // Render page HTML element to canvas with high DPI scale
-        const canvas = await html2canvas(pageEl, {
-          scale: 2.2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-        });
-
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        if (idx > 0) pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-      }
-
-      setPdfProgress(98);
-      pdf.save(`کاتالوگ-تماس-مارکت-${today.replace(/\//g, '-')}.pdf`);
-      toast.ok('فایل PDF کاتالوگ با موفقیت و فونت کاملاً سالم دانلود شد.');
-    } catch (error: any) {
-      console.error('PDF Generation error:', error);
-      toast.error('خطا در ساخت فایل PDF: ' + (error.message || 'ناشناخته'));
-    } finally {
-      setIsGenerating(false);
-      setPdfProgress(0);
-    }
+    toast.ok('لطفاً در پنجره باز شده، گزینه Save as PDF را انتخاب کنید.');
+    setTimeout(() => {
+      window.print();
+    }, 500);
   };
 
   return (
@@ -347,7 +304,7 @@ export function CatalogExportPage() {
                                   fontWeight: 'bold',
                                   color: '#1e293b',
                                   lineHeight: 1.35,
-                                  height: '26px',
+                                  minHeight: '26px',
                                   overflow: 'hidden',
                                   display: '-webkit-box',
                                   WebkitLineClamp: 2,

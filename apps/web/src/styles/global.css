@@ -657,11 +657,20 @@ select.select {
   }
   
   /* Invoice layouts are rendered directly under body, outside the hidden app. */
-  body > #root {
+  body:has(> .is-print-target) > #root {
     display: none !important;
   }
 
   .print-invoice-layout {
+    display: none !important;
+  }
+
+  /* Catalog Print Styles */
+  body > .pdf-page-sheet {
+    display: block !important;
+  }
+  
+  .a-page-head, .a-card-head, button.a-btn, .a-subtitle {
     display: none !important;
   }
 
