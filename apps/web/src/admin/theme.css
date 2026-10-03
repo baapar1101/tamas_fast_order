@@ -1691,18 +1691,24 @@ body.admin-page-active.admin-theme-light .admin-sidebar .bg-gradient-to-br[class
 }
 
 /* Ensure native select popup options have dark background and readable text in dark mode */
-select option {
+.admin-body-shell select option,
+body.admin-page-active .modal-backdrop select option,
+body.admin-page-active .admin-modal-backdrop select option {
   background-color: #0f172a !important;
   color: #f8fafc !important;
   padding: 8px 12px;
 }
 
-body.admin-theme-light select option {
+body.admin-theme-light .admin-body-shell select option,
+body.admin-theme-light .modal-backdrop select option,
+body.admin-theme-light .admin-modal-backdrop select option {
   background-color: #ffffff !important;
   color: #0f172a !important;
 }
 
-select.a-input {
+.admin-body-shell select.a-input,
+body.admin-page-active .modal-backdrop select.a-input,
+body.admin-page-active .admin-modal-backdrop select.a-input {
   cursor: pointer;
 }
 

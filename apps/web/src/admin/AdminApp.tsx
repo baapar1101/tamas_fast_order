@@ -37,6 +37,7 @@ import { SmokeyBackground } from './components/SmokeyBackground';
 import './reference.css';
 import './admin.css';
 import './theme.css';
+import './foundation.css';
 
 const NAV_MAIN = [
   {
