@@ -8,38 +8,14 @@ import { useToast } from '../../components/Toast';
 import { AdminStatStrip } from '../components/AdminStatStrip';
 import { api } from '../../lib/api';
 import { useDebounced } from '../../storefront/hooks';
-import ExcelJS from 'exceljs';
 
 interface OrdersResponse {
   items: OrderDTO[];
   total: number;
 }
 
-const downloadOrderExcel = async (order: OrderDTO) => {
-  const data: string[][] = [];
-  
-  // Row 1: Customer Name (and Order Code) so Sepidar can read it as the header
-  data.push([order.customerName || order.orderCode]);
-  
-  // Rows 2+: Barcodes (each item qty times)
-  for (const item of order.items) {
-    const sku = item.sku || item.productId;
-    for (let i = 0; i < item.qty; i++) {
-      data.push([sku]);
-    }
-  }
-
-  const wb = new ExcelJS.Workbook();
-  wb.addWorksheet('Sheet1').addRows(data);
-  const bytes = await wb.xlsx.writeBuffer();
-  const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const href = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = href;
-  anchor.download = `order-${order.orderCode}.xlsx`;
-  anchor.click();
-  URL.revokeObjectURL(href);
-};
+const downloadOrderExcel = (order: OrderDTO) =>
+  api.download(`/admin/orders/${order.id}/sepidar-excel`, {}, `order-${order.orderCode}.xlsx`);
 
 const CHIP_TONE: Record<OrderStatus, string> = {
   new: 'chip-brand',

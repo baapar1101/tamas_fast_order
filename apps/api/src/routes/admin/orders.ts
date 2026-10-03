@@ -1,5 +1,6 @@
 import { and, count, desc, eq, gte, ilike, inArray, isNull, lte, or, sql, type SQL } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
+import ExcelJS from 'exceljs';
 import { z } from 'zod';
 import { ORDER_STATUSES, ORDER_STATUS_LABELS, orderPatchSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
@@ -84,6 +85,28 @@ const routes: FastifyPluginAsync = async (app) => {
       ? await db.select().from(users).where(eq(users.id, row.userId)).limit(1)
       : [undefined];
     return { ok: true, order: toOrderDTO(row, items), customer: customer ?? null };
+  });
+
+  /** Minimal one-column workbook used by Sepidar: customer header, then one SKU per unit. */
+  app.get('/admin/orders/:id/sepidar-excel', async (req, reply) => {
+    const id = Number((req.params as { id: string }).id);
+    const [row] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+    if (!row) throw notFound('سفارش پیدا نشد.');
+    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sheet1');
+    worksheet.addRow([row.customerName || row.orderCode]);
+    for (const item of items) {
+      const sku = item.sku || item.productId;
+      for (let index = 0; index < item.qty; index += 1) worksheet.addRow([sku]);
+    }
+    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
+    reply
+      .type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      .header('content-disposition', `attachment; filename="order-${row.orderCode}.xlsx"`)
+      .header('content-length', buffer.length);
+    return reply.send(buffer);
   });
 
   app.patch('/admin/orders/:id', async (req) => {
