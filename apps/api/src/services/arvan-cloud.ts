@@ -47,6 +47,14 @@ function cleanDomain(value: string): string {
   return value.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '').replace(/\.$/, '').toLowerCase();
 }
 
+function cleanBaseUrl(value: string): string {
+  const url = new URL((value || DEFAULT_BASE_URL).trim());
+  if (url.protocol !== 'https:' || url.hostname !== 'napi.arvancloud.ir') {
+    throw new Error('آدرس API باید دامنه رسمی napi.arvancloud.ir با پروتکل HTTPS باشد.');
+  }
+  return url.toString().replace(/\/+$/, '');
+}
+
 function normalizeAuthorization(value: string): string {
   const key = value.trim();
   if (/^(apikey|bearer)\s+/i.test(key)) return key;
@@ -61,7 +69,7 @@ export function parseArvanPeriod(value: unknown): ArvanReportPeriod {
 export async function getArvanConfig(): Promise<ArvanConfig> {
   const settings = await getAllSettings();
   return {
-    baseUrl: (settings.ARVAN_CDN_API_BASE || DEFAULT_BASE_URL).trim().replace(/\/+$/, ''),
+    baseUrl: cleanBaseUrl(settings.ARVAN_CDN_API_BASE || DEFAULT_BASE_URL),
     domain: cleanDomain(settings.ARVAN_CDN_DOMAIN || settings.custom_domain || ''),
     apiKey: (settings.private_ARVAN_API_KEY || settings.ARVAN_API_KEY || '').trim(),
     secretKey: (settings.private_ARVAN_SECRET_KEY || settings.ARVAN_SECRET_KEY || '').trim(),
