@@ -332,24 +332,68 @@ const NAV_TOOLS = [
   },
 ] as const;
 
-const PRODUCT_NAV_PATHS = new Set([
-  '/admin/products',
-  '/admin/bundles',
-  '/admin/categories',
-  '/admin/brands',
-  '/admin/attributes',
-  '/admin/warehouses',
-]);
+const NAV_ITEMS = [...NAV_MAIN, ...NAV_TOOLS].filter(
+  (item, index, items) => items.findIndex((candidate) => candidate.to === item.to) === index,
+);
 
-function isProductPath(pathname: string): boolean {
-  return [...PRODUCT_NAV_PATHS].some((path) => pathname === path || pathname.startsWith(`${path}/`));
+const NAV_GROUPS = [
+  {
+    id: 'sales',
+    label: 'فروش و سفارش‌ها',
+    description: 'سفارش، اعتبار و امور مالی',
+    paths: ['/admin/orders', '/admin/credit', '/admin/financial'],
+    iconPath: 'M3.75 7.5h16.5l-1.5 12H5.25l-1.5-12zm4.5 0V6a3.75 3.75 0 117.5 0v1.5',
+  },
+  {
+    id: 'catalog',
+    label: 'کالا و موجودی',
+    description: 'محصول، دسته‌بندی و انبار',
+    paths: ['/admin/products', '/admin/bundles', '/admin/categories', '/admin/brands', '/admin/attributes', '/admin/warehouses', '/admin/target-sites', '/admin/catalog-export'],
+    iconPath: 'M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m-.375 0h17.25M9 11.25h6m-6 3h6',
+  },
+  {
+    id: 'customers',
+    label: 'مشتریان و ارتباطات',
+    description: 'کاربران، گفتگو و پیام‌رسانی',
+    paths: ['/admin/users', '/admin/comments', '/admin/chat', '/admin/messages', '/admin/sms'],
+    iconPath: 'M15 19.128A9.38 9.38 0 0017.625 19.5a9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z',
+  },
+  {
+    id: 'content',
+    label: 'محتوا و بازاریابی',
+    description: 'بنر، رسانه و کمپین',
+    paths: ['/admin/slides', '/admin/uploads', '/admin/marketing'],
+    iconPath: 'M3.75 4.5h16.5A2.25 2.25 0 0122.5 6.75v10.5a2.25 2.25 0 01-2.25 2.25H3.75a2.25 2.25 0 01-2.25-2.25V6.75A2.25 2.25 0 013.75 4.5zm0 11.25l4.5-4.5 3 3 2.25-2.25 6.75 6.75',
+  },
+  {
+    id: 'insights',
+    label: 'گزارش‌ها و ابزار هوشمند',
+    description: 'تحلیل، Graphify و Archify',
+    paths: ['/admin/analytics', '/admin/graphify', '/admin/archify'],
+    iconPath: 'M3 20.25h18M5.25 17.25V12h3v5.25m3 0V6.75h3v10.5m3 0V3.75h3v13.5',
+  },
+  {
+    id: 'system',
+    label: 'سیستم و یکپارچه‌سازی',
+    description: 'تنظیمات، دسترسی و همگام‌سازی',
+    paths: ['/admin/sync', '/admin/crm-sync', '/admin/settings', '/admin/access-groups'],
+    iconPath: 'M12 3v3m0 12v3m9-9h-3M6 12H3m15.364-6.364l-2.122 2.122M7.758 16.242l-2.122 2.122m12.728 0l-2.122-2.122M7.758 7.758L5.636 5.636M15.75 12A3.75 3.75 0 1112 8.25 3.75 3.75 0 0115.75 12z',
+  },
+] as const;
+
+function pathMatches(pathname: string, path: string): boolean {
+  return pathname === path || pathname.startsWith(`${path}/`);
+}
+
+function activeNavGroup(pathname: string): string | null {
+  return NAV_GROUPS.find((group) => group.paths.some((path) => pathMatches(pathname, path)))?.id ?? null;
 }
 
 export default function AdminApp() {
   const { user, ready, isAdmin, isOperator, hasPermission, logout } = useAuth();
   const location = useLocation();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [productsMenuOpen, setProductsMenuOpen] = useState(() => isProductPath(location.pathname));
+  const [openNavGroup, setOpenNavGroup] = useState<string | null>(() => activeNavGroup(location.pathname));
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState({ date: '', time: '' });
@@ -415,7 +459,8 @@ export default function AdminApp() {
     setNotifOpen(false);
     setProfileOpen(false);
     setMobileSidebarOpen(false);
-    if (isProductPath(location.pathname)) setProductsMenuOpen(true);
+    const activeGroup = activeNavGroup(location.pathname);
+    if (activeGroup) setOpenNavGroup(activeGroup);
   }, [location.pathname]);
 
   const counters = useQuery({
@@ -524,13 +569,11 @@ export default function AdminApp() {
     return 0;
   };
 
-  const visibleMainItems = NAV_MAIN.filter(
-    (item) => hasPermission(item.requiredPermission) && !PRODUCT_NAV_PATHS.has(item.to),
-  );
-  const visibleProductItems = NAV_MAIN.filter(
-    (item) => hasPermission(item.requiredPermission) && PRODUCT_NAV_PATHS.has(item.to),
-  );
-  const productSectionActive = isProductPath(location.pathname);
+  const dashboardItem = NAV_MAIN[0];
+  const visibleGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: NAV_ITEMS.filter((item) => group.paths.some((path) => path === item.to) && hasPermission(item.requiredPermission)),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <div className="admin-body-shell">
@@ -573,83 +616,64 @@ export default function AdminApp() {
         </div>
 
         {/* Sidebar Links */}
-        <nav className="flex-1 space-y-6 overflow-y-auto px-4 pb-4">
-          <div>
-            <p className="mb-2 px-4 text-[11px] font-semibold tracking-wide text-slate-500">منوی اصلی</p>
-            <ul className="space-y-1">
-              {visibleMainItems.map((item) => {
-                const count = badgeValue('badge' in item ? item.badge : undefined);
-                return (
-                  <li key={item.to}>
-                    <NavLink
-                      to={item.to}
-                      end={'end' in item ? item.end : false}
-                      className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                      {count > 0 && (
-                        <span className="mr-auto rounded-lg bg-emerald-500/15 px-2 py-0.5 text-[11px] font-bold text-emerald-300">
-                          {formatNumber(count)}
-                        </span>
-                      )}
-                    </NavLink>
-                  </li>
-                );
-              })}
-              {visibleProductItems.length > 0 && (
-                <li className={`nav-accordion${productsMenuOpen ? ' is-open' : ''}`}>
+        <nav className="flex-1 overflow-y-auto px-4 pb-4">
+          <p className="mb-2 px-4 text-[11px] font-semibold tracking-wide text-slate-500">پنل مدیریت</p>
+          {dashboardItem && hasPermission(dashboardItem.requiredPermission) && (
+            <NavLink to={dashboardItem.to} end className={({ isActive }) => `nav-item nav-dashboard-item${isActive ? ' active' : ''}`}>
+              {dashboardItem.icon}
+              <span>{dashboardItem.label}</span>
+            </NavLink>
+          )}
+
+          <div className="nav-domain-list">
+            {visibleGroups.map((group) => {
+              const isOpen = openNavGroup === group.id;
+              const isActive = group.paths.some((path) => pathMatches(location.pathname, path));
+              const groupBadge = group.items.reduce(
+                (total, item) => total + badgeValue('badge' in item ? item.badge : undefined),
+                0,
+              );
+              return (
+                <section key={group.id} className={`nav-accordion nav-domain${isOpen ? ' is-open' : ''}`}>
                   <button
                     type="button"
-                    className={`nav-item nav-accordion-toggle${productSectionActive ? ' active' : ''}`}
-                    aria-expanded={productsMenuOpen}
-                    aria-controls="admin-products-submenu"
-                    onClick={() => setProductsMenuOpen((open) => !open)}
+                    className={`nav-item nav-accordion-toggle nav-domain-toggle${isActive ? ' active' : ''}`}
+                    aria-expanded={isOpen}
+                    aria-controls={`admin-${group.id}-submenu`}
+                    onClick={() => setOpenNavGroup((current) => (current === group.id ? null : group.id))}
                   >
-                    <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m-.375 0h17.25M9 11.25h6m-6 3h6" />
+                    <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d={group.iconPath} />
                     </svg>
-                    <span>مدیریت محصولات</span>
-                    <span className="nav-accordion-count">{formatNumber(visibleProductItems.length)}</span>
+                    <span className="nav-domain-copy">
+                      <strong>{group.label}</strong>
+                      <small>{group.description}</small>
+                    </span>
+                    {groupBadge > 0 && <span className="nav-domain-badge">{formatNumber(groupBadge)}</span>}
+                    <span className="nav-accordion-count">{formatNumber(group.items.length)}</span>
                     <svg className="nav-accordion-chevron" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 9l-7.5 7.5L4.5 9" />
                     </svg>
                   </button>
-                  <div id="admin-products-submenu" className="nav-submenu-shell" aria-hidden={!productsMenuOpen}>
+                  <div id={`admin-${group.id}-submenu`} className="nav-submenu-shell" aria-hidden={!isOpen}>
                     <ul className="nav-submenu">
-                      {visibleProductItems.map((item) => (
-                        <li key={item.to}>
-                          <NavLink
-                            to={item.to}
-                            className={({ isActive }) => `nav-item nav-subitem${isActive ? ' active' : ''}`}
-                          >
-                            {item.icon}
-                            <span>{item.label}</span>
-                          </NavLink>
-                        </li>
-                      ))}
+                      {group.items.map((item) => {
+                        const count = badgeValue('badge' in item ? item.badge : undefined);
+                        return (
+                          <li key={item.to}>
+                            <NavLink to={item.to} className={({ isActive: itemActive }) => `nav-item nav-subitem${itemActive ? ' active' : ''}`}>
+                              {item.icon}
+                              <span>{item.label}</span>
+                              {count > 0 && <span className="nav-domain-badge mr-auto">{formatNumber(count)}</span>}
+                            </NavLink>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
-                </li>
-              )}
-            </ul>
-          </div>
-
-          <div>
-            <p className="mb-2 px-4 text-[11px] font-semibold tracking-wide text-slate-500">ابزارها و تنظیمات</p>
-            <ul className="space-y-1">
-              {NAV_TOOLS.filter(item => hasPermission(item.requiredPermission)).map((item) => (
-                <li key={item.to}>
-                  <NavLink
-                    to={item.to}
-                    className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
+                </section>
+              );
+            })}
           </div>
         </nav>
 

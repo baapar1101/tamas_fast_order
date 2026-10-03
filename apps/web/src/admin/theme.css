@@ -1525,6 +1525,19 @@ body.admin-page-active.admin-theme-light .admin-sidebar .nav-accordion-count {
   background: rgba(15, 23, 42, 0.05);
   color: #475569;
 }
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-domain {
+  border-color: rgba(15, 23, 42, 0.08);
+  background: rgba(248, 250, 252, 0.72);
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-domain.is-open {
+  border-color: rgba(5, 150, 105, 0.2);
+  background: rgba(240, 253, 250, 0.84);
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-domain-copy small { color: #667085; }
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-domain-badge {
+  background: rgba(5, 150, 105, 0.12);
+  color: #047857;
+}
 body.admin-page-active.admin-theme-light .admin-sidebar .nav-submenu {
   border-right-color: rgba(15, 23, 42, 0.12);
 }
