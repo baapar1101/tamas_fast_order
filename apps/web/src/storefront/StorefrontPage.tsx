@@ -12,7 +12,7 @@ import { CheckoutDialog } from './CheckoutDialog';
 import { CreditDialog } from './CreditDialog';
 import { InstallBanner } from './InstallBanner';
 import { ProductCard } from './ProductCard';
-import { useBootstrap, useDebounced, useProducts, type CatalogFilters } from './hooks';
+import { useBootstrap, useDebounced, useProducts, type CatalogFilters, type StorefrontSlide } from './hooks';
 import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { CrmChat } from '../components/CrmChat';
@@ -28,10 +28,10 @@ const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
   title: 'حروف الفبا',
 };
 
-const HERO_SLIDES = [
-  '/assets/slides/slide-01.jpg',
-  '/assets/slides/slide-02.jpg',
-  '/assets/slides/slide-03.jpg',
+const FALLBACK_HERO_SLIDES: StorefrontSlide[] = [
+  { id: -1, title: 'گوشی‌های اپل', imageUrl: '/assets/slides/slide-01.jpg', mobileImageUrl: null, linkUrl: '/?brand=Apple' },
+  { id: -2, title: 'گوشی‌های شیائومی', imageUrl: '/assets/slides/slide-02.jpg', mobileImageUrl: null, linkUrl: '/?brand=Xiaomi' },
+  { id: -3, title: 'گوشی‌های سامسونگ', imageUrl: '/assets/slides/slide-03.jpg', mobileImageUrl: null, linkUrl: '/?brand=Samsung' },
 ];
 
 function ProductSkeletons({ viewMode }: { viewMode: 'list' | 'grid' }) {
@@ -146,14 +146,6 @@ export function StorefrontPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [brandsCollapsed, setBrandsCollapsed] = useState(true);
 
-  // Auto advance slide carousel
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % HERO_SLIDES.length);
-    }, 4500);
-    return () => clearInterval(timer);
-  }, []);
-
   const debouncedSearch = useDebounced(search);
   const filters: CatalogFilters = useMemo(
     () => ({ q: debouncedSearch, category, brands, promotion, creditOnly, sort, page }),
@@ -162,6 +154,16 @@ export function StorefrontPage() {
 
   const bootstrap = useBootstrap();
   const products = useProducts(filters);
+  const heroSlides = bootstrap.data?.slides ?? FALLBACK_HERO_SLIDES;
+
+  useEffect(() => {
+    setActiveSlide((current) => Math.min(current, Math.max(0, heroSlides.length - 1)));
+    if (heroSlides.length < 2) return undefined;
+    const timer = window.setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [heroSlides.length]);
 
   /** code/name → hex, so a variant swatch can be resolved without extra requests. */
   const colorMap = useMemo(() => {
@@ -512,31 +514,48 @@ export function StorefrontPage() {
           )}
         </div>
         {/* Hero Carousel Slider */}
-        <div className="hero-slider">
-          {HERO_SLIDES.map((src, i) => (
-            <img key={src} className={`hero-slide${i === activeSlide ? ' active' : ''}`} src={src} alt={`Slide ${i + 1}`} />
-          ))}
-          <div className="slider-overlay" />
-          <div className="slider-nav">
-            <button type="button" className="slider-arrow" onClick={() => setActiveSlide((activeSlide - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)}>
-              ‹
-            </button>
-            <button type="button" className="slider-arrow" onClick={() => setActiveSlide((activeSlide + 1) % HERO_SLIDES.length)}>
-              ›
-            </button>
-          </div>
-          <div className="slider-dots">
-            {HERO_SLIDES.map((_, i) => (
+        {heroSlides.length > 0 && <section className="hero-slider" aria-label="بنرهای فروشگاه" aria-roledescription="carousel">
+          {heroSlides.map((slide, i) => {
+            const picture = (
+              <picture>
+                {slide.mobileImageUrl && <source media="(max-width: 768px)" srcSet={slide.mobileImageUrl} />}
+                <img
+                  className="hero-slide-image"
+                  src={slide.imageUrl}
+                  alt={slide.title || `بنر ${i + 1}`}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  fetchPriority={i === 0 ? 'high' : 'auto'}
+                />
+              </picture>
+            );
+            const linkedPicture = slide.linkUrl
+              ? /^https?:\/\//i.test(slide.linkUrl)
+                ? <a href={slide.linkUrl} target="_blank" rel="noreferrer" tabIndex={i === activeSlide ? 0 : -1} aria-label={slide.title || 'مشاهده بنر'}>{picture}</a>
+                : <Link to={slide.linkUrl} tabIndex={i === activeSlide ? 0 : -1} aria-label={slide.title || 'مشاهده بنر'}>{picture}</Link>
+              : picture;
+            return (
+              <div key={slide.id} className={`hero-slide${i === activeSlide ? ' active' : ''}${slide.mobileImageUrl ? ' has-mobile-art' : ''}`} aria-hidden={i !== activeSlide}>
+                {linkedPicture}
+              </div>
+            );
+          })}
+          {heroSlides.length > 1 && <div className="slider-nav">
+            <button type="button" className="slider-arrow" aria-label="بنر قبلی" onClick={() => setActiveSlide((activeSlide - 1 + heroSlides.length) % heroSlides.length)}>‹</button>
+            <button type="button" className="slider-arrow" aria-label="بنر بعدی" onClick={() => setActiveSlide((activeSlide + 1) % heroSlides.length)}>›</button>
+          </div>}
+          {heroSlides.length > 1 && <div className="slider-dots">
+            {heroSlides.map((slide, i) => (
               <button
-                key={i}
+                key={slide.id}
                 type="button"
                 className={`slider-dot${i === activeSlide ? ' active' : ''}`}
                 onClick={() => setActiveSlide(i)}
-                aria-label={`Slide ${i + 1}`}
+                aria-label={`نمایش بنر ${i + 1}`}
+                aria-current={i === activeSlide ? 'true' : undefined}
               />
             ))}
-          </div>
-        </div>
+          </div>}
+        </section>}
 
         {/* Horizontal Category Toolbar */}
         <div className="category-toolbar">

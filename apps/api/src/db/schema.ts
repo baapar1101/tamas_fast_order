@@ -630,6 +630,7 @@ export const slides = pgTable(
     id: serial('id').primaryKey(),
     title: varchar('title', { length: 255 }),
     imageUrl: varchar('image_url', { length: 1000 }).notNull(),
+    mobileImageUrl: varchar('mobile_image_url', { length: 1000 }),
     linkUrl: varchar('link_url', { length: 1000 }),
     sortOrder: integer('sort_order').notNull().default(0),
     isActive: boolean('is_active').notNull().default(true),

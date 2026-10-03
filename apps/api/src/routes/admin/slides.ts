@@ -6,11 +6,17 @@ import { slides } from '../../db/schema.js';
 import { notFound } from '../../lib/errors.js';
 import { logAction } from '../../services/audit.js';
 
+const optionalLink = z.string().trim().max(1000).refine(
+  (value) => !value || value.startsWith('/') || /^https?:\/\//i.test(value),
+  'لینک باید داخلی باشد یا با http/https شروع شود.',
+).optional().transform((value) => value || null);
+
 const slideSchema = z.object({
-  title: z.string().optional(),
-  imageUrl: z.string().min(1, 'Image is required'),
-  linkUrl: z.string().optional(),
-  sortOrder: z.coerce.number().default(0),
+  title: z.string().trim().max(255).optional().transform((value) => value || null),
+  imageUrl: z.string().trim().min(1, 'تصویر دسکتاپ الزامی است.').max(1000),
+  mobileImageUrl: z.string().trim().max(1000).optional().transform((value) => value || null),
+  linkUrl: optionalLink,
+  sortOrder: z.coerce.number().int().min(-10_000).max(10_000).default(0),
   isActive: z.boolean().default(true),
 });
 

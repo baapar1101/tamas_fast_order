@@ -310,7 +310,7 @@
 /* Hero Carousel Slider */
 .hero-slider {
   width: 100%;
-  height: 260px;
+  height: clamp(210px, 17vw, 300px);
   position: relative;
   overflow: hidden;
   border-radius: var(--radius);
@@ -324,13 +324,30 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
   opacity: 0;
   transition: opacity 0.6s ease-in-out;
+  pointer-events: none;
 }
 
 .hero-slide.active {
   opacity: 1;
+  pointer-events: auto;
+}
+
+.hero-slide > a,
+.hero-slide > picture,
+.hero-slide > a > picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-slide-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .slider-nav {
@@ -2897,10 +2914,14 @@
 
 @media (max-width: 768px) {
   .hero-slider {
-    height: 150px !important;
+    height: auto !important;
+    aspect-ratio: 16 / 7;
     margin-bottom: 12px;
     border-radius: 16px;
   }
+
+  .hero-slide-image { object-position: center; }
+  .hero-slide:not(.has-mobile-art) .hero-slide-image { object-fit:contain; background:#fff; }
 
   .slider-arrow {
     display: none;

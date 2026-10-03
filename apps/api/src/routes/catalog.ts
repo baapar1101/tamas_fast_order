@@ -1,5 +1,8 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { desc, eq } from 'drizzle-orm';
 import { catalogQuerySchema } from '@tamas/shared';
+import { db } from '../db/client.js';
+import { slides } from '../db/schema.js';
 import { notFound } from '../lib/errors.js';
 import { findProductByPublicId, listBrands, listCategories, listColors, queryProducts } from '../services/catalog.js';
 import { getPublicSettings } from '../services/settings.js';
@@ -41,14 +44,21 @@ const routes: FastifyPluginAsync = async (app) => {
 
   /** One round trip for the whole first render: taxonomy + settings together. */
   app.get('/catalog/bootstrap', async (_req, reply) => {
-    const [categories, brands, colors, settings] = await Promise.all([
+    const [categories, brands, colors, settings, activeSlides] = await Promise.all([
       listCategories(),
       listBrands(),
       listColors(),
       getPublicSettings(),
+      db.select({
+        id: slides.id,
+        title: slides.title,
+        imageUrl: slides.imageUrl,
+        mobileImageUrl: slides.mobileImageUrl,
+        linkUrl: slides.linkUrl,
+      }).from(slides).where(eq(slides.isActive, true)).orderBy(desc(slides.sortOrder), desc(slides.id)),
     ]);
     reply.header('cache-control', 'public, max-age=30, s-maxage=120');
-    return { ok: true, categories, brands, colors, settings };
+    return { ok: true, categories, brands, colors, settings, slides: activeSlides };
   });
 };
 

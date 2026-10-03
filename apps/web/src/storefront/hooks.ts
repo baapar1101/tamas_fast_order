@@ -9,6 +9,15 @@ export interface BootstrapData {
   brands: BrandDTO[];
   colors: ColorDTO[];
   settings: Record<string, string>;
+  slides?: StorefrontSlide[];
+}
+
+export interface StorefrontSlide {
+  id: number;
+  title: string | null;
+  imageUrl: string;
+  mobileImageUrl: string | null;
+  linkUrl: string | null;
 }
 
 export function useBootstrap() {
