@@ -39,7 +39,10 @@ export async function readTab(title: string): Promise<string[][]> {
     const res = await api.spreadsheets.values.get({
       spreadsheetId: env.SHEETS_SPREADSHEET_ID,
       range: `${title}!A1:ZZ`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      // Product codes are identifiers, not numbers. Reading formatted values
+      // preserves a displayed leading zero (for example 01010113528) instead
+      // of coercing the cell to 1010113528 and creating a second product.
+      valueRenderOption: 'FORMATTED_VALUE',
       dateTimeRenderOption: 'FORMATTED_STRING',
     });
     return (res.data.values ?? []).map((row) => row.map((cell) => (cell == null ? '' : String(cell))));
