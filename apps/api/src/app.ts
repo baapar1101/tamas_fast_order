@@ -25,6 +25,7 @@ import adminAttributes from './routes/admin/attributes.js';
 import adminFinancial from './routes/admin/financial.js';
 import adminComments from './routes/admin/comments.js';
 import adminAnalytics from './routes/admin/analytics.js';
+import adminProductContentImport from './routes/admin/product-content-import.js';
 import { accessGroupsRoutes } from './routes/admin/access-groups.js';
 import { smsRoutes } from './routes/admin/sms.js';
 import authRoutes from './routes/auth.js';
@@ -154,6 +155,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(adminFinancial);
         await api.register(adminComments);
         await api.register(adminAnalytics);
+        await api.register(adminProductContentImport);
         await api.register(adminWalletRoutes);
         await api.register(accessGroupsRoutes);
         await api.register(smsRoutes);

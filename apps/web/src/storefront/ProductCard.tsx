@@ -100,6 +100,9 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
               {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
               <Link className="product-title-link" to={`/p/${selectedVariant.productId}`}>{group.title}</Link>
             </div>
+            {selectedVariant.rating != null && (
+              <span className="card-rating"><span aria-hidden="true">★</span> {(selectedVariant.rating / 100).toLocaleString('fa-IR', { maximumFractionDigits: 2 })}</span>
+            )}
           </div>
 
           <div className="list-variants">
@@ -229,6 +232,9 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
 
         <div className="card-meta-row">
           <div className="card-meta">
+            {selectedVariant.rating != null && (
+              <span className="card-rating"><span aria-hidden="true">★</span> {(selectedVariant.rating / 100).toLocaleString('fa-IR', { maximumFractionDigits: 2 })}</span>
+            )}
             <span>
               برند: <b className="ltr-inline">{brand}</b>
             </span>

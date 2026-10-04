@@ -267,6 +267,10 @@ export const products = pgTable(
     imageUrl: varchar('image_url', { length: 1000 }),
     gallery: jsonb('gallery').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
     attributes: jsonb('attributes').$type<ProductAttribute[]>().notNull().default(sql`'[]'::jsonb`),
+    /** Imported editorial rating, normalized to the storefront's 0–5 scale. */
+    rating: integer('rating'),
+    ratingCount: integer('rating_count').notNull().default(0),
+    externalDataUpdatedAt: timestamp('external_data_updated_at', { withTimezone: true }),
     bundleItems: jsonb('bundle_items').$type<{ productId: string, qty: number }[]>().notNull().default(sql`'[]'::jsonb`),
     digikalaLink: varchar('digikala_link', { length: 1000 }),
     targetSiteUrl: varchar('target_site_url', { length: 1000 }),

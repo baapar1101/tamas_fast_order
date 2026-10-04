@@ -334,6 +334,13 @@ export function ProductPage() {
               {selected.sku && <span className="pp-meta-item"><b>کد کالا:</b> <b className="ltr-inline">{selected.sku}</b></span>}
               {selected.model && <span className="pp-meta-item"><b>مدل:</b> <b className="ltr-inline">{selected.model}</b></span>}
               {selected.warranty && <span className="pp-meta-item"><b>گارانتی:</b> {selected.warranty}</span>}
+              {selected.rating != null && (
+                <span className="pp-rating" aria-label={`امتیاز ${(selected.rating / 100).toFixed(2)} از ۵`}>
+                  <span aria-hidden="true">★</span>
+                  <b>{(selected.rating / 100).toLocaleString('fa-IR', { maximumFractionDigits: 2 })}</b>
+                  <small>از ۵{selected.ratingCount > 0 ? ` (${formatNumber(selected.ratingCount)} رأی)` : ''}</small>
+                </span>
+              )}
             </div>
 
             {colorGroups.length > 1 && (

@@ -118,7 +118,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
     return {
       ok: true,
-      items: rows.map((r) => toProductDTO(r.product, r.category, r.brand)),
+      items: rows.map((r) => toProductDTO(r.product, r.category, r.brand, { includeAdminSource: true })),
       total: Number(total?.n ?? 0),
       page: q.page,
       perPage: q.perPage,
@@ -139,7 +139,7 @@ const routes: FastifyPluginAsync = async (app) => {
       .where(eq(products.id, id))
       .limit(1);
     if (!row) throw notFound('محصول پیدا نشد.');
-    return { ok: true, product: toProductDTO(row.product, row.category, row.brand) };
+    return { ok: true, product: toProductDTO(row.product, row.category, row.brand, { includeAdminSource: true }) };
   });
 
   app.post('/admin/products', async (req) => {
@@ -182,7 +182,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'create', 'product', created.productId, { title: created.title });
-    return { ok: true, product: toProductDTO(created) };
+    return { ok: true, product: toProductDTO(created, null, null, { includeAdminSource: true }) };
   });
 
   app.patch('/admin/products/:id', async (req) => {
@@ -221,7 +221,7 @@ const routes: FastifyPluginAsync = async (app) => {
     const [updated] = await db.update(products).set(patch).where(eq(products.id, id)).returning();
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'update', 'product', existing.productId, body as Record<string, unknown>);
-    return { ok: true, product: toProductDTO(updated!) };
+    return { ok: true, product: toProductDTO(updated!, null, null, { includeAdminSource: true }) };
   });
 
   /** Soft delete: the row stays so the sheet and past orders keep their reference. */
@@ -301,7 +301,7 @@ const routes: FastifyPluginAsync = async (app) => {
       .where(isNotNull(products.deletedAt))
       .orderBy(desc(products.deletedAt))
       .limit(200);
-    return { ok: true, items: rows.map((r) => toProductDTO(r)) };
+    return { ok: true, items: rows.map((r) => toProductDTO(r, null, null, { includeAdminSource: true })) };
   });
 
   /** Sync Tehran warehouse stock from external target website link */
@@ -337,7 +337,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
     return {
       ok: true,
-      product: toProductDTO(updated),
+      product: toProductDTO(updated, null, null, { includeAdminSource: true }),
       statusText: result.statusText,
       tehranStock: newTehranStock,
     };

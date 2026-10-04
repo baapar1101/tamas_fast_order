@@ -11,8 +11,9 @@ export function toProductDTO(
   row: ProductRow,
   category?: { name: string; faName: string } | null,
   brand?: { name: string; faName: string } | null,
+  options: { includeAdminSource?: boolean } = {},
 ): ProductDTO {
-  return {
+  const dto: ProductDTO = {
     id: row.id,
     productId: row.productId,
     sku: row.sku,
@@ -50,13 +51,17 @@ export function toProductDTO(
     imageUrl: row.imageUrl,
     gallery: row.gallery ?? [],
     attributes: row.attributes ?? [],
+    rating: row.rating,
+    ratingCount: row.ratingCount,
+    externalDataUpdatedAt: row.externalDataUpdatedAt?.toISOString() ?? null,
     bundleItems: row.bundleItems ?? [],
-    digikalaLink: row.digikalaLink ?? null,
     targetSiteUrl: row.targetSiteUrl ?? null,
     sortOrder: row.sortOrder,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+  if (options.includeAdminSource) dto.digikalaLink = row.digikalaLink ?? null;
+  return dto;
 }
 
 /** Total sellable units — the two warehouses when set, otherwise the flat count. */

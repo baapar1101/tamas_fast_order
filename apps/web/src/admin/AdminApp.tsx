@@ -31,6 +31,7 @@ import { CreditApplicationsPage } from './pages/CreditApplicationsPage';
 import { CatalogExportPage } from './pages/CatalogExportPage';
 import { TargetSitesPage } from './pages/TargetSitesPage';
 import { WalletsPage } from './pages/WalletsPage';
+import { ProductContentImportPage } from './pages/ProductContentImportPage';
 import { SmokeyBackground } from './components/SmokeyBackground';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
@@ -68,6 +69,16 @@ const NAV_MAIN = [
     icon: (
       <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
+  },
+  {
+    to: '/admin/product-content-import',
+    label: 'دریافت اطلاعات از دیجیکالا',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4.5 19.5h15" />
       </svg>
     ),
     requiredPermission: 'manage_products',
@@ -356,7 +367,7 @@ const NAV_GROUPS = [
     id: 'catalog',
     label: 'کالا و موجودی',
     description: 'محصول، دسته‌بندی و انبار',
-    paths: ['/admin/products', '/admin/bundles', '/admin/categories', '/admin/brands', '/admin/attributes', '/admin/warehouses', '/admin/target-sites', '/admin/catalog-export'],
+    paths: ['/admin/products', '/admin/product-content-import', '/admin/bundles', '/admin/categories', '/admin/brands', '/admin/attributes', '/admin/warehouses', '/admin/target-sites', '/admin/catalog-export'],
     iconPath: 'M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m-.375 0h17.25M9 11.25h6m-6 3h6',
   },
   {
@@ -911,6 +922,7 @@ export default function AdminApp() {
             <Routes>
             <Route index element={<DashboardPage />} />
             <Route path="products" element={<ProductsPage key="products" typeFilter="physical" />} />
+            <Route path="product-content-import" element={<ProductContentImportPage />} />
             <Route path="bundles" element={<ProductsPage key="bundles" typeFilter="bundle" />} />
             <Route path="categories" element={<CategoriesPage />} />
             <Route path="brands" element={<BrandsPage />} />

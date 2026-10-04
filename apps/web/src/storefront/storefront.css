@@ -708,37 +708,61 @@
   background: #ffffff;
   border: 1px solid var(--tamas-border);
   border-radius: var(--radius);
-  padding: 14px 20px;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
+  padding: 14px 16px;
+  display: grid;
+  gap: 14px;
   margin-bottom: 20px;
   box-shadow: var(--shadow-sm);
-  flex-wrap: wrap;
 }
 
-.toolbar-left,
-.toolbar-right {
+.toolbar-head,
+.toolbar-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.toolbar-left {
-  flex: 1 1 auto;
-  min-width: 0;
+.toolbar-head {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--tamas-border);
+}
+
+.toolbar-result {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.toolbar-result strong {
+  color: var(--tamas-fg);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.toolbar-reset {
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.toolbar-controls {
   flex-wrap: wrap;
 }
 
-.toolbar-left > * {
-  flex-shrink: 0;
+.view-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
-.results-count {
-  font-size: 13px;
+.toolbar-control-label {
   color: var(--text-muted);
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -772,6 +796,7 @@
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
+  gap: 5px;
 }
 
 .view-btn.active {
@@ -1414,6 +1439,15 @@
   gap: 3px;
 }
 
+.card-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #f59e0b;
+  font-weight: 800;
+  direction: rtl;
+}
+
 .color-picker {
   display: inline-flex;
   align-items: center;
@@ -1500,53 +1534,69 @@
   background: var(--card);
   border: 1px solid var(--tamas-border);
   border-radius: 14px;
-  padding: 12px 16px;
+  padding: 16px;
   position: relative;
 }
 
 .products-list .product-accordion {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 180px;
+  grid-template-columns: minmax(0, 1fr) 156px;
   grid-template-areas: "content image";
-  gap: 16px;
-  align-items: center;
+  gap: 18px;
+  align-items: stretch;
 }
 
 .products-list .list-product-content {
   grid-area: content;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .products-list .product-thumb {
   grid-area: image;
-  width: 180px !important;
-  height: 180px !important;
-  max-width: 180px !important;
-  max-height: 180px !important;
+  width: 132px !important;
+  height: 132px !important;
+  min-width: 132px !important;
+  min-height: 132px !important;
+  max-width: 132px !important;
+  max-height: 132px !important;
   align-self: center;
+  justify-self: center;
   border-radius: 14px !important;
-  padding: var(--tamas-radius-sm) !important;
+  padding: 8px !important;
   object-fit: contain !important;
   background: #ffffff !important;
   border: 1px solid var(--tamas-border) !important;
 }
 
+.products-list .product-head {
+  min-height: 34px;
+  padding-inline: 4px;
+}
+
+.products-list .product-title {
+  margin: 0;
+}
+
 .list-variants {
   display: flex;
   flex-direction: column;
-  gap: var(--tamas-radius-sm);
-  margin-top: var(--tamas-radius-sm);
+  gap: 0;
+  margin-top: 6px;
 }
 
 .products-list .variant {
   border: 0;
   border-top: 1px solid var(--tamas-border);
   background: transparent;
-  padding: 10px 4px 4px;
+  padding: 10px 4px;
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: minmax(240px, 1fr) minmax(112px, auto) minmax(104px, auto);
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  min-height: 58px;
 }
 
 .products-list .variant:first-child {
@@ -1558,6 +1608,20 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.products-list .variant-price {
+  min-width: 112px;
+  align-items: flex-start;
+}
+
+.products-list .warehouse-section {
+  min-width: 104px;
+  align-items: stretch;
+}
+
+.products-list .warehouse-row {
+  justify-content: flex-end;
 }
 
 .color-title {
@@ -2024,14 +2088,6 @@
     grid-template-columns: 240px minmax(0, 1fr);
   }
 
-  .toolbar-left {
-    row-gap: 10px;
-  }
-
-  .sort-control {
-    margin-inline-start: auto;
-  }
-
   .cart {
     grid-column: 1 / -1;
     position: static;
@@ -2048,32 +2104,37 @@
 
 @media (max-width: 768px) {
   .toolbar {
-    padding: 16px;
+    padding: 14px;
     gap: 12px;
   }
 
-  .toolbar-left {
+  .toolbar-head {
+    padding-bottom: 10px;
+  }
+
+  .toolbar-controls {
     width: 100%;
-    gap: 12px;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .view-control,
+  .sort-control {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 8px;
   }
 
   .view-btn-group {
     width: 100%;
-    display: flex;
-    justify-content: flex-end;
-    order: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .results-count {
-    order: 2;
-    width: 100%;
-    text-align: right;
-  }
-
-  .sort-control {
-    order: 3;
-    width: 100%;
-    margin-inline-start: 0;
+  .view-btn {
+    justify-content: center;
   }
 
   .sort-select {
@@ -2082,10 +2143,8 @@
     min-width: 0;
   }
 
-  .toolbar-right {
-    width: 100%;
-    order: 4;
-    justify-content: flex-end;
+  .toolbar-reset {
+    padding-inline: 10px;
   }
 
   .promo-inner {
@@ -2622,13 +2681,20 @@
 /* Fix list mode layout bugs globally (desktop & mobile) */
 .product-accordion .thumb-box,
 .product-accordion .product-thumb {
-  width: 130px !important;
-  height: 130px !important;
-  min-width: 130px !important;
-  max-width: 130px !important;
-  min-height: 130px !important;
-  max-height: 130px !important;
+  width: 132px !important;
+  height: 132px !important;
+  min-width: 132px !important;
+  max-width: 132px !important;
+  min-height: 132px !important;
+  max-height: 132px !important;
   object-fit: contain !important;
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .products-list .product-accordion {
+    grid-template-columns: minmax(0, 1fr) 114px;
+    gap: 14px;
+  }
 }
 
 @media (max-width: 1024px) {

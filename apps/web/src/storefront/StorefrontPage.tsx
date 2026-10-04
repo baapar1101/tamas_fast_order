@@ -691,28 +691,53 @@ export function StorefrontPage() {
           {/* Main Content (Center Column) */}
           <section className="main-content">
             <div className="toolbar">
-              <div className="toolbar-left">
-                <div className="view-btn-group">
+              <div className="toolbar-head">
+                <div className="toolbar-result">
+                  <strong>{formatNumber(total)}</strong>
+                  <span>کالا پیدا شد</span>
+                </div>
+                {(brands.length > 0 || category || promotion || creditOnly || search) && (
                   <button
                     type="button"
-                    className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
-                    onClick={() => setViewMode('list')}
+                    className="btn sm toolbar-reset"
+                    onClick={() => {
+                      setSearch('');
+                      setCategory(null);
+                      setBrands([]);
+                      setPromotion(false);
+                      setCreditOnly(false);
+                      setInStockOnly(false);
+                      resetPage();
+                    }}
                   >
-                    <Icon name="filter" style={{ marginInlineEnd: 4 }} /> لیستی (عمده)
+                    پاک‌کردن فیلترها
                   </button>
-                  <button
-                    type="button"
-                    className={`view-btn${viewMode === 'grid' ? ' active' : ''}`}
-                    onClick={() => setViewMode('grid')}
-                  >
-                    <Icon name="grid" style={{ marginInlineEnd: 4 }} /> شبکه‌ای
-                  </button>
+                )}
+              </div>
+
+              <div className="toolbar-controls">
+                <div className="view-control">
+                  <span className="toolbar-control-label">نحوه نمایش</span>
+                  <div className="view-btn-group">
+                    <button
+                      type="button"
+                      className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
+                      onClick={() => setViewMode('list')}
+                    >
+                      <Icon name="filter" /> لیستی (عمده)
+                    </button>
+                    <button
+                      type="button"
+                      className={`view-btn${viewMode === 'grid' ? ' active' : ''}`}
+                      onClick={() => setViewMode('grid')}
+                    >
+                      <Icon name="grid" /> شبکه‌ای
+                    </button>
+                  </div>
                 </div>
 
-                <span className="results-count">تعداد {formatNumber(total)} کالا پیدا شد</span>
-
                 <div className="sort-control">
-                  <label htmlFor="sort">مرتب‌سازی:</label>
+                  <label htmlFor="sort">مرتب‌سازی</label>
                   <select
                     id="sort"
                     className="select sort-select"
@@ -729,26 +754,6 @@ export function StorefrontPage() {
                     ))}
                   </select>
                 </div>
-              </div>
-
-              <div className="toolbar-right">
-                {(brands.length > 0 || category || promotion || creditOnly || search) && (
-                  <button
-                    type="button"
-                    className="btn sm"
-                    onClick={() => {
-                      setSearch('');
-                      setCategory(null);
-                      setBrands([]);
-                      setPromotion(false);
-                      setCreditOnly(false);
-                      setInStockOnly(false);
-                      resetPage();
-                    }}
-                  >
-                    پاکسازی فیلترها
-                  </button>
-                )}
               </div>
             </div>
 

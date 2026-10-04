@@ -68,8 +68,13 @@ export interface ProductDTO {
   imageUrl: string | null;
   gallery: string[];
   attributes: ProductAttribute[];
+  /** Rating in hundredths on a 0–5 scale (e.g. 359 = 3.59). */
+  rating: number | null;
+  ratingCount: number;
+  externalDataUpdatedAt: string | null;
   bundleItems: BundleItem[];
-  digikalaLink: string | null;
+  /** Admin-only source field; deliberately omitted from public catalogue responses. */
+  digikalaLink?: string | null;
   targetSiteUrl: string | null;
   sortOrder: number;
   createdAt: string;

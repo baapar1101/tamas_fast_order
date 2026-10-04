@@ -197,6 +197,23 @@
   font-weight: 700;
 }
 
+.pp-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #f59e0b;
+  font-size: 14px;
+}
+
+.pp-rating b {
+  color: var(--tamas-fg, #0f172a);
+}
+
+.pp-rating small {
+  color: var(--text-muted, #64748b);
+  font-size: 11.5px;
+}
+
 .pp-label {
   font-size: 13px;
   font-weight: 700;
