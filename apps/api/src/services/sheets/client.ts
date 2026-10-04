@@ -56,6 +56,28 @@ export async function readTab(title: string): Promise<string[][]> {
 export async function writeTab(title: string, rows: string[][]): Promise<void> {
   const api = await sheetsClient();
   await ensureTab(title);
+  if (title === 'Products') {
+    const meta = await api.spreadsheets.get({
+      spreadsheetId: env.SHEETS_SPREADSHEET_ID,
+      fields: 'sheets.properties',
+    });
+    const sheetId = meta.data.sheets?.find((sheet) => sheet.properties?.title === title)?.properties?.sheetId;
+    if (sheetId == null) throw new Error('تب Products در گوگل شیت پیدا نشد.');
+    // Product IDs and SKUs are identifiers. Explicit TEXT formatting prevents
+    // Google Sheets from turning 01010113528 into 1010113528 on later edits.
+    await api.spreadsheets.batchUpdate({
+      spreadsheetId: env.SHEETS_SPREADSHEET_ID,
+      requestBody: {
+        requests: [0, 6].map((columnIndex) => ({
+          repeatCell: {
+            range: { sheetId, startColumnIndex: columnIndex, endColumnIndex: columnIndex + 1 },
+            cell: { userEnteredFormat: { numberFormat: { type: 'TEXT' } } },
+            fields: 'userEnteredFormat.numberFormat',
+          },
+        })),
+      },
+    });
+  }
   await api.spreadsheets.values.clear({
     spreadsheetId: env.SHEETS_SPREADSHEET_ID,
     range: `${title}!A1:ZZ`,
