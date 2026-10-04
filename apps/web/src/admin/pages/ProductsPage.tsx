@@ -241,7 +241,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   }
 
   return (
-    <div className="a-page a-fade">
+    <div className="a-page a-fade products-admin-page">
       <header className="a-page-head">
         <div>
           <h1 className="a-title-mega-sm">{typeFilter === 'bundle' ? 'باندل‌ها' : 'محصولات'}</h1>
@@ -264,7 +264,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
 
       <AdminStatStrip kind="products" />
 
-      <section className="a-searchbar">
+      <section className="a-searchbar products-searchbar">
         <div className="relative flex items-center">
           <SearchIcon />
           <input
@@ -279,8 +279,8 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
         </div>
       </section>
 
-      <section className="a-filterbar">
-        <div className="a-select">
+      <section className="a-filterbar products-toolbar">
+        <div className="products-bulk-actions">
           <button
             type="button"
             className="a-btn a-btn--secondary"
@@ -323,7 +323,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
         </div>
 
         <AnimatedDropdown
-          className="w-40"
+          className="products-status-filter"
           value={status}
           onChange={(v) => {
             setStatus(v as typeof status);
@@ -344,7 +344,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           <Chevron />
         </button>
 
-        <div className="flex-1" />
+        <div className="products-toolbar-spacer" />
         
         <div className="a-segmented" role="group" aria-label="حالت نمایش">
           <button
@@ -365,8 +365,8 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
       </section>
 
       {filtersOpen && (
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-[var(--a-surface-2)] border border-[var(--a-border)] rounded-xl mb-4 relative">
-          <div className="flex flex-col gap-1.5">
+        <section className="products-filter-panel">
+          <div className="a-field">
             <label>موجودی</label>
             <AnimatedDropdown
               value={stock}
@@ -377,7 +377,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
               options={STOCK_OPTIONS}
             />
           </div>
-          <div className="flex flex-col gap-1.5">
+          <div className="a-field">
             <label>دسته‌بندی</label>
             <AnimatedDropdown
               value={categoryId ? String(categoryId) : ''}
@@ -392,7 +392,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
               ]}
             />
           </div>
-          <div className="flex flex-col gap-1.5">
+          <div className="a-field">
             <label>برند</label>
             <AnimatedDropdown
               value={brandId ? String(brandId) : ''}
@@ -407,7 +407,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
               ]}
             />
           </div>
-          <div className="flex flex-col gap-1.5">
+          <div className="a-field">
             <label>مرتب‌سازی</label>
             <AnimatedDropdown value={sort} onChange={setSort} options={SORT_OPTIONS} />
           </div>
@@ -418,7 +418,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
       )}
 
       {selected.size > 0 && (
-        <div className="flex items-center justify-between p-3 bg-[var(--a-brand-soft)] border border-[var(--a-brand)] rounded-xl mb-4">
+        <div className="products-selection-bar">
           <span>{formatNumber(selected.size)} محصول انتخاب شده است.</span>
           <button type="button" onClick={() => setSelected(new Set())}>
             لغو انتخاب
@@ -426,7 +426,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
         </div>
       )}
 
-      <section className="a-card">
+      <section className="a-card products-results-card">
         {products.isLoading ? (
           <div className="flex flex-col items-center justify-center p-12 text-center">
             <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mb-4"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg></div>

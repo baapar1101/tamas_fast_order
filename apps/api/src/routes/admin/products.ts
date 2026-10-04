@@ -10,6 +10,7 @@ import { badRequest, conflict, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { buildSearchText, invalidateCatalog, toProductDTO } from '../../services/catalog.js';
 import { logAction } from '../../services/audit.js';
+import { duplicateProductMessage, findProductDuplicate } from '../../services/product-duplicates.js';
 
 type TrackingLinkInput = { siteId: number; url: string };
 
@@ -196,13 +197,8 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.post('/admin/products', async (req) => {
     const body = productWriteSchema.parse(req.body);
-
-    const [clash] = await db
-      .select({ id: products.id })
-      .from(products)
-      .where(eq(products.productId, body.productId))
-      .limit(1);
-    if (clash) throw conflict('محصولی با این شناسه از قبل وجود دارد.');
+    const duplicate = await findProductDuplicate(body);
+    if (duplicate) throw conflict(duplicateProductMessage(duplicate));
 
     const categoryId = await resolveTaxonomy(categories, body.categoryName);
     const brandId = await resolveTaxonomy(brands, body.brandName);
@@ -247,6 +243,9 @@ const routes: FastifyPluginAsync = async (app) => {
 
     const [existing] = await db.select().from(products).where(eq(products.id, id)).limit(1);
     if (!existing) throw notFound('محصول پیدا نشد.');
+
+    const duplicate = await findProductDuplicate({ ...existing, ...body }, id);
+    if (duplicate) throw conflict(duplicateProductMessage(duplicate));
 
     const patch: Record<string, unknown> = { ...body, updatedAt: new Date() };
     const trackingLinks = body.trackingLinks === undefined ? undefined : await validateTrackingLinks(body.trackingLinks);

@@ -377,7 +377,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
   const titleText = product ? 'ویرایش محصول' : 'ایجاد محصول';
 
   return (
-    <div className="flex flex-col h-full animate-fade-in pb-20 lg:pb-0">
+    <div className="product-editor-page flex flex-col h-full animate-fade-in pb-20 lg:pb-0">
       {/* Sticky Toolbar */}
       <div className="a-stickybar mb-6">
         <div className="a-stickybar-head">
@@ -584,8 +584,8 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
           >
               <div className="p-4 flex flex-col gap-4">
                 {form.bundleItems.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-4 bg-[var(--a-surface)] p-3 rounded-xl border border-[var(--a-border)]">
-                    <div className="flex-1">
+                  <div key={idx} className="pe-bundle-row">
+                    <div className="pe-bundle-product">
                       <label className="a-label text-xs">شناسه کالا (Product ID) یا جستجو</label>
                       <BundleItemSelect
                         value={item.productId}
@@ -598,7 +598,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                         }}
                       />
                     </div>
-                    <div className="w-24">
+                    <div className="pe-bundle-qty">
                       <label className="a-label text-xs">تعداد</label>
                       <input
                         type="number"
@@ -614,7 +614,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                         }}
                       />
                     </div>
-                    <div className="pt-5">
+                    <div className="pe-bundle-remove">
                       <button
                         type="button"
                         onClick={() => {

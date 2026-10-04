@@ -751,3 +751,118 @@ body.admin-page-active .admin-modal-surface > form { margin:0;padding:20px;overf
 @media (prefers-reduced-motion: reduce) {
   body.admin-page-active .modal-panel { animation:none !important; }
 }
+
+/* Products management: one predictable responsive control surface. */
+.products-admin-page .a-page-head { align-items: center; }
+.products-admin-page .a-page-actions { flex-wrap: wrap; justify-content: flex-end; }
+.products-searchbar {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-md);
+  background: var(--a-surface);
+  box-shadow: var(--a-shadow);
+}
+.products-searchbar > div { width: 100%; }
+.products-toolbar {
+  display: grid;
+  grid-template-columns: minmax(140px, auto) minmax(170px, 210px) auto minmax(20px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-md);
+  background: var(--a-surface);
+  box-shadow: var(--a-shadow);
+}
+.products-toolbar > * { min-width: 0; }
+.products-bulk-actions { position: relative; }
+.products-toolbar .products-bulk-actions > .a-btn,
+.products-toolbar .products-status-filter,
+.products-toolbar .products-status-filter > button { width: 100%; }
+.products-filter-panel {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-md);
+  background: var(--a-surface-2);
+}
+.products-filter-panel .pp-filters-close { grid-column: 1 / -1; justify-self: end; }
+.products-selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--a-brand);
+  border-radius: var(--a-radius-md);
+  background: var(--a-brand-soft);
+}
+.products-results-card { min-width: 0; overflow: hidden; }
+.products-results-card > .a-table-wrap { margin: -1px; width: calc(100% + 2px); }
+
+/* Product editor: stable content/sidebar proportions and touch-friendly rows. */
+.product-editor-page { width: 100%; min-width: 0; }
+.product-editor-page .admin-page-grid { max-width: 1180px; padding-inline: 0; }
+.product-editor-page .admin-page-grid > * { min-width: 0; }
+.product-editor-page .pe-accordion-panel > .a-form-grid { padding: 2px; }
+.pe-bundle-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px 42px;
+  align-items: end;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-md);
+  background: var(--a-surface);
+}
+.pe-bundle-product,.pe-bundle-qty,.pe-bundle-remove { min-width: 0; }
+.pe-bundle-remove { padding-bottom: 2px; }
+
+@media (max-width: 960px) {
+  .products-admin-page .a-page-head { align-items: stretch; }
+  .products-admin-page .a-page-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+  .products-admin-page .a-page-actions > * { width: 100%; }
+  .products-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .products-toolbar-spacer { display: none; }
+  .products-toolbar .a-segmented { justify-self: stretch; }
+  .products-toolbar .a-segmented > * { flex: 1; }
+  .products-filter-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+  .products-admin-page .a-page-actions,
+  .products-toolbar,
+  .products-filter-panel { grid-template-columns: minmax(0, 1fr); }
+  .products-toolbar > .a-btn,
+  .products-toolbar > .a-select,
+  .products-toolbar .a-segmented { width: 100%; }
+  .products-filter-panel .pp-filters-close { width: 100%; }
+  .products-selection-bar { align-items: stretch; flex-direction: column; }
+  .products-selection-bar button { min-height: 42px; }
+  .product-editor-page .a-stickybar {
+    position: static;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+  }
+  .product-editor-page .a-stickybar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  .product-editor-page .a-stickybar-actions .a-btn { width: 100%; min-width: 0; }
+  .pe-bundle-row { grid-template-columns: minmax(0, 1fr) 88px; align-items: end; }
+  .pe-bundle-product { grid-column: 1 / -1; }
+  .pe-bundle-remove { display: flex; justify-content: flex-end; }
+}

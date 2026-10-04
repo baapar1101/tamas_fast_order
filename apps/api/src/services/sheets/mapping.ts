@@ -14,6 +14,7 @@ import {
   users,
 } from '../../db/schema.js';
 import { buildSearchText } from '../catalog.js';
+import { findProductDuplicate } from '../product-duplicates.js';
 
 /**
  * Every tab carries an `updated_at` column. Together with the saved row hash,
@@ -340,6 +341,10 @@ export const productMapping: EntityMapping = {
       await db.update(products).set(values).where(eq(products.id, existing.id));
       return 'updated';
     }
+    // A different sheet key must not create a second copy of the same logical
+    // product (same SKU/source or same title + model + colour).
+    const duplicate = await findProductDuplicate(values);
+    if (duplicate) return 'skipped';
     await db.insert(products).values(values);
     return 'created';
   },
