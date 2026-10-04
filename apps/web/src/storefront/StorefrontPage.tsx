@@ -12,6 +12,7 @@ import { CheckoutDialog } from './CheckoutDialog';
 import { CreditDialog } from './CreditDialog';
 import { InstallBanner } from './InstallBanner';
 import { ProductCard } from './ProductCard';
+import { createColorMap } from './productColor';
 import { useBootstrap, useDebounced, useProducts, type CatalogFilters, type StorefrontSlide } from './hooks';
 import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -166,17 +167,7 @@ export function StorefrontPage() {
   }, [heroSlides.length]);
 
   /** code/name → hex, so a variant swatch can be resolved without extra requests. */
-  const colorMap = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const c of bootstrap.data?.colors ?? []) {
-      const hex = c.code?.trim();
-      if (!hex) continue;
-      const value = hex.startsWith('#') ? hex : `#${hex}`;
-      if (c.name) map.set(c.name.toLowerCase(), value);
-      if (c.faName) map.set(c.faName.toLowerCase(), value);
-    }
-    return map;
-  }, [bootstrap.data?.colors]);
+  const colorMap = useMemo(() => createColorMap(bootstrap.data?.colors), [bootstrap.data?.colors]);
 
   /** Brands shown in sidebar narrow to the selected category. */
   const visibleBrands = useMemo(() => {

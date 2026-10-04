@@ -5,11 +5,61 @@ import { isIP } from 'node:net';
 import { z } from 'zod';
 import { productPatchSchema, productWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
-import { brands, categories, products } from '../../db/schema.js';
+import { brands, categories, products, productTrackingLinks, trackingSites } from '../../db/schema.js';
 import { badRequest, conflict, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { buildSearchText, invalidateCatalog, toProductDTO } from '../../services/catalog.js';
 import { logAction } from '../../services/audit.js';
+
+type TrackingLinkInput = { siteId: number; url: string };
+
+async function validateTrackingLinks(links: TrackingLinkInput[]): Promise<TrackingLinkInput[]> {
+  const deduped = [...new Map(links.map((link) => [link.siteId, { siteId: link.siteId, url: link.url.trim() }])).values()];
+  if (deduped.length > 3) throw badRequest('برای هر محصول حداکثر سه سایت قابل رهگیری است.');
+  if (deduped.length === 0) return [];
+  const activeSites = await db.select({ id: trackingSites.id }).from(trackingSites).where(and(inArray(trackingSites.id, deduped.map((link) => link.siteId)), eq(trackingSites.isActive, true)));
+  if (activeSites.length !== deduped.length) throw badRequest('یکی از سایت‌های رهگیری معتبر یا فعال نیست.');
+  return deduped;
+}
+
+async function replaceTrackingLinks(productDbId: number, links: TrackingLinkInput[]): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx.delete(productTrackingLinks).where(eq(productTrackingLinks.productDbId, productDbId));
+    if (links.length > 0) {
+      await tx.insert(productTrackingLinks).values(links.map((link) => ({ productDbId, siteId: link.siteId, url: link.url })));
+    }
+  });
+}
+
+async function loadTrackingLinks(productIds: number[]) {
+  const map = new Map<number, Array<{
+    id: number; siteId: number; siteName: string; url: string; lastPrice: number | null; inStock: boolean | null;
+    quantity: number; statusText: string | null; lastError: string | null; checkedAt: string | null;
+  }>>();
+  if (productIds.length === 0) return map;
+  const rows = await db
+    .select({ link: productTrackingLinks, siteName: trackingSites.name })
+    .from(productTrackingLinks)
+    .innerJoin(trackingSites, eq(trackingSites.id, productTrackingLinks.siteId))
+    .where(inArray(productTrackingLinks.productDbId, productIds));
+  for (const row of rows) {
+    const current = map.get(row.link.productDbId) ?? [];
+    current.push({
+      id: row.link.id,
+      siteId: row.link.siteId,
+      siteName: row.siteName,
+      url: row.link.url,
+      lastPrice: row.link.lastPrice,
+      inStock: row.link.inStock,
+      quantity: row.link.quantity,
+      statusText: row.link.statusText,
+      lastError: row.link.lastError,
+      checkedAt: row.link.checkedAt?.toISOString() ?? null,
+    });
+    map.set(row.link.productDbId, current);
+  }
+  return map;
+}
 
 const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
@@ -116,9 +166,10 @@ const routes: FastifyPluginAsync = async (app) => {
       db.select({ n: count() }).from(products).where(where),
     ]);
 
+    const trackingLinkMap = await loadTrackingLinks(rows.map((row) => row.product.id));
     return {
       ok: true,
-      items: rows.map((r) => toProductDTO(r.product, r.category, r.brand, { includeAdminSource: true })),
+      items: rows.map((r) => ({ ...toProductDTO(r.product, r.category, r.brand, { includeAdminSource: true }), trackingLinks: trackingLinkMap.get(r.product.id) ?? [] })),
       total: Number(total?.n ?? 0),
       page: q.page,
       perPage: q.perPage,
@@ -139,7 +190,8 @@ const routes: FastifyPluginAsync = async (app) => {
       .where(eq(products.id, id))
       .limit(1);
     if (!row) throw notFound('محصول پیدا نشد.');
-    return { ok: true, product: toProductDTO(row.product, row.category, row.brand, { includeAdminSource: true }) };
+    const trackingLinkMap = await loadTrackingLinks([row.product.id]);
+    return { ok: true, product: { ...toProductDTO(row.product, row.category, row.brand, { includeAdminSource: true }), trackingLinks: trackingLinkMap.get(row.product.id) ?? [] } };
   });
 
   app.post('/admin/products', async (req) => {
@@ -154,12 +206,14 @@ const routes: FastifyPluginAsync = async (app) => {
 
     const categoryId = await resolveTaxonomy(categories, body.categoryName);
     const brandId = await resolveTaxonomy(brands, body.brandName);
-    const { categoryName: _c, brandName: _b, ...rest } = body;
+    const trackingLinks = await validateTrackingLinks(body.trackingLinks);
+    const { categoryName: _c, brandName: _b, trackingLinks: _links, ...rest } = body;
 
     const [created] = await db
       .insert(products)
       .values({
         ...rest,
+        targetSiteUrl: trackingLinks[0]?.url ?? rest.targetSiteUrl ?? null,
         // The per-warehouse counts are optional in the form but NOT NULL in the
         // table; a blank field means zero, not "unknown".
         kermanStock: rest.kermanStock ?? 0,
@@ -179,10 +233,12 @@ const routes: FastifyPluginAsync = async (app) => {
       })
       .returning();
     if (!created) throw badRequest('ثبت محصول ناموفق بود.');
+    await replaceTrackingLinks(created.id, trackingLinks);
 
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'create', 'product', created.productId, { title: created.title });
-    return { ok: true, product: toProductDTO(created, null, null, { includeAdminSource: true }) };
+    const trackingLinkMap = await loadTrackingLinks([created.id]);
+    return { ok: true, product: { ...toProductDTO(created, null, null, { includeAdminSource: true }), trackingLinks: trackingLinkMap.get(created.id) ?? [] } };
   });
 
   app.patch('/admin/products/:id', async (req) => {
@@ -193,8 +249,11 @@ const routes: FastifyPluginAsync = async (app) => {
     if (!existing) throw notFound('محصول پیدا نشد.');
 
     const patch: Record<string, unknown> = { ...body, updatedAt: new Date() };
+    const trackingLinks = body.trackingLinks === undefined ? undefined : await validateTrackingLinks(body.trackingLinks);
+    delete patch.trackingLinks;
     delete patch.categoryName;
     delete patch.brandName;
+    if (trackingLinks !== undefined) patch.targetSiteUrl = trackingLinks[0]?.url ?? null;
     if (body.kermanStock === null) patch.kermanStock = 0;
     if (body.tehranStock === null) patch.tehranStock = 0;
 
@@ -219,9 +278,11 @@ const routes: FastifyPluginAsync = async (app) => {
     ]);
 
     const [updated] = await db.update(products).set(patch).where(eq(products.id, id)).returning();
+    if (trackingLinks !== undefined) await replaceTrackingLinks(id, trackingLinks);
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'update', 'product', existing.productId, body as Record<string, unknown>);
-    return { ok: true, product: toProductDTO(updated!, null, null, { includeAdminSource: true }) };
+    const trackingLinkMap = await loadTrackingLinks([id]);
+    return { ok: true, product: { ...toProductDTO(updated!, null, null, { includeAdminSource: true }), trackingLinks: trackingLinkMap.get(id) ?? [] } };
   });
 
   /** Soft delete: the row stays so the sheet and past orders keep their reference. */

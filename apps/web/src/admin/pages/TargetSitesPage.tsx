@@ -1,387 +1,150 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { ProductDTO } from '@tamas/shared';
-import { formatNumber } from '@tamas/shared';
+import { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ProductDTO, TrackingSiteDTO } from '@tamas/shared';
+import { formatMoney, formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
+
+type ProductFilter = 'all' | 'has_link' | 'no_link' | 'in_tehran' | 'out_tehran';
+
+interface BatchSyncResponse {
+  ok: boolean;
+  results: Array<{ productId: string; title: string; tehranStock: number }>;
+  errors: Array<{ id: number; error: string }>;
+  message: string;
+}
 
 export function TargetSitesPage() {
   const toast = useToast();
   const queryClient = useQueryClient();
-
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'has_link' | 'no_link' | 'in_tehran' | 'out_tehran'>('has_link');
-  const [editingUrl, setEditingUrl] = useState<Record<number, string>>({});
+  const [filter, setFilter] = useState<ProductFilter>('has_link');
+  const [siteName, setSiteName] = useState('');
+  const [siteUrl, setSiteUrl] = useState('');
+  const [priceUnit, setPriceUnit] = useState<'toman' | 'rial'>('toman');
   const [syncingId, setSyncingId] = useState<number | null>(null);
-  const [batchSyncing, setBatchSyncing] = useState(false);
-  const [syncLog, setSyncLog] = useState<Record<number, string>>({});
 
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['adminTargetProducts', search, filter],
-    queryFn: () =>
-      api.get<{ items: ProductDTO[]; total: number }>('/admin/products', {
-        q: search || undefined,
-        perPage: 100,
-      }),
+  const sites = useQuery({
+    queryKey: ['admin', 'tracking-sites'],
+    queryFn: () => api.get<{ items: TrackingSiteDTO[] }>('/admin/tracking-sites'),
+  });
+  const products = useQuery({
+    queryKey: ['adminTargetProducts', search],
+    queryFn: () => api.get<{ items: ProductDTO[]; total: number }>('/admin/products', { q: search || undefined, perPage: 5000 }),
   });
 
-  const allItems = data?.items ?? [];
+  const refresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['admin', 'tracking-sites'] }),
+      queryClient.invalidateQueries({ queryKey: ['adminTargetProducts'] }),
+      queryClient.invalidateQueries({ queryKey: ['admin', 'products'] }),
+    ]);
+  };
 
-  // Filter items
-  const filteredItems = allItems.filter((item) => {
-    const hasLink = Boolean(item.targetSiteUrl && item.targetSiteUrl.trim().length > 0);
-    if (filter === 'has_link') return hasLink;
-    if (filter === 'no_link') return !hasLink;
-    if (filter === 'in_tehran') return item.tehranStock > 0;
-    if (filter === 'out_tehran') return item.tehranStock === 0;
+  const addSite = useMutation({
+    mutationFn: () => api.post<{ message: string }>('/admin/tracking-sites', {
+      name: siteName.trim(), baseUrl: siteUrl.trim() || null, priceUnit, isActive: true,
+    }),
+    onSuccess: async (response) => {
+      toast.ok(response.message); setSiteName(''); setSiteUrl(''); setPriceUnit('toman'); await refresh();
+    },
+    onError: (error) => toast.error((error as Error).message),
+  });
+  const updateSite = useMutation({
+    mutationFn: ({ id, isActive }: { id: number; isActive: boolean }) => api.patch<{ message: string }>(`/admin/tracking-sites/${id}`, { isActive }),
+    onSuccess: async (response) => { toast.ok(response.message); await refresh(); },
+    onError: (error) => toast.error((error as Error).message),
+  });
+  const deleteSite = useMutation({
+    mutationFn: (id: number) => api.del<{ message: string }>(`/admin/tracking-sites/${id}`),
+    onSuccess: async (response) => { toast.ok(response.message); await refresh(); },
+    onError: (error) => toast.error((error as Error).message),
+  });
+  const syncOne = useMutation({
+    mutationFn: (id: number) => api.post<{ message: string }>(`/admin/tracking/products/${id}/sync`, {}),
+    onMutate: (id) => setSyncingId(id),
+    onSuccess: async (response) => { toast.ok(response.message); await refresh(); },
+    onError: (error) => toast.error((error as Error).message),
+    onSettled: () => setSyncingId(null),
+  });
+  const syncAll = useMutation({
+    mutationFn: () => api.post<BatchSyncResponse>('/admin/tracking/sync', {}),
+    onSuccess: async (response) => {
+      response.errors.length > 0 ? toast.error(`${response.results.length} موفق و ${response.errors.length} ناموفق`) : toast.ok(response.message);
+      await refresh();
+    },
+    onError: (error) => toast.error((error as Error).message),
+  });
+
+  const allProducts = products.data?.items ?? [];
+  const filteredProducts = useMemo(() => allProducts.filter((product) => {
+    const hasLinks = (product.trackingLinks?.length ?? 0) > 0;
+    if (filter === 'has_link') return hasLinks;
+    if (filter === 'no_link') return !hasLinks;
+    if (filter === 'in_tehran') return product.tehranStock > 0;
+    if (filter === 'out_tehran') return product.tehranStock === 0;
     return true;
-  });
-
-  // Calculate statistics
-  const totalCount = allItems.length;
-  const withLinkCount = allItems.filter((i) => i.targetSiteUrl && i.targetSiteUrl.trim().length > 0).length;
-  const totalTehranStock = allItems.reduce((acc, i) => acc + (i.tehranStock || 0), 0);
-  const inStockTehranCount = allItems.filter((i) => i.tehranStock > 0).length;
-
-  // Single target URL save mutation
-  const saveUrlMutation = useMutation({
-    mutationFn: async ({ id, targetSiteUrl }: { id: number; targetSiteUrl: string }) => {
-      return api.patch<{ ok: boolean; product: ProductDTO }>(`/admin/products/${id}`, {
-        targetSiteUrl: targetSiteUrl.trim() || null,
-      });
-    },
-    onSuccess: (res, vars) => {
-      toast.ok('لینک سایت هدف با موفقیت ذخیره شد');
-      queryClient.invalidateQueries({ queryKey: ['adminTargetProducts'] });
-      setEditingUrl((prev) => {
-        const next = { ...prev };
-        delete next[vars.id];
-        return next;
-      });
-    },
-    onError: (err: any) => {
-      toast.error(err.message || 'خطا در ذخیره لینک سایت هدف');
-    },
-  });
-
-  // Single product Tehran stock save mutation
-  const saveStockMutation = useMutation({
-    mutationFn: async ({ id, tehranStock }: { id: number; tehranStock: number }) => {
-      return api.patch<{ ok: boolean; product: ProductDTO }>(`/admin/products/${id}`, {
-        tehranStock,
-      });
-    },
-    onSuccess: () => {
-      toast.ok('موجودی انبار تهران به‌روزرسانی شد');
-      queryClient.invalidateQueries({ queryKey: ['adminTargetProducts'] });
-    },
-    onError: (err: any) => {
-      toast.error(err.message || 'خطا در ثبت موجودی انبار تهران');
-    },
-  });
-
-  // Check & Sync Target Site Stock for one product
-  const syncProductStock = async (id: number) => {
-    setSyncingId(id);
-    try {
-      const res = await api.post<{ ok: boolean; product: ProductDTO; statusText: string; tehranStock: number }>(
-        `/admin/products/${id}/sync-target-stock`,
-        {},
-      );
-      if (res.ok) {
-        toast.ok(`موجودی انبار تهران به ${res.tehranStock} تغییر یافت (${res.statusText})`);
-        setSyncLog((prev) => ({ ...prev, [id]: res.statusText }));
-        queryClient.invalidateQueries({ queryKey: ['adminTargetProducts'] });
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'خطا در استعلام سایت هدف');
-      setSyncLog((prev) => ({ ...prev, [id]: err.message || 'خطا در ارتباط' }));
-    } finally {
-      setSyncingId(null);
-    }
-  };
-
-  // Batch Sync All Products Target Sites
-  const handleBatchSync = async () => {
-    if (!confirm('آیا از استعلام همگانی و بروزرسانی موجودی انبار تهران برای تمام محصولات دارای لینک مطمئن هستید؟')) {
-      return;
-    }
-    setBatchSyncing(true);
-    try {
-      const res = await api.post<{ ok: boolean; message: string; success: number; failed: number }>(
-        '/admin/products/sync-target-stocks',
-        {},
-      );
-      if (res.ok) {
-        toast.ok(res.message || 'بروزرسانی همگانی انبار تهران با موفقیت انجام شد');
-        queryClient.invalidateQueries({ queryKey: ['adminTargetProducts'] });
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'خطا در اجرای بروزرسانی همگانی');
-    } finally {
-      setBatchSyncing(false);
-    }
-  };
+  }), [allProducts, filter]);
+  const siteItems = sites.data?.items ?? [];
+  const totalLinks = siteItems.reduce((sum, site) => sum + (site.linkCount ?? 0), 0);
+  const trackedProducts = allProducts.filter((product) => (product.trackingLinks?.length ?? 0) > 0).length;
 
   return (
     <div className="a-page space-y-6">
-      {/* Header Title */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--a-surface)] p-6 rounded-2xl border border-[var(--a-border)] shadow-sm">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--a-fg)] flex items-center gap-2">
-            <span>🌐</span>
-            <span>افزودن سایت هدف (انبار تهران)</span>
-          </h1>
-          <p className="text-sm text-[var(--a-muted)] mt-1">
-            ثبت لینک محصولات در سایت‌های تامین‌کننده و استعلام هوشمند موجودی جهت تخصیص خودکار به انبار تهران
-          </p>
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h1 className="a-title">سایت‌های رهگیری موجودی و قیمت</h1>
+          <p className="a-subtitle">سایت‌ها را یک‌بار تعریف کنید؛ سپس در فرم هر محصول حداکثر سه لینک ثبت کنید.</p>
         </div>
-        <div>
-          <button
-            type="button"
-            onClick={handleBatchSync}
-            disabled={batchSyncing}
-            className="a-btn a-btn--primary flex items-center gap-2 px-5 py-2.5 rounded-xl shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-          >
-            {batchSyncing ? (
-              <span className="animate-spin text-lg">⌛</span>
-            ) : (
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            )}
-            <span>{batchSyncing ? 'در حال بروزرسانی همگانی...' : 'بروزرسانی همگانی انبار تهران'}</span>
-          </button>
+        <button type="button" className="a-btn a-btn--primary" disabled={syncAll.isPending || totalLinks === 0} onClick={() => syncAll.mutate()}>
+          {syncAll.isPending ? 'در حال بررسی…' : 'بررسی همه قیمت‌ها و موجودی‌ها'}
+        </button>
+      </section>
+
+      <section className="a-card p-5">
+        <div className="a-card-head"><div><h2 className="a-card-title">افزودن سایت</h2><p className="a-card-desc">مثلاً همراه‌تل یا کسری‌پلاس</p></div></div>
+        <form className="a-form-grid" onSubmit={(event) => { event.preventDefault(); if (!siteName.trim()) return toast.error('نام سایت را وارد کنید.'); addSite.mutate(); }}>
+          <label className="a-field"><span className="a-label">نام سایت</span><input className="a-input" value={siteName} onChange={(event) => setSiteName(event.target.value)} placeholder="مثلاً همراه‌تل" required /></label>
+          <label className="a-field"><span className="a-label">آدرس اصلی سایت</span><input className="a-input a-ltr" type="url" value={siteUrl} onChange={(event) => setSiteUrl(event.target.value)} placeholder="https://example.com" /></label>
+          <label className="a-field"><span className="a-label">واحد قیمت سایت</span><select className="a-select" value={priceUnit} onChange={(event) => setPriceUnit(event.target.value as 'toman' | 'rial')}><option value="toman">تومان</option><option value="rial">ریال</option></select></label>
+          <div className="a-field flex justify-end"><span className="a-label">&nbsp;</span><button type="submit" className="a-btn a-btn--primary" disabled={addSite.isPending}>{addSite.isPending ? 'در حال افزودن…' : 'افزودن سایت'}</button></div>
+        </form>
+      </section>
+
+      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {sites.isLoading ? <div className="a-card p-5">در حال دریافت سایت‌ها…</div> : siteItems.length === 0 ? <div className="a-card p-5 text-[var(--a-muted)]">هنوز سایتی تعریف نشده است.</div> : siteItems.map((site) => (
+          <article key={site.id} className="a-card p-5">
+            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="font-bold text-[var(--a-fg)]">{site.name}</h3><p className="text-xs text-[var(--a-muted)] a-ltr truncate mt-1">{site.baseUrl || 'دامنه ثبت نشده'}</p></div><span className={`a-badge ${site.isActive ? 'a-badge--success' : 'a-badge--neutral'}`}>{site.isActive ? 'فعال' : 'غیرفعال'}</span></div>
+            <div className="flex items-center justify-between mt-5 text-xs text-[var(--a-muted)]"><span>{formatNumber(site.linkCount ?? 0)} لینک محصول</span><span>قیمت: {site.priceUnit === 'rial' ? 'ریال ← تومان' : 'تومان'}</span></div>
+            <div className="flex gap-2 mt-4"><button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => updateSite.mutate({ id: site.id, isActive: !site.isActive })}>{site.isActive ? 'غیرفعال‌کردن' : 'فعال‌کردن'}</button><button type="button" className="a-btn a-btn--danger a-btn--sm" onClick={() => { if (confirm(`سایت «${site.name}» و همه لینک‌های وابسته حذف شود؟`)) deleteSite.mutate(site.id); }}>حذف</button></div>
+          </article>
+        ))}
+      </section>
+
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {([['سایت‌های فعال', siteItems.filter((site) => site.isActive).length], ['کل لینک‌ها', totalLinks], ['محصولات رهگیری‌شده', trackedProducts], ['موجود در تهران', allProducts.filter((product) => product.tehranStock > 0).length]] as Array<[string, number]>).map(([label, value]) => (
+          <div className="a-card p-5" key={label}><div className="text-xs text-[var(--a-muted)]">{label}</div><div className="text-2xl font-black text-[var(--a-fg)] mt-1">{formatNumber(value)}</div></div>
+        ))}
+      </section>
+
+      <section className="a-card overflow-hidden">
+        <div className="a-card-head a-card-head--split"><div><h2 className="a-card-title">محصولات</h2><p className="a-card-desc">لینک‌ها از فرم ویرایش محصول ثبت می‌شوند.</p></div><input className="a-input max-w-sm" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="جست‌وجوی محصول…" /></div>
+        <div className="flex flex-wrap gap-2 p-4 border-b border-[var(--a-border)]">
+          {([['has_link', 'دارای لینک'], ['no_link', 'بدون لینک'], ['in_tehran', 'موجود در تهران'], ['out_tehran', 'ناموجود در تهران'], ['all', 'همه محصولات']] as Array<[ProductFilter, string]>).map(([key, label]) => <button key={key} type="button" className={`a-btn a-btn--sm ${filter === key ? 'a-btn--primary' : 'a-btn--secondary'}`} onClick={() => setFilter(key)}>{label}</button>)}
         </div>
-      </div>
-
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[var(--a-surface)] p-5 rounded-2xl border border-[var(--a-border)] flex items-center justify-between">
-          <div>
-            <div className="text-xs text-[var(--a-muted)] font-medium">کل محصولات</div>
-            <div className="text-2xl font-black text-[var(--a-fg)] mt-1">{formatNumber(totalCount)}</div>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold">
-            📦
-          </div>
-        </div>
-
-        <div className="bg-[var(--a-surface)] p-5 rounded-2xl border border-[var(--a-border)] flex items-center justify-between">
-          <div>
-            <div className="text-xs text-[var(--a-muted)] font-medium">دارای لینک سایت هدف</div>
-            <div className="text-2xl font-black text-emerald-600 mt-1">{formatNumber(withLinkCount)}</div>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold">
-            🔗
-          </div>
-        </div>
-
-        <div className="bg-[var(--a-surface)] p-5 rounded-2xl border border-[var(--a-border)] flex items-center justify-between">
-          <div>
-            <div className="text-xs text-[var(--a-muted)] font-medium">موجودی انبار تهران</div>
-            <div className="text-2xl font-black text-amber-600 mt-1">{formatNumber(totalTehranStock)}</div>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">
-            🏢
-          </div>
-        </div>
-
-        <div className="bg-[var(--a-surface)] p-5 rounded-2xl border border-[var(--a-border)] flex items-center justify-between">
-          <div>
-            <div className="text-xs text-[var(--a-muted)] font-medium">محصولات موجود در تهران</div>
-            <div className="text-2xl font-black text-purple-600 mt-1">{formatNumber(inStockTehranCount)}</div>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold">
-            ✅
-          </div>
-        </div>
-      </div>
-
-      {/* Filter & Search Toolbar */}
-      <div className="bg-[var(--a-surface)] p-4 rounded-2xl border border-[var(--a-border)] flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="w-full md:w-80">
-          <input
-            type="text"
-            className="a-input"
-            placeholder="جستجوی نام محصول، SKU یا شناسه..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          {[
-            { key: 'has_link', label: 'دارای لینک هدف' },
-            { key: 'no_link', label: 'بدون لینک هدف' },
-            { key: 'in_tehran', label: 'موجود در تهران' },
-            { key: 'out_tehran', label: 'ناموجود در تهران' },
-            { key: 'all', label: 'همه محصولات' },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                filter === tab.key
-                  ? 'bg-sky-600 text-white shadow-sm'
-                  : 'bg-[var(--a-bg)] text-[var(--a-muted)] hover:bg-[var(--a-border)]'
-              }`}
-              onClick={() => setFilter(tab.key as any)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Table Content */}
-      <div className="bg-[var(--a-surface)] rounded-2xl border border-[var(--a-border)] overflow-hidden shadow-sm">
-        {isLoading ? (
-          <div className="p-12 text-center text-[var(--a-muted)] flex flex-col items-center justify-center gap-3">
-            <span className="animate-spin text-3xl">⏳</span>
-            <span>در حال دریافت اطلاعات محصولات...</span>
-          </div>
-        ) : filteredItems.length === 0 ? (
-          <div className="p-12 text-center text-[var(--a-muted)]">
-            محصولی با فیلترهای انتخابی یافت نشد.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-sm">
-              <thead className="bg-[var(--a-bg)] text-xs text-[var(--a-muted)] border-b border-[var(--a-border)]">
-                <tr>
-                  <th className="py-3 px-4">محصول</th>
-                  <th className="py-3 px-4">شناسه / SKU</th>
-                  <th className="py-3 px-4">لینک سایت هدف</th>
-                  <th className="py-3 px-4 text-center">موجودی انبار تهران</th>
-                  <th className="py-3 px-4 text-center">موجودی انبار کرمان</th>
-                  <th className="py-3 px-4 text-center">عملیات استعلام</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--a-border)]">
-                {filteredItems.map((item) => {
-                  const currentTargetUrl = editingUrl[item.id] ?? item.targetSiteUrl ?? '';
-                  const isDirty = editingUrl[item.id] !== undefined && editingUrl[item.id] !== (item.targetSiteUrl ?? '');
-                  const isSyncingThis = syncingId === item.id;
-                  const logMessage = syncLog[item.id];
-
-                  return (
-                    <tr key={item.id} className="hover:bg-[var(--a-bg)]/50 transition-colors">
-                      {/* Product Thumbnail & Title */}
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={item.imageUrl || '/logo.svg'}
-                            alt={item.title}
-                            className="w-10 h-10 object-contain rounded-lg bg-white border border-[var(--a-border)]"
-                          />
-                          <div>
-                            <div className="font-semibold text-[var(--a-fg)] line-clamp-1">{item.title}</div>
-                            {item.color && (
-                              <span className="text-xs text-[var(--a-muted)] font-normal">رنگ: {item.color}</span>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Product ID & SKU */}
-                      <td className="py-3 px-4 font-mono text-xs text-[var(--a-muted)]">
-                        <div>{item.productId}</div>
-                        {item.sku && <div className="text-[10px] opacity-75">{item.sku}</div>}
-                      </td>
-
-                      {/* Target Site Link Input */}
-                      <td className="py-3 px-4 min-w-[280px]">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="url"
-                            className="a-input text-xs dir-ltr font-mono flex-1"
-                            placeholder="https://targetsite.com/product/..."
-                            value={currentTargetUrl}
-                            onChange={(e) =>
-                              setEditingUrl((prev) => ({ ...prev, [item.id]: e.target.value }))
-                            }
-                          />
-                          {isDirty && (
-                            <button
-                              type="button"
-                              className="px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 transition-colors"
-                              onClick={() => saveUrlMutation.mutate({ id: item.id, targetSiteUrl: currentTargetUrl })}
-                            >
-                              ذخیره
-                            </button>
-                          )}
-                          {item.targetSiteUrl && (
-                            <a
-                              href={item.targetSiteUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="p-1.5 text-[var(--a-muted)] hover:text-sky-600 transition-colors"
-                              title="باز کردن لینک سایت هدف"
-                            >
-                              ↗️
-                            </a>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Tehran Stock Input */}
-                      <td className="py-3 px-4 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <input
-                            type="number"
-                            min="0"
-                            className="w-16 text-center a-input text-xs font-bold"
-                            defaultValue={item.tehranStock}
-                            onBlur={(e) => {
-                              const val = parseInt(e.target.value, 10);
-                              if (!isNaN(val) && val !== item.tehranStock) {
-                                saveStockMutation.mutate({ id: item.id, tehranStock: val });
-                              }
-                            }}
-                          />
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            item.tehranStock > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                          }`}>
-                            {item.tehranStock > 0 ? 'موجود' : 'ناموجود'}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Kerman Stock */}
-                      <td className="py-3 px-4 text-center text-xs font-mono text-[var(--a-muted)]">
-                        {formatNumber(item.kermanStock)}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="py-3 px-4 text-center">
-                        <div className="flex flex-col items-center gap-1">
-                          <button
-                            type="button"
-                            disabled={!item.targetSiteUrl || isSyncingThis}
-                            onClick={() => syncProductStock(item.id)}
-                            className="a-btn a-btn--secondary text-xs px-3 py-1.5 flex items-center gap-1.5 disabled:opacity-40"
-                          >
-                            {isSyncingThis ? (
-                              <span className="animate-spin">⏳</span>
-                            ) : (
-                              <span>🔄</span>
-                            )}
-                            <span>استعلام موجودی</span>
-                          </button>
-                          {logMessage && (
-                            <span className="text-[10px] text-sky-600 font-medium">{logMessage}</span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+        {products.isLoading ? <p className="a-empty">در حال دریافت محصولات…</p> : filteredProducts.length === 0 ? <p className="a-empty">محصولی با این فیلتر پیدا نشد.</p> : (
+          <div className="a-table-wrap"><table className="a-table"><thead><tr><th>محصول</th><th>سایت‌ها و آخرین وضعیت</th><th>موجودی تهران</th><th>عملیات</th></tr></thead><tbody>
+            {filteredProducts.map((product) => (
+              <tr key={product.id}>
+                <td><strong>{product.title}</strong><small className="block a-ltr text-[var(--a-muted)]">{product.productId}</small></td>
+                <td className="min-w-[360px]">{(product.trackingLinks?.length ?? 0) === 0 ? <span className="text-xs text-[var(--a-muted)]">بدون لینک رهگیری</span> : <div className="flex flex-col gap-2">{product.trackingLinks!.map((link) => <div key={link.siteId} className="flex flex-wrap items-center gap-2 text-xs"><strong>{link.siteName}</strong><span className={`a-badge ${link.inStock === true ? 'a-badge--success' : link.inStock === false ? 'a-badge--danger' : 'a-badge--neutral'}`}>{link.inStock === true ? 'موجود' : link.inStock === false ? 'ناموجود' : 'بررسی نشده'}</span>{link.lastPrice != null && <span>{formatMoney(link.lastPrice)}</span>}{link.checkedAt && <span className="text-[var(--a-muted)]">{new Date(link.checkedAt).toLocaleString('fa-IR')}</span>}<a href={link.url} target="_blank" rel="noreferrer" className="text-sky-500">بازکردن ↗</a></div>)}</div>}</td>
+                <td>{formatNumber(product.tehranStock)}</td>
+                <td><button type="button" className="a-btn a-btn--secondary a-btn--sm" disabled={(product.trackingLinks?.length ?? 0) === 0 || syncingId === product.id} onClick={() => syncOne.mutate(product.id)}>{syncingId === product.id ? 'در حال بررسی…' : 'بررسی قیمت و موجودی'}</button></td>
+              </tr>
+            ))}
+          </tbody></table></div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

@@ -25,6 +25,30 @@ export interface ProductAttribute {
   value: string;
 }
 
+export interface TrackingSiteDTO {
+  id: number;
+  name: string;
+  baseUrl: string | null;
+  priceUnit: 'toman' | 'rial';
+  isActive: boolean;
+  linkCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductTrackingLinkDTO {
+  id?: number;
+  siteId: number;
+  siteName?: string;
+  url: string;
+  lastPrice?: number | null;
+  inStock?: boolean | null;
+  quantity?: number;
+  statusText?: string | null;
+  lastError?: string | null;
+  checkedAt?: string | null;
+}
+
 export interface BundleItem {
   productId: string;
   qty: number;
@@ -75,7 +99,10 @@ export interface ProductDTO {
   bundleItems: BundleItem[];
   /** Admin-only source field; deliberately omitted from public catalogue responses. */
   digikalaLink?: string | null;
-  targetSiteUrl: string | null;
+  /** Admin-only legacy compatibility field. */
+  targetSiteUrl?: string | null;
+  /** Admin-only monitoring links; never included in the public catalogue. */
+  trackingLinks?: ProductTrackingLinkDTO[];
   sortOrder: number;
   createdAt: string;
     updatedAt: string;

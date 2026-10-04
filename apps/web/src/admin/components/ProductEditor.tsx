@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { BrandDTO, CategoryDTO, ProductDTO } from '@tamas/shared';
+import type { BrandDTO, CategoryDTO, ProductDTO, TrackingSiteDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
 import { ImagePicker } from './ImagePicker';
@@ -104,6 +104,7 @@ export interface ProductForm {
   tracking: boolean;
   digikalaLink: string;
   targetSiteUrl: string;
+  trackingLinks: Array<{ siteId: number; url: string }>;
   bundleItems: Array<{ productId: string; qty: number }>;
 }
 
@@ -226,6 +227,7 @@ const blank = (): ProductForm => ({
   tracking: true,
   digikalaLink: '',
   targetSiteUrl: '',
+  trackingLinks: [],
   bundleItems: [],
 });
 
@@ -267,6 +269,7 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   tracking: p.tracking ?? true,
   digikalaLink: p.digikalaLink ?? '',
   targetSiteUrl: p.targetSiteUrl ?? '',
+  trackingLinks: (p.trackingLinks ?? []).map((link) => ({ siteId: link.siteId, url: link.url })),
   bundleItems: p.bundleItems ?? [],
 });
 
@@ -287,9 +290,31 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
     queryFn: () => api.get<AttributeDef[]>('/admin/attributes'),
     staleTime: 60_000,
   });
+  const { data: trackingSitesData } = useQuery({
+    queryKey: ['admin', 'tracking-sites'],
+    queryFn: () => api.get<{ items: TrackingSiteDTO[] }>('/admin/tracking-sites'),
+    staleTime: 30_000,
+  });
+  const trackingSites = (trackingSitesData?.items ?? []).filter((site) => site.isActive || form.trackingLinks.some((link) => link.siteId === site.id));
   const attrByKey = new Map((attributeDefs ?? []).map((d) => [d.name.trim(), d]));
 
   const set = <K extends keyof ProductForm>(key: K, value: ProductForm[K]) => setForm({ ...form, [key]: value });
+
+  const setTrackingUrl = (siteId: number, url: string) => {
+    const existing = form.trackingLinks.find((link) => link.siteId === siteId);
+    if (!url.trim()) {
+      set('trackingLinks', form.trackingLinks.filter((link) => link.siteId !== siteId));
+      return;
+    }
+    if (!existing && form.trackingLinks.length >= 3) {
+      setError('برای هر محصول حداکثر سه سایت قابل رهگیری است.');
+      return;
+    }
+    setError('');
+    set('trackingLinks', existing
+      ? form.trackingLinks.map((link) => link.siteId === siteId ? { ...link, url } : link)
+      : [...form.trackingLinks, { siteId, url }]);
+  };
 
   const updateAttrKey = (idx: number, key: string) => {
     const cp = [...form.attributes];
@@ -686,16 +711,39 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
           {/* Target Site / Tehran Warehouse Integration */}
           <ProductAccordionSection
             id="pe-target-site-section"
-            title="سایت هدف (انبار تهران)"
-            description="بررسی موجودی سایت‌های دیگر و اتصال به انبار تهران"
-            summary={form.targetSiteUrl ? 'اتصال تنظیم شده' : 'تنظیم نشده'}
+            title="سایت‌های رهگیری قیمت و موجودی"
+            description="برای هر محصول حداکثر سه لینک از سایت‌های تعریف‌شده ثبت کنید"
+            summary={form.trackingLinks.length ? `${formatNumber(form.trackingLinks.length)} سایت متصل` : 'تنظیم نشده'}
             className="pe-accordion--accent"
           >
             <div className="p-4">
-              <div className="a-field">
-                <label className="a-label" htmlFor="pe-target-site">لینک سایت هدف (انبار تهران)</label>
-                <input id="pe-target-site" className="a-input a-ltr" placeholder="https://example.com/product/..." value={form.targetSiteUrl} onChange={(e) => set('targetSiteUrl', e.target.value)} />
-              </div>
+              {trackingSites.length === 0 ? (
+                <p className="a-empty">ابتدا از بخش «سایت‌های رهگیری» حداقل یک سایت اضافه کنید.</p>
+              ) : (
+                <div className="a-form-grid">
+                  {trackingSites.map((site) => {
+                    const link = form.trackingLinks.find((item) => item.siteId === site.id);
+                    const disabled = !link && form.trackingLinks.length >= 3;
+                    return (
+                      <div className="a-field" key={site.id}>
+                        <label className="a-label" htmlFor={`pe-tracking-site-${site.id}`}>
+                          لینک محصول در {site.name}
+                        </label>
+                        <input
+                          id={`pe-tracking-site-${site.id}`}
+                          type="url"
+                          className="a-input a-ltr"
+                          placeholder={site.baseUrl ? `${site.baseUrl.replace(/\/$/, '')}/product/...` : 'https://example.com/product/...'}
+                          value={link?.url ?? ''}
+                          disabled={disabled}
+                          onChange={(event) => setTrackingUrl(site.id, event.target.value)}
+                        />
+                        {disabled && <small className="a-help">حداکثر سه سایت انتخاب شده است.</small>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </ProductAccordionSection>
 

@@ -169,7 +169,7 @@ const NAV_MAIN = [
   },
   {
     to: '/admin/target-sites',
-    label: 'افزودن سایت هدف',
+    label: 'سایت‌های رهگیری',
     icon: (
       <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
@@ -819,19 +819,31 @@ export default function AdminApp() {
                         <span className="chip chip-brand">۲ مورد جدید</span>
                       </div>
                       <ul className="max-h-72 overflow-y-auto divide-y glass-divide">
-                        <li className="notif-item">
-                          <span className="notif-dot bg-emerald-400" />
-                          <div>
-                            <p className="text-xs font-semibold glass-text-t1">سفارش جدید دریافت شد</p>
-                            <p className="mt-0.5 text-[11px] text-slate-500">سفارش به ارزش ۲,۴۵۰,۰۰۰ <img src="/toman.svg" alt="تومان" style={{ width: '1em', height: '1em', display: 'inline' }} /> · ۳ دقیقه پیش</p>
-                          </div>
+                        <li>
+                          <Link
+                            to="/admin/orders"
+                            className="notif-item"
+                            onClick={() => setNotifOpen(false)}
+                          >
+                            <span className="notif-dot bg-emerald-400" />
+                            <div>
+                              <p className="text-xs font-semibold glass-text-t1">سفارش جدید دریافت شد</p>
+                              <p className="mt-0.5 text-[11px] text-slate-500">سفارش به ارزش ۲,۴۵۰,۰۰۰ <img src="/toman.svg" alt="تومان" style={{ width: '1em', height: '1em', display: 'inline' }} /> · ۳ دقیقه پیش</p>
+                            </div>
+                          </Link>
                         </li>
-                        <li className="notif-item">
-                          <span className="notif-dot bg-amber-400" />
-                          <div>
-                            <p className="text-xs font-semibold text-slate-200">کد ملی ثبت نام شد</p>
-                            <p className="mt-0.5 text-[11px] text-slate-500">کاربر جدید کد ملی خود را جهت بررسی ارسال نمود · ۱۵ دقیقه پیش</p>
-                          </div>
+                        <li>
+                          <Link
+                            to="/admin/users"
+                            className="notif-item"
+                            onClick={() => setNotifOpen(false)}
+                          >
+                            <span className="notif-dot bg-amber-400" />
+                            <div>
+                              <p className="text-xs font-semibold text-slate-200">کد ملی ثبت نام شد</p>
+                              <p className="mt-0.5 text-[11px] text-slate-500">کاربر جدید کد ملی خود را جهت بررسی ارسال نمود · ۱۵ دقیقه پیش</p>
+                            </div>
+                          </Link>
                         </li>
                       </ul>
                     </div>

@@ -2253,6 +2253,9 @@
     border-bottom: 1px solid var(--tamas-border);
     border-radius: 0;
     box-shadow: none;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .product-card.is-promotion {
@@ -2293,7 +2296,42 @@
 
   .product-card > div:not(.card-price-box) {
     grid-area: body;
+    width: 100%;
     min-width: 0;
+  }
+
+  .product-card .card-meta-row {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .product-card .card-meta,
+  .product-card .sell-types,
+  .product-card .color-picker {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .product-card .color-picker {
+    flex-wrap: wrap;
+  }
+
+  .product-card .color-select {
+    flex: 1 1 110px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .product-card .sell-types {
+    justify-content: flex-start;
+  }
+
+  .product-card .sell-badge {
+    max-width: 100%;
+    white-space: normal;
   }
 
   .card-title {

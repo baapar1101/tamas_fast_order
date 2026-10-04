@@ -596,11 +596,18 @@ form.glass-card:hover {
   align-items: flex-start;
   gap: 0.75rem;
   padding: 1rem 1.25rem;
+  color: inherit;
+  text-decoration: none;
   transition: background-color 0.2s;
 }
 
 .notif-item:hover {
   background-color: hsla(0,0%,100%,.03);
+}
+
+.notif-item:focus-visible {
+  outline: 2px solid var(--a-brand);
+  outline-offset: -2px;
 }
 
 .notif-dot {

@@ -5,6 +5,7 @@ import { WAREHOUSE_LABELS, formatMoney, formatNumber, hasRealDiscount } from '@t
 import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
 import { stockFor } from '../store/cart';
+import { resolveProductColor } from './productColor';
 
 import type { CartLine } from '../store/cart';
 
@@ -17,20 +18,6 @@ interface Props {
   onAdd: (product: ProductDTO, warehouse: Warehouse) => void;
   onUpdateQty: (key: string, qty: number) => void;
   onPreview: (url: string) => void;
-}
-
-/** Resolves a swatch colour: explicit hex first, then the Colors table, then brand teal. */
-function swatchColor(product: ProductDTO, colorMap: Map<string, string>): string {
-  const direct = product.colorCode?.trim();
-  if (direct && /^#?[0-9a-f]{3,8}$/i.test(direct)) return direct.startsWith('#') ? direct : `#${direct}`;
-
-  for (const candidate of [product.colorEn, product.color]) {
-    const key = candidate?.trim().toLowerCase();
-    if (!key) continue;
-    const hit = colorMap.get(key);
-    if (hit) return hit;
-  }
-  return 'var(--tamas-accent)';
 }
 
 /** The sheet keeps sell types as a free-text list: "نقدی, اعتباری". */
@@ -114,7 +101,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                   <div className="variant-info">
                     <div className="color-title" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span className="color-dot" style={{ background: swatchColor(v, colorMap) }} aria-hidden />
+                        <span className="color-dot" style={{ background: resolveProductColor(v, colorMap) }} aria-hidden />
                         <span>{v.color || v.colorEn || 'مشکی'}</span>
                       </div>
                       {v.sku && (
@@ -247,7 +234,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                       key={v.productId}
                       type="button"
                       className={`color-swatch-dot${i === selectedIndex ? ' active' : ''}`}
-                      style={{ background: swatchColor(v, colorMap) }}
+                      style={{ background: resolveProductColor(v, colorMap) }}
                       onClick={() => setSelectedIndex(i)}
                       title={`${v.color || v.colorEn || 'رنگ'}${canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}`}
                       aria-label={`انتخاب رنگ ${v.color || v.colorEn}`}
@@ -255,7 +242,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                   ))}
                 </div>
                 <span className="color-picker">
-                  <span className="color-dot" style={{ background: swatchColor(selectedVariant, colorMap) }} aria-hidden />
+                  <span className="color-dot" style={{ background: resolveProductColor(selectedVariant, colorMap) }} aria-hidden />
                   <select
                     className="color-select"
                     value={selectedIndex}

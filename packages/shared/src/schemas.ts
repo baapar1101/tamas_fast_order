@@ -39,6 +39,18 @@ export const productAttributeSchema = z.object({
   value: z.string().max(2000),
 });
 
+export const productTrackingLinkSchema = z.object({
+  siteId: z.coerce.number().int().positive(),
+  url: z.string().trim().url('لینک رهگیری معتبر نیست.').max(1000),
+});
+
+export const trackingSiteWriteSchema = z.object({
+  name: z.string().trim().min(2).max(160),
+  baseUrl: z.string().trim().url('آدرس سایت معتبر نیست.').max(1000).optional().nullable(),
+  priceUnit: z.enum(['toman', 'rial']).default('toman'),
+  isActive: z.boolean().default(true),
+});
+
 export const productWriteSchema = z.object({
   productId: z.string().trim().min(1).max(80),
   parentProductId: z.string().trim().max(80).optional().nullable(),
@@ -80,6 +92,7 @@ export const productWriteSchema = z.object({
   })).max(20).default([]),
   digikalaLink: z.string().trim().max(1000).optional().nullable(),
   targetSiteUrl: z.string().trim().max(1000).optional().nullable(),
+  trackingLinks: z.array(productTrackingLinkSchema).max(3, 'برای هر محصول حداکثر سه سایت قابل رهگیری است.').default([]),
   sortOrder: z.coerce.number().int().default(0),
 });
 export type ProductWrite = z.infer<typeof productWriteSchema>;

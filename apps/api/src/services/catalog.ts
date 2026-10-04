@@ -55,12 +55,14 @@ export function toProductDTO(
     ratingCount: row.ratingCount,
     externalDataUpdatedAt: row.externalDataUpdatedAt?.toISOString() ?? null,
     bundleItems: row.bundleItems ?? [],
-    targetSiteUrl: row.targetSiteUrl ?? null,
     sortOrder: row.sortOrder,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
-  if (options.includeAdminSource) dto.digikalaLink = row.digikalaLink ?? null;
+  if (options.includeAdminSource) {
+    dto.digikalaLink = row.digikalaLink ?? null;
+    dto.targetSiteUrl = row.targetSiteUrl ?? null;
+  }
   return dto;
 }
 

@@ -292,6 +292,44 @@ export const products = pgTable(
   ],
 );
 
+/** Supplier/competitor websites that admins may attach to products for stock and price monitoring. */
+export const trackingSites = pgTable(
+  'tracking_sites',
+  {
+    id: serial('id').primaryKey(),
+    name: varchar('name', { length: 160 }).notNull(),
+    baseUrl: varchar('base_url', { length: 1000 }),
+    priceUnit: varchar('price_unit', { length: 10 }).notNull().default('toman'),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('tracking_sites_name_key').on(t.name)],
+);
+
+export const productTrackingLinks = pgTable(
+  'product_tracking_links',
+  {
+    id: serial('id').primaryKey(),
+    productDbId: integer('product_db_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+    siteId: integer('site_id').notNull().references(() => trackingSites.id, { onDelete: 'cascade' }),
+    url: varchar('url', { length: 1000 }).notNull(),
+    lastPrice: bigint('last_price', { mode: 'number' }),
+    inStock: boolean('in_stock'),
+    quantity: integer('quantity').notNull().default(0),
+    statusText: varchar('status_text', { length: 500 }),
+    lastError: varchar('last_error', { length: 1000 }),
+    checkedAt: timestamp('checked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('product_tracking_links_product_site_key').on(t.productDbId, t.siteId),
+    index('product_tracking_links_product_idx').on(t.productDbId),
+    index('product_tracking_links_site_idx').on(t.siteId),
+  ],
+);
+
 /* ------------------------------------------------------------------ *
  * Access Groups & Permissions
  * ------------------------------------------------------------------ */

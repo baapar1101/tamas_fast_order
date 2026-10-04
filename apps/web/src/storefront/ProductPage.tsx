@@ -13,6 +13,7 @@ import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { ProductCard } from './ProductCard';
+import { createColorMap, resolveProductColor } from './productColor';
 import { StoreFooter } from './StoreFooter';
 import { IncompleteProfilePopup } from './IncompleteProfilePopup';
 import { useBootstrap } from './hooks';
@@ -35,13 +36,6 @@ function getWarehouseButtons(product: ProductDTO): Warehouse[] {
   const hasSplit = product.kermanStock + product.tehranStock > 0;
   if (hasSplit) return WAREHOUSE_ORDER.filter((w) => stockFor(product, w) > 0);
   return stockFor(product, 'site') > 0 ? ['site'] : [];
-}
-
-/** Resolves a swatch colour: explicit hex first, then falls back to brand teal. */
-function swatchColor(product: ProductDTO): string {
-  const direct = product.colorCode?.trim();
-  if (direct && /^#?[0-9a-f]{3,8}$/i.test(direct)) return direct.startsWith('#') ? direct : `#${direct}`;
-  return 'var(--tamas-accent)';
 }
 
 function ShareIcon() {
@@ -105,17 +99,7 @@ export function ProductPage() {
 
   const bootstrap = useBootstrap();
 
-  const colorMap = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const c of bootstrap.data?.colors ?? []) {
-      const hex = c.code?.trim();
-      if (!hex) continue;
-      const value = hex.startsWith('#') ? hex : `#${hex}`;
-      if (c.name) map.set(c.name.toLowerCase(), value);
-      if (c.faName) map.set(c.faName.toLowerCase(), value);
-    }
-    return map;
-  }, [bootstrap.data?.colors]);
+  const colorMap = useMemo(() => createColorMap(bootstrap.data?.colors), [bootstrap.data?.colors]);
 
   const relatedQuery = useQuery({
     queryKey: ['related', selected?.productId],
@@ -352,7 +336,7 @@ export function ProductPage() {
                       key={v.productId}
                       type="button"
                       className={`pp-swatch${v.productId === selected.productId ? ' active' : ''}`}
-                      style={{ background: swatchColor(v) }}
+                      style={{ background: resolveProductColor(v, colorMap) }}
                       onClick={() => setSelectedId(v.productId)}
                       title={`${v.color || v.colorEn || 'رنگ'}`}
                       aria-label={`انتخاب رنگ ${v.color || v.colorEn}`}
