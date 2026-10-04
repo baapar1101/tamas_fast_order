@@ -3,6 +3,7 @@ import { db } from '../db/client.js';
 import { products } from '../db/schema.js';
 import { env } from '../env.js';
 import { AppError, badRequest, notFound } from '../lib/errors.js';
+import { sanitizeExternalText } from '../lib/external-content.js';
 import { invalidateCatalog } from './catalog.js';
 import { processUpload } from './uploads.js';
 
@@ -39,16 +40,6 @@ function asRecord(value: unknown): JsonRecord {
 
 function asText(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-/** Source copy is treated as content only; attribution names and outbound URLs never reach the storefront. */
-function sanitizeContent(value: string): string {
-  return value
-    .replace(/https?:\/\/\S+/gi, '')
-    .replace(/(?:دیجی[\s‌-]*کالا|digikala)/gi, '')
-    .replace(/[ \t]{2,}/g, ' ')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
 }
 
 function firstUrl(value: unknown): string | null {
@@ -96,16 +87,16 @@ function readAttributes(product: JsonRecord): Array<{ key: string; value: string
 
   for (const groupValue of groups) {
     const group = asRecord(groupValue);
-    const groupTitle = sanitizeContent(asText(group.title));
+    const groupTitle = sanitizeExternalText(asText(group.title));
     const attributes = Array.isArray(group.attributes) ? group.attributes : [];
     for (const attributeValue of attributes) {
       const attribute = asRecord(attributeValue);
-      const title = sanitizeContent(asText(attribute.title));
+      const title = sanitizeExternalText(asText(attribute.title));
       const values = Array.isArray(attribute.values)
         ? attribute.values.map(asText).filter(Boolean)
         : [];
       if (!title || values.length === 0) continue;
-      const value = sanitizeContent(values.join('، ')).slice(0, 2000);
+      const value = sanitizeExternalText(values.join('، ')).slice(0, 2000);
       if (!value) continue;
       result.push({
         key: groupTitle ? `${groupTitle} — ${title}`.slice(0, 120) : title.slice(0, 120),
@@ -125,8 +116,11 @@ export function parseProductContentPayload(payload: unknown): Omit<ImportedProdu
 
   const review = asRecord(product.review);
   const expertReview = asRecord(product.expert_reviews);
-  const rawDescription = asText(review.description) || asText(expertReview.description);
-  const description = sanitizeContent(rawDescription) || null;
+  const rawDescription = asText(review.description)
+    || asText(expertReview.description)
+    || asText(review.short_review)
+    || asText(expertReview.short_review);
+  const description = sanitizeExternalText(rawDescription) || null;
   const ratingData = asRecord(product.rating);
   const rate = Number(ratingData.rate);
   const count = Number(ratingData.count);
