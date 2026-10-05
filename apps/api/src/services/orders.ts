@@ -238,24 +238,37 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     }
     await upsertOrderPayment(tx, order.id, user.id, total, order.paymentStatus, walletPayment ? 'wallet' : undefined);
 
-    for (const update of stockUpdates) {
-      const now = new Date();
-      if (update.warehouse === 'kerman') {
-        await tx
-          .update(products)
-          .set({ kermanStock: sql`greatest(0, ${products.kermanStock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
-      } else if (update.warehouse === 'tehran') {
-        await tx
-          .update(products)
-          .set({ tehranStock: sql`greatest(0, ${products.tehranStock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
-      } else {
-        await tx
-          .update(products)
-          .set({ stock: sql`greatest(0, ${products.stock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
+    if (stockUpdates.length > 0) {
+      const aggregated = new Map<number, { kerman: number; tehran: number; default: number }>();
+      for (const update of stockUpdates) {
+        const item = aggregated.get(update.id) || { kerman: 0, tehran: 0, default: 0 };
+        if (update.warehouse === 'kerman') {
+          item.kerman += update.qty;
+        } else if (update.warehouse === 'tehran') {
+          item.tehran += update.qty;
+        } else {
+          item.default += update.qty;
+        }
+        aggregated.set(update.id, item);
       }
+
+      const chunks = Array.from(aggregated.entries()).map(
+        ([id, qtys]) => sql`(${id}::integer, ${qtys.kerman}::integer, ${qtys.tehran}::integer, ${qtys.default}::integer)`
+      );
+      const values = sql.join(chunks, sql`, `);
+
+      await tx.execute(
+        sql`
+          UPDATE products AS p
+          SET
+            kerman_stock = greatest(0, p.kerman_stock - v.qty_kerman),
+            tehran_stock = greatest(0, p.tehran_stock - v.qty_tehran),
+            stock = greatest(0, p.stock - v.qty_default),
+            updated_at = NOW()
+          FROM (VALUES ${values}) AS v(id, qty_kerman, qty_tehran, qty_default)
+          WHERE p.id = v.id
+        `
+      );
     }
 
     invalidateCatalog();
