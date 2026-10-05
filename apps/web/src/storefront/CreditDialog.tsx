@@ -110,8 +110,8 @@ export function CreditDialog({ open, onClose }: Props) {
       } else {
         toast.error('خطا در بارگذاری فایل');
       }
-    } catch (err: any) {
-      toast.error(err.message || 'خطا در آپلود فایل');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'خطا در آپلود فایل');
     } finally {
       setUploadingField(null);
     }
@@ -164,8 +164,8 @@ export function CreditDialog({ open, onClose }: Props) {
         setIsEditing(false);
         void fetchDashboard();
       }
-    } catch (err: any) {
-      toast.error(err.message || 'خطا در ثبت درخواست اعتباری');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'خطا در ثبت درخواست اعتباری');
     } finally {
       setSubmitting(false);
     }
@@ -207,8 +207,8 @@ export function CreditDialog({ open, onClose }: Props) {
         setActiveTab('cheques');
         void fetchDashboard();
       }
-    } catch (err: any) {
-      toast.error(err.message || 'خطا در ثبت چک جدید');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'خطا در ثبت چک جدید');
     } finally {
       setSubmittingCheque(false);
     }

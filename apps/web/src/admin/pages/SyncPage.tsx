@@ -140,8 +140,8 @@ export function SyncPage() {
   const downloadTemplate = async () => {
     try {
       await api.download('/admin/sync/excel-template', {}, 'price-update-template.xlsx');
-    } catch (err: any) {
-      toast.error(err.message || 'خطا در دانلود فایل نمونه');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'خطا در دانلود فایل نمونه');
     }
   };
 

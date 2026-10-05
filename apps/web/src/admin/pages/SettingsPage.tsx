@@ -724,8 +724,8 @@ export function SettingsPage() {
                     const res = await api.post<{ ok: boolean }>('/auth/otp/request', { phone });
                     if (res.ok) toast.ok(`پیامک تست با موفقیت به ${phone} ارسال شد.`);
                     else toast.error('خطا در ارسال پیامک.');
-                  } catch (err: any) {
-                    toast.error(err.message || 'خطا در ارتباط با سامانه پیامک.');
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : 'خطا در ارتباط با سامانه پیامک.');
                   }
                 }}
               >
@@ -906,8 +906,8 @@ export function SettingsPage() {
                     const res = await api.get<{ ok: boolean; crm: { reachable: boolean; baseUrl: string } }>('/crm/health');
                     if (res.crm?.reachable) toast.ok(`CRM قابل دسترسی: ${res.crm.baseUrl}`);
                     else toast.error('CRM غیرقابل دسترسی است');
-                  } catch (err: any) {
-                    toast.error(err.message || 'خطا در بررسی اتصال');
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : 'خطا در بررسی اتصال');
                   }
                 }}
               >
@@ -926,8 +926,8 @@ export function SettingsPage() {
                     const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/products/push');
                     if (res.ok) toast.ok(`${res.pushed} محصول همگام‌سازی شد. خطاها: ${res.errors}`);
                     else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
-                  } catch (err: any) {
-                    toast.error(err.message || 'خطا در همگام‌سازی محصولات');
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : 'خطا در همگام‌سازی محصولات');
                   }
                 }}
               >
@@ -945,8 +945,8 @@ export function SettingsPage() {
                     const res = await api.post<{ ok: boolean; synced: number; errors: number; errorDetails: string[] }>('/crm/sync/stock');
                     if (res.ok) toast.ok(`${res.synced} محصول Stok همگام‌سازی شد. خطاها: ${res.errors}`);
                     else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
-                  } catch (err: any) {
-                    toast.error(err.message || 'خطا در همگام‌سازی Stok');
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : 'خطا در همگام‌سازی Stok');
                   }
                 }}
               >
@@ -964,8 +964,8 @@ export function SettingsPage() {
                     const res = await api.get<{ ok: boolean; crm: { reachable: boolean; baseUrl: string }; sync: { enabled: boolean; debounceMs: number }; local: { activeUsers: number; totalOrders: number; activeProducts: number } }>('/crm/stats');
                     const { crm, local } = res;
                     toast.ok(`CRM: ${crm.reachable ? 'آنلاین' : 'آفلاین'} | کاربران: ${local.activeUsers} | سفارش‌ها: ${local.totalOrders} | محصولات: ${local.activeProducts}`);
-                  } catch (err: any) {
-                    toast.error(err.message || 'خطا در دریافت آمار');
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : 'خطا در دریافت آمار');
                   }
                 }}
               >
@@ -1109,8 +1109,8 @@ export function SettingsPage() {
                       if (res.ok) toast.ok(`${res.pushed} محصول همگام‌سازی شد. خطاها: ${res.errors}`);
                       else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
                       syncProducts.refetch();
-                    } catch (err: any) {
-                      toast.error(err.message || 'خطa در همگام‌سازی محصولات');
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : 'خطa در همگام‌سازی محصولات');
                     }
                   }}
                 >
