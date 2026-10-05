@@ -2,7 +2,7 @@ import { and, count, eq, gt, isNull, lt, sql as raw } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { otpCodes } from '../db/schema.js';
 import { env } from '../env.js';
-import { badRequest, tooMany } from '../lib/errors.js';
+import { badRequest, tooMany, isEconnrefused } from '../lib/errors.js';
 import { randomDigits, safeEqualHex, sha256 } from '../lib/hash.js';
 
 /**
@@ -116,7 +116,7 @@ export async function sendOtp(phone: string, ip: string | undefined): Promise<Se
       requestIp: ip ?? null,
     });
   } catch (err) {
-    if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
+    if (isEconnrefused(err)) {
       console.warn(`[otp] Postgres offline, falling back to in-memory code for ${phone}`);
       await sendCodeSms();
       inMemoryOtp.set(phone, { code, expiresAt });
@@ -165,7 +165,7 @@ export async function verifyOtp(phone: string, code: string): Promise<boolean> {
     await db.update(otpCodes).set({ consumedAt: new Date() }).where(eq(otpCodes.id, row.id));
     return true;
   } catch (err) {
-    if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
+    if (isEconnrefused(err)) {
       const mem = inMemoryOtp.get(phone);
       if (mem && mem.expiresAt > new Date() && mem.code === code) {
         inMemoryOtp.delete(phone);
