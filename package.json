@@ -30,7 +30,8 @@
     "sync:push": "npm run sync:push -w @tamas/api",
     "start": "npm run start -w @tamas/api",
     "start:prod": "npm run start:prod -w @tamas/api",
-    "dev:shared": "npm run dev -w @tamas/shared"
+    "dev:shared": "npm run dev -w @tamas/shared",
+    "test": "npm run test -w @tamas/shared"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
