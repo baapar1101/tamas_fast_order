@@ -100,7 +100,7 @@ export function SyncPage() {
   const priceStockSync = useMutation({
     mutationFn: () => api.post<{ ok: boolean; report: PriceStockReport }>('/admin/sync/price-stock', {}),
     onSuccess: (data) => {
-      const r = (data as any).report ?? data;
+      const r = data.report;
       setPriceStockReport(r);
       toast.ok(`قیمت و موجودی بروزرسانی شد: ${r.updated} محصول بروز شد.`);
       invalidate();
@@ -119,7 +119,7 @@ export function SyncPage() {
       return api.upload<{ ok: boolean; report: ExcelSyncReport }>('/admin/sync/excel-upload', formData);
     },
     onSuccess: (data) => {
-      const r = (data as any).report ?? data;
+      const r = data.report;
       setExcelReport(r);
       toast.ok(`بروزرسانی با اکسل موفق بود: ${r.updated} محصول بروز شد.`);
       invalidate();
