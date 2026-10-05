@@ -19,7 +19,8 @@
     "db:backfill-payments": "tsx scripts/backfill-payments.ts",
     "import:legacy": "tsx scripts/import-legacy.ts",
     "sync:pull": "tsx scripts/sync-cli.ts pull",
-    "sync:push": "tsx scripts/sync-cli.ts push"
+    "sync:push": "tsx scripts/sync-cli.ts push",
+    "test": "vitest run"
   },
   "dependencies": {
     "@e965/xlsx": "^0.20.3",
@@ -47,6 +48,7 @@
     "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.11",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^5.0.3"
   }
 }
