@@ -9,28 +9,30 @@ import { crmClient } from '../lib/crm.js';
 export type UserRow = typeof users.$inferSelect;
 
 export function toUserDTO(row: UserRow): UserDTO {
+  const {
+    passwordHash,
+    lastLoginAt,
+    deletedAt,
+    sheetHash,
+    sheetSyncedAt,
+    createdAt,
+    updatedAt,
+    nationalCode,
+    birthDate,
+    fatherName,
+    isVerifiedIdentity,
+    ...rest
+  } = row;
+
   return {
-    id: row.id,
-    phone: row.phone,
-    name: row.name,
-    lastName: row.lastName,
-    storeName: row.storeName,
-    landline: row.landline,
-    address: row.address,
-    postalCode: row.postalCode,
-    certificateFileUrl: row.certificateFileUrl,
-    activity: row.activity,
-    pageWebsite: row.pageWebsite,
-    nationalCode: row.nationalCode ?? '',
-    birthDate: row.birthDate ?? '',
-    fatherName: row.fatherName ?? '',
-    isVerifiedIdentity: row.isVerifiedIdentity ?? false,
-    isActive: row.isActive,
-    role: row.role,
-    accessGroupId: row.accessGroupId,
+    ...rest,
+    nationalCode: nationalCode ?? '',
+    birthDate: birthDate ?? '',
+    fatherName: fatherName ?? '',
+    isVerifiedIdentity: isVerifiedIdentity ?? false,
     permissions: (row as any).permissions,
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
+    createdAt: createdAt.toISOString(),
+    updatedAt: updatedAt.toISOString(),
   };
 }
 
