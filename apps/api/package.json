@@ -12,6 +12,7 @@
     "start": "node dist/src/index.js",
     "start:prod": "cross-env PORT=3102 NODE_ENV=production node dist/src/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
@@ -44,9 +45,11 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
+    "@vitest/coverage-v8": "^5.0.3",
     "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.11",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^5.0.3"
   }
 }

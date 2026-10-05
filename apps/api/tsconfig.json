@@ -6,7 +6,7 @@
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "lib": ["ES2023"],
-    "types": ["node"],
+    "types": ["node", "vitest/globals"],
     "composite": false
   },
   "include": ["src", "scripts", "drizzle.config.ts"]
