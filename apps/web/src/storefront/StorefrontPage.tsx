@@ -1,50 +1,95 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import type { CreditApplicationDTO, ProductDTO, Warehouse } from '@tamas/shared';
-import { formatNumber } from '@tamas/shared';
-import { useToast } from '../components/Toast';
-import { api } from '../lib/api';
-import { useAuth } from '../store/auth';
-import { cartCount, useCart } from '../store/cart';
-import { AuthDialog } from './AuthDialog';
-import { CartPanel } from './CartPanel';
-import { CheckoutDialog } from './CheckoutDialog';
-import { CreditDialog } from './CreditDialog';
-import { InstallBanner } from './InstallBanner';
-import { ProductCard } from './ProductCard';
-import { createColorMap } from './productColor';
-import { useBootstrap, useDebounced, useProducts, type CatalogFilters, type StorefrontSlide } from './hooks';
-import { Icon } from '../components/Icon';
-import { ThemeToggle } from '../components/ThemeToggle';
-import { CrmChat } from '../components/CrmChat';
-import { StoreFooter } from './StoreFooter';
-import { IncompleteProfilePopup } from './IncompleteProfilePopup';
-import { GuestPromoPopup } from './GuestPromoPopup';
-import './storefront.css';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import type {
+  CreditApplicationDTO,
+  ProductDTO,
+  Warehouse,
+} from "@tamas/shared";
+import { formatNumber } from "@tamas/shared";
+import { useToast } from "../components/Toast";
+import { api } from "../lib/api";
+import { useAuth } from "../store/auth";
+import { cartCount, useCart } from "../store/cart";
+import { AuthDialog } from "./AuthDialog";
+import { CartPanel } from "./CartPanel";
+import { CheckoutDialog } from "./CheckoutDialog";
+import { CreditDialog } from "./CreditDialog";
+import { InstallBanner } from "./InstallBanner";
+import { ProductCard } from "./ProductCard";
+import { createColorMap } from "./productColor";
+import {
+  useBootstrap,
+  useDebounced,
+  useProducts,
+  type CatalogFilters,
+  type StorefrontSlide,
+} from "./hooks";
+import { Icon } from "../components/Icon";
+import { ThemeToggle } from "../components/ThemeToggle";
+import { CrmChat } from "../components/CrmChat";
+import { StoreFooter } from "./StoreFooter";
+import { IncompleteProfilePopup } from "./IncompleteProfilePopup";
+import { GuestPromoPopup } from "./GuestPromoPopup";
+import {
+  StorefrontHeader,
+  MobileViews,
+  HeroSlider,
+  CategoryToolbar,
+  Sidebar,
+  MobileNavigation,
+} from "./components";
+import "./storefront.css";
 
-const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
-  price_asc: 'ارزان‌ترین',
-  price_desc: 'گران‌ترین',
-  newest: 'جدیدترین',
-  title: 'حروف الفبا',
+const SORT_LABELS: Record<CatalogFilters["sort"], string> = {
+  price_asc: "ارزان‌ترین",
+  price_desc: "گران‌ترین",
+  newest: "جدیدترین",
+  title: "حروف الفبا",
 };
 
 const FALLBACK_HERO_SLIDES: StorefrontSlide[] = [
-  { id: -1, title: 'گوشی‌های اپل', imageUrl: '/assets/slides/slide-01.jpg', mobileImageUrl: null, linkUrl: '/?brand=Apple' },
-  { id: -2, title: 'گوشی‌های شیائومی', imageUrl: '/assets/slides/slide-02.jpg', mobileImageUrl: null, linkUrl: '/?brand=Xiaomi' },
-  { id: -3, title: 'گوشی‌های سامسونگ', imageUrl: '/assets/slides/slide-03.jpg', mobileImageUrl: null, linkUrl: '/?brand=Samsung' },
+  {
+    id: -1,
+    title: "گوشی‌های اپل",
+    imageUrl: "/assets/slides/slide-01.jpg",
+    mobileImageUrl: null,
+    linkUrl: "/?brand=Apple",
+  },
+  {
+    id: -2,
+    title: "گوشی‌های شیائومی",
+    imageUrl: "/assets/slides/slide-02.jpg",
+    mobileImageUrl: null,
+    linkUrl: "/?brand=Xiaomi",
+  },
+  {
+    id: -3,
+    title: "گوشی‌های سامسونگ",
+    imageUrl: "/assets/slides/slide-03.jpg",
+    mobileImageUrl: null,
+    linkUrl: "/?brand=Samsung",
+  },
 ];
 
-function ProductSkeletons({ viewMode }: { viewMode: 'list' | 'grid' }) {
-  if (viewMode === 'grid') {
+function ProductSkeletons({ viewMode }: { viewMode: "list" | "grid" }) {
+  if (viewMode === "grid") {
     return (
       <div className="products-grid">
         {Array.from({ length: 6 }, (_, i) => (
           <div key={i} className="product-card">
-            <div className="skeleton" style={{ width: '100%', height: 160, marginBottom: 12 }} />
-            <div className="skeleton" style={{ height: 18, width: '75%', marginBottom: 10 }} />
-            <div className="skeleton" style={{ height: 14, width: '40%', marginBottom: 16 }} />
-            <div className="skeleton" style={{ height: 38, width: '100%' }} />
+            <div
+              className="skeleton"
+              style={{ width: "100%", height: 160, marginBottom: 12 }}
+            />
+            <div
+              className="skeleton"
+              style={{ height: 18, width: "75%", marginBottom: 10 }}
+            />
+            <div
+              className="skeleton"
+              style={{ height: 14, width: "40%", marginBottom: 16 }}
+            />
+            <div className="skeleton" style={{ height: 38, width: "100%" }} />
           </div>
         ))}
       </div>
@@ -54,12 +99,21 @@ function ProductSkeletons({ viewMode }: { viewMode: 'list' | 'grid' }) {
   return (
     <div className="products-list">
       {Array.from({ length: 4 }, (_, i) => (
-        <div key={i} className="product" style={{ display: 'flex', gap: 14 }}>
-          <div className="skeleton" style={{ width: 200, height: 200, flexShrink: 0 }} />
+        <div key={i} className="product" style={{ display: "flex", gap: 14 }}>
+          <div
+            className="skeleton"
+            style={{ width: 200, height: 200, flexShrink: 0 }}
+          />
           <div style={{ flex: 1 }}>
-            <div className="skeleton" style={{ height: 18, width: '70%', marginBottom: 12 }} />
-            <div className="skeleton" style={{ height: 14, width: '40%', marginBottom: 16 }} />
-            <div className="skeleton" style={{ height: 40, width: '100%' }} />
+            <div
+              className="skeleton"
+              style={{ height: 18, width: "70%", marginBottom: 12 }}
+            />
+            <div
+              className="skeleton"
+              style={{ height: 14, width: "40%", marginBottom: 16 }}
+            />
+            <div className="skeleton" style={{ height: 40, width: "100%" }} />
           </div>
         </div>
       ))}
@@ -76,72 +130,107 @@ export function StorefrontPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [creditOpen, setCreditOpen] = useState(false);
-  const [userCreditApp, setUserCreditApp] = useState<CreditApplicationDTO | null>(null);
-  const [search, setSearch] = useState(searchParams.get('q') || '');
-  const [category, setCategory] = useState<string | null>(searchParams.get('cat') || null);
-  const [brands, setBrands] = useState<string[]>(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
-  const [promotion, setPromotion] = useState(searchParams.get('promo') === '1');
-  const [creditOnly, setCreditOnly] = useState(searchParams.get('credit') === '1');
-  const [inStockOnly, setInStockOnly] = useState(searchParams.get('stock') !== '0');
-  const [sort, setSort] = useState<CatalogFilters['sort']>((searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc');
-  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'grid');
-  const [mobileTab, setMobileTab] = useState<'home' | 'categories' | 'search' | 'cart' | 'profile'>('home');
+  const [userCreditApp, setUserCreditApp] =
+    useState<CreditApplicationDTO | null>(null);
+  const [search, setSearch] = useState(searchParams.get("q") || "");
+  const [category, setCategory] = useState<string | null>(
+    searchParams.get("cat") || null,
+  );
+  const [brands, setBrands] = useState<string[]>(
+    searchParams.get("brand") ? searchParams.get("brand")!.split(",") : [],
+  );
+  const [promotion, setPromotion] = useState(searchParams.get("promo") === "1");
+  const [creditOnly, setCreditOnly] = useState(
+    searchParams.get("credit") === "1",
+  );
+  const [inStockOnly, setInStockOnly] = useState(
+    searchParams.get("stock") !== "0",
+  );
+  const [sort, setSort] = useState<CatalogFilters["sort"]>(
+    (searchParams.get("sort") as CatalogFilters["sort"]) || "price_asc",
+  );
+  const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
+  const [viewMode, setViewMode] = useState<"list" | "grid">(
+    (searchParams.get("view") as "list" | "grid") || "grid",
+  );
+  const [mobileTab, setMobileTab] = useState<
+    "home" | "categories" | "search" | "cart" | "profile"
+  >("home");
 
-  const brandsStr = brands.join(',');
+  const brandsStr = brands.join(",");
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
-    if (search) params.set('q', search); else params.delete('q');
-    if (category) params.set('cat', category); else params.delete('cat');
-    if (brandsStr) params.set('brand', brandsStr); else params.delete('brand');
-    if (promotion) params.set('promo', '1'); else params.delete('promo');
-    if (creditOnly) params.set('credit', '1'); else params.delete('credit');
-    if (!inStockOnly) params.set('stock', '0'); else params.delete('stock');
-    if (sort !== 'price_asc') params.set('sort', sort); else params.delete('sort');
-    if (page > 1) params.set('page', String(page)); else params.delete('page');
-    if (viewMode !== 'grid') params.set('view', viewMode); else params.delete('view');
+    if (search) params.set("q", search);
+    else params.delete("q");
+    if (category) params.set("cat", category);
+    else params.delete("cat");
+    if (brandsStr) params.set("brand", brandsStr);
+    else params.delete("brand");
+    if (promotion) params.set("promo", "1");
+    else params.delete("promo");
+    if (creditOnly) params.set("credit", "1");
+    else params.delete("credit");
+    if (!inStockOnly) params.set("stock", "0");
+    else params.delete("stock");
+    if (sort !== "price_asc") params.set("sort", sort);
+    else params.delete("sort");
+    if (page > 1) params.set("page", String(page));
+    else params.delete("page");
+    if (viewMode !== "grid") params.set("view", viewMode);
+    else params.delete("view");
 
     if (params.toString() !== searchParams.toString()) {
       setSearchParams(params, { replace: true });
     }
-  }, [search, category, brandsStr, promotion, creditOnly, inStockOnly, sort, page, viewMode, searchParams, setSearchParams]);
+  }, [
+    search,
+    category,
+    brandsStr,
+    promotion,
+    creditOnly,
+    inStockOnly,
+    sort,
+    page,
+    viewMode,
+    searchParams,
+    setSearchParams,
+  ]);
 
   useEffect(() => {
-    const q = searchParams.get('q') || '';
+    const q = searchParams.get("q") || "";
     if (search !== q) setSearch(q);
 
-    const cat = searchParams.get('cat') || null;
+    const cat = searchParams.get("cat") || null;
     if (category !== cat) setCategory(cat);
 
-    const brandParam = searchParams.get('brand') || '';
-    if (brands.join(',') !== brandParam) {
-      setBrands(brandParam ? brandParam.split(',') : []);
+    const brandParam = searchParams.get("brand") || "";
+    if (brands.join(",") !== brandParam) {
+      setBrands(brandParam ? brandParam.split(",") : []);
     }
 
-    const promo = searchParams.get('promo') === '1';
+    const promo = searchParams.get("promo") === "1";
     if (promotion !== promo) setPromotion(promo);
 
-    const credit = searchParams.get('credit') === '1';
+    const credit = searchParams.get("credit") === "1";
     if (creditOnly !== credit) setCreditOnly(credit);
 
-    const stock = searchParams.get('stock') !== '0';
+    const stock = searchParams.get("stock") !== "0";
     if (inStockOnly !== stock) setInStockOnly(stock);
 
-    const s = (searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc';
+    const s =
+      (searchParams.get("sort") as CatalogFilters["sort"]) || "price_asc";
     if (sort !== s) setSort(s);
 
-    const p = Number(searchParams.get('page')) || 1;
+    const p = Number(searchParams.get("page")) || 1;
     if (page !== p) setPage(p);
 
-    const v = (searchParams.get('view') as 'list' | 'grid') || 'grid';
+    const v = (searchParams.get("view") as "list" | "grid") || "grid";
     if (viewMode !== v) setViewMode(v);
   }, [searchParams]);
 
-  const [activeSlide, setActiveSlide] = useState(0);
-
   const [authOpen, setAuthOpen] = useState(false);
-  const [authStep, setAuthStep] = useState<'phone' | 'profile'>('phone');
+  const [authStep, setAuthStep] = useState<"phone" | "profile">("phone");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -149,7 +238,15 @@ export function StorefrontPage() {
 
   const debouncedSearch = useDebounced(search);
   const filters: CatalogFilters = useMemo(
-    () => ({ q: debouncedSearch, category, brands, promotion, creditOnly, sort, page }),
+    () => ({
+      q: debouncedSearch,
+      category,
+      brands,
+      promotion,
+      creditOnly,
+      sort,
+      page,
+    }),
     [debouncedSearch, category, brands, promotion, creditOnly, sort, page],
   );
 
@@ -157,26 +254,26 @@ export function StorefrontPage() {
   const products = useProducts(filters);
   const heroSlides = bootstrap.data?.slides ?? FALLBACK_HERO_SLIDES;
 
-  useEffect(() => {
-    setActiveSlide((current) => Math.min(current, Math.max(0, heroSlides.length - 1)));
-    if (heroSlides.length < 2) return undefined;
-    const timer = window.setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, [heroSlides.length]);
-
   /** code/name → hex, so a variant swatch can be resolved without extra requests. */
-  const colorMap = useMemo(() => createColorMap(bootstrap.data?.colors), [bootstrap.data?.colors]);
+  const colorMap = useMemo(
+    () => createColorMap(bootstrap.data?.colors),
+    [bootstrap.data?.colors],
+  );
 
   /** Brands shown in sidebar narrow to the selected category. */
   const visibleBrands = useMemo(() => {
     const all = bootstrap.data?.brands ?? [];
     if (!category) return all;
-    const cat = bootstrap.data?.categories.find((c) => c.name === category || c.faName === category);
+    const cat = bootstrap.data?.categories.find(
+      (c) => c.name === category || c.faName === category,
+    );
     if (!cat || cat.brandNames.length === 0) return all;
     const allowed = new Set(cat.brandNames.map((b) => b.toLowerCase()));
-    const narrowed = all.filter((b) => allowed.has(b.faName.toLowerCase()) || allowed.has(b.name.toLowerCase()));
+    const narrowed = all.filter(
+      (b) =>
+        allowed.has(b.faName.toLowerCase()) ||
+        allowed.has(b.name.toLowerCase()),
+    );
     return narrowed.length > 0 ? narrowed : all;
   }, [bootstrap.data, category]);
 
@@ -184,45 +281,48 @@ export function StorefrontPage() {
 
   const setQty = useCart((s) => s.setQty);
 
-  const handleUpdateQty = useCallback((key: string, newQty: number) => {
-    if (!user) {
-      setAuthStep('phone');
-      setAuthOpen(true);
-      return;
-    }
-    setQty(key, newQty);
-  }, [setQty, user]);
+  const handleUpdateQty = useCallback(
+    (key: string, newQty: number) => {
+      if (!user) {
+        setAuthStep("phone");
+        setAuthOpen(true);
+        return;
+      }
+      setQty(key, newQty);
+    },
+    [setQty, user],
+  );
 
   const handleAdd = useCallback(
     (product: ProductDTO, warehouse: Warehouse) => {
       if (!user) {
-        setAuthStep('phone');
+        setAuthStep("phone");
         setAuthOpen(true);
         return;
       }
       const result = addToCart(product, warehouse);
-      if (!result.ok) toast.error(result.message ?? 'افزودن به سبد ممکن نشد.');
-      else toast.ok('به سبد خرید اضافه شد.');
+      if (!result.ok) toast.error(result.message ?? "افزودن به سبد ممکن نشد.");
+      else toast.ok("به سبد خرید اضافه شد.");
     },
     [addToCart, toast, user],
   );
 
   const openCheckout = useCallback(() => {
     if (lines.length === 0) {
-      toast.error('سبد خرید شما خالی است.');
+      toast.error("سبد خرید شما خالی است.");
       return;
     }
     if (!user) {
-      setAuthStep('phone');
+      setAuthStep("phone");
       setAuthOpen(true);
       return;
     }
     if (!user.isActive) {
-      toast.error('حساب همکاری شما هنوز تأیید نشده است.');
+      toast.error("حساب همکاری شما هنوز تأیید نشده است.");
       return;
     }
     if (!complete) {
-      setAuthStep('profile');
+      setAuthStep("profile");
       setAuthOpen(true);
       return;
     }
@@ -252,7 +352,9 @@ export function StorefrontPage() {
       return;
     }
     api
-      .get<{ ok: true; application: CreditApplicationDTO | null }>('/credit/my-application')
+      .get<{ ok: true; application: CreditApplicationDTO | null }>(
+        "/credit/my-application",
+      )
       .then((res) => {
         if (res.ok) setUserCreditApp(res.application);
       })
@@ -266,418 +368,73 @@ export function StorefrontPage() {
 
   return (
     <div className="shell">
-      <header className="topbar">
-        {/* Top promo strip */}
-        <div className={`topbar-promo${promoOrange ? ' promo-orange' : ''}`}>
-          <div className="promo-sheen" aria-hidden="true" />
-          <div className="promo-inner">
-            <div className="promo-copy">
-              <strong className="promo-title">
-                {promoOrange ? 'رشد کسب‌وکار خود را با اعتبار ما تسریع کنید!' : 'با هم، سریع‌تر و بهتر رشد می‌کنیم!'}
-              </strong>
-              <span className="promo-text">
-                {promoOrange
-                  ? 'برای خرید کالاهای پرگردش، نیازی به پرداخت نقدی ندارید، فایل اعتباری خود را بسازید و با خرید چکی یا اعتبار هفتگی، بدون پرداخت نقدی موجودی فروشگاهتان را تأمین کنید.'
-                  : 'همکاری با ما از چیزی که فکرش رو می‌کنید راحت‌تره. با ثبت‌نام در پنل همکاران، بلافاصله به قیمت‌های ویژه، تامین مطمئن و پشتیبانی اختصاصی دسترسی پیدا کنید.'}
-              </span>
-            </div>
-            <button
-              type="button"
-              className="promo-cta"
-              onClick={() => {
-                if (user) {
-                  setCreditOpen(true);
-                } else {
-                  setAuthStep('phone');
-                  setAuthOpen(true);
-                }
-              }}
-            >
-              {promoOrange ? 'ایجاد فایل اعتباری' : 'ثبت‌نام در چند ثانیه'}
-            </button>
-          </div>
-        </div>
-
-        {/* Topbar Header */}
-        <div className="topbar-inner">
-          <Link to="/" className="logo">
-            <img src="/logo.png" alt={settings.store_name || 'تماس مارکت'} />
-            <span className="logo-tagline">{settings.store_tagline || 'مرجع تخصصی فروش عمده کالای دیجیتال'}</span>
-          </Link>
-
-          <div className="search-wrapper">
-            <span className="search-icon" aria-hidden>
-              <Icon name="search" />
-            </span>
-            <input
-              type="search"
-              className="search-input"
-              placeholder="جستجو بر اساس نام محصول، مدل، برند..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                resetPage();
-              }}
-              aria-label="جستجو"
-            />
-            {search && (
-              <button type="button" className="search-clear" onClick={() => setSearch('')} aria-label="پاک کردن جستجو">
-                ✕
-              </button>
-            )}
-            <span className="search-shortcut">Ctrl + /</span>
-          </div>
-
-          <div className="user-actions">
-            <ThemeToggle />
-            <button
-              type="button"
-              className="btn btn-icon-only"
-              onClick={() => document.getElementById('cart')?.scrollIntoView({ behavior: 'smooth' })}
-              title="علاقه‌مندی‌ها"
-            >
-              <Icon name="heart" />
-            </button>
-            {user ? (
-              <div className="profile-dropdown-wrapper" style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  className="btn primary"
-                  onClick={(e) => {
-                    const dropdown = e.currentTarget.nextElementSibling as HTMLElement;
-                    if (dropdown) dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
-                  }}
-                >
-                  <Icon name="user" />
-                  <span>{`${user.name || 'حساب'} ${user.lastName}`.trim()}</span>
-                </button>
-                <div 
-                  className="profile-dropdown-menu" 
-                  style={{ 
-                    display: 'none', position: 'absolute', top: '110%', left: 0, 
-                    backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', 
-                    boxShadow: 'var(--shadow-lg)', minWidth: '180px', padding: '8px', zIndex: 100,
-                    flexDirection: 'column', gap: '4px'
-                  }}
-                >
-                  <Link to="/orders" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--text)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
-                    <Icon name="bag" style={{ marginInlineEnd: 8 }} /> سفارش‌های من
-                  </Link>
-                  <Link to="/wallet" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--tamas-accent)', textDecoration: 'none', fontSize: '14px', fontWeight: 700 }}>
-                    <span style={{ marginInlineEnd: 8 }}>◈</span> کیف پول من
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => setCreditOpen(true)}
-                    style={{
-                      width: '100%',
-                      textAlign: 'right',
-                      padding: '10px 16px',
-                      borderRadius: '8px',
-                      color: 'var(--tamas-accent)',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '8px',
-                    }}
-                  >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                      💳 پرونده اعتباری
-                    </span>
-                    {userCreditApp && (
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 800,
-                          padding: '3px 8px',
-                          borderRadius: '12px',
-                          backgroundColor:
-                            userCreditApp.status === 'active'
-                              ? '#dcfce7'
-                              : userCreditApp.status === 'action_required'
-                              ? '#fee2e2'
-                              : '#fef3c7',
-                          color:
-                            userCreditApp.status === 'active'
-                              ? '#15803d'
-                              : userCreditApp.status === 'action_required'
-                              ? '#dc2626'
-                              : '#d97706',
-                        }}
-                      >
-                        ● {userCreditApp.status === 'active'
-                          ? 'تأیید شده'
-                          : userCreditApp.status === 'action_required'
-                          ? 'رد شده'
-                          : 'در حال بررسی'}
-                      </span>
-                    )}
-                  </button>
-                  {isAdmin && (
-                    <Link to="/admin" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--tamas-admin-emerald)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
-                      <Icon name="grid" style={{ marginInlineEnd: 8 }} /> پنل مدیریت
-                    </Link>
-                  )}
-                  <div style={{ height: '1px', backgroundColor: 'var(--border)', margin: '4px 0' }} />
-                  <button 
-                    type="button" 
-                    onClick={async () => {
-                      await logout();
-                      toast.ok('از حساب خود خارج شدید.');
-                    }}
-                    style={{ width: '100%', textAlign: 'right', padding: '10px 16px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'transparent', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    <Icon name="chevron" style={{ marginInlineEnd: 8, transform: 'rotate(180deg)' }} /> خروج از حساب
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="btn primary"
-                onClick={() => {
-                  setAuthStep('phone');
-                  setAuthOpen(true);
-                }}
-              >
-                <Icon name="user" />
-                <span>ورود / ثبت‌نام همکار</span>
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
+      <StorefrontHeader
+        user={user}
+        isAdmin={isAdmin}
+        userCreditApp={userCreditApp}
+        settings={settings}
+        search={search}
+        setSearch={setSearch}
+        resetPage={resetPage}
+        promoOrange={promoOrange}
+        setCreditOpen={setCreditOpen}
+        setAuthStep={setAuthStep}
+        setAuthOpen={setAuthOpen}
+        logout={logout}
+        toast={toast}
+      />
 
       <main className="container" data-mobile-tab={mobileTab}>
-        {/* Mobile-only Categories View */}
-        <div className="mobile-only-categories">
-          <div style={{ padding: '20px 16px', background: 'var(--card)', borderBottom: '1px solid var(--tamas-border)', position: 'sticky', top: 0, zIndex: 10 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--tamas-fg)' }}>دسته‌بندی محصولات</h2>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, padding: 16 }}>
-            {(bootstrap.data?.categories ?? []).map((c) => {
-              const iconSrc = c.iconUrl ? c.iconUrl.startsWith('http') || c.iconUrl.startsWith('/') ? c.iconUrl : c.iconUrl.startsWith('img_') ? `/uploads/${c.iconUrl}` : `/assets/category/${c.iconUrl}` : null;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '24px 12px', background: 'var(--card)', borderRadius: 16, border: '1px solid var(--tamas-border)', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}
-                  onClick={() => { setCategory(c.name); setBrands([]); resetPage(); setMobileTab('home'); }}
-                >
-                  {iconSrc ? <img src={iconSrc} alt="" loading="lazy" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span style={{ fontSize: 32, color: 'var(--tamas-accent)' }}><Icon name="box" /></span>}
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--tamas-fg)' }}>{c.faName}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <MobileViews
+          mobileTab={mobileTab}
+          setMobileTab={setMobileTab}
+          categories={bootstrap.data?.categories ?? []}
+          setCategory={setCategory}
+          setBrands={setBrands}
+          resetPage={resetPage}
+          user={user}
+          isAdmin={isAdmin}
+          logout={logout}
+          toast={toast}
+          setAuthStep={setAuthStep}
+          setAuthOpen={setAuthOpen}
+          openCheckout={openCheckout}
+          canViewPrices={canViewPrices}
+        />
 
-        {/* Mobile-only Cart View */}
-        <div className="mobile-only-cart" style={{ paddingBottom: 100 }}>
-          <CartPanel onCheckout={openCheckout} canViewPrices={canViewPrices} hidePrintLayout />
-        </div>
+        {heroSlides.length > 0 && <HeroSlider slides={heroSlides} />}
 
-        {/* Mobile-only Profile View */}
-        <div className="mobile-only-profile" style={{ padding: 16, paddingBottom: 100 }}>
-          {user ? (
-            <div style={{ background: 'var(--card)', borderRadius: 16, padding: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center', border: '1px solid var(--tamas-border)' }}>
-              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--tamas-accent)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 800, margin: '0 auto 16px' }}>{user.name?.[0] || 'U'}</div>
-              <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--tamas-fg)', marginBottom: 4 }}>{user.name} {user.lastName}</h2>
-              <p style={{ fontSize: 14, color: 'var(--tamas-muted)', marginBottom: 24 }}>{user.phone}</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <Link to="/orders" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'var(--tamas-info-bg)', borderRadius: 12, color: 'var(--tamas-fg)', textDecoration: 'none', fontWeight: 600 }}><Icon name="bag" /> سفارش‌های من</Link>
-                {isAdmin && <Link to="/admin" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'rgba(5, 150, 105, 0.1)', borderRadius: 12, color: '#10b981', textDecoration: 'none', fontWeight: 600 }}><Icon name="grid" /> پنل مدیریت</Link>}
-                <button type="button" onClick={async () => { await logout(); toast.ok('از حساب خود خارج شدید.'); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'rgba(225, 29, 72, 0.1)', borderRadius: 12, color: 'var(--danger)', border: 'none', fontWeight: 600, cursor: 'pointer' }}><Icon name="chevron" style={{ transform: 'rotate(180deg)' }} /> خروج از حساب</button>
-              </div>
-            </div>
-          ) : (
-            <div style={{ background: 'var(--card)', borderRadius: 16, padding: 32, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center', marginTop: 40, border: '1px solid var(--tamas-border)' }}>
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--tamas-info-bg)', color: 'var(--tamas-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, margin: '0 auto 16px' }}><Icon name="user" /></div>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--tamas-fg)', marginBottom: 12 }}>وارد حساب کاربری شوید</h2>
-              <p style={{ fontSize: 13, color: 'var(--tamas-muted)', marginBottom: 24, lineHeight: 1.6 }}>برای مشاهده قیمت‌های همکاری و ثبت سفارش، لطفاً وارد شوید.</p>
-              <button type="button" className="btn primary w-full" onClick={() => { setAuthStep('phone'); setAuthOpen(true); }}>ورود / ثبت‌نام</button>
-            </div>
-          )}
-        </div>
-        {/* Hero Carousel Slider */}
-        {heroSlides.length > 0 && <section className="hero-slider" aria-label="بنرهای فروشگاه" aria-roledescription="carousel">
-          {heroSlides.map((slide, i) => {
-            const picture = (
-              <picture>
-                {slide.mobileImageUrl && <source media="(max-width: 768px)" srcSet={slide.mobileImageUrl} />}
-                <img
-                  className="hero-slide-image"
-                  src={slide.imageUrl}
-                  alt={slide.title || `بنر ${i + 1}`}
-                  loading={i === 0 ? 'eager' : 'lazy'}
-                  fetchPriority={i === 0 ? 'high' : 'auto'}
-                />
-              </picture>
-            );
-            const linkedPicture = slide.linkUrl
-              ? /^https?:\/\//i.test(slide.linkUrl)
-                ? <a href={slide.linkUrl} target="_blank" rel="noreferrer" tabIndex={i === activeSlide ? 0 : -1} aria-label={slide.title || 'مشاهده بنر'}>{picture}</a>
-                : <Link to={slide.linkUrl} tabIndex={i === activeSlide ? 0 : -1} aria-label={slide.title || 'مشاهده بنر'}>{picture}</Link>
-              : picture;
-            return (
-              <div key={slide.id} className={`hero-slide${i === activeSlide ? ' active' : ''}${slide.mobileImageUrl ? ' has-mobile-art' : ''}`} aria-hidden={i !== activeSlide}>
-                {linkedPicture}
-              </div>
-            );
-          })}
-          {heroSlides.length > 1 && <div className="slider-nav">
-            <button type="button" className="slider-arrow" aria-label="بنر قبلی" onClick={() => setActiveSlide((activeSlide - 1 + heroSlides.length) % heroSlides.length)}>‹</button>
-            <button type="button" className="slider-arrow" aria-label="بنر بعدی" onClick={() => setActiveSlide((activeSlide + 1) % heroSlides.length)}>›</button>
-          </div>}
-          {heroSlides.length > 1 && <div className="slider-dots">
-            {heroSlides.map((slide, i) => (
-              <button
-                key={slide.id}
-                type="button"
-                className={`slider-dot${i === activeSlide ? ' active' : ''}`}
-                onClick={() => setActiveSlide(i)}
-                aria-label={`نمایش بنر ${i + 1}`}
-                aria-current={i === activeSlide ? 'true' : undefined}
-              />
-            ))}
-          </div>}
-        </section>}
-
-        {/* Horizontal Category Toolbar */}
-        <div className="category-toolbar">
-          <div className="categories">
-            <button
-              type="button"
-              className={`category-chip${category === null ? ' active' : ''}`}
-              onClick={() => {
-                setCategory(null);
-                setBrands([]);
-                resetPage();
-              }}
-            >
-              <span className="chip-icon">
-                <Icon name="grid" />
-              </span>
-              <span className="chip-title">همه کالاها</span>
-            </button>
-            {(bootstrap.data?.categories ?? []).map((c) => {
-              const iconSrc = c.iconUrl
-                ? c.iconUrl.startsWith('http') || c.iconUrl.startsWith('/')
-                  ? c.iconUrl
-                  : c.iconUrl.startsWith('img_')
-                    ? `/uploads/${c.iconUrl}`
-                    : `/assets/category/${c.iconUrl}`
-                : null;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  className={`category-chip${category === c.name ? ' active' : ''}`}
-                  onClick={() => {
-                    setCategory(category === c.name ? null : c.name);
-                    setBrands([]);
-                    resetPage();
-                  }}
-                >
-                  {iconSrc ? (
-                    <img className="chip-icon" src={iconSrc} alt="" loading="lazy" />
-                  ) : (
-                    <span className="chip-icon">
-                      <Icon name="box" />
-                    </span>
-                  )}
-                  <span className="chip-title">{c.faName}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <CategoryToolbar
+          categories={bootstrap.data?.categories ?? []}
+          selectedCategory={category}
+          onSelectCategory={(cat) => {
+            setCategory(cat);
+            setBrands([]);
+            resetPage();
+          }}
+        />
 
         {/* 3-Column Layout Grid */}
         <div className="layout">
           {/* Sidebar (Right Column in RTL) */}
-          <aside className={`sidebar${filtersOpen ? ' open' : ''}`}>
-            <div className="sidebar-body">
-              <div className="side-title accordion-title" onClick={() => setBrandsCollapsed(!brandsCollapsed)} style={{ cursor: 'pointer', userSelect: 'none' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  برندها
-                  <Icon name="chevron" className="accordion-chevron" style={{ transform: brandsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.25s ease', fontSize: 14 }} />
-                </span>
-                {brands.length > 0 && (
-                  <button type="button" onClick={(e) => { e.stopPropagation(); setBrands([]); }} style={{ fontSize: 12, color: 'var(--tamas-accent)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
-                    همه (پاک‌سازی)
-                  </button>
-                )}
-              </div>
-              <div className={`brand-icons-wrapper${brandsCollapsed ? ' collapsed' : ''}`}>
-                <div className="brand-icons">
-                  {visibleBrands.map((b) => {
-                    const on = brands.includes(b.name);
-                    const iconSrc = b.iconUrl
-                      ? b.iconUrl.startsWith('http') || b.iconUrl.startsWith('/')
-                        ? b.iconUrl
-                        : b.iconUrl.startsWith('img_')
-                          ? `/uploads/${b.iconUrl}`
-                          : `/assets/brand/${b.iconUrl}`
-                      : null;
-                    return (
-                      <button
-                        key={b.id}
-                        type="button"
-                        className={`brand-icon-btn${on ? ' active' : ''}`}
-                        onClick={() => {
-                          setBrands(on ? brands.filter((x) => x !== b.name) : [...brands, b.name]);
-                          resetPage();
-                        }}
-                      >
-                        {iconSrc ? <img src={iconSrc} alt={b.faName} loading="lazy" /> : <Icon name="mobile" style={{ fontSize: 16 }} />}
-                        <span className="brand-name">{b.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="side-title" style={{ marginTop: 20 }}>فیلترهای سریع</div>
-              <div className="switch-row">
-                <span>فقط کالاهای موجود</span>
-                <button type="button" className={`switch${inStockOnly ? ' on' : ''}`} onClick={() => setInStockOnly(!inStockOnly)}>
-                  <i />
-                </button>
-              </div>
-              <div className="switch-row">
-                <span>پیشنهاد ویژه</span>
-                <button
-                  type="button"
-                  className={`switch${promotion ? ' on' : ''}`}
-                  onClick={() => {
-                    setPromotion(!promotion);
-                    resetPage();
-                  }}
-                >
-                  <i />
-                </button>
-              </div>
-              <div className="switch-row">
-                <span>تسویه چکی و اعتباری</span>
-                <button
-                  type="button"
-                  className={`switch${creditOnly ? ' on' : ''}`}
-                  onClick={() => {
-                    setCreditOnly(!creditOnly);
-                    resetPage();
-                  }}
-                >
-                  <i />
-                </button>
-              </div>
-            </div>
-          </aside>
+          <Sidebar
+            filtersOpen={filtersOpen}
+            brandsCollapsed={brandsCollapsed}
+            setBrandsCollapsed={setBrandsCollapsed}
+            brands={brands}
+            setBrands={(brands) => {
+              setBrands(brands);
+              resetPage();
+            }}
+            visibleBrands={visibleBrands}
+            resetPage={resetPage}
+            inStockOnly={inStockOnly}
+            setInStockOnly={setInStockOnly}
+            promotion={promotion}
+            setPromotion={setPromotion}
+            creditOnly={creditOnly}
+            setCreditOnly={setCreditOnly}
+          />
 
           {/* Main Content (Center Column) */}
           <section className="main-content">
@@ -687,12 +444,16 @@ export function StorefrontPage() {
                   <strong>{formatNumber(total)}</strong>
                   <span>کالا پیدا شد</span>
                 </div>
-                {(brands.length > 0 || category || promotion || creditOnly || search) && (
+                {(brands.length > 0 ||
+                  category ||
+                  promotion ||
+                  creditOnly ||
+                  search) && (
                   <button
                     type="button"
                     className="btn sm toolbar-reset"
                     onClick={() => {
-                      setSearch('');
+                      setSearch("");
                       setCategory(null);
                       setBrands([]);
                       setPromotion(false);
@@ -712,15 +473,15 @@ export function StorefrontPage() {
                   <div className="view-btn-group">
                     <button
                       type="button"
-                      className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
-                      onClick={() => setViewMode('list')}
+                      className={`view-btn${viewMode === "list" ? " active" : ""}`}
+                      onClick={() => setViewMode("list")}
                     >
                       <Icon name="filter" /> لیستی (عمده)
                     </button>
                     <button
                       type="button"
-                      className={`view-btn${viewMode === 'grid' ? ' active' : ''}`}
-                      onClick={() => setViewMode('grid')}
+                      className={`view-btn${viewMode === "grid" ? " active" : ""}`}
+                      onClick={() => setViewMode("grid")}
                     >
                       <Icon name="grid" /> شبکه‌ای
                     </button>
@@ -734,7 +495,7 @@ export function StorefrontPage() {
                     className="select sort-select"
                     value={sort}
                     onChange={(e) => {
-                      setSort(e.target.value as CatalogFilters['sort']);
+                      setSort(e.target.value as CatalogFilters["sort"]);
                       resetPage();
                     }}
                   >
@@ -750,13 +511,17 @@ export function StorefrontPage() {
 
             {!canViewPrices && (
               <div className="price-lock-note">
-                <span>{user ? 'قیمت‌ها پس از تأیید حساب همکاری شما نمایش داده می‌شوند.' : 'برای مشاهده قیمت‌های عمده وارد حساب همکار شوید.'}</span>
+                <span>
+                  {user
+                    ? "قیمت‌ها پس از تأیید حساب همکاری شما نمایش داده می‌شوند."
+                    : "برای مشاهده قیمت‌های عمده وارد حساب همکار شوید."}
+                </span>
                 {!user && (
                   <button
                     type="button"
                     className="btn-lock-auth"
                     onClick={() => {
-                      setAuthStep('phone');
+                      setAuthStep("phone");
                       setAuthOpen(true);
                     }}
                   >
@@ -769,30 +534,86 @@ export function StorefrontPage() {
             {products.isLoading ? (
               <ProductSkeletons viewMode={viewMode} />
             ) : products.isError ? (
-              <div className="card" style={{ textAlign: 'center', color: 'var(--danger)', padding: 32 }}>
+              <div
+                className="card"
+                style={{
+                  textAlign: "center",
+                  color: "var(--danger)",
+                  padding: 32,
+                }}
+              >
                 دریافت کالاها ناموفق بود. صفحه را دوباره بارگذاری کنید.
               </div>
             ) : groups.length === 0 ? (
-              <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 48 }}>
+              <div
+                className="card"
+                style={{
+                  textAlign: "center",
+                  color: "var(--text-muted)",
+                  padding: 48,
+                }}
+              >
                 محصولی با این مشخصات پیدا نشد.
               </div>
             ) : (
               <>
-                <div className={viewMode === 'grid' ? 'products-grid' : 'products-list'} style={{ opacity: products.isFetching ? 0.65 : 1, transition: 'opacity .15s' }}>
+                <div
+                  className={
+                    viewMode === "grid" ? "products-grid" : "products-list"
+                  }
+                  style={{
+                    opacity: products.isFetching ? 0.65 : 1,
+                    transition: "opacity .15s",
+                  }}
+                >
                   {groups.map((g) => (
-                    <ProductCard key={g.key} group={g} colorMap={colorMap} canViewPrices={canViewPrices} viewMode={viewMode} cartLines={lines} onAdd={handleAdd} onUpdateQty={handleUpdateQty} onPreview={setPreview} />
+                    <ProductCard
+                      key={g.key}
+                      group={g}
+                      colorMap={colorMap}
+                      canViewPrices={canViewPrices}
+                      viewMode={viewMode}
+                      cartLines={lines}
+                      onAdd={handleAdd}
+                      onUpdateQty={handleUpdateQty}
+                      onPreview={setPreview}
+                    />
                   ))}
                 </div>
 
                 {pageCount > 1 && (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: 24 }}>
-                    <button type="button" className="btn" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 14,
+                      marginTop: 24,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="btn"
+                      disabled={page <= 1}
+                      onClick={() => setPage(page - 1)}
+                    >
                       قبلی
                     </button>
-                    <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
+                    <span
+                      style={{
+                        fontSize: 13,
+                        color: "var(--text-muted)",
+                        fontWeight: 600,
+                      }}
+                    >
                       صفحه {formatNumber(page)} از {formatNumber(pageCount)}
                     </span>
-                    <button type="button" className="btn" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
+                    <button
+                      type="button"
+                      className="btn"
+                      disabled={page >= pageCount}
+                      onClick={() => setPage(page + 1)}
+                    >
                       بعدی
                     </button>
                   </div>
@@ -820,56 +641,59 @@ export function StorefrontPage() {
 
       <IncompleteProfilePopup
         show={!!user && !complete}
-        onComplete={() => { setAuthStep('profile'); setAuthOpen(true); }}
+        onComplete={() => {
+          setAuthStep("profile");
+          setAuthOpen(true);
+        }}
         onLogout={async () => {
           await logout();
-          toast.ok('از حساب خارج شدید.');
+          toast.ok("از حساب خارج شدید.");
         }}
       />
 
       <GuestPromoPopup
         show={!user}
-        onAuth={() => { setAuthStep('phone'); setAuthOpen(true); }}
+        onAuth={() => {
+          setAuthStep("phone");
+          setAuthOpen(true);
+        }}
       />
 
       <CheckoutDialog
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
         onNeedsProfile={() => {
-          setAuthStep('profile');
+          setAuthStep("profile");
           setAuthOpen(true);
         }}
       />
 
-      <CreditDialog
-        open={creditOpen}
-        onClose={() => setCreditOpen(false)}
-      />
+      <CreditDialog open={creditOpen} onClose={() => setCreditOpen(false)} />
 
       {preview && (
-        <div className="lightbox" onClick={() => setPreview(null)} role="presentation">
+        <div
+          className="lightbox"
+          onClick={() => setPreview(null)}
+          role="presentation"
+        >
           <img src={preview} alt="" />
         </div>
       )}
 
-      {/* Mobile Bottom Navigation Bar */}
-      <nav className="tabbar" aria-label="ناوبری موبایل">
-        <button type="button" className={`tabbar-item ${mobileTab === 'home' ? 'active' : ''}`} onClick={() => { setSearch(''); setCategory(null); setBrands([]); setPromotion(false); setInStockOnly(false); resetPage(); setMobileTab('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-          <span className="tabbar-icon"><Icon name="home" /></span><span>صفحه اصلی</span>
-        </button>
-        <button type="button" className={`tabbar-item ${mobileTab === 'categories' ? 'active' : ''}`} onClick={() => setMobileTab('categories')}>
-          <span className="tabbar-icon"><Icon name="grid" /></span><span>دسته‌بندی‌ها</span>
-        </button>
-        <button type="button" className={`tabbar-item ${mobileTab === 'search' ? 'active' : ''}`} onClick={() => setMobileTab('search')}>
-          <span className="tabbar-icon"><Icon name="search" /></span><span>جستجو</span>
-        </button>
-        <button type="button" className={`tabbar-item ${mobileTab === 'cart' ? 'active' : ''}`} onClick={() => setMobileTab('cart')}>
-          <span className="tabbar-icon"><Icon name="bag" />{lines.length > 0 && <span className="badge-count">{formatNumber(cartCount(lines))}</span>}</span><span>سبد خرید</span>
-        </button>
-        <button type="button" className={`tabbar-item ${mobileTab === 'profile' ? 'active' : ''}`} onClick={() => setMobileTab('profile')}>
-          <span className="tabbar-icon"><Icon name="user" /></span><span>{user ? 'حساب کاربری' : 'ورود / عضویت'}</span>
-        </button>
-      </nav>
+      <MobileNavigation
+        mobileTab={mobileTab}
+        setMobileTab={setMobileTab}
+        lines={lines}
+        user={user}
+        onHomeClick={() => {
+          setSearch("");
+          setCategory(null);
+          setBrands([]);
+          setPromotion(false);
+          setInStockOnly(false);
+          resetPage();
+        }}
+      />
 
       {/* CRM Chat Widget */}
       <CrmChat user={user || undefined} />
