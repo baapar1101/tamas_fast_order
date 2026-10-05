@@ -125,8 +125,10 @@ export async function sendOtp(phone: string, ip: string | undefined): Promise<Se
     }
   }
 
-  // eslint-disable-next-line no-console
-  console.info(`[otp] ${phone} → ${code} (valid ${env.OTP_TTL_SECONDS}s)`);
+  if (env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.info(`[otp] ${phone} → ${code} (valid ${env.OTP_TTL_SECONDS}s)`);
+  }
   return { ok: true, devCode: env.NODE_ENV === 'production' ? undefined : code };
 }
 
