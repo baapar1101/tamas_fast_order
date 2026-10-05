@@ -2,6 +2,10 @@ import { env } from '../env.js';
 import { getAllSettings } from './settings.js';
 
 export async function sendSms(toPhone: string, text: string): Promise<{ ok: boolean; error?: string }> {
+  if (!env.RASTIN_SMS_USERNAME || !env.RASTIN_SMS_PASSWORD || !env.RASTIN_SMS_FROM) {
+    return { ok: false, error: 'اطلاعات سامانه پیامک تنظیم نشده است' };
+  }
+
   const params = new URLSearchParams({
     Username: env.RASTIN_SMS_USERNAME,
     Password: env.RASTIN_SMS_PASSWORD,
