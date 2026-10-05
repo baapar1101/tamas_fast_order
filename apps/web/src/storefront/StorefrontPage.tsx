@@ -616,7 +616,7 @@ export function StorefrontPage() {
               </div>
               <div className={`brand-icons-wrapper${brandsCollapsed ? ' collapsed' : ''}`}>
                 <div className="brand-icons">
-                  {visibleBrands.slice(0, 18).map((b) => {
+                  {visibleBrands.map((b) => {
                     const on = brands.includes(b.name);
                     const iconSrc = b.iconUrl
                       ? b.iconUrl.startsWith('http') || b.iconUrl.startsWith('/')
