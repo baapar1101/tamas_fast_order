@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ColorDTO, ProductGroupDTO } from '@tamas/shared';
 import { api } from '../lib/api';
+import { logger } from '../lib/logger';
 import { getFallbackBootstrap } from './fallbackData';
 
 export interface BootstrapData {
@@ -27,7 +28,7 @@ export function useBootstrap() {
       try {
         return await api.get<BootstrapData>('/catalog/bootstrap');
       } catch (err) {
-        console.warn('API bootstrap failed, falling back to legacy catalog snapshot:', err);
+        logger.warn('API bootstrap failed, falling back to legacy catalog snapshot:', err);
         return getFallbackBootstrap();
       }
     },
@@ -100,7 +101,7 @@ export function useProducts(filters: CatalogFilters) {
         // silently serving it after an API failure shows stale warehouse
         // counts and makes the storefront disagree with admin.
         if ((err as Error).name !== 'AbortError') {
-          console.error('API products failed; refusing to display stale inventory:', err);
+          logger.error('API products failed; refusing to display stale inventory:', err);
         }
         throw err;
       }
