@@ -239,15 +239,19 @@ const routes: FastifyPluginAsync = async (app) => {
 
     const { sendTemplatedSms } = await import('../../services/sms.js');
     const templateKey = `sms_template_order_${body.status}`;
+    const smsPromises = [];
     for (const order of changed) {
       if (order.phone) {
-        sendTemplatedSms(order.phone, templateKey, {
-          order_code: order.orderCode,
-          name: order.customerName || 'مشتری',
-          status: ORDER_STATUS_LABELS[body.status],
-        }).catch((err) => req.log.error({ err }, 'failed to send status sms bulk'));
+        smsPromises.push(
+          sendTemplatedSms(order.phone, templateKey, {
+            order_code: order.orderCode,
+            name: order.customerName || "مشتری",
+            status: ORDER_STATUS_LABELS[body.status],
+          }).catch((err) => req.log.error({ err }, "failed to send status sms bulk"))
+        );
       }
     }
+    await Promise.allSettled(smsPromises);
 
     const { sendTelegramNotification } = await import('../../services/telegram.js');
     void sendTelegramNotification('order.status_changed', {
