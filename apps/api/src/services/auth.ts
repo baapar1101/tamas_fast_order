@@ -6,6 +6,8 @@ import { adminPhones, env } from '../env.js';
 import { randomToken, sha256 } from '../lib/hash.js';
 import { crmClient } from '../lib/crm.js';
 
+const SESSION_UPDATE_INTERVAL_MS = 60_000;
+
 export type UserRow = typeof users.$inferSelect;
 
 export function toUserDTO(row: UserRow): UserDTO {
@@ -177,7 +179,7 @@ export async function resolveSession(token: string | undefined): Promise<UserSes
     if (!row) return null;
 
     // Touch at most once a minute; the write is not worth it on every request.
-    if (Date.now() - row.session.lastSeenAt.getTime() > 60_000) {
+    if (Date.now() - row.session.lastSeenAt.getTime() > SESSION_UPDATE_INTERVAL_MS) {
       await db.update(sessions).set({ lastSeenAt: new Date() }).where(eq(sessions.id, row.session.id));
     }
     
