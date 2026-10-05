@@ -1,0 +1,1 @@
+ALTER TABLE "products" ADD COLUMN "target_site_url" varchar(1000);

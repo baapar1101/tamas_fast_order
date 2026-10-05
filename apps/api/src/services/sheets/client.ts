@@ -1,6 +1,5 @@
 import { readFile } from 'node:fs/promises';
 import { google, type sheets_v4 } from 'googleapis';
-import { JWT } from 'google-auth-library';
 import { env } from '../../env.js';
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
@@ -21,13 +20,14 @@ async function loadCredentials(): Promise<{ client_email: string; private_key: s
 export async function sheetsClient(): Promise<sheets_v4.Sheets> {
   if (cached) return cached;
   const creds = await loadCredentials();
-  const auth = new JWT({
-    email: creds.client_email,
-    // Keys pasted into .env arrive with literal \n sequences.
-    key: creds.private_key.replace(/\\n/g, '\n'),
+  const auth = new google.auth.GoogleAuth({
+    credentials: {
+      client_email: creds.client_email,
+      // Keys pasted into .env arrive with literal \n sequences.
+      private_key: creds.private_key.replace(/\\n/g, '\n'),
+    },
     scopes: SCOPES,
   });
-  await auth.authorize();
   cached = google.sheets({ version: 'v4', auth });
   return cached;
 }
@@ -39,7 +39,10 @@ export async function readTab(title: string): Promise<string[][]> {
     const res = await api.spreadsheets.values.get({
       spreadsheetId: env.SHEETS_SPREADSHEET_ID,
       range: `${title}!A1:ZZ`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      // Product codes are identifiers, not numbers. Reading formatted values
+      // preserves a displayed leading zero (for example 01010113528) instead
+      // of coercing the cell to 1010113528 and creating a second product.
+      valueRenderOption: 'FORMATTED_VALUE',
       dateTimeRenderOption: 'FORMATTED_STRING',
     });
     return (res.data.values ?? []).map((row) => row.map((cell) => (cell == null ? '' : String(cell))));
@@ -53,6 +56,28 @@ export async function readTab(title: string): Promise<string[][]> {
 export async function writeTab(title: string, rows: string[][]): Promise<void> {
   const api = await sheetsClient();
   await ensureTab(title);
+  if (title === 'Products') {
+    const meta = await api.spreadsheets.get({
+      spreadsheetId: env.SHEETS_SPREADSHEET_ID,
+      fields: 'sheets.properties',
+    });
+    const sheetId = meta.data.sheets?.find((sheet) => sheet.properties?.title === title)?.properties?.sheetId;
+    if (sheetId == null) throw new Error('تب Products در گوگل شیت پیدا نشد.');
+    // Product IDs and SKUs are identifiers. Explicit TEXT formatting prevents
+    // Google Sheets from turning 01010113528 into 1010113528 on later edits.
+    await api.spreadsheets.batchUpdate({
+      spreadsheetId: env.SHEETS_SPREADSHEET_ID,
+      requestBody: {
+        requests: [0, 6].map((columnIndex) => ({
+          repeatCell: {
+            range: { sheetId, startColumnIndex: columnIndex, endColumnIndex: columnIndex + 1 },
+            cell: { userEnteredFormat: { numberFormat: { type: 'TEXT' } } },
+            fields: 'userEnteredFormat.numberFormat',
+          },
+        })),
+      },
+    });
+  }
   await api.spreadsheets.values.clear({
     spreadsheetId: env.SHEETS_SPREADSHEET_ID,
     range: `${title}!A1:ZZ`,

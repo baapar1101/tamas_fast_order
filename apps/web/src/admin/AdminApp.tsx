@@ -16,6 +16,7 @@ import { SlidesPage } from './pages/SlidesPage';
 import { UploadsPage } from './pages/UploadsPage';
 import { SyncPage } from './pages/SyncPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { CrmSyncPage } from './pages/CrmSyncPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { MessagesPage } from './pages/MessagesPage';
 import { MarketingPage } from './pages/MarketingPage';
@@ -23,10 +24,21 @@ import { FinancialPage } from './pages/FinancialPage';
 import { CommentsPage } from './pages/CommentsPage';
 import { GraphifyPage } from './pages/GraphifyPage';
 import { ArchifyPage } from './pages/ArchifyPage';
+import { AccessGroupsPage } from './pages/AccessGroupsPage';
+import { SmsPage } from './pages/SmsPage';
+import { CrmChatPage } from './pages/CrmChatPage';
+import { CreditApplicationsPage } from './pages/CreditApplicationsPage';
+import { CatalogExportPage } from './pages/CatalogExportPage';
+import { TargetSitesPage } from './pages/TargetSitesPage';
+import { WalletsPage } from './pages/WalletsPage';
+import { ProductContentImportPage } from './pages/ProductContentImportPage';
+import { SmokeyBackground } from './components/SmokeyBackground';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
 import './reference.css';
 import './admin.css';
+import './theme.css';
+import './foundation.css';
 
 const NAV_MAIN = [
   {
@@ -38,6 +50,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
       </svg>
     ),
+    requiredPermission: '*',
   },
   {
     to: '/admin/orders',
@@ -48,6 +61,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
       </svg>
     ),
+    requiredPermission: 'manage_orders',
   },
   {
     to: '/admin/products',
@@ -57,6 +71,27 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
       </svg>
     ),
+    requiredPermission: 'manage_products',
+  },
+  {
+    to: '/admin/product-content-import',
+    label: 'دریافت اطلاعات از دیجیکالا',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4.5 19.5h15" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
+  },
+  {
+    to: '/admin/bundles',
+    label: 'باندل‌ها',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-2.25-1.313M21 7.5v2.25m0-2.25l-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3l2.25-1.313M12 12.75l-2.25-1.313M12 12.75V15m0 6.75l2.25-1.313M12 21.75V19.5m0 2.25l-2.25-1.313m0-9.687L12 9.25l2.25 1.313M6.75 9.188L9 10.5m0 0v2.25m0-2.25l-2.25-1.313m10.5 1.313L15 10.5m0 0v2.25m0-2.25l2.25-1.313" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
   },
   {
     to: '/admin/users',
@@ -67,6 +102,17 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
       </svg>
     ),
+    requiredPermission: 'manage_users',
+  },
+  {
+    to: '/admin/credit',
+    label: 'اعتبارسنجی و تضامین',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 3h6m-6-6h.008v.008H3.75V12.75zm0 3h.008v.008H3.75V15.75zM3 3h18a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 0121 21H3a2.25 2.25 0 01-2.25-2.25V5.25A2.25 2.25 0 013 3z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_users',
   },
   {
     to: '/admin/analytics',
@@ -76,6 +122,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
       </svg>
     ),
+    requiredPermission: '*',
   },
   {
     to: '/admin/categories',
@@ -86,6 +133,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
       </svg>
     ),
+    requiredPermission: 'manage_content',
   },
   {
     to: '/admin/brands',
@@ -96,6 +144,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 8.25h1.75a4.25 4.25 0 010 8.5H16.5M6 9h6M6 12h4.5M6 15h3" />
       </svg>
     ),
+    requiredPermission: 'manage_content',
   },
   {
     to: '/admin/attributes',
@@ -106,6 +155,7 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.5h16.5A2.25 2.25 0 0122.5 6.75v10.5a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 17.25V6.75A2.25 2.25 0 013.75 4.5z" />
       </svg>
     ),
+    requiredPermission: 'manage_products',
   },
   {
     to: '/admin/warehouses',
@@ -115,6 +165,18 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 8.25V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18V8.25m-18 0V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v2.25m-18 0h18M5.25 6h.008v.008H5.25V6zM7.5 6h.008v.008H7.5V6zm2.25 0h.008v.008H9.75V6z" />
       </svg>
     ),
+    requiredPermission: 'manage_products',
+  },
+  {
+    to: '/admin/target-sites',
+    label: 'سایت‌های رهگیری',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v8m-4-4h8" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
   },
   {
     to: '/admin/financial',
@@ -124,6 +186,13 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
+    requiredPermission: 'manage_settings',
+  },
+  {
+    to: '/admin/wallets',
+    label: 'کیف پول‌ها',
+    icon: (<svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75A2.25 2.25 0 016 4.5h12a2.25 2.25 0 012.25 2.25v10.5A2.25 2.25 0 0118 19.5H6a2.25 2.25 0 01-2.25-2.25V6.75zm12 4.5h4.5v3h-4.5a1.5 1.5 0 010-3z" /></svg>),
+    requiredPermission: 'manage_orders',
   },
   {
     to: '/admin/comments',
@@ -133,6 +202,17 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
       </svg>
     ),
+    requiredPermission: 'manage_settings',
+  },
+  {
+    to: '/admin/chat',
+    label: 'چت مشتریان',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_orders',
   },
   {
     to: '/admin/slides',
@@ -142,10 +222,21 @@ const NAV_MAIN = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
       </svg>
     ),
+    requiredPermission: 'manage_content',
   },
 ] as const;
 
 const NAV_TOOLS = [
+  {
+    to: '/admin/catalog-export',
+    label: 'خروجی کاتالوگ PDF',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
+  },
   {
     to: '/admin/messages',
     label: 'پیام‌ها',
@@ -154,6 +245,17 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
       </svg>
     ),
+    requiredPermission: 'manage_settings',
+  },
+  {
+    to: '/admin/sms',
+    label: 'پیامک هوشمند',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+      </svg>
+    ),
+    requiredPermission: 'manage_settings',
   },
   {
     to: '/admin/marketing',
@@ -164,6 +266,7 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
       </svg>
     ),
+    requiredPermission: '*',
   },
   {
     to: '/admin/uploads',
@@ -173,15 +276,37 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25z" />
       </svg>
     ),
+    requiredPermission: 'manage_content',
   },
   {
     to: '/admin/sync',
-    label: 'گوگل شیت',
+    label: 'آپدیت قیمت (اکسل/شیت)',
     icon: (
       <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.9" />
       </svg>
     ),
+    requiredPermission: 'manage_settings',
+  },
+  {
+    to: '/admin/catalog-export',
+    label: 'خروجی کاتالوگ PDF',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
+  },
+  {
+    to: '/admin/crm-sync',
+    label: 'سینک CRM',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+    ),
+    requiredPermission: 'manage_settings',
   },
   {
     to: '/admin/settings',
@@ -192,6 +317,17 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
+    requiredPermission: 'manage_settings',
+  },
+  {
+    to: '/admin/access-groups',
+    label: 'گروه‌های دسترسی',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+      </svg>
+    ),
+    requiredPermission: '*', // Only superadmin should be able to create access groups probably
   },
   {
     to: '/admin/graphify',
@@ -201,6 +337,7 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
       </svg>
     ),
+    requiredPermission: '*',
   },
   {
     to: '/admin/archify',
@@ -210,16 +347,98 @@ const NAV_TOOLS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
       </svg>
     ),
+    requiredPermission: '*',
   },
 ] as const;
 
+const NAV_ITEMS = [...NAV_MAIN, ...NAV_TOOLS].filter(
+  (item, index, items) => items.findIndex((candidate) => candidate.to === item.to) === index,
+);
+
+const NAV_GROUPS = [
+  {
+    id: 'sales',
+    label: 'فروش و سفارش‌ها',
+    description: 'سفارش، اعتبار و امور مالی',
+    paths: ['/admin/orders', '/admin/credit', '/admin/financial', '/admin/wallets'],
+    iconPath: 'M3.75 7.5h16.5l-1.5 12H5.25l-1.5-12zm4.5 0V6a3.75 3.75 0 117.5 0v1.5',
+  },
+  {
+    id: 'catalog',
+    label: 'کالا و موجودی',
+    description: 'محصول، دسته‌بندی و انبار',
+    paths: ['/admin/products', '/admin/product-content-import', '/admin/bundles', '/admin/categories', '/admin/brands', '/admin/attributes', '/admin/warehouses', '/admin/target-sites', '/admin/catalog-export'],
+    iconPath: 'M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m-.375 0h17.25M9 11.25h6m-6 3h6',
+  },
+  {
+    id: 'customers',
+    label: 'مشتریان و ارتباطات',
+    description: 'کاربران، گفتگو و پیام‌رسانی',
+    paths: ['/admin/users', '/admin/comments', '/admin/chat', '/admin/messages', '/admin/sms'],
+    iconPath: 'M15 19.128A9.38 9.38 0 0017.625 19.5a9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z',
+  },
+  {
+    id: 'content',
+    label: 'محتوا و بازاریابی',
+    description: 'بنر، رسانه و کمپین',
+    paths: ['/admin/slides', '/admin/uploads', '/admin/marketing'],
+    iconPath: 'M3.75 4.5h16.5A2.25 2.25 0 0122.5 6.75v10.5a2.25 2.25 0 01-2.25 2.25H3.75a2.25 2.25 0 01-2.25-2.25V6.75A2.25 2.25 0 013.75 4.5zm0 11.25l4.5-4.5 3 3 2.25-2.25 6.75 6.75',
+  },
+  {
+    id: 'insights',
+    label: 'گزارش‌ها و ابزار هوشمند',
+    description: 'تحلیل، Graphify و Archify',
+    paths: ['/admin/analytics', '/admin/graphify', '/admin/archify'],
+    iconPath: 'M3 20.25h18M5.25 17.25V12h3v5.25m3 0V6.75h3v10.5m3 0V3.75h3v13.5',
+  },
+  {
+    id: 'system',
+    label: 'سیستم و یکپارچه‌سازی',
+    description: 'تنظیمات، دسترسی و همگام‌سازی',
+    paths: ['/admin/sync', '/admin/crm-sync', '/admin/settings', '/admin/access-groups'],
+    iconPath: 'M12 3v3m0 12v3m9-9h-3M6 12H3m15.364-6.364l-2.122 2.122M7.758 16.242l-2.122 2.122m12.728 0l-2.122-2.122M7.758 7.758L5.636 5.636M15.75 12A3.75 3.75 0 1112 8.25 3.75 3.75 0 0115.75 12z',
+  },
+] as const;
+
+function pathMatches(pathname: string, path: string): boolean {
+  return pathname === path || pathname.startsWith(`${path}/`);
+}
+
+function activeNavGroup(pathname: string): string | null {
+  return NAV_GROUPS.find((group) => group.paths.some((path) => pathMatches(pathname, path)))?.id ?? null;
+}
+
 export default function AdminApp() {
-  const { user, ready, isAdmin, logout } = useAuth();
+  const { user, ready, isAdmin, isOperator, hasPermission, logout } = useAuth();
   const location = useLocation();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [openNavGroup, setOpenNavGroup] = useState<string | null>(() => activeNavGroup(location.pathname));
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState({ date: '', time: '' });
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      return localStorage.getItem('tamas_admin_theme') === 'light' ? 'light' : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  const toggleTheme = () => {
+    setTheme((current) => {
+      const next = current === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('tamas_admin_theme', next);
+      } catch {}
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (theme === 'light') document.body.classList.add('admin-theme-light');
+    else document.body.classList.remove('admin-theme-light');
+    return () => document.body.classList.remove('admin-theme-light');
+  }, [theme]);
 
   // The reference stylesheet contains a complete utility/reset layer. Mark the
   // document while this lazy route is mounted so those rules never leak into
@@ -259,6 +478,8 @@ export default function AdminApp() {
     setNotifOpen(false);
     setProfileOpen(false);
     setMobileSidebarOpen(false);
+    const activeGroup = activeNavGroup(location.pathname);
+    if (activeGroup) setOpenNavGroup(activeGroup);
   }, [location.pathname]);
 
   const counters = useQuery({
@@ -276,32 +497,50 @@ export default function AdminApp() {
 
   if (!ready) {
     return (
-      <div className="admin-body-shell flex items-center justify-center p-12">
-        <div className="glass-card p-8 text-center">
-          <div className="relative inline-grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500 shadow-glow mb-4">
-            <svg className="h-6 w-6 text-slate-950 animate-spin" fill="none" viewBox="0 0 24 24">
+      <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', position: 'relative' }}>
+        {/* Smokey WebGL Background */}
+        <SmokeyBackground className="fixed inset-0 z-0" bgColor={theme === 'light' ? '#ffffff' : '#000000'} color={theme === 'light' ? '#000000' : '#030b14'} />
+
+        <div className="glass-card-static" style={{ maxWidth: '24rem', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '1rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
+          {/* Shimmer top line */}
+          <div className="shimmer-line animate-shimmer" style={{ position: 'absolute', insetInline: 0, top: 0, height: '1px' }} />
+
+          <div style={{
+            margin: '0 auto 1.5rem',
+            width: '5rem',
+            height: '5rem',
+            display: 'grid',
+            placeItems: 'center',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            position: 'relative'
+          }}>
+            <svg className="h-8 w-8 text-white animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
+            <div className="absolute inset-0 rounded-full animate-ping border-2 border-white/20"></div>
           </div>
-          <p className="text-sm font-semibold text-slate-300">در حال بررسی دسترسی مدیریت...</p>
+
+          <h2 style={{ fontSize: '1.125rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
+            در حال راه‌اندازی پنل ادمین
+          </h2>
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', lineHeight: '1.75' }}>
+            لطفاً چند لحظه منتظر بمانید...
+          </p>
         </div>
       </div>
     );
   }
 
-  if (!user || !isAdmin) {
+  if (!user || (!isAdmin && !isOperator)) {
     return (
-      <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-        {/* Background Ambient Glows */}
-        <div className="ambient-glow-container" aria-hidden="true">
-          <div className="glow-orb-1" />
-          <div className="glow-orb-2" />
-          <div className="glow-orb-3" />
-          <div className="grid-dot-pattern" />
-        </div>
+      <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', position: 'relative' }}>
+        {/* Smokey WebGL Background */}
+        <SmokeyBackground className="fixed inset-0 z-0" bgColor={theme === 'light' ? '#ffffff' : '#000000'} color={theme === 'light' ? '#000000' : '#030b14'} />
 
-        <div className="glass-card-static" style={{ maxWidth: '26rem', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <div className="glass-card-static" style={{ maxWidth: '26rem', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '1rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
           {/* Shimmer top line */}
           <div className="shimmer-line animate-shimmer" style={{ position: 'absolute', insetInline: 0, top: 0, height: '1px' }} />
 
@@ -349,15 +588,17 @@ export default function AdminApp() {
     return 0;
   };
 
+  const dashboardItem = NAV_MAIN[0];
+  const visibleGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: NAV_ITEMS.filter((item) => group.paths.some((path) => path === item.to) && hasPermission(item.requiredPermission)),
+  })).filter((group) => group.items.length > 0);
+  const currentGroupLabel = NAV_GROUPS.find((group) => group.id === activeNavGroup(location.pathname))?.label ?? 'داشبورد';
+
   return (
     <div className="admin-body-shell">
-      {/* Background Ambient Glows & Dot Pattern */}
-      <div className="ambient-glow-container" aria-hidden="true">
-        <div className="glow-orb-1" />
-        <div className="glow-orb-2" />
-        <div className="glow-orb-3" />
-        <div className="grid-dot-pattern" />
-      </div>
+      {/* Smokey WebGL Background */}
+      <SmokeyBackground className="fixed inset-0 z-0 pointer-events-auto" bgColor={theme === 'light' ? '#e2e8f0' : '#000000'} color={theme === 'light' ? '#d1d5db' : '#030b14'} />
 
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
@@ -369,17 +610,17 @@ export default function AdminApp() {
 
       {/* Sidebar Navigation */}
       <aside
-        className={`admin-sidebar fixed right-0 top-0 z-40 flex h-screen w-72 flex-col border-l border-white/[0.06] bg-[#0b111d]/90 backdrop-blur-2xl transition-transform duration-500 lg:translate-x-0 ${
+        className={`admin-sidebar fixed right-0 top-0 z-40 flex h-screen w-72 flex-col border-l glass-border glass-bg-surface backdrop-blur-2xl transition-transform duration-500 lg:translate-x-0 ${
           mobileSidebarOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Brand Logo Header */}
-        <div className="flex items-center gap-3 px-6 pb-6 pt-7 border-b border-white/[0.06] mb-4">
+        <div className="flex items-center gap-3 px-6 pb-6 pt-7 border-b glass-border mb-4">
           <div className="relative grid place-items-center">
             <img src="/admin-logo.svg" alt="Tamas Logo" className="h-11 w-11 object-contain" />
           </div>
           <div>
-            <h1 className="text-lg font-extrabold text-white leading-none">تماس مارکت</h1>
+            <h1 className="text-lg font-extrabold glass-text-t1 leading-none">تماس مارکت</h1>
             <p className="mt-1 text-[11px] text-slate-500">پنل مدیریت هوشمند</p>
           </div>
           <button
@@ -395,48 +636,64 @@ export default function AdminApp() {
         </div>
 
         {/* Sidebar Links */}
-        <nav className="flex-1 space-y-6 overflow-y-auto px-4 pb-4">
-          <div>
-            <p className="mb-2 px-4 text-[11px] font-semibold tracking-wide text-slate-500">منوی اصلی</p>
-            <ul className="space-y-1">
-              {NAV_MAIN.map((item) => {
-                const count = badgeValue('badge' in item ? item.badge : undefined);
-                return (
-                  <li key={item.to}>
-                    <NavLink
-                      to={item.to}
-                      end={'end' in item ? item.end : false}
-                      className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                      {count > 0 && (
-                        <span className="mr-auto rounded-lg bg-emerald-500/15 px-2 py-0.5 text-[11px] font-bold text-emerald-300">
-                          {formatNumber(count)}
-                        </span>
-                      )}
-                    </NavLink>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+        <nav className="flex-1 overflow-y-auto px-4 pb-4">
+          <p className="mb-2 px-4 text-[11px] font-semibold tracking-wide text-slate-500">پنل مدیریت</p>
+          {dashboardItem && hasPermission(dashboardItem.requiredPermission) && (
+            <NavLink to={dashboardItem.to} end className={({ isActive }) => `nav-item nav-dashboard-item${isActive ? ' active' : ''}`}>
+              {dashboardItem.icon}
+              <span>{dashboardItem.label}</span>
+            </NavLink>
+          )}
 
-          <div>
-            <p className="mb-2 px-4 text-[11px] font-semibold tracking-wide text-slate-500">ابزارها و تنظیمات</p>
-            <ul className="space-y-1">
-              {NAV_TOOLS.map((item) => (
-                <li key={item.to}>
-                  <NavLink
-                    to={item.to}
-                    className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+          <div className="nav-domain-list">
+            {visibleGroups.map((group) => {
+              const isOpen = openNavGroup === group.id;
+              const isActive = group.paths.some((path) => pathMatches(location.pathname, path));
+              const groupBadge = group.items.reduce(
+                (total, item) => total + badgeValue('badge' in item ? item.badge : undefined),
+                0,
+              );
+              return (
+                <section key={group.id} className={`nav-accordion nav-domain${isOpen ? ' is-open' : ''}`}>
+                  <button
+                    type="button"
+                    className={`nav-item nav-accordion-toggle nav-domain-toggle${isActive ? ' active' : ''}`}
+                    aria-expanded={isOpen}
+                    aria-controls={`admin-${group.id}-submenu`}
+                    onClick={() => setOpenNavGroup((current) => (current === group.id ? null : group.id))}
                   >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
+                    <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d={group.iconPath} />
+                    </svg>
+                    <span className="nav-domain-copy" title={`${group.label} — ${group.description}`}>
+                      <strong>{group.label}</strong>
+                      <small>{group.description}</small>
+                    </span>
+                    {groupBadge > 0 && <span className="nav-domain-badge">{formatNumber(groupBadge)}</span>}
+                    <span className="nav-accordion-count">{formatNumber(group.items.length)}</span>
+                    <svg className="nav-accordion-chevron" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 9l-7.5 7.5L4.5 9" />
+                    </svg>
+                  </button>
+                  <div id={`admin-${group.id}-submenu`} className="nav-submenu-shell" aria-hidden={!isOpen}>
+                    <ul className="nav-submenu">
+                      {group.items.map((item) => {
+                        const count = badgeValue('badge' in item ? item.badge : undefined);
+                        return (
+                          <li key={item.to}>
+                            <NavLink to={item.to} className={({ isActive: itemActive }) => `nav-item nav-subitem${itemActive ? ' active' : ''}`}>
+                              {item.icon}
+                              <span>{item.label}</span>
+                              {count > 0 && <span className="nav-domain-badge mr-auto">{formatNumber(count)}</span>}
+                            </NavLink>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </section>
+              );
+            })}
           </div>
         </nav>
 
@@ -447,9 +704,9 @@ export default function AdminApp() {
             <div className="absolute inset-x-0 top-0 h-px shimmer-line animate-shimmer" />
             <div className="flex items-center gap-2 mb-1">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <h3 className="text-xs font-bold text-white">نسخه حرفه‌ای تماس مارکت</h3>
+              <h3 className="text-xs font-bold glass-text-t1">نسخه حرفه‌ای تماس مارکت</h3>
             </div>
-            <p className="text-[11px] leading-5 text-slate-400">اتصال هوشمند دیتابیس و مدیریت سفارش‌ها</p>
+            <p className="text-[11px] leading-5 glass-text-t2">اتصال هوشمند دیتابیس و مدیریت سفارش‌ها</p>
             <Link
               to="/admin/settings"
               className="mt-3 block text-center w-full rounded-xl bg-gradient-to-l from-emerald-500 to-cyan-500 py-2 text-xs font-bold text-slate-950 shadow-glow transition-all duration-300 hover:brightness-110 active:scale-95"
@@ -461,9 +718,9 @@ export default function AdminApp() {
       </aside>
 
       {/* Main Container */}
-      <div className="admin-main-shell flex min-h-screen flex-col lg:mr-72">
+      <div className="admin-main-shell relative z-10 flex min-h-screen flex-col lg:mr-72">
         {/* Sticky Top Header */}
-        <header className="admin-topbar sticky top-0 z-20 border-b border-white/[0.06] bg-[#070b12]/75 backdrop-blur-xl">
+        <header className="admin-topbar sticky top-0 z-20 border-b glass-border glass-bg-surface backdrop-blur-xl">
           <div className="flex h-[4.5rem] items-center gap-3 px-4 sm:px-6 lg:px-8">
             {/* Mobile Menu Button */}
             <button
@@ -476,6 +733,11 @@ export default function AdminApp() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
               </svg>
             </button>
+
+            <div className="mobile-admin-heading lg:hidden">
+              <strong>پنل مدیریت</strong>
+              <small>{currentGroupLabel}</small>
+            </div>
 
             {/* Quick Search Input */}
             <div className="group relative hidden flex-1 max-w-md sm:block">
@@ -491,25 +753,44 @@ export default function AdminApp() {
               <input
                 type="text"
                 placeholder="جستجو در بخش مدیریت..."
-                className="w-full rounded-xl border border-white/[0.06] bg-[#131c2e]/60 py-2 pr-11 pl-4 text-xs text-slate-200 placeholder:text-slate-500 outline-none transition-all duration-300 focus:border-emerald-500/40 focus:bg-[#131c2e] focus:shadow-glow"
+                className="w-full rounded-xl border glass-border glass-bg-input py-2 pr-11 pl-4 text-xs glass-text-t1 glass-placeholder outline-none transition-all duration-300 glass-input focus:shadow-glow"
               />
-              <kbd className="absolute left-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-white/10 bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-500 md:block">
+              <kbd className="absolute left-3 top-1/2 hidden -translate-y-1/2 rounded-md border glass-border glass-bg-surface px-1.5 py-0.5 text-[10px] glass-text-t4 md:block">
                 ⌘K
               </kbd>
             </div>
 
             {/* Real-time Jalali Date & Clock */}
             <div className="mr-auto flex items-center gap-2 sm:gap-3">
-              <div className="hidden items-center gap-2.5 rounded-xl border border-white/[0.06] bg-[#131c2e]/60 px-4 py-2 md:flex">
+              <div className="hidden items-center gap-2.5 rounded-xl border glass-border glass-bg-surface px-4 py-2 md:flex">
                 <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
-                <span className="text-xs font-medium text-slate-300">{currentTime.date || 'در حال دریافت...'}</span>
-                <span className="h-3 w-px bg-white/10" />
+                <span className="text-xs font-medium glass-text-t2">{currentTime.date || 'در حال دریافت...'}</span>
+                <span className="h-3 w-px bg-[var(--a-divider)]" />
                 <span dir="ltr" className="text-xs font-semibold tabular-nums text-emerald-300">
                   {currentTime.time || '--:--:--'}
                 </span>
               </div>
+
+              {/* Theme Toggle */}
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={toggleTheme}
+                aria-label={theme === 'dark' ? 'حالت روشن' : 'حالت تیره'}
+                title={theme === 'dark' ? 'تغییر به حالت روشن' : 'تغییر به حالت تیره'}
+              >
+                {theme === 'dark' ? (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                  </svg>
+                ) : (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                  </svg>
+                )}
+              </button>
 
               {/* Notification Bell Dropdown */}
               <div className="relative">
@@ -532,25 +813,37 @@ export default function AdminApp() {
 
                 {notifOpen && (
                   <div className="absolute left-0 top-14 w-80 max-w-[calc(100vw-2rem)] z-50">
-                    <div className="glass-card-static overflow-hidden !bg-[#0e1626]/95 p-0 shadow-2xl">
-                      <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
-                        <h3 className="text-sm font-bold text-white">اعلان‌ها</h3>
+                    <div className="glass-card-static overflow-hidden p-0 shadow-2xl glass-bg-dropdown">
+                      <div className="flex items-center justify-between border-b glass-border px-5 py-4">
+                        <h3 className="text-sm font-bold glass-text-t1">اعلان‌ها</h3>
                         <span className="chip chip-brand">۲ مورد جدید</span>
                       </div>
-                      <ul className="max-h-72 overflow-y-auto divide-y divide-white/[0.04]">
-                        <li className="notif-item">
-                          <span className="notif-dot bg-emerald-400" />
-                          <div>
-                            <p className="text-xs font-semibold text-slate-200">سفارش جدید دریافت شد</p>
-                            <p className="mt-0.5 text-[11px] text-slate-500">سفارش به ارزش ۲,۴۵۰,۰۰۰ <img src="/toman.svg" alt="تومان" style={{ width: '1em', height: '1em', display: 'inline' }} /> · ۳ دقیقه پیش</p>
-                          </div>
+                      <ul className="max-h-72 overflow-y-auto divide-y glass-divide">
+                        <li>
+                          <Link
+                            to="/admin/orders"
+                            className="notif-item"
+                            onClick={() => setNotifOpen(false)}
+                          >
+                            <span className="notif-dot bg-emerald-400" />
+                            <div>
+                              <p className="text-xs font-semibold glass-text-t1">سفارش جدید دریافت شد</p>
+                              <p className="mt-0.5 text-[11px] text-slate-500">سفارش به ارزش ۲,۴۵۰,۰۰۰ <img src="/toman.svg" alt="تومان" style={{ width: '1em', height: '1em', display: 'inline' }} /> · ۳ دقیقه پیش</p>
+                            </div>
+                          </Link>
                         </li>
-                        <li className="notif-item">
-                          <span className="notif-dot bg-amber-400" />
-                          <div>
-                            <p className="text-xs font-semibold text-slate-200">کد ملی ثبت نام شد</p>
-                            <p className="mt-0.5 text-[11px] text-slate-500">کاربر جدید کد ملی خود را جهت بررسی ارسال نمود · ۱۵ دقیقه پیش</p>
-                          </div>
+                        <li>
+                          <Link
+                            to="/admin/users"
+                            className="notif-item"
+                            onClick={() => setNotifOpen(false)}
+                          >
+                            <span className="notif-dot bg-amber-400" />
+                            <div>
+                              <p className="text-xs font-semibold text-slate-200">کد ملی ثبت نام شد</p>
+                              <p className="mt-0.5 text-[11px] text-slate-500">کاربر جدید کد ملی خود را جهت بررسی ارسال نمود · ۱۵ دقیقه پیش</p>
+                            </div>
+                          </Link>
                         </li>
                       </ul>
                     </div>
@@ -562,7 +855,7 @@ export default function AdminApp() {
               <div className="relative">
                 <button
                   type="button"
-                  className="group flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-[#131c2e]/60 py-1.5 pl-3 pr-1.5 transition-all duration-300 hover:border-emerald-500/30"
+                  className="group flex items-center gap-2.5 rounded-xl border glass-border glass-bg-surface py-1.5 pl-3 pr-1.5 transition-all duration-300 hover:border-emerald-500/30"
                   onClick={() => {
                     setProfileOpen(!profileOpen);
                     setNotifOpen(false);
@@ -575,8 +868,8 @@ export default function AdminApp() {
                     <span className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
                   </span>
                   <span className="hidden text-right md:block">
-                    <span className="block text-xs font-bold text-white">{user?.name} {user?.lastName}</span>
-                    <span className="block text-[10px] text-slate-500">مدیر سیستم</span>
+                    <span className="block text-xs font-bold glass-text-t1">{user?.name} {user?.lastName}</span>
+                    <span className="block text-[10px] glass-text-t2">مدیر سیستم</span>
                   </span>
                   <svg className="hidden h-4 w-4 text-slate-500 transition-transform duration-300 md:block" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -585,29 +878,29 @@ export default function AdminApp() {
 
                 {profileOpen && (
                   <div className="absolute left-0 top-14 w-72 max-w-[calc(100vw-2rem)] z-50">
-                    <div className="glass-card-static overflow-hidden !bg-[#0e1626]/95 p-0 shadow-2xl">
-                      <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4">
+                    <div className="glass-card-static overflow-hidden p-0 shadow-2xl glass-bg-dropdown backdrop-blur-xl">
+                      <div className="flex items-center gap-3 border-b glass-border px-5 py-4">
                         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 text-base font-extrabold text-slate-950">
                           {user?.name?.[0] || 'م'}
                         </span>
                         <div>
-                          <p className="text-sm font-bold text-white">{user?.name} {user?.lastName}</p>
-                          <p className="mt-0.5 text-xs text-slate-400">{user?.phone}</p>
+                          <p className="text-sm font-bold glass-text-t1">{user?.name} {user?.lastName}</p>
+                          <p className="mt-0.5 text-xs glass-text-t2">{user?.phone}</p>
                           <span className="chip chip-brand mt-1.5">مدیر ارشد</span>
                         </div>
                       </div>
                       <ul className="py-2">
                         <li>
-                          <Link to="/" className="profile-menu-item">
-                            <svg className="h-4 w-4 shrink-0 text-slate-500" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                          <Link to="/" className="profile-menu-item glass-text-t2 hover:glass-text-t1">
+                            <svg className="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                             </svg>
                             مشاهده وب‌سایت فروشگاه
                           </Link>
                         </li>
                         <li>
-                          <Link to="/admin/settings" className="profile-menu-item">
-                            <svg className="h-4 w-4 shrink-0 text-slate-500" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                          <Link to="/admin/settings" className="profile-menu-item glass-text-t2 hover:glass-text-t1">
+                            <svg className="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
                               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
@@ -615,10 +908,10 @@ export default function AdminApp() {
                           </Link>
                         </li>
                       </ul>
-                      <div className="border-t border-white/[0.06] p-2">
-                        <button
-                          type="button"
-                          className="profile-menu-item text-rose-400 w-full hover:bg-rose-500/10 rounded-lg text-right"
+                      <div className="border-t glass-border p-2">
+                          <button
+                            type="button"
+                            className="profile-menu-item text-rose-600 dark:text-rose-400 w-full hover:bg-rose-500/10 rounded-lg text-right"
                           onClick={() => void logout()}
                         >
                           <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
@@ -640,30 +933,82 @@ export default function AdminApp() {
           <div className="max-w-6xl mx-auto w-full">
             <Routes>
             <Route index element={<DashboardPage />} />
-            <Route path="products" element={<ProductsPage />} />
+            <Route path="products" element={<ProductsPage key="products" typeFilter="physical" />} />
+            <Route path="product-content-import" element={<ProductContentImportPage />} />
+            <Route path="bundles" element={<ProductsPage key="bundles" typeFilter="bundle" />} />
             <Route path="categories" element={<CategoriesPage />} />
             <Route path="brands" element={<BrandsPage />} />
             <Route path="taxonomy" element={<Navigate to="/admin/categories" replace />} />
             <Route path="attributes" element={<AttributesPage />} />
             <Route path="warehouses" element={<WarehousesPage />} />
+            <Route path="target-sites" element={<TargetSitesPage />} />
             <Route path="slides" element={<SlidesPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="users" element={<UsersPage />} />
+            <Route path="credit" element={<CreditApplicationsPage />} />
+            <Route path="catalog-export" element={<CatalogExportPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="messages" element={<MessagesPage />} />
+            <Route path="sms" element={<SmsPage />} />
             <Route path="marketing" element={<MarketingPage />} />
             <Route path="uploads" element={<UploadsPage />} />
             <Route path="sync" element={<SyncPage />} />
+            <Route path="crm-sync" element={<CrmSyncPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="financial" element={<FinancialPage />} />
+            <Route path="wallets" element={<WalletsPage />} />
             <Route path="comments" element={<CommentsPage />} />
             <Route path="graphify" element={<GraphifyPage />} />
             <Route path="archify" element={<ArchifyPage />} />
+            <Route path="access-groups" element={<AccessGroupsPage />} />
+            <Route path="chat" element={<CrmChatPage />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
             </Routes>
           </div>
         </main>
       </div>
+
+      <nav className="mobile-admin-nav lg:hidden" aria-label="دسترسی سریع مدیریت">
+        <NavLink to="/admin" end className={({ isActive }) => `mobile-admin-nav-item${isActive ? ' active' : ''}`}>
+          <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25A2.25 2.25 0 018.25 10.5H6A2.25 2.25 0 013.75 8.25V6zm9.75 0a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75 0a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25a2.25 2.25 0 01-2.25-2.25v-2.25z" />
+          </svg>
+          <span>خانه</span>
+        </NavLink>
+        {hasPermission('manage_orders') && (
+          <NavLink to="/admin/orders" className={({ isActive }) => `mobile-admin-nav-item${isActive ? ' active' : ''}`}>
+            <span className="mobile-admin-nav-icon">
+              <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
+              </svg>
+              {(counters.data?.newOrders ?? 0) > 0 && <i>{formatNumber(counters.data?.newOrders ?? 0)}</i>}
+            </span>
+            <span>سفارش‌ها</span>
+          </NavLink>
+        )}
+        {hasPermission('manage_products') && (
+          <NavLink to="/admin/products" className={({ isActive }) => `mobile-admin-nav-item${isActive ? ' active' : ''}`}>
+            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m-.375 0h17.25M9 11.25h6" />
+            </svg>
+            <span>کالاها</span>
+          </NavLink>
+        )}
+        {hasPermission('manage_users') && (
+          <NavLink to="/admin/users" className={({ isActive }) => `mobile-admin-nav-item${isActive ? ' active' : ''}`}>
+            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z" />
+            </svg>
+            <span>مشتریان</span>
+          </NavLink>
+        )}
+        <button type="button" className={`mobile-admin-nav-item${mobileSidebarOpen ? ' active' : ''}`} onClick={() => setMobileSidebarOpen(true)}>
+          <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 6.75h15m-15 5.25h15m-15 5.25h15" />
+          </svg>
+          <span>همه بخش‌ها</span>
+        </button>
+      </nav>
     </div>
   );
 }

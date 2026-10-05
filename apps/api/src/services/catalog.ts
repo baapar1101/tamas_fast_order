@@ -3,6 +3,7 @@ import type { BrandDTO, CatalogQuery, CategoryDTO, ColorDTO, ProductDTO, Product
 import { db } from '../db/client.js';
 import { brands, categories, categoryBrands, colors, products } from '../db/schema.js';
 import { catalogCache } from '../lib/cache.js';
+import { sanitizeExternalText } from '../lib/external-content.js';
 import { offsetOf } from '../lib/pagination.js';
 
 type ProductRow = typeof products.$inferSelect;
@@ -11,21 +12,22 @@ export function toProductDTO(
   row: ProductRow,
   category?: { name: string; faName: string } | null,
   brand?: { name: string; faName: string } | null,
+  options: { includeAdminSource?: boolean } = {},
 ): ProductDTO {
-  return {
+  const dto: ProductDTO = {
     id: row.id,
     productId: row.productId,
     sku: row.sku,
-    title: row.title,
-    model: row.model,
+    title: sanitizeExternalText(row.title),
+    model: row.model ? sanitizeExternalText(row.model) : null,
     categoryName: category?.name ?? null,
     categoryFaName: category?.faName ?? null,
     brandName: brand?.name ?? null,
     brandFaName: brand?.faName ?? null,
     parentProductId: row.parentProductId ?? null,
     otherStocks: row.otherStocks ?? {},
-    color: row.color,
-    colorEn: row.colorEn,
+    color: row.color ? sanitizeExternalText(row.color) : null,
+    colorEn: row.colorEn ? sanitizeExternalText(row.colorEn) : null,
     colorCode: row.colorCode,
     price: row.price,
     oldPrice: row.oldPrice,
@@ -33,26 +35,39 @@ export function toProductDTO(
     stock: row.stock,
     kermanStock: row.kermanStock,
     tehranStock: row.tehranStock,
-    warranty: row.warranty,
-    sellType: row.sellType,
-    seller: row.seller,
+    warranty: row.warranty ? sanitizeExternalText(row.warranty) : null,
+    sellType: row.sellType ? sanitizeExternalText(row.sellType) : null,
+    seller: row.seller ? sanitizeExternalText(row.seller) : null,
     promotion: row.promotion,
     status: row.status,
-    subTitle: row.subTitle,
-    description: row.description,
-    keywords: row.keywords,
+    subTitle: row.subTitle ? sanitizeExternalText(row.subTitle) : null,
+    description: sanitizeExternalText(row.description) || null,
+    keywords: row.keywords ? sanitizeExternalText(row.keywords) : null,
     slug: row.slug,
-    ribbon: row.ribbon,
+    ribbon: row.ribbon ? sanitizeExternalText(row.ribbon) : null,
     type: row.type,
     weight: row.weight,
-    dimensions: row.dimensions,
+    dimensions: row.dimensions ? sanitizeExternalText(row.dimensions) : null,
     tracking: row.tracking,
     imageUrl: row.imageUrl,
     gallery: row.gallery ?? [],
-    attributes: row.attributes ?? [],
+    attributes: (row.attributes ?? []).map((attribute) => ({
+      key: sanitizeExternalText(attribute.key),
+      value: sanitizeExternalText(attribute.value),
+    })),
+    rating: row.rating,
+    ratingCount: row.ratingCount,
+    externalDataUpdatedAt: row.externalDataUpdatedAt?.toISOString() ?? null,
+    bundleItems: row.bundleItems ?? [],
     sortOrder: row.sortOrder,
+    createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+  if (options.includeAdminSource) {
+    dto.digikalaLink = row.digikalaLink ?? null;
+    dto.targetSiteUrl = row.targetSiteUrl ?? null;
+  }
+  return dto;
 }
 
 /** Total sellable units — the two warehouses when set, otherwise the flat count. */
@@ -95,6 +110,14 @@ export async function queryProducts(q: CatalogQuery): Promise<{
 
   const filters = [sellableProduct()];
   if (q.promotion) filters.push(eq(products.promotion, true));
+  if (q.creditOnly) {
+    filters.push(
+      or(
+        sql`${products.sellType} ILIKE ${'%چک%'}`,
+        sql`${products.sellType} ILIKE ${'%اعتبار%'}`,
+      )!,
+    );
+  }
   if (q.q) filters.push(sql`${products.searchText} like ${'%' + q.q.toLowerCase() + '%'}`);
   if (q.category) {
     filters.push(or(eq(categories.name, q.category), eq(categories.faName, q.category))!);
@@ -111,7 +134,7 @@ export async function queryProducts(q: CatalogQuery): Promise<{
    * has to count models rather than rows: page the distinct titles first, then
    * fetch every variant belonging to that page.
    */
-  const groupKeyExpr = sql<string>`COALESCE(${products.parentProductId}, ${products.title})`;
+  const groupKeyExpr = sql<string>`COALESCE(NULLIF(${products.parentProductId}, ''), ${products.title})`;
 
   const titleRows = await db
     .selectDistinct({ title: groupKeyExpr })
@@ -124,7 +147,7 @@ export async function queryProducts(q: CatalogQuery): Promise<{
     .offset(offsetOf(q));
 
   const [totalRow] = await db
-    .select({ n: sql<number>`count(distinct COALESCE(${products.parentProductId}, ${products.title}))::int` })
+    .select({ n: sql<number>`count(distinct COALESCE(NULLIF(${products.parentProductId}, ''), ${products.title}))::int` })
     .from(products)
     .leftJoin(categories, eq(categories.id, products.categoryId))
     .leftJoin(brands, eq(brands.id, products.brandId))

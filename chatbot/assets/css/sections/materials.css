@@ -1,0 +1,236 @@
+/*
+=====================================================
+MARKSTREET — MATERIALS
+=====================================================
+
+Material strip, cards, artifact variants and responsive behavior.
+
+=====================================================
+*/
+
+.materials-section {
+  border-top: 1px solid var(--ms-line-soft);
+  border-bottom: 1px solid var(--ms-line-soft);
+  background:
+    radial-gradient(circle at 78% 36%, rgba(36,92,255,.12), rgba(36,92,255,.025) 30%, transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.008));
+}
+
+.materials-header {
+  display: grid;
+  grid-template-columns: .38fr 1fr;
+  gap: clamp(28px, 5vw, 70px);
+  align-items: end;
+  margin-bottom: 38px;
+}
+
+.materials-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.material-card {
+  position: relative;
+  min-height: 420px;
+  padding: 14px 14px 22px;
+  border: 1px solid var(--ms-line-soft);
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.014));
+  overflow: hidden;
+  transition: transform .45s var(--ms-ease), border-color .45s var(--ms-ease), background .45s var(--ms-ease);
+}
+
+.material-card::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 0;
+  height: 1px;
+  background: var(--ms-blue);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .45s var(--ms-ease);
+}
+
+.material-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(36,92,255,.54);
+  background: linear-gradient(180deg, rgba(36,92,255,.095), rgba(255,255,255,.015));
+}
+
+.material-card:hover::before {
+  transform: scaleX(1);
+}
+
+.material-visual {
+  position: relative;
+  height: 190px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(255,255,255,.085);
+  background:
+    radial-gradient(circle at 70% 35%, rgba(36,92,255,.16), transparent 38%),
+    linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.012));
+  overflow: hidden;
+}
+
+.material-visual::before,
+.material-visual::after,
+.material-visual span,
+.material-visual i {
+  content: "";
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.material-visual::before {
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 54px 100%, 100% 42px;
+  opacity: .72;
+}
+
+.material-visual--report span {
+  left: 24px;
+  top: 24px;
+  width: 52%;
+  height: 124px;
+  border: 1px solid rgba(255,255,255,.16);
+  background:
+    linear-gradient(90deg, var(--ms-blue) 0 16px, transparent 16px),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.16) 0 1px, transparent 1px 14px);
+  background-position: 0 0, 28px 34px;
+  background-size: auto, 62% 100%;
+  background-repeat: no-repeat;
+}
+
+.material-visual--report i {
+  right: 28px;
+  bottom: 26px;
+  width: 42%;
+  height: 104px;
+  border: 1px solid rgba(255,255,255,.09);
+  transform: translateY(8px);
+}
+
+.material-visual--map::after {
+  inset: 22px 18px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 320 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 116H76Q104 116 104 88V42Q104 18 128 18H210Q236 18 236 44V94Q236 118 260 118H312' fill='none' stroke='%23ffffff' stroke-opacity='.26' stroke-width='1'/%3E%3Cpath d='M104 88H172Q190 88 190 70V18' fill='none' stroke='%23245CFF' stroke-opacity='.8' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+.material-visual--map span,
+.material-visual--roadmap span {
+  width: 8px;
+  height: 8px;
+  background: var(--ms-blue);
+  left: 58%;
+  top: 47%;
+}
+
+.material-visual--media span {
+  inset: 24px;
+  background-image:
+    linear-gradient(rgba(255,255,255,.13) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.13) 1px, transparent 1px);
+  background-size: 100% 33.333%, 25% 100%;
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.material-visual--media i {
+  left: 25%;
+  right: 25%;
+  top: 24px;
+  height: calc(33.333% - 1px);
+  background: rgba(36,92,255,.24);
+}
+
+.material-visual--content span {
+  inset: 24px;
+  background:
+    linear-gradient(90deg, rgba(36,92,255,.34) 0 22%, transparent 22%),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.15) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.12) 0 1px, transparent 1px 52px);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.material-visual--roadmap::after {
+  left: 26px;
+  right: 26px;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,.22), var(--ms-blue), rgba(255,255,255,.16));
+}
+
+.material-visual--roadmap i {
+  left: 26px;
+  right: 26px;
+  top: calc(50% - 5px);
+  height: 10px;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.34) 0 10px, transparent 10px 58px);
+}
+
+.material-num {
+  display: block;
+  color: var(--ms-blue);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.material-card h3 {
+  margin: 18px 0 12px;
+  font-size: 21px;
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.material-card p {
+  margin: 0;
+  color: rgba(255,255,255,.62);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+@media (max-width: 1100px) {
+  .materials-header {
+    grid-template-columns: 1fr; gap: 18px;
+  }
+
+  .materials-strip {
+    grid-template-columns: repeat(5, minmax(260px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-snap-type: x proximity;
+  }
+
+  .material-card {
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 720px) {
+  .materials-strip {
+    grid-template-columns: 1fr;
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+
+  .material-card {
+    min-height: auto;
+  }
+
+  .material-visual {
+    height: 164px;
+  }
+}
+
+.material-card .visual-placeholder {
+  margin: -10px -10px 22px;
+  min-height: 150px;
+}

@@ -1,0 +1,12 @@
+{
+  "name": "markstreet",
+  "version": "1.0.0",
+  "description": "MarkStreet.co website",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

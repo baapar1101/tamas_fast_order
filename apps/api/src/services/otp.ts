@@ -1,4 +1,4 @@
-import { and, count, eq, gt, isNull, sql as raw } from 'drizzle-orm';
+import { and, count, eq, gt, isNull, lt, sql as raw } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { otpCodes } from '../db/schema.js';
 import { env } from '../env.js';
@@ -180,6 +180,6 @@ export async function verifyOtp(phone: string, code: string): Promise<boolean> {
 /** Drops codes that expired more than a day ago; called from the scheduler. */
 export async function pruneOtpCodes(): Promise<number> {
   const cutoff = new Date(Date.now() - 86_400_000);
-  const rows = await db.delete(otpCodes).where(raw`${otpCodes.expiresAt} < ${cutoff}`).returning({ id: otpCodes.id });
+  const rows = await db.delete(otpCodes).where(lt(otpCodes.expiresAt, cutoff)).returning({ id: otpCodes.id });
   return rows.length;
 }

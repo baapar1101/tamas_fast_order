@@ -1,0 +1,381 @@
+/*
+=====================================================
+MARKSTREET — METHOD & WORKBENCH
+=====================================================
+
+Method track, workbench route, stages, visuals and responsive behavior.
+
+=====================================================
+*/
+
+.method-track::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -9%;
+  width: min(1160px, 112vw);
+  height: 46%;
+  pointer-events: none;
+  background:
+    linear-gradient(64deg, transparent 49.72%, rgba(255,255,255,.09) 50%, transparent 50.22%),
+    linear-gradient(116deg, transparent 49.72%, rgba(255,255,255,.09) 50%, transparent 50.22%),
+    linear-gradient(82deg, transparent 49.82%, rgba(36,92,255,.22) 50%, transparent 50.16%),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.055) 0 1px, transparent 1px 34px);
+  transform: translateX(-50%) perspective(760px) rotateX(62deg);
+  transform-origin: center bottom;
+  opacity: .58;
+  mask-image: linear-gradient(180deg, transparent 0%, black 22%, black 72%, transparent 100%);
+}
+
+.method-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border: 1px solid var(--ms-line-soft);
+  border-radius: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 54% 76%, rgba(36,92,255,.10), transparent 46%),
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.012));
+}
+
+.method-track::before {
+  content: "";
+  position: absolute;
+  top: 28px;
+  left: 7%;
+  right: 7%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,.16), rgba(36,92,255,.72) 28%, rgba(36,92,255,.42) 58%, rgba(255,255,255,.18));
+}
+
+.method-track::after {
+  left: 50%;
+  bottom: -25%;
+  width: 110%;
+  height: 62%;
+  opacity: .34;
+}
+
+.method-step {
+  position: relative;
+  z-index: 1;
+  min-height: 410px;
+  padding: 54px 28px 30px;
+  border-right: 1px solid var(--ms-line-soft);
+}
+
+.method-step:last-child {
+  border-right: 0;
+}
+
+.method-step .dot {
+  position: absolute;
+  top: 22px;
+  left: 28px;
+  width: 13px;
+  height: 13px;
+  border-radius: 0;
+  background: var(--ms-blue);
+  box-shadow: 0 0 30px rgba(36,92,255,.8);
+}
+
+.method-step::before {
+  content: "";
+  position: absolute;
+  top: 28px;
+  left: 28px;
+  width: 34%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(36,92,255,.7), transparent);
+  opacity: .7;
+}
+
+.method-step span {
+  color: var(--ms-blue); font-size: 12px; font-weight: 500; letter-spacing: .14em;
+}
+
+.method-step h3 {
+  margin: 100px 0 18px; font-size: clamp(24px, 2.4vw, 36px); letter-spacing: 0; line-height: 1.02;
+}
+
+.method-step p {
+  margin: 0; color: rgba(255,255,255,.64); line-height: 1.62;
+}
+
+.method-workbench {
+  position: relative;
+  padding: clamp(18px, 3vw, 34px);
+  border: 1px solid var(--ms-line-soft);
+  background:
+    radial-gradient(circle at 52% 52%, rgba(36,92,255,.11), transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.012));
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.method-workbench::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(90deg, transparent calc(50% - 1px), var(--line-color-medium) calc(50% - 1px), var(--line-color-medium) 50%, transparent 50%);
+  opacity: .7;
+}
+
+.workbench-route {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 50%;
+  height: 1px;
+  z-index: 1;
+  background: linear-gradient(90deg, rgba(255,255,255,.12), rgba(36,92,255,.72) 38%, rgba(255,255,255,.14));
+  pointer-events: none;
+}
+
+.workbench-route::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -180px;
+  width: 1px;
+  height: 360px;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,.13), transparent);
+}
+
+.workbench-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.workbench-stage {
+  position: relative;
+  min-height: 420px;
+  padding: 16px;
+  border: 1px solid var(--ms-line-soft);
+  background: rgba(5,5,5,.42);
+  display: flex;
+  flex-direction: column;
+  transition: transform .45s var(--ms-ease), border-color .45s var(--ms-ease), background .45s var(--ms-ease);
+}
+
+.workbench-stage:hover {
+  transform: translateY(-4px);
+  border-color: rgba(36,92,255,.52);
+  background: rgba(10,12,18,.62);
+}
+
+.workbench-node {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  width: 12px;
+  height: 12px;
+  background: var(--ms-blue);
+  box-shadow: 0 0 22px rgba(36,92,255,.55);
+}
+
+.workbench-visual {
+  position: relative;
+  min-height: 190px;
+  border: 1px solid rgba(255,255,255,.09);
+  background:
+    radial-gradient(circle at 68% 34%, rgba(36,92,255,.16), transparent 38%),
+    linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.012));
+  overflow: hidden;
+}
+
+.workbench-visual::before,
+.workbench-visual::after,
+.workbench-visual span,
+.workbench-visual i {
+  content: "";
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.workbench-visual::before {
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,.032) 1px, transparent 1px);
+  background-size: 56px 100%, 100% 42px;
+}
+
+.workbench-visual--diagnose span {
+  left: 28px;
+  top: 26px;
+  width: 44%;
+  height: 118px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: repeating-linear-gradient(180deg, rgba(255,255,255,.16) 0 1px, transparent 1px 16px);
+}
+
+.workbench-visual--diagnose i {
+  right: 34px;
+  top: 52px;
+  width: 34%;
+  height: 82px;
+  border-left: 1px solid var(--ms-blue);
+  background: linear-gradient(180deg, rgba(36,92,255,.24), transparent);
+}
+
+.workbench-visual--define::after {
+  inset: 28px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 360 130' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 104H96Q132 104 132 68V30Q132 14 148 14H256Q286 14 286 44V116' fill='none' stroke='%23ffffff' stroke-opacity='.24' stroke-width='1'/%3E%3Cpath d='M132 68H206Q230 68 230 44V14' fill='none' stroke='%23245CFF' stroke-opacity='.72' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+.workbench-visual--design span {
+  inset: 26px;
+  border: 1px solid rgba(255,255,255,.12);
+  background:
+    linear-gradient(90deg, rgba(36,92,255,.28) 0 24%, transparent 24%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.12) 0 1px, transparent 1px 62px),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.10) 0 1px, transparent 1px 40px);
+}
+
+.workbench-visual--deploy::after {
+  left: 28px;
+  right: 28px;
+  top: 52%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,.18), var(--ms-blue), rgba(255,255,255,.14));
+}
+
+.workbench-visual--deploy span {
+  left: 30px;
+  right: 30px;
+  top: calc(52% - 5px);
+  height: 10px;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.30) 0 10px, transparent 10px 66px);
+}
+
+.workbench-copy {
+  position: relative;
+  padding-top: 22px;
+  flex: 1;
+}
+
+.stage-meta {
+  display: block;
+  color: var(--ms-blue);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.workbench-copy strong {
+  position: absolute;
+  right: 0;
+  top: 22px;
+  color: rgba(255,255,255,.26);
+  font-size: 13px;
+  letter-spacing: .12em;
+}
+
+.workbench-copy h3 {
+  margin: 48px 0 12px;
+  font-size: clamp(23px, 2.2vw, 34px);
+  line-height: 1.02;
+  letter-spacing: 0;
+}
+
+.workbench-copy p {
+  margin: 0;
+  color: rgba(255,255,255,.64);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+@media (max-width: 1100px) {
+  .workbench-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .workbench-stage {
+    min-height: 390px;
+  }
+
+  .method-track {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .method-track::after {
+    opacity: .28;
+  }
+
+  .method-workbench {
+    padding: 14px;
+  }
+
+  .method-workbench::before {
+    background-image: none;
+  }
+
+  .workbench-grid {
+    grid-template-columns: 1fr; gap: 14px;
+  }
+
+  .workbench-route {
+    left: 20px;
+    right: auto;
+    top: 24px;
+    bottom: 24px;
+    width: 1px;
+    height: auto;
+    background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(36,92,255,.58), rgba(255,255,255,.10));
+  }
+
+  .workbench-route::before {
+    display: none;
+  }
+
+  .workbench-stage {
+    min-height: auto;
+    padding: 14px 14px 18px 28px;
+  }
+
+  .workbench-node {
+    left: 14px;
+    top: 20px;
+    width: 10px;
+    height: 10px;
+  }
+
+  .workbench-visual {
+    min-height: 148px;
+  }
+
+  .workbench-copy h3 {
+    margin-top: 36px;
+  }
+
+  .method-track {
+    grid-template-columns: 1fr;
+  }
+
+  .method-step {
+    min-height: 310px; border-right: 0; border-bottom: 1px solid var(--ms-line-soft);
+  }
+
+  .method-track::before {
+    display: none;
+  }
+}
+
+.workbench-section {
+  position: relative;
+}

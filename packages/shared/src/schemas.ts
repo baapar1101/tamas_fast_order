@@ -39,6 +39,18 @@ export const productAttributeSchema = z.object({
   value: z.string().max(2000),
 });
 
+export const productTrackingLinkSchema = z.object({
+  siteId: z.coerce.number().int().positive(),
+  url: z.string().trim().url('لینک رهگیری معتبر نیست.').max(1000),
+});
+
+export const trackingSiteWriteSchema = z.object({
+  name: z.string().trim().min(2).max(160),
+  baseUrl: z.string().trim().url('آدرس سایت معتبر نیست.').max(1000).optional().nullable(),
+  priceUnit: z.enum(['toman', 'rial']).default('toman'),
+  isActive: z.boolean().default(true),
+});
+
 export const productWriteSchema = z.object({
   productId: z.string().trim().min(1).max(80),
   parentProductId: z.string().trim().max(80).optional().nullable(),
@@ -74,6 +86,13 @@ export const productWriteSchema = z.object({
   imageUrl: z.string().trim().max(1000).optional().nullable(),
   gallery: z.array(z.string().max(1000)).max(12).default([]),
   attributes: z.array(productAttributeSchema).max(60).default([]),
+  bundleItems: z.array(z.object({
+    productId: z.string().trim().min(1).max(80),
+    qty: z.coerce.number().int().min(1).max(1000)
+  })).max(20).default([]),
+  digikalaLink: z.string().trim().max(1000).optional().nullable(),
+  targetSiteUrl: z.string().trim().max(1000).optional().nullable(),
+  trackingLinks: z.array(productTrackingLinkSchema).max(3, 'برای هر محصول حداکثر سه سایت قابل رهگیری است.').default([]),
   sortOrder: z.coerce.number().int().default(0),
 });
 export type ProductWrite = z.infer<typeof productWriteSchema>;
@@ -113,6 +132,7 @@ export const catalogQuerySchema = z.object({
     .transform((v) => (v == null ? [] : Array.isArray(v) ? v : v.split(',')))
     .pipe(z.array(z.string().trim().min(1)).max(50)),
   promotion: z.coerce.boolean().optional(),
+  creditOnly: z.coerce.boolean().optional(),
   inStock: z.coerce.boolean().default(true),
   sort: z.enum(['price_asc', 'price_desc', 'newest', 'title']).default('price_asc'),
   page: z.coerce.number().int().min(1).default(1),
@@ -133,6 +153,17 @@ export const otpVerifySchema = z.object({
     .transform((v) => v.replace(/\D/g, ''))
     .pipe(z.string().min(4).max(8)),
 });
+
+export const passwordLoginSchema = z.object({
+  phone: phoneSchema,
+  password: z.string().min(1, 'رمز عبور الزامی است'),
+});
+
+export const setPasswordSchema = z.object({
+  oldPassword: z.string().optional(),
+  newPassword: z.string().min(6, 'رمز عبور باید حداقل ۶ کاراکتر باشد'),
+});
+
 
 export const PROFILE_FIELDS = [
   'name',
@@ -216,6 +247,13 @@ export const orderCreateSchema = z.object({
   address: z.string().trim().max(1000).optional(),
   paymentMethod: z.string().trim().max(100).optional(),
   note: z.string().trim().max(1000).optional(),
+  attribution: z.object({
+    source: z.string().trim().max(120).optional(),
+    medium: z.string().trim().max(120).optional(),
+    campaign: z.string().trim().max(200).optional(),
+    referrer: z.string().trim().max(1000).optional(),
+    landingPage: z.string().trim().max(1000).optional(),
+  }).optional(),
 });
 export type OrderCreate = z.infer<typeof orderCreateSchema>;
 
@@ -241,7 +279,8 @@ export const userPatchSchema = z.object({
   activity: z.string().trim().max(120).optional(),
   pageWebsite: z.string().trim().max(255).optional(),
   isActive: z.boolean().optional(),
-  role: z.enum(['customer', 'admin']).optional(),
+  role: z.enum(['customer', 'admin', 'operator']).optional(),
+  accessGroupId: z.number().int().positive().nullable().optional(),
 });
 
 export const settingWriteSchema = z.object({
@@ -281,3 +320,78 @@ export const uploadQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(100).default(40),
 });
+
+/* ------------------------------------------------------------------ *
+ * Credit Applications
+ * ------------------------------------------------------------------ */
+
+export const CREDIT_STATUSES = ['pending', 'reviewing', 'active', 'action_required'] as const;
+export type CreditStatus = (typeof CREDIT_STATUSES)[number];
+
+export const CREDIT_STATUS_LABELS: Record<CreditStatus, string> = {
+  pending: 'در صف بررسی',
+  reviewing: 'در حال بررسی',
+  active: 'تایید شده',
+  action_required: 'رد شده',
+};
+
+export const CREDIT_STATUS_DESCRIPTIONS: Record<CreditStatus, string> = {
+  pending: 'درخواست شما دریافت شد، در صف بررسی هستیم.',
+  reviewing: 'کارشناسان ما در حال بررسی مدارک مالی شما هستند.',
+  active: 'پنل اعتباری شما فعال شد و تایید شده است.',
+  action_required: 'متأسفانه درخواست اعتباری شما رد شده است.',
+};
+
+export const creditApplicationWriteSchema = z.object({
+  nationalId: z.string().trim().min(10, 'کد ملی باید ۱۰ رقم باشد').max(10, 'کد ملی باید ۱۰ رقم باشد'),
+  businessType: z.string().trim().min(1, 'نوع کسب‌وکار را انتخاب کنید'),
+  nationalCardUrl: z.string().trim().min(1, 'تصویر کارت ملی الزامی است'),
+  businessDocsUrl: z.string().trim().min(1, 'تصویر جواز کسب یا اجاره‌نامه الزامی است'),
+  checkImageUrl: z.string().trim().min(1, 'تصویر برگ چک صیادی الزامی است'),
+  bankStatementUrl: z.string().trim().optional().nullable(),
+  referralInfo: z.string().trim().optional().nullable(),
+});
+export type CreditApplicationWrite = z.infer<typeof creditApplicationWriteSchema>;
+
+export const creditApplicationAdminPatchSchema = z.object({
+  status: z.enum(CREDIT_STATUSES),
+  assignedCreditLimit: z.coerce.number().min(0).optional(),
+  adminCreditScore: z.coerce.number().min(0).max(100).optional(),
+  rejectionReason: z.string().trim().optional().nullable(),
+  internalNotes: z.string().trim().optional().nullable(),
+});
+export type CreditApplicationAdminPatch = z.infer<typeof creditApplicationAdminPatchSchema>;
+
+export const CHEQUE_STATUSES = ['pending', 'passed', 'bounced', 'returned'] as const;
+export type ChequeStatus = (typeof CHEQUE_STATUSES)[number];
+
+export const CHEQUE_STATUS_LABELS: Record<ChequeStatus, string> = {
+  pending: 'در انتظار سررسید',
+  passed: 'پاس شده',
+  bounced: 'برگشتی',
+  returned: 'عودت داده شده',
+};
+
+export const creditChequeWriteSchema = z.object({
+  chequeNumber: z.string().trim().min(3, 'شماره چک/صیادی را وارد کنید'),
+  bankName: z.string().trim().min(2, 'نام بانک را وارد کنید'),
+  accountHolder: z.string().trim().min(2, 'نام صاحب حساب را وارد کنید'),
+  amount: z.coerce.number().int().min(1000, 'مبلغ چک را وارد کنید'),
+  dueDate: z.string().trim().min(8, 'تاریخ سررسید چک الزامی است'),
+  imageUrl: z.string().trim().optional().nullable(),
+  notes: z.string().trim().optional().nullable(),
+});
+export type CreditChequeWrite = z.infer<typeof creditChequeWriteSchema>;
+
+export const creditChequePatchSchema = z.object({
+  status: z.enum(CHEQUE_STATUSES).optional(),
+  chequeNumber: z.string().trim().optional(),
+  bankName: z.string().trim().optional(),
+  accountHolder: z.string().trim().optional(),
+  amount: z.coerce.number().int().min(0).optional(),
+  dueDate: z.string().trim().optional(),
+  notes: z.string().trim().optional().nullable(),
+});
+export type CreditChequePatch = z.infer<typeof creditChequePatchSchema>;
+
+

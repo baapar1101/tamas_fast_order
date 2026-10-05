@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useBootstrap } from './hooks';
 import './storefront.css';
 
@@ -16,6 +17,7 @@ const HIGHLIGHTS = [
 const SECTIONS = [
   {
     n: '۱',
+    id: 'responsibility',
     title: 'محدوده مسئولیت‌ها و خدمات',
     items: [
       {
@@ -34,6 +36,7 @@ const SECTIONS = [
   },
   {
     n: '۲',
+    id: 'returns',
     title: 'قوانین و الزامات مرجوعی کالا',
     items: [
       {
@@ -52,6 +55,7 @@ const SECTIONS = [
   },
   {
     n: '۳',
+    id: 'refunds',
     title: 'روش‌های جبران و بازگشت وجه',
     items: [
       {
@@ -66,7 +70,8 @@ const SECTIONS = [
   },
   {
     n: '۴',
-    title: 'نکات بسیار مهم',
+    id: 'faq',
+    title: 'نکات بسیار مهم (سؤالات متداول)',
     items: [
       {
         lead: 'مهلت اعلام مغایرت:',
@@ -80,7 +85,8 @@ const SECTIONS = [
   },
   {
     n: '۵',
-    title: 'شرایط و تعهدات فروش',
+    id: 'sales-terms',
+    title: 'روش‌های پرداخت و شرایط فروش',
     items: [
       {
         lead: 'حفظ مالکیت:',
@@ -105,6 +111,17 @@ const SECTIONS = [
 export function TermsPage() {
   const { data } = useBootstrap();
   const settings = data?.settings ?? {};
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (hash) {
+      const el = document.getElementById(hash.slice(1));
+      if (el) {
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
+      }
+    }
+  }, [hash]);
+
   const phone = settings.support_phone || '09135006644';
   const address = settings.store_address || 'کرمان، خیابان شهید نامجو، بعد از کوچه ۹، پلاک ۱۰۹';
 
@@ -156,7 +173,7 @@ export function TermsPage() {
 
         <div className="stack">
           {SECTIONS.map((section) => (
-            <section className="card" key={section.n} style={{ padding: 20 }}>
+            <section className="card" key={section.n} id={section.id} style={{ padding: 20 }}>
               <div className="row" style={{ marginBottom: 12 }}>
                 <span
                   style={{

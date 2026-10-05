@@ -1,17 +1,18 @@
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import { forbidden, unauthorized } from '../lib/errors.js';
-import { resolveSession, type UserRow } from '../services/auth.js';
+import { resolveSession, type UserSession } from '../services/auth.js';
 
 declare module 'fastify' {
   interface FastifyRequest {
     /** Set for every request that carried a valid session token. */
-    currentUser: UserRow | null;
+    currentUser: UserSession | null;
     sessionToken: string | null;
   }
   interface FastifyInstance {
     requireUser: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
     requireAdmin: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    requirePermission: (permission: string) => (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }
 
@@ -39,7 +40,18 @@ const plugin: FastifyPluginAsync = async (app) => {
 
   app.decorate('requireAdmin', async (req: FastifyRequest) => {
     if (!req.currentUser) throw unauthorized();
-    if (req.currentUser.role !== 'admin') throw forbidden('این بخش فقط برای مدیران است.');
+    if (req.currentUser.role !== 'admin' && req.currentUser.role !== 'operator') throw forbidden('این بخش فقط برای مدیران است.');
+  });
+
+  app.decorate('requirePermission', (permission: string) => async (req: FastifyRequest) => {
+    if (!req.currentUser) throw unauthorized();
+    if (req.currentUser.role === 'admin') return; // Admin has all permissions
+    if (req.currentUser.role !== 'operator') throw forbidden('دسترسی غیرمجاز.');
+    
+    const perms = req.currentUser.permissions || [];
+    if (!perms.includes(permission) && !perms.includes('*')) {
+      throw forbidden('شما به این بخش دسترسی ندارید.');
+    }
   });
 };
 

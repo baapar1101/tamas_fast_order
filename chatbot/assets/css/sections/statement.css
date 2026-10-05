@@ -1,0 +1,83 @@
+/*
+=====================================================
+MARKSTREET — STATEMENT
+=====================================================
+
+Statement section surface and editorial typography.
+
+=====================================================
+*/
+
+.statement > .container {
+  position: relative; z-index: 2;
+}
+
+/* The statement stays calm: one guide at the actual two-column split. */
+.statement > .container::before {
+  content: "";
+  position: absolute;
+  top: calc(clamp(72px, 8vw, 118px) * -1);
+  bottom: calc(clamp(72px, 8vw, 118px) * -1);
+  left: 50%;
+  width: 1px;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--line-color-very-subtle);
+}
+
+.statement::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -9%;
+  width: min(1160px, 112vw);
+  height: 46%;
+  pointer-events: none;
+  background:
+    linear-gradient(64deg, transparent 49.72%, rgba(255,255,255,.09) 50%, transparent 50.22%),
+    linear-gradient(116deg, transparent 49.72%, rgba(255,255,255,.09) 50%, transparent 50.22%),
+    linear-gradient(82deg, transparent 49.82%, rgba(36,92,255,.22) 50%, transparent 50.16%),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.055) 0 1px, transparent 1px 34px);
+  transform: translateX(-50%) perspective(760px) rotateX(62deg);
+  transform-origin: center bottom;
+  opacity: .58;
+  mask-image: linear-gradient(180deg, transparent 0%, black 22%, black 72%, transparent 100%);
+}
+
+.statement {
+  position: relative;
+  padding: clamp(72px, 8vw, 118px) var(--ms-gutter);
+  border-top: 1px solid var(--ms-line-soft);
+  border-bottom: 1px solid var(--ms-line-soft);
+  background:
+    radial-gradient(circle at 62% 60%, rgba(36,92,255,.14), rgba(36,92,255,.035) 28%, transparent 58%),
+    linear-gradient(90deg, rgba(36,92,255,.08), transparent 28%, transparent 72%, rgba(255,255,255,.026));
+  overflow: hidden;
+}
+
+.statement .container {
+  position: relative; z-index: 1;
+}
+
+.statement h2 {
+  max-width: 1060px;
+  margin: 0;
+  font-size: clamp(34px, 4.8vw, 68px);
+  line-height: 1.04;
+  letter-spacing: 0;
+  font-weight: 700;
+}
+
+.statement p {
+  max-width: 700px; margin: 30px 0 0 auto; color: rgba(255,255,255,.68); font-size: 19px; line-height: 1.6;
+}
+
+@media (max-width: 720px) {
+  .statement::before {
+    opacity: .28;
+  }
+
+  .statement > .container::before {
+    display: none;
+  }
+}

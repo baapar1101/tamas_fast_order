@@ -1,0 +1,459 @@
+/*
+=====================================================
+MARKSTREET — EXPANDING MENU
+=====================================================
+
+Desktop shell expansion, secondary navigation, mobile forward/back views and vertical line architecture. Menu content is controlled by assets/js/menu-data.js.
+
+=====================================================
+*/
+
+:root {
+  --menu-primary-width: 380px;
+  --menu-expanded-width: 800px;
+  --menu-header-height: 92px;
+  --menu-primary-column: 380px;
+  --menu-secondary-column: 420px;
+  --menu-bg-start: #245cff;
+  --menu-bg-end: #25109b;
+  --menu-line-color: rgba(255, 255, 255, 0.08);
+  --menu-line-guide: rgba(255, 255, 255, 0.055);
+  --menu-line-boundary: rgba(255, 255, 255, 0.11);
+
+  /*
+  TEMPORARY ACTIVE MENU ACCENT
+
+  Used for the currently selected primary navigation category.
+  This value is temporary and should later be replaced by the
+  final MarkStreet semantic color token.
+  */
+  --menu-active-accent: #0c0052;
+}
+
+.markstreet-menu-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.markstreet-menu-layer.is-open {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.markstreet-menu-scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  cursor: pointer;
+}
+
+.markstreet-menu-layer.is-open .markstreet-menu-scrim {
+  opacity: 1;
+}
+
+.markstreet-menu {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  width: var(--menu-primary-width);
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  color: var(--ms-white);
+  background: linear-gradient(150deg, var(--menu-bg-start), var(--menu-bg-end));
+  border-right: 1px solid var(--menu-line-boundary);
+  border-radius: 0;
+  transform: translateX(-100%);
+}
+
+.markstreet-menu.is-open {
+  transform: translateX(0);
+}
+
+.markstreet-menu.is-expanded {
+  width: var(--menu-expanded-width);
+}
+
+.markstreet-menu__content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: var(--menu-primary-column) var(--menu-secondary-column);
+  width: var(--menu-expanded-width);
+  height: calc(100dvh - var(--menu-header-height));
+  overflow: hidden;
+}
+
+.markstreet-menu__header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--menu-header-height);
+  padding: 0 38px;
+  border-bottom: 1px solid var(--menu-line-color);
+}
+
+.markstreet-menu__logo {
+  display: inline-flex;
+}
+
+.markstreet-menu__logo img {
+  display: block;
+  width: 152px;
+  height: auto;
+}
+
+.markstreet-menu__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.markstreet-menu__primary,
+.markstreet-menu__secondary {
+  min-width: 0;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.markstreet-menu__primary::-webkit-scrollbar,
+.markstreet-menu__secondary::-webkit-scrollbar {
+  display: none;
+}
+
+.markstreet-menu__primary {
+  padding: 46px 44px 40px;
+}
+
+.markstreet-menu__primary-list {
+  display: grid;
+  gap: 20px;
+}
+
+.markstreet-menu__primary-item {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: clamp(34px, 2.7vw, 42px);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  text-align: left;
+  transform: translateX(0);
+  transition:
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 220ms ease,
+    opacity 220ms ease;
+  cursor: pointer;
+}
+
+.markstreet-menu__primary-item--primary {
+  font-weight: 700;
+}
+
+.markstreet-menu__primary-item--utility {
+  font-weight: 300;
+}
+
+.markstreet-menu__primary-item:hover {
+  color: var(--ms-white);
+}
+
+.markstreet-menu__primary-item.is-active {
+  color: var(--menu-active-accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .markstreet-menu__primary-item:hover {
+    transform: translateX(12px);
+  }
+}
+
+.markstreet-menu__secondary {
+  padding: 46px 40px 40px;
+  border-left: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.markstreet-menu.is-expanded .markstreet-menu__secondary {
+  opacity: 1;
+  visibility: visible;
+}
+
+.markstreet-menu__back {
+  display: none;
+  margin: 0 0 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.markstreet-menu__section-label {
+  margin: 0 0 14px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  line-height: 1.3;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.markstreet-menu__section-description {
+  max-width: 34ch;
+  margin: 0 0 30px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.markstreet-menu__secondary-item {
+  display: block;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--menu-line-color);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+.markstreet-menu__section-link {
+  display: inline-block;
+  margin-top: 28px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  color: var(--ms-white);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.markstreet-menu__close:focus-visible,
+.markstreet-menu__back:focus-visible,
+.markstreet-menu__primary-item:focus-visible,
+.markstreet-menu__secondary-item:focus-visible,
+.markstreet-menu__section-link:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.75);
+  outline-offset: 3px;
+}
+
+.markstreet-menu__lines {
+  position: absolute;
+  inset: var(--menu-header-height) 0 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/*
+Menu architecture uses one fixed coordinate system across the expanding shell:
+190px = primary midpoint, 380px = column boundary, 590px = secondary midpoint.
+The 590px guide is present from the start and is revealed by shell clipping.
+*/
+
+.markstreet-menu__line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--menu-line-color);
+}
+
+.markstreet-menu__line--primary-guide {
+  left: calc(var(--menu-primary-column) / 2);
+  background: var(--menu-line-guide);
+}
+
+.markstreet-menu__line--column-boundary {
+  left: var(--menu-primary-column);
+  background: var(--menu-line-boundary);
+}
+
+.markstreet-menu__line--secondary-guide {
+  left: calc(var(--menu-primary-column) + (var(--menu-secondary-column) / 2));
+  background: var(--menu-line-guide);
+}
+
+.markstreet-menu,
+.markstreet-menu-scrim,
+.markstreet-menu__secondary {
+  transition:
+    transform 220ms ease,
+    width 220ms ease,
+    opacity 180ms ease,
+    visibility 180ms ease;
+}
+
+@media (min-width: 769px) {
+  .markstreet-menu-layer {
+    transition: visibility 0ms linear 420ms;
+  }
+
+  .markstreet-menu-layer.is-open {
+    transition-delay: 0ms;
+  }
+
+  .markstreet-menu-scrim {
+    background: rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(2px);
+    transition: opacity 260ms ease;
+  }
+
+  .markstreet-menu {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 280ms ease,
+      width 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0ms linear 420ms;
+  }
+
+  .markstreet-menu-layer.is-open .markstreet-menu,
+  .markstreet-menu.is-open {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0ms;
+  }
+
+  .markstreet-menu__secondary {
+    transform: translateX(-18px);
+    pointer-events: none;
+    transition:
+      opacity 140ms ease,
+      transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0ms linear 180ms;
+  }
+
+  .markstreet-menu.is-expanded .markstreet-menu__secondary {
+    transform: translateX(0);
+    pointer-events: auto;
+    transition:
+      opacity 260ms ease 120ms,
+      transform 360ms cubic-bezier(0.22, 1, 0.36, 1) 100ms,
+      visibility 0ms linear 100ms;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --menu-primary-width: 100vw;
+    --menu-expanded-width: 100vw;
+    --menu-primary-column: 100vw;
+    --menu-secondary-column: 100vw;
+    --menu-header-height: 86px;
+  }
+
+  .markstreet-menu,
+  .markstreet-menu.is-expanded {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .markstreet-menu__content {
+    grid-template-columns: 100vw 100vw;
+    width: 200vw;
+    height: calc(100dvh - var(--menu-header-height));
+    transform: translateX(0);
+    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  .markstreet-menu.is-expanded .markstreet-menu__content {
+    transform: translateX(-100vw);
+  }
+
+  .markstreet-menu__header {
+    padding: 0 28px;
+  }
+
+  .markstreet-menu__primary,
+  .markstreet-menu__secondary {
+    width: 100vw;
+    min-width: 100vw;
+    height: 100%;
+    padding: 34px 28px 40px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .markstreet-menu__primary-list {
+    gap: 18px;
+  }
+
+  .markstreet-menu__secondary {
+    border-left: 0;
+  }
+
+  .markstreet-menu__back {
+    display: inline-block;
+    font-size: 15px;
+    line-height: 1.35;
+  }
+
+  .markstreet-menu__primary-item {
+    font-size: clamp(32px, 9vw, 42px);
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+  }
+
+  .markstreet-menu__section-description {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .markstreet-menu__secondary-item {
+    font-size: 18px;
+    line-height: 1.35;
+  }
+
+  .markstreet-menu__line--column-boundary {
+    display: none;
+  }
+
+  .markstreet-menu__line--primary-guide {
+    left: 33.333vw;
+    background: rgba(255, 255, 255, 0.045);
+  }
+
+  .markstreet-menu__line--secondary-guide {
+    left: 66.666vw;
+    background: rgba(255, 255, 255, 0.045);
+  }
+}

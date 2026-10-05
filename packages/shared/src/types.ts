@@ -1,4 +1,4 @@
-import type { OrderStatus, UploadKind, Warehouse } from './schemas.js';
+import type { ChequeStatus, CreditStatus, OrderStatus, UploadKind, Warehouse } from './schemas.js';
 
 export interface ApiError {
   ok: false;
@@ -23,6 +23,35 @@ export interface Paged<T> {
 export interface ProductAttribute {
   key: string;
   value: string;
+}
+
+export interface TrackingSiteDTO {
+  id: number;
+  name: string;
+  baseUrl: string | null;
+  priceUnit: 'toman' | 'rial';
+  isActive: boolean;
+  linkCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductTrackingLinkDTO {
+  id?: number;
+  siteId: number;
+  siteName?: string;
+  url: string;
+  lastPrice?: number | null;
+  inStock?: boolean | null;
+  quantity?: number;
+  statusText?: string | null;
+  lastError?: string | null;
+  checkedAt?: string | null;
+}
+
+export interface BundleItem {
+  productId: string;
+  qty: number;
 }
 
 export interface ProductDTO {
@@ -63,9 +92,21 @@ export interface ProductDTO {
   imageUrl: string | null;
   gallery: string[];
   attributes: ProductAttribute[];
+  /** Rating in hundredths on a 0–5 scale (e.g. 359 = 3.59). */
+  rating: number | null;
+  ratingCount: number;
+  externalDataUpdatedAt: string | null;
+  bundleItems: BundleItem[];
+  /** Admin-only source field; deliberately omitted from public catalogue responses. */
+  digikalaLink?: string | null;
+  /** Admin-only legacy compatibility field. */
+  targetSiteUrl?: string | null;
+  /** Admin-only monitoring links; never included in the public catalogue. */
+  trackingLinks?: ProductTrackingLinkDTO[];
   sortOrder: number;
-  updatedAt: string;
-}
+  createdAt: string;
+    updatedAt: string;
+  }
 
 /** Variants of one model are grouped so the storefront renders a single card. */
 export interface ProductGroupDTO {
@@ -120,7 +161,9 @@ export interface UserDTO {
   fatherName?: string;
   isVerifiedIdentity?: boolean;
   isActive: boolean;
-  role: 'customer' | 'admin';
+  role: 'customer' | 'admin' | 'operator';
+  accessGroupId?: number | null;
+  permissions?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -158,6 +201,9 @@ export interface OrderDTO {
   paymentStatus: 'paid' | 'unpaid' | 'pending';
   paymentMethod: string | null;
   note: string | null;
+  acquisitionSource?: string | null;
+  acquisitionMedium?: string | null;
+  acquisitionCampaign?: string | null;
   items: OrderItemDTO[];
   createdAt: string;
   updatedAt: string;
@@ -217,8 +263,10 @@ export interface DashboardStats {
   productCount: number;
   activeProductCount: number;
   outOfStockCount: number;
+  newProduct30: number;
   userCount: number;
   pendingUserCount: number;
+  newUser30: number;
   orderCount: number;
   newOrderCount: number;
   revenueTotal: number;
@@ -226,6 +274,9 @@ export interface DashboardStats {
   ordersPerDay: Array<{ day: string; count: number; total: number }>;
   topProducts: Array<{ title: string; qty: number; total: number }>;
   lastSyncAt: string | null;
+  dailySeries: Array<{ day: string; revenue: number; orders: number; users: number; products: number }>;
+  monthlyRevenue: Array<{ month: string; current: number; previous: number }>;
+  acquisitionSources: Array<{ source: string; label: string; color: string; count: number; revenue: number }>;
 }
 
 export interface PaymentDTO {
@@ -256,3 +307,78 @@ export interface CommentDTO {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CreditApplicationDTO {
+  id: number;
+  userId: number;
+  userPhone?: string;
+  userName?: string;
+  userStoreName?: string;
+  nationalId: string;
+  businessType: string;
+  nationalCardUrl: string;
+  businessDocsUrl: string;
+  checkImageUrl: string;
+  bankStatementUrl: string | null;
+  referralInfo: string | null;
+  status: CreditStatus;
+  rejectionReason: string | null;
+  adminCreditScore: number;
+  assignedCreditLimit: number;
+  internalNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreditChequeDTO {
+  id: number;
+  userId: number;
+  creditApplicationId: number | null;
+  orderId: number | null;
+  chequeNumber: string;
+  bankName: string;
+  accountHolder: string;
+  amount: number;
+  dueDate: string;
+  status: ChequeStatus;
+  imageUrl: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChequeNotificationDTO {
+  id: string;
+  type: 'due_soon' | 'due_today' | 'overdue' | 'bounced' | 'general';
+  title: string;
+  message: string;
+  daysLeft: number;
+  chequeNumber: string;
+  amount: number;
+  dueDate: string;
+  severity: 'info' | 'warning' | 'danger';
+}
+
+export interface CreditDashboardDTO {
+  application: CreditApplicationDTO | null;
+  totalCreditLimit: number;
+  usedCredit: number;
+  remainingCredit: number;
+  cheques: CreditChequeDTO[];
+  notifications: ChequeNotificationDTO[];
+}
+
+export interface PaymentMethodConfig {
+  id: string;
+  label: string;
+  desc: string;
+  enabled: boolean;
+  type: 'online' | 'manual' | 'credit' | 'cheque' | 'wallet' | 'custom';
+  instructions?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  sortOrder?: number;
+}
+
+
+

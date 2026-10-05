@@ -1,0 +1,662 @@
+/*
+=====================================================
+MARKSTREET — VISUAL SYSTEMS
+=====================================================
+
+Reusable line architecture, route graphics, glows, textures, frames and placeholders.
+
+=====================================================
+*/
+
+/*
+=====================================================
+MARKSTREET VERTICAL LINE ARCHITECTURE
+=====================================================
+
+Vertical lines represent structure, stability, strategic architecture and
+editorial grid alignment. They must follow a container edge, column boundary
+or component division; they are never used as a repeating viewport grid.
+
+Density:
+- minimal: a single center guide or the container edges
+- standard: container edges plus selected editorial divisions
+- structural: the boundaries of an actual card or process grid
+
+Route/path lines remain a separate system for movement and direction.
+Tablet and mobile progressively remove non-essential guides.
+
+=====================================================
+*/
+
+:root {
+  --line-color-very-subtle: rgba(255, 255, 255, .035);
+  --line-color-subtle: rgba(255, 255, 255, .05);
+  --line-color-medium: rgba(255, 255, 255, .08);
+  --line-color-strong: rgba(255, 255, 255, .12);
+  --line-blue-subtle: rgba(36, 92, 255, .30);
+  --line-blue-medium: rgba(36, 92, 255, .52);
+  --line-width: 1px;
+}
+
+.line-architecture {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.line-architecture::before {
+  content: "";
+  position: absolute;
+  inset: 0 max(var(--ms-gutter), calc((100% - var(--ms-max)) / 2));
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--line-architecture-image, none);
+  background-position: var(--line-architecture-position, 0 0);
+  background-size: var(--line-architecture-size, auto);
+  background-repeat: no-repeat;
+}
+
+.line-architecture > * {
+  position: relative;
+  z-index: 1;
+}
+
+.line-architecture--minimal {
+  --line-architecture-image:
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle)),
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle));
+  --line-architecture-position: left top, right top;
+  --line-architecture-size: var(--line-width) 100%, var(--line-width) 100%;
+}
+
+.line-architecture--standard {
+  --line-architecture-image:
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle)),
+    linear-gradient(var(--line-color-very-subtle), var(--line-color-very-subtle)),
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle));
+  --line-architecture-position: left top, center top, right top;
+  --line-architecture-size: var(--line-width) 100%, var(--line-width) 100%, var(--line-width) 100%;
+}
+
+.line-architecture--structural {
+  --line-architecture-image:
+    linear-gradient(var(--line-color-medium), var(--line-color-medium)),
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle)),
+    linear-gradient(var(--line-color-medium), var(--line-color-medium)),
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle)),
+    linear-gradient(var(--line-color-medium), var(--line-color-medium));
+  --line-architecture-position: left top, 25% top, center top, 75% top, right top;
+  --line-architecture-size: var(--line-width) 100%;
+}
+
+.line-architecture--blue-signal {
+  --line-signal-color: var(--line-blue-subtle);
+}
+
+.line-architecture--blue-signal::after {
+  content: "";
+  position: absolute;
+  inset: 0 max(var(--ms-gutter), calc((100% - var(--ms-max)) / 2));
+  z-index: 0;
+  pointer-events: none;
+  background-image: linear-gradient(var(--line-signal-color), var(--line-signal-color));
+  background-position: 75% top;
+  background-size: var(--line-width) 100%;
+  background-repeat: no-repeat;
+}
+
+/* Existing section shells opt into the same reusable recipes without HTML churn. */
+.section {
+  --section-line-image:
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle)),
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle));
+  --section-line-position: left top, right top;
+  --section-line-size: var(--line-width) 100%, var(--line-width) 100%;
+}
+
+.section.section-line-art,
+.section:has(.publication-grid),
+.section:has(.capability-modules),
+.section:has(.engagement-grid) {
+  --section-line-image:
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle)),
+    linear-gradient(var(--line-color-very-subtle), var(--line-color-very-subtle)),
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle));
+  --section-line-position: left top, center top, right top;
+  --section-line-size: var(--line-width) 100%, var(--line-width) 100%, var(--line-width) 100%;
+}
+
+.materials-section,
+.workbench-section,
+.section:has(> .container > .grid-4) {
+  --section-line-image:
+    linear-gradient(var(--line-color-medium), var(--line-color-medium)),
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle)),
+    linear-gradient(var(--line-color-medium), var(--line-color-medium)),
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle)),
+    linear-gradient(var(--line-color-medium), var(--line-color-medium));
+  --section-line-position: left top, 25% top, center top, 75% top, right top;
+  --section-line-size: var(--line-width) 100%;
+}
+
+/* Five-card material divisions; the far edge is already supplied by the card grid. */
+.materials-section {
+  --section-line-position: left top, 20% top, 40% top, 60% top, 80% top;
+}
+
+.section.compact,
+.image-led-section {
+  --section-line-image:
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle)),
+    linear-gradient(var(--line-color-subtle), var(--line-color-subtle));
+  --section-line-position: left top, right top;
+  --section-line-size: var(--line-width) 100%, var(--line-width) 100%;
+}
+
+.light-section {
+  --section-line-image:
+    linear-gradient(rgba(5, 5, 5, .055), rgba(5, 5, 5, .055)),
+    linear-gradient(rgba(5, 5, 5, .035), rgba(5, 5, 5, .035)),
+    linear-gradient(rgba(5, 5, 5, .055), rgba(5, 5, 5, .055));
+}
+
+.light-section:has(> .container > .grid-4) {
+  --section-line-image:
+    linear-gradient(rgba(5, 5, 5, .06), rgba(5, 5, 5, .06)),
+    linear-gradient(rgba(5, 5, 5, .04), rgba(5, 5, 5, .04)),
+    linear-gradient(rgba(5, 5, 5, .055), rgba(5, 5, 5, .055)),
+    linear-gradient(rgba(5, 5, 5, .04), rgba(5, 5, 5, .04)),
+    linear-gradient(rgba(5, 5, 5, .06), rgba(5, 5, 5, .06));
+}
+
+@media (max-width: 1100px) {
+  .section,
+  .section.section-line-art,
+  .materials-section,
+  .workbench-section,
+  .section:has(> .container > .grid-4),
+  .section:has(.publication-grid),
+  .section:has(.capability-modules),
+  .section:has(.engagement-grid) {
+    --section-line-image:
+      linear-gradient(var(--line-color-subtle), var(--line-color-subtle)),
+      linear-gradient(var(--line-color-subtle), var(--line-color-subtle)),
+      linear-gradient(var(--line-color-subtle), var(--line-color-subtle));
+    --section-line-position: left top, center top, right top;
+    --section-line-size: var(--line-width) 100%;
+  }
+
+  .light-section {
+    --section-line-image:
+      linear-gradient(rgba(5, 5, 5, .05), rgba(5, 5, 5, .05)),
+      linear-gradient(rgba(5, 5, 5, .035), rgba(5, 5, 5, .035)),
+      linear-gradient(rgba(5, 5, 5, .05), rgba(5, 5, 5, .05));
+  }
+}
+
+@media (max-width: 720px) {
+  .line-architecture::before {
+    inset-inline: var(--ms-gutter);
+  }
+
+  .line-architecture--minimal,
+  .line-architecture--standard,
+  .line-architecture--structural {
+    --line-architecture-image:
+      linear-gradient(var(--line-color-very-subtle), var(--line-color-very-subtle)),
+      linear-gradient(var(--line-color-very-subtle), var(--line-color-very-subtle));
+    --line-architecture-position: left top, right top;
+    --line-architecture-size: var(--line-width) 100%, var(--line-width) 100%;
+  }
+
+  .line-architecture--blue-signal::after {
+    display: none;
+  }
+
+  .section,
+  .section.section-line-art,
+  .materials-section,
+  .workbench-section,
+  .section:has(> .container > .grid-4),
+  .section:has(.publication-grid),
+  .section:has(.capability-modules),
+  .section:has(.engagement-grid) {
+    --section-line-image:
+      linear-gradient(var(--line-color-very-subtle), var(--line-color-very-subtle)),
+      linear-gradient(var(--line-color-very-subtle), var(--line-color-very-subtle));
+    --section-line-position: left top, right top;
+    --section-line-size: var(--line-width) 100%, var(--line-width) 100%;
+  }
+
+  .light-section {
+    --section-line-image:
+      linear-gradient(rgba(5, 5, 5, .045), rgba(5, 5, 5, .045)),
+      linear-gradient(rgba(5, 5, 5, .045), rgba(5, 5, 5, .045));
+  }
+}
+
+.site-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 68% 18%, rgba(36, 92, 255, .08), transparent 32%),
+    radial-gradient(circle at 18% 42%, rgba(36, 92, 255, .035), transparent 36%),
+    linear-gradient(180deg, #050505 0%, #0a0a0d 48%, #050505 100%);
+}
+
+.site-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .34;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 100% 132px;
+  mask-image: linear-gradient(180deg, black 0%, transparent 62%);
+}
+
+.site-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,.4) 72%, rgba(0,0,0,.75) 100%);
+}
+
+.page-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent calc((100% - min(var(--ms-max), calc(100vw - (var(--ms-gutter) * 2)))) / 2), rgba(255,255,255,.045) 0, rgba(255,255,255,.045) calc(((100% - min(var(--ms-max), calc(100vw - (var(--ms-gutter) * 2)))) / 2) + 1px), transparent 0),
+    linear-gradient(90deg, transparent calc(50% - 1px), rgba(255,255,255,.035) 0, rgba(255,255,255,.035) 50%, transparent 0),
+    linear-gradient(90deg, transparent calc(100% - ((100% - min(var(--ms-max), calc(100vw - (var(--ms-gutter) * 2)))) / 2) - 1px), rgba(255,255,255,.045) 0, rgba(255,255,255,.045) calc(100% - ((100% - min(var(--ms-max), calc(100vw - (var(--ms-gutter) * 2)))) / 2)), transparent 0);
+  mask-image: linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%);
+  opacity: .7;
+}
+
+.street-grid,
+.perspective-street {
+  position: absolute; pointer-events: none;
+}
+
+.blue-signal-glow {
+  position: relative;
+}
+
+.blue-signal-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 60% 55%, rgba(36,92,255,.16), rgba(36,92,255,.035) 28%, transparent 58%);
+}
+
+.brand-line-layer,
+.section-line-art {
+  position: relative; overflow: hidden;
+}
+
+.brand-line-layer::before,
+.brand-line-layer::after,
+.section-line-art::before,
+.section-line-art::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.brand-line-layer--vertical::before {
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 12%, rgba(255,255,255,.045) 12%, transparent calc(12% + 1px)),
+    linear-gradient(90deg, transparent 48%, rgba(255,255,255,.04) 48%, transparent calc(48% + 1px)),
+    linear-gradient(90deg, transparent 82%, rgba(36,92,255,.065) 82%, transparent calc(82% + 1px));
+  mask-image: linear-gradient(180deg, transparent 0%, black 16%, black 74%, transparent 100%);
+}
+
+.brand-line-layer--route::after,
+.section-line-art::after {
+  width: min(760px, 70vw);
+  height: 260px;
+  right: max(-110px, -8vw);
+  bottom: clamp(18px, 5vw, 78px);
+  opacity: .72;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 760 260' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M28 214H226Q270 214 270 170V72Q270 38 304 38H514Q560 38 560 84V196Q560 232 596 232H732' fill='none' stroke='%23ffffff' stroke-opacity='.15' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M438 38V22Q438 12 448 12H620' fill='none' stroke='%23245CFF' stroke-opacity='.42' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  mask-image: linear-gradient(90deg, transparent 0%, black 14%, black 84%, transparent 100%);
+}
+
+.brand-line-layer--route-alt::after {
+  left: max(-120px, -8vw);
+  right: auto;
+  top: clamp(32px, 7vw, 96px);
+  bottom: auto;
+  transform: scaleX(-1);
+  opacity: .58;
+}
+
+.brand-line-layer--ribbed::before {
+  inset: auto -4% 0 auto;
+  width: min(520px, 46vw);
+  height: 46%;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(36,92,255,.24) 0,
+    rgba(36,92,255,.24) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+  opacity: .18;
+  transform: skewX(-10deg);
+  mask-image: linear-gradient(90deg, transparent, black 20%, black 72%, transparent);
+}
+
+.brand-line-layer--veil::before {
+  left: -8%;
+  top: 12%;
+  width: 60%;
+  height: 54%;
+  border-top: 1px solid rgba(255,255,255,.10);
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  background:
+    radial-gradient(ellipse at 55% 50%, rgba(255,255,255,.055), transparent 62%),
+    linear-gradient(110deg, transparent 0%, rgba(255,255,255,.035) 42%, transparent 74%);
+  opacity: .5;
+  transform: skewX(-16deg);
+  filter: blur(.2px);
+  mask-image: linear-gradient(90deg, transparent 0%, black 24%, black 76%, transparent 100%);
+}
+
+.brand-line-layer--blue-glow::before {
+  inset: 0;
+  background: radial-gradient(circle at 66% 60%, rgba(36,92,255,.14), rgba(36,92,255,.028) 30%, transparent 62%);
+}
+
+.route-line {
+  position: absolute;
+  pointer-events: none;
+  height: 1px;
+  background: rgba(255,255,255,.14);
+}
+
+.brand-line-layer--perspective::after {
+  left: 50%;
+  bottom: -22%;
+  width: min(980px, 100vw);
+  height: 48%;
+  transform: translateX(-50%) perspective(760px) rotateX(62deg);
+  transform-origin: center bottom;
+  background:
+    linear-gradient(64deg, transparent 49.72%, rgba(255,255,255,.085) 50%, transparent 50.22%),
+    linear-gradient(116deg, transparent 49.72%, rgba(255,255,255,.085) 50%, transparent 50.22%),
+    linear-gradient(88deg, transparent 49.82%, rgba(36,92,255,.20) 50%, transparent 50.16%),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.045) 0 1px, transparent 1px 34px);
+  opacity: .42;
+  mask-image: linear-gradient(180deg, transparent 0%, black 24%, black 72%, transparent 100%);
+}
+
+.section-line-art--corner::after {
+  width: min(520px, 52vw); height: 190px; opacity: .5;
+}
+
+.section-line-art--left::after {
+  left: max(-90px, -6vw); right: auto; transform: scaleX(-1);
+}
+
+.section-line-art--low::after {
+  top: auto; bottom: 16px;
+}
+
+.section-line-art--blue::after {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 760 260' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M28 214H226Q270 214 270 170V72Q270 38 304 38H514Q560 38 560 84V196Q560 232 596 232H732' fill='none' stroke='%23ffffff' stroke-opacity='.12' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M270 170H410Q452 170 452 128V38' fill='none' stroke='%23245CFF' stroke-opacity='.62' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+}
+
+@media (max-width: 720px) {
+  .section-line-art::after {
+    opacity: .24;
+  }
+
+  .brand-line-layer--ribbed::before,
+  .brand-line-layer--veil::before {
+    display: none;
+  }
+
+  .brand-line-layer--perspective::after {
+    opacity: .2;
+  }
+}
+
+.blue-glow {
+  position: relative;
+}
+
+.blue-glow::before {
+  content: "";
+  position: absolute;
+  inset: -18%;
+  pointer-events: none;
+  background: radial-gradient(circle at 66% 42%, rgba(36,92,255,.18), rgba(36,92,255,.04) 34%, transparent 64%);
+}
+
+.thin-divider {
+  height: 1px;
+  background: var(--ms-line-soft);
+}
+
+.ribbed-texture {
+  background-image: repeating-linear-gradient(90deg, rgba(36,92,255,.28) 0 1px, transparent 1px 7px);
+}
+
+.route-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .62;
+  background-repeat: no-repeat;
+  background-size: min(760px, 76vw) auto;
+  background-position: right 16% center;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 760 260' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M28 214H226Q270 214 270 170V72Q270 38 304 38H514Q560 38 560 84V196Q560 232 596 232H732' fill='none' stroke='%23ffffff' stroke-opacity='.15' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M438 38V22Q438 12 448 12H620' fill='none' stroke='%23245CFF' stroke-opacity='.56' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M138 214V238H286' fill='none' stroke='%23ffffff' stroke-opacity='.10' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  mask-image: linear-gradient(90deg, transparent, black 16%, black 82%, transparent);
+}
+
+.visual-frame {
+  position: relative;
+  min-height: 280px;
+  border: 1px solid var(--ms-line-soft);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.014)),
+    radial-gradient(circle at 68% 28%, rgba(36,92,255,.18), transparent 42%),
+    #07080c;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.visual-frame img {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  object-fit: cover;
+}
+
+.visual-frame::before,
+.visual-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.visual-frame::before {
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.48)),
+    radial-gradient(circle at 62% 38%, rgba(36,92,255,.22), transparent 42%);
+}
+
+.visual-frame::after {
+  opacity: .78;
+  background-repeat: no-repeat;
+  background-size: 86% 74%;
+  background-position: center;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 620 260' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M24 216H188Q232 216 232 172V78Q232 42 268 42H404Q448 42 448 86V204Q448 228 472 228H596' fill='none' stroke='%23ffffff' stroke-opacity='.18' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M232 172H340Q372 172 372 140V42' fill='none' stroke='%23245CFF' stroke-opacity='.58' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+}
+
+.visual-frame--large {
+  min-height: clamp(420px, 48vw, 640px);
+}
+
+.visual-frame--hero {
+  min-height: clamp(340px, 42vw, 520px);
+}
+
+.visual-frame--wide {
+  min-height: clamp(320px, 36vw, 480px);
+}
+
+.visual-frame--tall {
+  min-height: clamp(460px, 54vw, 660px);
+}
+
+.visual-frame--artifact {
+  background-image: linear-gradient(135deg, #040405, #081642 46%, #020205); background-size: cover; background-position: center;
+}
+
+.visual-frame--signage {
+  background-image: linear-gradient(135deg, #020203, #101014 56%, #245cff); background-size: cover; background-position: center;
+}
+
+.visual-frame--billboard {
+  background-image: linear-gradient(110deg, #020204, #07194f 48%, #050505); background-size: cover; background-position: center;
+}
+
+.visual-frame--cards {
+  background-image: linear-gradient(135deg, #061655, #245cff 52%, #050505); background-size: cover; background-position: center;
+}
+
+.visual-frame--glass {
+  background-image: linear-gradient(120deg, rgba(255,255,255,.08), rgba(36,92,255,.20) 42%, rgba(5,5,5,.94)); background-size: cover; background-position: center;
+}
+
+.visual-frame--veil {
+  background-image: linear-gradient(120deg, #050505, #15161d 48%, #071b5e); background-size: cover; background-position: center;
+}
+
+.visual-frame--human {
+  background-image: linear-gradient(120deg, #050505, #11131a 52%, #071b5e); background-size: cover; background-position: center;
+}
+
+.visual-frame--orange-space {
+  background-image: linear-gradient(120deg, #050505, #0c1232 58%, #15100a); background-size: cover; background-position: center;
+}
+
+.visual-frame--logo-dark {
+  background-image: linear-gradient(120deg, #050505, #111116 58%, #06113d); background-size: cover; background-position: center;
+}
+
+.visual-frame--logo-light {
+  background-image: linear-gradient(120deg, #f4f4f0, #ffffff 58%, #dfe6ff); background-size: cover; background-position: center;
+}
+
+.visual-frame--dark {
+  background: linear-gradient(130deg, #020203, #111116 54%, #04091c);
+}
+
+.visual-frame--blue {
+  background: linear-gradient(130deg, #07154b, #245cff 48%, #020204);
+}
+
+.visual-frame--artifact::after,
+.visual-frame--cards::after {
+  background-size: 78% 62%;
+}
+
+.visual-frame--signage::after {
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 620 260' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='124' y='72' width='372' height='86' fill='none' stroke='%23ffffff' stroke-opacity='.24'/%3E%3Cpath d='M176 116H444' stroke='%23ffffff' stroke-opacity='.22'/%3E%3Cpath d='M262 158V194H456' stroke='%23245CFF' stroke-opacity='.62' fill='none'/%3E%3C/svg%3E");
+}
+
+.visual-placeholder {
+  position: relative;
+  min-height: 170px;
+  border: 1px solid rgba(255,255,255,.10);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 68% 26%, rgba(36,92,255,.18), transparent 38%),
+    linear-gradient(140deg, rgba(255,255,255,.06), rgba(255,255,255,.014));
+}
+
+.visual-placeholder::before,
+.visual-placeholder::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.visual-placeholder::before {
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,.028) 1px, transparent 1px);
+  background-size: 58px 100%, 100% 42px;
+}
+
+.visual-placeholder::after {
+  inset: 24px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.placeholder-report::after {
+  background-image: linear-gradient(90deg, rgba(36,92,255,.30) 0 22%, transparent 22%), repeating-linear-gradient(180deg, rgba(255,255,255,.20) 0 1px, transparent 1px 18px);
+  border: 1px solid rgba(255,255,255,.16);
+}
+
+.placeholder-map::after {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 340 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 122H82Q114 122 114 90V36Q114 18 132 18H236Q270 18 270 52V132' fill='none' stroke='%23ffffff' stroke-opacity='.22'/%3E%3Cpath d='M114 90H192Q218 90 218 64V18' fill='none' stroke='%23245CFF' stroke-opacity='.76'/%3E%3Crect x='24' y='110' width='10' height='10' fill='%23245CFF'/%3E%3Crect x='260' y='124' width='10' height='10' fill='%23ffffff' fill-opacity='.34'/%3E%3C/svg%3E");
+}
+
+.placeholder-media::after {
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 1px, transparent 1px 42px), repeating-linear-gradient(180deg, rgba(255,255,255,.16) 0 1px, transparent 1px 34px), linear-gradient(90deg, transparent 0 52%, rgba(36,92,255,.30) 52% 64%, transparent 64%);
+}
+
+.placeholder-content::after {
+  background-image: linear-gradient(90deg, rgba(36,92,255,.24), transparent 34%), repeating-linear-gradient(180deg, rgba(255,255,255,.20) 0 1px, transparent 1px 20px); border-left: 1px solid rgba(255,255,255,.18); border-right: 1px solid rgba(255,255,255,.08);
+}
+
+.placeholder-roadmap::after {
+  top: 50%; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,.18), var(--ms-blue), rgba(255,255,255,.18)); box-shadow: 0 -22px 0 rgba(255,255,255,.055), 0 24px 0 rgba(255,255,255,.045);
+}
+
+.placeholder-signage::after {
+  inset: 40px 30px; border: 1px solid rgba(255,255,255,.20); box-shadow: 0 0 32px rgba(36,92,255,.18); background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+}
+
+.placeholder-billboard::after {
+  inset: 34px 18px 52px; border: 1px solid rgba(255,255,255,.16); background: radial-gradient(circle at 70% 35%, rgba(36,92,255,.44), transparent 32%), linear-gradient(110deg, rgba(255,255,255,.12), transparent 36%);
+}
+
+@media (max-width: 720px) {
+  .visual-frame,
+  .visual-frame--hero,
+  .visual-frame--large,
+  .visual-frame--wide,
+  .visual-frame--tall {
+    min-height: 260px;
+  }
+}
+
+.signal-line {
+  position: relative;
+  display: block;
+  width: 82px;
+  height: 1px;
+  margin-bottom: 24px;
+  pointer-events: none;
+  background: var(--ms-blue);
+  box-shadow: 0 0 20px rgba(36,92,255,.72);
+}

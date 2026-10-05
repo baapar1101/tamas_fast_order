@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>App Shell — tamasmarket UI kit</title>
+<link rel="stylesheet" href="../../../colors_and_type.css" />
+<style>
+  body { background: var(--tamas-bg); color: var(--tamas-fg); font-family: var(--tamas-font); margin: 0; padding: 24px; }
+  .tk-shell { max-width: 860px; margin: 0 auto; border: var(--tamas-border-w) solid var(--tamas-border); border-radius: var(--tamas-radius-card); overflow: hidden; }
+  .tk-header { display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 12px; backdrop-filter: blur(12px); background: color-mix(in srgb, var(--tamas-surface) 82%, transparent); border-bottom: var(--tamas-border-w) solid var(--tamas-border); }
+  .tk-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .tk-logo img { height: 28px; width: 28px; }
+  .tk-body { min-height: 240px; padding: 16px; display: flex; align-items: center; justify-content: center; color: var(--tamas-muted); font-size: 12px; }
+</style>
+</head>
+<body>
+  <div class="tk-shell">
+    <header class="tk-header">
+      <div class="tk-logo">
+        <img src="../../../assets/logo.svg" alt="" />
+        <span>تماس مارکت</span>
+      </div>
+      <span class="tk-badge">فروشگاه دیجیتال · فروش عمده</span>
+    </header>
+    <div class="tk-body">App shell — قاب 44px با header شیشه‌ای (backdrop blur 12px) و surface عمودی برای محتوا</div>
+  </div>
+</body>
+</html>

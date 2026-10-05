@@ -14,12 +14,14 @@ import {
   users,
 } from '../../db/schema.js';
 import { buildSearchText } from '../catalog.js';
+import { findProductDuplicate } from '../product-duplicates.js';
 
 /**
- * Every tab carries an `updated_at` column. It is what makes the two-way sync
- * honest: whichever side has the newer timestamp wins, and both sides can see
- * why. Editing a cell by hand and leaving `updated_at` alone still works —
- * the row hash catches the change and the sync stamps a fresh timestamp.
+ * Every tab carries an `updated_at` column. Together with the saved row hash,
+ * it identifies one-sided edits and genuine conflicts. Conflict ownership is
+ * then applied per column: product price/inventory belong to Sheets and the
+ * remaining fields belong to the database. Editing a cell by hand and leaving
+ * `updated_at` alone still works because the row hash catches the change.
  */
 export const UPDATED_AT_COLUMN = 'updated_at';
 
@@ -52,6 +54,12 @@ export interface EntityMapping {
   private?: boolean;
   /** Columns a person may edit in the sheet; everything else is pushed only. */
   editableColumns: string[];
+  /**
+   * Columns for which Google Sheets is authoritative even when only the
+   * database changed. In a genuine two-sided conflict, every other column is
+   * resolved to the database.
+   */
+  sheetAuthoritativeColumns?: string[];
   loadDbRows(): Promise<DbSideRow[]>;
   applySheetRow(key: string, cells: SheetCells, updatedAt: Date): Promise<ApplyOutcome>;
 }
@@ -110,7 +118,7 @@ const bool = (v: unknown): boolean => {
 const boolCell = (v: boolean): string => (v ? 'TRUE' : 'FALSE');
 const iso = (d: Date | null | undefined): string => (d ? d.toISOString() : '');
 
-/** Attributes live in the sheet as two parallel `a | b | c` columns, as before. */
+/** Attributes live in the sheet as two parallel `a | b | c` columns. */
 function packAttributes(list: Array<{ key: string; value: string }>): { keys: string; values: string } {
   return {
     keys: list.map((a) => a.key).join(' | '),
@@ -217,7 +225,32 @@ async function ensureCategory(name: string): Promise<number | null> {
  * Products
  * ------------------------------------------------------------------ */
 
-const PRODUCT_COLUMNS = ['product_id', 'Category', 'Brand', 'title', 'model', 'color', 'sku', 'price', 'old_price', 'sell_type', 'discount%', 'kerman_stock', 'tehran_stock', 'warranty', 'promotion', 'status', 'image_url', 'attribute_key', 'attribute_value', UPDATED_AT_COLUMN];
+/**
+ * Exact A:T contract of the live Products tab. Column order matters because
+ * the sync rewrites the tab with this list.
+ */
+const PRODUCT_COLUMNS = [
+  'product_id',
+  'Category',
+  'Brand',
+  'title',
+  'model',
+  'color',
+  'sku',
+  'price',
+  'old_price',
+  'sell_type',
+  'discount%',
+  'kerman_stock',
+  'tehran_stock',
+  'warranty',
+  'promotion',
+  'status',
+  'image_url',
+  'attribute_key',
+  'attribute_value',
+  UPDATED_AT_COLUMN,
+];
 
 export const productMapping: EntityMapping = {
   entity: 'products',
@@ -227,6 +260,9 @@ export const productMapping: EntityMapping = {
   tableName: 'products',
   keyDbColumn: 'product_id',
   editableColumns: PRODUCT_COLUMNS.filter((c) => c !== 'product_id'),
+  // Price and warehouse inventory are caches in Postgres. Google Sheets is
+  // their source of truth, regardless of timestamps or which side changed.
+  sheetAuthoritativeColumns: ['price', 'old_price', 'discount%', 'kerman_stock', 'tehran_stock'],
 
   async loadDbRows() {
     const rows = await db.select().from(products).where(isNull(products.deletedAt));
@@ -243,24 +279,19 @@ export const productMapping: EntityMapping = {
           title: r.title,
           model: r.model ?? '',
           color: r.color ?? '',
-          color_en: r.colorEn ?? '',
-          color_code: r.colorCode ?? '',
           sku: r.sku ?? '',
           price: String(r.price),
           old_price: r.oldPrice == null ? '' : String(r.oldPrice),
           'discount%': String(r.discount),
           kerman_stock: String(r.kermanStock),
           tehran_stock: String(r.tehranStock),
-          warranty: r.warranty ?? '',
           sell_type: r.sellType ?? '',
-          seller: r.seller ?? '',
+          warranty: r.warranty ?? '',
           promotion: boolCell(r.promotion),
           status: r.status,
           image_url: r.imageUrl ?? '',
-          gallery: (r.gallery ?? []).join(' | '),
           attribute_key: attrs.keys,
           attribute_value: attrs.values,
-          sort_order: String(r.sortOrder),
           [UPDATED_AT_COLUMN]: iso(r.updatedAt),
         },
       };
@@ -278,6 +309,8 @@ export const productMapping: EntityMapping = {
     const brandId = await ensureBrand(str(cells.Brand));
     const brandLabel = brandId ? (L().brandNameById.get(brandId) ?? '') : '';
 
+    const kermanStock = num(cells.kerman_stock);
+    const tehranStock = num(cells.tehran_stock);
     const values = {
       productId: key,
       sku: str(cells.sku) || null,
@@ -286,25 +319,20 @@ export const productMapping: EntityMapping = {
       categoryId,
       brandId,
       color: str(cells.color) || null,
-      colorEn: str(cells.color_en) || null,
-      colorCode: str(cells.color_code) || null,
       // `price` is the sole source of truth and is always expressed in toman.
       price: num(cells.price),
       oldPrice: str(cells.old_price) ? num(cells.old_price) : null,
       discount: num(cells.discount ?? cells['discount%']),
-      stock: num(cells.stock),
-      kermanStock: num(cells.kerman_stock),
-      tehranStock: num(cells.tehran_stock),
-      warranty: str(cells.warranty) || null,
+      stock: kermanStock + tehranStock,
+      kermanStock,
+      tehranStock,
       sellType: str(cells.sell_type) || null,
-      seller: str(cells.seller) || null,
+      warranty: str(cells.warranty) || null,
       promotion: bool(cells.promotion),
       status: (str(cells.status).toLowerCase() === 'inactive' ? 'inactive' : 'active') as 'active' | 'inactive',
       imageUrl: str(cells.image_url) || null,
-      gallery: splitList(cells.gallery ?? ''),
       attributes: unpackAttributes(cells.attribute_key ?? '', cells.attribute_value ?? ''),
-      sortOrder: num(cells.sort_order),
-      searchText: buildSearchText([title, cells.model, brandLabel, cells.color, cells.color_en, cells.sku, key]),
+      searchText: buildSearchText([title, cells.model, brandLabel, cells.color, cells.sku, key]),
       updatedAt,
       deletedAt: null,
     };
@@ -313,6 +341,10 @@ export const productMapping: EntityMapping = {
       await db.update(products).set(values).where(eq(products.id, existing.id));
       return 'updated';
     }
+    // A different sheet key must not create a second copy of the same logical
+    // product (same SKU/source or same title + model + colour).
+    const duplicate = await findProductDuplicate(values);
+    if (duplicate) return 'skipped';
     await db.insert(products).values(values);
     return 'created';
   },

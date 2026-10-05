@@ -14,3 +14,6 @@ coverage/
 *.tsbuildinfo
 sync_config.json
 service-account.json
+google.json
+**/google.json
+.claude-flow/sessions/current.json

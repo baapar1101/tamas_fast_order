@@ -1,31 +1,23 @@
 import { memo, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber, hasRealDiscount } from '@tamas/shared';
 import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
 import { stockFor } from '../store/cart';
+import { resolveProductColor } from './productColor';
+
+import type { CartLine } from '../store/cart';
 
 interface Props {
   group: ProductGroupDTO;
   colorMap: Map<string, string>;
   canViewPrices: boolean;
   viewMode?: 'grid' | 'list';
+  cartLines: CartLine[];
   onAdd: (product: ProductDTO, warehouse: Warehouse) => void;
+  onUpdateQty: (key: string, qty: number) => void;
   onPreview: (url: string) => void;
-}
-
-/** Resolves a swatch colour: explicit hex first, then the Colors table, then brand teal. */
-function swatchColor(product: ProductDTO, colorMap: Map<string, string>): string {
-  const direct = product.colorCode?.trim();
-  if (direct && /^#?[0-9a-f]{3,8}$/i.test(direct)) return direct.startsWith('#') ? direct : `#${direct}`;
-
-  for (const candidate of [product.colorEn, product.color]) {
-    const key = candidate?.trim().toLowerCase();
-    if (!key) continue;
-    const hit = colorMap.get(key);
-    if (hit) return hit;
-  }
-  return 'var(--primary)';
 }
 
 /** The sheet keeps sell types as a free-text list: "نقدی, اعتباری". */
@@ -62,7 +54,7 @@ function productTitleClass(title: string): string {
   return '';
 }
 
-export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', onAdd, onPreview }: Props) {
+export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFav, setIsFav] = useState(false);
 
@@ -93,8 +85,11 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
           <div className="product-head">
             <div className={`product-title ${titleClass}`}>
               {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
-              {group.title}
+              <Link className="product-title-link" to={`/p/${selectedVariant.productId}`}>{group.title}</Link>
             </div>
+            {selectedVariant.rating != null && (
+              <span className="card-rating"><span aria-hidden="true">★</span> {(selectedVariant.rating / 100).toLocaleString('fa-IR', { maximumFractionDigits: 2 })}</span>
+            )}
           </div>
 
           <div className="list-variants">
@@ -104,9 +99,16 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
               return (
                 <div key={v.productId} className="variant">
                   <div className="variant-info">
-                    <div className="color-title">
-                      <span className="color-dot" style={{ background: swatchColor(v, colorMap) }} aria-hidden />
-                      <span>{v.color || v.colorEn || 'مشکی'}</span>
+                    <div className="color-title" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className="color-dot" style={{ background: resolveProductColor(v, colorMap) }} aria-hidden />
+                        <span>{v.color || v.colorEn || 'مشکی'}</span>
+                      </div>
+                      {v.sku && (
+                        <span className="variant-sku" style={{ fontSize: '11px', color: 'var(--tamas-muted, #737373)', background: 'var(--tamas-surface-alt, #f5f5f5)', padding: '2px 6px', borderRadius: '4px' }}>
+                          کد: {v.sku}
+                        </span>
+                      )}
                     </div>
                     <div className="sell-types">
                       {types.map((t) => (
@@ -129,19 +131,30 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                     <div className="warehouse-section">
                       {whButtonsV.map((wh) => {
                         const n = stockFor(v, wh);
+                        const cartKey = `${v.productId}::${wh}`;
+                        const cartLine = cartLines.find((l) => l.key === cartKey);
+                        const qty = cartLine ? cartLine.qty : 0;
                         return (
                           <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
                             <div className="wh-details">
                               <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
                             </div>
-                            <button
-                              type="button"
-                              className="add-wh-btn"
-                              onClick={() => onAdd(v, wh)}
-                              title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
-                            >
-                              +
-                            </button>
+                            {qty > 0 ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: '2px 4px' }}>
+                                <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 24, height: 24, fontSize: 16 }} onClick={() => onUpdateQty(cartKey, qty - 1)}>-</button>
+                                <span style={{ fontSize: 12, fontWeight: 700, minWidth: 16, textAlign: 'center', color: 'var(--tamas-fg)' }}>{qty}</span>
+                                <button type="button" className="add-wh-btn" style={{ width: 24, height: 24, fontSize: 16 }} onClick={() => onAdd(v, wh)}>+</button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                className="add-wh-btn"
+                                onClick={() => onAdd(v, wh)}
+                                title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
+                              >
+                                +
+                              </button>
+                            )}
                           </div>
                         );
                       })}
@@ -201,11 +214,14 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       <div style={{ minWidth: 0 }}>
         <div className={`card-title ${titleClass}`}>
           {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
-          {group.title}
+          <Link className="card-title-link" to={`/p/${selectedVariant.productId}`}>{group.title}</Link>
         </div>
 
         <div className="card-meta-row">
           <div className="card-meta">
+            {selectedVariant.rating != null && (
+              <span className="card-rating"><span aria-hidden="true">★</span> {(selectedVariant.rating / 100).toLocaleString('fa-IR', { maximumFractionDigits: 2 })}</span>
+            )}
             <span>
               برند: <b className="ltr-inline">{brand}</b>
             </span>
@@ -218,7 +234,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                       key={v.productId}
                       type="button"
                       className={`color-swatch-dot${i === selectedIndex ? ' active' : ''}`}
-                      style={{ background: swatchColor(v, colorMap) }}
+                      style={{ background: resolveProductColor(v, colorMap) }}
                       onClick={() => setSelectedIndex(i)}
                       title={`${v.color || v.colorEn || 'رنگ'}${canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}`}
                       aria-label={`انتخاب رنگ ${v.color || v.colorEn}`}
@@ -226,7 +242,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                   ))}
                 </div>
                 <span className="color-picker">
-                  <span className="color-dot" style={{ background: swatchColor(selectedVariant, colorMap) }} aria-hidden />
+                  <span className="color-dot" style={{ background: resolveProductColor(selectedVariant, colorMap) }} aria-hidden />
                   <select
                     className="color-select"
                     value={selectedIndex}
@@ -248,12 +264,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
               </span>
             )}
 
-            {selectedVariant.sku && (
-              <span className="card-sku">
-                کد: <b className="ltr-inline">{selectedVariant.sku}</b>
-              </span>
-            )}
-          </div>
+            </div>
 
           <div className="sell-types">
             {sellTypes(selectedVariant.sellType).map((t) => (
@@ -277,34 +288,48 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
           <div className="warehouse-section" style={{ marginBottom: 8 }}>
             {whButtons.map((wh) => {
               const n = stockFor(selectedVariant, wh);
+              const cartKey = `${selectedVariant.productId}::${wh}`;
+              const cartLine = cartLines.find((l) => l.key === cartKey);
+              const qty = cartLine ? cartLine.qty : 0;
               return (
                 <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
                   <div className="wh-details">
                     <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
-                    {n === 1 && <span className="wh-count"><b className="stock-warn">تنها ۱ عدد باقیست!</b></span>}
+                    {n === 1 && (
+                      <span className="wh-count">
+                        <b className="stock-warn">تنها ۱ عدد باقیست!</b>
+                      </span>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    className="add-wh-btn"
-                    onClick={() => onAdd(selectedVariant, wh)}
-                    title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
-                  >
-                    +
-                  </button>
+                  {qty > 0 ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: '2px 4px' }}>
+                      <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 26, height: 26, fontSize: 18 }} onClick={() => onUpdateQty(cartKey, qty - 1)} title="کاهش">-</button>
+                      <span style={{ fontSize: 13, fontWeight: 700, minWidth: 20, textAlign: 'center', color: 'var(--tamas-fg)' }}>{qty}</span>
+                      <button type="button" className="add-wh-btn" style={{ width: 26, height: 26, fontSize: 16 }} onClick={() => onAdd(selectedVariant, wh)} title="افزایش">+</button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="add-wh-btn"
+                      onClick={() => onAdd(selectedVariant, wh)}
+                      title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
+                    >
+                      +
+                    </button>
+                  )}
                 </div>
               );
             })}
           </div>
         )}
 
-        <button
-          type="button"
+        <Link
+          to={`/p/${selectedVariant.productId}`}
           className="btn"
-          style={{ width: '100%', fontSize: '11.5px', padding: '5px' }}
-          onClick={() => onPreview(image)}
+          style={{ width: '100%', fontSize: '11.5px', padding: '5px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
         >
           <Icon name="eye" /> مشاهده جزئیات
-        </button>
+        </Link>
       </div>
     </article>
   );

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "ui_kits/app/components/message-bubble.html",
+  "entry": "ui_kits/app/components/message-bubble.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-09-19T10:16:15.093Z",
+  "updatedAt": "2026-09-19T10:16:15.093Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

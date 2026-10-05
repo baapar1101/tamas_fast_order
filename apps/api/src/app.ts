@@ -24,11 +24,24 @@ import adminWarehouses from './routes/admin/warehouses.js';
 import adminAttributes from './routes/admin/attributes.js';
 import adminFinancial from './routes/admin/financial.js';
 import adminComments from './routes/admin/comments.js';
+import adminAnalytics from './routes/admin/analytics.js';
+import adminProductContentImport from './routes/admin/product-content-import.js';
+import adminTrackingSites from './routes/admin/tracking-sites.js';
+import { accessGroupsRoutes } from './routes/admin/access-groups.js';
+import { smsRoutes } from './routes/admin/sms.js';
 import authRoutes from './routes/auth.js';
 import catalogRoutes from './routes/catalog.js';
 import orderRoutes from './routes/orders.js';
+import paymentRoutes from './routes/payment.js';
+import walletRoutes from './routes/wallet.js';
+import adminWalletRoutes from './routes/admin/wallets.js';
+import crmRoutes from './routes/crm.js';
+
+import creditRoutes from './routes/credit.js';
+import adminCreditRoutes from './routes/admin/credit.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
+
   const app = Fastify({
     logger: isProd
       ? { level: env.LOG_LEVEL }
@@ -124,25 +137,36 @@ export async function buildApp(): Promise<FastifyInstance> {
    * before the /api routes are registered or they never reach them.
    */
   await app.register(
-    async (api) => {
-      await api.register(catalogRoutes);
-      await api.register(authRoutes);
-      await api.register(orderRoutes);
-      await api.register(adminDashboard);
-      await api.register(adminProducts);
-      await api.register(adminTaxonomy);
-      await api.register(adminOrders);
-      await api.register(adminUsers);
-      await api.register(adminUploads);
-      await api.register(adminSync);
-      await api.register(adminSlides);
-      await api.register(adminWarehouses);
-      await api.register(adminAttributes);
-      await api.register(adminFinancial);
-      await api.register(adminComments);
-    },
-    { prefix: '/api' },
-  );
+      async (api) => {
+        await api.register(catalogRoutes);
+        await api.register(authRoutes);
+        await api.register(orderRoutes);
+        await api.register(paymentRoutes);
+        await api.register(walletRoutes);
+        await api.register(adminDashboard);
+        await api.register(adminProducts);
+        await api.register(adminTaxonomy);
+        await api.register(adminOrders);
+        await api.register(adminUsers);
+        await api.register(adminUploads);
+        await api.register(adminSync);
+        await api.register(adminSlides);
+        await api.register(adminWarehouses);
+        await api.register(adminAttributes);
+        await api.register(adminFinancial);
+        await api.register(adminComments);
+        await api.register(adminAnalytics);
+        await api.register(adminProductContentImport);
+        await api.register(adminTrackingSites);
+        await api.register(adminWalletRoutes);
+        await api.register(accessGroupsRoutes);
+        await api.register(smsRoutes);
+        await api.register(crmRoutes); // <-- CRM integration routes
+        await api.register(creditRoutes);
+        await api.register(adminCreditRoutes);
+      },
+      { prefix: '/api' },
+    );
 
   return app;
 }

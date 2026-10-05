@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "preview/colors-primary.html",
+  "currentVersionId": "c47b2198-0e66-48df-a0e8-b4294731980e",
+  "entries": [
+    {
+      "id": "c47b2198-0e66-48df-a0e8-b4294731980e",
+      "fileName": "preview/colors-primary.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1789813102796,
+      "source": "ai",
+      "prompt": "extract fully them and design system and update based on D:\\tamas_fast_order\\catalogs",
+      "size": 5776,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-c47b2198-0e66-48df-a0e8-b4294731980e.html",
+      "contentDigest": "a6b89bb08d4ca08f2c798379f4b8302b6d297cfb2d3459abca108cae6b7715f6",
+      "promptSource": "message"
+    }
+  ]
+}

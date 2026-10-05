@@ -14,7 +14,7 @@ const warehouseSchema = z.object({
 });
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_products'));
 
   app.get('/admin/warehouses', async () => {
     const list = await db.select().from(warehouses).orderBy(desc(warehouses.createdAt));
@@ -26,7 +26,7 @@ const routes: FastifyPluginAsync = async (app) => {
     
     try {
       const [created] = await db.insert(warehouses).values(data).returning();
-      await logAction((req as any).user.id, 'CREATE_WAREHOUSE', 'warehouses', String(created?.id), data);
+      await logAction(req.currentUser!.id, 'CREATE_WAREHOUSE', 'warehouses', String(created?.id), data);
       reply.code(201);
       return created;
     } catch (err: any) {
@@ -47,7 +47,7 @@ const routes: FastifyPluginAsync = async (app) => {
         .returning();
         
       if (!updated) throw notFound('انبار یافت نشد');
-      await logAction((req as any).user.id, 'UPDATE_WAREHOUSE', 'warehouses', String(id), data);
+      await logAction(req.currentUser!.id, 'UPDATE_WAREHOUSE', 'warehouses', String(id), data);
       return updated;
     } catch (err: any) {
       if (err.code === '23505') throw badRequest('کد انبار تکراری است');
@@ -59,7 +59,7 @@ const routes: FastifyPluginAsync = async (app) => {
     const id = Number((req.params as { id: string }).id);
     const [deleted] = await db.delete(warehouses).where(eq(warehouses.id, id)).returning();
     if (!deleted) throw notFound('انبار یافت نشد');
-    await logAction((req as any).user.id, 'DELETE_WAREHOUSE', 'warehouses', String(id));
+    await logAction(req.currentUser!.id, 'DELETE_WAREHOUSE', 'warehouses', String(id));
     return { success: true };
   });
 };

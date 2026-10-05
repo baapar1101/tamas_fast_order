@@ -1,0 +1,22 @@
+{
+  "$schema": "https://open-design.ai/schemas/plugin.v1.json",
+  "specVersion": "1.0.0",
+  "name": "tamasmarket-design-system-skill-mu86lwrn",
+  "title": "tamasmarket — Design System Skill",
+  "version": "0.1.0",
+  "description": "use --- description: tamasmarket design system for Tamas Market (تماس مارکت), an Iranian wholesale mobile-accessories storefront plus dark ops admin. Use when producing any on-brand artifact — storefront pages, promo/lan",
+  "od": {
+    "kind": "skill",
+    "taskKind": "new-generation",
+    "context": {
+      "skills": [
+        {
+          "path": "./SKILL.md"
+        }
+      ]
+    },
+    "capabilities": [
+      "prompt:inject"
+    ]
+  }
+}

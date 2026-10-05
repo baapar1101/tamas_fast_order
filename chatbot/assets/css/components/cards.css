@@ -1,0 +1,104 @@
+/*
+=====================================================
+MARKSTREET — CARDS
+=====================================================
+
+Reusable card surfaces and shared card treatments.
+
+=====================================================
+*/
+
+.card {
+  position: relative;
+  min-height: 290px;
+  padding: 26px;
+  border: 1px solid var(--ms-line-soft);
+  border-radius: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+  overflow: hidden;
+  transition: transform .5s var(--ms-ease), border-color .5s var(--ms-ease), background .5s var(--ms-ease);
+}
+
+.card::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 92px;
+  height: 58px;
+  opacity: .38;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 92 58' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 48H30Q42 48 42 36V16Q42 8 50 8H88' fill='none' stroke='%23ffffff' stroke-opacity='.5' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 26px;
+  right: 26px;
+  height: 2px;
+  background: var(--ms-blue);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .55s var(--ms-ease);
+}
+
+.card:hover {
+  transform: translateY(-7px);
+  border-color: rgba(36,92,255,.55);
+  background: linear-gradient(180deg, rgba(36,92,255,.12), rgba(255,255,255,.02));
+}
+
+.card:hover::before {
+  transform: scaleX(1);
+}
+
+.card .num {
+  color: var(--ms-blue); font-size: 12px; font-weight: 500; letter-spacing: .12em;
+}
+
+.card h3 {
+  margin: 56px 0 16px; font-size: clamp(22px, 2vw, 31px); line-height: 1.02; letter-spacing: 0;
+}
+
+.card p {
+  margin: 0; color: rgba(255,255,255,.63); line-height: 1.62; font-size: 15px;
+}
+
+.card ul {
+  margin: 20px 0 0; padding: 0; list-style: none; display: grid; gap: 10px;
+}
+
+.card li {
+  color: rgba(255,255,255,.62); font-size: 14px;
+}
+
+.card li::before {
+  content: "— "; color: var(--ms-blue);
+}
+
+.card-large {
+  min-height: 390px;
+}
+
+@media (max-width: 720px) {
+  .card {
+    min-height: 250px;
+  }
+}
+
+.card .visual-placeholder {
+  margin: -10px -10px 22px;
+  min-height: 150px;
+}
+
+.problem-card {
+  min-height: 350px;
+}
+
+.problem-card h3 {
+  margin-top: 18px;
+}

@@ -1,0 +1,26 @@
+{
+  "candidateId": "c568570e-8fa4-40d3-b078-e3e6563ad4bb",
+  "projectId": "brand-anker-535220",
+  "runId": "f6a5f161-901c-4438-9278-82df49dd4050",
+  "conversationId": "b6f5567f-4599-4a86-b30d-561a70e0f85c",
+  "provenance": {
+    "summary": "Detected from SKILL.md, context/source-context.md after a successful run.",
+    "detectedAt": 1789809812386
+  },
+  "sourceRefs": [
+    {
+      "kind": "file",
+      "value": "SKILL.md",
+      "label": "SKILL.md",
+      "size": 3071,
+      "copied": true
+    },
+    {
+      "kind": "file",
+      "value": "context/source-context.md",
+      "label": "context/source-context.md",
+      "size": 11061,
+      "copied": true
+    }
+  ]
+}

@@ -1,9 +1,10 @@
 import { and, eq, gt, lt } from 'drizzle-orm';
 import { REQUIRED_PROFILE_FIELDS, type UserDTO } from '@tamas/shared';
 import { db } from '../db/client.js';
-import { sessions, users } from '../db/schema.js';
+import { accessGroups, sessions, users } from '../db/schema.js';
 import { adminPhones, env } from '../env.js';
 import { randomToken, sha256 } from '../lib/hash.js';
+import { crmClient } from '../lib/crm.js';
 
 export type UserRow = typeof users.$inferSelect;
 
@@ -26,6 +27,8 @@ export function toUserDTO(row: UserRow): UserDTO {
     isVerifiedIdentity: row.isVerifiedIdentity ?? false,
     isActive: row.isActive,
     role: row.role,
+    accessGroupId: row.accessGroupId,
+    permissions: (row as any).permissions,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -66,6 +69,30 @@ export async function findOrCreateUser(phone: string): Promise<{ row: UserRow; i
       .values({ phone, role: isAdmin ? 'admin' : 'customer', isActive: isAdmin })
       .returning();
     if (!created) throw new Error('failed to create user');
+
+    // Fire-and-forget CRM person sync for new users
+    const { getCrmConfig } = await import('./settings.js');
+    getCrmConfig().then(config => crmClient.pushPerson({
+      firstName: '',
+      lastName: '',
+      phone: created.phone,
+      email: `${created.phone}@tamas.local`,
+      aliasName: created.phone,
+    }, config)).catch((err: unknown) => {
+      // CRM sync failure shouldn't block user creation
+    });
+
+    import('./telegram.js').then(({ sendTelegramNotification }) => {
+      void sendTelegramNotification('user.registered', {
+        title: '👤 کاربر جدید',
+        fields: [
+          { label: 'تلفن', value: created.phone },
+          { label: 'نقش', value: created.role },
+          { label: 'فعال', value: created.isActive ? 'بله' : 'خیر' },
+        ],
+      }).catch((err) => console.error('[Telegram] user.registered failed:', err));
+    });
+
     return { row: created, isNew: true };
   } catch (err) {
     if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
@@ -90,6 +117,8 @@ export async function findOrCreateUser(phone: string): Promise<{ row: UserRow; i
         isVerifiedIdentity: false,
         isActive: true,
         role: isAdmin ? 'admin' : 'customer',
+        accessGroupId: null,
+        passwordHash: null,
         lastLoginAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -131,15 +160,18 @@ export async function createSession(
   return token;
 }
 
-export async function resolveSession(token: string | undefined): Promise<UserRow | null> {
+export type UserSession = UserRow & { permissions?: string[] };
+
+export async function resolveSession(token: string | undefined): Promise<UserSession | null> {
   if (!token) return null;
   const hash = sha256(token);
 
   try {
     const [row] = await db
-      .select({ session: sessions, user: users })
+      .select({ session: sessions, user: users, accessGroup: accessGroups })
       .from(sessions)
       .innerJoin(users, eq(users.id, sessions.userId))
+      .leftJoin(accessGroups, eq(users.accessGroupId, accessGroups.id))
       .where(and(eq(sessions.tokenHash, hash), gt(sessions.expiresAt, new Date())))
       .limit(1);
     if (!row) return null;
@@ -148,7 +180,10 @@ export async function resolveSession(token: string | undefined): Promise<UserRow
     if (Date.now() - row.session.lastSeenAt.getTime() > 60_000) {
       await db.update(sessions).set({ lastSeenAt: new Date() }).where(eq(sessions.id, row.session.id));
     }
-    return row.user;
+    
+    // Attach permissions
+    const permissions = row.user.role === 'admin' ? ['*'] : (row.accessGroup?.permissions || []);
+    return { ...row.user, permissions };
   } catch (err) {
     if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
       const sess = inMemorySessions.get(hash);

@@ -1,0 +1,187 @@
+import type { FastifyPluginAsync } from 'fastify';
+import { and, eq, isNull } from 'drizzle-orm';
+import { z } from 'zod';
+import { db } from '../db/client.js';
+import { orders, payments } from '../db/schema.js';
+import { badRequest, notFound } from '../lib/errors.js';
+// @ts-ignore
+import paymentGateway from '@tamas/payment';
+import { env } from '../env.js';
+import { applyWalletTransaction } from '../services/wallet.js';
+
+const routes: FastifyPluginAsync = async (app) => {
+  // Create a payment transaction and return the bank URL
+  app.post(
+    '/payment/create',
+    { preHandler: [app.requireUser], config: { rateLimit: { max: 10, timeWindow: '1 minute' } } },
+    async (req) => {
+      const { orderId } = z.object({ orderId: z.coerce.number().int() }).parse(req.body);
+      
+      const [order] = await db
+        .select()
+        .from(orders)
+        .where(and(eq(orders.id, orderId), eq(orders.userId, req.currentUser!.id), isNull(orders.deletedAt)))
+        .limit(1);
+
+      if (!order) throw notFound('سفارش پیدا نشد.');
+      if (order.paymentStatus === 'paid') throw badRequest('این سفارش قبلاً پرداخت شده است.');
+
+      const amount = order.total;
+      
+      // Calculate frontend redirect URL for callback
+      const callbackUrl = `${req.headers.origin || 'https://tamasmarket.com'}/payment/result`;
+
+      try {
+        const response = await paymentGateway.Create({
+          amount,
+          callback: callbackUrl,
+          invoice_id: String(order.id),
+          mobile: order.phone,
+          description: `پرداخت سفارش ${order.orderCode}`,
+        });
+
+        const data = response.data;
+        if (data && data.status === 'success') {
+          const transid = data.transid;
+          
+          await db.insert(payments).values({
+            orderId: order.id,
+            userId: req.currentUser!.id,
+            amount,
+            gateway: 'aqayepardakht',
+            refId: transid,
+            status: 'pending',
+          });
+
+          return { ok: true, url: paymentGateway.StartPay(transid) };
+        } else {
+          throw new Error('خطا در ارتباط با درگاه پرداخت: ' + (data?.code || ''));
+        }
+      } catch (err: any) {
+        req.log.error({ err: err.response?.data || err.message }, 'Payment create failed');
+        const bankError = err.response?.data?.code || err.response?.data?.message || err.message;
+        throw badRequest(`خطا در ایجاد تراکنش بانکی (${bankError}).`);
+      }
+    }
+  );
+
+  // Callback from payment gateway (usually GET or POST)
+  app.all('/payment/callback', async (req, reply) => {
+    // Both GET query params and POST body could contain transid and status depending on bank
+    const query = (req.method === 'POST' ? req.body : req.query) as any;
+    
+    const transid = query.transid;
+    
+    if (!transid) {
+       return reply.redirect('/payment/result?status=failed&error=missing_transid');
+    }
+
+    const [paymentRecord] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.refId, transid))
+      .limit(1);
+
+    if (!paymentRecord) {
+       return reply.redirect('/payment/result?status=failed&error=invalid_transid');
+    }
+
+    const isWalletTopup = paymentRecord.note?.startsWith('wallet_topup:') && paymentRecord.userId;
+    const resultPath = isWalletTopup ? '/wallet' : '/payment/result';
+
+    if (paymentRecord.status === 'success') {
+       return reply.redirect(`${resultPath}?status=success&orderId=${paymentRecord.orderId ?? ''}&trackingCode=${paymentRecord.trackingCode ?? ''}`);
+    }
+
+    try {
+      // Need to verify
+      const verifyRes = await paymentGateway.Verify({
+         amount: paymentRecord.amount,
+         transid: transid,
+      });
+
+      const verifyData = verifyRes.data;
+
+      if (verifyData && verifyData.status === 'success') {
+        const trackingCode = verifyData.tracking_number || verifyData.code || transid;
+
+        await db.transaction(async (tx) => {
+           await tx.update(payments)
+             .set({ status: 'success', trackingCode, updatedAt: new Date() })
+             .where(eq(payments.id, paymentRecord.id));
+             
+           if (paymentRecord.orderId) {
+             await tx.update(orders)
+               .set({ paymentStatus: 'paid', status: 'confirmed', updatedAt: new Date() })
+               .where(eq(orders.id, paymentRecord.orderId));
+           }
+           if (isWalletTopup && paymentRecord.userId) {
+             await applyWalletTransaction(tx, {
+               userId: paymentRecord.userId,
+               direction: 'credit',
+               type: 'deposit',
+               amount: paymentRecord.amount,
+               description: 'شارژ آنلاین کیف پول',
+               reference: trackingCode,
+               idempotencyKey: `payment:${paymentRecord.id}`,
+             });
+           }
+        });
+
+        if (paymentRecord.orderId) {
+          const [paidOrder] = await db.select().from(orders).where(eq(orders.id, paymentRecord.orderId)).limit(1);
+          if (paidOrder) {
+            const { sendTelegramNotification } = await import('../services/telegram.js');
+            void sendTelegramNotification('payment.paid', {
+              title: '✅ پرداخت آنلاین موفق',
+              fields: [
+                { label: 'شماره سفارش', value: paidOrder.orderCode },
+                { label: 'مشتری', value: paidOrder.customerName },
+                { label: 'مبلغ', value: `${paymentRecord.amount.toLocaleString('fa-IR')} تومان` },
+                { label: 'کد پیگیری', value: trackingCode },
+              ],
+            }).catch((err) => req.log.error({ err }, 'failed to send Telegram payment notification'));
+          }
+        }
+
+        return reply.redirect(`${resultPath}?status=success&orderId=${paymentRecord.orderId ?? ''}&trackingCode=${trackingCode}`);
+      } else {
+        await db.update(payments)
+           .set({ status: 'failed', updatedAt: new Date() })
+           .where(eq(payments.id, paymentRecord.id));
+
+        const { sendTelegramNotification } = await import('../services/telegram.js');
+        void sendTelegramNotification('payment.failed', {
+          title: '❌ پرداخت آنلاین ناموفق',
+          fields: [
+            { label: 'شناسه سفارش', value: paymentRecord.orderId },
+            { label: 'مبلغ', value: `${paymentRecord.amount.toLocaleString('fa-IR')} تومان` },
+            { label: 'خطا', value: verifyData?.code || 'verification_failed' },
+          ],
+        }).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send Telegram payment failure notification'));
+           
+        return reply.redirect(`${resultPath}?status=failed&orderId=${paymentRecord.orderId ?? ''}&error=${verifyData?.code || 'verification_failed'}`);
+      }
+    } catch (err) {
+      req.log.error({ err }, 'Payment verify failed');
+      
+      await db.update(payments)
+         .set({ status: 'failed', updatedAt: new Date() })
+         .where(eq(payments.id, paymentRecord.id));
+
+      const { sendTelegramNotification } = await import('../services/telegram.js');
+      void sendTelegramNotification('payment.failed', {
+        title: '❌ خطا در بررسی پرداخت',
+        fields: [
+          { label: 'شناسه سفارش', value: paymentRecord.orderId },
+          { label: 'مبلغ', value: `${paymentRecord.amount.toLocaleString('fa-IR')} تومان` },
+          { label: 'خطا', value: (err as Error).message },
+        ],
+      }).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send Telegram payment failure notification'));
+         
+      return reply.redirect(`${resultPath}?status=failed&orderId=${paymentRecord.orderId ?? ''}&error=server_error`);
+    }
+  });
+};
+
+export default routes;

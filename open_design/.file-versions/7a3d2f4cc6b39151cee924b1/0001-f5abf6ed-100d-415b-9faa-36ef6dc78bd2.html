@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>tamasmarket — Components: Buttons &amp; States (اجزاء تعاملی)</title>
+<link rel="stylesheet" href="../fonts/fonts.css" />
+<style>
+  :root {
+    --tamas-bg:#f5f5f7; --tamas-surface:#ffffff; --tamas-fg:#1d1d1f; --tamas-muted:#7a7a7a;
+    --tamas-border:#e0e0e0; --tamas-accent:#08798f; --tamas-accent-deep:#00596b;
+    --tamas-success:#34c759; --tamas-warning:#ff9500; --tamas-danger:#ff3b30;
+    --tamas-radius:8px; --tamas-radius-card:18px; --tamas-radius-pill:980px;
+    --tamas-ease:cubic-bezier(.2,.8,.2,1); --tamas-shadow:0 4px 14px rgba(0,0,0,.04);
+    font-family: "Vazirmatn FD", Vazirmatn, Tahoma, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--tamas-bg); color: var(--tamas-fg); margin: 0; padding: 32px 20px; line-height: 1.57; }
+  .card { max-width: 720px; margin: 0 auto; background: var(--tamas-surface); border: 1px solid var(--tamas-border); border-radius: var(--tamas-radius-card); padding: 24px; box-shadow: var(--tamas-shadow); }
+  h1 { font-size: 18px; font-weight: 800; margin: 0 0 4px; }
+  .sub { color: var(--tamas-muted); font-size: 12px; margin-bottom: 18px; }
+  .group-title { font-weight: 700; font-size: 12.5px; color: var(--tamas-muted); margin: 20px 0 10px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; border-radius: var(--tamas-radius-pill); font-weight:700; font-size: 13px; padding: 9px 20px; border: 1px solid transparent; cursor: pointer; transition: transform 0.1s var(--tamas-ease), background 0.2s var(--tamas-ease), color 0.2s var(--tamas-ease); font-family: inherit; }
+  .btn:active { transform: scale(0.95); }
+  .btn:focus-visible { outline: 2px solid var(--tamas-accent); outline-offset: 2px; }
+  .btn-primary { background: var(--tamas-accent); color:#fff; }
+  .btn-secondary { background: var(--tamas-accent-deep); color:#fff; }
+  .btn-outline { background: var(--tamas-surface); color: var(--tamas-accent); border-color: var(--tamas-accent); }
+  .btn-ghost { background: transparent; color: var(--tamas-accent); }
+  .btn-danger { background: var(--tamas-danger); color:#fff; }
+  .chip { display:inline-flex; align-items:center; border-radius: var(--tamas-radius-pill); border:1px solid var(--tamas-border); padding: 5px 14px; font-size: 11.5px; font-weight:700; color: var(--tamas-muted); background: var(--tamas-surface); }
+  .chip.on { background: var(--tamas-accent); color:#fff; border-color: var(--tamas-accent); }
+  .st { font-size: 11px; font-weight: 700; border-radius: var(--tamas-radius-pill); padding: 4px 14px; }
+  .st-ok { background: rgba(52,199,89,.14); color: #2a9b4d; }
+  .st-warn { background: rgba(255,149,0,.14); color: #b36d00; }
+  .st-danger { background: rgba(255,59,48,.14); color: #d02a20; }
+  .input { border-radius: var(--tamas-radius-pill); border: 1px solid var(--tamas-border); padding: 8px 16px; font-size: 13px; font-family: inherit; background: var(--tamas-surface); width: 200px; }
+  .input:focus-visible { outline: 2px solid var(--tamas-accent); outline-offset: 1px; border-color: transparent; }
+  .row-dark { background: #0e1626; border-radius: 14px; padding: 16px; margin-top: 14px; }
+  .btn-dark { background: #06b6d4; color:#060c18; }
+  .st-dk-ok { background: rgba(16,185,129,.16); color:#10b981; }
+  .st-dk-warn { background: rgba(245,158,11,.16); color:#f59e0b; }
+  .st-dk-danger { background: rgba(251,113,133,.16); color:#fb7185; }
+  .note { margin-top: 18px; font-size: 10.5px; color: var(--tamas-muted); }
+  .ltr { unicode-bidi: isolate; direction: ltr; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>اجزاء تعاملی — دکمه‌ها، چیپ‌ها، وضعیت‌ها</h1>
+    <div class="sub">قرص‌شکل برای همهٔ اکشن‌ها · :active مقیاس ۰.۹۵ · تمرکز ۲px teal</div>
+
+    <div class="group-title">دکمه‌ها</div>
+    <div class="row">
+      <button class="btn btn-primary" type="button">افزودن به سفارش</button>
+      <button class="btn btn-secondary" type="button">ثبت سفارش</button>
+      <button class="btn btn-outline" type="button">مشاهدهٔ کاتالوگ</button>
+      <button class="btn btn-ghost" type="button">لغو</button>
+      <button class="btn btn-danger" type="button">حذف</button>
+    </div>
+
+    <div class="group-title">چیپ‌های دسته‌بندی (rail رستوران)</div>
+    <div class="row">
+      <span class="chip on">کابل‌ها</span>
+      <span class="chip">پاوربانک</span>
+      <span class="chip">اسپیکر</span>
+      <span class="chip">هدفون</span>
+      <span class="chip">هولدر</span>
+    </div>
+
+    <div class="group-title">وضعیت سفارش / موجودی (روشن)</div>
+    <div class="row">
+      <span class="st st-ok">موجود</span>
+      <span class="st st-warn">موجودی محدود</span>
+      <span class="st st-danger">ناموجود</span>
+    </div>
+
+    <div class="group-title">ورودی و اکشن (قرص‌شکل)</div>
+    <div class="row">
+      <input class="input" placeholder="جستجوی کالا…" aria-label="جستجو" />
+      <button class="btn btn-primary" type="button">بررسی قیمت</button>
+    </div>
+
+    <div class="row-dark">
+      <div style="font-size:11px;color:#6b7a93;font-weight:700;margin-bottom:10px">تم تاریک — پنل مدیریت</div>
+      <div class="row">
+        <button class="btn btn-dark" type="button">به‌روزرسانی قیمت</button>
+        <span class="st st-dk-ok">تأیید شد</span>
+        <span class="st st-dk-warn">به‌روزرسانی</span>
+        <span class="st st-dk-danger">ناموجود</span>
+      </div>
+    </div>
+
+    <p class="note">پیش‌نمایش اجزاء تعاملی · منبع سطح: <span class="ltr">source_examples/*.tsx</span> + card.dark.html · قرص‌شکل فقط برای اکشن: دکمهٔ primary، چیپ، ورودی جستجو.</p>
+  </div>
+</body>
+</html>

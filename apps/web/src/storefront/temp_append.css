@@ -3,7 +3,7 @@
   }
 
   .tabbar-item.active {
-    color: var(--primary);
+    color: var(--tamas-accent);
   }
 
   .tabbar-item .tabbar-icon {

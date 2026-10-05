@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { userPatchSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { sessions, users } from '../../db/schema.js';
-import { badRequest, notFound } from '../../lib/errors.js';
+import { badRequest, forbidden, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { toUserDTO } from '../../services/auth.js';
 import { logAction } from '../../services/audit.js';
@@ -12,13 +12,13 @@ import { logAction } from '../../services/audit.js';
 const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
   status: z.enum(['active', 'pending', 'all']).default('all'),
-  role: z.enum(['customer', 'admin', 'all']).default('all'),
+  role: z.enum(['customer', 'admin', 'operator', 'all']).default('all'),
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(200).default(50),
 });
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_users'));
 
   app.get('/admin/users', async (req) => {
     const q = listQuery.parse(req.query);
@@ -55,7 +55,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.get('/admin/users/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
-    const [row] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    const [row] = await db.select().from(users).where(and(eq(users.id, id), isNull(users.deletedAt))).limit(1);
     if (!row) throw notFound('کاربر پیدا نشد.');
     return { ok: true, user: toUserDTO(row) };
   });
@@ -69,10 +69,18 @@ const routes: FastifyPluginAsync = async (app) => {
       throw badRequest('نمی‌توانید دسترسی مدیریت خودتان را بردارید.');
     }
 
+    // Only the super admin may promote or change role/access groups — an
+    // operator holding manage_users must not escalate their own privileges.
+    if (body.role !== undefined || body.accessGroupId !== undefined) {
+      if (req.currentUser!.role !== 'admin') {
+        throw forbidden('فقط مدیر ارشد می‌تواند نقش یا گروه دسترسی کاربران را تغییر دهد.');
+      }
+    }
+
     const [updated] = await db
       .update(users)
       .set({ ...body, updatedAt: new Date() })
-      .where(eq(users.id, id))
+      .where(and(eq(users.id, id), isNull(users.deletedAt)))
       .returning();
     if (!updated) throw notFound('کاربر پیدا نشد.');
 
@@ -82,7 +90,89 @@ const routes: FastifyPluginAsync = async (app) => {
     }
 
     await logAction(req.currentUser!.id, 'update', 'user', updated.phone, body as Record<string, unknown>);
+    if (body.isActive !== undefined || body.role !== undefined) {
+      const { sendTelegramNotification } = await import('../../services/telegram.js');
+      void sendTelegramNotification('user.status_changed', {
+        title: '👥 تغییر وضعیت کاربر',
+        fields: [
+          { label: 'کاربر', value: [updated.name, updated.lastName].filter(Boolean).join(' ') || updated.phone },
+          { label: 'تلفن', value: updated.phone },
+          { label: 'وضعیت', value: updated.isActive ? 'فعال' : 'غیرفعال' },
+          { label: 'نقش', value: updated.role },
+        ],
+      }).catch((err) => req.log.error({ err }, 'failed to send Telegram user notification'));
+    }
     return { ok: true, user: toUserDTO(updated) };
+  });
+
+  app.delete('/admin/users/:id', async (req) => {
+    const id = z.coerce.number().int().positive().parse((req.params as { id: string }).id);
+    if (id === req.currentUser!.id) throw badRequest('نمی‌توانید حساب کاربری خودتان را حذف کنید.');
+
+    const deleted = await db.transaction(async (tx) => {
+      const [target] = await tx
+        .select()
+        .from(users)
+        .where(and(eq(users.id, id), isNull(users.deletedAt)))
+        .for('update')
+        .limit(1);
+      if (!target) throw notFound('کاربر پیدا نشد یا قبلاً حذف شده است.');
+
+      if (target.role === 'admin') {
+        if (req.currentUser!.role !== 'admin') {
+          throw forbidden('فقط مدیر ارشد می‌تواند حساب یک مدیر را حذف کند.');
+        }
+        if (target.isActive) {
+          const [activeAdmins] = await tx
+            .select({ n: count() })
+            .from(users)
+            .where(and(eq(users.role, 'admin'), eq(users.isActive, true), isNull(users.deletedAt)));
+          if (Number(activeAdmins?.n ?? 0) <= 1) {
+            throw badRequest('آخرین مدیر فعال قابل حذف نیست. ابتدا یک مدیر دیگر ایجاد کنید.');
+          }
+        }
+      }
+
+      // Keep the row for orders, wallet and audit references, but remove all
+      // personal data and release the unique phone number for future signup.
+      const replacementPhone = `9${String(id).padStart(7, '0').slice(-7)}${String(Date.now()).slice(-7)}`;
+      const now = new Date();
+      const [updated] = await tx
+        .update(users)
+        .set({
+          phone: replacementPhone,
+          name: 'کاربر حذف‌شده',
+          lastName: '',
+          storeName: '',
+          landline: '',
+          address: '',
+          postalCode: '',
+          certificateFileUrl: '',
+          activity: '',
+          pageWebsite: '',
+          nationalCode: '',
+          birthDate: '',
+          fatherName: '',
+          isVerifiedIdentity: false,
+          isActive: false,
+          role: 'customer',
+          accessGroupId: null,
+          passwordHash: null,
+          deletedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(users.id, id))
+        .returning({ id: users.id });
+      await tx.delete(sessions).where(eq(sessions.userId, id));
+      return { id: updated!.id, phone: target.phone, role: target.role };
+    });
+
+    await logAction(req.currentUser!.id, 'delete', 'user', deleted.phone, {
+      userId: deleted.id,
+      previousRole: deleted.role,
+      mode: 'soft-delete-and-anonymize',
+    });
+    return { ok: true, message: 'کاربر حذف و اطلاعات شخصی او ناشناس‌سازی شد.' };
   });
 
   const bulkSchema = z.object({
@@ -99,10 +189,18 @@ const routes: FastifyPluginAsync = async (app) => {
     const changed = await db
       .update(users)
       .set({ isActive, updatedAt: new Date() })
-      .where(inArray(users.id, ids))
+      .where(and(inArray(users.id, ids), isNull(users.deletedAt)))
       .returning({ id: users.id });
 
     if (!isActive) await db.delete(sessions).where(inArray(sessions.userId, ids));
+    const { sendTelegramNotification } = await import('../../services/telegram.js');
+    void sendTelegramNotification('user.status_changed', {
+      title: '👥 تغییر گروهی وضعیت کاربران',
+      fields: [
+        { label: 'تعداد کاربران', value: changed.length },
+        { label: 'وضعیت جدید', value: isActive ? 'فعال' : 'غیرفعال' },
+      ],
+    }).catch((err) => req.log.error({ err }, 'failed to send Telegram bulk user notification'));
     await logAction(req.currentUser!.id, `bulk:${body.action}`, 'user', null, { count: changed.length });
     return { ok: true, changed: changed.length };
   });

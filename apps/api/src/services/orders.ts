@@ -6,6 +6,9 @@ import { orderItems, orders, products } from '../db/schema.js';
 import { badRequest, conflict, profileIncomplete } from '../lib/errors.js';
 import { invalidateCatalog } from './catalog.js';
 import { missingProfileFields, type UserRow } from './auth.js';
+import { upsertOrderPayment } from './payments.js';
+import { applyWalletTransaction } from './wallet.js';
+import { getSetting } from './settings.js';
 
 type OrderRow = typeof orders.$inferSelect;
 type OrderItemRow = typeof orderItems.$inferSelect;
@@ -14,7 +17,7 @@ export function toOrderDTO(row: OrderRow, items: OrderItemRow[]): OrderDTO {
   return {
     id: row.id,
     orderCode: row.orderCode,
-    userId: row.userId,
+    userId: row.userId ?? null,
     customerName: row.customerName,
     phone: row.phone,
     storeName: row.storeName,
@@ -25,12 +28,15 @@ export function toOrderDTO(row: OrderRow, items: OrderItemRow[]): OrderDTO {
     paymentStatus: row.paymentStatus,
     paymentMethod: row.paymentMethod,
     note: row.note,
+    acquisitionSource: row.acquisitionSource,
+    acquisitionMedium: row.acquisitionMedium,
+    acquisitionCampaign: row.acquisitionCampaign,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     items: items.map((i) => ({
       id: i.id,
       productId: i.productId,
-      sku: i.sku,
+      sku: i.sku ?? null,
       title: i.title,
       color: i.color,
       price: i.price,
@@ -87,14 +93,45 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
   const lines = [...wanted.values()];
   const productIds = [...new Set(lines.map((l) => l.productId))];
 
+  const walletPayment = input.paymentMethod?.trim() === 'wallet';
+  if (walletPayment) {
+    const [walletEnabled, orderPaymentEnabled] = await Promise.all([
+      getSetting('WALLET_ENABLED'),
+      getSetting('WALLET_ORDER_PAYMENT_ENABLED'),
+    ]);
+    if (walletEnabled === 'false' || orderPaymentEnabled === 'false') {
+      throw badRequest('پرداخت با کیف پول موقتاً غیرفعال است.');
+    }
+  }
+
   return db.transaction(async (tx) => {
-    const rows = await tx
+    let rows = await tx
       .select()
       .from(products)
       .where(and(inArray(products.productId, productIds), isNull(products.deletedAt)))
       .for('update');
 
     const byId = new Map(rows.map((r) => [r.productId, r]));
+    const additionalIds = new Set<string>();
+
+    for (const row of rows) {
+      if (row.type === 'bundle' && row.bundleItems && Array.isArray(row.bundleItems)) {
+        for (const item of row.bundleItems) {
+          if (!byId.has(item.productId)) additionalIds.add(item.productId);
+        }
+      }
+    }
+
+    if (additionalIds.size > 0) {
+      const extraRows = await tx
+        .select()
+        .from(products)
+        .where(and(inArray(products.productId, [...additionalIds]), isNull(products.deletedAt)))
+        .for('update');
+      for (const r of extraRows) {
+        byId.set(r.productId, r);
+      }
+    }
 
     let total = 0;
     const toInsert: Array<typeof orderItems.$inferInsert> = [];
@@ -105,26 +142,56 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       if (!product) throw badRequest(`محصول «${line.productId}» دیگر موجود نیست.`);
       if (product.status !== 'active') throw conflict(`«${product.title}» در حال حاضر قابل سفارش نیست.`);
 
-      const available = stockIn(product, line.warehouse);
-      if (available < line.qty) {
-        throw conflict(
-          `موجودی «${product.title}» در ${WAREHOUSE_LABELS[line.warehouse]} فقط ${available} عدد است.`,
-          { productId: product.productId, available },
-        );
-      }
+      if (product.type === 'bundle' && product.bundleItems && Array.isArray(product.bundleItems)) {
+        // Bundle stock validation
+        for (const bItem of product.bundleItems) {
+          const part = byId.get(bItem.productId);
+          if (!part) throw badRequest(`جزء «${bItem.productId}» از باندل پیدا نشد.`);
+          const requiredQty = line.qty * bItem.qty;
+          const available = stockIn(part, line.warehouse);
+          if (available < requiredQty) {
+            throw conflict(
+              `موجودی جزء «${part.title}» در ${WAREHOUSE_LABELS[line.warehouse]} برای این باندل کافی نیست (فقط ${available} عدد).`,
+              { productId: part.productId, available },
+            );
+          }
+          stockUpdates.push({ id: part.id, warehouse: line.warehouse, qty: requiredQty });
+        }
+        // Add bundle itself to order line items (but stockUpdates only has parts)
+        total += product.price * line.qty;
+        toInsert.push({
+          orderId: 0,
+          productId: product.productId,
+          sku: product.sku,
+          title: product.title,
+          color: product.color,
+          price: product.price,
+          qty: line.qty,
+          warehouse: line.warehouse,
+        });
+      } else {
+        // Normal product stock validation
+        const available = stockIn(product, line.warehouse);
+        if (available < line.qty) {
+          throw conflict(
+            `موجودی «${product.title}» در ${WAREHOUSE_LABELS[line.warehouse]} فقط ${available} عدد است.`,
+            { productId: product.productId, available },
+          );
+        }
 
-      total += product.price * line.qty;
-      toInsert.push({
-        orderId: 0, // replaced below once the order row exists
-        productId: product.productId,
-        sku: product.sku,
-        title: product.title,
-        color: product.color,
-        price: product.price,
-        qty: line.qty,
-        warehouse: line.warehouse,
-      });
-      stockUpdates.push({ id: product.id, warehouse: line.warehouse, qty: line.qty });
+        total += product.price * line.qty;
+        toInsert.push({
+          orderId: 0,
+          productId: product.productId,
+          sku: product.sku,
+          title: product.title,
+          color: product.color,
+          price: product.price,
+          qty: line.qty,
+          warehouse: line.warehouse,
+        });
+        stockUpdates.push({ id: product.id, warehouse: line.warehouse, qty: line.qty });
+      }
     }
 
     const customerName = [user.name, user.lastName].filter(Boolean).join(' ').trim() || user.phone;
@@ -140,10 +207,15 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
         address: (input.address || user.address).trim(),
         total,
         quantity: lines.reduce((acc, l) => acc + l.qty, 0),
-        status: 'new',
-        paymentStatus: 'unpaid',
+        status: walletPayment ? 'confirmed' : 'new',
+        paymentStatus: walletPayment ? 'paid' : 'unpaid',
         paymentMethod: input.paymentMethod?.trim() || null,
         note: input.note?.trim() || null,
+        acquisitionSource: input.attribution?.source?.trim().toLowerCase() || null,
+        acquisitionMedium: input.attribution?.medium?.trim().toLowerCase() || null,
+        acquisitionCampaign: input.attribution?.campaign?.trim() || null,
+        acquisitionReferrer: input.attribution?.referrer?.trim() || null,
+        acquisitionLandingPage: input.attribution?.landingPage?.trim() || null,
       })
       .returning();
     if (!order) throw new Error('order insert failed');
@@ -153,10 +225,21 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       .values(toInsert.map((i) => ({ ...i, orderId: order.id })))
       .returning();
 
+    if (walletPayment) {
+      await applyWalletTransaction(tx, {
+        userId: user.id,
+        direction: 'debit',
+        type: 'purchase',
+        amount: total,
+        orderId: order.id,
+        description: `پرداخت سفارش ${order.orderCode}`,
+        idempotencyKey: `order-purchase:${order.id}`,
+      });
+    }
+    await upsertOrderPayment(tx, order.id, user.id, total, order.paymentStatus, walletPayment ? 'wallet' : undefined);
+
     for (const update of stockUpdates) {
       const now = new Date();
-      // `greatest(0, …)` keeps the column non-negative even if two paths ever
-      // race outside this transaction.
       if (update.warehouse === 'kerman') {
         await tx
           .update(products)
@@ -176,6 +259,43 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     }
 
     invalidateCatalog();
+
+    // Fire-and-forget CRM sync — failures are logged, never block the order.
+    const { crmClient } = await import('../lib/crm.js');
+    const { getCrmConfig } = await import('./settings.js');
+    getCrmConfig().then(config => crmClient.pushOrder(toOrderDTO(order, items), config)).catch((err: unknown) => {
+      // app.log?.warn?.({ err }, 'CRM pushOrder failed (non-blocking)');
+    });
+
+    // Fire-and-forget SMS notification
+    if (user.phone) {
+      import('./sms.js').then(({ sendTemplatedSms }) => {
+        sendTemplatedSms(user.phone, 'sms_template_order_new', {
+          order_code: order.orderCode,
+          name: customerName,
+        }).catch((err) => {
+          console.error('[SMS] Failed to send new order sms:', err);
+        });
+      });
+    }
+
+    import('./telegram.js').then(({ sendTelegramNotification }) => {
+      void sendTelegramNotification('order.created', {
+        title: '🛒 سفارش جدید',
+        fields: [
+          { label: 'شماره سفارش', value: order.orderCode },
+          { label: 'مشتری', value: customerName },
+          { label: 'فروشگاه', value: order.storeName },
+          { label: 'تلفن', value: order.phone },
+          { label: 'مبلغ', value: `${order.total.toLocaleString('fa-IR')} تومان` },
+          { label: 'تعداد', value: order.quantity },
+          { label: 'روش پرداخت', value: order.paymentMethod },
+        ],
+      }).then((result) => {
+        if (result.errors.length) console.error('[Telegram] order.created:', result.errors.join('; '));
+      }).catch((err) => console.error('[Telegram] order.created failed:', err));
+    });
+
     return toOrderDTO(order, items);
   });
 }
@@ -206,4 +326,21 @@ export async function listOrdersForUser(userId: number, limit = 50): Promise<Ord
     byOrder.set(it.orderId, list);
   }
   return rows.map((r) => toOrderDTO(r, byOrder.get(r.id) ?? []));
+}
+
+/** Fetch an order by its orderCode (used for CRM manual sync). */
+export async function getOrderByCode(orderCode: string): Promise<OrderDTO | null> {
+  const [row] = await db
+    .select()
+    .from(orders)
+    .where(and(eq(orders.orderCode, orderCode), isNull(orders.deletedAt)))
+    .limit(1);
+  if (!row) return null;
+
+  const items = await db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, row.id));
+
+  return toOrderDTO(row, items);
 }

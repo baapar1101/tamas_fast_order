@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "ui_kits/app/components/app-shell.html",
+  "currentVersionId": "dad85393-63ae-4a54-8585-6bd3a9704b27",
+  "entries": [
+    {
+      "id": "dad85393-63ae-4a54-8585-6bd3a9704b27",
+      "fileName": "ui_kits/app/components/app-shell.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1789813102801,
+      "source": "ai",
+      "prompt": "extract fully them and design system and update based on D:\\tamas_fast_order\\catalogs",
+      "size": 1601,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-dad85393-63ae-4a54-8585-6bd3a9704b27.html",
+      "contentDigest": "c7608602a434cc3bc8f2b7535518fbfa90519f5aa4cd0bc953cc27cb278221e9",
+      "promptSource": "message"
+    }
+  ]
+}

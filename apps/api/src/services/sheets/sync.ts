@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { eq, lt, sql } from 'drizzle-orm';
 import type { SyncEntity, SyncReport, SyncRun } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { syncConflicts, syncState } from '../../db/schema.js';
@@ -36,9 +36,10 @@ const googleTransport: SheetTransport = { read: readTab, write: writeTab };
  *   2. for every key on both sides, compare each side against `sheet_hash` —
  *      the fingerprint saved the last time the two agreed. Whichever side moved
  *      away from that baseline is the side that changed. Only when *both* moved
- *      is it a real conflict, and then `updated_at` decides; every differing
- *      column is written to `sync_conflicts` so the panel can show what was
- *      overwritten and why
+ *      is it a real conflict. Product price/inventory columns always resolve
+ *      to Sheets and all other conflicting columns resolve to the database;
+ *      every differing column is written to `sync_conflicts` with its actual
+ *      winner so the panel can show what was overwritten and why
  *   3. keys only in the sheet are inserted into the database
  *   4. keys only in the database are appended to the sheet
  *   5. the whole tab is rewritten once, in a single API call, and the new
@@ -107,7 +108,7 @@ async function recordConflicts(
   key: string,
   dbCells: SheetCells,
   sheetCells: SheetCells,
-  winner: 'db' | 'sheet',
+  winnerFor: (field: string) => 'db' | 'sheet',
 ): Promise<number> {
   const rows = mapping.columns
     .filter((c) => c !== UPDATED_AT_COLUMN)
@@ -118,7 +119,7 @@ async function recordConflicts(
       field,
       dbValue: (dbCells[field] ?? '').slice(0, 4000),
       sheetValue: (sheetCells[field] ?? '').slice(0, 4000),
-      resolvedTo: winner,
+      resolvedTo: winnerFor(field),
     }));
 
   if (rows.length > 0) await db.insert(syncConflicts).values(rows);
@@ -186,35 +187,51 @@ async function syncEntity(
       const sheetChanged = baseline == null ? sheetRow.updatedAt != null : sheetRow.hash !== baseline;
       const dbChanged = baseline == null ? true : dbHash !== baseline;
 
-      let sheetWins: boolean;
+      let rowSheetWins: boolean;
       if (sheetChanged && !dbChanged) {
-        sheetWins = true;
+        rowSheetWins = true;
       } else if (!sheetChanged && dbChanged) {
-        sheetWins = false;
+        rowSheetWins = false;
       } else {
         // Both sides moved (or there is no baseline at all): fall back to the
         // timestamps. A sheet row with no usable timestamp never wins here.
-        sheetWins = (sheetRow.updatedAt?.getTime() ?? 0) > dbRow.updatedAt.getTime();
+        rowSheetWins = (sheetRow.updatedAt?.getTime() ?? 0) > dbRow.updatedAt.getTime();
       }
 
       const bothChanged = sheetChanged && dbChanged;
+      const sheetAuthoritative = new Set(mapping.sheetAuthoritativeColumns ?? []);
+      const winnerFor = (field: string): 'db' | 'sheet' => {
+        // Price and inventory are Sheet-owned even if the database is the only
+        // side that moved. For a true conflict all remaining fields are
+        // database-owned, as required by the sync policy.
+        if (sheetAuthoritative.has(field)) return 'sheet';
+        if (bothChanged) return 'db';
+        return rowSheetWins ? 'sheet' : 'db';
+      };
+
       if (!dryRun && bothChanged) {
         result.conflicts += await recordConflicts(
           mapping,
           sheetRow.key,
           dbRow.cells,
           sheetRow.cells,
-          sheetWins ? 'sheet' : 'db',
+          winnerFor,
         );
       }
 
-      if (sheetWins) {
-        const editable = new Set(mapping.editableColumns);
-        // Columns the sheet is not allowed to own keep the database value.
-        const merged: SheetCells = { ...dbRow.cells };
-        for (const col of mapping.columns) {
-          if (editable.has(col)) merged[col] = sheetRow.cells[col] ?? '';
-        }
+      const editable = new Set(mapping.editableColumns);
+      // Resolve each column independently. This matters when a product row has
+      // concurrent edits: Sheet wins price/stock while DB wins its metadata.
+      const merged: SheetCells = { ...dbRow.cells };
+      let hasSheetValuesToApply = false;
+      for (const col of mapping.columns) {
+        if (!editable.has(col) || winnerFor(col) !== 'sheet') continue;
+        const sheetValue = sheetRow.cells[col] ?? '';
+        merged[col] = sheetValue;
+        if (sheetValue !== (dbRow.cells[col] ?? '')) hasSheetValuesToApply = true;
+      }
+
+      if (hasSheetValuesToApply) {
         if (!dryRun) {
           // Stamped now, not from the cell: the edit is only being applied at
           // this moment, and a blank or stale cell must not look older than it.
@@ -243,13 +260,25 @@ async function syncEntity(
     const fresh = await mapping.loadDbRows();
     const out: string[][] = [mapping.columns];
     const marks: Array<{ key: string; hash: string }> = [];
+    const sheetAuthoritative = new Set(mapping.sheetAuthoritativeColumns ?? []);
 
     for (const row of fresh) {
       const sheetRow = sheetByKey.get(row.key);
-      const dbHash = hashCells(mapping, row.cells);
-      if (!sheetRow || sheetRow.hash !== dbHash) result.pushed += 1;
-      out.push(mapping.columns.map((c) => row.cells[c] ?? ''));
-      marks.push({ key: row.key, hash: dbHash });
+      const outputCells: SheetCells = { ...row.cells };
+
+      // A push-only run must not publish cached DB price/inventory over the
+      // authoritative values already in Sheets. New rows have no Sheet value,
+      // so their initial cached values are used when they are appended.
+      if (sheetRow) {
+        for (const col of sheetAuthoritative) {
+          outputCells[col] = sheetRow.cells[col] ?? '';
+        }
+      }
+
+      const outputHash = hashCells(mapping, outputCells);
+      if (!sheetRow || sheetRow.hash !== outputHash) result.pushed += 1;
+      out.push(mapping.columns.map((c) => outputCells[c] ?? ''));
+      marks.push({ key: row.key, hash: outputHash });
     }
 
     // Rows the sheet has that the database does not are kept, so a person's
@@ -339,7 +368,7 @@ export async function pruneConflicts(): Promise<number> {
   const cutoff = new Date(Date.now() - 30 * 86_400_000);
   const rows = await db
     .delete(syncConflicts)
-    .where(sql`${syncConflicts.createdAt} < ${cutoff}`)
+    .where(lt(syncConflicts.createdAt, cutoff))
     .returning({ id: syncConflicts.id });
   return rows.length;
 }

@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { UserDTO } from '@tamas/shared';
-import { PROFILE_FIELD_LABELS, formatNumber, isValidPhone, normalizePhone, toAsciiDigits } from '@tamas/shared';
+import type { CreditApplicationDTO, UserDTO } from '@tamas/shared';
+import { PROFILE_FIELD_LABELS, formatMoney, formatNumber, isValidPhone, normalizePhone, toAsciiDigits } from '@tamas/shared';
 import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { ApiRequestError, api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { Icon } from '../components/Icon';
 
-type Step = 'phone' | 'code' | 'profile' | 'account';
+type Step = 'phone' | 'code' | 'password-login' | 'password-set' | 'profile' | 'account';
 
 interface Props {
   open: boolean;
   initialStep?: Step;
   onClose: () => void;
+  onOpenCredit?: () => void;
   /** Called once the user is signed in *and* has a complete profile. */
   onReady?: () => void;
 }
@@ -59,13 +60,16 @@ const emptyProfile = (user: UserDTO | null): ProfileForm => ({
   certificateFileUrl: user?.certificateFileUrl ?? '',
 });
 
-export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Props) {
+export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit, onReady }: Props) {
   const toast = useToast();
   const { user, complete, missing, applyLogin, applyProfile, logout } = useAuth();
 
   const [step, setStep] = useState<Step>(initialStep);
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
+  const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -79,12 +83,16 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
   const [verifiedInfo, setVerifiedInfo] = useState<{ firstName?: string; lastName?: string; fatherName?: string } | null>(
     user?.isVerifiedIdentity ? { firstName: user.name, lastName: user.lastName, fatherName: user.fatherName } : null,
   );
+  const [creditApp, setCreditApp] = useState<CreditApplicationDTO | null>(null);
 
   // Reopening the dialog must not show whatever was left on screen last time.
   useEffect(() => {
     if (!open) return;
     setError('');
     setCode('');
+    setPassword('');
+    setNewPassword('');
+    setOldPassword('');
     setInvalid([]);
     if (user) {
       setForm(emptyProfile(user));
@@ -94,6 +102,13 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
       setVerifiedInfo(user.isVerifiedIdentity ? { firstName: user.name, lastName: user.lastName, fatherName: user.fatherName } : null);
       setStep(complete ? (initialStep === 'profile' ? 'profile' : 'account') : 'profile');
       setInvalid(complete ? [] : missing);
+
+      api
+        .get<{ ok: true; application: CreditApplicationDTO | null }>('/credit/my-application')
+        .then((res) => {
+          if (res.ok) setCreditApp(res.application);
+        })
+        .catch(() => {});
     } else {
       setStep('phone');
     }
@@ -101,7 +116,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
 
   useEffect(() => {
     if (cooldown <= 0) return undefined;
-    timerRef.current = window.setInterval(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
+    timerRef.current = window.setInterval(() => setCooldown((c: number) => Math.max(0, c - 1)), 1000);
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
     };
@@ -164,6 +179,53 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
     }
   }, [code, phone, applyLogin, toast, onReady, onClose]);
 
+  const loginWithPassword = useCallback(async () => {
+    if (!password) {
+      setError('رمز عبور را وارد کنید.');
+      return;
+    }
+    setError('');
+    setBusy(true);
+    try {
+      const data = await api.post<AuthResponse>('/auth/password/login', { phone: normalizePhone(phone), password });
+      applyLogin(data);
+      setForm(emptyProfile(data.user));
+      if (!data.complete) {
+        setInvalid(data.missing);
+        setStep('profile');
+        toast.show('اطلاعات حساب شما کامل نیست.');
+      } else {
+        toast.ok('با موفقیت وارد شدید.');
+        onReady?.();
+        onClose();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ورود با رمز عبور ناموفق بود.');
+    } finally {
+      setBusy(false);
+    }
+  }, [password, phone, applyLogin, toast, onReady, onClose]);
+
+  const savePassword = useCallback(async () => {
+    if (!newPassword || newPassword.length < 6) {
+      setError('رمز عبور جدید باید حداقل ۶ کاراکتر باشد.');
+      return;
+    }
+    setError('');
+    setBusy(true);
+    try {
+      const data = await api.post<{ ok: true; message: string }>('/auth/password/set', { oldPassword, newPassword });
+      toast.ok(data.message);
+      setStep('account');
+      setNewPassword('');
+      setOldPassword('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'تغییر رمز عبور ناموفق بود.');
+    } finally {
+      setBusy(false);
+    }
+  }, [oldPassword, newPassword, toast]);
+
   const inquireIdentity = useCallback(async () => {
     const cleanNational = toAsciiDigits(nationalCode).replace(/\D/g, '');
     const cleanBirth = toAsciiDigits(birthDate).trim();
@@ -190,7 +252,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
       });
 
       applyProfile({ user: res.user, complete: true, missing: [] });
-      setForm((prev) => ({
+      setForm((prev: ProfileForm) => ({
         ...prev,
         name: res.identity.firstName || prev.name || '',
         lastName: res.identity.lastName || prev.lastName || '',
@@ -240,11 +302,15 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
       ? 'ورود / ثبت نام'
       : step === 'code'
         ? 'تایید شماره موبایل'
-        : step === 'profile'
-          ? complete
-            ? 'ویرایش اطلاعات'
-            : 'تکمیل اطلاعات'
-          : 'حساب کاربری';
+        : step === 'password-login'
+          ? 'ورود با رمز عبور'
+          : step === 'password-set'
+            ? 'تعیین رمز عبور'
+            : step === 'profile'
+              ? complete
+                ? 'ویرایش اطلاعات'
+                : 'تکمیل اطلاعات'
+              : 'حساب کاربری';
 
   return (
     <Modal open={open} title={title} onClose={onClose} busy={busy}>
@@ -276,7 +342,49 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
             />
           </div>
           <button type="button" className="btn primary block" disabled={busy} onClick={() => void requestCode(false)}>
-            {busy ? 'در حال ارسال…' : 'ارسال کد تایید'}
+            {busy ? 'در حال ارسال…' : 'ارسال کد تایید پیامکی'}
+          </button>
+          <button type="button" className="btn block" onClick={() => {
+            const clean = normalizePhone(phone);
+            if (!isValidPhone(clean)) {
+              setError('شماره موبایل را درست وارد کنید (مثل 09121234567).');
+              return;
+            }
+            setError('');
+            setStep('password-login');
+          }}>
+            ورود با رمز عبور
+          </button>
+        </div>
+      )}
+
+      {step === 'password-login' && (
+        <div className="stack">
+          <p className="muted" style={{ margin: 0 }}>
+            رمز عبور حساب کاربری خود را وارد کنید.
+            <button type="button" className="btn ghost sm" onClick={() => setStep('phone')}>
+              بازگشت
+            </button>
+          </p>
+          <div className="field">
+            <label htmlFor="auth-password">رمز عبور</label>
+            <input
+              id="auth-password"
+              type="password"
+              className="input ltr"
+              value={password}
+              autoFocus
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void loginWithPassword();
+              }}
+            />
+          </div>
+          <button type="button" className="btn primary block" disabled={busy} onClick={() => void loginWithPassword()}>
+            {busy ? 'در حال بررسی…' : 'ورود'}
+          </button>
+          <button type="button" className="btn ghost block" onClick={() => void requestCode(false)}>
+            رمز عبور را فراموش کرده‌ام (ارسال پیامک)
           </button>
         </div>
       )}
@@ -322,7 +430,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
           </div>
 
           {/* Advanced Validation: National Identity Inquiry */}
-          <div className="card" style={{ padding: 14, background: '#f8fafc', border: '1px solid var(--border)', borderRadius: 8 }}>
+          <div className="card" style={{ padding: 14, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8 }}>
             <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--primary)' }}>
               <Icon name="shield" /> <span>استعلام و تایید اطلاعات هویتی (ثبت احوال)</span>
               {inquirySuccess && <span className="badge success" style={{ marginInlineStart: 'auto' }}>✓ هویتی تاییدشده</span>}
@@ -448,11 +556,65 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
                   {user.isActive ? 'تایید شده' : 'در انتظار تایید'}
                 </span>
               </div>
+              <div className="row">
+                <span className="muted">وضعیت اعتبارسنجی</span>
+                <span className="spacer" />
+                {creditApp ? (
+                  <span
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      backgroundColor:
+                        creditApp.status === 'active'
+                          ? '#dcfce7'
+                          : creditApp.status === 'action_required'
+                          ? '#fee2e2'
+                          : '#fef3c7',
+                      color:
+                        creditApp.status === 'active'
+                          ? '#15803d'
+                          : creditApp.status === 'action_required'
+                          ? '#dc2626'
+                          : '#d97706',
+                    }}
+                  >
+                    ● {creditApp.status === 'active'
+                        ? 'تأیید شده'
+                        : creditApp.status === 'action_required'
+                        ? 'رد شده (نیازمند اصلاح)'
+                        : 'در حال بررسی'}
+                  </span>
+                ) : (
+                  <span className="muted" style={{ fontSize: '12px' }}>ثبت نشده</span>
+                )}
+              </div>
+              {creditApp?.status === 'active' && creditApp.assignedCreditLimit > 0 && (
+                <div className="row">
+                  <span className="muted">سقف اعتبار خرید</span>
+                  <span className="spacer" />
+                  <b style={{ color: 'var(--tamas-accent)' }}>{formatMoney(creditApp.assignedCreditLimit)}</b>
+                </div>
+              )}
             </div>
           </div>
 
+          <button
+            type="button"
+            className="btn primary block"
+            onClick={() => {
+              onClose();
+              if (onOpenCredit) onOpenCredit();
+            }}
+          >
+            💳 {creditApp ? 'مدیریت و تضامین پرونده اعتباری' : 'درخواست فعال‌سازی پنل اعتباری'}
+          </button>
           <button type="button" className="btn block" onClick={() => setStep('profile')}>
             ویرایش اطلاعات
+          </button>
+          <button type="button" className="btn block" onClick={() => setStep('password-set')}>
+            تغییر / تعیین رمز عبور
           </button>
           <button
             type="button"
@@ -464,6 +626,41 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onReady }: Pr
             }}
           >
             خروج از حساب
+          </button>
+        </div>
+      )}
+
+      {step === 'password-set' && user && (
+        <div className="stack">
+          <p className="muted" style={{ margin: 0 }}>
+            با تعیین رمز عبور می‌توانید در مراجعات بعدی سریع‌تر وارد حساب شوید.
+          </p>
+          <div className="field">
+            <label htmlFor="auth-old-password">رمز عبور فعلی (در صورت وجود)</label>
+            <input
+              id="auth-old-password"
+              type="password"
+              className="input ltr"
+              placeholder="اگر رمز عبور ندارید خالی بگذارید"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="auth-new-password">رمز عبور جدید</label>
+            <input
+              id="auth-new-password"
+              type="password"
+              className="input ltr"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </div>
+          <button type="button" className="btn primary block" disabled={busy} onClick={() => void savePassword()}>
+            {busy ? 'در حال ذخیره…' : 'ذخیره رمز عبور'}
+          </button>
+          <button type="button" className="btn block" onClick={() => setStep('account')} disabled={busy}>
+            انصراف
           </button>
         </div>
       )}

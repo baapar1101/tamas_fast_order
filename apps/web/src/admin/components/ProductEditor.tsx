@@ -1,10 +1,70 @@
-import { useState } from 'react';
+import { useState, type ChangeEvent, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { BrandDTO, CategoryDTO, ProductDTO } from '@tamas/shared';
+import type { BrandDTO, CategoryDTO, ProductDTO, TrackingSiteDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
 import { ImagePicker } from './ImagePicker';
 import { Price } from '../../components/Price';
+import { AnimatedDropdown } from './AnimatedDropdown';
+
+import { useEffect } from 'react';
+
+function BundleItemSelect({ value, onChange }: { value: string; onChange: (val: string) => void }) {
+  const [term, setTerm] = useState(value);
+  const [open, setOpen] = useState(false);
+  const [debounced, setDebounced] = useState(term);
+
+  useEffect(() => { setTerm(value); }, [value]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(term), 400);
+    return () => clearTimeout(t);
+  }, [term]);
+
+  const { data } = useQuery({
+    queryKey: ['adminSearchProducts', debounced],
+    queryFn: () => api.get<{ items: ProductDTO[] }>('/admin/products', { search: debounced, limit: 15 }),
+    enabled: debounced.length > 1 && open,
+  });
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <input
+        className="a-input font-mono"
+        value={term}
+        onChange={(e) => {
+          setTerm(e.target.value);
+          onChange(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 200)}
+        placeholder="جستجوی نام یا شناسه..."
+        autoComplete="off"
+      />
+      {open && data?.items && data.items.length > 0 && (
+        <div style={{ position: 'absolute', zIndex: 50, width: '100%', top: '100%', left: 0, marginTop: 4, background: 'var(--card)', border: '1px solid var(--tamas-border)', borderRadius: 8, maxHeight: 250, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+          {data.items.map((p) => (
+            <button
+              key={p.productId}
+              type="button"
+              style={{ width: '100%', textAlign: 'right', padding: '10px 12px', borderBottom: '1px solid var(--tamas-border)', background: 'transparent' }}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                setTerm(p.productId);
+                onChange(p.productId);
+                setOpen(false);
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--tamas-fg)', marginBottom: 4 }}>{p.title}</div>
+              <div style={{ fontSize: 11, color: 'var(--tamas-muted)', fontFamily: 'monospace' }}>{p.productId}</div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export interface ProductForm {
   productId: string;
@@ -42,6 +102,10 @@ export interface ProductForm {
   weight: number;
   dimensions: string;
   tracking: boolean;
+  digikalaLink: string;
+  targetSiteUrl: string;
+  trackingLinks: Array<{ siteId: number; url: string }>;
+  bundleItems: Array<{ productId: string; qty: number }>;
 }
 
 interface Props {
@@ -50,8 +114,79 @@ interface Props {
   categories: CategoryDTO[];
   brands: BrandDTO[];
   busy: boolean;
+  isBundleMode?: boolean;
   onClose: () => void;
   onSave: (form: ProductForm) => void;
+  onManageVariants?: (product: ProductDTO) => void;
+}
+
+interface AttributeDef {
+  id: string;
+  name: string;
+  type: 'text' | 'number' | 'boolean' | 'select';
+  options?: string[];
+}
+
+const ATTR_TYPE_LABELS: Record<string, string> = {
+  text: 'متن ساده',
+  number: 'عدد',
+  boolean: 'بله / خیر',
+  select: 'چند گزینه‌ای',
+};
+
+const MULTI_SEP = '، ';
+
+interface ProductAccordionSectionProps {
+  id: string;
+  title: string;
+  description?: string;
+  summary?: string;
+  className?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}
+
+function ProductAccordionSection({
+  id,
+  title,
+  description,
+  summary,
+  className = '',
+  defaultOpen = false,
+  children,
+}: ProductAccordionSectionProps) {
+  const [open, setOpen] = useState(defaultOpen);
+  const triggerId = `${id}-trigger`;
+  const panelId = `${id}-panel`;
+
+  return (
+    <section className={`a-card pe-accordion${open ? ' pe-accordion--open' : ''}${className ? ` ${className}` : ''}`}>
+      <h3 className="pe-accordion-heading">
+        <button
+          id={triggerId}
+          type="button"
+          className="pe-accordion-trigger"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="pe-accordion-copy">
+            <span className="a-card-title">{title}</span>
+            {description && <span className="a-card-sub">{description}</span>}
+          </span>
+          {summary && <span className="pe-accordion-summary">{summary}</span>}
+          <svg className="pe-accordion-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+      </h3>
+      {open && (
+        <div id={panelId} className="pe-accordion-panel" role="region" aria-labelledby={triggerId}>
+          {children}
+        </div>
+      )}
+    </section>
+  );
 }
 
 const blank = (): ProductForm => ({
@@ -90,6 +225,10 @@ const blank = (): ProductForm => ({
   weight: 0,
   dimensions: '',
   tracking: true,
+  digikalaLink: '',
+  targetSiteUrl: '',
+  trackingLinks: [],
+  bundleItems: [],
 });
 
 const fromProduct = (p: ProductDTO): ProductForm => ({
@@ -128,9 +267,13 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   weight: p.weight ?? 0,
   dimensions: p.dimensions ?? '',
   tracking: p.tracking ?? true,
+  digikalaLink: p.digikalaLink ?? '',
+  targetSiteUrl: p.targetSiteUrl ?? '',
+  trackingLinks: (p.trackingLinks ?? []).map((link) => ({ siteId: link.siteId, url: link.url })),
+  bundleItems: p.bundleItems ?? [],
 });
 
-export function ProductEditor({ product, template, categories, brands, busy, onClose, onSave }: Props) {
+export function ProductEditor({ product, template, categories, brands, busy, isBundleMode, onClose, onSave, onManageVariants }: Props) {
   const [form, setForm] = useState<ProductForm>(product ? fromProduct(product) : template ? fromProduct(template) : blank());
   const [error, setError] = useState('');
 
@@ -142,7 +285,76 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
   });
   const variants = variantsData?.items ?? [];
 
+  const { data: attributeDefs } = useQuery({
+    queryKey: ['admin', 'attributes'],
+    queryFn: () => api.get<AttributeDef[]>('/admin/attributes'),
+    staleTime: 60_000,
+  });
+  const { data: trackingSitesData } = useQuery({
+    queryKey: ['admin', 'tracking-sites'],
+    queryFn: () => api.get<{ items: TrackingSiteDTO[] }>('/admin/tracking-sites'),
+    staleTime: 30_000,
+  });
+  const trackingSites = (trackingSitesData?.items ?? []).filter((site) => site.isActive || form.trackingLinks.some((link) => link.siteId === site.id));
+  const attrByKey = new Map((attributeDefs ?? []).map((d) => [d.name.trim(), d]));
+
   const set = <K extends keyof ProductForm>(key: K, value: ProductForm[K]) => setForm({ ...form, [key]: value });
+
+  const setTrackingUrl = (siteId: number, url: string) => {
+    const existing = form.trackingLinks.find((link) => link.siteId === siteId);
+    if (!url.trim()) {
+      set('trackingLinks', form.trackingLinks.filter((link) => link.siteId !== siteId));
+      return;
+    }
+    if (!existing && form.trackingLinks.length >= 3) {
+      setError('برای هر محصول حداکثر سه سایت قابل رهگیری است.');
+      return;
+    }
+    setError('');
+    set('trackingLinks', existing
+      ? form.trackingLinks.map((link) => link.siteId === siteId ? { ...link, url } : link)
+      : [...form.trackingLinks, { siteId, url }]);
+  };
+
+  const updateAttrKey = (idx: number, key: string) => {
+    const cp = [...form.attributes];
+    const cur = cp[idx];
+    if (!cur) return;
+    const prevDef = attrByKey.get(cur.key.trim());
+    const nextDef = attrByKey.get(key.trim());
+    let value = cur.value;
+    if (nextDef && !prevDef && (nextDef.type === 'boolean' || nextDef.type === 'select')) {
+      value = nextDef.type === 'boolean' ? 'بله' : '';
+    }
+    cp[idx] = { ...cur, key, value };
+    set('attributes', cp);
+  };
+
+  const setAttrValue = (idx: number, value: string) => {
+    const cp = [...form.attributes];
+    const cur = cp[idx];
+    if (!cur) return;
+    cp[idx] = { ...cur, value };
+    set('attributes', cp);
+  };
+
+  const toggleAttrOption = (idx: number, opt: string) => {
+    const cp = [...form.attributes];
+    const cur = cp[idx];
+    if (!cur) return;
+    const current = cur.value.split(MULTI_SEP).filter(Boolean);
+    const next = current.includes(opt) ? current.filter((o) => o !== opt) : [...current, opt];
+    cp[idx] = { ...cur, value: next.join(MULTI_SEP) };
+    set('attributes', cp);
+  };
+
+  const quickAddAttr = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const name = e.target.value;
+    if (!name) return;
+    if (form.attributes.some((a) => a.key.trim() === name)) return;
+    const def = attrByKey.get(name);
+    set('attributes', [...form.attributes, { key: name, value: def?.type === 'boolean' ? 'بله' : '' }]);
+  };
 
   function submit() {
     if (!form.productId.trim()) {
@@ -165,29 +377,30 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
   const titleText = product ? 'ویرایش محصول' : 'ایجاد محصول';
 
   return (
-    <div className="flex flex-col h-full animate-fade-in pb-20 lg:pb-0">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-40 flex items-center justify-between bg-slate-900/80 backdrop-blur-md border-b border-white/[0.06] p-4 mb-6 shadow-sm">
-        <div className="flex items-center gap-3">
+    <div className="product-editor-page flex flex-col h-full animate-fade-in pb-20 lg:pb-0">
+      {/* Sticky Toolbar */}
+      <div className="a-stickybar mb-6">
+        <div className="a-stickybar-head">
           <button
             type="button"
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/[0.06] transition text-slate-400 hover:text-white"
+            className="a-btn a-btn--ghost a-btn--sm"
+            aria-label="بستن"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
           </button>
-          <div>
-            <h1 className="text-lg font-extrabold text-white">{titleText}</h1>
-            {product && <p className="text-xs text-slate-400 mt-0.5">{product.title}</p>}
+          <div className="flex flex-col">
+            <span className="a-stickybar-title">{titleText}</span>
+            {product && <span className="a-subtitle">{product.title}</span>}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button type="button" className="huma-btn-secondary !hidden sm:!flex" onClick={onClose} disabled={busy}>
+        <div className="a-stickybar-actions">
+          <button type="button" className="a-btn a-btn--secondary" onClick={onClose} disabled={busy}>
             انصراف
           </button>
-          <button type="button" className="huma-btn-primary" onClick={submit} disabled={busy}>
+          <button type="button" className="a-btn a-btn--primary" onClick={submit} disabled={busy}>
             {busy ? 'در حال ذخیره…' : 'ذخیره محصول'}
           </button>
         </div>
@@ -195,9 +408,7 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
 
       {error && (
         <div className="mb-6 px-4">
-          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-xl text-sm font-semibold">
-            {error}
-          </div>
+          <div className="a-error-box">{error}</div>
         </div>
       )}
 
@@ -208,53 +419,115 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
         <div className="space-y-6">
           
           {/* General Info */}
-          <section className="glass-card p-6 space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">اطلاعات پایه</h3>
-            <div className="admin-form-grid">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">کد کالا (product_id) *</label>
-                <input 
-                  className="huma-input ltr text-left" 
-                  value={form.productId} 
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">اطلاعات پایه</h3>
+            </div>
+            <div className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-product-id">کد کالا (product_id) *</label>
+                <input
+                  id="pe-product-id"
+                  className="a-input a-ltr"
+                  value={form.productId}
                   onChange={(e) => set('productId', e.target.value)}
                   readOnly={!!product}
                   title={product ? 'کد کالا قابل تغییر نیست' : ''}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">کد شناسایی (SKU)</label>
-                <input className="huma-input ltr text-left" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-sku">کد شناسایی (SKU)</label>
+                <input id="pe-sku" className="a-input a-ltr" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
               </div>
-              <div className="admin-col-span-2">
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">عنوان *</label>
-                <input className="huma-input" value={form.title} onChange={(e) => set('title', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">زیرعنوان (SubTitle)</label>
-                <input className="huma-input ltr text-left" value={form.subTitle} onChange={(e) => set('subTitle', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">مدل</label>
-                <input className="huma-input ltr text-left" value={form.model} onChange={(e) => set('model', e.target.value)} />
-              </div>
-              <div className="admin-col-span-2">
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">توضیحات (Description)</label>
-                <textarea 
-                  className="huma-input min-h-[140px] resize-y py-3" 
-                  value={form.description} 
-                  onChange={(e) => set('description', e.target.value)} 
+              <div className="a-field a-span-2">
+                <label className="a-label" htmlFor="pe-title">عنوان *</label>
+                <input
+                  id="pe-title"
+                  className="a-input"
+                  value={form.title}
+                  onChange={(e) => {
+                    const formatted = e.target.value.replace(
+                      /([a-zA-Z]+)/g,
+                      (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
+                    );
+                    set('title', formatted);
+                  }}
                 />
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-subtitle">زیرعنوان (SubTitle)</label>
+                <input id="pe-subtitle" className="a-input a-ltr" value={form.subTitle} onChange={(e) => set('subTitle', e.target.value)} />
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-model">مدل</label>
+                <input id="pe-model" className="a-input a-ltr" value={form.model} onChange={(e) => set('model', e.target.value)} />
+              </div>
+              <div className="a-field a-span-2">
+                <label className="a-label" htmlFor="pe-desc">توضیحات (Description)</label>
+                <textarea id="pe-desc" className="a-textarea" value={form.description} onChange={(e) => set('description', e.target.value)} />
               </div>
             </div>
           </section>
 
-          {/* Gallery */}
-          <section className="glass-card p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-4">
-              <h3 className="text-sm font-bold text-white">گالری تصاویر</h3>
-              <span className="text-xs text-slate-500">حداکثر ۵ تصویر</span>
+          {/* Color & Appearance */}
+          <ProductAccordionSection
+            id="pe-color-section"
+            title="رنگ و ظاهر"
+            summary={form.color || form.colorEn || 'رنگ انتخاب نشده'}
+          >
+            <div className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-color">نام رنگ (فارسی)</label>
+                <input id="pe-color" className="a-input" placeholder="مثال: مشکی" value={form.color} onChange={(e) => set('color', e.target.value)} />
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-color-en">نام رنگ (انگلیسی)</label>
+                <input id="pe-color-en" className="a-input a-ltr" placeholder="e.g. Black" value={form.colorEn} onChange={(e) => set('colorEn', e.target.value)} />
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-color-code">کد رنگ (هگز)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input
+                    id="pe-color-code"
+                    className="a-input a-ltr"
+                    placeholder="#000000"
+                    value={form.colorCode}
+                    onChange={(e) => set('colorCode', e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <span
+                    style={{
+                      width: '2.2rem',
+                      height: '2.2rem',
+                      borderRadius: '0.5rem',
+                      border: '2px solid var(--a-border-2)',
+                      background: form.colorCode && /^#?[0-9a-f]{3,8}$/i.test(form.colorCode.trim())
+                        ? (form.colorCode.trim().startsWith('#') ? form.colorCode.trim() : `#${form.colorCode.trim()}`)
+                        : 'var(--a-surface)',
+                      flexShrink: 0,
+                      transition: 'background 0.15s ease',
+                    }}
+                    title="پیش‌نمایش رنگ"
+                  />
+                  <input
+                    type="color"
+                    value={form.colorCode && /^#[0-9a-f]{6}$/i.test(form.colorCode.trim()) ? form.colorCode.trim() : '#000000'}
+                    onChange={(e) => set('colorCode', e.target.value)}
+                    style={{ width: '2.2rem', height: '2.2rem', padding: 0, border: 'none', cursor: 'pointer', background: 'transparent' }}
+                    title="انتخاب رنگ"
+                  />
+                </div>
+              </div>
             </div>
-            
+          </ProductAccordionSection>
+
+{/* Gallery */}
+          <ProductAccordionSection
+            id="pe-gallery-section"
+            title="گالری تصاویر"
+            description="حداکثر ۵ تصویر"
+            summary={form.imageUrl || form.gallery.some(Boolean) ? `${(form.imageUrl ? 1 : 0) + form.gallery.filter(Boolean).length} تصویر` : 'بدون تصویر'}
+          >
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
               {/* Main Image */}
               <div className="relative group">
@@ -293,97 +566,263 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
               ))}
               {form.gallery.length < 5 && (
                 <div className="pt-5">
-                  <div className="flex items-center justify-center border border-dashed border-white/20 rounded-xl bg-white/[0.01] hover:bg-white/[0.03] transition cursor-pointer h-full min-h-[120px]"
+                  <div className="a-dropzone a-dropzone--min flex items-center justify-center"
                         onClick={() => set('gallery', [...form.gallery, ''])}>
-                    <span className="text-2xl text-slate-400">+</span>
+                    <span className="a-muted text-xl">+</span>
                   </div>
                 </div>
               )}
             </div>
-          </section>
+          </ProductAccordionSection>
+
+          {/* Bundle Items (always available to attach to any product) */}
+          <ProductAccordionSection
+            id="pe-bundle-section"
+            title="محصولات باندل / قطعات"
+            description="موجودی باندل بر اساس محصولات انتخاب‌شده کسر می‌شود"
+            summary={form.bundleItems.length ? `${formatNumber(form.bundleItems.length)} قلم` : 'بدون قطعه'}
+          >
+              <div className="p-4 flex flex-col gap-4">
+                {form.bundleItems.map((item, idx) => (
+                  <div key={idx} className="pe-bundle-row">
+                    <div className="pe-bundle-product">
+                      <label className="a-label text-xs">شناسه کالا (Product ID) یا جستجو</label>
+                      <BundleItemSelect
+                        value={item.productId}
+                        onChange={(val) => {
+                          const copy = [...form.bundleItems];
+                          if (copy[idx]) {
+                            copy[idx]!.productId = val;
+                            set('bundleItems', copy);
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="pe-bundle-qty">
+                      <label className="a-label text-xs">تعداد</label>
+                      <input
+                        type="number"
+                        min="1"
+                        className="a-input text-center"
+                        value={item.qty || 1}
+                        onChange={(e) => {
+                          const copy = [...form.bundleItems];
+                          if (copy[idx]) {
+                            copy[idx]!.qty = parseInt(e.target.value, 10) || 1;
+                            set('bundleItems', copy);
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="pe-bundle-remove">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const copy = [...form.bundleItems];
+                          copy.splice(idx, 1);
+                          set('bundleItems', copy);
+                        }}
+                        className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 flex items-center justify-center transition-colors"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                
+                <button 
+                  type="button" 
+                  className="a-btn a-btn--secondary w-full"
+                  onClick={() => set('bundleItems', [...form.bundleItems, { productId: '', qty: 1 }])}
+                >
+                  + افزودن محصول به باندل
+                </button>
+              </div>
+          </ProductAccordionSection>
 
           {/* Pricing */}
-          <section className="glass-card p-6 space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">قیمت‌گذاری و موجودی</h3>
-            <div className="admin-form-grid">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">قیمت (تومان)</label>
+          <ProductAccordionSection
+            id="pe-pricing-section"
+            title="قیمت‌گذاری و موجودی"
+            summary={`${formatNumber(form.price)} تومان · موجودی ${formatNumber(form.stock)}`}
+          >
+            <div className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-price">قیمت (تومان)</label>
                 <input
-                  className="huma-input ltr"
+                  id="pe-price"
+                  className="a-input a-ltr"
                   inputMode="numeric"
                   value={form.price}
                   onChange={(e) => set('price', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">قیمت خط‌خورده (تومان)</label>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-old-price">قیمت خط‌خورده (تومان)</label>
                 <input
-                  className="huma-input ltr"
+                  id="pe-old-price"
+                  className="a-input a-ltr"
                   inputMode="numeric"
                   value={form.oldPrice || ''}
                   onChange={(e) => set('oldPrice', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">موجودی کلی</label>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-stock">موجودی کلی</label>
                 <input
-                  className="huma-input ltr"
+                  id="pe-stock"
+                  className="a-input a-ltr"
                   inputMode="numeric"
                   value={form.stock}
                   onChange={(e) => set('stock', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">موجودی انبار تهران</label>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-tehran-stock">موجودی انبار تهران</label>
                 <input
-                  className="huma-input ltr"
+                  id="pe-tehran-stock"
+                  className="a-input a-ltr"
                   inputMode="numeric"
                   value={form.tehranStock}
                   onChange={(e) => set('tehranStock', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">موجودی انبار کرمان</label>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-kerman-stock">موجودی انبار کرمان</label>
                 <input
-                  className="huma-input ltr"
+                  id="pe-kerman-stock"
+                  className="a-input a-ltr"
                   inputMode="numeric"
                   value={form.kermanStock}
                   onChange={(e) => set('kermanStock', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">گارانتی</label>
-                <input className="huma-input" value={form.warranty} onChange={(e) => set('warranty', e.target.value)} />
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-warranty">گارانتی</label>
+                <input id="pe-warranty" className="a-input" value={form.warranty} onChange={(e) => set('warranty', e.target.value)} />
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-digikala">لینک دیجی‌کالا</label>
+                <input id="pe-digikala" className="a-input a-ltr" placeholder="https://www.digikala.com/product/dkp-..." value={form.digikalaLink} onChange={(e) => set('digikalaLink', e.target.value)} />
               </div>
             </div>
-          </section>
+          </ProductAccordionSection>
+
+          {/* Target Site / Tehran Warehouse Integration */}
+          <ProductAccordionSection
+            id="pe-target-site-section"
+            title="سایت‌های رهگیری قیمت و موجودی"
+            description="برای هر محصول حداکثر سه لینک از سایت‌های تعریف‌شده ثبت کنید"
+            summary={form.trackingLinks.length ? `${formatNumber(form.trackingLinks.length)} سایت متصل` : 'تنظیم نشده'}
+            className="pe-accordion--accent"
+          >
+            <div className="p-4">
+              {trackingSites.length === 0 ? (
+                <p className="a-empty">ابتدا از بخش «سایت‌های رهگیری» حداقل یک سایت اضافه کنید.</p>
+              ) : (
+                <div className="a-form-grid">
+                  {trackingSites.map((site) => {
+                    const link = form.trackingLinks.find((item) => item.siteId === site.id);
+                    const disabled = !link && form.trackingLinks.length >= 3;
+                    return (
+                      <div className="a-field" key={site.id}>
+                        <label className="a-label" htmlFor={`pe-tracking-site-${site.id}`}>
+                          لینک محصول در {site.name}
+                        </label>
+                        <input
+                          id={`pe-tracking-site-${site.id}`}
+                          type="url"
+                          className="a-input a-ltr"
+                          placeholder={site.baseUrl ? `${site.baseUrl.replace(/\/$/, '')}/product/...` : 'https://example.com/product/...'}
+                          value={link?.url ?? ''}
+                          disabled={disabled}
+                          onChange={(event) => setTrackingUrl(site.id, event.target.value)}
+                        />
+                        {disabled && <small className="a-help">حداکثر سه سایت انتخاب شده است.</small>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </ProductAccordionSection>
+
+          {/* Sell Type */}
+          <ProductAccordionSection
+            id="pe-sell-type-section"
+            title="نحوه فروش"
+            description="روش‌های مجاز فروش این محصول"
+            summary={form.sellType || 'روش فروش انتخاب نشده'}
+          >
+            <div className="a-form-grid">
+              <div className="a-field a-span-2">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {[
+                    { value: 'نقدی', icon: '💵' },
+                    { value: 'اعتباری', icon: '💳' },
+                    { value: 'چکی', icon: '📄' },
+                    { value: 'کارت به کارت', icon: '🏦' },
+                  ].map((st) => {
+                    const current = form.sellType.split(/[,،]+/).map(s => s.trim()).filter(Boolean);
+                    const isOn = current.includes(st.value);
+                    return (
+                      <button
+                        key={st.value}
+                        type="button"
+                        className={`a-chip-opt ${isOn ? 'a-chip-opt--on' : ''}`}
+                        style={{ padding: '0.5rem 0.85rem', cursor: 'pointer' }}
+                        onClick={() => {
+                          const next = isOn
+                            ? current.filter(v => v !== st.value)
+                            : [...current, st.value];
+                          set('sellType', next.join('، '));
+                        }}
+                      >
+                        <span>{st.icon}</span>
+                        <span className="a-chip-opt-copy"><strong>{st.value}</strong></span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="a-field a-span-2">
+                <label className="a-label" htmlFor="pe-sell-type">یا ورود دستی (با کاما جدا کنید)</label>
+                <input
+                  id="pe-sell-type"
+                  className="a-input"
+                  placeholder="مثال: نقدی، اعتباری، چکی"
+                  value={form.sellType}
+                  onChange={(e) => set('sellType', e.target.value)}
+                />
+              </div>
+            </div>
+          </ProductAccordionSection>
 
           {/* Variants Block */}
           {!form.parentProductId && (
-            <section className="glass-card p-6 space-y-4">
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-4">
-                <div>
-                  <h3 className="text-sm font-bold text-white">تنوع محصول (Variants)</h3>
-                  <p className="text-xs text-slate-500 mt-1">محصول دارای تنوع رنگ یا ویژگی‌های دیگر است</p>
-                </div>
-                {product && (
-                  <button type="button" className="huma-btn-secondary !text-xs !py-1.5">
+            <ProductAccordionSection
+              id="pe-variants-section"
+              title="تنوع محصول (Variants)"
+              description="رنگ‌ها و تنوع‌های وابسته به این محصول"
+              summary={!product ? 'پس از ذخیره فعال می‌شود' : variants.length ? `${formatNumber(variants.length)} تنوع` : 'بدون تنوع'}
+            >
+              <div className="pe-accordion-actions">
+                {product && onManageVariants && (
+                  <button type="button" className="a-btn a-btn--info a-btn--sm" onClick={() => onManageVariants(product)}>
                     + افزودن تنوع
                   </button>
                 )}
               </div>
               
               {!product ? (
-                <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm p-4 rounded-xl text-center font-semibold">
-                  ابتدا اطلاعات محصول را ذخیره کنید تا امکان افزودن تنوع فراهم شود.
-                </div>
+                <div className="a-amber-box">ابتدا اطلاعات محصول را ذخیره کنید تا امکان افزودن تنوع فراهم شود.</div>
               ) : variantsLoading ? (
-                <div className="animate-pulse p-4 text-center text-slate-400">در حال بارگذاری تنوع‌ها...</div>
+                <div className="animate-pulse p-4 text-center a-muted">در حال بارگذاری تنوع‌ها...</div>
               ) : variants.length === 0 ? (
-                <div className="text-center text-slate-500 py-6 text-sm">هیچ تنوعی ثبت نشده است.</div>
+                <div className="a-empty">هیچ تنوعی ثبت نشده است.</div>
               ) : (
-                <div className="huma-table-container">
-                  <table className="huma-table">
+                <div className="a-table-wrap">
+                  <table className="a-table">
                     <thead>
                       <tr>
                         <th>رنگ / تنوع</th>
@@ -399,28 +838,26 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                         return (
                           <tr key={v.id}>
                             <td>
-                              <div className="flex items-center gap-2 font-bold text-white">
+                              <div className="a-strong flex items-center gap-2">
                                 {v.colorCode && (
                                   <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: v.colorCode }} />
                                 )}
                                 {v.color || 'بدون نام'}
                               </div>
                             </td>
-                            <td className="font-semibold text-emerald-400"><Price amount={v.price} /></td>
+                            <td><Price amount={v.price} /></td>
                             <td>
-                              <span className={`chip ${totalStock > 0 ? 'chip-brand' : 'chip-rose'}`}>
+                              <span className={`a-badge ${totalStock > 0 ? 'a-badge--green' : 'a-badge--red'}`}>
                                 {formatNumber(totalStock)}
                               </span>
                             </td>
                             <td>
-                              <span className={`chip ${v.status === 'active' ? 'chip-brand' : 'chip-slate'}`}>
+                              <span className={`a-badge ${v.status === 'active' ? 'a-badge--green' : 'a-badge--neutral'}`}>
                                 {v.status === 'active' ? 'فعال' : 'غیرفعال'}
                               </span>
                             </td>
                             <td>
-                              <button type="button" className="text-xs font-semibold text-emerald-400 hover:text-emerald-300">
-                                ویرایش
-                              </button>
+                              <button type="button" className="a-link" onClick={() => onManageVariants?.(product!)}>ویرایش</button>
                             </td>
                           </tr>
                         );
@@ -429,106 +866,176 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
                   </table>
                 </div>
               )}
-            </section>
+            </ProductAccordionSection>
           )}
 
           {/* Shipping */}
-          <section className="glass-card p-6 space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">حمل و نقل</h3>
-            <div className="admin-form-grid">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">وزن بسته (گرم)</label>
+          <ProductAccordionSection
+            id="pe-shipping-section"
+            title="حمل و نقل"
+            summary={form.weight ? `${formatNumber(form.weight)} گرم${form.dimensions ? ` · ${form.dimensions}` : ''}` : 'وزن و ابعاد ثبت نشده'}
+          >
+            <div className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-weight">وزن بسته (گرم)</label>
                 <input
-                  className="huma-input ltr"
+                  id="pe-weight"
+                  className="a-input a-ltr"
                   inputMode="numeric"
                   value={form.weight}
                   onChange={(e) => set('weight', Number(e.target.value.replace(/\D/g, '')))}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">ابعاد بسته‌بندی</label>
-                <input className="huma-input ltr text-right" placeholder="مثال: 20x15x10" value={form.dimensions} onChange={(e) => set('dimensions', e.target.value)} />
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-dimensions">ابعاد بسته‌بندی</label>
+                <input id="pe-dimensions" className="a-input a-ltr" placeholder="مثال: 20x15x10" value={form.dimensions} onChange={(e) => set('dimensions', e.target.value)} />
               </div>
             </div>
-          </section>
+          </ProductAccordionSection>
 
-          {/* Features / Attributes */}
-          <section className="glass-card p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-4">
-              <div>
-                <h3 className="text-sm font-bold text-white">ویژگی‌ها</h3>
-                <p className="text-xs text-slate-500 mt-1">ویژگی‌های فنی و مشخصات محصول</p>
+{/* Features / Attributes */}
+          <ProductAccordionSection
+            id="pe-attributes-section"
+            title="ویژگی‌ها"
+            description="ویژگی‌های فنی و مشخصات محصول"
+            summary={form.attributes.length ? `${formatNumber(form.attributes.length)} ویژگی` : 'بدون ویژگی'}
+          >
+              <div className="a-actions">
+                <AnimatedDropdown
+                  buttonClassName="a-select--auto"
+                  value=""
+                  onChange={(val) => quickAddAttr({ target: { value: val } } as React.ChangeEvent<HTMLSelectElement>)}
+                  placeholder="از ویژگی‌های تعریف‌شده…"
+                  options={[
+                    { value: '', label: 'از ویژگی‌های تعریف‌شده…' },
+                    ...(attributeDefs ?? []).map((d) => ({
+                      value: d.name,
+                      label: `${d.name} (${ATTR_TYPE_LABELS[d.type] ?? d.type})`
+                    }))
+                  ]}
+                />
+                <button
+                  type="button"
+                  className="a-btn a-btn--info a-btn--sm"
+                  onClick={() => set('attributes', [...form.attributes, { key: '', value: '' }])}
+                >
+                  + افزودن ویژگی
+                </button>
               </div>
-              <button 
-                type="button" 
-                className="huma-btn-secondary !text-xs !py-1.5"
-                onClick={() => set('attributes', [...form.attributes, { key: '', value: '' }])}
-              >
-                + افزودن ویژگی
-              </button>
-            </div>
-            
+
             <div className="space-y-3">
               {form.attributes.length === 0 ? (
-                <div className="text-center text-slate-500 py-4 text-sm">هیچ ویژگی ثبت نشده است.</div>
+                <div className="a-empty">هیچ ویژگی ثبت نشده است.</div>
               ) : (
-                form.attributes.map((attr, idx) => (
-                  <div key={idx} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center bg-white/[0.02] p-3 rounded-xl border border-white/[0.04]">
-                    <div className="w-full sm:w-1/3">
-                      <input
-                        className="huma-input !py-2 !text-sm"
-                        placeholder="نام ویژگی (مثال: رم)"
-                        value={attr.key}
-                        onChange={(e) => {
-                          const cp = [...form.attributes];
-                          cp[idx] = { ...attr, key: e.target.value };
-                          set('attributes', cp);
-                        }}
-                      />
+                form.attributes.map((attr, idx) => {
+                  const def = attrByKey.get(attr.key.trim());
+                  return (
+                    <div key={idx} className={`a-attr-row ${def ? 'a-attr-row--defined' : ''}`}>
+                      <div className="a-attr-key">
+                        <input
+                          className="a-input"
+                          placeholder="نام ویژگی (مثال: رم)"
+                          list="a-attr-names"
+                          value={attr.key}
+                          onChange={(e) => updateAttrKey(idx, e.target.value)}
+                        />
+                        {def && (
+                          <span className={`a-attr-type ${def.type === 'select' ? 'a-attr-type--select' : ''}`}>
+                            {ATTR_TYPE_LABELS[def.type] ?? def.type}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1 w-full min-w-0 relative">
+                        {def?.type === 'select' ? (
+                          <div className="a-attr-multi">
+                            {(def.options ?? []).map((opt) => {
+                              const checked = attr.value.split(MULTI_SEP).includes(opt);
+                              return (
+                                <label key={opt} className={`a-chip-opt ${checked ? 'a-chip-opt--on' : ''}`}>
+                                  <input type="checkbox" checked={checked} onChange={() => toggleAttrOption(idx, opt)} />
+                                  <span className="a-chip-opt-copy"><strong>{opt}</strong></span>
+                                </label>
+                              );
+                            })}
+                            {(def.options ?? []).length === 0 && (
+                              <span className="a-hint">این ویژگی در بخش مدیریت، گزینه‌ای تعریف نشده است.</span>
+                            )}
+                          </div>
+                        ) : def?.type === 'boolean' ? (
+                          <div className="a-segmented" role="group" aria-label="بله / خیر">
+                            {['بله', 'خیر'].map((b) => (
+                              <button
+                                key={b}
+                                type="button"
+                                className={`a-seg ${attr.value === b ? 'a-seg--on' : ''}`}
+                                onClick={() => setAttrValue(idx, b)}
+                              >
+                                {b}
+                              </button>
+                            ))}
+                          </div>
+                        ) : def?.type === 'number' ? (
+                          <input
+                            className="a-input ltr text-left"
+                            inputMode="numeric"
+                            dir="ltr"
+                            placeholder="مقدار عددی"
+                            value={attr.value}
+                            onChange={(e) => setAttrValue(idx, e.target.value)}
+                          />
+                        ) : (
+                          <input
+                            className="a-input"
+                            placeholder="مقدار (مثال: 8 گیگابایت)"
+                            value={attr.value}
+                            onChange={(e) => setAttrValue(idx, e.target.value)}
+                          />
+                        )}
+                        <button
+                          type="button"
+                          className="absolute left-1 top-2 w-6 h-6 flex items-center justify-center text-rose-400 hover:bg-rose-500/20 rounded-lg transition"
+                          aria-label="حذف ویژگی"
+                          onClick={() => {
+                            const cp = [...form.attributes];
+                            cp.splice(idx, 1);
+                            set('attributes', cp);
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex-1 w-full relative">
-                      <input
-                        className="huma-input !py-2 !text-sm pr-10"
-                        placeholder="مقدار (مثال: 8 گیگابایت)"
-                        value={attr.value}
-                        onChange={(e) => {
-                          const cp = [...form.attributes];
-                          cp[idx] = { ...attr, value: e.target.value };
-                          set('attributes', cp);
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-rose-400 hover:bg-rose-500/20 rounded-lg transition"
-                        onClick={() => {
-                          const cp = [...form.attributes];
-                          cp.splice(idx, 1);
-                          set('attributes', cp);
-                        }}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
-          </section>
+
+            {(attributeDefs ?? []).length > 0 && (
+              <datalist id="a-attr-names">
+                {(attributeDefs ?? []).map((d) => (
+                  <option key={d.id} value={d.name} />
+                ))}
+              </datalist>
+            )}
+          </ProductAccordionSection>
 
           {/* SEO */}
-          <section className="glass-card p-6 space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">موتورهای جستجو (SEO)</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">نامک (Slug) - انتهای URL</label>
-                <input className="huma-input ltr text-right" placeholder="english-product-name" value={form.slug} onChange={(e) => set('slug', e.target.value)} />
+          <ProductAccordionSection
+            id="pe-seo-section"
+            title="موتورهای جستجو (SEO)"
+            summary={form.slug ? `/${form.slug}` : 'نامک ثبت نشده'}
+          >
+            <div className="space-y-3">
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-slug">نامک (Slug) - انتهای URL</label>
+                <input id="pe-slug" className="a-input a-ltr" placeholder="english-product-name" value={form.slug} onChange={(e) => set('slug', e.target.value)} />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">کلمات کلیدی (با کاما جدا کنید)</label>
-                <input className="huma-input" value={form.keywords} onChange={(e) => set('keywords', e.target.value)} />
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-keywords">کلمات کلیدی (با کاما جدا کنید)</label>
+                <input id="pe-keywords" className="a-input" value={form.keywords} onChange={(e) => set('keywords', e.target.value)} />
               </div>
             </div>
-          </section>
+          </ProductAccordionSection>
 
         </div>
 
@@ -536,81 +1043,98 @@ export function ProductEditor({ product, template, categories, brands, busy, onC
         <div className="space-y-6">
           
           {/* Categorization */}
-          <section className="glass-card p-5 space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">دسته‌بندی و برند</h3>
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5">دسته‌بندی اصلی</label>
-              <select className="huma-input !py-2.5" value={form.categoryName} onChange={(e) => set('categoryName', e.target.value)}>
-                <option value="">-- انتخاب دسته‌بندی --</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.name}>
-                    {c.faName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5">برند محصول</label>
-              <select className="huma-input !py-2.5" value={form.brandName} onChange={(e) => set('brandName', e.target.value)}>
-                <option value="">-- بدون برند --</option>
-                {brands.map((b) => (
-                  <option key={b.id} value={b.name}>
-                    {b.faName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </section>
-
-          {/* Settings */}
-          <section className="glass-card p-5 space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-white/[0.06] pb-3 mb-4">تنظیمات</h3>
-            
-            <div className="space-y-4">
-              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition">
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 rounded border-white/10 bg-black/20 text-emerald-500 focus:ring-emerald-500/30"
-                  checked={form.status === 'active'}
-                  onChange={(e) => set('status', e.target.checked ? 'active' : 'inactive')}
+          <ProductAccordionSection
+            id="pe-taxonomy-section"
+            title="دسته‌بندی و برند"
+            summary={[form.categoryName, form.brandName].filter(Boolean).join(' · ') || 'انتخاب نشده'}
+          >
+            <div className="a-form-grid">
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-category">دسته‌بندی اصلی</label>
+                <AnimatedDropdown
+                  id="pe-category"
+                  value={form.categoryName}
+                  onChange={(val) => set('categoryName', val)}
+                  placeholder="-- انتخاب دسته‌بندی --"
+                  options={[
+                    { value: '', label: '-- انتخاب دسته‌بندی --' },
+                    ...categories.map((c) => ({ value: c.name, label: c.faName }))
+                  ]}
                 />
-                <div>
-                  <div className="font-semibold text-slate-200 text-sm">محصول فعال باشد</div>
-                </div>
-              </label>
-
-              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition">
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 rounded border-white/10 bg-black/20 text-brand-500 focus:ring-brand-500/30"
-                  checked={form.promotion}
-                  onChange={(e) => set('promotion', e.target.checked)}
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-brand">برند محصول</label>
+                <AnimatedDropdown
+                  id="pe-brand"
+                  value={form.brandName}
+                  onChange={(val) => set('brandName', val)}
+                  placeholder="-- بدون برند --"
+                  options={[
+                    { value: '', label: '-- بدون برند --' },
+                    ...brands.map((b) => ({ value: b.name, label: b.faName }))
+                  ]}
                 />
-                <div>
-                  <div className="font-semibold text-slate-200 text-sm">پیشنهاد ویژه</div>
-                  <div className="text-[10px] text-slate-500 mt-1">نمایش در اسلایدر محصولات ویژه</div>
-                </div>
-              </label>
-
-              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition">
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 rounded border-white/10 bg-black/20 text-brand-500 focus:ring-brand-500/30"
-                  checked={form.tracking}
-                  onChange={(e) => set('tracking', e.target.checked)}
-                />
-                <div>
-                  <div className="font-semibold text-slate-200 text-sm">پیگیری موجودی</div>
-                  <div className="text-[10px] text-slate-500 mt-1">جلوگیری از فروش در صورت اتمام موجودی</div>
-                </div>
-              </label>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5 mt-2">روبان / برچسب روی عکس</label>
-                <input className="huma-input !py-2" placeholder="مثال: پرفروش" value={form.ribbon} onChange={(e) => set('ribbon', e.target.value)} />
               </div>
             </div>
-          </section>
+          </ProductAccordionSection>
+
+          {/* Settings */}
+          <ProductAccordionSection
+            id="pe-settings-section"
+            title="تنظیمات"
+            summary={`${form.status === 'active' ? 'فعال' : 'غیرفعال'}${form.promotion ? ' · پیشنهاد ویژه' : ''}`}
+          >
+            <div className="space-y-3">
+              <div className={`a-option-row${form.status === 'active' ? ' a-option-row--on' : ''}`}>
+                <div className="a-option-copy">
+                  <span className="a-option-title">محصول فعال باشد</span>
+                  <span className="a-option-desc">در صورت غیرفعال بودن، محصول از سایت حذف می‌شود.</span>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.status === 'active'}
+                  className="a-switch"
+                  onClick={() => set('status', form.status === 'active' ? 'inactive' : 'active')}
+                />
+              </div>
+
+              <div className={`a-option-row${form.promotion ? ' a-option-row--on' : ''}`}>
+                <div className="a-option-copy">
+                  <span className="a-option-title">پیشنهاد ویژه</span>
+                  <span className="a-option-desc">نمایش در اسلایدر محصولات ویژه</span>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.promotion}
+                  className="a-switch"
+                  onClick={() => set('promotion', !form.promotion)}
+                />
+              </div>
+
+              <div className={`a-option-row${form.tracking ? ' a-option-row--on' : ''}`}>
+                <div className="a-option-copy">
+                  <span className="a-option-title">پیگیری موجودی</span>
+                  <span className="a-option-desc">جلوگیری از فروش در صورت اتمام موجودی</span>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.tracking}
+                  className="a-switch"
+                  onClick={() => set('tracking', !form.tracking)}
+                />
+              </div>
+
+              <div>
+                <label className="a-field">
+                  <span className="a-label">روبان / برچسب روی عکس</span>
+                  <input className="a-input" placeholder="مثال: پرفروش" value={form.ribbon} onChange={(e) => set('ribbon', e.target.value)} />
+                </label>
+              </div>
+            </div>
+          </ProductAccordionSection>
 
         </div>
       </div>

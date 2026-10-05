@@ -1,0 +1,45 @@
+/* tamasmarket display + body font: Vazirmatn FD (fixed digits, Persian-first) */
+@font-face {
+  font-family: "Vazirmatn FD";
+  src: url("./Vazirmatn-FD-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn FD";
+  src: url("./Vazirmatn-FD-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn FD";
+  src: url("./Vazirmatn-FD-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn FD";
+  src: url("./Vazirmatn-FD-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn FD";
+  src: url("./Vazirmatn-FD-ExtraBold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Provenance: the original Anker extraction shipped this face; kept for back-compat. */
+@font-face {
+  font-family: "slick";
+  src: url("./slick-400.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

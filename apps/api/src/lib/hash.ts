@@ -1,4 +1,4 @@
-import { createHash, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, randomInt, timingSafeEqual, scryptSync } from 'node:crypto';
 
 export function sha256(value: string): string {
   return createHash('sha256').update(value, 'utf8').digest('hex');
@@ -27,4 +27,22 @@ export function safeEqualHex(a: string, b: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Hash a password using scrypt. Format: "salt:hash"
+ */
+export function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const hash = scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${hash}`;
+}
+
+export function verifyPassword(password: string, storedHash: string): boolean {
+  if (!storedHash) return false;
+  const [salt, hash] = storedHash.split(':');
+  if (!salt || !hash) return false;
+  
+  const currentHash = scryptSync(password, salt, 64).toString('hex');
+  return safeEqualHex(currentHash, hash);
 }

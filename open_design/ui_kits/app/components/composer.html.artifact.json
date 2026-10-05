@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "ui_kits/app/components/composer.html",
+  "entry": "ui_kits/app/components/composer.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-09-19T10:16:19.369Z",
+  "updatedAt": "2026-09-19T10:16:19.369Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

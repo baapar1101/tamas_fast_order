@@ -78,6 +78,20 @@ async function titleOf(productId: string): Promise<string> {
   return row?.title ?? '';
 }
 
+async function stockOf(productId: string): Promise<number> {
+  const [row] = await db.select({ stock: products.stock }).from(products).where(eq(products.productId, productId)).limit(1);
+  return row?.stock ?? -1;
+}
+
+async function conflictFieldsOf(productId: string) {
+  const [row] = await db
+    .select({ promotion: products.promotion, imageUrl: products.imageUrl, kermanStock: products.kermanStock })
+    .from(products)
+    .where(eq(products.productId, productId))
+    .limit(1);
+  return row;
+}
+
 async function main(): Promise<void> {
   const sheet = new FakeSheet();
   await db.delete(syncConflicts);
@@ -93,6 +107,12 @@ async function main(): Promise<void> {
   check('first push reports them as changed', pushed.pushed === productCount, `reported ${pushed.pushed}`);
 
   const sampleKey = sheet.tabs.get('Products')![1]![0]!;
+  check(
+    'Products tab keeps the exact 20-column Google Sheet contract',
+    sheet.tabs.get('Products')![0]!.join('|') ===
+      'product_id|Category|Brand|title|model|color|sku|price|old_price|sell_type|discount%|kerman_stock|tehran_stock|warranty|promotion|status|image_url|attribute_key|attribute_value|updated_at',
+    sheet.tabs.get('Products')![0]!.join('|'),
+  );
   const dbPrice = await priceOf(sampleKey);
   check('pushed price matches the database', sheet.cell('Products', sampleKey, 'price') === String(dbPrice));
 
@@ -112,32 +132,52 @@ async function main(): Promise<void> {
   const [conflictCount] = await db.select({ n: sql<number>`count(*)::int` }).from(syncConflicts);
   check('a one-sided edit is not logged as a conflict', (conflictCount?.n ?? 0) === 0, `logged ${conflictCount?.n}`);
 
-  /* ---------------- 4. an edit in the database goes back to the sheet ---------------- */
+  /* ---------------- 4. Sheet remains authoritative for price ---------------- */
   await db.update(products).set({ price: 777000, updatedAt: new Date() }).where(eq(products.productId, sampleKey));
+  await runSync({ direction: 'push', entities: [...CATALOGUE], dryRun: false }, sheet);
+  check('push-only never overwrites the Sheet price from DB cache', sheet.cell('Products', sampleKey, 'price') === '123456', `sheet shows ${sheet.cell('Products', sampleKey, 'price')}`);
   await runSync({ direction: 'both', entities: [...CATALOGUE], dryRun: false }, sheet);
-  check('database edit is pushed to the sheet', sheet.cell('Products', sampleKey, 'price') === '777000', `sheet shows ${sheet.cell('Products', sampleKey, 'price')}`);
+  check('database-only price edit is overwritten from the sheet', (await priceOf(sampleKey)) === 123456, `price is ${await priceOf(sampleKey)}`);
 
-  /* ---------------- 5. both sides edited: newer updated_at wins ---------------- */
-  // Database edited now; sheet claims an hour in the future, so the sheet wins.
-  await db.update(products).set({ price: 111, updatedAt: new Date() }).where(eq(products.productId, sampleKey));
+  /* ---------------- 5. conflicts are resolved per column ---------------- */
+  // Price/inventory are Sheet-owned and every other field is DB-owned when
+  // both sides changed.
+  await db
+    .update(products)
+    .set({ price: 111, kermanStock: 1, title: 'عنوان دیتابیس', promotion: false, imageUrl: 'https://db.example/image.jpg', updatedAt: new Date() })
+    .where(eq(products.productId, sampleKey));
   sheet.setCell('Products', sampleKey, 'price', '222');
-  sheet.setCell('Products', sampleKey, 'updated_at', new Date(Date.now() + 3600_000).toISOString());
+  sheet.setCell('Products', sampleKey, 'kerman_stock', '2');
+  sheet.setCell('Products', sampleKey, 'title', 'عنوان شیت');
+  sheet.setCell('Products', sampleKey, 'promotion', 'TRUE');
+  sheet.setCell('Products', sampleKey, 'image_url', 'https://sheet.example/image.jpg');
   await runSync({ direction: 'both', entities: [...CATALOGUE], dryRun: false }, sheet);
-  check('newer sheet timestamp wins the conflict', (await priceOf(sampleKey)) === 222, `price is ${await priceOf(sampleKey)}`);
+  const conflictFields = await conflictFieldsOf(sampleKey);
+  check('sheet wins a price conflict', (await priceOf(sampleKey)) === 222, `price is ${await priceOf(sampleKey)}`);
+  check('sheet wins a warehouse-stock conflict', conflictFields?.kermanStock === 2, `stock is ${conflictFields?.kermanStock}`);
+  check('database wins a metadata conflict', (await titleOf(sampleKey)) === 'عنوان دیتابیس', `title is ${await titleOf(sampleKey)}`);
+  check('database wins a promotion conflict', conflictFields?.promotion === false, `promotion is ${conflictFields?.promotion}`);
+  check('database wins an image conflict', conflictFields?.imageUrl === 'https://db.example/image.jpg', `image is ${conflictFields?.imageUrl}`);
+  check('database metadata is written back to the sheet', sheet.cell('Products', sampleKey, 'title') === 'عنوان دیتابیس', `sheet shows ${sheet.cell('Products', sampleKey, 'title')}`);
 
   const logged = await db.select().from(syncConflicts).where(eq(syncConflicts.entityKey, sampleKey));
   check('the conflict is logged per column', logged.length > 0, `${logged.length} rows`);
   const priceConflict = logged.find((c) => c.field === 'price');
-  check('the log names both values and the winner', priceConflict?.dbValue === '111' && priceConflict?.sheetValue === '222' && priceConflict?.resolvedTo === 'sheet', JSON.stringify(priceConflict));
+  const titleConflict = logged.find((c) => c.field === 'title');
+  const promotionConflict = logged.find((c) => c.field === 'promotion');
+  const imageConflict = logged.find((c) => c.field === 'image_url');
+  check('price conflict log records Sheet as winner', priceConflict?.dbValue === '111' && priceConflict?.sheetValue === '222' && priceConflict?.resolvedTo === 'sheet', JSON.stringify(priceConflict));
+  check('metadata conflict log records DB as winner', titleConflict?.dbValue === 'عنوان دیتابیس' && titleConflict?.sheetValue === 'عنوان شیت' && titleConflict?.resolvedTo === 'db', JSON.stringify(titleConflict));
+  check('promotion conflict log records DB as winner', promotionConflict?.resolvedTo === 'db', JSON.stringify(promotionConflict));
+  check('image conflict log records DB as winner', imageConflict?.resolvedTo === 'db', JSON.stringify(imageConflict));
 
-  // Now the other way: the database is newer, so it wins.
+  // A later database edit still cannot override a Sheet-owned price.
   await db.delete(syncConflicts);
   sheet.setCell('Products', sampleKey, 'price', '333');
-  sheet.setCell('Products', sampleKey, 'updated_at', new Date(Date.now() - 3600_000).toISOString());
   await db.update(products).set({ price: 444, updatedAt: new Date() }).where(eq(products.productId, sampleKey));
   await runSync({ direction: 'both', entities: [...CATALOGUE], dryRun: false }, sheet);
-  check('newer database timestamp wins the conflict', (await priceOf(sampleKey)) === 444, `price is ${await priceOf(sampleKey)}`);
-  check('the database value is written back to the sheet', sheet.cell('Products', sampleKey, 'price') === '444', `sheet shows ${sheet.cell('Products', sampleKey, 'price')}`);
+  check('sheet wins price regardless of database timestamp', (await priceOf(sampleKey)) === 333, `price is ${await priceOf(sampleKey)}`);
+  check('sheet price remains unchanged', sheet.cell('Products', sampleKey, 'price') === '333', `sheet shows ${sheet.cell('Products', sampleKey, 'price')}`);
 
   /* ---------------- 6. a brand new row typed into the sheet ---------------- */
   const header = sheet.tabs.get('Products')![0]!;
@@ -146,14 +186,15 @@ async function main(): Promise<void> {
     if (h === 'title') return 'کالای دستی از شیت';
     if (h === 'price') return '99000';
     if (h === 'Brand') return 'brand-typed-in-sheet';
-    if (h === 'stock') return '7';
-    if (h === 'status') return 'active';
+    if (h === 'kerman_stock') return '3';
+    if (h === 'tehran_stock') return '4';
     return '';
   });
   sheet.tabs.get('Products')!.push(fresh);
   await runSync({ direction: 'both', entities: [...CATALOGUE], dryRun: false }, sheet);
   check('a row typed into the sheet is created in the database', (await titleOf('SHEET-NEW-1')) === 'کالای دستی از شیت');
   check('its price comes across', (await priceOf('SHEET-NEW-1')) === 99000);
+  check('its total stock is the sum of both warehouse columns', (await stockOf('SHEET-NEW-1')) === 7);
   const [freshRow] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(products)

@@ -1,0 +1,54 @@
+{
+  "format": "brand-fonts/1",
+  "files": [
+    {
+      "family": "Vazirmatn FD",
+      "weight": "400",
+      "style": "normal",
+      "file": "Vazirmatn-FD-Regular.woff2",
+      "format": "woff2",
+      "source": "Preserved from D:/tamas_fast_order/apps/web/src/fonts (tamasmarket)"
+    },
+    {
+      "family": "Vazirmatn FD",
+      "weight": "500",
+      "style": "normal",
+      "file": "Vazirmatn-FD-Medium.woff2",
+      "format": "woff2",
+      "source": "Preserved from D:/tamas_fast_order/apps/web/src/fonts (tamasmarket)"
+    },
+    {
+      "family": "Vazirmatn FD",
+      "weight": "600",
+      "style": "normal",
+      "file": "Vazirmatn-FD-SemiBold.woff2",
+      "format": "woff2",
+      "source": "Preserved from D:/tamas_fast_order/apps/web/src/fonts (tamasmarket)"
+    },
+    {
+      "family": "Vazirmatn FD",
+      "weight": "700",
+      "style": "normal",
+      "file": "Vazirmatn-FD-Bold.woff2",
+      "format": "woff2",
+      "source": "Preserved from D:/tamas_fast_order/apps/web/src/fonts (tamasmarket)"
+    },
+    {
+      "family": "Vazirmatn FD",
+      "weight": "800",
+      "style": "normal",
+      "file": "Vazirmatn-FD-ExtraBold.woff2",
+      "format": "woff2",
+      "source": "Preserved from D:/tamas_fast_order/apps/web/src/fonts (tamasmarket)"
+    },
+    {
+      "family": "slick",
+      "weight": "400",
+      "style": "normal",
+      "file": "slick-400.woff",
+      "format": "woff",
+      "sourceUrl": "https://www.ankernordics.com/_next/static/media/slick.653a4cbb.woff",
+      "bytes": 1380
+    }
+  ]
+}

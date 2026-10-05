@@ -1,0 +1,1714 @@
+/* ============================================================================
+   Tamas Admin — Themeable Design System
+   Recreates the new_admin (portal.ir) layout + option/select form pattern
+   while supporting both DARK (default, current look) and LIGHT themes.
+
+   Scope: every rule here lives under .admin-body-shell, so it never leaks
+   into the storefront. Import AFTER reference.css and admin.css.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   Fonts — IRANYekanX (same as new_admin), falling back to local fonts
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'IRANYekanX';
+  src: url('https://static.portal.ir/fonts/IRANYekanX-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IRANYekanX';
+  src: url('https://static.portal.ir/fonts/IRANYekanX-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IRANYekanX';
+  src: url('https://static.portal.ir/fonts/IRANYekanX-DemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IRANYekanX';
+  src: url('https://static.portal.ir/fonts/IRANYekanX-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------------------------------------------------------------------------
+   Theme tokens — DARK is the default (attribute-less), LIGHT is opt-in.
+   Tokens are also exposed on `body.admin-page-active` because modals render
+   through a portal onto <body> outside the .admin-body-shell scope.
+   -------------------------------------------------------------------------- */
+.admin-body-shell,
+body.admin-page-active {
+  font-family: 'IRANYekanX', 'Vazirmatn FD', Peyda, Tahoma, sans-serif;
+
+  /* Brand (new_admin blue) */
+  --a-brand: #0580fa;
+  --a-brand-hover: #0470dc;
+  --a-brand-soft: rgba(5, 128, 250, 0.14);
+  --a-brand-soft-strong: rgba(5, 128, 250, 0.22);
+  --a-brand-contrast: #ffffff;
+  --a-brand-ring: rgba(5, 128, 250, 0.45);
+
+  /* Status colors */
+  --a-green: #10a37f;
+  --a-green-soft: rgba(16, 163, 127, 0.16);
+  --a-red: #d92d20;
+  --a-red-soft: rgba(217, 45, 32, 0.14);
+  --a-amber: #b54708;
+  --a-amber-soft: rgba(245, 158, 11, 0.16);
+  --a-slate: #667085;
+  --a-slate-soft: rgba(128, 138, 157, 0.18);
+
+  border-radius: 0.9rem;
+
+  /* Glassmorphism palette */
+  --a-bg: transparent;
+  --a-surface: rgba(255, 255, 255, 0.05);
+  --a-surface-2: rgba(255, 255, 255, 0.08);
+  --a-surface-3: rgba(255, 255, 255, 0.12);
+  --a-border: rgba(255, 255, 255, 0.15);
+  --a-border-2: rgba(255, 255, 255, 0.25);
+  --a-divider: rgba(255, 255, 255, 0.1);
+  --a-t1: #ffffff;
+  --a-t2: #e2e8f0;
+  --a-t3: #cbd5e1;
+  --a-t4: #94a3b8;
+  --a-input-bg: rgba(255, 255, 255, 0.03);
+  --a-dropdown-bg: rgba(5, 10, 18, 0.95);
+  --a-field-bg: rgba(255, 255, 255, 0.05);
+  --a-check-bg: rgba(255, 255, 255, 0.1);
+  --a-hover: rgba(255, 255, 255, 0.1);
+  --a-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --a-shadow-2: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+}
+
+body.admin-page-active.admin-theme-light .admin-body-shell,
+body.admin-page-active.admin-theme-light {
+  /* Light Glassmorphism palette */
+  --a-bg: transparent;
+  --a-surface: rgba(255, 255, 255, 0.4);
+  --a-surface-2: rgba(255, 255, 255, 0.5);
+  --a-surface-3: rgba(255, 255, 255, 0.6);
+  --a-border: rgba(255, 255, 255, 0.6);
+  --a-border-2: rgba(255, 255, 255, 0.8);
+  --a-divider: rgba(255, 255, 255, 0.5);
+  --a-t1: #000000;
+  --a-t2: #111111;
+  --a-t3: #111111;
+  --a-t4: #111111;
+  --a-input-bg: rgba(255, 255, 255, 0.3);
+  --a-dropdown-bg: rgba(235, 240, 245, 0.95);
+  --a-field-bg: rgba(255, 255, 255, 0.4);
+  --a-check-bg: rgba(255, 255, 255, 0.6);
+  --a-hover: rgba(255, 255, 255, 0.5);
+  --a-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+  --a-shadow-2: 0 8px 24px 0 rgba(0, 0, 0, 0.15);
+  color: var(--a-t1);
+}
+
+/* Glassmorphism utility classes */
+.glass-bg-surface { background-color: var(--a-surface) !important; }
+.glass-bg-dropdown { background-color: var(--a-dropdown-bg) !important; }
+.glass-bg-input { background-color: var(--a-input-bg) !important; }
+.glass-border { border-color: var(--a-border) !important; }
+.glass-text-t1 { color: var(--a-t1) !important; }
+.glass-text-t2 { color: var(--a-t2) !important; }
+.glass-text-t4 { color: var(--a-t4) !important; }
+.glass-placeholder::placeholder { color: var(--a-t4) !important; }
+.glass-input:focus {
+  background-color: var(--a-field-bg) !important;
+  border-color: var(--a-border-2) !important;
+}
+.glass-divide > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--a-divider) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Page scaffolding
+   -------------------------------------------------------------------------- */
+.a-page { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.a-page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.a-titles { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+.a-title { font-size: 1.25rem; font-weight: 700; color: var(--a-t1); line-height: 1.5; }
+.a-subtitle { font-size: 0.78rem; color: var(--a-t4); line-height: 1.6; }
+.a-page-actions { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+
+/* Two-column "layout" used by new_admin pages */
+.a-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+@media (min-width: 1080px) {
+  .a-cols { grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); }
+  .a-cols--reversed { grid-template-columns: minmax(320px, 380px) minmax(0, 1fr); }
+  .a-cols--2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+.a-col-sticky { position: sticky; top: 6.5rem; }
+
+/* ---------------------------------------------------------------------------
+   Cards (sections) — the new_admin white-card pattern, theme aware
+   -------------------------------------------------------------------------- */
+.a-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.3rem 1.4rem;
+  border: 1px solid var(--a-border);
+  border-radius: 1rem;
+  background: var(--a-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--a-shadow);
+  min-width: 0;
+}
+@media (max-width: 640px) { .a-card { padding: 1.1rem 1rem; } }
+
+/* Glassmorphism for admin modals */
+body.admin-page-active .modal-backdrop,
+body.admin-page-active .admin-modal-backdrop {
+  background: rgba(2, 6, 23, 0.74) !important;
+  backdrop-filter: blur(18px) saturate(72%) brightness(58%);
+  -webkit-backdrop-filter: blur(18px) saturate(72%) brightness(58%);
+  isolation: isolate;
+}
+
+body.admin-page-active .modal-panel {
+  background: rgba(14, 22, 38, 0.96);
+  backdrop-filter: blur(32px) saturate(120%);
+  -webkit-backdrop-filter: blur(32px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 32px 90px -20px rgba(0, 0, 0, 0.92), 0 0 0 1px rgba(16, 185, 129, 0.05);
+}
+
+body.admin-page-active .admin-modal-surface {
+  background: rgba(14, 22, 38, 0.96);
+  backdrop-filter: blur(32px) saturate(120%);
+  -webkit-backdrop-filter: blur(32px) saturate(120%);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 32px 90px -20px rgba(0, 0, 0, 0.92), 0 0 0 1px rgba(16, 185, 129, 0.05);
+}
+
+body.admin-page-active .admin-modal-surface:hover {
+  transform: none;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+body.admin-page-active .modal-head {
+  background: transparent;
+  border-bottom-color: var(--a-divider);
+}
+body.admin-page-active .modal-foot {
+  background: transparent;
+  border-top-color: var(--a-divider);
+}
+
+.a-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.95rem;
+  border-bottom: 1px solid var(--a-divider);
+}
+.a-card-title { font-size: 0.95rem; font-weight: 700; color: var(--a-t1); }
+.a-card-sub { font-size: 0.72rem; color: var(--a-t4); margin-top: 0.2rem; line-height: 1.6; }
+.a-card-desc { font-size: 0.72rem; color: var(--a-t4); margin-top: 0.2rem; line-height: 1.6; }
+/* ---------------------------
+   Attribute options builder
+   --------------------------- */
+.a-segmented--wrap { flex-wrap: wrap; width: 100%; }
+.a-option-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.a-option-row .a-input { flex: 1 1 auto; min-width: 0; }
+.a-input--warn { border-color: var(--a-amber) !important; box-shadow: 0 0 0 2px var(--a-amber-soft); }
+.a-option-index { min-width: 1.9rem; justify-content: center; }
+.a-option-dup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--a-amber);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.a-empty--small { padding: 1.5rem 1rem; }
+.a-option-preview-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.15rem 0 0.55rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--a-divider);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--a-t3);
+}
+.a-options-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  max-width: 320px;
+}
+.a-options-cell .a-badge { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+.a-title-fallback { color: var(--a-t1); }
+.a-title-mega { font-size: 1.4rem; font-weight: 800; line-height: 1.6; }
+@media (min-width: 640px) { .a-title-mega { font-size: 1.9rem; } }
+.a-title-mega-sm { font-size: 1.25rem; font-weight: 800; color: var(--a-t1); }
+.a-charts-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; align-items: stretch; }
+.a-link--arrow { display: inline-flex; align-items: center; gap: 0.25rem; }
+.a-label--static { display: block; font-size: 0.75rem; font-weight: 600; color: var(--a-t3); }
+.a-card-head--px { padding: 1rem; }
+
+/* Action row / stacked sections / notes */
+.a-actions { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.a-actions--end { justify-content: flex-end; }
+.a-page-stack { display: flex; flex-direction: column; gap: 1rem; }
+.a-note { font-size: 0.74rem; color: var(--a-t4); line-height: 1.7; }
+.a-ltr { text-align: left; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace; }
+
+/* Custom config key rows (settings tools) */
+.a-key-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; }
+.a-key-row__key { flex: 0 0 14rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace; text-align: left; }
+@media (max-width: 640px) { .a-key-row__key { flex-basis: 100%; } }
+.a-key-row--new { padding-top: 1rem; border-top: 1px solid var(--a-divider); margin-top: 1rem; }
+
+/* Soft list rows (taxonomy etc.) */
+.a-soft-row { background: var(--a-field-bg); border: 1px solid var(--a-border); transition: border-color 0.15s ease, background-color 0.15s ease; }
+.a-soft-row:hover { border-color: var(--a-border-2); background: var(--a-hover); }
+.a-inline-add { display: flex; flex-direction: column; gap: 0.55rem; padding: 0.85rem 1rem; border: 1px solid var(--a-divider); border-radius: 0.8rem; background: var(--a-surface-2); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); }
+
+/* ---------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+.a-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 0.7rem;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  line-height: 1.5;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+  white-space: nowrap;
+}
+.a-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.a-btn--primary { background: var(--a-brand); color: var(--a-brand-contrast); }
+.a-btn--primary:hover:not(:disabled) { background: var(--a-brand-hover); }
+
+.a-btn--secondary {
+  background: var(--a-field-bg);
+  border-color: var(--a-border-2);
+  color: var(--a-t2);
+}
+.a-btn--secondary:hover:not(:disabled) { color: var(--a-t1); border-color: var(--a-brand); background: var(--a-brand-soft); }
+
+.a-btn--danger { background: var(--a-red-soft); color: var(--a-red); border-color: var(--a-border-2); }
+.a-btn--danger:hover:not(:disabled) { background: var(--a-red); color: #fff; border-color: var(--a-red); }
+
+.a-btn--info { background: var(--a-brand-soft); color: var(--a-brand); border-color: var(--a-brand-soft-strong); }
+.a-btn--info:hover:not(:disabled) { background: var(--a-brand); color: var(--a-brand-contrast); border-color: var(--a-brand); }
+
+.a-btn--ghost { background: transparent; border-color: transparent; color: var(--a-t3); }
+.a-btn--ghost:hover:not(:disabled) { background: var(--a-hover); color: var(--a-t1); }
+
+.a-btn--sm { padding: 0.35rem 0.7rem; font-size: 0.72rem; border-radius: 0.6rem; }
+.a-btn--xs { padding: 0.25rem 0.55rem; font-size: 0.68rem; border-radius: 0.55rem; }
+.a-btn--block { width: 100%; }
+
+/* ---------------------------------------------------------------------------
+   Form fields — label above control (new_admin style)
+   -------------------------------------------------------------------------- */
+.a-form-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem 1.1rem; }
+@media (min-width: 640px) {
+  .a-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .a-span-2 { grid-column: span 2 / span 2; }
+}
+
+.a-field { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+.a-label { display: flex; align-items: baseline; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; color: var(--a-t2); line-height: 1.5; }
+.a-label .a-req { color: var(--a-red); font-weight: 700; }
+.a-hint { font-size: 0.68rem; color: var(--a-t4); line-height: 1.6; }
+.a-label-note { font-size: 0.7rem; color: var(--a-t4); margin-inline-start: auto; }
+.a-mono { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; }
+.a-ltr { direction: ltr; text-align: left; }
+
+.a-input,
+.a-select,
+.a-textarea {
+  width: 100%;
+  min-width: 0;
+  border-radius: 0.65rem;
+  border: 1px solid var(--a-border-2);
+  background: var(--a-input-bg);
+  padding: 0.58rem 0.8rem;
+  font-size: 0.845rem;
+  font-family: inherit;
+  color: var(--a-t1);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.a-textarea {
+  direction: rtl;
+  text-align: right;
+}
+.a-input::placeholder, .a-textarea::placeholder { color: var(--a-t4); }
+.a-input:focus, .a-select:focus, .a-textarea:focus {
+  border-color: var(--a-brand);
+  box-shadow: 0 0 0 3px var(--a-brand-ring);
+}
+.a-textarea { resize: vertical; min-height: 7.5rem; line-height: 1.8; }
+.a-input[readonly] { background: var(--a-field-bg); color: var(--a-t4); cursor: not-allowed; }
+
+.a-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23667085' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  background-position: left 0.7rem center;
+  background-repeat: no-repeat;
+  background-size: 1.1rem 1.1rem;
+  padding-inline-start: 0.8rem;
+  padding-inline-end: 2.2rem;
+  cursor: pointer;
+}
+.a-select option { color: var(--a-t1); background: var(--a-surface); }
+
+/* Number-centric input keeps the text natural while typing */
+.a-input--num { direction: ltr; text-align: left; }
+
+/* ---------------------------------------------------------------------------
+   Option / toggle fields — "option form" pattern from new_admin
+   -------------------------------------------------------------------------- */
+.a-option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--a-border);
+  border-radius: 0.8rem;
+  background: var(--a-field-bg);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  cursor: default;
+}
+.a-option-row:hover { border-color: var(--a-border-2); }
+.a-option-row--on { border-color: var(--a-brand); background: var(--a-brand-soft); }
+.a-option-copy { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.a-option-title { font-size: 0.82rem; font-weight: 600; color: var(--a-t1); }
+.a-option-desc { font-size: 0.7rem; color: var(--a-t4); line-height: 1.6; }
+
+/* Switch — supports TWO markup patterns:
+   A) <button role="switch" aria-checked="true|false" class="a-switch" />
+   B) <label class="a-switch"><input type="checkbox"><span class="a-switch-track"><span class="a-switch-thumb"/></span></label>
+*/
+.a-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 2.15rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--a-border-2);
+  transition: background-color 0.18s ease;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Pattern A: button — thumb via ::after */
+button.a-switch::after {
+  content: '';
+  position: absolute;
+  top: 0.18rem;
+  inset-inline-start: 0.18rem;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.35);
+  transition: transform 0.18s ease;
+}
+.a-switch[aria-checked='true'] { background: var(--a-brand); }
+.a-switch[aria-checked='true']::after { transform: translateX(0.9rem); }
+.a-switch[aria-checked='true']:dir(rtl)::after { transform: translateX(-0.9rem); }
+
+/* Pattern B: label wrapping a native checkbox */
+label.a-switch { background: transparent; }
+label.a-switch > input[type="checkbox"] {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.a-switch-track {
+  position: relative;
+  display: block;
+  width: 2.15rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--a-border-2);
+  transition: background-color 0.18s ease;
+}
+.a-switch-thumb {
+  position: absolute;
+  top: 0.18rem;
+  inset-inline-start: 0.18rem;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.35);
+  transition: transform 0.18s ease;
+  display: block;
+}
+label.a-switch > input[type="checkbox"]:checked + .a-switch-track { background: var(--a-brand); }
+label.a-switch > input[type="checkbox"]:checked + .a-switch-track > .a-switch-thumb { transform: translateX(0.9rem); }
+label.a-switch:dir(rtl) > input[type="checkbox"]:checked + .a-switch-track > .a-switch-thumb { transform: translateX(-0.9rem); }
+
+/* Checkbox chip grid — used for permission & brand selection */
+.a-option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 0.6rem;
+  max-height: 18rem;
+  overflow-y: auto;
+  padding-inline-end: 0.2rem;
+}
+.a-chip-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--a-border);
+  border-radius: 0.75rem;
+  background: var(--a-check-bg);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.a-chip-opt:hover { border-color: var(--a-border-2); }
+.a-chip-opt--on { border-color: var(--a-brand); background: var(--a-brand-soft); }
+.a-chip-opt input { accent-color: var(--a-brand); flex: 0 0 auto; margin-top: 0.15rem; }
+.a-chip-opt-copy { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.a-chip-opt-copy strong { font-size: 0.78rem; font-weight: 600; color: var(--a-t1); line-height: 1.35; white-space: normal; word-break: break-word; }
+.a-chip-opt-copy small { font-size: 0.68rem; color: var(--a-t4); line-height: 1.35; margin-top: 0.2rem; white-space: normal; word-break: break-word; }
+
+/* ---------------------------------------------------------------------------
+   Badges / chips
+   -------------------------------------------------------------------------- */
+.a-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.a-badge--brand { background: var(--a-brand-soft); color: var(--a-brand); }
+.a-card--danger { border-color: var(--a-red); background: var(--a-red-soft); }
+.a-badge--green { background: var(--a-green-soft); color: var(--a-green); }
+.a-badge--red { background: var(--a-red-soft); color: var(--a-red); }
+.a-badge--amber { background: var(--a-amber-soft); color: var(--a-amber); }
+.a-badge--neutral { background: var(--a-slate-soft); color: var(--a-t3); }
+
+/* ---------------------------------------------------------------------------
+   Lists (taxonomy style)
+   -------------------------------------------------------------------------- */
+.a-list { display: flex; flex-direction: column; gap: 0.6rem; max-height: calc(100vh - 16rem); overflow-y: auto; padding-inline-end: 0.15rem; }
+.a-list-item {
+  display: grid;
+  grid-template-columns: auto 3.25rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--a-border);
+  border-radius: 0.85rem;
+  background: var(--a-field-bg);
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+.a-list-item:hover, .a-list-item--active { border-color: var(--a-brand); background: var(--a-brand-soft); }
+
+.a-list-item.is-dragging {
+  opacity: 0.45;
+  border: 2px dashed var(--a-brand);
+  background: var(--a-brand-soft);
+}
+
+.a-list-item.is-drag-over {
+  border-color: var(--a-brand);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.18);
+}
+
+.a-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2.2rem;
+  border-radius: 0.5rem;
+  color: var(--a-t4);
+  cursor: grab;
+  transition: all 0.15s ease;
+}
+
+.a-drag-handle:hover {
+  background: var(--a-border);
+  color: var(--a-brand);
+}
+
+.a-drag-handle:active {
+  cursor: grabbing;
+}
+.a-list-icon {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 1px solid var(--a-border);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.94);
+  color: #047857;
+  font-size: 1.05rem;
+  font-weight: 700;
+  overflow: hidden;
+}
+.a-list-icon img { width: 100%; height: 100%; padding: 0.3rem; object-fit: contain; }
+.a-list-copy { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.a-list-copy strong { font-size: 0.82rem; color: var(--a-t1); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+.a-list-copy span { font-size: 0.68rem; color: var(--a-t4); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+.a-list-copy small { font-size: 0.64rem; color: var(--a-t4); }
+.a-list-meta { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
+.a-list-meta i {
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: var(--a-brand-soft);
+  color: var(--a-brand);
+  font-size: 0.6rem;
+  font-style: normal;
+}
+.a-list-actions { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.a-empty { padding: 2.75rem 1rem; text-align: center; color: var(--a-t4); font-size: 0.78rem; }
+
+/* ---------------------------------------------------------------------------
+   Tables (attributes, existing huma tables reused where possible)
+   -------------------------------------------------------------------------- */
+.a-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--a-border); background: var(--a-surface); backdrop-filter: blur(12px); }
+.a-table { width: 100%; min-width: 34rem; border-collapse: collapse; font-size: 0.85rem; text-align: center; }
+.a-table th {
+  padding: 1rem 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--a-t1);
+  background: transparent;
+  border-bottom: 1px solid var(--a-divider);
+  white-space: nowrap;
+}
+.a-table th > div, .a-table th > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.a-table td {
+  padding: 1rem 1rem;
+  color: var(--a-t2);
+  border-bottom: 1px solid var(--a-divider);
+  vertical-align: middle;
+}
+.a-table tbody tr:last-child td { border-bottom: 0; }
+.a-table tbody tr { transition: background-color 0.15s ease; }
+.a-table tbody tr:hover { background: var(--a-hover); }
+.a-table .a-strong { font-weight: 700; color: var(--a-t1); }
+
+/* ---------------------------------------------------------------------------
+   Image picker (restyled for both themes)
+   -------------------------------------------------------------------------- */
+.a-image-picker-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6rem;
+}
+@media (min-width: 640px) {
+  .a-image-picker-row { flex-direction: row; align-items: center; }
+}
+.a-image-preview {
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 3rem;
+  border-radius: 0.7rem;
+  object-fit: cover;
+  border: 1px solid var(--a-border);
+  background: var(--a-field-bg);
+}
+
+/* Key/value attribute rows (product editor) */
+.a-attr-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--a-border);
+  border-radius: 0.8rem;
+  background: var(--a-field-bg);
+}
+@media (min-width: 640px) {
+  .a-attr-row { flex-direction: row; align-items: center; }
+  .a-attr-row .a-attr-key { flex: 0 0 33.333%; }
+  .a-attr-row .a-attr-val { flex: 1 1 auto; }
+}
+.a-attr-row--defined { border-color: var(--a-brand); box-shadow: 0 0 0 1px var(--a-brand-soft); }
+.a-attr-type {
+  display: inline-block;
+  margin-top: 0.4rem;
+  padding: 0.14rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--a-t4);
+  background: var(--a-slate-soft);
+}
+.a-attr-type--select { color: var(--a-amber); background: var(--a-amber-soft); }
+.a-attr-multi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding-inline-end: 2rem;
+}
+.a-attr-multi .a-chip-opt { flex: 0 0 auto; }
+
+/* Sticky editor toolbar */
+.a-stickybar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: -0.25rem 0 0.5rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--a-border);
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--a-surface) 88%, transparent);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--a-shadow);
+}
+.a-stickybar-head { display: flex; align-items: center; gap: 0.7rem; min-width: 0; }
+.a-stickybar-title { font-size: 0.95rem; font-weight: 700; color: var(--a-t1); }
+.a-stickybar-actions { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; }
+
+.a-divider { height: 1px; background: var(--a-divider); border: 0; margin: 0; }
+
+.a-error-box {
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--a-red-soft);
+  border-radius: 0.8rem;
+  background: var(--a-red-soft);
+  color: var(--a-red);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.a-amber-box {
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--a-amber-soft);
+  border-radius: 0.8rem;
+  background: var(--a-amber-soft);
+  color: var(--a-amber);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.a-fade { animation: a-fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes a-fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ---------------------------------------------------------------------------
+   List / management page extras (products grid, tables, filters, pagers)
+   -------------------------------------------------------------------------- */
+
+/* Segmented view toggle */
+.a-segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid var(--a-border-2);
+  border-radius: 0.8rem;
+  background: var(--a-field-bg);
+}
+.a-seg {
+  padding: 0.42rem 0.8rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: var(--a-t3);
+  font-size: 0.74rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.a-seg:hover { color: var(--a-t1); }
+.a-seg--on { background: var(--a-brand); color: var(--a-brand-contrast); }
+.a-seg--on:hover { color: var(--a-brand-contrast); }
+
+/* Stat cards */
+.a-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--a-border);
+  border-radius: 0.9rem;
+  background: var(--a-surface);
+  box-shadow: var(--a-shadow);
+}
+.a-stat-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.a-stat-label { font-size: 0.72rem; color: var(--a-t4); }
+.a-stat-value { font-size: 1.5rem; font-weight: 800; color: var(--a-t1); line-height: 1.3; }
+.a-stat-value--green { color: var(--a-green); }
+.a-stat-value--amber { color: var(--a-amber); }
+.a-stat-value--red { color: var(--a-red); }
+
+/* Filter bar */
+.a-filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.a-filterbar .a-grow { flex: 1 1 220px; }
+.a-select--auto, .a-input--auto { width: auto; }
+
+/* Full-width search row above filters / lists */
+.a-searchbar { margin-bottom: 12px; }
+.a-searchbar .a-input { width: 100%; }
+
+/* Search above filters, stacked in one card */
+.a-filterbar--stack { flex-direction: column; align-items: stretch; row-gap: 0.5rem; }
+.a-filterbar--stack > .a-input { width: 100%; }
+.a-filterbar--stack > .a-filterbar { width: 100%; }
+
+/* Bulk operations bar */
+.a-bulkbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--a-green);
+  border-radius: 0.9rem;
+  background: var(--a-green-soft);
+}
+.a-bulkbar-label { font-size: 0.78rem; font-weight: 700; color: var(--a-green); }
+.a-bulkbar-spacer { flex: 1 1 auto; }
+.a-bulkbar-link { font-size: 0.72rem; color: var(--a-t4); text-decoration: underline; cursor: pointer; background: none; border: 0; font-family: inherit; }
+.a-bulkbar-link:hover { color: var(--a-t1); }
+
+/* Icon buttons (grid card actions) */
+.a-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--a-border);
+  background: var(--a-surface-2);
+  color: var(--a-t3);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+.a-icon-btn:hover { color: var(--a-t1); border-color: var(--a-border-2); background: var(--a-hover); }
+.a-icon-btn--info { color: var(--a-brand); }
+.a-icon-btn--danger { color: var(--a-red); }
+.a-icon-btn--danger:hover { background: var(--a-red-soft); }
+
+/* Product image area */
+.a-thumb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: var(--a-surface-2);
+  overflow: hidden;
+}
+.a-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+/* Media thumbnail in tables */
+.a-media-thumb { width: 6rem; height: 3.25rem; border-radius: 0.55rem; overflow: hidden; background: var(--a-surface-2); border: 1px solid var(--a-border); }
+.a-link { color: var(--a-brand); }
+.a-link:hover { text-decoration: underline; }
+.a-page--narrow { max-width: 56rem; }
+
+/* Dropzone (file upload) */
+.a-dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  border: 2px dashed var(--a-border-2);
+  border-radius: 1rem;
+  background: var(--a-surface-2);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.a-dropzone:hover, .a-dropzone--over { border-color: var(--a-brand); background: var(--a-brand-soft); }
+.a-dropzone input[type='file'] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.a-dropzone-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 1rem;
+  background: var(--a-brand-soft);
+  color: var(--a-brand);
+}
+.a-dropzone-icon svg { width: 1.75rem; height: 1.75rem; }
+.a-dropzone--min { min-height: 120px; padding: 1rem; height: 100%; }
+.a-dropzone-title { font-size: 0.85rem; font-weight: 700; color: var(--a-t1); }
+.a-dropzone-hint { font-size: 0.72rem; color: var(--a-t4); }
+
+/* Card footer strip (uploads tile etc.) */
+.a-card-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  border-top: 1px solid var(--a-border);
+  background: var(--a-surface);
+}
+.a-muted { color: var(--a-t4); }
+.a-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.a-icon-btn--sm { width: 1.7rem; height: 1.7rem; border-radius: 0.5rem; }
+
+/* Feature hub cards (marketing / messages landing) */
+.a-feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; align-items: stretch; }
+.a-feature-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.85rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  background: var(--a-brand-soft);
+  color: var(--a-brand);
+}
+.a-feature-icon--amber { background: var(--a-amber-soft); color: var(--a-amber); }
+.a-feature-icon--rose { background: var(--a-red-soft); color: var(--a-red); }
+.a-feature-icon--green { background: var(--a-green-soft); color: var(--a-green); }
+
+/* Flush card (product grid cards) */
+.a-card--flush { padding: 0; gap: 0; overflow: hidden; }
+.a-card-body { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.1rem 1.2rem; flex: 1 1 auto; }
+
+/* ---------------------------------------------------------------------------
+   Reference-matching create-form stack (new_admin "data-container-sm"):
+   a centered narrow column with a header-card, stacked section cards and a
+   save footer — mirrors the reference create/ definitions.
+   -------------------------------------------------------------------------- */
+.a-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 540px;
+  margin-inline: auto;
+}
+
+/* Centered responsive content columns — same width scale as the reference
+   (forms = sm, lists = md). Stretch is capped; on narrow screens each column
+   simply fills the viewport. */
+.a-container-sm,
+.a-container-md,
+.a-container-lg,
+.a-container-xl { width: 100%; margin-inline: auto; }
+.a-page > .a-container-sm { max-width: 540px; }
+.a-page > .a-container-md { max-width: 720px; }
+.a-page > .a-container-lg { max-width: 960px; }
+.a-page > .a-container-xl { max-width: 1140px; }
+
+/* List pages: keep tables centered and capped — matching the reference scale
+   (products/users = lg, orders = xl) so they never stretch across the screen. */
+.a-page--products > .a-card,
+.a-page--users > .a-card,
+.a-page--comments > .a-card,
+.a-page--messages > .a-card,
+.a-page--financial > .a-card,
+.a-page--uploads > .a-card { max-width: 960px; margin-inline: auto; }
+.a-page--orders > .a-card { max-width: 1140px; margin-inline: auto; }
+
+.a-form-head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--a-border);
+  border-radius: 1rem;
+  background: var(--a-surface);
+  box-shadow: var(--a-shadow);
+  min-width: 0;
+}
+
+.a-form-back {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: transparent;
+  color: var(--a-t3);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.a-form-back:hover { background: var(--a-hover); color: var(--a-t1); }
+
+.a-form-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--a-t1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.a-form-actions { display: flex; align-items: center; gap: 0.5rem; margin-inline-start: auto; flex: 0 0 auto; }
+
+.a-form-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.a-form-foot .a-btn { flex: 1 1 auto; }
+@media (min-width: 640px) {
+  .a-form-foot { justify-content: flex-start; }
+  .a-form-foot .a-btn { flex: 0 0 auto; }
+}
+
+.a-btn--lg { padding: 0.7rem 1.5rem; font-size: 0.9rem; border-radius: 0.8rem; }
+
+/* Pager */
+.a-pager { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+.a-pager-info { font-size: 0.74rem; font-weight: 600; color: var(--a-t4); }
+
+/* Tidy compact stat strip — users / products / orders list pages */
+.a-stat-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  width: 100%;
+  margin-inline: auto;
+  margin-bottom: 1.25rem;
+}
+@media (min-width: 640px) {
+  .a-stat-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.a-page--users > .a-stat-strip { max-width: 960px; }
+.a-page--orders > .a-stat-strip,
+.pp-root > .a-stat-strip { max-width: 1140px; }
+
+.a-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--a-border);
+  border-radius: 1rem;
+  background: var(--a-surface);
+  box-shadow: var(--a-shadow);
+}
+.a-stat-card-ico {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 0.8rem;
+}
+.a-stat-card-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.a-stat-card-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--a-t1);
+  white-space: nowrap;
+}
+.a-stat-card-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--a-t3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.a-stat-card--emerald .a-stat-card-ico { background: rgba(16, 185, 129, 0.14); color: #34d399; }
+.a-stat-card--cyan .a-stat-card-ico { background: rgba(6, 182, 212, 0.14); color: #22d3ee; }
+.a-stat-card--amber .a-stat-card-ico { background: rgba(245, 158, 11, 0.16); color: #f59e0b; }
+.a-stat-card--rose .a-stat-card-ico { background: rgba(251, 113, 133, 0.14); color: #fb7185; }
+
+body.admin-page-active.admin-theme-light .a-stat-card--emerald .a-stat-card-ico { color: #0f9d6d; }
+body.admin-page-active.admin-theme-light .a-stat-card--cyan .a-stat-card-ico { color: #0e7490; }
+body.admin-page-active.admin-theme-light .a-stat-card--amber .a-stat-card-ico { color: #b54708; }
+body.admin-page-active.admin-theme-light .a-stat-card--rose .a-stat-card-ico { color: #d92d20; }
+
+/* Checkboxes inside tables / grids follow the brand accent */
+.a-table input[type='checkbox'],
+.a-grid-check { accent-color: var(--a-brand); }
+
+/* Tab strip (order detail etc.) */
+.a-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border: 1px solid var(--a-border-2);
+  border-radius: 0.9rem;
+  background: var(--a-field-bg);
+  overflow-x: auto;
+}
+.a-tab {
+  padding: 0.5rem 0.95rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: transparent;
+  color: var(--a-t3);
+  font-size: 0.76rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.a-tab:hover { color: var(--a-t1); }
+.a-tab--on { background: var(--a-brand); color: var(--a-brand-contrast); }
+.a-tab--on:hover { color: var(--a-brand-contrast); }
+
+/* ============================================================================
+   LIGHT MODE — remap of the legacy (hard-coded) dark palette so the whole
+   panel reads as a light theme.
+   Tokens live on the shell root so the kit reacts everywhere, but the legacy
+   class remaps are scoped to `.admin-main-content` so the chrome (fixed dark
+   sidebar / topbar / dropdowns) keeps its intended dark look.
+   ========================================================================== */
+body.admin-page-active.admin-theme-light {
+  background-color: var(--a-bg);
+  color: var(--a-t1);
+}
+
+body.admin-page-active.admin-theme-light .admin-main-content {
+  background-color: var(--a-bg);
+  color: var(--a-t1);
+}
+
+body.admin-page-active.admin-theme-light .ambient-glow-container { display: none; }
+
+/* Content scoping root for all legacy remaps */
+body.admin-page-active.admin-theme-light .admin-main-content .glass-card,
+body.admin-page-active.admin-theme-light .admin-main-content .glass-card-static {
+  background-color: var(--a-surface);
+  border-color: var(--a-border);
+  box-shadow: var(--a-shadow);
+  backdrop-filter: none;
+}
+body.admin-page-active.admin-theme-light .admin-main-content .glass-card:hover {
+  transform: none;
+  border-color: var(--a-border-2);
+  box-shadow: var(--a-shadow-2);
+}
+body.admin-page-active.admin-theme-light .admin-main-content .huma-table-container.glass-card:hover,
+body.admin-page-active.admin-theme-light .admin-main-content form.glass-card:hover {
+  border-color: var(--a-border);
+  box-shadow: var(--a-shadow);
+}
+
+/* Text remap */
+body.admin-page-active.admin-theme-light .admin-main-content .text-white { color: var(--a-t1) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-slate-950 { color: #101828 !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-slate-200 { color: var(--a-t1) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-slate-300 { color: var(--a-t2) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-slate-400 { color: var(--a-t3) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-slate-500 { color: var(--a-t4) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-emerald-400,
+body.admin-page-active.admin-theme-light .admin-main-content .text-emerald-300 { color: var(--a-green) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-amber-400 { color: var(--a-amber) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-rose-400,
+body.admin-page-active.admin-theme-light .admin-main-content .text-rose-300 { color: var(--a-red) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-cyan-400,
+body.admin-page-active.admin-theme-light .admin-main-content .text-cyan-300 { color: #0e7490 !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-sky-400,
+body.admin-page-active.admin-theme-light .admin-main-content .text-sky-300 { color: var(--a-brand) !important; }
+
+/* Inputs */
+body.admin-page-active.admin-theme-light .admin-main-content .huma-input {
+  background-color: var(--a-input-bg);
+  border-color: var(--a-border-2);
+  color: var(--a-t1);
+}
+body.admin-page-active.admin-theme-light .admin-main-content .huma-input::placeholder { color: var(--a-t4); }
+body.admin-page-active.admin-theme-light .admin-main-content .huma-input:focus {
+  border-color: var(--a-brand);
+  box-shadow: 0 0 0 3px var(--a-brand-ring);
+}
+body.admin-page-active.admin-theme-light .admin-main-content select.huma-input {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23667085' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+}
+body.admin-page-active.admin-theme-light .admin-main-content .huma-input option { color: var(--a-t1); background: var(--a-surface); }
+
+/* Native inputs that were hard-coded dark (checkboxes etc.) */
+body.admin-page-active.admin-theme-light .admin-main-content .bg-slate-800,
+body.admin-page-active.admin-theme-light .admin-main-content .bg-slate-900\/50 { background-color: var(--a-check-bg) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .border-slate-700,
+body.admin-page-active.admin-theme-light .admin-main-content .border-slate-600,
+body.admin-page-active.admin-theme-light .admin-main-content .border-slate-500 { border-color: var(--a-border-2) !important; }
+
+/* Secondary buttons */
+body.admin-page-active.admin-theme-light .admin-main-content .huma-btn-secondary {
+  background-color: var(--a-field-bg);
+  border-color: var(--a-border-2);
+  color: var(--a-t2);
+}
+body.admin-page-active.admin-theme-light .admin-main-content .huma-btn-secondary:hover { border-color: var(--a-brand); color: var(--a-t1); }
+body.admin-page-active.admin-theme-light .admin-main-content .icon-btn { border-color: var(--a-border); background: var(--a-surface-2); color: var(--a-t3); }
+body.admin-page-active.admin-theme-light .admin-main-content .btn.primary { background: var(--a-brand); color: var(--a-brand-contrast); }
+body.admin-page-active.admin-theme-light .admin-main-content .btn.primary:hover { background: var(--a-brand-hover); }
+
+/* Tables */
+body.admin-page-active.admin-theme-light .admin-main-content .huma-table th { color: var(--a-t4); border-color: var(--a-divider); }
+body.admin-page-active.admin-theme-light .admin-main-content .huma-table td { color: var(--a-t2); border-color: var(--a-divider); }
+body.admin-page-active.admin-theme-light .admin-main-content .huma-table tbody tr:hover { background: var(--a-hover); }
+
+/* Subtle translucent-white fills become light fills / borders in light mode */
+body.admin-page-active.admin-theme-light .admin-main-content .bg-white\/\[0\.03\],
+body.admin-page-active.admin-theme-light .admin-main-content .bg-white\/\[0\.05\],
+body.admin-page-active.admin-theme-light .admin-main-content .bg-white\/\[0\.04\],
+body.admin-page-active.admin-theme-light .admin-main-content .bg-white\/\[0\.02\],
+body.admin-page-active.admin-theme-light .admin-main-content .bg-white\/\[0\.01\] { background-color: var(--a-field-bg) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .hover\:bg-white\/\[0\.03\]:hover,
+body.admin-page-active.admin-theme-light .admin-main-content .hover\:bg-white\/\[0\.05\]:hover,
+body.admin-page-active.admin-theme-light .admin-main-content .hover\:bg-white\/\[0\.06\]:hover { background-color: var(--a-hover) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .border-white\/20,
+body.admin-page-active.admin-theme-light .admin-main-content .border-white\/10,
+body.admin-page-active.admin-theme-light .admin-main-content .border-white\/\[0\.06\],
+body.admin-page-active.admin-theme-light .admin-main-content .border-white\/\[0\.04\] { border-color: var(--a-border) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .divide-white\/\[0\.04\] > :not([hidden]) ~ :not([hidden]) { border-color: var(--a-divider) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .bg-black\/20,
+body.admin-page-active.admin-theme-light .admin-main-content .bg-black\/30,
+body.admin-page-active.admin-theme-light .admin-main-content .bg-black\/40 { background-color: var(--a-surface-2) !important; }
+
+/* Chips keep a tinted background with a readable hard remap */
+body.admin-page-active.admin-theme-light .admin-main-content .chip-brand { background: var(--a-green-soft); color: var(--a-green); }
+body.admin-page-active.admin-theme-light .admin-main-content .chip-aqua { background: rgba(14, 116, 144, 0.12); color: #0e7490; }
+body.admin-page-active.admin-theme-light .admin-main-content .chip-amber { background: var(--a-amber-soft); color: var(--a-amber); }
+body.admin-page-active.admin-theme-light .admin-main-content .chip-rose { background: var(--a-red-soft); color: var(--a-red); }
+body.admin-page-active.admin-theme-light .admin-main-content .chip-slate { background: var(--a-slate-soft); color: var(--a-t3); }
+
+/* Legacy text colors (hard-coded Tailwind dark palette) rescale to the light palette */
+body.admin-page-active.admin-theme-light .admin-main-content .text-white,
+body.admin-page-active.admin-theme-light .admin-main-content .text-slate-100,
+body.admin-page-active.admin-theme-light .admin-main-content .text-slate-200 { color: #101828 !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-slate-300 { color: #344054 !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-slate-400 { color: #475467 !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-slate-500 { color: #667085 !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-emerald-400,
+body.admin-page-active.admin-theme-light .admin-main-content .text-emerald-300 { color: #059669 !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-cyan-400,
+body.admin-page-active.admin-theme-light .admin-main-content .text-cyan-300 { color: #0e7490 !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-rose-400,
+body.admin-page-active.admin-theme-light .admin-main-content .text-rose-300 { color: #d92d20 !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .text-amber-400 { color: #b54708 !important; }
+
+/* Dashboard donut inner hole follows the surface */
+body.admin-page-active.admin-theme-light .admin-main-content .admin-donut::after { background: #ffffff; border-color: rgba(16, 24, 40, 0.08); }
+
+/* Stat / stock elements */
+body.admin-page-active.admin-theme-light .admin-main-content .admin-product-stock { background: var(--a-green-soft); color: var(--a-green); border-color: transparent; }
+body.admin-page-active.admin-theme-light .admin-main-content .admin-product-stock.chip-rose { background: var(--a-red-soft); color: var(--a-red); border-color: transparent; }
+
+/* Taxonomy + category legacy styles */
+body.admin-page-active.admin-theme-light .admin-main-content .category-brands-heading strong { color: var(--a-t1); }
+body.admin-page-active.admin-theme-light .admin-main-content .taxonomy-field > span { color: var(--a-t1); }
+body.admin-page-active.admin-theme-light .admin-main-content .taxonomy-item { background: var(--a-field-bg); border-color: var(--a-border); }
+body.admin-page-active.admin-theme-light .admin-main-content .taxonomy-item:hover,
+body.admin-page-active.admin-theme-light .admin-main-content .taxonomy-item.active { border-color: var(--a-brand); background: var(--a-brand-soft); }
+body.admin-page-active.admin-theme-light .admin-main-content .taxonomy-item-copy > strong { color: var(--a-t1); }
+body.admin-page-active.admin-theme-light .admin-main-content .taxonomy-item-copy > span,
+body.admin-page-active.admin-theme-light .admin-main-content .taxonomy-item-copy > small { color: var(--a-t4); }
+body.admin-page-active.admin-theme-light .admin-main-content .brand-checkbox { background: var(--a-check-bg); border-color: var(--a-border); }
+body.admin-page-active.admin-theme-light .admin-main-content .brand-checkbox.selected { border-color: var(--a-brand); background: var(--a-brand-soft); }
+body.admin-page-active.admin-theme-light .admin-main-content .brand-checkbox strong { color: var(--a-t1); }
+body.admin-page-active.admin-theme-light .admin-main-content .brand-checkbox small { color: var(--a-t4); }
+body.admin-page-active.admin-theme-light .admin-main-content .category-brands-field { border-color: var(--a-border); background: var(--a-field-bg); }
+body.admin-page-active.admin-theme-light .admin-main-content .taxonomy-brand-chips i { background: var(--a-brand-soft); color: var(--a-brand); }
+
+/* Analytics bars that relied on white text over gradients */
+body.admin-page-active.admin-theme-light .admin-main-content .admin-bar-value,
+body.admin-page-active.admin-theme-light .admin-main-content .progress-brand { background: linear-gradient(to top, var(--a-brand), #6cb6ff); }
+
+/* Hard-coded dark surfaces used by legacy pages */
+body.admin-page-active.admin-theme-light .admin-main-content .bg-\[\#0e1626\]\/80,
+body.admin-page-active.admin-theme-light .admin-main-content .bg-\[\#131c2e\]\/40,
+body.admin-page-active.admin-theme-light .admin-main-content .bg-\[\#131c2e\]\/60,
+body.admin-page-active.admin-theme-light .admin-main-content .bg-\[\#070b12\]\/75,
+body.admin-page-active.admin-theme-light .admin-main-content .bg-\[\#0b111d\] { background-color: rgba(244, 247, 250, 0.65) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .bg-\[\#131c2e\],
+body.admin-page-active.admin-theme-light .admin-main-content .bg-\[\#070b12\] { background-color: var(--a-surface-2) !important; }
+body.admin-page-active.admin-theme-light .admin-main-content .bg-\[\#0e1626\] { background-color: var(--a-surface-3) !important; }
+
+/* Light mode — chart ink contrast (Dashboard inline SVG charts + Analytics).
+   The chart SVGs hard-code dark-palette ink; darken those exact values so the
+   lines/gradients stay readable on the light surface. */
+body.admin-page-active.admin-theme-light .admin-main-content circle[stroke="rgba(0, 0, 0, 0.12)"] { stroke: rgba(16, 24, 40, 0.16); }
+body.admin-page-active.admin-theme-light .admin-main-content stop[stop-color="#34d399"] { stop-color: #059669; }
+body.admin-page-active.admin-theme-light .admin-main-content stop[stop-color="#22d3ee"] { stop-color: #0e7490; }
+body.admin-page-active.admin-theme-light .admin-main-content stop[stop-color="#f59e0b"] { stop-color: #b54708; }
+body.admin-page-active.admin-theme-light .admin-main-content stop[stop-color="#fb7185"] { stop-color: #d92d20; }
+body.admin-page-active.admin-theme-light .admin-main-content stop[stop-color="#10b981"] { stop-color: #059669; }
+body.admin-page-active.admin-theme-light .admin-main-content path[stroke="#34d399"] { stroke: #059669; }
+body.admin-page-active.admin-theme-light .admin-main-content path[stroke="#22d3ee"] { stroke: #0e7490; }
+body.admin-page-active.admin-theme-light .admin-main-content path[stroke="#f59e0b"] { stroke: #b54708; }
+body.admin-page-active.admin-theme-light .admin-main-content path[stroke="#fb7185"] { stroke: #d92d20; }
+body.admin-page-active.admin-theme-light .admin-main-content path[stroke="#10b981"] { stroke: #059669; }
+body.admin-page-active.admin-theme-light .admin-main-content path[stroke="#94a3b8"] { stroke: #64748b; }
+body.admin-page-active.admin-theme-light .admin-main-content line[stroke="rgba(100,116,139,0.16)"] { stroke: rgba(71, 85, 105, 0.28); }
+body.admin-page-active.admin-theme-light .admin-main-content .admin-y-axis { color: #475467; }
+body.admin-page-active.admin-theme-light .admin-main-content .admin-donut {
+  filter: none;
+  background: conic-gradient(
+    #10a37f 0 53%, transparent 53% 54%,
+    #0e7490 54% 77%, transparent 77% 78%,
+    #b54708 78% 91%, transparent 91% 92%,
+    #667085 92% 99%, transparent 99% 100%
+  );
+}
+body.admin-page-active.admin-theme-light .admin-main-content .progress-rose { background: linear-gradient(to left, #d92d20, #b42318); }
+body.admin-page-active.admin-theme-light .admin-main-content .progress-amber { background: linear-gradient(to left, #f59e0b, #b54708); }
+
+/* ============================================================================
+   LIGHT MODE — portaled admin primitives.
+   Modals & their content render through a portal onto <body> (outside the
+   .admin-body-shell scope). When the admin is in light theme, AdminApp adds
+   `admin-theme-light` to <body>; this block re-themes those shared global
+   primitives (modal panel, tables, chips, cards, buttons) accordingly.
+   ========================================================================== */
+body.admin-theme-light .modal-panel {
+  background-color: rgba(255, 255, 255, 0.97);
+  border: 1px solid #eaecf0;
+  color: #101828;
+  box-shadow: 0 25px 50px -12px rgba(16, 24, 40, 0.22);
+}
+body.admin-page-active.admin-theme-light .modal-backdrop,
+body.admin-page-active.admin-theme-light .admin-modal-backdrop {
+  background: rgba(15, 23, 42, 0.42) !important;
+  backdrop-filter: blur(18px) saturate(70%) brightness(84%);
+  -webkit-backdrop-filter: blur(18px) saturate(70%) brightness(84%);
+}
+body.admin-page-active.admin-theme-light .admin-modal-surface {
+  background: rgba(255, 255, 255, 0.97);
+  border-color: rgba(15, 23, 42, 0.14);
+  box-shadow: 0 32px 90px -24px rgba(15, 23, 42, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.72);
+}
+body.admin-page-active.admin-theme-light .admin-modal-surface:hover {
+  border-color: rgba(15, 23, 42, 0.14);
+}
+body.admin-theme-light .modal-head,
+body.admin-theme-light .modal-foot {
+  background-color: #ffffff;
+  border-color: #eaecf0;
+}
+body.admin-theme-light .modal-head h3 { color: #101828; }
+body.admin-theme-light .modal-head button.ghost { color: #667085; }
+body.admin-theme-light .modal-head button.ghost:hover { color: #d92d20; background-color: rgba(217, 45, 32, 0.1); }
+body.admin-theme-light .modal-body .input,
+body.admin-theme-light .modal-body .select,
+body.admin-theme-light .modal-body input[type="text"],
+body.admin-theme-light .modal-body input[type="number"] {
+  background-color: #ffffff !important;
+  border: 1px solid #d0d5dd !important;
+  color: #101828 !important;
+}
+body.admin-theme-light .modal-body .input:focus,
+body.admin-theme-light .modal-body .select:focus,
+body.admin-theme-light .modal-body input:focus {
+  border-color: #0580fa !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(5, 128, 250, 0.22);
+}
+body.admin-theme-light .modal-body label,
+body.admin-theme-light .modal-body .faint { color: #475467 !important; }
+
+body.admin-theme-light .modal-backdrop .glass-card,
+body.admin-theme-light .modal-backdrop .glass-card-static {
+  background-color: #ffffff;
+  border-color: #eaecf0;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  backdrop-filter: none;
+}
+body.admin-theme-light .modal-backdrop .glass-card:hover { transform: none; border-color: #d0d5dd; }
+
+/* These legacy utilities only exist within portaled admin dialogs; the main
+   content area has its own shell-scoped remaps above. Keeping the scope tight
+   here stops the hammer from re-coloring the dark sidebar chrome. */
+body.admin-theme-light .modal-backdrop .text-white { color: #101828 !important; }
+body.admin-theme-light .modal-backdrop .text-slate-200 { color: #101828 !important; }
+body.admin-theme-light .modal-backdrop .text-slate-300 { color: #344054 !important; }
+body.admin-theme-light .modal-backdrop .text-slate-400 { color: #475467 !important; }
+body.admin-theme-light .modal-backdrop .text-slate-500 { color: #667085 !important; }
+body.admin-theme-light .modal-backdrop .text-emerald-400,
+body.admin-theme-light .modal-backdrop .text-emerald-300 { color: #10a37f !important; }
+body.admin-theme-light .modal-backdrop .text-rose-400,
+body.admin-theme-light .modal-backdrop .text-rose-300 { color: #d92d20 !important; }
+body.admin-theme-light .modal-backdrop .text-amber-400 { color: #b54708 !important; }
+
+body.admin-theme-light .modal-backdrop .huma-btn-secondary {
+  background-color: #f8fafc;
+  border-color: #d0d5dd;
+  color: #344054;
+}
+body.admin-theme-light .modal-backdrop .huma-btn-secondary:hover { border-color: #0580fa; color: #101828; }
+body.admin-theme-light .modal-backdrop .btn.primary { background-color: #0580fa; color: #ffffff; }
+body.admin-theme-light .modal-backdrop .btn.primary:hover { background-color: #0470dc; }
+
+body.admin-theme-light .modal-backdrop .huma-table th { color: #667085; border-color: #eaecf0; }
+body.admin-theme-light .modal-backdrop .huma-table td { color: #344054; border-color: #eaecf0; }
+body.admin-theme-light .modal-backdrop .huma-table tbody tr:hover { background-color: rgba(16, 24, 40, 0.04); }
+
+body.admin-theme-light .modal-backdrop .chip-brand { background: rgba(16, 163, 127, 0.14); color: #10a37f; }
+body.admin-theme-light .modal-backdrop .chip-aqua { background: rgba(14, 116, 144, 0.12); color: #0e7490; }
+body.admin-theme-light .modal-backdrop .chip-amber { background: rgba(245, 158, 11, 0.16); color: #b54708; }
+body.admin-theme-light .modal-backdrop .chip-rose { background: rgba(217, 45, 32, 0.14); color: #d92d20; }
+body.admin-theme-light .modal-backdrop .chip-slate { background: rgba(128, 138, 157, 0.18); color: #475467; }
+
+/* ============================================================================
+   LIGHT MODE — admin chrome (topbar + sidebar).
+   The header/nav shell followed the dark palette even in light mode. In light
+   the whole chrome now follows the light palette so nothing stays dark on a
+   light page. Dropdown/popover panels under the topbar keep their own dark
+   look (not part of this pass).
+   ========================================================================== */
+body.admin-page-active.admin-theme-light .admin-topbar {
+  background-color: rgba(255, 255, 255, 0.86);
+  border-bottom-color: #eaecf0;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+body.admin-page-active.admin-theme-light .admin-sidebar {
+  background-color: rgba(255, 255, 255, 0.92);
+  border-color: #eaecf0;
+}
+
+/* Topbar — quick search */
+body.admin-page-active.admin-theme-light .admin-topbar input[type="text"] {
+  background-color: #f4f7fa;
+  border-color: #d0d5dd;
+  color: #101828;
+}
+body.admin-page-active.admin-theme-light .admin-topbar input[type="text"]::placeholder { color: #667085; }
+body.admin-page-active.admin-theme-light .admin-topbar input[type="text"]:focus {
+  background-color: #ffffff;
+  border-color: #0580fa;
+  box-shadow: 0 0 0 3px rgba(5, 128, 250, 0.18);
+}
+body.admin-page-active.admin-theme-light .admin-topbar .text-slate-500 { color: #667085 !important; }
+body.admin-page-active.admin-theme-light .admin-topbar .group:focus-within svg { color: #059669 !important; }
+body.admin-page-active.admin-theme-light .admin-topbar kbd {
+  background-color: #f2f4f7;
+  border-color: #eaecf0;
+  color: #98a2b3;
+}
+
+/* Topbar — date / clock chip */
+body.admin-page-active.admin-theme-light .admin-topbar .mr-auto > div.hidden {
+  background-color: #f4f7fa;
+  border-color: #eaecf0;
+}
+body.admin-page-active.admin-theme-light .admin-topbar .mr-auto > div.hidden .text-slate-300 { color: #344054 !important; }
+body.admin-page-active.admin-theme-light .admin-topbar .mr-auto > div.hidden .text-emerald-300,
+body.admin-page-active.admin-theme-light .admin-topbar .mr-auto > div.hidden .text-emerald-400 { color: #059669 !important; }
+body.admin-page-active.admin-theme-light .admin-topbar .mr-auto > div.hidden .bg-white\/10 { background-color: #eaecf0; }
+
+/* Topbar — icon buttons (theme toggle, bell, menu) */
+body.admin-page-active.admin-theme-light .admin-topbar .icon-btn,
+body.admin-page-active.admin-theme-light .admin-sidebar .icon-btn {
+  background-color: #f4f7fa;
+  border-color: #d0d5dd;
+  color: #475467;
+}
+body.admin-page-active.admin-theme-light .admin-topbar .icon-btn:hover,
+body.admin-page-active.admin-theme-light .admin-sidebar .icon-btn:hover {
+  border-color: #10a37f;
+  color: #10a37f;
+  box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.16);
+}
+body.admin-page-active.admin-theme-light .admin-topbar .ring-slate-950 { --tw-ring-color: #ffffff; }
+
+/* Topbar — profile button */
+body.admin-page-active.admin-theme-light .admin-topbar .mr-auto > .relative > button.group {
+  background-color: #f4f7fa;
+  border-color: #d0d5dd;
+}
+body.admin-page-active.admin-theme-light .admin-topbar .mr-auto > .relative > button.group:hover { border-color: #10a37f; }
+body.admin-page-active.admin-theme-light .admin-topbar .mr-auto > .relative > button.group .text-white { color: #101828 !important; }
+
+/* Sidebar — brand + sections */
+body.admin-page-active.admin-theme-light .admin-sidebar .text-white { color: #101828 !important; }
+body.admin-page-active.admin-theme-light .admin-sidebar .text-slate-500 { color: #101828 !important; }
+body.admin-page-active.admin-theme-light .admin-sidebar .text-slate-400 { color: #101828 !important; }
+
+/* Sidebar — nav items */
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-item { color: #101828; }
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-item:hover { 
+  font-weight: 700;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-item.active {
+  background-image: linear-gradient(to left, rgba(16, 185, 129, 0.14), transparent);
+  color: #059669;
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-accordion-count {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.05);
+  color: #475569;
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-domain {
+  border-color: rgba(15, 23, 42, 0.08);
+  background: rgba(248, 250, 252, 0.72);
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-domain.is-open {
+  border-color: rgba(5, 150, 105, 0.2);
+  background: rgba(240, 253, 250, 0.84);
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-domain-copy small { color: #667085; }
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-domain-badge {
+  background: rgba(5, 150, 105, 0.12);
+  color: #047857;
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-submenu {
+  border-right-color: rgba(15, 23, 42, 0.12);
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-subitem.active {
+  background: rgba(16, 185, 129, 0.1);
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .bg-emerald-500\/15 { color: #059669 !important; }
+
+/* Sidebar — pro card */
+body.admin-page-active.admin-theme-light .admin-sidebar .bg-gradient-to-br {
+  background-image: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(240, 250, 245, 0.95) 45%, rgba(238, 246, 251, 0.95));
+}
+body.admin-page-active.admin-theme-light .admin-sidebar .bg-gradient-to-br[class*="via-"] {
+  background-image: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(240, 250, 245, 0.95) 45%, rgba(238, 246, 251, 0.95));
+}
+
+/* ==========================================================================
+   Table Layout Polish (layout only — colors/glass untouched)
+   ========================================================================== */
+
+/* Bounded card scroll + sticky header */
+.a-table-wrap,
+.huma-table-container {
+  max-height: 72vh;
+  overflow-y: auto;
+  border-radius: 16px;
+}
+
+/* sticky + rounded header row for .a-table */
+.a-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: color-mix(in srgb, var(--a-surface-2) 92%, transparent);
+  backdrop-filter: blur(8px);
+  letter-spacing: 0.02em;
+}
+.a-table th > div,
+.a-table th > span { gap: 0.6rem; }
+.a-table th { padding: 1.05rem 1.1rem; }
+.a-table th:first-child,
+.a-table th:last-child { border-radius: 0; }
+.a-table th:first-child { border-start-start-radius: 14px; }
+.a-table th:last-child { border-start-end-radius: 14px; }
+.a-table td { padding: 1.05rem 1.1rem; }
+
+/* sticky + rounded header row for legacy .huma-table */
+.huma-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: color-mix(in srgb, var(--a-surface) 88%, var(--a-surface-3));
+  backdrop-filter: blur(8px);
+  letter-spacing: 0.02em;
+}
+.huma-table th:first-child { border-start-start-radius: 14px; }
+.huma-table th:last-child { border-start-end-radius: 14px; }
+.huma-table td { padding: 0.95rem 1.1rem; }
+
+/* In-card footer bar (count + pagination) */
+.a-card--flush .a-pager,
+.a-pager {
+  margin: 0;
+  border-top: 1px solid var(--a-divider);
+  border-radius: 0;
+  background: var(--a-surface);
+  box-shadow: none;
+  padding: 0.85rem 1.1rem;
+}
+.a-pager-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.a-pager-count {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--a-t1);
+}
+
+/* ==========================================================================
+   Form dialogs (brands / categories / attributes) — layout only
+   ========================================================================== */
+.admin-page-active .modal-panel .a-form { max-width: none; }
+.admin-page-active .modal-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  overflow: hidden;
+}
+.admin-page-active .modal-head h3 .a-badge { flex: 0 0 auto; margin: 0; }
+
+/* ==========================================================================
+   Small Monitors & Responsive Section Scroll Utilities
+   ========================================================================== */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--a-border-2, rgba(255, 255, 255, 0.2));
+  border-radius: 999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--a-brand, #3b82f6);
+}
+
+@media (max-height: 850px) {
+  .a-page-content {
+    min-height: 480px;
+  }
+  .a-table-wrap {
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+  }
+}
+
+/* ── Chip Option Toggle (sell type multi-select) ────────────────── */
+.a-chip-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: var(--a-radius-pill, 980px);
+  border: 1.5px solid var(--a-border-2);
+  background: var(--a-surface);
+  color: var(--a-fg);
+  font-size: 0.82rem;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.a-chip-opt:hover {
+  border-color: var(--a-brand, #3b82f6);
+  background: rgba(59, 130, 246, 0.06);
+}
+.a-chip-opt--on {
+  border-color: var(--a-brand, #3b82f6);
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--a-brand, #3b82f6);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+.a-chip-opt--on:hover {
+  background: rgba(59, 130, 246, 0.22);
+}
+.a-chip-opt-copy strong {
+  font-weight: 600;
+}
+
+/* Ensure native select popup options have dark background and readable text in dark mode */
+.admin-body-shell select option,
+body.admin-page-active .modal-backdrop select option,
+body.admin-page-active .admin-modal-backdrop select option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  padding: 8px 12px;
+}
+
+body.admin-theme-light .admin-body-shell select option,
+body.admin-theme-light .modal-backdrop select option,
+body.admin-theme-light .admin-modal-backdrop select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.admin-body-shell select.a-input,
+body.admin-page-active .modal-backdrop select.a-input,
+body.admin-page-active .admin-modal-backdrop select.a-input {
+  cursor: pointer;
+}
+

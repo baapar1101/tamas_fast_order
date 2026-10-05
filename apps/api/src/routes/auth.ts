@@ -1,12 +1,14 @@
 import { eq } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
-import { normalizeLandline, otpRequestSchema, otpVerifySchema, profileWriteSchema, type UserDTO } from '@tamas/shared';
+import { normalizeLandline, otpRequestSchema, otpVerifySchema, profileWriteSchema, passwordLoginSchema, setPasswordSchema, type UserDTO } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { users } from '../db/schema.js';
 import { env } from '../env.js';
 import { badRequest } from '../lib/errors.js';
 import { createSession, destroySession, missingProfileFields, findOrCreateUser, toUserDTO } from '../services/auth.js';
 import { resendCooldown, sendOtp, verifyOtp } from '../services/otp.js';
+import { crmClient } from '../lib/crm.js';
+import { hashPassword, verifyPassword } from '../lib/hash.js';
 
 /**
  * The whole point of this file: verification now happens on the server. The
@@ -56,6 +58,55 @@ const routes: FastifyPluginAsync = async (app) => {
     },
   );
 
+  app.post(
+    '/auth/password/login',
+    { config: { rateLimit: { max: 20, timeWindow: '10 minutes' } } },
+    async (req) => {
+      const { phone, password } = passwordLoginSchema.parse(req.body);
+      const user = await db.query.users.findFirst({
+        where: eq(users.phone, phone),
+      });
+
+      if (!user) throw badRequest('کاربری با این شماره یافت نشد.');
+      if (!user.passwordHash) throw badRequest('رمز عبور برای این کاربر تنظیم نشده است. لطفاً با کد یکبار مصرف وارد شوید.');
+      
+      const isValid = verifyPassword(password, user.passwordHash);
+      if (!isValid) throw badRequest('رمز عبور اشتباه است.');
+
+      const token = await createSession(user.id, { ip: req.ip, userAgent: req.headers['user-agent'] });
+      const missing = missingProfileFields(user);
+
+      return {
+        ok: true,
+        token,
+        user: toUserDTO(user),
+        isNew: false,
+        complete: missing.length === 0,
+        missing,
+      };
+    },
+  );
+
+  app.post(
+    '/auth/password/set',
+    { preHandler: [app.requireUser] },
+    async (req) => {
+      const { oldPassword, newPassword } = setPasswordSchema.parse(req.body);
+      const current = req.currentUser!;
+
+      if (current.passwordHash) {
+        if (!oldPassword) throw badRequest('برای تغییر رمز عبور، وارد کردن رمز عبور فعلی الزامی است.');
+        const isValid = verifyPassword(oldPassword, current.passwordHash);
+        if (!isValid) throw badRequest('رمز عبور فعلی اشتباه است.');
+      }
+
+      const newHash = hashPassword(newPassword);
+      await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, current.id));
+
+      return { ok: true, message: 'رمز عبور با موفقیت تنظیم شد.' };
+    },
+  );
+
   app.get('/auth/me', { preHandler: [app.requireUser] }, async (req) => {
     const row = req.currentUser!;
     const missing = missingProfileFields(row);
@@ -69,20 +120,32 @@ const routes: FastifyPluginAsync = async (app) => {
     let updatedUser: UserDTO;
     try {
       const [updated] = await db
-        .update(users)
-        .set({
-          name: body.name,
-          lastName: body.lastName,
-          storeName: body.storeName,
-          landline: normalizeLandline(body.landline),
-          address: body.address,
-          postalCode: normalizeLandline(body.postalCode),
-          certificateFileUrl: body.certificateFileUrl,
-          updatedAt: new Date(),
-        })
-        .where(eq(users.id, current.id))
-        .returning();
-      updatedUser = toUserDTO(updated || current);
+              .update(users)
+              .set({
+                name: body.name,
+                lastName: body.lastName,
+                storeName: body.storeName,
+                landline: normalizeLandline(body.landline),
+                address: body.address,
+                postalCode: normalizeLandline(body.postalCode),
+                certificateFileUrl: body.certificateFileUrl,
+                updatedAt: new Date(),
+              })
+              .where(eq(users.id, current.id))
+              .returning();
+            updatedUser = toUserDTO(updated || current);
+
+            // Fire-and-forget CRM person sync on profile update
+            const { getCrmConfig } = await import('../services/settings.js');
+            getCrmConfig().then(config => crmClient.pushPerson({
+              firstName: body.name ?? '',
+              lastName: body.lastName ?? '',
+              phone: current.phone,
+              email: `${current.phone}@tamas.local`,
+              aliasName: `${body.name ?? ''} ${body.lastName ?? ''}`.trim() || current.phone,
+            }, config)).catch((err: unknown) => {
+                          // CRM sync failure shouldn't block profile update
+                        });
     } catch {
       current.name = body.name;
       current.lastName = body.lastName;
@@ -101,6 +164,17 @@ const routes: FastifyPluginAsync = async (app) => {
       storeName: updatedUser.storeName,
       address: updatedUser.address,
     });
+
+    const { sendTelegramNotification } = await import('../services/telegram.js');
+    void sendTelegramNotification('user.profile_updated', {
+      title: missing.length === 0 ? '👤 پروفایل کاربر تکمیل شد' : '👤 پروفایل کاربر ویرایش شد',
+      fields: [
+        { label: 'نام', value: `${updatedUser.name} ${updatedUser.lastName}`.trim() },
+        { label: 'فروشگاه', value: updatedUser.storeName },
+        { label: 'تلفن', value: updatedUser.phone },
+        { label: 'وضعیت پروفایل', value: missing.length === 0 ? 'کامل' : 'ناقص' },
+      ],
+    }).catch((err) => req.log.error({ err }, 'failed to send Telegram profile notification'));
 
     return {
       ok: true,
@@ -122,11 +196,11 @@ const routes: FastifyPluginAsync = async (app) => {
 
     try {
       const response = await fetch(
-        'https://tamastore.ir/api/v1/businesses/4952/zohal/inquiry/national_identity_inquiry',
+        'https://service.zohal.io/api/v0/services/inquiry/national_identity_inquiry',
         {
           method: 'POST',
           headers: {
-            'Authorization': 'ApiKey ak_live_W6ldKkI0-IS9WiQtgX6jizFFUwBofrAtOUrI-Bky4Ts',
+            'Authorization': 'Bearer 0c23148ee07366592d9fc19dd8bb1528c2a0f1bb',
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -152,23 +226,64 @@ const routes: FastifyPluginAsync = async (app) => {
         throw badRequest('امکان استعلام و تایید برای این کد ملی وجود ندارد.');
       }
 
+      // 2. Bounced Cheque Inquiry
+      const chequeResponse = await fetch(
+        'https://service.zohal.io/api/v0/services/inquiry/bounced_cheque',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer 0c23148ee07366592d9fc19dd8bb1528c2a0f1bb',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            national_code: cleanNationalCode,
+            nationality_type: 1,
+          }),
+        },
+      );
+
+      if (!chequeResponse.ok) {
+        throw badRequest(`ارتباط با سامانه استعلام چک برگشتی ناموفق بود (${chequeResponse.status})`);
+      }
+
+      const chequeData = await chequeResponse.json();
+      const chequeFirst = Array.isArray(chequeData) ? chequeData[0] : chequeData;
+      // Zohal payload might be nested depending on gateway wrapping
+      const chequeCount = chequeFirst?.response_body?.data?.count ?? chequeFirst?.data?.result?.response_body?.data?.count ?? 0;
+
+      if (chequeCount > 0) {
+        throw badRequest(`کد ملی وارد شده دارای ${chequeCount} چک برگشتی است و امکان تأیید حساب وجود ندارد.`);
+      }
+
       const current = req.currentUser!;
       let updatedUser: UserDTO;
       try {
         const [updated] = await db
-          .update(users)
-          .set({
-            name: inquiryBody.first_name || current.name,
-            lastName: inquiryBody.last_name || current.lastName,
-            fatherName: inquiryBody.father_name || '',
-            nationalCode: cleanNationalCode,
-            birthDate: cleanBirthDate,
-            isVerifiedIdentity: true,
-            updatedAt: new Date(),
-          })
-          .where(eq(users.id, current.id))
-          .returning();
-        updatedUser = toUserDTO(updated || current);
+                  .update(users)
+                  .set({
+                    name: inquiryBody.first_name || current.name,
+                    lastName: inquiryBody.last_name || current.lastName,
+                    fatherName: inquiryBody.father_name || '',
+                    nationalCode: cleanNationalCode,
+                    birthDate: cleanBirthDate,
+                    isVerifiedIdentity: true,
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(users.id, current.id))
+                  .returning();
+                updatedUser = toUserDTO(updated || current);
+
+                // Fire-and-forget CRM person sync after identity verification
+                const { getCrmConfig } = await import('../services/settings.js');
+                getCrmConfig().then(config => crmClient.pushPerson({
+                  firstName: inquiryBody.first_name || current.name,
+                  lastName: inquiryBody.last_name || current.lastName,
+                  phone: current.phone,
+                  email: `${current.phone}@tamas.local`,
+                  aliasName: `${inquiryBody.first_name || current.name} ${inquiryBody.last_name || current.lastName}`.trim() || current.phone,
+                }, config)).catch((err: unknown) => {
+                  // CRM sync failure shouldn't block identity verification
+                });
       } catch {
         current.name = inquiryBody.first_name || current.name;
         current.lastName = inquiryBody.last_name || current.lastName;
@@ -208,8 +323,9 @@ const routes: FastifyPluginAsync = async (app) => {
     }
   });
 
-  app.post('/auth/logout', async (req) => {
+  app.post('/auth/logout', async (req, reply) => {
     await destroySession(req.sessionToken ?? undefined);
+    reply.clearCookie('tamas_session', { path: '/' });
     return { ok: true, message: 'از حساب خود خارج شدید.' };
   });
 };

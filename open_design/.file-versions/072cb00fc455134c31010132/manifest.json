@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 2,
+  "fileName": "system/kit.html",
+  "currentVersionId": "ee570c48-3800-4b2a-9792-fa777b75036a",
+  "entries": [
+    {
+      "id": "6fee0231-e06e-40ce-ac92-8250282900dc",
+      "fileName": "system/kit.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1789807850153,
+      "source": "ai",
+      "prompt": "update design system based my project and named tamasmarket (see my logo)",
+      "size": 77769,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-6fee0231-e06e-40ce-ac92-8250282900dc.html",
+      "promptSource": "message",
+      "contentDigest": "d2f1f350b42ad08958e75a66b50237fd6096e06b0a96d5a32ae0598037da319f"
+    },
+    {
+      "id": "ee570c48-3800-4b2a-9792-fa777b75036a",
+      "fileName": "system/kit.html",
+      "version": 2,
+      "label": "Version 2",
+      "createdAt": 1789808685223,
+      "source": "ai",
+      "prompt": "AI optimize this OpenDesign design system in place.\n\nA fast programmatic extraction already produced a usable design system, but it may be thin or approximate. Run a deeper asynchronous extraction pass now and turn it into a production-usable design-system package.\n\nAI Optimize quality bar:\n- Treat this as a longer background-quality pass that may take 10-20 minutes; prioritize completeness and recoverable incremental progress over a quick superficial answer.\n- Keep this run scoped to the current design-system project and update the existing registered design system in place. Do not create a duplicate system.\n- Use the attached design-system skills as internal lenses: DESIGN.md structure, senior design review, color expertise, and brand-guideline completeness. Do not ask the user to choose skills.\n- Read the current project evidence before editing: context/source notes, DESIGN.md, BRAND.md, brand.json, system/variables.css, system/theme.json, system/index.html, kit.html, kit.dark.html, preview cards, generated artifacts, assets/, logos/, imagery/, fonts/, and source_examples/ when present.\n- Treat the programmatic output as a module graph, not a single markdown file. Inspect every listed module and reconcile duplicated facts across tokens, previews, source captures, copied assets, and generated examples.\n- Re-measure reachable website, HTML, CSS, Figma, GitHub, or local-code evidence instead of guessing. Extract exact color literals and semantic roles, @font-face/font-family data, spacing, radius, shadows, layout posture, motion/interaction states, copy voice, logo candidates, and representative hero/product imagery.\n- Use robust extraction heuristics before synthesis: frequency-rank colors and fonts, prefer computed styles over screenshots when available, filter imagery by rendered size and semantic role, cross-check DOM/CSS/assets/screenshot evidence, and label any inferred value as inferred instead of measured.\n- Extract the site's design best practices as reusable guidance only when the evidence supports them: content hierarchy, grid and density, navigation patterns, accessibility affordances, responsive behavior, interaction feedback, component states, editorial/product page conventions, and conversion or trust cues.\n- Preserve real assets. Save useful logos, icons, cover images, screenshots, illustrations, and fonts as project files when source evidence exposes them; do not redraw brand marks or substitute generated placeholders when real files are available.\n- Strengthen the complete reusable package: DESIGN.md, README.md, SKILL.md, brand.json, colors/type tokens, light and dark kit quality, focused preview cards, component/UI-kit guidance, and starter implementation examples. Keep file manifests synchronized with the files you actually write.\n- Use a Claude Design / Baoyu Design style bar for fidelity: the finished system should read as a versioned bundle of tokens, fonts, components, UI kits, provenance, and exact source assets that can drive a new polished HTML deliverable without re-asking the user.\n- Progressively write valid partial updates and keep the preview recoverable. If a field group is ready, update it and continue; do not wait until the end to write everything.\n- Run the available preview/finalize/audit commands for this project when they exist, fix validation errors, and leave explicit caveats for evidence that could not be measured.\n- Do not get stuck on blocked sources. If the live site is an anti-bot verification page, emit a question-form asking the user to complete verification; otherwise continue from existing local evidence and record the limitation.\n- Finish by summarizing what was improved, which files changed, and any remaining gaps.\n\nCurrent programmatic extraction context:\n- Existing registered design system: tamasmarket (user:anker-com)\n- Source to re-check: https://anker.com/\n- Source file name: tamasmarket\n- Preview entry file: system/index.html\n- Brand extraction id: anker-535220\n- Persisted brand design-system id: user:anker-com\n- Imported from: brand-extraction\n- Project kind: brand\n- Programmatic modules to inspect and reconcile: DESIGN.md, README.md, SKILL.md, BRAND.md, brand.json, system/index.html, system/variables.css, system/theme.json, system/kit.html, system/kit.dark.html, context/, source_examples/, logos/, imagery/, assets/, fonts/, and every generated deliverable preview.\n- Files visible in the extracted project right now:\n  - brand.json (code 5KB)\n  - DESIGN.md (text 3KB)\n  - system/variables.css (code 16KB)\n  - system/artifacts/deck.html (html 46KB)\n  - system/artifacts/email.html (html 24KB)\n  - system/artifacts/form.html (html 28KB)\n  - system/artifacts/landing.html (html 78KB)\n  - system/artifacts/newsletter.html (html 22KB)\n  - system/artifacts/poster.html (html 17KB)\n  - system/BRAND-SYSTEM.md (text 3KB)\n  - system/index.html (html 261KB)\n  - system/kit.dark.html (html 76KB)\n  - system/kit.html (html 76KB)\n  - system/scripts/apply-design-tokens.mjs (code 1KB)\n  - system/seed.json (code 1KB)\n  - system/theme.json (code 1KB)\n  - system/tokens.compact.json (code 5KB)\n  - system/tokens.dark.json (code 5KB)\n  - system/tokens.default.json (code 5KB)\n  - system/variables.dark.css (code 8KB)\n  - assets/admin-logo.svg (sketch 1KB)\n  - assets/banner-prompt-template.md (text 11KB)\n  - assets/logo.svg (sketch 1KB)\n  - fonts/fonts.css (code 0KB)\n  - fonts/manifest.json (code 0KB)\n  - fonts/slick-400.woff (binary 1KB)\n  - logos/apple-touch-icon-2.png (image 4KB)\n  - logos/apple-touch-icon-3.png (image 4KB)\n  - logos/favicon-1.ico (binary 2KB)\n  - logos/header-img-4.png (image 1KB)\n  - logos/header-img-5.png (image 1KB)\n  - logos/header-inline.svg (sketch 0KB)\n  - context/source-context.md (text 11KB)\n  - imagery/hero-0.webp (image 30KB)\n  - imagery/hero-1.webp (image 63KB)\n  - imagery/hero-2.webp (image 38KB)\n  - imagery/hero-3.webp (image 84KB)\n  - imagery/hero-4.webp (image 119KB)\n  - imagery/hero-5.webp (image 85KB)\n  - imagery/hero-6.webp (image 132KB)\n  - imagery/hero-7.webp (image 70KB)\n  - brand.html (html 62KB)\n  - prefetch/page.html (html 5860KB)\n  - guide.md (text 1KB)\n  - prefetch/material.md (text 8KB)\n  - prefetch/styles.css (code 498KB)",
+      "size": 78653,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0002-ee570c48-3800-4b2a-9792-fa777b75036a.html",
+      "contentDigest": "14818b9d08aa9994ac334694f3ac213aefe11346981d78be61ccda323c6c892d",
+      "promptSource": "message"
+    }
+  ]
+}

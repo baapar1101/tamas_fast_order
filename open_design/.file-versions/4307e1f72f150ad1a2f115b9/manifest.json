@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "ui_kits/app/components/composer.html",
+  "currentVersionId": "b9f07fb5-c800-4b30-a2df-de7cac752261",
+  "entries": [
+    {
+      "id": "b9f07fb5-c800-4b30-a2df-de7cac752261",
+      "fileName": "ui_kits/app/components/composer.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1789813102801,
+      "source": "ai",
+      "prompt": "extract fully them and design system and update based on D:\\tamas_fast_order\\catalogs",
+      "size": 1508,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-b9f07fb5-c800-4b30-a2df-de7cac752261.html",
+      "contentDigest": "4f816cd20bde56adde1ddf0338bb181a290349b69df145973b168b257941e47f",
+      "promptSource": "message"
+    }
+  ]
+}

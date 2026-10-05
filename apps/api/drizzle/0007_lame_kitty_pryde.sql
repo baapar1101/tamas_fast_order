@@ -1,0 +1,1 @@
+ALTER TABLE "products" ADD COLUMN "digikala_link" varchar(1000);

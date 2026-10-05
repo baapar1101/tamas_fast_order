@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "preview/typography-specimens.html",
+  "currentVersionId": "9da7db43-3d96-4c09-a59c-6ff713975059",
+  "entries": [
+    {
+      "id": "9da7db43-3d96-4c09-a59c-6ff713975059",
+      "fileName": "preview/typography-specimens.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1789813102796,
+      "source": "ai",
+      "prompt": "extract fully them and design system and update based on D:\\tamas_fast_order\\catalogs",
+      "size": 4636,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-9da7db43-3d96-4c09-a59c-6ff713975059.html",
+      "contentDigest": "8f407429fc8cf196b7d166e86ff005a5da2da2560a5fce9e152725db619a08af",
+      "promptSource": "message"
+    }
+  ]
+}

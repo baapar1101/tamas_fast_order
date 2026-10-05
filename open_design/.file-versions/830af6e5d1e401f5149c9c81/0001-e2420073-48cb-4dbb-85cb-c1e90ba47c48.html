@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>tamasmarket — App UI Kit</title>
+
+  <!-- Contract entrypoint: fonts + tokens FIRST -->
+  <link rel="stylesheet" href="../../colors_and_type.css" />
+
+  <style>
+    body { background: var(--tamas-bg); color: var(--tamas-fg); font-family: var(--tamas-font); }
+    body.dark { --tamas-bg: var(--tamas-ink-900); --tamas-surface: var(--tamas-ink-850); --tamas-fg: #eef0f6; --tamas-muted: #9aa4b4; --tamas-border: var(--tamas-ink-800); }
+
+    .kit-wrap { max-width: 1040px; margin: 40px auto; padding: 0 24px; }
+
+    /* header */
+    .tk-header { display: flex; align-items: center; justify-content: space-between; height: 44px; border-radius: var(--tamas-radius-sm); padding: 0 12px; backdrop-filter: blur(12px); background: color-mix(in srgb, var(--tamas-surface) 82%, transparent); border: var(--tamas-border-w) solid var(--tamas-border); box-shadow: var(--tamas-shadow-sm); }
+    .tk-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+    .tk-logo img { height: 28px; width: 28px; }
+    .tk-badge { font-size: 11px; font-weight: 700; color: var(--tamas-accent); border: 1px solid color-mix(in srgb, var(--tamas-accent) 45%, transparent); border-radius: var(--tamas-radius-pill); padding: 2px 10px; }
+
+    /* promo strip */
+    .tk-promo { display: flex; align-items: center; gap: 10px; margin: 20px 0; padding: 12px 16px; border-radius: 20px; background: var(--tamas-promo-grad); color: #fff; font-weight: 700; }
+
+    /* grid */
+    .tk-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); margin: 20px 0; }
+    .tk-card { background: var(--tamas-surface); border: var(--tamas-border-w) solid var(--tamas-border); border-radius: var(--tamas-radius-card); padding: 12px; box-shadow: var(--tamas-shadow); }
+    .tk-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 12px; background: #f1f1f3; }
+    .tk-title { font-size: 13px; font-weight: 700; line-height: 1.55; margin: 10px 0 6px; }
+    .tk-meta { font-size: 11px; color: var(--tamas-muted); }
+    .ltr { unicode-bidi: isolate; direction: ltr; }
+    .tk-badge-chip { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: var(--tamas-radius-pill); margin-inline-end: 4px; }
+    .chip-kerman { background: color-mix(in srgb, var(--tamas-accent) 12%, transparent); color: var(--tamas-accent-deep); }
+    .chip-tehran { background: color-mix(in srgb, var(--tamas-accent) 24%, transparent); color: var(--tamas-accent-deep); }
+    .chip-urgent { background: var(--tamas-warning-bg); color: var(--tamas-warning); }
+    .tk-price { font-size: 15px; font-weight: 700; margin: 8px 0; }
+    .tk-old { font-size: 12px; color: var(--tamas-muted); text-decoration: line-through; margin-inline-start: 6px; }
+
+    /* pill CTA */
+    .tk-cta { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px 18px; border-radius: var(--tamas-radius-pill); background: var(--tamas-accent); color: #fff; font-family: var(--tamas-font); font-size: 11.5px; font-weight: 700; border: 0; cursor: pointer; transition: all var(--tamas-duration) var(--tamas-ease); }
+    .tk-cta:hover { filter: brightness(1.08); }
+
+    /* states */
+    .tk-states { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0 0; }
+    .tk-state { font-size: 11.5px; font-weight: 700; border-radius: var(--tamas-radius-pill); padding: 4px 12px; }
+    .s-success { background: var(--tamas-success-bg); color: var(--tamas-success); }
+    .s-warning { background: var(--tamas-warning-bg); color: var(--tamas-warning); }
+    .s-danger { background: var(--tamas-danger-bg); color: var(--tamas-danger); }
+
+    /* admin panel */
+    .tk-admin { margin-top: 28px; border-radius: 16px; background: var(--tamas-admin-grad); padding: 20px; color: var(--tamas-ink-fg); box-shadow: var(--tamas-shadow-lg); }
+    .tk-admin table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tk-admin th, .tk-admin td { text-align: right; padding: 9px 6px; border-bottom: 1px solid var(--tamas-ink-800); }
+    .tk-admin th { color: var(--tamas-ink-muted); font-weight: 400; font-size: 11px; }
+    .tk-emerald { color: var(--tamas-admin-emerald); font-weight: 700; }
+    .tk-cyan { color: var(--tamas-admin-cyan); font-weight: 700; }
+
+    .tk-note { font-size: 11px; color: var(--tamas-muted); margin: 6px 0 0; }
+    .tk-toggle { margin: 20px 0 0; background: transparent; border: 1px solid var(--tamas-border); border-radius: var(--tamas-radius-pill); padding: 8px 16px; color: var(--tamas-fg); font: 700 12px var(--tamas-font); cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/framer-motion@11.11.13/dist/framer-motion.umd.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState } = React;
+    const { motion, AnimatePresence } = window.Motion;
+
+    const PRODS = [
+      { img: '../../imagery/products/img_07a71539e7f4.jpg', title: 'گلس محافظ صفحه‌نمایش (کاتلر) — نمونه', price: 35000, old: 42000, sku: 'TC-1047', kerman: true, tehran: false, urgent: false, promo: true },
+      { img: '../../imagery/products/img_05ee5662fa50.jpg', title: 'کابل شارژ تایپ سی — نمونه', price: 42000, old: null, sku: 'TC-0087', kerman: true, tehran: true, urgent: true, promo: false },
+      { img: '../../imagery/products/dk-53068090.jpg', title: 'قاب سیلیکونی موبایل — نمونه', price: 28000, old: 36000, sku: 'DK-5306', kerman: false, tehran: true, urgent: false, promo: false },
+      { img: '../../imagery/products/img_17d1bd9005c3.png', title: 'هدفون بی‌سیم — نمونه', price: 89000, old: 120000, sku: 'TC-2130', kerman: true, tehran: true, urgent: false, promo: true },
+    ];
+
+    const fa = (n) => n.toLocaleString('fa-IR');
+
+    function Card({ p, dark }) {
+      return (
+        <motion.article className="tk-card" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}>
+          {p.promo && <span className="tk-badge-chip chip-urgent">پیشنهاد ویژه</span>}
+          <img src={p.img} alt={p.title} loading="lazy" decoding="async" />
+          <div className="tk-title">{p.title}</div>
+          <div className="tk-meta">
+            برند: <b className="ltr">{p.sku}</b>
+            <span style={{ marginInlineStart: 8 }}>رنگ: مشکی</span>
+          </div>
+          <div className="tk-price">
+            {fa(p.price)} تومان
+            {p.old && <span className="tk-old">{fa(p.old)} تومان</span>}
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            {p.kerman && <span className="tk-badge-chip chip-kerman">کرمان</span>}
+            {p.tehran && <span className="tk-badge-chip chip-tehran">تهران</span>}
+            {p.urgent && <span className="tk-badge-chip chip-urgent">تنها ۱ عدد باقیست!</span>}
+          </div>
+          <button className="tk-cta" type="button">+ افزودن به سفارش</button>
+        </motion.article>
+      );
+    }
+
+    function AdminRow({ sku, title, stock, status }) {
+      return (
+        <tr>
+          <td className="ltr">{sku}</td>
+          <td>{title}</td>
+          <td className="tk-muted">{stock}</td>
+          <td>{status}</td>
+        </tr>
+      );
+    }
+
+    function App() {
+      const [dark, setDark] = useState(false);
+      return (
+        <div className="kit-wrap">
+          <header className="tk-header">
+            <div className="tk-logo">
+              <img src="../../assets/logo.svg" alt="" />
+              <span>تماس مارکت</span>
+            </div>
+            <span className="tk-badge">فروشگاه دیجیتال · فروش عمده</span>
+          </header>
+
+          <AnimatePresence>
+            <motion.div
+              key="promo"
+              className="tk-promo"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+            >
+              <span>⚡</span> سفارش سریع عمده لوازم جانبی موبایل
+              <span style={{ marginInlineStart: 'auto', fontSize: 11, fontWeight: 700, opacity: 0.9 }}>ارسال از تهران و کرمان</span>
+            </motion.div>
+          </AnimatePresence>
+
+          <div className="tk-states">
+            <span className="tk-state s-success">موجود</span>
+            <span className="tk-state s-warning">موجودی محدود</span>
+            <span className="tk-state s-danger">ناموجود</span>
+          </div>
+
+          <div className="tk-grid">
+            {PRODS.map((p) => <Card key={p.sku} p={p} />)}
+          </div>
+          <p className="tk-note">↑ تصاویر از کاتالوگ واقعی؛ قیمت‌ها نمونه‌اند و برای معاملات واقعی استفاده نمی‌شوند.</p>
+
+          <h2 style={{ fontSize: 18, fontWeight: 700, margin: '28px 0 12px' }}>پنل مدیریت (حالت تاریک)</h2>
+          <div className="tk-admin">
+            <table>
+              <thead><tr><th>کد کالا</th><th>نام کالا</th><th>موجودی</th><th>وضعیت</th></tr></thead>
+              <tbody>
+                <AdminRow sku="TC-1047" title="گلس محافظ" stock="128" status={<span className="tk-emerald">تأیید شد</span>} />
+                <AdminRow sku="TC-0087" title="کابل تایپ سی" stock="4" status={<span className="tk-cyan">به‌روزرسانی</span>} />
+                <AdminRow sku="DK-5306" title="قاب سیلیکونی" stock="0" status={<span>ناموجود</span>} />
+              </tbody>
+            </table>
+          </div>
+
+          <button className="tk-toggle" type="button" onClick={() => setDark(document.body.classList.toggle('dark'))}>
+            تغییر تم
+          </button>
+          <p className="tk-note">این کیت نمونهٔ ترکیب اجزاء است؛ برای بازتولید از `colors_and_type.css`، `imagery/products/`، `logos/` و `source_examples/` استفاده کنید.</p>
+        </div>
+      );
+    }
+
+    window.APP = App;
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

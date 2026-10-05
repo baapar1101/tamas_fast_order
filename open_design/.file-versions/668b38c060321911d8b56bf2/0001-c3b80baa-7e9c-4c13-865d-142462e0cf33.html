@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chat area — tamasmarket UI kit</title>
+<link rel="stylesheet" href="../../../colors_and_type.css" />
+<style>
+  body { background: var(--tamas-bg); color: var(--tamas-fg); font-family: var(--tamas-font); margin: 0; padding: 24px; }
+  .tk-chat { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; background: var(--tamas-surface); border: var(--tamas-border-w) solid var(--tamas-border); border-radius: var(--tamas-radius-card); padding: 16px; }
+  .tk-bbl { font-size: 12.5px; line-height: 1.6; border-radius: 14px; padding: 10px 14px; max-width: 82%; }
+  .tk-bbl.in { background: var(--tamas-accent); color: #fff; align-self: flex-end; }
+  .tk-bbl.out { background: color-mix(in srgb, var(--tamas-surface) 82%, transparent); border: var(--tamas-border-w) solid var(--tamas-border); align-self: flex-start; }
+  .tk-bbl small { opacity: .75; font-weight: 700; }
+  .ltr { unicode-bidi: isolate; direction: ltr; }
+</style>
+</head>
+<body>
+  <div class="tk-chat">
+    <div class="tk-bbl in">سلام! می‌خواهم ۲۰ عدد کابل <span class="ltr">BX93 USB-C</span> عمده سفارش بدهم.</div>
+    <div class="tk-bbl out">سلام، موجود است. قیمت فروش واحد ۱۳۵ هزار تومان؛ موجودی ۱۲۸ عدد.</div>
+    <div class="tk-bbl in"><small>وضعیت</small> در سبد خرید · انتظار تأیید</div>
+  </div>
+</body>
+</html>

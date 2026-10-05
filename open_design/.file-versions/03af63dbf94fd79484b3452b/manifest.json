@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "ui_kits/app/components/message-bubble.html",
+  "currentVersionId": "0d624bbd-8181-4427-9e67-bdc946332df3",
+  "entries": [
+    {
+      "id": "0d624bbd-8181-4427-9e67-bdc946332df3",
+      "fileName": "ui_kits/app/components/message-bubble.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1789813102801,
+      "source": "ai",
+      "prompt": "extract fully them and design system and update based on D:\\tamas_fast_order\\catalogs",
+      "size": 1595,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-0d624bbd-8181-4427-9e67-bdc946332df3.html",
+      "contentDigest": "ff5bbb6ccd955ec2d1fdfb0446d115f1a24ef48439eeeccde80c9d73284dbeb7",
+      "promptSource": "message"
+    }
+  ]
+}

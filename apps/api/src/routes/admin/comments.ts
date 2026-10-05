@@ -5,7 +5,7 @@ import { comments, products, users } from '../../db/schema.js';
 import { count, desc, eq } from 'drizzle-orm';
 
 const commentsRoutes: FastifyPluginAsync = async (app) => {
-  app.addHook('onRequest', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_settings'));
 
   // GET /admin/comments/count
   app.get('/admin/comments/count', async () => {

@@ -1,0 +1,50 @@
+/*
+=====================================================
+MARKSTREET — BUTTONS
+=====================================================
+
+Shared button variants and interaction states.
+
+=====================================================
+*/
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 0;
+  border: 1px solid var(--ms-line);
+  color: var(--ms-white);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .01em;
+  transition: transform .35s var(--ms-ease), border-color .35s var(--ms-ease), background .35s var(--ms-ease), color .35s var(--ms-ease);
+  cursor: pointer;
+}
+
+.btn:hover {
+  transform: translateY(-2px); border-color: rgba(255,255,255,.28);
+}
+
+.btn-primary {
+  background: var(--ms-blue); border-color: var(--ms-blue);
+}
+
+.btn-primary:hover {
+  background: #3a6dff; border-color: #3a6dff;
+}
+
+.btn-ghost {
+  background: rgba(255,255,255,.045);
+}
+
+.btn-light {
+  background: var(--ms-white); color: var(--ms-black); border-color: var(--ms-white);
+}
+
+.btn-sm {
+  min-height: 40px; padding-inline: 15px; font-size: 12px;
+}

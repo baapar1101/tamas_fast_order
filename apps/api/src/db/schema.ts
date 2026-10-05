@@ -35,7 +35,7 @@ const syncColumns = {
 };
 
 export const productStatusEnum = pgEnum('product_status', ['active', 'inactive']);
-export const userRoleEnum = pgEnum('user_role', ['customer', 'admin']);
+export const userRoleEnum = pgEnum('user_role', ['customer', 'admin', 'operator']);
 export const orderStatusEnum = pgEnum('order_status', [
   'new',
   'confirmed',
@@ -55,9 +55,87 @@ export const uploadKindEnum = pgEnum('upload_kind', [
   'other',
 ]);
 export const syncSideEnum = pgEnum('sync_side', ['db', 'sheet']);
-export const paymentGatewayEnum = pgEnum('payment_gateway', ['zarinpal', 'mellat', 'saman', 'pasargad', 'card_to_card']);
+export const paymentGatewayEnum = pgEnum('payment_gateway', ['zarinpal', 'mellat', 'saman', 'pasargad', 'card_to_card', 'aqayepardakht', 'wallet']);
 export const paymentTransactionStatusEnum = pgEnum('payment_transaction_status', ['pending', 'success', 'failed']);
+export const walletDirectionEnum = pgEnum('wallet_direction', ['credit', 'debit']);
+export const walletTransactionTypeEnum = pgEnum('wallet_transaction_type', ['deposit', 'purchase', 'refund', 'adjustment', 'withdrawal']);
 export const commentStatusEnum = pgEnum('comment_status', ['pending', 'approved', 'rejected']);
+export const creditStatusEnum = pgEnum('credit_status', ['pending', 'reviewing', 'active', 'action_required']);
+export const chequeStatusEnum = pgEnum('cheque_status', ['pending', 'passed', 'bounced', 'returned']);
+export const crmSyncEntityEnum = pgEnum('crm_sync_entity', ['order', 'product', 'person', 'chat_message']);
+export const crmSyncActionEnum = pgEnum('crm_sync_action', ['create', 'update', 'delete', 'sync']);
+export const crmSyncStatusEnum = pgEnum('crm_sync_status', ['success', 'error', 'pending', 'skipped']);
+
+/* ------------------------------------------------------------------ *
+ * Credit Applications & Cheques
+ * ------------------------------------------------------------------ */
+
+export const creditApplications = pgTable(
+  'credit_applications',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    nationalId: varchar('national_id', { length: 20 }).notNull(),
+    businessType: varchar('business_type', { length: 100 }).notNull(),
+    nationalCardUrl: text('national_card_url').notNull(),
+    businessDocsUrl: text('business_docs_url').notNull(),
+    checkImageUrl: text('check_image_url').notNull(),
+    bankStatementUrl: text('bank_statement_url'),
+    referralInfo: text('referral_info'),
+    status: creditStatusEnum('status').notNull().default('pending'),
+    rejectionReason: text('rejection_reason'),
+    adminCreditScore: integer('admin_credit_score').notNull().default(0),
+    assignedCreditLimit: bigint('assigned_credit_limit', { mode: 'number' }).notNull().default(0),
+    internalNotes: text('internal_notes'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('credit_applications_user_idx').on(t.userId),
+    index('credit_applications_status_idx').on(t.status),
+  ],
+);
+
+export const creditApplicationsRelations = relations(creditApplications, ({ one }) => ({
+  user: one(users, { fields: [creditApplications.userId], references: [users.id] }),
+}));
+
+export const creditCheques = pgTable(
+  'credit_cheques',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    creditApplicationId: integer('credit_application_id')
+      .references(() => creditApplications.id, { onDelete: 'set null' }),
+    orderId: integer('order_id')
+      .references(() => orders.id, { onDelete: 'set null' }),
+    chequeNumber: varchar('cheque_number', { length: 80 }).notNull(),
+    bankName: varchar('bank_name', { length: 120 }).notNull(),
+    accountHolder: varchar('account_holder', { length: 160 }).notNull(),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    dueDate: varchar('due_date', { length: 30 }).notNull(),
+    status: chequeStatusEnum('status').notNull().default('pending'),
+    imageUrl: text('image_url'),
+    notes: text('notes'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('credit_cheques_user_idx').on(t.userId),
+    index('credit_cheques_status_idx').on(t.status),
+    index('credit_cheques_due_date_idx').on(t.dueDate),
+  ],
+);
+
+export const creditChequesRelations = relations(creditCheques, ({ one }) => ({
+  user: one(users, { fields: [creditCheques.userId], references: [users.id] }),
+  creditApplication: one(creditApplications, { fields: [creditCheques.creditApplicationId], references: [creditApplications.id] }),
+}));
+
 
 /* ------------------------------------------------------------------ *
  * Warehouses & Attributes
@@ -80,6 +158,8 @@ export const attributes = pgTable(
   {
     id: serial('id').primaryKey(),
     name: varchar('name', { length: 160 }).notNull(),
+    type: varchar('type', { length: 20 }).notNull().default('text'),
+    options: jsonb('options').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
     ...syncColumns,
   },
   (t) => [uniqueIndex('attributes_name_key').on(t.name)],
@@ -187,6 +267,13 @@ export const products = pgTable(
     imageUrl: varchar('image_url', { length: 1000 }),
     gallery: jsonb('gallery').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
     attributes: jsonb('attributes').$type<ProductAttribute[]>().notNull().default(sql`'[]'::jsonb`),
+    /** Imported editorial rating, normalized to the storefront's 0–5 scale. */
+    rating: integer('rating'),
+    ratingCount: integer('rating_count').notNull().default(0),
+    externalDataUpdatedAt: timestamp('external_data_updated_at', { withTimezone: true }),
+    bundleItems: jsonb('bundle_items').$type<{ productId: string, qty: number }[]>().notNull().default(sql`'[]'::jsonb`),
+    digikalaLink: varchar('digikala_link', { length: 1000 }),
+    targetSiteUrl: varchar('target_site_url', { length: 1000 }),
     sortOrder: integer('sort_order').notNull().default(0),
     /** Lowercased haystack (title + model + brand + colour + sku) for fast ILIKE search. */
     searchText: text('search_text').notNull().default(''),
@@ -203,6 +290,60 @@ export const products = pgTable(
     index('products_updated_idx').on(t.updatedAt),
     index('products_search_idx').using('gin', sql`${t.searchText} gin_trgm_ops`),
   ],
+);
+
+/** Supplier/competitor websites that admins may attach to products for stock and price monitoring. */
+export const trackingSites = pgTable(
+  'tracking_sites',
+  {
+    id: serial('id').primaryKey(),
+    name: varchar('name', { length: 160 }).notNull(),
+    baseUrl: varchar('base_url', { length: 1000 }),
+    priceUnit: varchar('price_unit', { length: 10 }).notNull().default('toman'),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('tracking_sites_name_key').on(t.name)],
+);
+
+export const productTrackingLinks = pgTable(
+  'product_tracking_links',
+  {
+    id: serial('id').primaryKey(),
+    productDbId: integer('product_db_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+    siteId: integer('site_id').notNull().references(() => trackingSites.id, { onDelete: 'cascade' }),
+    url: varchar('url', { length: 1000 }).notNull(),
+    lastPrice: bigint('last_price', { mode: 'number' }),
+    inStock: boolean('in_stock'),
+    quantity: integer('quantity').notNull().default(0),
+    statusText: varchar('status_text', { length: 500 }),
+    lastError: varchar('last_error', { length: 1000 }),
+    checkedAt: timestamp('checked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('product_tracking_links_product_site_key').on(t.productDbId, t.siteId),
+    index('product_tracking_links_product_idx').on(t.productDbId),
+    index('product_tracking_links_site_idx').on(t.siteId),
+  ],
+);
+
+/* ------------------------------------------------------------------ *
+ * Access Groups & Permissions
+ * ------------------------------------------------------------------ */
+
+export const accessGroups = pgTable(
+  'access_groups',
+  {
+    id: serial('id').primaryKey(),
+    name: varchar('name', { length: 160 }).notNull(),
+    permissions: jsonb('permissions').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('access_groups_name_key').on(t.name)],
 );
 
 /* ------------------------------------------------------------------ *
@@ -229,6 +370,8 @@ export const users = pgTable(
     isVerifiedIdentity: boolean('is_verified_identity').notNull().default(false),
     isActive: boolean('is_active').notNull().default(false),
     role: userRoleEnum('role').notNull().default('customer'),
+    accessGroupId: integer('access_group_id').references(() => accessGroups.id, { onDelete: 'set null' }),
+    passwordHash: varchar('password_hash', { length: 255 }),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     ...syncColumns,
   },
@@ -297,6 +440,11 @@ export const orders = pgTable(
     paymentStatus: paymentStatusEnum('payment_status').notNull().default('unpaid'),
     paymentMethod: varchar('payment_method', { length: 100 }),
     note: text('note'),
+    acquisitionSource: varchar('acquisition_source', { length: 120 }),
+    acquisitionMedium: varchar('acquisition_medium', { length: 120 }),
+    acquisitionCampaign: varchar('acquisition_campaign', { length: 200 }),
+    acquisitionReferrer: text('acquisition_referrer'),
+    acquisitionLandingPage: text('acquisition_landing_page'),
     ...syncColumns,
   },
   (t) => [
@@ -304,6 +452,7 @@ export const orders = pgTable(
     index('orders_user_idx').on(t.userId),
     index('orders_status_idx').on(t.status),
     index('orders_created_idx').on(t.createdAt),
+    index('orders_acquisition_source_idx').on(t.acquisitionSource),
   ],
 );
 
@@ -324,6 +473,51 @@ export const orderItems = pgTable(
     warehouse: warehouseEnum('warehouse').notNull().default('kerman'),
   },
   (t) => [index('order_items_order_idx').on(t.orderId)],
+);
+
+/* ------------------------------------------------------------------ *
+ * Wallets — the account is a cached balance; the immutable ledger is
+ * the source of truth. Every mutation is performed while row-locked.
+ * ------------------------------------------------------------------ */
+
+export const walletAccounts = pgTable(
+  'wallet_accounts',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    balance: bigint('balance', { mode: 'number' }).notNull().default(0),
+    lifetimeCredit: bigint('lifetime_credit', { mode: 'number' }).notNull().default(0),
+    lifetimeDebit: bigint('lifetime_debit', { mode: 'number' }).notNull().default(0),
+    isFrozen: boolean('is_frozen').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('wallet_accounts_user_key').on(t.userId), index('wallet_accounts_balance_idx').on(t.balance)],
+);
+
+export const walletTransactions = pgTable(
+  'wallet_transactions',
+  {
+    id: serial('id').primaryKey(),
+    walletId: integer('wallet_id').notNull().references(() => walletAccounts.id, { onDelete: 'cascade' }),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    orderId: integer('order_id').references(() => orders.id, { onDelete: 'set null' }),
+    direction: walletDirectionEnum('direction').notNull(),
+    type: walletTransactionTypeEnum('type').notNull(),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    balanceAfter: bigint('balance_after', { mode: 'number' }).notNull(),
+    description: text('description').notNull(),
+    reference: varchar('reference', { length: 200 }),
+    idempotencyKey: varchar('idempotency_key', { length: 200 }).notNull(),
+    createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+    metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('wallet_transactions_idempotency_key').on(t.idempotencyKey),
+    index('wallet_transactions_user_created_idx').on(t.userId, t.createdAt),
+    index('wallet_transactions_order_idx').on(t.orderId),
+  ],
 );
 
 /* ------------------------------------------------------------------ *
@@ -446,6 +640,28 @@ export const syncConflicts = pgTable(
   (t) => [index('sync_conflicts_entity_idx').on(t.entity), index('sync_conflicts_created_idx').on(t.createdAt)],
 );
 
+export const crmSyncLogs = pgTable(
+  'crm_sync_logs',
+  {
+    id: serial('id').primaryKey(),
+    entity: crmSyncEntityEnum('entity').notNull(),
+    entityKey: varchar('entity_key', { length: 200 }).notNull(),
+    action: crmSyncActionEnum('action').notNull(),
+    status: crmSyncStatusEnum('status').notNull(),
+    remoteId: varchar('remote_id', { length: 200 }),
+    error: text('error'),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    response: jsonb('response').$type<Record<string, unknown>>(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    durationMs: integer('duration_ms'),
+  },
+  (t) => [
+    index('crm_sync_logs_entity_idx').on(t.entity, t.entityKey),
+    index('crm_sync_logs_status_idx').on(t.status),
+    index('crm_sync_logs_created_idx').on(t.createdAt),
+  ]
+);
+
 /* ------------------------------------------------------------------ *
  * Slides (Banners)
  * ------------------------------------------------------------------ */
@@ -456,6 +672,7 @@ export const slides = pgTable(
     id: serial('id').primaryKey(),
     title: varchar('title', { length: 255 }),
     imageUrl: varchar('image_url', { length: 1000 }).notNull(),
+    mobileImageUrl: varchar('mobile_image_url', { length: 1000 }),
     linkUrl: varchar('link_url', { length: 1000 }),
     sortOrder: integer('sort_order').notNull().default(0),
     isActive: boolean('is_active').notNull().default(true),
@@ -513,11 +730,16 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }),
 }));
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   orders: many(orders),
   sessions: many(sessions),
   payments: many(payments),
   comments: many(comments),
+  accessGroup: one(accessGroups, { fields: [users.accessGroupId], references: [accessGroups.id] }),
+}));
+
+export const accessGroupsRelations = relations(accessGroups, ({ many }) => ({
+  users: many(users),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
+import { Modal } from '../components/Modal';
 import { api } from '../lib/api';
 import { useToast } from '../components/Toast';
 
@@ -7,14 +8,28 @@ interface Attribute {
   id: string;
   name: string;
   type: string;
+  options?: string[];
   createdAt: string;
 }
+
+const TYPE_LABELS: Record<string, string> = {
+  text: 'متن ساده',
+  number: 'عدد',
+  boolean: 'بله / خیر',
+  select: 'چند گزینهای',
+};
 
 export function AttributesPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: '', type: 'text' });
+  const [formData, setFormData] = useState<{ name: string; type: string; options: string[] }>({
+    name: '',
+    type: 'text',
+    options: [],
+  });
+  const [formOpen, setFormOpen] = useState(false);
+  const [focusRow, setFocusRow] = useState(-1);
 
   const { data: attributes, isLoading } = useQuery({
     queryKey: ['admin', 'attributes'],
@@ -35,7 +50,8 @@ export function AttributesPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'attributes'] });
       toast.ok('ویژگی با موفقیت ذخیره شد');
       setEditingId(null);
-      setFormData({ name: '', type: 'text' });
+      setFormData({ name: '', type: 'text', options: [] });
+      setFormOpen(false);
     },
     onError: (err: any) => {
       toast.error(err.message || 'خطا در ذخیره ویژگی');
@@ -53,113 +69,289 @@ export function AttributesPage() {
 
   const handleEdit = (a: Attribute) => {
     setEditingId(a.id);
-    setFormData({ name: a.name, type: a.type });
+    setFormData({ name: a.name, type: a.type, options: a.options ?? [] });
+    setFormOpen(true);
   };
 
   const handleCancel = () => {
     setEditingId(null);
-    setFormData({ name: '', type: 'text' });
+    setFormData({ name: '', type: 'text', options: [] });
+    setFormOpen(false);
+  };
+
+  const handleCreate = () => {
+    setEditingId(null);
+    setFormData({ name: '', type: 'text', options: [] });
+    setFormOpen(true);
+  };
+
+  const setOption = (idx: number, value: string) => {
+    const options = [...formData.options];
+    options[idx] = value;
+    setFormData({ ...formData, options });
+  };
+
+  const addOption = () => {
+    setFormData({ ...formData, options: [...formData.options, ''] });
+    setFocusRow(formData.options.length);
+  };
+
+  const removeOption = (idx: number) => {
+    const options = [...formData.options];
+    options.splice(idx, 1);
+    setFormData({ ...formData, options });
+    setFocusRow(-1);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    saveMutation.mutate(formData);
+    if (formData.type === 'select') {
+      const cleaned = formData.options.map((o) => o.trim()).filter(Boolean);
+      if (cleaned.length === 0) {
+        toast.error('برای ویژگی چندگزینه‌ای باید حداقل یک گزینه وارد کنید');
+        return;
+      }
+      saveMutation.mutate({ ...formData, name: formData.name.trim(), options: cleaned });
+      return;
+    }
+    saveMutation.mutate({ name: formData.name.trim(), type: formData.type, options: [] });
   };
 
-  return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="glass-card p-6">
-        <h2 className="text-xl font-bold text-white mb-6">{editingId ? 'ویرایش ویژگی' : 'افزودن ویژگی جدید'}</h2>
-        
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">نام ویژگی</label>
-            <input
-              type="text"
-              required
-              className="huma-input"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="مثلا: حافظه داخلی"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">نوع فیلد</label>
-            <select
-              required
-              className="huma-input"
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            >
-              <option value="text">متن ساده</option>
-              <option value="number">عدد</option>
-              <option value="boolean">بله / خیر</option>
-            </select>
-          </div>
-          
-          <div className="md:col-span-2 flex gap-3 mt-2">
-            <button
-              type="submit"
-              disabled={saveMutation.isPending}
-              className="huma-btn-primary px-8"
-            >
-              {saveMutation.isPending ? 'در حال ثبت...' : 'ذخیره ویژگی'}
-            </button>
-            {editingId && (
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="huma-btn-secondary px-8"
-              >
-                انصراف
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
+  const previewOptions = formData.options.map((o) => o.trim()).filter(Boolean);
+  const isDuplicate = (value: string, idx: number) =>
+    value.trim() !== '' &&
+    formData.options.some((o, i) => i !== idx && o.trim() !== '' && o.trim() === value.trim());
+  const typeCounts = (attributes ?? []).reduce<Record<string, number>>((acc, a) => {
+    acc[a.type] = (acc[a.type] ?? 0) + 1;
+    return acc;
+  }, {});
 
-      <div className="glass-card overflow-hidden">
-        <div className="p-4 border-b border-white/[0.06]">
-          <h2 className="text-lg font-bold text-white">لیست ویژگی‌ها</h2>
+  return (
+    <div className="a-page a-fade">
+      <section className="a-page-head">
+        <div className="a-titles">
+          <h2 className="a-title">ویژگی‌های محصول</h2>
+          <p className="a-subtitle">تعریف فیلدهای سفارشی که هنگام ویرایش محصول تکمیل می‌شوند</p>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-right text-slate-300">
-            <thead className="bg-[#131c2e] text-xs text-slate-400">
+        <div className="a-page-actions">
+          <button type="button" className="a-btn a-btn--primary" onClick={handleCreate}>+ افزودن ویژگی</button>
+          <span className="a-badge a-badge--brand">{attributes?.length ?? 0} ویژگی</span>
+        </div>
+      </section>
+
+      <Modal
+        open={formOpen}
+        title={
+          <>
+            {editingId ? 'ویرایش ویژگی' : 'افزودن ویژگی جدید'}
+            {editingId && <span className="a-badge a-badge--neutral">{editingId}</span>}
+          </>
+        }
+        onClose={handleCancel}
+        wide
+        busy={saveMutation.isPending}
+        footer={
+          <>
+            <button type="button" className="a-btn a-btn--ghost" onClick={handleCancel} disabled={saveMutation.isPending}>انصراف</button>
+            <button type="submit" form="attribute-form" className="a-btn a-btn--primary" disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? 'در حال ذخیره…' : editingId ? 'ذخیره تغییرات' : 'افزودن ویژگی'}
+            </button>
+          </>
+        }
+      >
+        <form id="attribute-form" className="a-form a-form--standard a-fade" onSubmit={handleSubmit}>
+          <section className="a-card">
+            <div className="a-card-head">
+              <h3 className="a-card-title">اطلاعات ویژگی</h3>
+            </div>
+            <p className="a-card-sub">نوع فیلد مشخص می‌کند گزینه‌ها در فرم محصول چگونه نمایش داده شوند.</p>
+            <div className="a-form-grid">
+              <label className="a-field">
+                <span className="a-label">نام ویژگی <span className="a-req">*</span></span>
+                <input
+                  type="text"
+                  required
+                  className="a-input"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="مثلا: حافظه داخلی"
+                />
+              </label>
+              <label className="a-field">
+                <span className="a-label">نوع فیلد <span className="a-req">*</span></span>
+                <div className="a-segmented a-segmented--wrap" role="group" aria-label="نوع فیلد">
+                  {Object.entries(TYPE_LABELS).map(([val, label]) => (
+                    <button
+                      key={val}
+                      type="button"
+                      className={`a-seg ${formData.type === val ? 'a-seg--on' : ''}`}
+                      onClick={() => setFormData({ ...formData, type: val })}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </label>
+            </div>
+          </section>
+
+          {formData.type === 'select' && (
+            <section className="a-card">
+              <div className="a-card-head">
+                <div>
+                  <h3 className="a-card-title">گزینه‌ها</h3>
+                  <p className="a-card-sub">این موارد به‌صورت چندگزینه‌ای در فرم محصول ظاهر می‌شوند.</p>
+                </div>
+                <button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={addOption}>
+                  + افزودن گزینه
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {formData.options.length === 0 && (
+                  <div className="a-empty a-empty--small">
+                    <p>هنوز گزینه‌ای اضافه نشده است.</p>
+                    <span>با دکمه «+ افزودن گزینه» شروع کنید؛ حداقل یک گزینه لازم است.</span>
+                  </div>
+                )}
+                {formData.options.map((opt, idx) => (
+                  <div key={idx} className="a-option-row">
+                    <span className="a-badge a-badge--neutral a-option-index">{idx + 1}</span>
+                    <input
+                      type="text"
+                      className={`a-input ${isDuplicate(opt, idx) ? 'a-input--warn' : ''}`}
+                      value={opt}
+                      autoFocus={idx === focusRow}
+                      onChange={(e) => setOption(idx, e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addOption();
+                        }
+                      }}
+                      placeholder={`گزینه ${idx + 1} (مثلا: ۱۲۸ گیگابایت)`}
+                    />
+                    {isDuplicate(opt, idx) && (
+                      <span className="a-option-dup">
+                        <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                        </svg>
+                        تکراری
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      className="a-btn a-btn--ghost a-btn--xs shrink-0"
+                      onClick={() => removeOption(idx)}
+                      aria-label="حذف گزینه"
+                      title="حذف گزینه"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {previewOptions.length > 0 && (
+                <>
+                  <div className="a-option-preview-title">
+                    پیش‌نمایش در فرم محصول
+                    <span className="a-badge a-badge--neutral">{previewOptions.length} گزینه</span>
+                  </div>
+                  <div className="a-option-grid">
+                    {previewOptions.map((o, i) => (
+                      <label key={o + i} className="a-chip-opt">
+                        <input type="checkbox" readOnly />
+                        <span className="a-chip-opt-copy">
+                          <strong>{o}</strong>
+                          <small>گزینه {i + 1}</small>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
+          )}
+        </form>
+      </Modal>
+
+      {/* List */}
+      <section className="a-card a-container-md">
+        <div className="a-card-head">
+          <div>
+            <h3 className="a-card-title">لیست ویژگی‌ها</h3>
+            <p className="a-card-sub">پس از ثبت، گزینه موردنظر در فرم محصول ظاهر می‌شود.</p>
+          </div>
+          {Object.keys(TYPE_LABELS).some((t) => typeCounts[t]) && (
+            <div className="a-card-actions">
+              {Object.entries(TYPE_LABELS).map(([val, label]) =>
+                typeCounts[val] ? (
+                  <span key={val} className="a-badge a-badge--neutral">
+                    {label}: {typeCounts[val]}
+                  </span>
+                ) : null,
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="a-table-wrap">
+          <table className="a-table">
+            <thead>
               <tr>
-                <th className="px-4 py-3 font-medium">نام ویژگی</th>
-                <th className="px-4 py-3 font-medium">نوع</th>
-                <th className="px-4 py-3 font-medium">عملیات</th>
+                <th>نام ویژگی</th>
+                <th>نوع</th>
+                <th>گزینه‌ها</th>
+                <th>عملیات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody>
               {isLoading ? (
-                <tr><td colSpan={3} className="px-4 py-8 text-center text-slate-500">در حال دریافت...</td></tr>
+                <tr><td colSpan={4} className="text-center text-slate-500">در حال دریافت...</td></tr>
               ) : attributes?.length === 0 ? (
-                <tr><td colSpan={3} className="px-4 py-8 text-center text-slate-500">هیچ ویژگی یافت نشد.</td></tr>
+                <tr><td colSpan={4} className="text-center text-slate-500">هیچ ویژگی یافت نشد.</td></tr>
               ) : (
                 attributes?.map((a: Attribute) => (
-                  <tr key={a.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="px-4 py-3 font-bold text-white">{a.name}</td>
-                    <td className="px-4 py-3">
-                      {a.type === 'text' ? 'متن ساده' : a.type === 'number' ? 'عدد' : a.type === 'boolean' ? 'بله / خیر' : a.type}
+                  <tr key={a.id}>
+                    <td className="a-strong">{a.name}</td>
+                    <td>
+                      <span className={`a-badge ${a.type === 'text' ? 'a-badge--neutral' : a.type === 'number' ? 'a-badge--brand' : a.type === 'select' ? 'a-badge--amber' : 'a-badge--green'}`}>
+                        {TYPE_LABELS[a.type] ?? a.type}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(a)}
-                        className="text-amber-400 hover:text-amber-300 transition-colors"
-                      >
-                        ویرایش
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (window.confirm('آیا از حذف این ویژگی مطمئن هستید؟')) {
-                            deleteMutation.mutate(a.id);
-                          }
-                        }}
-                        className="text-rose-400 hover:text-rose-300 transition-colors"
-                      >
-                        حذف
-                      </button>
+                    <td>
+                      {a.type === 'select' ? (
+                        a.options && a.options.length > 0 ? (
+                          <div className="a-options-cell">
+                            {a.options.slice(0, 3).map((opt) => (
+                              <span key={opt} className="a-badge a-badge--amber">{opt}</span>
+                            ))}
+                            {a.options.length > 3 && (
+                              <span className="a-badge a-badge--neutral">+{a.options.length - 3}</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="a-badge a-badge--red">بدون گزینه</span>
+                        )
+                      ) : (
+                        <span className="text-slate-500">—</span>
+                      )}
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => handleEdit(a)} className="a-btn a-btn--secondary a-btn--xs">ویرایش</button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm('آیا از حذف این ویژگی مطمئن هستید؟')) {
+                              deleteMutation.mutate(a.id);
+                            }
+                          }}
+                          className="a-btn a-btn--danger a-btn--xs"
+                        >
+                          حذف
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -167,7 +359,7 @@ export function AttributesPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

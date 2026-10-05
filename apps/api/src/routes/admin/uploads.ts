@@ -9,7 +9,7 @@ import { deleteUpload, processUpload, toUploadDTO } from '../../services/uploads
 import { logAction } from '../../services/audit.js';
 
 const routes: FastifyPluginAsync = async (app) => {
-  app.addHook('preHandler', app.requireAdmin);
+  app.addHook('preHandler', app.requirePermission('manage_content'));
 
   /**
    * Multipart, one or many files per request, so the panel can drop a whole

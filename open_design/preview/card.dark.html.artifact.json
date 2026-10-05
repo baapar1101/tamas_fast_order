@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "preview/card.dark.html",
+  "entry": "preview/card.dark.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-09-19T09:03:20.756Z",
+  "updatedAt": "2026-09-19T09:03:20.756Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

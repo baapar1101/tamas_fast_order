@@ -149,7 +149,13 @@ const allProducts: ProductDTO[] = rawProducts.map<ProductDTO>((p, i) => {
     imageUrl: p.image_url || '/logo.png',
     gallery: [],
     attributes: [],
+    rating: null,
+    ratingCount: 0,
+    externalDataUpdatedAt: null,
     sortOrder: i,
+    targetSiteUrl: null,
+    bundleItems: [],
+    createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 }).filter((product) =>

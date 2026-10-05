@@ -48,7 +48,7 @@ function parseNum(v: string | undefined): number {
 
 /**
  * Fetches price & stock data from the public Google Sheet and updates the
- * database. Only touches: price, old_price, discount, sell_type,
+ * database. Only touches: price, old_price, discount,
  * kerman_stock, tehran_stock, stock (computed as sum of warehouses).
  *
  * Per project rules, Google Sheet is the source of truth for price & stock.
@@ -90,7 +90,6 @@ export async function syncPriceStockFromSheet(): Promise<PriceStockSyncReport> {
       productId: header.indexOf('product_id'),
       price: header.indexOf('price'),
       oldPrice: header.indexOf('old_price'),
-      sellType: header.indexOf('sell_type'),
       discount: header.indexOf('discount%'),
       kermanStock: header.indexOf('kerman_stock'),
       tehranStock: header.indexOf('tehran_stock'),
@@ -115,7 +114,6 @@ export async function syncPriceStockFromSheet(): Promise<PriceStockSyncReport> {
         const price = colIdx.price >= 0 ? parseNum(row[colIdx.price]) : 0;
         const oldPrice = colIdx.oldPrice >= 0 ? parseNum(row[colIdx.oldPrice]) : null;
         const discount = colIdx.discount >= 0 ? parseNum(row[colIdx.discount]) : 0;
-        const sellType = colIdx.sellType >= 0 ? String(row[colIdx.sellType] ?? '').trim() : null;
         const kermanStock = colIdx.kermanStock >= 0 ? parseNum(row[colIdx.kermanStock]) : 0;
         const tehranStock = colIdx.tehranStock >= 0 ? parseNum(row[colIdx.tehranStock]) : 0;
         const totalStock = kermanStock + tehranStock;
@@ -135,7 +133,6 @@ export async function syncPriceStockFromSheet(): Promise<PriceStockSyncReport> {
               price,
               oldPrice: oldPrice || null,
               discount,
-              sellType: sellType || null,
               kermanStock,
               tehranStock,
               stock: totalStock,

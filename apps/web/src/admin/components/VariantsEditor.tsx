@@ -82,7 +82,7 @@ export function VariantsEditor({ product, categories, brands, onClose }: Props) 
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <p className="text-sm text-slate-400">تعداد واریانت‌ها: {variants.length}</p>
-          <button type="button" className="btn primary" onClick={() => setEditingVariant('new')}>
+          <button type="button" className="a-btn a-btn--primary" onClick={() => setEditingVariant('new')}>
             افزودن واریانت جدید
           </button>
         </div>
@@ -133,14 +133,14 @@ export function VariantsEditor({ product, categories, brands, onClose }: Props) 
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            className="huma-btn-secondary !py-1 !px-2.5 !text-xs"
+                            className="a-btn a-btn--secondary a-btn--xs"
                             onClick={() => setEditingVariant(v)}
                           >
                             ویرایش
                           </button>
                           <button
                             type="button"
-                            className="huma-btn-secondary !bg-rose-500/15 !text-rose-300 !border-rose-500/30 !py-1 !px-2.5 !text-xs"
+                            className="a-btn a-btn--danger a-btn--xs"
                             onClick={() => {
                               if (confirm('واریانت حذف شود؟')) remove.mutate(v.id);
                             }}

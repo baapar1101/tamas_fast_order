@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "preview/components-buttons.html",
+  "currentVersionId": "f5abf6ed-100d-415b-9faa-36ef6dc78bd2",
+  "entries": [
+    {
+      "id": "f5abf6ed-100d-415b-9faa-36ef6dc78bd2",
+      "fileName": "preview/components-buttons.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1789813102796,
+      "source": "ai",
+      "prompt": "extract fully them and design system and update based on D:\\tamas_fast_order\\catalogs",
+      "size": 6187,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-f5abf6ed-100d-415b-9faa-36ef6dc78bd2.html",
+      "contentDigest": "05dfa271dbec94bd2eb4983b59b338b9f3a93b798110d33eb7936a3fccde7f06",
+      "promptSource": "message"
+    }
+  ]
+}
