@@ -10,7 +10,11 @@ export function formatNumber(value: number | string | null | undefined): string 
 }
 
 export function toToman(value: unknown): number {
-  const n = Number(String(value ?? '').replace(/[^\d.-]/g, ''));
+  const normalized = String(value ?? '').replace(/[\u0660-\u0669\u06F0-\u06F9]/g, c => {
+    const code = c.charCodeAt(0);
+    return String.fromCharCode(code <= 0x0669 ? code - 0x0660 + 48 : code - 0x06F0 + 48);
+  });
+  const n = Number(normalized.replace(/[^\d.-]/g, ''));
   return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
 }
 
