@@ -7,7 +7,7 @@
  */
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { normalizePhone } from '@tamas/shared';
 import { closeDb, db } from '../src/db/client.js';
 import { brands, categories, categoryBrands, colors, products, settings, users } from '../src/db/schema.js';
@@ -79,6 +79,10 @@ async function main(): Promise<void> {
   /* ---------- categories ---------- */
   const categoryRows = data.categories ?? [];
   const categoryIds = new Map<string, number>();
+
+  const allCategoryIdsToClear: number[] = [];
+  const allCategoryBrandsToInsert: { categoryId: number; brandId: number }[] = [];
+
   for (const c of categoryRows) {
     const name = str(c.category_name ?? c.name);
     if (!name) continue;
@@ -94,15 +98,26 @@ async function main(): Promise<void> {
 
     // The legacy `Brand` column held a comma list of brands for the category.
     const linked = splitList(c.Brand ?? c.brand);
-    await db.delete(categoryBrands).where(eq(categoryBrands.categoryId, row.id));
-    const ids = linked.map((n) => brandIds.get(n.toLowerCase())).filter((v): v is number => typeof v === 'number');
+
+    allCategoryIdsToClear.push(row.id);
+
+    const ids = linked.map((n) => brandIds.get(n.toLowerCase())).filter((v) => typeof v === 'number');
     if (ids.length > 0) {
-      await db
-        .insert(categoryBrands)
-        .values([...new Set(ids)].map((brandId) => ({ categoryId: row.id, brandId })))
-        .onConflictDoNothing();
+      const uniqueIds = [...new Set(ids)];
+      for (const brandId of uniqueIds) {
+        allCategoryBrandsToInsert.push({ categoryId: row.id, brandId });
+      }
     }
   }
+
+  if (allCategoryIdsToClear.length > 0) {
+    await db.delete(categoryBrands).where(inArray(categoryBrands.categoryId, allCategoryIdsToClear));
+  }
+
+  if (allCategoryBrandsToInsert.length > 0) {
+    await db.insert(categoryBrands).values(allCategoryBrandsToInsert).onConflictDoNothing();
+  }
+
   console.log(`✅ categories: ${categoryRows.length}`);
 
   /* ---------- colors ---------- */
