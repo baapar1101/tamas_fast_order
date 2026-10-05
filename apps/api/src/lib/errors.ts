@@ -34,3 +34,7 @@ export const profileIncomplete = (missing: string[]) =>
     missing,
     complete: false,
   });
+
+export function isConnectionRefused(err: unknown): boolean {
+  return err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED');
+}
