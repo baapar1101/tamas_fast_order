@@ -1546,6 +1546,21 @@
   align-items: stretch;
 }
 
+/* Keep promoted products visually distinct in both grid and list views. */
+.product-card.is-promotion,
+.product-accordion.is-promotion {
+  border: 2px solid #d6a72b;
+  box-shadow:
+    0 0 0 1px rgba(255, 226, 132, 0.65),
+    0 6px 20px rgba(166, 113, 8, 0.16);
+}
+
+.product-card.is-promotion:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 226, 132, 0.8),
+    0 10px 28px rgba(166, 113, 8, 0.24);
+}
+
 .products-list .list-product-content {
   grid-area: content;
   min-width: 0;
