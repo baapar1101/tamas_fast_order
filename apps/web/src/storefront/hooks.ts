@@ -27,7 +27,9 @@ export function useBootstrap() {
       try {
         return await api.get<BootstrapData>('/catalog/bootstrap');
       } catch (err) {
-        console.warn('API bootstrap failed, falling back to legacy catalog snapshot:', err);
+        if (import.meta.env.DEV) {
+          console.warn('API bootstrap failed, falling back to legacy catalog snapshot:', err);
+        }
         return getFallbackBootstrap();
       }
     },
@@ -100,7 +102,9 @@ export function useProducts(filters: CatalogFilters) {
         // silently serving it after an API failure shows stale warehouse
         // counts and makes the storefront disagree with admin.
         if ((err as Error).name !== 'AbortError') {
-          console.error('API products failed; refusing to display stale inventory:', err);
+          if (import.meta.env.DEV) {
+            console.error('API products failed; refusing to display stale inventory:', err);
+          }
         }
         throw err;
       }
