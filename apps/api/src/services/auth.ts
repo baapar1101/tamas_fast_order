@@ -4,6 +4,7 @@ import { db } from '../db/client.js';
 import { accessGroups, sessions, users } from '../db/schema.js';
 import { adminPhones, env } from '../env.js';
 import { randomToken, sha256 } from '../lib/hash.js';
+import { isEconnrefused } from '../lib/errors.js';
 import { crmClient } from '../lib/crm.js';
 
 export type UserRow = typeof users.$inferSelect;
@@ -95,7 +96,7 @@ export async function findOrCreateUser(phone: string): Promise<{ row: UserRow; i
 
     return { row: created, isNew: true };
   } catch (err) {
-    if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
+    if (isEconnrefused(err)) {
       const existing = inMemoryUsers.get(phone);
       if (existing) return { row: existing, isNew: false };
       const isAdmin = adminPhones.includes(phone);
@@ -151,7 +152,7 @@ export async function createSession(
     });
     await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, userId));
   } catch (err) {
-    if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
+    if (isEconnrefused(err)) {
       inMemorySessions.set(hash, { userId, expiresAt });
     } else {
       throw err;
@@ -185,7 +186,7 @@ export async function resolveSession(token: string | undefined): Promise<UserSes
     const permissions = row.user.role === 'admin' ? ['*'] : (row.accessGroup?.permissions || []);
     return { ...row.user, permissions };
   } catch (err) {
-    if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
+    if (isEconnrefused(err)) {
       const sess = inMemorySessions.get(hash);
       if (!sess || sess.expiresAt < new Date()) return null;
       for (const u of inMemoryUsers.values()) {
