@@ -178,6 +178,7 @@ function SendBtn({ disabled, loading }: { disabled: boolean; loading: boolean })
   return (
     <button
       type="submit"
+      aria-label="ارسال پیام"
       disabled={disabled}
       style={{
         width: 44, height: 44, flexShrink: 0,
