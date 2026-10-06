@@ -34,3 +34,9 @@ export const profileIncomplete = (missing: string[]) =>
     missing,
     complete: false,
   });
+
+/** Detects the Node/Postgres connection error without weakening callers to `any`. */
+export function isConnectionRefused(error: unknown): boolean {
+  if (error instanceof Error && error.message.includes('ECONNREFUSED')) return true;
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ECONNREFUSED';
+}

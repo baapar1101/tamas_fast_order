@@ -203,6 +203,39 @@ async function ensureBrand(name: string): Promise<number | null> {
   return null;
 }
 
+/** Resolves a category's brand list with at most one insert query. */
+async function ensureBrands(names: string[]): Promise<number[]> {
+  const uniqueNames = new Map<string, string>();
+  for (const name of names) {
+    const clean = str(name);
+    if (clean) uniqueNames.set(clean.toLowerCase(), clean);
+  }
+
+  const brandIds: number[] = [];
+  const missing: string[] = [];
+  for (const [lookupKey, clean] of uniqueNames) {
+    const hit = L().brandByName.get(lookupKey);
+    if (hit) brandIds.push(hit);
+    else missing.push(clean);
+  }
+
+  if (missing.length > 0) {
+    const created = await db
+      .insert(brands)
+      .values(missing.map((name) => ({ name, faName: name })))
+      .onConflictDoUpdate({ target: brands.name, set: { updatedAt: new Date() } })
+      .returning({ id: brands.id, name: brands.name });
+
+    for (const row of created) {
+      L().brandByName.set(row.name.toLowerCase(), row.id);
+      L().brandNameById.set(row.id, row.name);
+      brandIds.push(row.id);
+    }
+  }
+
+  return brandIds;
+}
+
 async function ensureCategory(name: string): Promise<number | null> {
   const clean = str(name);
   if (!clean) return null;
@@ -420,11 +453,7 @@ export const categoryMapping: EntityMapping = {
 
     // Rebuild the category↔brand links from the comma list in the sheet.
     const wanted = splitList(cells.Brand ?? '');
-    const brandIds: number[] = [];
-    for (const name of wanted) {
-      const bid = await ensureBrand(name);
-      if (bid) brandIds.push(bid);
-    }
+    const brandIds = await ensureBrands(wanted);
     await db.delete(categoryBrands).where(eq(categoryBrands.categoryId, id));
     if (brandIds.length > 0) {
       await db

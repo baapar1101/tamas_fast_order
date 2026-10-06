@@ -1,4 +1,4 @@
-import { asc, eq, isNull } from 'drizzle-orm';
+import { asc, eq, inArray, isNull } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import { brandWriteSchema, categoryWriteSchema, colorWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
@@ -9,27 +9,34 @@ import { logAction } from '../../services/audit.js';
 
 /** Rebuilds a category's brand links from the names the panel sent. */
 async function syncCategoryBrands(categoryId: number, brandNames: string[]): Promise<void> {
-  await db.delete(categoryBrands).where(eq(categoryBrands.categoryId, categoryId));
-  if (brandNames.length === 0) return;
+  const names = [...new Set(brandNames.map((name) => name.trim()).filter(Boolean))];
 
-  const ids: number[] = [];
-  for (const raw of brandNames) {
-    const name = raw.trim();
-    if (!name) continue;
-    const [found] = await db.select({ id: brands.id }).from(brands).where(eq(brands.name, name)).limit(1);
-    if (found) {
-      ids.push(found.id);
-      continue;
+  await db.transaction(async (tx) => {
+    if (names.length > 0) {
+      const existing = await tx.select({ name: brands.name }).from(brands).where(inArray(brands.name, names));
+      const existingNames = new Set(existing.map((brand) => brand.name));
+      const missingNames = names.filter((name) => !existingNames.has(name));
+
+      if (missingNames.length > 0) {
+        await tx
+          .insert(brands)
+          .values(missingNames.map((name) => ({ name, faName: name })))
+          .onConflictDoNothing();
+      }
     }
-    const [created] = await db.insert(brands).values({ name, faName: name }).returning({ id: brands.id });
-    if (created) ids.push(created.id);
-  }
-  if (ids.length > 0) {
-    await db
-      .insert(categoryBrands)
-      .values(ids.map((brandId) => ({ categoryId, brandId })))
-      .onConflictDoNothing();
-  }
+
+    const linkedBrands = names.length > 0
+      ? await tx.select({ id: brands.id }).from(brands).where(inArray(brands.name, names))
+      : [];
+
+    await tx.delete(categoryBrands).where(eq(categoryBrands.categoryId, categoryId));
+    if (linkedBrands.length > 0) {
+      await tx
+        .insert(categoryBrands)
+        .values(linkedBrands.map(({ id: brandId }) => ({ categoryId, brandId })))
+        .onConflictDoNothing();
+    }
+  });
 }
 
 const routes: FastifyPluginAsync = async (app) => {

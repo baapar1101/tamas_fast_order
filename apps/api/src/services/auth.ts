@@ -3,8 +3,11 @@ import { REQUIRED_PROFILE_FIELDS, type UserDTO } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { accessGroups, sessions, users } from '../db/schema.js';
 import { adminPhones, env } from '../env.js';
+import { isConnectionRefused } from '../lib/errors.js';
 import { randomToken, sha256 } from '../lib/hash.js';
 import { crmClient } from '../lib/crm.js';
+
+const SESSION_UPDATE_INTERVAL_MS = 60_000;
 
 export type UserRow = typeof users.$inferSelect;
 
@@ -95,7 +98,7 @@ export async function findOrCreateUser(phone: string): Promise<{ row: UserRow; i
 
     return { row: created, isNew: true };
   } catch (err) {
-    if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
+    if (isConnectionRefused(err)) {
       const existing = inMemoryUsers.get(phone);
       if (existing) return { row: existing, isNew: false };
       const isAdmin = adminPhones.includes(phone);
@@ -151,7 +154,7 @@ export async function createSession(
     });
     await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, userId));
   } catch (err) {
-    if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
+    if (isConnectionRefused(err)) {
       inMemorySessions.set(hash, { userId, expiresAt });
     } else {
       throw err;
@@ -177,7 +180,7 @@ export async function resolveSession(token: string | undefined): Promise<UserSes
     if (!row) return null;
 
     // Touch at most once a minute; the write is not worth it on every request.
-    if (Date.now() - row.session.lastSeenAt.getTime() > 60_000) {
+    if (Date.now() - row.session.lastSeenAt.getTime() > SESSION_UPDATE_INTERVAL_MS) {
       await db.update(sessions).set({ lastSeenAt: new Date() }).where(eq(sessions.id, row.session.id));
     }
     
@@ -185,7 +188,7 @@ export async function resolveSession(token: string | undefined): Promise<UserSes
     const permissions = row.user.role === 'admin' ? ['*'] : (row.accessGroup?.permissions || []);
     return { ...row.user, permissions };
   } catch (err) {
-    if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
+    if (isConnectionRefused(err)) {
       const sess = inMemorySessions.get(hash);
       if (!sess || sess.expiresAt < new Date()) return null;
       for (const u of inMemoryUsers.values()) {

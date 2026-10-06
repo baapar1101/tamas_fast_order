@@ -7,7 +7,7 @@
  */
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { eq } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
 import { normalizePhone } from '@tamas/shared';
 import { closeDb, db } from '../src/db/client.js';
 import { brands, categories, categoryBrands, colors, products, settings, users } from '../src/db/schema.js';
@@ -79,6 +79,9 @@ async function main(): Promise<void> {
   /* ---------- categories ---------- */
   const categoryRows = data.categories ?? [];
   const categoryIds = new Map<string, number>();
+  const categoryIdsToClear: number[] = [];
+  const categoryBrandRows: Array<{ categoryId: number; brandId: number }> = [];
+
   for (const c of categoryRows) {
     const name = str(c.category_name ?? c.name);
     if (!name) continue;
@@ -94,14 +97,20 @@ async function main(): Promise<void> {
 
     // The legacy `Brand` column held a comma list of brands for the category.
     const linked = splitList(c.Brand ?? c.brand);
-    await db.delete(categoryBrands).where(eq(categoryBrands.categoryId, row.id));
+    categoryIdsToClear.push(row.id);
     const ids = linked.map((n) => brandIds.get(n.toLowerCase())).filter((v): v is number => typeof v === 'number');
-    if (ids.length > 0) {
-      await db
-        .insert(categoryBrands)
-        .values([...new Set(ids)].map((brandId) => ({ categoryId: row.id, brandId })))
-        .onConflictDoNothing();
+    for (const brandId of new Set(ids)) {
+      categoryBrandRows.push({ categoryId: row.id, brandId });
     }
+  }
+
+  if (categoryIdsToClear.length > 0) {
+    await db.transaction(async (tx) => {
+      await tx.delete(categoryBrands).where(inArray(categoryBrands.categoryId, categoryIdsToClear));
+      if (categoryBrandRows.length > 0) {
+        await tx.insert(categoryBrands).values(categoryBrandRows).onConflictDoNothing();
+      }
+    });
   }
   console.log(`✅ categories: ${categoryRows.length}`);
 

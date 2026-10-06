@@ -238,24 +238,55 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     }
     await upsertOrderPayment(tx, order.id, user.id, total, order.paymentStatus, walletPayment ? 'wallet' : undefined);
 
-    for (const update of stockUpdates) {
-      const now = new Date();
-      if (update.warehouse === 'kerman') {
-        await tx
-          .update(products)
-          .set({ kermanStock: sql`greatest(0, ${products.kermanStock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
-      } else if (update.warehouse === 'tehran') {
-        await tx
-          .update(products)
-          .set({ tehranStock: sql`greatest(0, ${products.tehranStock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
-      } else {
-        await tx
-          .update(products)
-          .set({ stock: sql`greatest(0, ${products.stock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
+    if (stockUpdates.length > 0) {
+      const deductions = new Map<
+        number,
+        { product: typeof products.$inferSelect; kerman: number; tehran: number; default: number }
+      >();
+
+      const productsByDbId = new Map([...byId.values()].map((product) => [product.id, product]));
+      for (const update of stockUpdates) {
+        const product = productsByDbId.get(update.id);
+        if (!product) throw new Error(`product ${update.id} disappeared while creating the order`);
+
+        const deduction = deductions.get(update.id) ?? { product, kerman: 0, tehran: 0, default: 0 };
+        if (update.warehouse === 'kerman') deduction.kerman += update.qty;
+        else if (update.warehouse === 'tehran') deduction.tehran += update.qty;
+        else deduction.default += update.qty;
+        deductions.set(update.id, deduction);
       }
+
+      for (const { product, kerman, tehran, default: defaultQty } of deductions.values()) {
+        const requestedByWarehouse: Array<[Warehouse, number]> = [
+          ['kerman', kerman],
+          ['tehran', tehran],
+          ['site', defaultQty],
+        ];
+        for (const [warehouse, requested] of requestedByWarehouse) {
+          const available = stockIn(product, warehouse);
+          if (requested > available) {
+            throw conflict(
+              `موجودی «${product.title}» در ${WAREHOUSE_LABELS[warehouse]} فقط ${available} عدد است.`,
+              { productId: product.productId, available },
+            );
+          }
+        }
+      }
+
+      const rows = [...deductions.entries()].map(
+        ([id, qty]) => sql`(${id}::integer, ${qty.kerman}::integer, ${qty.tehran}::integer, ${qty.default}::integer)`,
+      );
+
+      await tx.execute(sql`
+        UPDATE products AS p
+        SET
+          kerman_stock = greatest(0, p.kerman_stock - v.qty_kerman),
+          tehran_stock = greatest(0, p.tehran_stock - v.qty_tehran),
+          stock = greatest(0, p.stock - v.qty_default),
+          updated_at = NOW()
+        FROM (VALUES ${sql.join(rows, sql`, `)}) AS v(id, qty_kerman, qty_tehran, qty_default)
+        WHERE p.id = v.id
+      `);
     }
 
     invalidateCatalog();

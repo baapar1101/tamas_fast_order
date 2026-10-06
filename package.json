@@ -28,6 +28,8 @@
     "import:legacy": "npm run import:legacy -w @tamas/api",
     "sync:pull": "npm run sync:pull -w @tamas/api",
     "sync:push": "npm run sync:push -w @tamas/api",
+    "jules": "node scripts/jules.mjs",
+    "test": "npm run test -w @tamas/shared && npm run test -w @tamas/api",
     "start": "npm run start -w @tamas/api",
     "start:prod": "npm run start:prod -w @tamas/api",
     "dev:shared": "npm run dev -w @tamas/shared"
@@ -35,6 +37,7 @@
   "devDependencies": {
     "@types/node": "^22.10.5",
     "npm-run-all2": "^7.0.2",
+    "tsx": "^4.23.13",
     "typescript": "^5.7.3"
   }
 }

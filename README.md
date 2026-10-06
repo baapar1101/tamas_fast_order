@@ -207,11 +207,45 @@ location /uploads/ {
 | `npm run dev` | اجرای همزمان API و فرانت |
 | `npm run build` | ساخت production هر سه پکیج |
 | `npm run typecheck` | بررسی تایپ کل مونوریپو |
+| `npm run jules -- sources` | بررسی ریپازیتوری‌های متصل به Jules |
+| `npm run jules -- sessions` | فهرست کارهای Jules |
 | `npm run db:generate` | ساخت فایل migration بعد از تغییر اسکیما |
 | `npm run db:migrate` | اعمال migrationها |
 | `npm run db:seed` | چند محصول نمونه |
 | `npm run import:legacy` | وارد کردن `legacy/catalog_backup.json` |
 | `npx tsx apps/api/scripts/test-sync.ts` | تست موتور سینک روی یک شیت درون‌حافظه‌ای |
+
+### اتوماسیون توسعه با Jules
+
+کلید Jules فقط در فایل محلی و git-ignored به نام `.env.local` نگهداری می‌شود؛
+آن را در کد، فرانت‌اند یا فایل‌های commit‌شده قرار ندهید. نمونهٔ تنظیمات در
+`.env.example` قرار دارد. CLI به‌صورت پیش‌فرض source را از remote گیت و branch را
+از branch فعلی تشخیص می‌دهد.
+
+```bash
+# دیدن sourceها و sessionها
+npm run jules -- sources
+npm run jules -- sessions
+
+# ساخت یک کار روی branch فعلی (بدون ساخت خودکار PR)
+npm run jules -- create --title "Review checkout" --prompt "Review checkout for race conditions and propose fixes."
+
+# ساخت خودکار PR پس از پایان کار
+npm run jules -- create --branch dev --auto-pr --prompt-file ./task.md
+
+# پیگیری و تعامل با session
+npm run jules -- watch SESSION_ID
+npm run jules -- activities SESSION_ID
+npm run jules -- message SESSION_ID --prompt "Please add regression tests."
+```
+
+فرمان `create` فقط با `--auto-pr` اجازهٔ ساخت branch و pull request را به Jules
+می‌دهد. برای workflow تأیید دستی plan، از `--require-approval` و سپس فرمان
+`approve SESSION_ID` استفاده کنید. راهنمای کامل فرمان‌ها:
+
+```bash
+npm run jules -- help
+```
 
 ---
 
