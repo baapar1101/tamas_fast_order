@@ -21,7 +21,9 @@
     "import:legacy": "tsx scripts/import-legacy.ts",
     "sync:pull": "tsx scripts/sync-cli.ts pull",
     "sync:push": "tsx scripts/sync-cli.ts push",
-    "images:mirror": "tsx scripts/mirror-product-images.ts"
+    "images:mirror": "tsx scripts/mirror-product-images.ts",
+    "products:repair-codes": "tsx scripts/repair-product-code-prefixes.ts",
+    "products:audit-sources": "tsx scripts/audit-product-sources.ts"
   },
   "dependencies": {
     "@e965/xlsx": "^0.20.3",

@@ -1,6 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { SYNC_ENTITIES } from '@tamas/shared';
 import { env } from './env.js';
+import { isCrmProductSyncRunning, processPendingCrmProductSync } from './services/crm-product-sync.js';
 import { pruneSessions } from './services/auth.js';
 import { pruneOtpCodes } from './services/otp.js';
 import { isProductImageMirrorRunning, mirrorProductImages } from './services/product-image-mirror.js';
@@ -55,6 +56,22 @@ export function startScheduler(log: FastifyBaseLogger): () => void {
     timers.push(setTimeout(() => void mirrorImages(), 30_000));
     timers.push(setInterval(() => void mirrorImages(), interval));
     log.info(`product image mirror scheduled every ${env.PRODUCT_IMAGE_MIRROR_INTERVAL_SECONDS}s`);
+  }
+
+  if (env.CRM_SYNC_ENABLED && env.CRM_PRODUCT_SYNC_INTERVAL_SECONDS > 0) {
+    const interval = env.CRM_PRODUCT_SYNC_INTERVAL_SECONDS * 1000;
+    const syncCrmProducts = async () => {
+      if (isCrmProductSyncRunning()) return;
+      try {
+        const report = await processPendingCrmProductSync();
+        if (report.processed > 0) log.info(report, 'CRM product sync finished');
+      } catch (err) {
+        log.warn({ err }, 'CRM product sync failed');
+      }
+    };
+    timers.push(setTimeout(() => void syncCrmProducts(), 45_000));
+    timers.push(setInterval(() => void syncCrmProducts(), interval));
+    log.info(`CRM product sync scheduled every ${env.CRM_PRODUCT_SYNC_INTERVAL_SECONDS}s`);
   }
 
   const housekeeping = async () => {

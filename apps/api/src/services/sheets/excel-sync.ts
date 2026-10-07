@@ -1,8 +1,12 @@
 import * as xlsx from '@e965/xlsx';
-import { readTab, writeTab } from './client.js';
-import { syncPriceStockFromSheet } from './price-stock-sync.js';
+import { eq, isNull } from 'drizzle-orm';
+import { db } from '../../db/client.js';
+import { products } from '../../db/schema.js';
 import { env } from '../../env.js';
 import { badRequest } from '../../lib/errors.js';
+import { invalidateCatalog } from '../catalog.js';
+import { enqueueCrmProductSync } from '../crm-product-sync.js';
+import { runSync } from './sync.js';
 
 export interface ExcelSyncReport {
   totalRows: number;
@@ -11,20 +15,40 @@ export interface ExcelSyncReport {
   errors: string[];
 }
 
+const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
+const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+
+function asciiDigits(value: string): string {
+  return value
+    .replace(/[۰-۹]/g, (digit) => String(FA_DIGITS.indexOf(digit)))
+    .replace(/[٠-٩]/g, (digit) => String(AR_DIGITS.indexOf(digit)));
+}
+
+function normalizeSku(value: unknown): string {
+  return asciiDigits(String(value ?? ''))
+    .normalize('NFKC')
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, '')
+    .replace(/\s+/g, '')
+    .toLowerCase();
+}
+
+function parseInteger(value: unknown): number | null {
+  const normalized = asciiDigits(String(value ?? ''))
+    .replace(/[٬،,\s]/g, '')
+    .trim();
+  if (!normalized) return 0;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
+}
+
+/** Update the site database first, then publish the result to Sheet and CRM. */
 export async function processExcelUpload(buffer: Buffer): Promise<ExcelSyncReport> {
-  if (!env.SHEETS_ENABLED) throw badRequest('همگام‌سازی شیت غیرفعال است.');
+  const report: ExcelSyncReport = { totalRows: 0, updated: 0, skipped: 0, errors: [] };
 
-  const report: ExcelSyncReport = {
-    totalRows: 0,
-    updated: 0,
-    skipped: 0,
-    errors: [],
-  };
-
-  let workbook;
+  let workbook: xlsx.WorkBook;
   try {
     workbook = xlsx.read(buffer, { type: 'buffer' });
-  } catch (e) {
+  } catch {
     throw badRequest('فرمت فایل نامعتبر است. فقط فایل‌های اکسل (xlsx/xls) مجاز هستند.');
   }
 
@@ -32,95 +56,77 @@ export async function processExcelUpload(buffer: Buffer): Promise<ExcelSyncRepor
   if (!sheetName) throw badRequest('فایل خالی است.');
   const worksheet = workbook.Sheets[sheetName];
   if (!worksheet) throw badRequest('تب اکسل نامعتبر است.');
-  const jsonRows = xlsx.utils.sheet_to_json<unknown[]>(worksheet, { header: 1 });
-
-  if (jsonRows.length < 2) {
+  const rows = xlsx.utils.sheet_to_json<unknown[]>(worksheet, { header: 1, raw: false });
+  if (rows.length < 2) {
     throw badRequest('فایل باید حداقل شامل یک سطر عنوان و یک سطر داده باشد.');
   }
 
-  // Expecting exactly: 1: sku, 2: price, 3: kerman_stock, 4: tehran_stock
-  // But let's verify by header or assume order. The user said:
-  // "ستون اول sku, ستون دوم price, ستون سوم kerman_stack, ستون چهارم tehran_stack"
-  
-  // Read current Google Sheet "Products" tab
-  const gRows = await readTab('Products');
-  if (gRows.length === 0) {
-    throw badRequest('تب Products در گوگل شیت یافت نشد یا خالی است.');
+  const activeProducts = await db
+    .select({ id: products.id, productId: products.productId, sku: products.sku })
+    .from(products)
+    .where(isNull(products.deletedAt));
+  const bySku = new Map<string, typeof activeProducts>();
+  for (const product of activeProducts) {
+    const key = normalizeSku(product.sku);
+    if (!key) continue;
+    const matches = bySku.get(key) ?? [];
+    matches.push(product);
+    bySku.set(key, matches);
   }
 
-  const gHeader = gRows[0]?.map(h => String(h).trim().toLowerCase()) || [];
-  const colIdx = {
-    sku: gHeader.indexOf('sku'),
-    price: gHeader.indexOf('price'),
-    kermanStock: gHeader.indexOf('kerman_stock'),
-    tehranStock: gHeader.indexOf('tehran_stock'),
-  };
-
-  if (colIdx.sku < 0 || colIdx.price < 0 || colIdx.kermanStock < 0 || colIdx.tehranStock < 0) {
-    throw badRequest('ستون‌های مورد نیاز (sku, price, kerman_stock, tehran_stock) در گوگل شیت یافت نشد.');
-  }
-
-  // Create a map of sku -> row index in Google Sheet
-  const skuMap = new Map<string, number>();
-  for (let i = 1; i < gRows.length; i++) {
-    const row = gRows[i];
-    const sku = String(row?.[colIdx.sku] || '').trim();
-    if (sku) {
-      skuMap.set(sku, i);
-    }
-  }
-
-  // Process Excel rows (skip header)
-  for (let r = 1; r < jsonRows.length; r++) {
-    const row = jsonRows[r];
+  for (let index = 1; index < rows.length; index += 1) {
+    const row = rows[index];
     if (!row || row.length === 0) continue;
-
-    const sku = String(row[0] || '').trim();
+    const displayedSku = String(row[0] ?? '').trim();
+    const sku = normalizeSku(displayedSku);
     if (!sku) {
-      report.skipped++;
+      report.skipped += 1;
+      continue;
+    }
+    report.totalRows += 1;
+
+    const matches = bySku.get(sku) ?? [];
+    if (matches.length === 0) {
+      report.errors.push(`ردیف ${index + 1}: کد کالا (SKU) «${displayedSku}» در سایت یافت نشد.`);
+      report.skipped += 1;
+      continue;
+    }
+    if (matches.length > 1) {
+      report.errors.push(`ردیف ${index + 1}: کد کالا (SKU) «${displayedSku}» در سایت تکراری است.`);
+      report.skipped += 1;
       continue;
     }
 
-    report.totalRows++;
-
-    const sheetRowIndex = skuMap.get(sku);
-    if (sheetRowIndex === undefined) {
-      report.errors.push(`ردیف ${r + 1}: کد کالا (SKU) "${sku}" در گوگل شیت یافت نشد.`);
-      report.skipped++;
-      if (report.errors.length > 50) break;
+    const priceRial = parseInteger(row[1]);
+    const kermanStock = parseInteger(row[2]);
+    const tehranStock = parseInteger(row[3]);
+    if (priceRial === null || kermanStock === null || tehranStock === null) {
+      report.errors.push(`ردیف ${index + 1}: قیمت یا موجودی عدد معتبر نیست.`);
+      report.skipped += 1;
       continue;
     }
 
-    // Parse Excel data
-    let priceRial = Number(row[1]) || 0;
-    const kermanStock = Number(row[2]) || 0;
-    const tehranStock = Number(row[3]) || 0;
-
-    // Convert Rial to Toman
-    const priceToman = Math.floor(priceRial / 10);
-
-    // Update in memory
-    const targetRow = gRows[sheetRowIndex];
-    if (!targetRow) continue;
-    // Ensure row has enough columns
-    const maxNeeded = Math.max(colIdx.price, colIdx.kermanStock, colIdx.tehranStock);
-    while (targetRow.length <= maxNeeded) {
-      targetRow.push('');
-    }
-
-    targetRow[colIdx.price] = String(priceToman);
-    targetRow[colIdx.kermanStock] = String(kermanStock);
-    targetRow[colIdx.tehranStock] = String(tehranStock);
-
-    report.updated++;
+    const product = matches[0]!;
+    const kerman = Math.max(0, kermanStock);
+    const tehran = Math.max(0, tehranStock);
+    await db.update(products).set({
+      price: Math.max(0, Math.floor(priceRial / 10)),
+      kermanStock: kerman,
+      tehranStock: tehran,
+      stock: kerman + tehran,
+      updatedAt: new Date(),
+    }).where(eq(products.id, product.id));
+    await enqueueCrmProductSync(product.productId, 'update', { source: 'excel-upload' });
+    report.updated += 1;
   }
 
   if (report.updated > 0) {
-    // Write back to Google Sheets
-    await writeTab('Products', gRows);
-    
-    // Trigger sync from sheet to DB
-    await syncPriceStockFromSheet();
+    invalidateCatalog();
+    if (env.SHEETS_ENABLED) {
+      const sync = await runSync({ direction: 'push', entities: ['products'], dryRun: false });
+      const error = sync.entities.find((entity) => entity.entity === 'products')?.error;
+      if (error) report.errors.push(`انتشار در گوگل شیت: ${error}`);
+    }
   }
 
   return report;

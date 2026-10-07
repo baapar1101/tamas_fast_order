@@ -98,11 +98,7 @@ const routes: FastifyPluginAsync = async (app) => {
     return { ok: true };
   });
 
-  /**
-   * Lightweight price & stock sync from the public Google Sheet.
-   * Google Sheet is the source of truth — this only updates price,
-   * old_price, discount, kerman_stock, tehran_stock, stock.
-   */
+  /** Publish the site-owned product catalogue, including price and stock. */
   app.post('/admin/sync/price-stock', async (req) => {
     if (isPriceStockSyncRunning()) {
       throw badRequest('همگام‌سازی قیمت/موجودی در حال اجراست. صبر کنید.');
@@ -141,7 +137,7 @@ const routes: FastifyPluginAsync = async (app) => {
     return reply.send(buffer);
   });
 
-  /** Upload Excel to update price/stock in Google Sheets & DB */
+  /** Upload Excel to update the site DB first, then publish external mirrors. */
   app.post('/admin/sync/excel-upload', async (req, reply) => {
     if (isPriceStockSyncRunning()) {
       throw badRequest('همگام‌سازی قیمت/موجودی در حال اجراست. صبر کنید.');

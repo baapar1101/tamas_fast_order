@@ -94,7 +94,7 @@ export function SyncPage() {
     },
   });
 
-  /* ---------- Price & Stock Sync (Google Sheet → DB only) ---------- */
+  /* ---------- Product publish (site DB → Google Sheet) ---------- */
   const [priceStockReport, setPriceStockReport] = useState<PriceStockReport | null>(null);
 
   const priceStockSync = useMutation({
@@ -102,7 +102,7 @@ export function SyncPage() {
     onSuccess: (data) => {
       const r = data.report;
       setPriceStockReport(r);
-      toast.ok(`قیمت و موجودی بروزرسانی شد: ${r.updated} محصول بروز شد.`);
+      toast.ok(`اطلاعات سایت در شیت منتشر شد: ${r.updated} ردیف تغییر کرد.`);
       invalidate();
     },
     onError: (err: Error) => toast.error(err.message),
@@ -168,7 +168,7 @@ export function SyncPage() {
       <section className="a-page-head">
         <div className="a-titles">
           <h2 className="a-title">همگام‌سازی گوگل شیت (Google Sheets)</h2>
-          <p className="a-subtitle">اتصال و همگام‌سازی ۲ طرفه دیتابیس و شیت گوگل</p>
+          <p className="a-subtitle">سایت منبع اصلی محصولات است؛ گوگل شیت نسخه همگام‌شده سایت را نگه می‌دارد.</p>
         </div>
         <div className="a-page-actions a-actions">
           <span className={`chip ${enabled ? 'chip-brand' : 'chip-rose'}`}>
@@ -191,11 +191,11 @@ export function SyncPage() {
       <section className="a-card" style={{ borderColor: 'var(--clr-brand)', borderWidth: 2 }}>
         <div className="a-card-head a-card-head--split">
           <div>
-            <h3 className="a-card-title">بروزرسانی قیمت و موجودی از گوگل شیت</h3>
+            <h3 className="a-card-title">انتشار محصولات سایت در گوگل شیت</h3>
             <p className="a-card-desc">
-              فقط قیمت، تخفیف، نوع فروش و موجودی انبارها را از گوگل شیت دریافت و در دیتابیس بروزرسانی می‌کند.
+              کد، مشخصات، قیمت و موجودی محصولات را از سایت در شیت منتشر می‌کند؛ محصولات حذف‌شده نیز از شیت حذف می‌شوند.
               <br />
-              <strong>گوگل شیت = منبع اصلی قیمت و موجودی</strong>
+              <strong>سایت = منبع اصلی همه اطلاعات محصول</strong>
             </p>
           </div>
           <div className="a-card-actions">
@@ -205,7 +205,7 @@ export function SyncPage() {
               disabled={priceStockSync.isPending}
               onClick={() => priceStockSync.mutate()}
             >
-              {priceStockSync.isPending ? 'در حال بروزرسانی...' : 'بروزرسانی قیمت و موجودی'}
+              {priceStockSync.isPending ? 'در حال انتشار...' : 'انتشار سایت در شیت'}
             </button>
           </div>
         </div>
@@ -249,7 +249,7 @@ export function SyncPage() {
           <div>
             <h3 className="a-card-title">آپدیت گروهی قیمت و موجودی با اکسل</h3>
             <p className="a-card-desc">
-              ابتدا فایل نمونه را دانلود کنید، مقادیر (قیمت به ریال) را وارد کرده و سپس فایل را آپلود کنید.
+              فایل اکسل ابتدا سایت را بروزرسانی می‌کند و سپس نتیجه به Google Sheet و CRM ارسال می‌شود. قیمت را به ریال وارد کنید.
             </p>
           </div>
           <div className="a-card-actions">
@@ -316,7 +316,7 @@ export function SyncPage() {
         <div className="a-card-head a-card-head--split">
           <div>
             <h3 className="a-card-title">اجرای دستی همگام‌سازی (پیشرفته)</h3>
-            <p className="a-card-desc">انتخاب جهت همگام‌سازی و جداول دلخواه برای اجرا</p>
+            <p className="a-card-desc">برای محصولات، سایت همیشه مرجع است و انتخاب Pull نیز چیزی را از شیت وارد سایت نمی‌کند.</p>
           </div>
           <div className="a-card-actions">
             <button

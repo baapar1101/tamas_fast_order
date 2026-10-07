@@ -69,6 +69,7 @@ const envSchema = z.object({
   CRM_WEBHOOK_SECRET: z.string().default(''),
   CRM_SYNC_ENABLED: bool.default(true),
   CRM_SYNC_DEBOUNCE_MS: z.coerce.number().int().min(0).default(500),
+  CRM_PRODUCT_SYNC_INTERVAL_SECONDS: z.coerce.number().int().min(15).max(86400).default(60),
 });
 
 const parsed = envSchema.safeParse(process.env);

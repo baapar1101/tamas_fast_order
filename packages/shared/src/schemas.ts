@@ -39,6 +39,13 @@ export const productAttributeSchema = z.object({
   value: z.string().max(2000),
 });
 
+export const productCodeSchema = z
+  .string()
+  .trim()
+  .min(2)
+  .max(80)
+  .regex(/^0\d+$/, 'کد محصول باید فقط عدد باشد و با صفر شروع شود.');
+
 export const productTrackingLinkSchema = z.object({
   siteId: z.coerce.number().int().positive(),
   url: z.string().trim().url('لینک رهگیری معتبر نیست.').max(1000),
@@ -52,7 +59,7 @@ export const trackingSiteWriteSchema = z.object({
 });
 
 export const productWriteSchema = z.object({
-  productId: z.string().trim().min(1).max(80),
+  productId: productCodeSchema,
   parentProductId: z.string().trim().max(80).optional().nullable(),
   sku: z.string().trim().max(80).optional().nullable(),
   title: z.string().trim().min(1).max(400),

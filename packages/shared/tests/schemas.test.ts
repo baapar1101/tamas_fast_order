@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { idSchema, sheetBool } from '../src/schemas.js';
+import { idSchema, productCodeSchema, sheetBool } from '../src/schemas.js';
 
 describe('shared schemas', () => {
   it('coerces positive integer ids and rejects invalid ids', () => {
@@ -11,5 +11,12 @@ describe('shared schemas', () => {
   it('normalizes spreadsheet boolean values', () => {
     for (const value of [true, 1, -1, 'TRUE', ' yes ', 'بله']) assert.equal(sheetBool.parse(value), true);
     for (const value of [false, 0, 'FALSE', 'no', '', null, undefined]) assert.equal(sheetBool.parse(value), false);
+  });
+
+  it('requires numeric product codes to start with zero', () => {
+    assert.equal(productCodeSchema.parse(' 01010112982 '), '01010112982');
+    for (const value of ['1010112982', 'ABC-01', '0', '']) {
+      assert.throws(() => productCodeSchema.parse(value));
+    }
   });
 });

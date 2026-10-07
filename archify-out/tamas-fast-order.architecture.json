@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Tamas Fast Order — System Architecture",
+    "output": "tamas-fast-order-architecture.html",
+    "quality_profile": "showcase",
+    "animation": "trace",
+    "repository": {
+      "url": "https://github.com/baapar1101/tamas_fast_order",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "23b8097dfa441f2768a3f231ceec48249400c736"
+    },
+    "viewBox": [1400, 800],
+    "views": [
+      { "id": "request-path", "label": "Customer request path", "focus": ["customers", "web", "api", "db"], "note": "A catalog read from the browser through the API to Postgres." },
+      { "id": "sync-flow", "label": "Google Sheets sync", "focus": ["api", "gsheets", "scheduler"], "note": "Two-way catalog, order and price sync between Postgres and Google Sheets." },
+      { "id": "payment-flow", "label": "Payment and wallet", "focus": ["customers", "web", "api", "paygate", "db"], "note": "Order payment via Zibal gateway or wallet credit." },
+      { "id": "crm-flow", "label": "CRM integration", "focus": ["api", "crm"], "note": "Bi-directional CRM sync for orders, products and persons." },
+      { "id": "notifications", "label": "Notifications", "focus": ["api", "sms", "telegram"], "note": "OTP delivery via SMS and event alerts via Telegram." }
+    ]
+  },
+  "components": [
+    { "id": "customers", "type": "external", "label": "Customers", "sublabel": "Browser / Mobile", "pos": [40, 240], "size": [130, 60], "sources": [{ "path": "apps/web/src/App.tsx" }] },
+    { "id": "admins", "type": "external", "label": "Admins", "sublabel": "Store Managers", "pos": [40, 380], "size": [130, 60] },
+    
+    { "id": "sms", "type": "external", "label": "SMS Gateway", "sublabel": "OTP delivery", "pos": [260, 80], "size": [140, 56], "sources": [{ "path": "apps/api/src/services/otp.ts" }] },
+    { "id": "web", "type": "frontend", "label": "Web App", "sublabel": "React 19 + Vite", "pos": [260, 310], "size": [160, 64], "tag": "Storefront + Admin", "sources": [{ "path": "apps/web/src/App.tsx" }] },
+    { "id": "paygate", "type": "external", "label": "Payment Gateway", "sublabel": "Zibal", "pos": [260, 540], "size": [150, 56], "sources": [{ "path": "apps/api/src/routes/payment.ts" }] },
+    
+    { "id": "telegram", "type": "external", "label": "Telegram Bot", "sublabel": "Event alerts", "pos": [500, 80], "size": [140, 56], "sources": [{ "path": "apps/api/src/services/telegram.ts" }] },
+    { "id": "api", "type": "backend", "label": "API Server", "sublabel": "Fastify 5 + Drizzle", "pos": [500, 310], "size": [170, 64], "tag": "REST :3000", "sources": [{ "path": "apps/api/src/app.ts" }] },
+    { "id": "uploads", "type": "cloud", "label": "Upload Storage", "sublabel": "disk + sharp", "pos": [500, 540], "size": [150, 56], "tag": "Product images", "sources": [{ "path": "apps/api/src/services/uploads.ts" }] },
+    
+    { "id": "scheduler", "type": "backend", "label": "Scheduler", "sublabel": "Background jobs", "pos": [720, 180], "size": [140, 56], "tag": "Housekeeping", "sources": [{ "path": "apps/api/src/scheduler.ts" }] },
+    
+    { "id": "gsheets", "type": "cloud", "label": "Google Sheets", "sublabel": "Source of truth", "pos": [920, 80], "size": [160, 56], "tag": "Pull / Push", "sources": [{ "path": "apps/api/src/services/sheets/sync.ts" }] },
+    { "id": "db", "type": "database", "label": "PostgreSQL", "sublabel": "Drizzle ORM", "pos": [920, 310], "size": [150, 64], "sources": [{ "path": "apps/api/src/db/schema.ts" }] },
+    { "id": "crm", "type": "external", "label": "CRM System", "sublabel": "Webhook + Sync", "pos": [920, 540], "size": [140, 56], "sources": [{ "path": "apps/api/src/routes/crm.ts" }] },
+    
+    { "id": "arvan", "type": "cloud", "label": "ArvanCloud CDN", "sublabel": "Analytics + Cache", "pos": [1120, 80], "size": [150, 56], "sources": [{ "path": "apps/api/src/services/arvan-cloud.ts" }] },
+    { "id": "digikala", "type": "external", "label": "Digikala", "sublabel": "Content import", "pos": [1120, 310], "size": [140, 56], "sources": [{ "path": "apps/api/src/services/product-content-import.ts" }] },
+    { "id": "legacy", "type": "backend", "label": "Legacy Admin", "sublabel": "Express 4", "pos": [1120, 540], "size": [140, 56], "tag": "Retired", "sources": [{ "path": "new_admin/index.html" }] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Monorepo tamas-fast-order", "wraps": ["web", "api", "db", "scheduler"] },
+    { "kind": "region", "label": "Legacy (retired)", "wraps": ["legacy"] }
+  ],
+  "connections": [
+    { "id": "c-to-w", "from": "customers", "to": "web", "label": "Storefront", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "a-to-w", "from": "admins", "to": "web", "label": "Admin panel", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "w-to-a", "from": "web", "to": "api", "label": "REST JSON", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "a-to-db", "from": "api", "to": "db", "label": "SQL via Drizzle", "fromSide": "right", "toSide": "left" },
+    
+    { "id": "sched-to-api", "from": "scheduler", "to": "api", "label": "background ticks", "variant": "dashed", "fromSide": "left", "toSide": "top", "labelAt": [640, 200] },
+    { "id": "a-to-sms", "from": "api", "to": "sms", "label": "send OTP", "fromSide": "top", "toSide": "bottom", "labelAt": [400, 200] },
+    { "id": "a-to-tg", "from": "api", "to": "telegram", "label": "event alerts", "fromSide": "top", "toSide": "bottom", "labelAt": [520, 200] },
+    { "id": "sched-to-gs", "from": "scheduler", "to": "gsheets", "label": "periodic sync", "variant": "dashed", "fromSide": "right", "toSide": "bottom", "labelAt": [840, 250] },
+    { "id": "a-to-gs", "from": "api", "to": "gsheets", "label": "on-demand sync", "variant": "dashed", "fromSide": "top", "toSide": "left", "labelAt": [740, 250] },
+    { "id": "a-to-pay", "from": "api", "to": "paygate", "label": "create / verify", "fromSide": "bottom", "toSide": "top", "labelAt": [400, 480] },
+    { "id": "a-to-crm", "from": "api", "to": "crm", "label": "webhook + push", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelAt": [700, 480] },
+    { "id": "a-to-ul", "from": "api", "to": "uploads", "label": "save images", "fromSide": "bottom", "toSide": "top", "labelAt": [585, 480] },
+    { "id": "a-to-arvan", "from": "api", "to": "arvan", "label": "CDN analytics", "variant": "dashed", "fromSide": "top", "toSide": "left", "labelAt": [900, 250] },
+    { "id": "a-to-digi", "from": "api", "to": "digikala", "label": "scrape content", "variant": "dashed", "fromSide": "bottom", "toSide": "bottom", "labelAt": [900, 450] },
+    { "id": "legacy-to-db", "from": "legacy", "to": "db", "label": "import legacy catalog", "variant": "dashed", "fromSide": "left", "toSide": "bottom", "labelAt": [1000, 480] }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Storefront + Admin SPA", "items": ["One React 19 SPA for customers and admin dashboard", "Zod schemas shared through @tamas/shared", "Glassmorphism admin UI with dark/light themes"] },
+    { "dot": "cyan", "title": "API Core", "items": ["Fastify 5 with Drizzle ORM over PostgreSQL", "OTP auth, rate limiting, wallet, payments", "Catalog, orders, CRM, and admin routes"] },
+    { "dot": "violet", "title": "Integrations", "items": ["Google Sheets: price + stock source of truth", "Telegram: real-time event notifications", "CRM: bi-directional order/product/person sync", "Zibal payment gateway + wallet system"] }
+  ]
+}

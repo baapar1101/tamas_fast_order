@@ -29,18 +29,19 @@ export interface SheetTransport {
 const googleTransport: SheetTransport = { read: readTab, write: writeTab };
 
 /**
- * Two-way sync between Postgres and Google Sheets.
+ * Sync between Postgres and Google Sheets. Products are a one-way projection
+ * of the site database; the remaining mappings retain three-way merge support.
  *
  * A pass over one tab does this:
  *   1. read the tab and the matching database rows
- *   2. for every key on both sides, compare each side against `sheet_hash` —
+ *   2. for merge-owned tabs, compare each side against `sheet_hash` —
  *      the fingerprint saved the last time the two agreed. Whichever side moved
  *      away from that baseline is the side that changed. Only when *both* moved
- *      is it a real conflict. Product price/inventory columns always resolve
- *      to Sheets and all other conflicting columns resolve to the database;
- *      every differing column is written to `sync_conflicts` with its actual
- *      winner so the panel can show what was overwritten and why
- *   3. keys only in the sheet are inserted into the database
+ *      is it a real conflict. Every differing column is written to
+ *      `sync_conflicts` with its actual winner so the panel can show what was
+ *      overwritten and why
+ *   3. product rows always come from the database; Sheet-only product rows
+ *      are removed and can never recreate a deleted site product
  *   4. keys only in the database are appended to the sheet
  *   5. the whole tab is rewritten once, in a single API call, and the new
  *      baseline hashes are stored
@@ -158,7 +159,7 @@ async function syncEntity(
   const dbByKey = new Map(dbRows.map((r) => [r.key, r]));
 
   /* ---------- sheet → database ---------- */
-  if (direction === 'pull' || direction === 'both') {
+  if (!mapping.databaseAuthoritative && (direction === 'pull' || direction === 'both')) {
     for (const sheetRow of sheetRows) {
       const dbRow = dbByKey.get(sheetRow.key);
 
@@ -260,7 +261,9 @@ async function syncEntity(
     const fresh = await mapping.loadDbRows();
     const out: string[][] = [mapping.columns];
     const marks: Array<{ key: string; hash: string }> = [];
-    const sheetAuthoritative = new Set(mapping.sheetAuthoritativeColumns ?? []);
+    const sheetAuthoritative = new Set(
+      mapping.databaseAuthoritative ? [] : (mapping.sheetAuthoritativeColumns ?? []),
+    );
 
     for (const row of fresh) {
       const sheetRow = sheetByKey.get(row.key);
@@ -281,12 +284,16 @@ async function syncEntity(
       marks.push({ key: row.key, hash: outputHash });
     }
 
-    // Rows the sheet has that the database does not are kept, so a person's
-    // in-progress row is never wiped by a push.
+    // For merge-owned tabs, preserve rows that exist only in Sheets. Products
+    // are database-owned, so omitting such rows intentionally removes them.
     const dbKeys = new Set(fresh.map((r) => r.key));
-    for (const sheetRow of sheetRows) {
-      if (dbKeys.has(sheetRow.key)) continue;
-      out.push(mapping.columns.map((c) => sheetRow.cells[c] ?? ''));
+    if (!mapping.databaseAuthoritative) {
+      for (const sheetRow of sheetRows) {
+        if (dbKeys.has(sheetRow.key)) continue;
+        out.push(mapping.columns.map((c) => sheetRow.cells[c] ?? ''));
+      }
+    } else {
+      result.pushed += sheetRows.filter((row) => !dbKeys.has(row.key)).length;
     }
 
     if (!dryRun) {

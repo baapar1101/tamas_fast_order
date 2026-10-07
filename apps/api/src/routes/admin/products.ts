@@ -10,6 +10,7 @@ import { badRequest, conflict, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { buildSearchText, invalidateCatalog, toProductDTO } from '../../services/catalog.js';
 import { logAction } from '../../services/audit.js';
+import { enqueueCrmProductSync } from '../../services/crm-product-sync.js';
 import { duplicateProductMessage, findProductDuplicate } from '../../services/product-duplicates.js';
 
 type TrackingLinkInput = { siteId: number; url: string };
@@ -230,6 +231,7 @@ const routes: FastifyPluginAsync = async (app) => {
       .returning();
     if (!created) throw badRequest('ثبت محصول ناموفق بود.');
     await replaceTrackingLinks(created.id, trackingLinks);
+    await enqueueCrmProductSync(created.productId, 'create');
 
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'create', 'product', created.productId, { title: created.title });
@@ -273,18 +275,24 @@ const routes: FastifyPluginAsync = async (app) => {
       body.color ?? existing.color,
       body.colorEn ?? existing.colorEn,
       body.sku ?? existing.sku,
-      existing.productId,
+      body.productId ?? existing.productId,
     ]);
 
     const [updated] = await db.update(products).set(patch).where(eq(products.id, id)).returning();
     if (trackingLinks !== undefined) await replaceTrackingLinks(id, trackingLinks);
+    if (updated) {
+      if (updated.productId !== existing.productId) {
+        await enqueueCrmProductSync(existing.productId, 'delete', { replacedBy: updated.productId });
+      }
+      await enqueueCrmProductSync(updated.productId, 'update');
+    }
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'update', 'product', existing.productId, body as Record<string, unknown>);
     const trackingLinkMap = await loadTrackingLinks([id]);
     return { ok: true, product: { ...toProductDTO(updated!, null, null, { includeAdminSource: true }), trackingLinks: trackingLinkMap.get(id) ?? [] } };
   });
 
-  /** Soft delete: the row stays so the sheet and past orders keep their reference. */
+  /** Soft delete preserves local order history; mirrors remove the catalogue row. */
   app.delete('/admin/products/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
     const [updated] = await db
@@ -293,6 +301,7 @@ const routes: FastifyPluginAsync = async (app) => {
       .where(eq(products.id, id))
       .returning();
     if (!updated) throw notFound('محصول پیدا نشد.');
+    await enqueueCrmProductSync(updated.productId, 'delete');
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'delete', 'product', updated.productId);
     return { ok: true, message: 'محصول حذف شد.' };
@@ -302,6 +311,7 @@ const routes: FastifyPluginAsync = async (app) => {
     const body = bulkSchema.parse(req.body);
     const now = new Date();
     const where = inArray(products.id, body.ids);
+    const affectedProducts = await db.select({ productId: products.productId }).from(products).where(where);
     let changed = 0;
 
     switch (body.action) {
@@ -346,6 +356,11 @@ const routes: FastifyPluginAsync = async (app) => {
         ).length;
         break;
       }
+    }
+
+    const crmAction = body.action === 'delete' ? 'delete' : body.action === 'restore' ? 'create' : 'update';
+    for (const product of affectedProducts) {
+      await enqueueCrmProductSync(product.productId, crmAction);
     }
 
     invalidateCatalog();
