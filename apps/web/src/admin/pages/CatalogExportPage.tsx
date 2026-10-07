@@ -1,30 +1,11 @@
 import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import type { ProductDTO, CategoryDTO, BrandDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
+import { resolveImageUrl, useImageFallback, waitForImages } from '../../lib/images';
 import { useToast } from '../../components/Toast';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
-
-// Convert image URL to Data URL for html2canvas reliability
-async function loadImageAsDataUrl(url: string): Promise<string | null> {
-  if (!url) return null;
-  if (url.startsWith('data:')) return url;
-  try {
-    const res = await fetch(url, { mode: 'cors' });
-    const blob = await res.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string || null);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-}
 
 export function CatalogExportPage() {
   const toast = useToast();
@@ -75,15 +56,21 @@ export function CatalogExportPage() {
   const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
   const today = new Date().toLocaleDateString('fa-IR');
 
-  const handleGeneratePdf = () => {
+  const handleGeneratePdf = async () => {
     if (products.length === 0) {
       toast.error('هیچ محصولی برای تهیه کاتالوگ یافت نشد.');
       return;
     }
+    setIsGenerating(true);
+    setPdfProgress(10);
+    await waitForImages(printContainerRef.current);
+    setPdfProgress(100);
     toast.ok('لطفاً در پنجره باز شده، گزینه Save as PDF را انتخاب کنید.');
-    setTimeout(() => {
+    window.setTimeout(() => {
       window.print();
-    }, 500);
+      setIsGenerating(false);
+      setPdfProgress(0);
+    }, 100);
   };
 
   return (
@@ -289,10 +276,13 @@ export function CatalogExportPage() {
                               padding: '2px',
                             }}>
                               <img
-                                src={p.imageUrl || '/logo.png'}
+                                src={resolveImageUrl(p.imageUrl)}
                                 alt={p.title}
                                 style={{ maxHeight: '66px', maxWidth: '100%', objectFit: 'contain' }}
                                 crossOrigin="anonymous"
+                                loading="eager"
+                                decoding="async"
+                                onError={useImageFallback}
                               />
                             </div>
 

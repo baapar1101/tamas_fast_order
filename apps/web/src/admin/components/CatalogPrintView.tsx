@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { ProductDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
+import { resolveImageUrl, useImageFallback, waitForImages } from '../../lib/images';
 
 interface CatalogPrintViewProps {
   query: Record<string, any>;
@@ -20,11 +21,11 @@ export function CatalogPrintView({ query, onClose }: CatalogPrintViewProps) {
 
   useEffect(() => {
     if (data && !isLoading) {
-      // Small delay to let images render before triggering print
-      const timer = setTimeout(() => {
-        window.print();
-      }, 800);
-      return () => clearTimeout(timer);
+      let cancelled = false;
+      void waitForImages(document.querySelector('[data-catalog-print-root]')).then(() => {
+        if (!cancelled) window.print();
+      });
+      return () => { cancelled = true; };
     }
   }, [data, isLoading]);
 
@@ -58,7 +59,7 @@ export function CatalogPrintView({ query, onClose }: CatalogPrintViewProps) {
   const items = Array.isArray(data.items) ? data.items : [];
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-white overflow-y-auto print:static print:bg-transparent print:overflow-visible text-right" dir="rtl">
+    <div data-catalog-print-root className="fixed inset-0 z-[9999] bg-white overflow-y-auto print:static print:bg-transparent print:overflow-visible text-right" dir="rtl">
       {/* Hide close button when printing */}
       <div className="p-4 bg-gray-100 border-b print:hidden flex justify-between items-center sticky top-0 z-10 shadow-sm">
         <div>
@@ -87,7 +88,14 @@ export function CatalogPrintView({ query, onClose }: CatalogPrintViewProps) {
             <div key={product.id} className="border border-gray-200 rounded-lg p-4 flex flex-col items-center text-center break-inside-avoid shadow-sm print:shadow-none">
               <div className="w-full aspect-square bg-gray-50 rounded mb-3 flex items-center justify-center overflow-hidden">
                 {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.title} className="max-w-full max-h-full object-contain" />
+                  <img
+                    src={resolveImageUrl(product.imageUrl)}
+                    alt={product.title}
+                    className="max-w-full max-h-full object-contain"
+                    loading="eager"
+                    decoding="async"
+                    onError={useImageFallback}
+                  />
                 ) : (
                   <span className="text-gray-300 text-sm">بدون تصویر</span>
                 )}

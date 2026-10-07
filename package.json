@@ -28,6 +28,7 @@
     "import:legacy": "npm run import:legacy -w @tamas/api",
     "sync:pull": "npm run sync:pull -w @tamas/api",
     "sync:push": "npm run sync:push -w @tamas/api",
+    "images:mirror": "npm run images:mirror -w @tamas/api",
     "jules": "node scripts/jules.mjs",
     "test": "npm run test -w @tamas/shared && npm run test -w @tamas/api",
     "start": "npm run start -w @tamas/api",

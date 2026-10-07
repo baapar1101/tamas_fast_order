@@ -3,6 +3,7 @@ import { SYNC_ENTITIES } from '@tamas/shared';
 import { env } from './env.js';
 import { pruneSessions } from './services/auth.js';
 import { pruneOtpCodes } from './services/otp.js';
+import { isProductImageMirrorRunning, mirrorProductImages } from './services/product-image-mirror.js';
 import { isSyncRunning, pruneConflicts, runSync } from './services/sheets/sync.js';
 
 /**
@@ -32,6 +33,28 @@ export function startScheduler(log: FastifyBaseLogger): () => void {
     timers.push(setTimeout(() => void tick(), 15_000));
     timers.push(setInterval(() => void tick(), interval));
     log.info(`sheets sync scheduled every ${env.SHEETS_SYNC_INTERVAL_SECONDS}s`);
+  }
+
+  if (env.PRODUCT_IMAGE_MIRROR_ENABLED && env.PRODUCT_IMAGE_MIRROR_INTERVAL_SECONDS > 0) {
+    const interval = env.PRODUCT_IMAGE_MIRROR_INTERVAL_SECONDS * 1000;
+    const mirrorImages = async () => {
+      if (isProductImageMirrorRunning() || isSyncRunning()) return;
+      try {
+        const report = await mirrorProductImages();
+        if (report.localizedImages > 0 || report.failedImages > 0) {
+          log.info({
+            localized: report.localizedImages,
+            failed: report.failedImages,
+            remainingProducts: report.remainingProducts,
+          }, 'product image mirror finished');
+        }
+      } catch (err) {
+        log.warn({ err }, 'product image mirror failed');
+      }
+    };
+    timers.push(setTimeout(() => void mirrorImages(), 30_000));
+    timers.push(setInterval(() => void mirrorImages(), interval));
+    log.info(`product image mirror scheduled every ${env.PRODUCT_IMAGE_MIRROR_INTERVAL_SECONDS}s`);
   }
 
   const housekeeping = async () => {

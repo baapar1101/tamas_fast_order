@@ -40,6 +40,11 @@ const envSchema = z.object({
   /** Public base the browser uses to fetch uploads; the API serves it itself by default. */
   STORAGE_PUBLIC_URL: z.string().default('/uploads'),
   UPLOAD_MAX_BYTES: z.coerce.number().int().min(1024).default(15 * 1024 * 1024),
+  /** Periodically copy remote product images into local storage. */
+  PRODUCT_IMAGE_MIRROR_ENABLED: bool.default(true),
+  PRODUCT_IMAGE_MIRROR_INTERVAL_SECONDS: z.coerce.number().int().min(0).max(86400).default(300),
+  PRODUCT_IMAGE_MIRROR_BATCH_SIZE: z.coerce.number().int().min(1).max(1000).default(100),
+  PRODUCT_IMAGE_MIRROR_CONCURRENCY: z.coerce.number().int().min(1).max(8).default(4),
 
   /* --- Google Sheets --- */
   SHEETS_ENABLED: bool.default(false),

@@ -11,7 +11,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/index.js",
     "start:prod": "cross-env PORT=3102 NODE_ENV=production node dist/src/index.js",
-    "test": "tsx --test tests/hash.test.ts tests/pagination.test.ts",
+    "test": "tsx --test tests/hash.test.ts tests/pagination.test.ts tests/product-image-url.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
@@ -20,7 +20,8 @@
     "db:backfill-payments": "tsx scripts/backfill-payments.ts",
     "import:legacy": "tsx scripts/import-legacy.ts",
     "sync:pull": "tsx scripts/sync-cli.ts pull",
-    "sync:push": "tsx scripts/sync-cli.ts push"
+    "sync:push": "tsx scripts/sync-cli.ts push",
+    "images:mirror": "tsx scripts/mirror-product-images.ts"
   },
   "dependencies": {
     "@e965/xlsx": "^0.20.3",
