@@ -651,7 +651,7 @@ export function StorefrontPage() {
                 </button>
               </div>
               <div className="switch-row">
-                <span>پیشنهاد ویژه</span>
+                <span>هرکی میگه ۱۶ نیست!</span>
                 <button
                   type="button"
                   className={`switch${promotion ? ' on' : ''}`}
@@ -664,7 +664,7 @@ export function StorefrontPage() {
                 </button>
               </div>
               <div className="switch-row">
-                <span>تسویه چکی و اعتباری</span>
+                <span>سبد های پر سود جشنواره</span>
                 <button
                   type="button"
                   className={`switch${creditOnly ? ' on' : ''}`}

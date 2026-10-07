@@ -4,7 +4,7 @@
 > **Surface:** Web
 > **Theme:** تماس مارکت | فروشگاه دیجیتال
 
-Tamas Market is an Iranian wholesale (omdeh) webstore for mobile accessories — phone cases, chargers, cables, glass protectors, earphones — rebuilt on Node.js + PostgreSQL + React with two-way Google Sheets sync. Fast order, wholesale pricing, and a dark ops dashboard for the admin. 
+Tamas Market is an Iranian wholesale (omdeh) webstore for mobile accessories — phone cases, chargers, cables, glass protectors, earphones — rebuilt on Node.js + PostgreSQL + React. The site is authoritative for products and publishes them to Google Sheets. Fast order, wholesale pricing, and a dark ops dashboard for the admin.
 
 This document serves as the single source of truth for the Tamas Market design system, layout rules, and responsive contracts.
 

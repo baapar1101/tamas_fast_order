@@ -1,4 +1,6 @@
-# CRITICAL: CRM Integration Complete - Summary
+# CRM Integration — Historical Implementation Notes
+
+This document records an earlier implementation state. Verify all endpoints and integration behavior against current source and live CRM before using it operationally. For product ownership, the site is authoritative and CRM is a downstream mirror.
 
 The tamas-fast-order site and Hesabix/MarkStreet CRM integration is now fully implemented with bidirectional sync, admin panel CRM tab, database-synced configuration, and production-ready error handling.
 
