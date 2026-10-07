@@ -18,7 +18,6 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
     "db:backfill-payments": "tsx scripts/backfill-payments.ts",
-    "import:legacy": "tsx scripts/import-legacy.ts",
     "sync:pull": "tsx scripts/sync-cli.ts pull",
     "sync:push": "tsx scripts/sync-cli.ts push",
     "images:mirror": "tsx scripts/mirror-product-images.ts",

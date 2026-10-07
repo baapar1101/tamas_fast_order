@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ColorDTO, ProductGroupDTO } from '@tamas/shared';
 import { api } from '../lib/api';
-import { getFallbackBootstrap } from './fallbackData';
 
 export interface BootstrapData {
   categories: CategoryDTO[];
@@ -23,14 +22,7 @@ export interface StorefrontSlide {
 export function useBootstrap() {
   return useQuery({
     queryKey: ['bootstrap'],
-    queryFn: async () => {
-      try {
-        return await api.get<BootstrapData>('/catalog/bootstrap');
-      } catch (err) {
-        console.warn('API bootstrap failed, falling back to legacy catalog snapshot:', err);
-        return getFallbackBootstrap();
-      }
-    },
+    queryFn: () => api.get<BootstrapData>('/catalog/bootstrap'),
     staleTime: 5 * 60_000,
   });
 }

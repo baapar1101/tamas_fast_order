@@ -1,6 +1,6 @@
 /* ========================================================================== 
    Tamas Admin UI Foundation
-   Final normalization layer imported after every legacy admin stylesheet.
+   Final normalization layer imported after the active admin stylesheets.
    It intentionally scopes all rules to the admin shell/body and portaled
    dialogs so storefront components remain untouched.
    ========================================================================== */
@@ -364,7 +364,7 @@ body.admin-page-active:not(.admin-theme-light) {
   .pe-accordion-panel { animation: none; transition: none; }
 }
 
-/* One control contract, including legacy/classless admin controls. */
+/* One control contract, including classless admin controls. */
 .admin-body-shell :where(.a-input,.a-select,.a-textarea,input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="color"]):not([type="range"]):not([type="hidden"]):not([type="button"]):not([type="submit"]),select,textarea),
 body.admin-page-active :where(.modal-backdrop,.admin-modal-backdrop) :where(.a-input,.a-select,.a-textarea,input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="color"]):not([type="range"]):not([type="hidden"]):not([type="button"]):not([type="submit"]),select,textarea) {
   box-sizing: border-box;

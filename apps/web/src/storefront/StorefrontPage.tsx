@@ -454,6 +454,11 @@ export function StorefrontPage() {
       </header>
 
       <main className="container" data-mobile-tab={mobileTab}>
+        {bootstrap.isError && (
+          <div className="card" role="alert" style={{ color: 'var(--danger)', padding: 20, marginBottom: 20 }}>
+            دریافت دسته‌بندی‌ها و تنظیمات فروشگاه ناموفق بود. برای نمایش اطلاعات به‌روز، صفحه را دوباره بارگذاری کنید.
+          </div>
+        )}
         {/* Mobile-only Categories View */}
         <div className="mobile-only-categories">
           <div style={{ padding: '20px 16px', background: 'var(--card)', borderBottom: '1px solid var(--tamas-border)', position: 'sticky', top: 0, zIndex: 10 }}>

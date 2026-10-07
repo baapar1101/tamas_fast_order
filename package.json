@@ -25,7 +25,6 @@
     "db:generate": "npm run db:generate -w @tamas/api",
     "db:migrate": "npm run db:migrate -w @tamas/api",
     "db:seed": "npm run db:seed -w @tamas/api",
-    "import:legacy": "npm run import:legacy -w @tamas/api",
     "sync:pull": "npm run sync:pull -w @tamas/api",
     "sync:push": "npm run sync:push -w @tamas/api",
     "images:mirror": "npm run images:mirror -w @tamas/api",

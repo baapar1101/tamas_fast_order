@@ -8,5 +8,6 @@
 | `design-library/` | مجموعهٔ مستقل نمونه‌های سیستم طراحی |
 | `21st-dev-components/` | نمونه کامپوننت‌ها و آرشیو 21st.dev |
 | `crm/openapi.json` | نسخهٔ ذخیره‌شدهٔ مشخصات API مربوط به CRM |
+| [`legacy-admin-snapshot/`](legacy-admin-snapshot/README.md) | نسخهٔ تاریخی پنل مدیریت و فروشگاه قبلی؛ فقط برای مطالعه، نه اجرا یا استقرار |
 
 راهنماهای Markdown خود پروژه در [`docs/`](../docs/README.md) هستند. فایل‌های README و LICENSE داخل هر بستهٔ مرجع، همراه همان بسته نگهداری شده‌اند.

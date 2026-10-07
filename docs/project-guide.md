@@ -3,7 +3,7 @@
 فروشگاه عمده‌فروشی لوازم جانبی موبایل، بازنویسی‌شده روی Node.js + PostgreSQL + React،
 با انتشار محصولات از سایت به Google Sheets و همگام‌سازی سایر تب‌ها طبق قواعد خودشان.
 
-نسخهٔ قبلی (Google Apps Script + یک فایل `index.html`) در پوشهٔ `legacy/` نگه داشته شده است.
+نسخهٔ قبلی، از جمله پنل مدیریت Google Apps Script، فقط برای مطالعه در `references/legacy-admin-snapshot/` بایگانی شده و در برنامهٔ فعلی اجرا نمی‌شود.
 
 ---
 
@@ -17,8 +17,7 @@ tamas_fast_order/
 ├── packages/
 │   └── shared/       تایپ‌ها و اسکیماهای zod مشترک بین فرانت و بک
 ├── docs/             راهنماها و مستندات پروژه
-├── references/       نمونه‌ها و داده‌های مرجع خارجی
-└── legacy/           کد نسخهٔ قبلی (Apps Script، index.html، اسکریپت‌های پایتون)
+└── references/       نمونه‌ها و بایگانی تاریخی برنامهٔ قبلی
 ```
 
 | لایه | فناوری | چرا |
@@ -59,10 +58,7 @@ cp apps/api/.env.example apps/api/.env
 # ۴. ساخت جدول‌ها
 npm run db:migrate
 
-# ۵. انتقال داده‌های قبلی (اختیاری)
-npm run import:legacy
-
-# ۶. اجرا
+# ۵. اجرا
 npm run dev
 ```
 
@@ -223,7 +219,6 @@ location /uploads/ {
 | `npm run db:generate` | ساخت فایل migration بعد از تغییر اسکیما |
 | `npm run db:migrate` | اعمال migrationها |
 | `npm run db:seed` | چند محصول نمونه |
-| `npm run import:legacy` | وارد کردن `legacy/catalog_backup.json` |
 | `npx tsx apps/api/scripts/test-sync.ts` | تست موتور سینک روی یک شیت درون‌حافظه‌ای |
 
 ### اتوماسیون توسعه با Jules
@@ -262,48 +257,13 @@ npm run jules -- help
 
 ## استقرار
 
-```bash
-npm ci
-npm run build
-npm run db:migrate
+محیط تولید روی سرور `markstreet` با **aaPanel** اداره می‌شود؛ نمونهٔ عمومی بالا
+نمایندهٔ تنظیمات فعلی نیست. مسیر واقعی پروژه، نقش هر سایت، دستور راه‌اندازی API،
+جای فایل‌های ساخته‌شدهٔ فرانت و کنترل‌های پس از انتشار در
+[راهنمای استقرار aaPanel](operations/aapanel-deployment.md) ثبت شده‌اند.
 
-# API با systemd یا pm2:
-NODE_ENV=production node apps/api/dist/src/index.js
-
-# فرانت: محتوای apps/web/dist را با nginx سرو کنید
-```
-
-پیکربندی nginx (فرانت و API روی یک دامنه، تا کوکی و آپلود بدون CORS کار کنند):
-
-```nginx
-server {
-    server_name shop.example.com;
-
-    root /var/www/tamas/web;
-    index index.html;
-
-    # SPA: هر مسیری که فایل نیست به index.html می‌رود
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    location /api/ {
-        proxy_pass http://127.0.0.1:3001;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /uploads/ {
-        alias /var/www/tamas/storage/;
-        expires 30d;
-    }
-}
-```
-
-اگر API پشت nginx است، در `.env` مقدار `TRUST_PROXY=true` را بگذارید تا محدودیت
-نرخ درخواست روی IP واقعی کاربر اعمال شود، نه IP پروکسی.
+تغییرات Nginx و راه‌اندازی مجدد سرویس باید با آگاهی از پیکربندی aaPanel انجام شوند.
+مهاجرت دیتابیس را نیز فقط پس از بررسی تغییرات و تهیهٔ پشتیبان اجرا کنید.
 
 ---
 
