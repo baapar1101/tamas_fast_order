@@ -312,6 +312,12 @@ const routes: FastifyPluginAsync = async (app) => {
     const now = new Date();
     const where = inArray(products.id, body.ids);
     const affectedProducts = await db.select({ productId: products.productId }).from(products).where(where);
+    if (body.action === 'restore') {
+      const invalidCode = affectedProducts.find((product) => !/^0\d+$/.test(product.productId));
+      if (invalidCode) {
+        throw badRequest(`محصول با کد ${invalidCode.productId} قابل بازیابی نیست؛ کد باید با صفر شروع شود.`);
+      }
+    }
     let changed = 0;
 
     switch (body.action) {
