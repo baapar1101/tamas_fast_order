@@ -904,9 +904,10 @@
   transform: scale(0.98);
 }
 
-.product.is-promotion {
-  border-color: #f0c36d;
-  box-shadow: 0 0 0 1px #f7dda5 inset, var(--shadow);
+.product-accordion.is-promotion,
+.product-card.is-promotion {
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.5), var(--shadow);
 }
 
 .promo-tag {

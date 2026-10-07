@@ -77,7 +77,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       <article className={`product-accordion${isPromo ? ' is-promotion' : ''}`}>
         {isPromo && (
           <div className="promo-tag">
-            <span className="star-icon"><Icon name="star-fill" /></span> پیشنهاد ویژه
+            <span className="star-icon"><Icon name="star-fill" /></span> هرکی میگه ۱۶ نیست،فقط تا ۲۰ام
           </div>
         )}
 
@@ -186,7 +186,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
     <article className={`product-card${isPromo ? ' is-promotion' : ''}`}>
       {isPromo && (
         <div className="promo-tag">
-          <span className="star-icon"><Icon name="star-fill" /></span> پیشنهاد ویژه
+          <span className="star-icon"><Icon name="star-fill" /></span> هرکی میگه ۱۶ نیست،فقط تا ۲۰ام
         </div>
       )}
 
