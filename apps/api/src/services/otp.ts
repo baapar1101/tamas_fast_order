@@ -87,7 +87,7 @@ export async function sendOtp(phone: string, ip: string | undefined): Promise<Se
   const expiresAt = new Date(Date.now() + env.OTP_TTL_SECONDS * 1000);
 
   const sendCodeSms = async () => {
-    if (env.OTP_PROVIDER === 'rastin') {
+    if (env.OTP_PROVIDER === 'rastin' || env.OTP_PROVIDER === 'payamresan') {
       const sms = await sendTemplatedSms(phone, 'sms_template_otp', { code }, `کد تایید شما در تماس مارکت: {code}`);
       if (!sms.ok) throw badRequest(sms.error || 'ارسال پیامک ناموفق بود.');
     }

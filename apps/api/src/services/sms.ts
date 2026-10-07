@@ -1,7 +1,18 @@
 import { env } from '../env.js';
 import { getAllSettings } from './settings.js';
+import { sendPayamresanSms } from './payamresan-sms.js';
 
 export async function sendSms(toPhone: string, text: string): Promise<{ ok: boolean; error?: string }> {
+  if (env.SMS_PROVIDER === 'payamresan') {
+    return sendPayamresanSms({
+      apiKey: env.PAYAMRESAN_API_KEY,
+      sender: env.PAYAMRESAN_SENDER,
+      baseUrl: env.PAYAMRESAN_BASE_URL,
+      toPhone,
+      text,
+    });
+  }
+
   if (!env.RASTIN_SMS_USERNAME || !env.RASTIN_SMS_PASSWORD || !env.RASTIN_SMS_FROM) {
     return { ok: false, error: 'اطلاعات سامانه پیامک تنظیم نشده است.' };
   }
