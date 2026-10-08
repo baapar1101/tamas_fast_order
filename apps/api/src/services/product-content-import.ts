@@ -160,7 +160,7 @@ async function fetchProductPayload(externalId: string): Promise<unknown> {
   return response.json().catch(() => { throw new AppError('پاسخ سرویس اطلاعات محصول قابل خواندن نبود.', 502, 'upstream_error'); });
 }
 
-async function downloadImage(urlString: string, externalId: string, index: number, uploadedBy: number): Promise<string> {
+async function downloadImage(urlString: string, externalId: string, index: number, uploadedBy: number | null): Promise<string> {
   let url: URL;
   try {
     url = new URL(urlString);
@@ -190,7 +190,7 @@ async function downloadImage(urlString: string, externalId: string, index: numbe
   return uploaded.url;
 }
 
-async function prepareContent(link: string, uploadedBy: number): Promise<ImportedProductContent> {
+async function prepareContent(link: string, uploadedBy: number | null): Promise<ImportedProductContent> {
   const externalId = extractExternalProductId(link);
   const parsed = parseProductContentPayload(await fetchProductPayload(externalId));
   const localImages: string[] = [];
@@ -226,5 +226,19 @@ export async function importProductContent(productDbId: number, uploadedBy: numb
     rating: updated.rating,
     updatedAt: now.toISOString(),
   };
+}
+
+/** Restore missing image files from the product source without overwriting editorial or sales data. */
+export async function restoreProductImages(productDbId: number): Promise<{ productId: string; imageCount: number }> {
+  const [product] = await db.select().from(products).where(eq(products.id, productDbId)).limit(1);
+  if (!product || product.deletedAt) throw notFound('محصول پیدا نشد.');
+  if (!product.digikalaLink?.trim()) throw badRequest('برای این محصول لینک منبع ثبت نشده است.');
+
+  const { imageUrl, gallery } = await prepareContent(product.digikalaLink, null);
+  if (!imageUrl) throw new AppError('تصویری در منبع محصول پیدا نشد.', 502, 'upstream_error');
+
+  await db.update(products).set({ imageUrl, gallery, updatedAt: new Date() }).where(eq(products.id, product.id));
+  invalidateCatalog();
+  return { productId: product.productId, imageCount: 1 + gallery.length };
 }
 

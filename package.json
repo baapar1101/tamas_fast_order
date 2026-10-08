@@ -28,6 +28,7 @@
     "sync:pull": "npm run sync:pull -w @tamas/api",
     "sync:push": "npm run sync:push -w @tamas/api",
     "images:mirror": "npm run images:mirror -w @tamas/api",
+    "images:repair-missing": "npm run images:repair-missing -w @tamas/api --",
     "products:repair-codes": "tsx apps/api/scripts/repair-product-code-prefixes.ts",
     "jules": "node scripts/jules.mjs",
     "test": "npm run test -w @tamas/shared && npm run test -w @tamas/api",
