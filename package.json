@@ -33,6 +33,7 @@
     "products:repair-codes": "tsx apps/api/scripts/repair-product-code-prefixes.ts",
     "products:clean-title-colors": "npm run products:clean-title-colors -w @tamas/api --",
     "products:normalize-title-case": "npm run products:normalize-title-case -w @tamas/api --",
+    "stock:import-excel": "npm run stock:import-excel -w @tamas/api --",
     "jules": "node scripts/jules.mjs",
     "test": "npm run test -w @tamas/shared && npm run test -w @tamas/api",
     "start": "npm run start -w @tamas/api",

@@ -121,7 +121,9 @@ export function SyncPage() {
     onSuccess: (data) => {
       const r = data.report;
       setExcelReport(r);
-      toast.ok(`بروزرسانی با اکسل موفق بود: ${r.updated} محصول بروز شد.`);
+      const message = `از اکسل ${formatNumber(r.updated)} محصول به‌روز شد${r.skipped ? ` و ${formatNumber(r.skipped)} ردیف رد شد` : ''}.`;
+      if (r.skipped || r.errors.length) toast.show(message, 'info');
+      else toast.ok(message);
       invalidate();
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
