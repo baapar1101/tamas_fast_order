@@ -3,7 +3,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { z } from 'zod';
-import { productPatchSchema, productWriteSchema } from '@tamas/shared';
+import { formatProductTitle, productPatchSchema, productWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { brands, categories, products, productTrackingLinks, trackingSites } from '../../db/schema.js';
 import { badRequest, conflict, notFound } from '../../lib/errors.js';
@@ -198,6 +198,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.post('/admin/products', async (req) => {
     const body = productWriteSchema.parse(req.body);
+    body.title = formatProductTitle(body.title);
     const duplicate = await findProductDuplicate(body);
     if (duplicate) throw conflict(duplicateProductMessage(duplicate));
 
@@ -242,6 +243,7 @@ const routes: FastifyPluginAsync = async (app) => {
   app.patch('/admin/products/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
     const body = productPatchSchema.parse(req.body);
+    if (body.title !== undefined) body.title = formatProductTitle(body.title);
 
     const [existing] = await db.select().from(products).where(eq(products.id, id)).limit(1);
     if (!existing) throw notFound('محصول پیدا نشد.');

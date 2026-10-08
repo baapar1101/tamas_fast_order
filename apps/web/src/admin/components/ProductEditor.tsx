@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ProductDTO, TrackingSiteDTO } from '@tamas/shared';
-import { formatNumber } from '@tamas/shared';
+import { formatNumber, formatProductTitle } from '@tamas/shared';
 import { api } from '../../lib/api';
 import { ImagePicker } from './ImagePicker';
 import { Price } from '../../components/Price';
@@ -298,7 +298,8 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
   const trackingSites = (trackingSitesData?.items ?? []).filter((site) => site.isActive || form.trackingLinks.some((link) => link.siteId === site.id));
   const attrByKey = new Map((attributeDefs ?? []).map((d) => [d.name.trim(), d]));
 
-  const set = <K extends keyof ProductForm>(key: K, value: ProductForm[K]) => setForm({ ...form, [key]: value });
+  const set = <K extends keyof ProductForm>(key: K, value: ProductForm[K]) =>
+    setForm((current) => ({ ...current, [key]: value }));
 
   const setTrackingUrl = (siteId: number, url: string) => {
     const existing = form.trackingLinks.find((link) => link.siteId === siteId);
@@ -369,7 +370,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
     onSave({
       ...form,
       productId: form.productId.trim(),
-      title: form.title.trim(),
+      title: formatProductTitle(form.title.trim()),
       oldPrice: form.oldPrice && form.oldPrice > 0 ? form.oldPrice : null,
     });
   }
@@ -445,13 +446,8 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                   id="pe-title"
                   className="a-input"
                   value={form.title}
-                  onChange={(e) => {
-                    const formatted = e.target.value.replace(
-                      /([a-zA-Z]+)/g,
-                      (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
-                    );
-                    set('title', formatted);
-                  }}
+                  onChange={(e) => set('title', e.target.value)}
+                  onBlur={(e) => set('title', formatProductTitle(e.target.value))}
                 />
               </div>
               <div className="a-field">

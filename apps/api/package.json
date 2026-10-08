@@ -25,6 +25,7 @@
     "images:import-sku": "tsx scripts/import-product-images-by-sku.ts",
     "products:repair-codes": "tsx scripts/repair-product-code-prefixes.ts",
     "products:clean-title-colors": "tsx scripts/clean-product-title-colors.ts",
+    "products:normalize-title-case": "tsx scripts/normalize-product-title-case.ts",
     "products:audit-sources": "tsx scripts/audit-product-sources.ts"
   },
   "dependencies": {

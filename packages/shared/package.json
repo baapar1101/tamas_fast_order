@@ -14,7 +14,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch",
-    "test": "tsx --test tests/phone.test.ts tests/money.test.ts tests/schemas.test.ts",
+    "test": "tsx --test tests/phone.test.ts tests/money.test.ts tests/schemas.test.ts tests/product-title.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepare": "tsc -p tsconfig.json"
   },
