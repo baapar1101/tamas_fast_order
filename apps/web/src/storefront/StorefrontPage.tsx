@@ -13,12 +13,13 @@ import { createColorMap } from './productColor';
 import { useBootstrap, useDebounced, useProducts, type CatalogFilters, type StorefrontSlide } from './hooks';
 import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { useDarkTheme } from '../components/useDarkTheme';
 import { CrmChat } from '../components/CrmChat';
 import { StoreFooter } from './StoreFooter';
 import { IncompleteProfilePopup } from './IncompleteProfilePopup';
 import { GuestPromoPopup } from './GuestPromoPopup';
 import { GoldenCampaignCopy } from './GoldenCampaignCopy';
-import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_IMAGE_URL, isGoldenCampaignSlide, visibleCampaignSlides } from './goldenCampaign';
+import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_IMAGE_URL, GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL, isGoldenCampaignSlide, visibleCampaignSlides } from './goldenCampaign';
 import './storefront.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
@@ -68,6 +69,7 @@ function ProductSkeletons({ viewMode }: { viewMode: 'list' | 'grid' }) {
 
 export function StorefrontPage() {
   const toast = useToast();
+  const isDarkTheme = useDarkTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, complete, logout } = useAuth();
@@ -431,12 +433,14 @@ export function StorefrontPage() {
         {heroSlides.length > 0 && <section className={`hero-slider${heroSlides[activeSlide]?.imageUrl === GOLDEN_CAMPAIGN_IMAGE_URL ? ' hero-slider--golden' : ''}`} aria-label="بنرهای فروشگاه" aria-roledescription="carousel">
           {heroSlides.map((slide, i) => {
             const isGoldenCampaign = isGoldenCampaignSlide(slide);
+            const imageUrl = isGoldenCampaign && !isDarkTheme ? GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL : slide.imageUrl;
+            const mobileImageUrl = isGoldenCampaign ? imageUrl : slide.mobileImageUrl;
             const picture = (
               <picture>
-                {slide.mobileImageUrl && <source media="(max-width: 768px)" srcSet={slide.mobileImageUrl} />}
+                {mobileImageUrl && <source media="(max-width: 768px)" srcSet={mobileImageUrl} />}
                 <img
                   className="hero-slide-image"
-                  src={slide.imageUrl}
+                  src={imageUrl}
                   alt={isGoldenCampaign ? '' : slide.title || `بنر ${i + 1}`}
                   loading={i === 0 ? 'eager' : 'lazy'}
                   fetchPriority={i === 0 ? 'high' : 'auto'}

@@ -4,8 +4,9 @@ import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 import { ImagePicker } from '../components/ImagePicker';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { useDarkTheme } from '../../components/useDarkTheme';
 import { GoldenCampaignCopy } from '../../storefront/GoldenCampaignCopy';
-import { GOLDEN_CAMPAIGN_END_AT, isGoldenCampaignSlide } from '../../storefront/goldenCampaign';
+import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL, isGoldenCampaignSlide } from '../../storefront/goldenCampaign';
 
 interface Slide {
   id: number;
@@ -39,6 +40,7 @@ const EMPTY_FORM: SlideForm = {
 
 export function SlidesPage() {
   const toast = useToast();
+  const isDarkTheme = useDarkTheme();
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -128,6 +130,7 @@ export function SlidesPage() {
   }
 
   const previewImage = previewDevice === 'mobile' ? formData.mobileImageUrl || formData.imageUrl : formData.imageUrl;
+  const themedPreviewImage = isGoldenCampaignSlide(formData) && !isDarkTheme ? GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL : previewImage;
 
   return (
     <div className="a-page a-fade slides-admin-page">
@@ -223,7 +226,7 @@ export function SlidesPage() {
                 </div>
               </div>
               <div className={`slides-preview-frame slides-preview-frame--${previewDevice}${isGoldenCampaignSlide(formData) ? ' slides-preview-frame--golden' : ''}`}>
-                {previewImage ? <img src={previewImage} alt={formData.title || 'پیش‌نمایش بنر'} /> : <div className="slides-preview-empty">تصویر بنر را انتخاب کنید</div>}
+                {themedPreviewImage ? <img src={themedPreviewImage} alt={formData.title || 'پیش‌نمایش بنر'} /> : <div className="slides-preview-empty">تصویر بنر را انتخاب کنید</div>}
                 {previewImage && isGoldenCampaignSlide(formData) && <GoldenCampaignCopy />}
               </div>
               {isGoldenCampaignSlide(formData) && <p className="a-hint mt-3">این بنر پس از پایان ۲۰ مهر ۱۴۰۵ به‌طور خودکار از فروشگاه پنهان می‌شود{Date.now() >= GOLDEN_CAMPAIGN_END_AT ? ' (اکنون منقضی شده است).' : '.'}</p>}
