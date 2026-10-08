@@ -13,21 +13,16 @@ import {
   CHEQUE_STATUS_LABELS,
   formatMoney,
 } from '@tamas/shared';
-import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
 
-interface Props {
-  open: boolean;
-  onClose: () => void;
-}
-
-export function CreditDialog({ open, onClose }: Props) {
+export function CreditDashboard({ onBack }: { onBack: () => void }) {
   const toast = useToast();
   const { user } = useAuth();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [existingApp, setExistingApp] = useState<CreditApplicationDTO | null>(null);
   const [dashboard, setDashboard] = useState<CreditDashboardDTO | null>(null);
@@ -60,9 +55,10 @@ export function CreditDialog({ open, onClose }: Props) {
   const [chequeNotes, setChequeNotes] = useState('');
   const [submittingCheque, setSubmittingCheque] = useState(false);
 
-  // Fetch credit dashboard on open
+  // Fetch credit dashboard when the dedicated page mounts.
   const fetchDashboard = async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const res = await api.get<{ ok: true } & CreditDashboardDTO>('/credit/dashboard');
       if (res.ok) {
@@ -79,17 +75,15 @@ export function CreditDialog({ open, onClose }: Props) {
         }
       }
     } catch {
-      // Fallback
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (open) {
-      void fetchDashboard();
-    }
-  }, [open]);
+    void fetchDashboard();
+  }, []);
 
   // Upload file helper
   const handleFileUpload = async (field: string, file: File) => {
@@ -287,9 +281,9 @@ export function CreditDialog({ open, onClose }: Props) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Header Hero Metrics */}
         <div
+          className="credit-metrics"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
             gap: '12px',
             background: 'linear-gradient(135deg, var(--card), var(--surface))',
             padding: '16px',
@@ -370,12 +364,11 @@ export function CreditDialog({ open, onClose }: Props) {
 
         {/* Dashboard Tabs */}
         <div
+          className="credit-tabs"
           style={{
-            display: 'flex',
             gap: '8px',
             borderBottom: '1px solid var(--tamas-border)',
             paddingBottom: '8px',
-            overflowX: 'auto',
           }}
         >
           <button
@@ -569,7 +562,9 @@ export function CreditDialog({ open, onClose }: Props) {
             </div>
 
             {dashboard?.cheques && dashboard.cheques.length > 0 ? (
-              <div style={{ overflowX: 'auto', border: '1px solid var(--tamas-border)', borderRadius: '12px' }}>
+              <>
+              <p className="credit-table-hint">برای دیدن همهٔ ستون‌ها، جدول را به چپ و راست بکشید.</p>
+              <div className="credit-table-wrap" role="region" aria-label="جدول چک‌ها" tabIndex={0} style={{ overflowX: 'auto', border: '1px solid var(--tamas-border)', borderRadius: '12px' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '13px' }}>
                   <thead>
                     <tr style={{ backgroundColor: 'var(--tamas-surface)', borderBottom: '1px solid var(--tamas-border)' }}>
@@ -595,6 +590,7 @@ export function CreditDialog({ open, onClose }: Props) {
                   </tbody>
                 </table>
               </div>
+              </>
             ) : (
               <div style={{ textAlign: 'center', padding: '30px', color: 'var(--tamas-muted)', fontSize: '13px' }}>
                 هنوز هیچ چکی ثبت نکرده‌اید. با کلیک بر روی «ثبت چک جدید» اطلاعات چک‌های خود را وارد کنید.
@@ -608,7 +604,7 @@ export function CreditDialog({ open, onClose }: Props) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', backgroundColor: 'var(--card)', padding: '16px', borderRadius: '12px', border: '1px solid var(--tamas-border)' }}>
             <strong style={{ fontSize: '14px', color: 'var(--tamas-fg)' }}>➕ ثبت اطلاعات چک جدید</strong>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="credit-form-grid" style={{ display: 'grid', gap: '12px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
                   شماره صیادی / شماره چک <span style={{ color: 'var(--danger)' }}>*</span>
@@ -740,7 +736,7 @@ export function CreditDialog({ open, onClose }: Props) {
         {activeTab === 'details' && existingApp && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', backgroundColor: 'var(--card)', padding: '16px', borderRadius: '12px', border: '1px solid var(--tamas-border)' }}>
             <strong style={{ fontSize: '14px' }}>📄 اطلاعات پرونده اعتباری و تضامین</strong>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px' }}>
+            <div className="credit-form-grid" style={{ display: 'grid', gap: '10px', fontSize: '13px' }}>
               <div>• کد ملی: <b>{existingApp.nationalId}</b></div>
               <div>• نوع کسب‌وکار: <b>{existingApp.businessType}</b></div>
               <div>• امتیاز اعتباری سنجش‌شده: <b style={{ color: 'var(--tamas-accent)' }}>{existingApp.adminCreditScore} از ۱۰۰</b></div>
@@ -753,10 +749,10 @@ export function CreditDialog({ open, onClose }: Props) {
           <button
             type="button"
             className="btn ghost"
-            onClick={onClose}
+            onClick={onBack}
             style={{ padding: '10px 20px', borderRadius: '10px' }}
           >
-            بستن
+            بازگشت به فروشگاه
           </button>
         </div>
       </div>
@@ -768,6 +764,15 @@ export function CreditDialog({ open, onClose }: Props) {
       return (
         <div style={{ textAlign: 'center', padding: '40px 10px', color: 'var(--tamas-muted)' }}>
           در حال دریافت اطلاعات...
+        </div>
+      );
+    }
+
+    if (loadError) {
+      return (
+        <div className="credit-load-error" role="alert">
+          <p>دریافت اطلاعات پروندهٔ اعتباری ناموفق بود. لطفاً دوباره تلاش کنید.</p>
+          <button type="button" className="btn primary" onClick={() => void fetchDashboard()}>تلاش دوباره</button>
         </div>
       );
     }
@@ -830,10 +835,10 @@ export function CreditDialog({ open, onClose }: Props) {
             <button
               type="button"
               className="btn ghost"
-              onClick={onClose}
+              onClick={onBack}
               style={{ padding: '10px 20px', borderRadius: '10px' }}
             >
-              بستن
+              بازگشت به فروشگاه
             </button>
           </div>
         </div>
@@ -842,7 +847,7 @@ export function CreditDialog({ open, onClose }: Props) {
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', marginBottom: '8px' }}>
+        <div className="credit-steps" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', marginBottom: '8px' }}>
           <div
             style={{
               position: 'absolute',
@@ -926,7 +931,7 @@ export function CreditDialog({ open, onClose }: Props) {
 
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div className="credit-form-grid" style={{ display: 'grid', gap: '14px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
                   نام و نام خانوادگی
@@ -1291,9 +1296,5 @@ export function CreditDialog({ open, onClose }: Props) {
     );
   };
 
-  return (
-    <Modal open={open} onClose={onClose} title={existingApp?.status === 'active' ? '💳 پنل خریداران اعتباری تماس مارکت' : 'درخواست فعال‌سازی سقف خرید اعتباری'} wide>
-      {renderBody()}
-    </Modal>
-  );
+  return <div className="credit-dashboard">{renderBody()}</div>;
 }

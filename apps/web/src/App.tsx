@@ -8,6 +8,7 @@ import { TermsPage } from './storefront/TermsPage';
 import { OrdersPage } from './storefront/OrdersPage';
 import { WalletPage } from './storefront/WalletPage';
 import { CheckoutPage } from './storefront/CheckoutPage';
+import { CreditPage } from './storefront/CreditPage';
 
 import { PaymentResultPage } from './storefront/PaymentResultPage';
 import { captureAttribution } from './lib/attribution';
@@ -73,6 +74,7 @@ export function App() {
       <Routes>
         <Route path="/" element={<StorefrontPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/credit" element={<CreditPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/wallet" element={<WalletPage />} />
         <Route path="/terms" element={<TermsPage />} />

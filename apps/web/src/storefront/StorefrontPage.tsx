@@ -8,7 +8,6 @@ import { useAuth } from '../store/auth';
 import { cartCount, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
 import { CartPanel } from './CartPanel';
-import { CreditDialog } from './CreditDialog';
 import { InstallBanner } from './InstallBanner';
 import { ProductCard } from './ProductCard';
 import { createColorMap } from './productColor';
@@ -77,7 +76,6 @@ export function StorefrontPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const observedUrlRef = useRef(searchParams.toString());
 
-  const [creditOpen, setCreditOpen] = useState(false);
   const [userCreditApp, setUserCreditApp] = useState<CreditApplicationDTO | null>(null);
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const [category, setCategory] = useState<string | null>(searchParams.get('cat') || null);
@@ -221,6 +219,10 @@ export function StorefrontPage() {
     navigate('/checkout', { state: { returnTo: `${location.pathname}${location.search}#cart` } });
   }, [navigate, location.pathname, location.search]);
 
+  const goToCredit = useCallback(() => {
+    navigate('/credit', { state: { returnTo: `${location.pathname}${location.search}` } });
+  }, [navigate, location.pathname, location.search]);
+
   const openCheckout = useCallback(() => {
     if (lines.length === 0) {
       toast.error('سبد خرید شما خالی است.');
@@ -271,7 +273,7 @@ export function StorefrontPage() {
         if (res.ok) setUserCreditApp(res.application);
       })
       .catch(() => {});
-  }, [user, creditOpen]);
+  }, [user]);
 
   const groups = products.data?.groups ?? [];
   const total = products.data?.total ?? 0;
@@ -300,7 +302,7 @@ export function StorefrontPage() {
               className="promo-cta"
               onClick={() => {
                 if (user) {
-                  setCreditOpen(true);
+                  goToCredit();
                 } else {
                   setAuthStep('phone');
                   setAuthOpen(true);
@@ -382,7 +384,7 @@ export function StorefrontPage() {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => setCreditOpen(true)}
+                    onClick={goToCredit}
                     style={{
                       width: '100%',
                       textAlign: 'right',
@@ -838,7 +840,7 @@ export function StorefrontPage() {
         open={authOpen}
         initialStep={authStep}
         onClose={() => setAuthOpen(false)}
-        onOpenCredit={() => setCreditOpen(true)}
+        onOpenCredit={goToCredit}
         onReady={() => {
           if (lines.length > 0) goToCheckout();
         }}
@@ -856,11 +858,6 @@ export function StorefrontPage() {
       <GuestPromoPopup
         show={!user}
         onAuth={() => { setAuthStep('phone'); setAuthOpen(true); }}
-      />
-
-      <CreditDialog
-        open={creditOpen}
-        onClose={() => setCreditOpen(false)}
       />
 
       {preview && (
