@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { catalogQuerySchema, idSchema, productCodeSchema, sheetBool } from '../src/schemas.js';
+import { catalogQuerySchema, idSchema, productCodeSchema, productPatchSchema, sheetBool } from '../src/schemas.js';
 
 describe('shared schemas', () => {
   it('coerces positive integer ids and rejects invalid ids', () => {
@@ -25,5 +25,11 @@ describe('shared schemas', () => {
     assert.equal(catalogQuerySchema.parse({ inStock: 'true' }).inStock, true);
     assert.equal(catalogQuerySchema.parse({ inStock: 'false' }).inStock, false);
     assert.equal(catalogQuerySchema.parse({ inStock: false }).inStock, false);
+  });
+
+  it('accepts a large curated bundle without allowing unbounded items', () => {
+    const items = Array.from({ length: 100 }, (_, index) => ({ productId: `0${index + 1}`, qty: 1 }));
+    assert.equal(productPatchSchema.parse({ bundleItems: items }).bundleItems?.length, 100);
+    assert.throws(() => productPatchSchema.parse({ bundleItems: Array.from({ length: 201 }, () => items[0]) }));
   });
 });

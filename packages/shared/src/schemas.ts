@@ -96,7 +96,7 @@ export const productWriteSchema = z.object({
   bundleItems: z.array(z.object({
     productId: z.string().trim().min(1).max(80),
     qty: z.coerce.number().int().min(1).max(1000)
-  })).max(20).default([]),
+  })).max(200).default([]),
   digikalaLink: z.string().trim().max(1000).optional().nullable(),
   targetSiteUrl: z.string().trim().max(1000).optional().nullable(),
   trackingLinks: z.array(productTrackingLinkSchema).max(3, 'برای هر محصول حداکثر سه سایت قابل رهگیری است.').default([]),
