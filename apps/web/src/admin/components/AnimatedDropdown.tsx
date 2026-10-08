@@ -1,8 +1,9 @@
-import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode, type KeyboardEvent } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Search } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { normalizeDropdownSearch, shouldSearchDropdown } from './dropdownSearch';
 import './animated-dropdown.css';
 
 const cn = (...inputs: Parameters<typeof clsx>) => twMerge(clsx(...inputs));
@@ -25,20 +26,12 @@ export interface AnimatedDropdownProps {
   ariaLabel?: string;
   disabled?: boolean;
   variant?: 'admin' | 'storefront';
-}
-
-export function normalizeDropdownSearch(value: string): string {
-  return value.toLocaleLowerCase()
-    .replace(/[يى]/g, 'ی').replace(/ك/g, 'ک')
-    .replace(/[\u064b-\u065f\u200c\u200d]/g, '')
-    .replace(/[٠-٩۰-۹]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit) >= 0
-      ? '٠١٢٣٤٥٦٧٨٩'.indexOf(digit) : '۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
-    .trim();
+  onSaveShortcut?: () => void;
 }
 
 export function AnimatedDropdown({
   options, value, onChange, className, buttonClassName,
-  placeholder = 'انتخاب کنید', id, prefix, ariaLabel, disabled = false, variant = 'admin',
+  placeholder = 'انتخاب کنید', id, prefix, ariaLabel, disabled = false, variant = 'admin', onSaveShortcut,
 }: AnimatedDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -48,7 +41,7 @@ export function AnimatedDropdown({
   const panelRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const listboxId = useId();
-  const searchable = options.length > 5;
+  const searchable = shouldSearchDropdown(options.length);
   const selectedOption = options.find((option) => option.value === value);
   const filteredOptions = useMemo(() => {
     if (!searchable || !query.trim()) return options;
@@ -60,8 +53,11 @@ export function AnimatedDropdown({
 
   useEffect(() => { setActiveIndex(0); }, [query]);
   useEffect(() => { if (disabled) setIsOpen(false); }, [disabled]);
-
   useEffect(() => {
+    if (isOpen) panelRef.current?.querySelector(`[data-dropdown-index="${activeIndex}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [activeIndex, isOpen]);
+
+  useLayoutEffect(() => {
     if (!isOpen) return;
     const updatePosition = () => {
       const trigger = triggerRef.current;
@@ -114,6 +110,11 @@ export function AnimatedDropdown({
   }
 
   function handleListKeys(event: KeyboardEvent) {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && onSaveShortcut) {
+      event.preventDefault();
+      onSaveShortcut();
+      return;
+    }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       setActiveIndex((index) => Math.max(0, Math.min(filteredOptions.length - 1, index + (event.key === 'ArrowDown' ? 1 : -1))));
@@ -129,7 +130,11 @@ export function AnimatedDropdown({
         className={cn(variant === 'admin' ? 'a-btn a-btn--secondary w-full justify-between' : 'searchable-select__storefront-button', buttonClassName)}
         aria-label={ariaLabel} aria-haspopup="listbox" aria-controls={isOpen ? listboxId : undefined}
         aria-expanded={isOpen} onClick={() => { setQuery(''); setActiveIndex(0); setIsOpen((open) => !open); }}
-        onKeyDown={(event) => { if (event.key === 'ArrowDown' && !isOpen) { event.preventDefault(); setIsOpen(true); } }}>
+        onKeyDown={(event) => {
+          if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && onSaveShortcut) { event.preventDefault(); onSaveShortcut(); }
+          else if (event.key === 'ArrowDown' && !isOpen) { event.preventDefault(); setIsOpen(true); }
+          else if (isOpen) handleListKeys(event);
+        }}>
         <span className="searchable-select__value">
           {prefix && <span className="searchable-select__prefix">{prefix}</span>}
           <span className="searchable-select__label">{selectedOption ? selectedOption.label : placeholder}</span>
@@ -137,7 +142,7 @@ export function AnimatedDropdown({
         <ChevronDown className={cn('searchable-select__chevron', isOpen && 'searchable-select__chevron--open')} aria-hidden="true" />
       </button>
       {isOpen && createPortal(
-        <div ref={panelRef} id={listboxId} role="listbox" aria-label={ariaLabel || placeholder}
+        <div ref={panelRef}
           className={cn('searchable-select__panel', `searchable-select__panel--${variant}`)}
           style={panelStyle} dir="rtl" onKeyDown={handleListKeys}>
           {searchable && <div className="searchable-select__search-wrap">
@@ -145,9 +150,9 @@ export function AnimatedDropdown({
             <input ref={searchRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)}
               placeholder="جستجو در گزینه‌ها..." aria-label="جستجو در گزینه‌ها" />
           </div>}
-          <div className="searchable-select__options">
+          <div id={listboxId} role="listbox" aria-label={ariaLabel || placeholder} className="searchable-select__options">
             {filteredOptions.length ? filteredOptions.map((option, index) => (
-              <button key={`${option.value}-${index}`} type="button" role="option" aria-selected={value === option.value}
+              <button key={`${option.value}-${index}`} data-dropdown-index={index} type="button" role="option" tabIndex={-1} aria-selected={value === option.value}
                 className={cn('searchable-select__option', value === option.value && 'searchable-select__option--selected', index === activeIndex && 'searchable-select__option--active')}
                 onMouseEnter={() => setActiveIndex(index)} onClick={() => selectOption(option)}>{option.label}</button>
             )) : <div className="searchable-select__empty">گزینه‌ای پیدا نشد</div>}

@@ -82,15 +82,17 @@ function CellEditor({
         ? categories.map((category) => ({ value: category.name, label: category.faName || category.name }))
         : brands.map((brand) => ({ value: brand.name, label: brand.faName || brand.name }));
     const current = String(value);
-    if (choices.length > 5) return (
+    const allChoices = [
+      ...(column.key !== 'status' ? [{ value: '', label: '—' }] : []),
+      ...(current && !choices.some((choice) => choice.value === current) ? [{ value: current, label: current }] : []),
+      ...choices,
+    ];
+    if (allChoices.length > 5) return (
       <AnimatedDropdown
-        options={[
-          ...(column.key !== 'status' ? [{ value: '', label: '—' }] : []),
-          ...(current && !choices.some((choice) => choice.value === current) ? [{ value: current, label: current }] : []),
-          ...choices,
-        ]}
+        options={allChoices}
         value={current}
         onChange={(next) => onChange(key, next)}
+        onSaveShortcut={onSave}
         disabled={disabled}
         ariaLabel={label}
         buttonClassName="product-sheet__input product-sheet__select product-sheet__dropdown-button"
