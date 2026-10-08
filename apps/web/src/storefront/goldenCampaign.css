@@ -85,7 +85,7 @@
 }
 
 @media (max-width: 768px) {
-  .hero-slider--golden { height: clamp(295px, 83vw, 345px) !important; aspect-ratio: auto !important; }
+  .hero-slider.hero-slider--golden { height: clamp(295px, 83vw, 345px) !important; aspect-ratio: auto !important; }
   .hero-slide--golden .hero-slide-image { object-position: 17% center; }
   .golden-campaign-overlay {
     background: linear-gradient(180deg, rgba(2, 10, 23, .97) 0%, rgba(2, 10, 23, .89) 49%, rgba(2, 10, 23, .12) 100%);
