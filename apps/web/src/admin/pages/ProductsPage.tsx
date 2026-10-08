@@ -331,6 +331,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
         product={editing === 'new' ? null : editing}
         categories={categoryOptions}
         brands={brandOptions}
+        isBundleMode={typeFilter === 'bundle'}
         busy={save.isPending}
         onClose={() => setEditing(null)}
         onSave={(body) => save.mutate({ id: editing === 'new' ? null : editing.id, body })}

@@ -275,7 +275,12 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
 });
 
 export function ProductEditor({ product, template, categories, brands, busy, isBundleMode, onClose, onSave, onManageVariants }: Props) {
-  const [form, setForm] = useState<ProductForm>(product ? fromProduct(product) : template ? fromProduct(template) : blank());
+  const [form, setForm] = useState<ProductForm>(() => {
+    const initial = product ? fromProduct(product) : template ? fromProduct(template) : blank();
+    if (!isBundleMode) return initial;
+    const basket = categories.find((category) => category.name === 'Bondle' || category.faName.replace(/\s/g, '') === 'سبدها');
+    return { ...initial, type: 'bundle', categoryName: initial.categoryName || basket?.name || '' };
+  });
   const [error, setError] = useState('');
 
   // Variants Fetching (if editing an existing parent product)

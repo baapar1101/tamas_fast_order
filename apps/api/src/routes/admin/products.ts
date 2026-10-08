@@ -103,6 +103,19 @@ async function resolveTaxonomy(
   return created?.id ?? null;
 }
 
+/** Bundle products belong in the storefront's basket category even when the editor omits it. */
+async function resolveProductCategory(name: string | null | undefined, type: string): Promise<number | null> {
+  if (name?.trim()) return resolveTaxonomy(categories, name);
+  if (type !== 'bundle') return null;
+  const [basket] = await db
+    .select({ id: categories.id })
+    .from(categories)
+    .where(or(eq(categories.name, 'Bondle'), eq(categories.faName, 'سبد ها')))
+    .limit(1);
+  if (!basket) throw badRequest('دسته‌بندی «سبد ها» برای باندل تعریف نشده است.');
+  return basket.id;
+}
+
 const routes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requirePermission('manage_products'));
 
@@ -210,7 +223,7 @@ const routes: FastifyPluginAsync = async (app) => {
     const duplicate = await findProductDuplicate(body);
     if (duplicate) throw conflict(duplicateProductMessage(duplicate));
 
-    const categoryId = await resolveTaxonomy(categories, body.categoryName);
+    const categoryId = await resolveProductCategory(body.categoryName, body.type);
     const brandId = await resolveTaxonomy(brands, body.brandName);
     const trackingLinks = await validateTrackingLinks(body.trackingLinks);
     const { categoryName: _c, brandName: _b, trackingLinks: _links, ...rest } = body;
@@ -268,7 +281,9 @@ const routes: FastifyPluginAsync = async (app) => {
     if (body.kermanStock === null) patch.kermanStock = 0;
     if (body.tehranStock === null) patch.tehranStock = 0;
 
-    if (body.categoryName !== undefined) patch.categoryId = await resolveTaxonomy(categories, body.categoryName);
+    if (body.categoryName !== undefined || body.type === 'bundle' || (existing.type === 'bundle' && !existing.categoryId)) {
+      patch.categoryId = await resolveProductCategory(body.categoryName, body.type ?? existing.type);
+    }
     if (body.brandName !== undefined) patch.brandId = await resolveTaxonomy(brands, body.brandName);
 
     const brandLabel =
