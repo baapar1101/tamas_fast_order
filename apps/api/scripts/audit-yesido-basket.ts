@@ -36,7 +36,7 @@ const catalogue = await db.select({
   price: products.price, oldPrice: products.oldPrice, discount: products.discount,
   promotion: products.promotion, status: products.status, stock: products.stock,
   kermanStock: products.kermanStock, tehranStock: products.tehranStock,
-  imageUrl: products.imageUrl, deletedAt: products.deletedAt,
+  imageUrl: products.imageUrl, bundleItems: products.bundleItems, deletedAt: products.deletedAt,
 }).from(products);
 const brandRows = await db.select({ id: brands.id, name: brands.name }).from(brands);
 const brandById = new Map(brandRows.map((brand) => [brand.id, brand.name]));
@@ -58,7 +58,7 @@ const matched = entries.map((entry) => {
 
 console.log(JSON.stringify({
   sheetRows: entries.length,
-  existingBundles: catalogue.filter((row) => row.type === 'bundle' && !row.deletedAt).map((row) => ({ productId: row.productId, title: row.title })),
+  existingBundles: catalogue.filter((row) => row.type === 'bundle' && !row.deletedAt).map((row) => ({ productId: row.productId, title: row.title, items: row.bundleItems.length })),
   reservedBundleIdExists: byProductId.has('09999990001'),
   nonZeroPrefix: entries.filter((entry) => !entry.sku.startsWith('0')).map((entry) => ({ sheetRow: entry.sheetRow, sku: entry.sku, normalizedSku: `0${entry.sku}` })),
   excludedRows: parsedRows.filter((entry) => entry.sku && entry.sku !== 'جمع' && !/^\d+$/.test(entry.sku)),
@@ -75,8 +75,8 @@ console.log(JSON.stringify({
   summary: {
     existing: matched.filter((entry) => entry.site && !entry.site.deleted).length,
     promoted: matched.filter((entry) => entry.site?.promotion).length,
-    pricesEqual: matched.filter((entry) => entry.site?.price === entry.price).length,
-    pricesDifferent: matched.filter((entry) => entry.site && entry.site.price !== entry.price).length,
+    salePricesEqual: matched.filter((entry) => entry.site?.price === entry.lastPrice).length,
+    listPricesEqual: matched.filter((entry) => entry.site?.oldPrice === entry.price).length,
     discountEqual: matched.filter((entry) => entry.site?.discount === entry.discount).length,
     withoutImage: matched.filter((entry) => entry.site && !entry.site.imageUrl).length,
     withoutModel: matched.filter((entry) => entry.site && !entry.site.model).length,
@@ -84,7 +84,19 @@ console.log(JSON.stringify({
     insufficientStockForBundle: matched.filter((entry) => entry.site && Math.max(entry.site.stock, entry.site.kermanStock + entry.site.tehranStock) < entry.quantity).length,
   },
   stockShortages: matched.filter((entry) => entry.site && Math.max(entry.site.stock, entry.site.kermanStock + entry.site.tehranStock) < entry.quantity).map((entry) => ({ sku: entry.sku, needed: entry.quantity, stock: entry.site?.stock, kermanStock: entry.site?.kermanStock, tehranStock: entry.site?.tehranStock })),
-  ...(process.argv.includes('--details') ? { differences: matched.filter((entry) => !entry.site || entry.site.deleted || entry.site.price !== entry.price || entry.site.discount !== entry.discount || !entry.site.promotion || Math.max(entry.site.stock, entry.site.kermanStock + entry.site.tehranStock) < entry.quantity) } : {}),
+  bundle: (() => {
+    const row = byProductId.get('09999990001');
+    const expectedItems = entries.map((entry) => ({ productId: entry.sku.startsWith('0') ? entry.sku : `0${entry.sku}`, qty: entry.quantity }));
+    return row ? {
+      productId: row.productId, price: row.price, oldPrice: row.oldPrice,
+      promotion: row.promotion, stock: row.stock, imageUrl: row.imageUrl,
+      itemCount: row.bundleItems.length,
+      quantity: row.bundleItems.reduce((sum, item) => sum + item.qty, 0),
+      itemsMatchSheet: row.bundleItems.length === expectedItems.length && row.bundleItems.every((item, index) =>
+        item.productId === expectedItems[index]?.productId && item.qty === expectedItems[index]?.qty),
+    } : null;
+  })(),
+  ...(process.argv.includes('--details') ? { differences: matched.filter((entry) => !entry.site || entry.site.deleted || entry.site.price !== entry.lastPrice || entry.site.oldPrice !== entry.price || entry.site.discount !== entry.discount || !entry.site.promotion || !entry.site.model) } : {}),
 }, null, 2));
 
 await closeDb();
