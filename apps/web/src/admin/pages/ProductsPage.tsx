@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ProductDTO } from '@tamas/shared';
@@ -14,6 +14,8 @@ import { VariantsEditor } from '../components/VariantsEditor';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
 import { CatalogPrintView } from '../components/CatalogPrintView';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { ProductSheetView } from '../components/ProductSheetView';
+import { parseSheetPatch, sheetCellValue, type SheetDrafts, type SheetEditableKey } from '../components/productSheetModel';
 
 interface ProductsResponse {
   items: ProductDTO[];
@@ -23,6 +25,14 @@ interface ProductsResponse {
 }
 
 type BulkAction = 'activate' | 'deactivate' | 'delete' | 'promote' | 'demote' | 'setStock' | 'adjustPrice';
+const SHEET_DRAFT_STORAGE_KEY = 'admin-product-sheet-drafts';
+
+function restoreSheetDrafts(): SheetDrafts {
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(SHEET_DRAFT_STORAGE_KEY) ?? '{}');
+    return stored && typeof stored === 'object' && !Array.isArray(stored) ? stored as SheetDrafts : {};
+  } catch { return {}; }
+}
 
 function Chevron() {
   return (
@@ -93,7 +103,9 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [editing, setEditing] = useState<ProductDTO | 'new' | null>(null);
   const [bulkPrompt, setBulkPrompt] = useState<'setStock' | 'adjustPrice' | null>(null);
   const [bulkValue, setBulkValue] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+  const [viewMode, setViewMode] = useState<'grid' | 'table' | 'sheet'>('table');
+  const [sheetDrafts, setSheetDrafts] = useState<SheetDrafts>(restoreSheetDrafts);
+  const [sheetSaving, setSheetSaving] = useState(false);
   const [variantsProduct, setVariantsProduct] = useState<ProductDTO | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [bulkMenuOpen, setBulkMenuOpen] = useState(false);
@@ -102,6 +114,22 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [deleteTarget, setDeleteTarget] = useState<ProductDTO | 'bulk' | null>(null);
 
   const debounced = useDebounced(search);
+  const perPage = viewMode === 'sheet' ? 100 : 24;
+  const sheetDirtyCount = Object.keys(sheetDrafts).length;
+
+  useEffect(() => {
+    if (!sheetDirtyCount) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [sheetDirtyCount]);
+
+  useEffect(() => {
+    try {
+      if (sheetDirtyCount) sessionStorage.setItem(SHEET_DRAFT_STORAGE_KEY, JSON.stringify(sheetDrafts));
+      else sessionStorage.removeItem(SHEET_DRAFT_STORAGE_KEY);
+    } catch { /* Editing still works if temporary browser storage is unavailable. */ }
+  }, [sheetDrafts, sheetDirtyCount]);
 
   const taxonomy = useQuery({
     queryKey: ['admin', 'taxonomy'],
@@ -110,8 +138,8 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   });
 
   const query = useMemo(
-    () => ({ q: debounced, status, stock, categoryId: categoryId || undefined, brandId: brandId || undefined, sort, page, perPage: 24, parentOnly: true, type: typeFilter || undefined }),
-    [debounced, status, stock, categoryId, brandId, sort, page, typeFilter],
+    () => ({ q: debounced, status, stock, categoryId: categoryId || undefined, brandId: brandId || undefined, sort, page, perPage, parentOnly: viewMode !== 'sheet', type: typeFilter || undefined }),
+    [debounced, status, stock, categoryId, brandId, sort, page, perPage, viewMode, typeFilter],
   );
 
   const products = useQuery({
@@ -167,7 +195,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                 Array.isArray(responseData?.data?.items) ? responseData.data.items : [];
   
   const total = responseData?.total ?? responseData?.data?.total ?? items.length;
-  const pageCount = Math.max(1, Math.ceil(total / 24));
+  const pageCount = Math.max(1, Math.ceil(total / perPage));
   const allOnPageSelected = items.length > 0 && items.every((p: ProductDTO) => selected.has(p.id));
   
   const taxonomyData: any = taxonomy.data;
@@ -189,6 +217,74 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
       else next.delete(p.id);
     }
     setSelected(next);
+  }
+
+  function switchView(next: 'grid' | 'table' | 'sheet') {
+    if (next === viewMode) return;
+    if (sheetDirtyCount && next !== 'sheet') {
+      toast.error('ابتدا تغییرات صفحه‌گسترده را ذخیره یا لغو کنید.');
+      return;
+    }
+    setSelected(new Set());
+    setPage(1);
+    setViewMode(next);
+  }
+
+  function changeSheetCell(product: ProductDTO, key: SheetEditableKey, value: string | boolean) {
+    const original = sheetCellValue(product, key);
+    setSheetDrafts((previous) => {
+      const row = { ...previous[product.id] };
+      if (value === original) delete row[key];
+      else row[key] = value;
+      const next = { ...previous };
+      if (Object.keys(row).length) next[product.id] = row;
+      else delete next[product.id];
+      return next;
+    });
+  }
+
+  async function saveSheet() {
+    if (sheetSaving || !sheetDirtyCount) return;
+    let updates: Array<{ id: number; patch: ReturnType<typeof parseSheetPatch> }>;
+    try {
+      updates = Object.entries(sheetDrafts).map(([id, draft]) => {
+        try {
+          return { id: Number(id), patch: parseSheetPatch(draft) };
+        } catch (error) {
+          const code = items.find((item) => item.id === Number(id))?.productId ?? id;
+          throw new Error(`${code}: ${error instanceof Error ? error.message : 'مقدار نامعتبر'}`);
+        }
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'مقدارهای ویرایش‌شده معتبر نیستند.');
+      return;
+    }
+    setSheetSaving(true);
+    const saved: number[] = [];
+    const failed: string[] = [];
+    try {
+      for (const { id, patch } of updates) {
+        try {
+          await api.patch(`/admin/products/${id}`, patch);
+          saved.push(id);
+        } catch (error) {
+          const code = items.find((item) => item.id === id)?.productId ?? String(id);
+          failed.push(`${code}: ${error instanceof Error ? error.message : 'خطا در ذخیره'}`);
+        }
+      }
+      if (saved.length) {
+        setSheetDrafts((previous) => {
+          const next = { ...previous };
+          saved.forEach((id) => { delete next[id]; });
+          return next;
+        });
+        invalidate();
+        toast.ok(`${formatNumber(saved.length)} محصول ذخیره شد.`);
+      }
+      if (failed.length) toast.error(`${formatNumber(failed.length)} محصول ذخیره نشد. ${failed[0]}`);
+    } finally {
+      setSheetSaving(false);
+    }
   }
 
   function runBulk(action: BulkAction) {
@@ -353,16 +449,23 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           <button
             type="button"
             className={`a-seg${viewMode === 'grid' ? ' a-seg--on' : ''}`}
-            onClick={() => setViewMode('grid')}
+            onClick={() => switchView('grid')}
           >
             کارت‌ها
           </button>
           <button
             type="button"
             className={`a-seg${viewMode === 'table' ? ' a-seg--on' : ''}`}
-            onClick={() => setViewMode('table')}
+            onClick={() => switchView('table')}
           >
             جدول
+          </button>
+          <button
+            type="button"
+            className={`a-seg${viewMode === 'sheet' ? ' a-seg--on' : ''}`}
+            onClick={() => switchView('sheet')}
+          >
+            صفحه‌گسترده
           </button>
         </div>
       </section>
@@ -453,6 +556,28 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
               + {typeFilter === 'bundle' ? 'ایجاد باندل' : 'ایجاد محصول'}
             </button>
           </div>
+        ) : viewMode === 'sheet' ? (
+          <ProductSheetView
+            items={items}
+            page={page}
+            perPage={perPage}
+            storageId="products"
+            selected={selected}
+            allOnPageSelected={allOnPageSelected}
+            onToggle={toggle}
+            onToggleAll={toggleAll}
+            drafts={sheetDrafts}
+            onChange={changeSheetCell}
+            onSave={() => { void saveSheet(); }}
+            onDiscard={() => { if (window.confirm('تغییرات ذخیره‌نشده کنار گذاشته شوند؟')) setSheetDrafts({}); }}
+            saving={sheetSaving}
+            categories={categoryOptions}
+            brands={brandOptions}
+            onEdit={(product) => {
+              if (sheetDirtyCount) toast.error('ابتدا تغییرات صفحه‌گسترده را ذخیره یا لغو کنید.');
+              else setEditing(product);
+            }}
+          />
         ) : viewMode === 'table' ? (
           <div className="a-table-wrap">
             <table className="a-table">
@@ -672,7 +797,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
         {items.length > 0 && (
           <div className="admin-product-pager">
             <span className="admin-product-pager__info">
-              {formatNumber((page - 1) * 24 + 1)} تا {formatNumber(Math.min(page * 24, total))} از {formatNumber(total)} محصول
+              {formatNumber((page - 1) * perPage + 1)} تا {formatNumber(Math.min(page * perPage, total))} از {formatNumber(total)} محصول
             </span>
             {pageCount > 1 && (
               <div className="admin-product-pager__actions">
