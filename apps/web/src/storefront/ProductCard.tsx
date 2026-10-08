@@ -6,6 +6,7 @@ import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
 import { stockFor } from '../store/cart';
 import { resolveProductColor } from './productColor';
+import { isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneModelImages } from './productVariants';
 
 import type { CartLine } from '../store/cart';
 
@@ -56,14 +57,18 @@ function productTitleClass(title: string): string {
 }
 
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isFav, setIsFav] = useState(false);
 
-  const selectedVariant = group.variants[selectedIndex] || group.variants[0];
+  const isPhone = Boolean(group.variants[0] && isPhoneProduct(group.variants[0]));
+  const displayVariants = useMemo(() => isPhone ? phoneDisplayVariants(group.variants) : group.variants, [group.variants, isPhone]);
+  const defaultIndex = isPhone ? phoneDefaultVariantIndex(displayVariants) : 0;
+  const activeIndex = selectedIndex !== null && selectedIndex < displayVariants.length ? selectedIndex : defaultIndex;
+  const selectedVariant = displayVariants[activeIndex] || group.variants[0];
   if (!selectedVariant) return null;
 
   const brand = selectedVariant.brandFaName || selectedVariant.brandName || 'متفرقه';
-  const rawImage = group.imageUrl || selectedVariant.imageUrl;
+  const rawImage = isPhone ? phoneModelImages(group.variants)[0] : group.imageUrl || selectedVariant.imageUrl;
   const image = rawImage
     ? rawImage.startsWith('http') || rawImage.startsWith('/')
       ? rawImage
@@ -94,7 +99,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
           </div>
 
           <div className="list-variants">
-            {group.variants.map((v) => {
+            {displayVariants.map((v) => {
               const whButtonsV = getWarehouseButtons(v);
               const types = sellTypes(v.sellType);
               return (
@@ -228,14 +233,14 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
               برند: <b className="ltr-inline">{brand}</b>
             </span>
 
-            {group.variants.length > 1 ? (
+            {displayVariants.length > 1 ? (
               <>
                 <div className="color-swatches" aria-label="رنگ‌های موجود">
-                  {group.variants.map((v, i) => (
+                  {displayVariants.map((v, i) => (
                     <button
                       key={v.productId}
                       type="button"
-                      className={`color-swatch-dot${i === selectedIndex ? ' active' : ''}`}
+                      className={`color-swatch-dot${i === activeIndex ? ' active' : ''}`}
                       style={{ background: resolveProductColor(v, colorMap) }}
                       onClick={() => setSelectedIndex(i)}
                       title={`${v.color || v.colorEn || 'رنگ'}${canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}`}
@@ -247,17 +252,17 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                   <span className="color-dot" style={{ background: resolveProductColor(selectedVariant, colorMap) }} aria-hidden />
                   <select
                     className="color-select"
-                    value={selectedIndex}
+                    value={activeIndex}
                     onChange={(e) => setSelectedIndex(Number(e.target.value))}
                     aria-label="انتخاب رنگ"
                   >
-                    {group.variants.map((v, i) => (
+                    {displayVariants.map((v, i) => (
                       <option key={v.productId} value={i}>
                         {v.color || 'اصلی'}{canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}{v.sku ? ` (${v.sku})` : ''}
                       </option>
                     ))}
                   </select>
-                  <span className="color-count">{formatNumber(group.variants.length)} رنگ</span>
+                  <span className="color-count">{formatNumber(displayVariants.length)} رنگ</span>
                 </span>
               </>
             ) : (

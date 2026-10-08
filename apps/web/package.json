@@ -9,7 +9,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b --force"
+    "typecheck": "tsc -b --force",
+    "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@tamas/shared": "*",

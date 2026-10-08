@@ -14,6 +14,7 @@ import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { ProductCard } from './ProductCard';
 import { createColorMap, resolveProductColor } from './productColor';
+import { isPhoneMediaOnlyProduct, isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneModelImages } from './productVariants';
 import { StoreFooter } from './StoreFooter';
 import { IncompleteProfilePopup } from './IncompleteProfilePopup';
 import { useBootstrap } from './hooks';
@@ -85,27 +86,32 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
 
   const variants = query.data?.variants ?? [];
   const main = query.data?.product ?? null;
-  const selected =
-    variants.find((v) => v.productId === (selectedId ?? main?.productId)) ?? variants[0] ?? main;
+  const isPhone = Boolean(main && isPhoneProduct(main));
+  const displayVariants = useMemo(() => isPhone ? phoneDisplayVariants(variants) : variants, [isPhone, variants]);
+  const requested = variants.find((v) => v.productId === (selectedId ?? main?.productId)) ?? main;
+  const selected = isPhone && requested && isPhoneMediaOnlyProduct(requested)
+    ? displayVariants[phoneDefaultVariantIndex(displayVariants)] ?? requested
+    : requested ?? displayVariants[0] ?? null;
 
   const colorGroups = useMemo(() => {
+    if (isPhone) return displayVariants;
     const seen = new Map<string, ProductDTO>();
     for (const v of variants) {
-      const key = (v.colorEn || v.color || 'default').trim().toLowerCase();
+      const key = (v.color || v.colorEn || 'default').trim().toLowerCase();
       if (!seen.has(key)) seen.set(key, v);
     }
     return [...seen.values()];
-  }, [variants]);
+  }, [displayVariants, isPhone, variants]);
 
   const images = useMemo(() => {
     if (!selected) return [];
-    const title = selected.imageUrl;
-    const list = [title, ...(selected.gallery ?? [])]
+    const sources = isPhone ? phoneModelImages(variants.length ? variants : [selected]) : [selected.imageUrl, ...selected.gallery];
+    const list = sources
       .map((src) => imageSrc(src))
       .filter((s): s is string => Boolean(s));
     if (list.length === 0) list.push('/logo.png');
     return [...new Set(list)];
-  }, [selected]);
+  }, [isPhone, selected, variants]);
 
   const previewOpen = previewIndex !== null;
   const showPreviewImage = (direction: -1 | 1) => {
@@ -418,10 +424,10 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
               </div>
             )}
 
-            {variants.length > 1 && (
+            {colorGroups.length > 1 && (
               <div className="pp-colors">
                 <span className="pp-label">تعداد رنگ:</span>
-                <span className="pp-color-name">{formatNumber(variants.length)}</span>
+                <span className="pp-color-name">{formatNumber(colorGroups.length)}</span>
               </div>
             )}
 
