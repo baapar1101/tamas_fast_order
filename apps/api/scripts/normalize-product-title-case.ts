@@ -64,15 +64,23 @@ try {
 
     await db.transaction(async (tx) => {
       for (const { row, title } of plan) {
+        // Lock and re-read the row: PostgreSQL timestamps may have microsecond
+        // precision that is lost when Drizzle converts them to JS Dates.
+        const [current] = await tx.select().from(products)
+          .where(eq(products.id, row.id)).for('update');
+        if (!current || current.deletedAt || current.title !== row.title) {
+          throw new Error(`محصول ${row.productId} هم‌زمان تغییر کرده است؛ تراکنش لغو شد.`);
+        }
         const [updated] = await tx.update(products).set({
           title,
           searchText: buildSearchText([
-            title, row.subTitle, row.model,
-            row.brandId ? brandNameById.get(row.brandId) : null,
-            row.color, row.colorEn, row.sku, row.productId,
+            title, current.subTitle, current.model,
+            current.brandId ? brandNameById.get(current.brandId) : null,
+            current.color, current.colorEn, current.sku, current.productId,
           ]),
           updatedAt: new Date(),
-        }).where(and(eq(products.id, row.id), eq(products.updatedAt, row.updatedAt))).returning({ id: products.id });
+        }).where(and(eq(products.id, row.id), eq(products.title, row.title), isNull(products.deletedAt)))
+          .returning({ id: products.id });
         if (!updated) throw new Error(`محصول ${row.productId} هم‌زمان تغییر کرده است؛ تراکنش لغو شد.`);
       }
     });
