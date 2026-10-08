@@ -11,7 +11,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/index.js",
     "start:prod": "cross-env PORT=3102 NODE_ENV=production node dist/src/index.js",
-    "test": "tsx --test tests/hash.test.ts tests/pagination.test.ts tests/product-image-url.test.ts tests/product-image-sku.test.ts tests/payamresan-sms.test.ts",
+    "test": "tsx --test tests/hash.test.ts tests/pagination.test.ts tests/product-image-url.test.ts tests/product-image-sku.test.ts tests/product-title-color.test.ts tests/payamresan-sms.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
@@ -24,6 +24,7 @@
     "images:repair-missing": "tsx scripts/repair-missing-product-images.ts",
     "images:import-sku": "tsx scripts/import-product-images-by-sku.ts",
     "products:repair-codes": "tsx scripts/repair-product-code-prefixes.ts",
+    "products:clean-title-colors": "tsx scripts/clean-product-title-colors.ts",
     "products:audit-sources": "tsx scripts/audit-product-sources.ts"
   },
   "dependencies": {

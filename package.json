@@ -31,6 +31,7 @@
     "images:repair-missing": "npm run images:repair-missing -w @tamas/api --",
     "images:import-sku": "npm run images:import-sku -w @tamas/api --",
     "products:repair-codes": "tsx apps/api/scripts/repair-product-code-prefixes.ts",
+    "products:clean-title-colors": "npm run products:clean-title-colors -w @tamas/api --",
     "jules": "node scripts/jules.mjs",
     "test": "npm run test -w @tamas/shared && npm run test -w @tamas/api",
     "start": "npm run start -w @tamas/api",
