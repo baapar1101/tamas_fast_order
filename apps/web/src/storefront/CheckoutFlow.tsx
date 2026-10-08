@@ -14,8 +14,8 @@ import { parsePaymentMethods } from "../lib/payment-methods";
 import { readAttribution } from "../lib/attribution";
 
 interface Props {
-  open: boolean;
-  onClose: () => void;
+  onCancel: () => void;
+  onFinished: () => void;
   /** Opens the profile step when the server says the account is incomplete. */
   onNeedsProfile: () => void;
 }
@@ -166,7 +166,7 @@ const SECONDARY_INFO: Record<
   },
 };
 
-export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
+export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
   const toast = useToast();
   const user = useAuth((s) => s.user);
   const lines = useCart((s) => s.lines);
@@ -190,7 +190,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
   const walletQuery = useQuery({
     queryKey: ['wallet', 'checkout'],
     queryFn: () => api.get<{ wallet: { balance: number; isFrozen: boolean }; config: { enabled: boolean; orderPaymentEnabled: boolean } }>('/wallet'),
-    enabled: open && Boolean(user),
+    enabled: Boolean(user),
   });
 
   const configuredMethods = parsePaymentMethods(bootstrap.data?.settings.payment_methods);
@@ -213,7 +213,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
     setCompletedOrder(null);
     setCompletedMethod("");
     setSecondaryData({});
-    onClose();
+    onFinished();
   }
 
   async function submit() {
@@ -271,10 +271,9 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
       }
 
       toast.ok(res.message);
-      onClose();
+      onFinished();
     } catch (err) {
       if (err instanceof ApiRequestError && err.code === "profile_incomplete") {
-        onClose();
         onNeedsProfile();
         return;
       }
@@ -312,7 +311,8 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
     if (info) {
       return (
         <Modal
-          open={open}
+          open
+          inline
           title={info.title}
           onClose={handleClose}
           busy={secondaryBusy}
@@ -458,7 +458,8 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
     } else if (customMethodObj) {
       return (
         <Modal
-          open={open}
+          open
+          inline
           title={`ثبت سفارش — ${customMethodObj.label}`}
           onClose={handleClose}
           footer={
@@ -514,9 +515,9 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
   // ── Main checkout form ──────────────────────────────────────────
   return (
     <Modal
-      open={open}
-      title="تایید و ثبت سفارش"
-      onClose={onClose}
+      open
+      inline
+      onClose={onCancel}
       busy={busy}
       footer={
         <>
@@ -538,7 +539,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
           <button
             type="button"
             className="btn"
-            onClick={onClose}
+            onClick={onCancel}
             disabled={busy}
           >
             انصراف
@@ -546,8 +547,11 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
         </>
       }
     >
-      <div className="stack">
+      <div className="checkout-flow-grid">
         {error && <div className="alert error">{error}</div>}
+
+        <section className="checkout-flow-fields" aria-labelledby="checkout-details-title">
+          <h2 id="checkout-details-title">اطلاعات تحویل و پرداخت</h2>
 
         {user && (
           <div className="card" style={{ padding: 12 }}>
@@ -696,6 +700,10 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
           </div>
         </div>
 
+        </section>
+
+        <section className="checkout-flow-summary" aria-labelledby="checkout-summary-title">
+          <h2 id="checkout-summary-title">خلاصه سفارش</h2>
         <div className="table-wrap">
           <table className="data">
             <thead>
@@ -768,6 +776,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
           قیمت‌ها در لحظه ثبت سفارش از سرور خوانده می‌شوند و ممکن است با نمایش
           فعلی تفاوت جزئی داشته باشند.
         </p>
+        </section>
       </div>
     </Modal>
   );

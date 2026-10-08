@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { CreditApplicationDTO, ProductDTO, Warehouse } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { useToast } from '../components/Toast';
@@ -8,7 +8,6 @@ import { useAuth } from '../store/auth';
 import { cartCount, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
 import { CartPanel } from './CartPanel';
-import { CheckoutDialog } from './CheckoutDialog';
 import { CreditDialog } from './CreditDialog';
 import { InstallBanner } from './InstallBanner';
 import { ProductCard } from './ProductCard';
@@ -69,6 +68,8 @@ function ProductSkeletons({ viewMode }: { viewMode: 'list' | 'grid' }) {
 
 export function StorefrontPage() {
   const toast = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user, complete, isAdmin, logout } = useAuth();
   const addToCart = useCart((s) => s.add);
   const lines = useCart((s) => s.lines);
@@ -88,6 +89,10 @@ export function StorefrontPage() {
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'grid');
   const [mobileTab, setMobileTab] = useState<'home' | 'categories' | 'search' | 'cart' | 'profile'>('home');
+
+  useEffect(() => {
+    if (location.hash === '#cart') setMobileTab('cart');
+  }, [location.hash]);
 
   const brandsStr = brands.join(',');
 
@@ -148,7 +153,6 @@ export function StorefrontPage() {
 
   const [authOpen, setAuthOpen] = useState(false);
   const [authStep, setAuthStep] = useState<'phone' | 'profile'>('phone');
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [brandsCollapsed, setBrandsCollapsed] = useState(true);
@@ -213,6 +217,10 @@ export function StorefrontPage() {
     [addToCart, toast, user],
   );
 
+  const goToCheckout = useCallback(() => {
+    navigate('/checkout', { state: { returnTo: `${location.pathname}${location.search}#cart` } });
+  }, [navigate, location.pathname, location.search]);
+
   const openCheckout = useCallback(() => {
     if (lines.length === 0) {
       toast.error('سبد خرید شما خالی است.');
@@ -232,8 +240,8 @@ export function StorefrontPage() {
       setAuthOpen(true);
       return;
     }
-    setCheckoutOpen(true);
-  }, [lines.length, user, complete, toast]);
+    goToCheckout();
+  }, [lines.length, user, complete, toast, goToCheckout]);
 
   const settings = bootstrap.data?.settings ?? {};
   const canViewPrices = Boolean(user?.isActive);
@@ -832,7 +840,7 @@ export function StorefrontPage() {
         onClose={() => setAuthOpen(false)}
         onOpenCredit={() => setCreditOpen(true)}
         onReady={() => {
-          if (lines.length > 0) setCheckoutOpen(true);
+          if (lines.length > 0) goToCheckout();
         }}
       />
 
@@ -848,15 +856,6 @@ export function StorefrontPage() {
       <GuestPromoPopup
         show={!user}
         onAuth={() => { setAuthStep('phone'); setAuthOpen(true); }}
-      />
-
-      <CheckoutDialog
-        open={checkoutOpen}
-        onClose={() => setCheckoutOpen(false)}
-        onNeedsProfile={() => {
-          setAuthStep('profile');
-          setAuthOpen(true);
-        }}
       />
 
       <CreditDialog

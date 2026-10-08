@@ -7,6 +7,7 @@ import { ProductPage } from './storefront/ProductPage';
 import { TermsPage } from './storefront/TermsPage';
 import { OrdersPage } from './storefront/OrdersPage';
 import { WalletPage } from './storefront/WalletPage';
+import { CheckoutPage } from './storefront/CheckoutPage';
 
 import { PaymentResultPage } from './storefront/PaymentResultPage';
 import { captureAttribution } from './lib/attribution';
@@ -71,6 +72,7 @@ export function App() {
       <SvgSprite />
       <Routes>
         <Route path="/" element={<StorefrontPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/wallet" element={<WalletPage />} />
         <Route path="/terms" element={<TermsPage />} />
