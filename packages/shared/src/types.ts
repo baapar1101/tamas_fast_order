@@ -54,6 +54,11 @@ export interface BundleItem {
   qty: number;
 }
 
+/** Public bundle detail: names and quantities only, never component prices. */
+export interface BundleContentDTO extends BundleItem {
+  title: string;
+}
+
 export interface ProductDTO {
   id: number;
   productId: string;
