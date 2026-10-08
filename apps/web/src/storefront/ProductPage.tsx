@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS, formatNumber, hasRealDiscount } from '@tamas/shared';
-import { api } from '../lib/api';
+import { api, ApiRequestError } from '../lib/api';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../store/auth';
 import { cartCount, stockFor, useCart } from '../store/cart';
@@ -49,7 +49,7 @@ function ShareIcon() {
   );
 }
 
-export function ProductPage() {
+export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }) {
   const { productId } = useParams<{ productId: string }>();
   const toast = useToast();
   const { user, complete } = useAuth();
@@ -66,9 +66,15 @@ export function ProductPage() {
   const shareRef = useRef<HTMLDivElement>(null);
 
   const query = useQuery({
-    queryKey: ['product', productId],
+    queryKey: ['product', productId, adminPreview],
     queryFn: async ({ signal }) =>
-      api.get<ProductDetailResponse>(`/catalog/products/${encodeURIComponent(productId ?? '')}`, undefined, signal),
+      api.get<ProductDetailResponse>(
+        adminPreview
+          ? `/admin/products/preview/${encodeURIComponent(productId ?? '')}`
+          : `/catalog/products/${encodeURIComponent(productId ?? '')}`,
+        undefined,
+        signal,
+      ),
     enabled: Boolean(productId),
     retry: false,
   });
@@ -117,7 +123,7 @@ export function ProductPage() {
         .filter((g) => !g.variants.some((v) => v.productId === selected?.productId))
         .slice(0, 6);
     },
-    enabled: Boolean(selected?.productId) && Boolean(selected?.categoryName || selected?.categoryFaName),
+    enabled: !adminPreview && Boolean(selected?.productId) && Boolean(selected?.categoryName || selected?.categoryFaName),
     staleTime: 60_000,
     retry: false,
   });
@@ -125,12 +131,13 @@ export function ProductPage() {
   const relatedGroups = relatedQuery.data ?? [];
 
   const isPromo = Boolean(selected?.promotion);
-  const canViewPrices = Boolean(user?.isActive);
+  const canViewPrices = adminPreview || Boolean(user?.isActive);
   const cartTotalQty = cartCount(lines);
   const shareUrl = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : '';
   const trackedShareUrl = (source: string) => `${shareUrl}?utm_source=${encodeURIComponent(source)}&utm_medium=share&utm_campaign=product-share`;
 
   function handleAdd(product: ProductDTO, warehouse: Warehouse) {
+    if (adminPreview || product.price <= 0 || product.status !== 'active') return;
     if (!user) {
       setAuthStep('phone');
       setAuthOpen(true);
@@ -142,6 +149,7 @@ export function ProductPage() {
   }
 
   function handleUpdateQty(key: string, qty: number) {
+    if (adminPreview) return;
     if (!user) {
       setAuthStep('phone');
       setAuthOpen(true);
@@ -227,9 +235,11 @@ export function ProductPage() {
         <main className="pp-wrap">
           <div className="pp-not-found">
             <div className="pp-not-found-icon"><Icon name="box" /></div>
-            <h1>محصول مورد نظر پیدا نشد</h1>
-            <p>این کالا در حال حاضر در فروشگاه موجود نیست یا آدرس آن اشتباه است.</p>
-            <Link to="/" className="btn primary">مشاهده همه کالاها</Link>
+            <h1>{adminPreview && query.error instanceof ApiRequestError && [401, 403].includes(query.error.status) ? 'دسترسی به پیش‌نمایش مجاز نیست' : 'محصول مورد نظر پیدا نشد'}</h1>
+            <p>{adminPreview
+              ? 'برای دیدن پیش‌نمایش باید با حسابی دارای دسترسی مدیریت محصولات وارد شوید.'
+              : 'این کالا غیرفعال شده یا آدرس آن اشتباه است.'}</p>
+            <Link to={adminPreview ? '/admin/products' : '/'} className="btn primary">{adminPreview ? 'بازگشت به مدیریت محصولات' : 'مشاهده همه کالاها'}</Link>
           </div>
         </main>
       </div>
@@ -238,7 +248,9 @@ export function ProductPage() {
 
   const brand = selected.brandFaName || selected.brandName || 'متفرقه';
   const category = selected.categoryFaName || selected.categoryName || '';
-  const whButtons = getWarehouseButtons(selected);
+  const whButtons = !adminPreview && selected.status === 'active' && selected.price > 0
+    ? getWarehouseButtons(selected)
+    : [];
 
   return (
     <div className="shell">
@@ -260,6 +272,12 @@ export function ProductPage() {
       </header>
 
       <main className="pp-wrap">
+        {adminPreview && (
+          <div className="pp-admin-preview-notice" role="status">
+            پیش‌نمایش مدیریت — این حالت فقط برای مدیران است و امکان خرید در آن غیرفعال است.
+            <Link to="/admin/products">بازگشت به محصولات</Link>
+          </div>
+        )}
         <nav className="pp-crumbs" aria-label="مسیر">
           <Link to="/">خانه</Link>
           {category && <><span className="pp-crumb-sep">/</span><Link to={`/?cat=${encodeURIComponent(category)}`}>{category}</Link></>}
@@ -359,7 +377,7 @@ export function ProductPage() {
                 {hasRealDiscount(selected.price, selected.oldPrice) && (
                   <span className="card-old-price"><Price amount={selected.oldPrice!} /></span>
                 )}
-                <div className="pp-price"><Price amount={selected.price} /></div>
+                <div className="pp-price">{selected.price > 0 ? <Price amount={selected.price} /> : 'قیمت‌گذاری نشده'}</div>
               </div>
               {selected.discount > 0 && <span className="pp-discount-badge">٪{formatNumber(selected.discount)} تخفیف</span>}
             </div>
@@ -415,13 +433,14 @@ export function ProductPage() {
                 })}
               </div>
             )}
-            {whButtons.length === 0 && (
+            {whButtons.length === 0 && !adminPreview && (
               <div className="pp-out-of-stock">
-                <Icon name="warn" /> این کالا فعلاً موجود نیست.
+                <Icon name="warn" /> {selected.price <= 0 ? 'قیمت این کالا هنوز تعیین نشده است.' : 'این کالا فعلاً موجود نیست.'}
               </div>
             )}
+            {adminPreview && <div className="pp-out-of-stock">خرید در پیش‌نمایش مدیریت غیرفعال است.</div>}
 
-            <div className="pp-share" ref={shareRef}>
+            {!adminPreview && <div className="pp-share" ref={shareRef}>
               <button
                 type="button"
                 className="btn pp-share-btn"
@@ -456,7 +475,7 @@ export function ProductPage() {
                   </button>
                 </div>
               )}
-            </div>
+            </div>}
           </div>
         </div>
 
@@ -588,7 +607,7 @@ export function ProductPage() {
           </button>
         </div>
       )}
-      {whButtons.length === 0 && (
+      {whButtons.length === 0 && !adminPreview && (
         <div className="pp-mobile-bar">
           <span className="pp-mobile-price-note">این کالا فعلاً موجود نیست.</span>
           <button type="button" className="pp-mobile-add pp-mobile-add--muted" disabled>

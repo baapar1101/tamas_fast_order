@@ -5,6 +5,7 @@ import { formatNumber, formatProductTitle } from '@tamas/shared';
 import { api } from '../../lib/api';
 import { ImagePicker } from './ImagePicker';
 import { Price } from '../../components/Price';
+import { ProductLinks } from './ProductLinks';
 import { AnimatedDropdown } from './AnimatedDropdown';
 
 import { useEffect } from 'react';
@@ -412,6 +413,8 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
           <div className="a-error-box">{error}</div>
         </div>
       )}
+
+      {product && <div className="mb-6"><ProductLinks productId={product.productId} active={product.status === 'active'} /></div>}
 
       {/* Main Grid Layout */}
       <div className="admin-page-grid">

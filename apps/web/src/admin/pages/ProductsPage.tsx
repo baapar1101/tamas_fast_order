@@ -9,6 +9,7 @@ import { AdminStatStrip } from '../components/AdminStatStrip';
 import { api } from '../../lib/api';
 import { useDebounced } from '../../storefront/hooks';
 import { ProductEditor, type ProductForm } from '../components/ProductEditor';
+import { copyPublicProductUrl, previewProductUrl } from '../components/ProductLinks';
 import { VariantsEditor } from '../components/VariantsEditor';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
 import { CatalogPrintView } from '../components/CatalogPrintView';
@@ -217,6 +218,8 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   function rowActions(p: ProductDTO): Array<{ label: string; danger?: boolean; run: () => void }> {
     return [
       { label: 'ویرایش', run: () => setEditing(p) },
+      { label: 'پیش‌نمایش محصول', run: () => { window.open(previewProductUrl(p.productId), '_blank', 'noopener,noreferrer'); } },
+      { label: 'کپی لینک نهایی', run: () => { void copyPublicProductUrl(p.productId).then(() => toast.ok('لینک نهایی محصول کپی شد.')).catch(() => toast.error('کپی لینک ممکن نشد.')); } },
       { label: 'مدیریت واریانت‌ها', run: () => setVariantsProduct(p) },
       {
         label: p.status === 'active' ? 'غیرفعال‌سازی' : 'فعال‌سازی',
@@ -615,6 +618,16 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                         {p.oldPrice && p.oldPrice > p.price && <del>{formatNumber(p.oldPrice)}</del>}
                       </div>
                       <div className="admin-product-card__actions">
+                        <a
+                          className="admin-product-card__action admin-product-card__action--brand"
+                          href={previewProductUrl(p.productId)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="پیش‌نمایش محصول"
+                          aria-label={`پیش‌نمایش ${p.title}`}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+                        </a>
                         <button type="button" className="admin-product-card__action" title="ویرایش" aria-label={`ویرایش ${p.title}`} onClick={() => setEditing(p)}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />

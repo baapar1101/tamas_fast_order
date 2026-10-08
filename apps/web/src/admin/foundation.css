@@ -182,6 +182,9 @@ body.admin-page-active:not(.admin-theme-light) {
 .admin-product-card__price span { color: var(--a-t4); font-size: 10px; }
 .admin-product-card__price del { width: 100%; color: var(--a-t4); font-size: 10px; }
 .admin-product-card__actions { display: flex; flex: 0 0 auto; align-items: center; gap: 4px; }
+.product-links-panel { display: flex; align-items: center; flex-wrap: wrap; gap: 0.65rem; padding: 0 1.25rem 1rem; }
+.product-links-panel .a-input { flex: 1 1 20rem; min-width: 0; direction: ltr; text-align: left; }
+.product-links-hint { padding: 0 1.25rem 1rem; color: var(--a-t3); font-size: 0.8rem; }
 .admin-product-card__action {
   display: grid;
   place-items: center;

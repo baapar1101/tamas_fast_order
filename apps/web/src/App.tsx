@@ -75,6 +75,7 @@ export function App() {
         <Route path="/wallet" element={<WalletPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/p/:productId" element={<ProductPage />} />
+        <Route path="/admin/preview/p/:productId" element={<ProductPage adminPreview />} />
         <Route path="/payment/result" element={<PaymentResultPage />} />
         <Route
           path="/admin/*"

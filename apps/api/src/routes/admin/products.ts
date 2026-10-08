@@ -8,7 +8,7 @@ import { db } from '../../db/client.js';
 import { brands, categories, products, productTrackingLinks, trackingSites } from '../../db/schema.js';
 import { badRequest, conflict, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
-import { buildSearchText, invalidateCatalog, toProductDTO } from '../../services/catalog.js';
+import { buildSearchText, findProductByPublicId, invalidateCatalog, toProductDTO } from '../../services/catalog.js';
 import { logAction } from '../../services/audit.js';
 import { enqueueCrmProductSync } from '../../services/crm-product-sync.js';
 import { duplicateProductMessage, findProductDuplicate } from '../../services/product-duplicates.js';
@@ -105,6 +105,14 @@ async function resolveTaxonomy(
 
 const routes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requirePermission('manage_products'));
+
+  app.get('/admin/products/preview/:productId', async (req, reply) => {
+    const { productId } = req.params as { productId: string };
+    const result = await findProductByPublicId(productId, { adminPreview: true });
+    if (!result) throw notFound('محصول پیدا نشد.');
+    reply.header('cache-control', 'private, no-store');
+    return { ok: true, ...result };
+  });
 
   app.get('/admin/products', async (req) => {
     const q = listQuery.parse(req.query);

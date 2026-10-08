@@ -278,7 +278,13 @@ export async function listColors(): Promise<ColorDTO[]> {
   }) as Promise<ColorDTO[]>;
 }
 
-export async function findProductByPublicId(productId: string): Promise<{ product: ProductDTO; variants: ProductDTO[] } | null> {
+export async function findProductByPublicId(
+  productId: string,
+  options: { adminPreview?: boolean } = {},
+): Promise<{ product: ProductDTO; variants: ProductDTO[] } | null> {
+  // A direct product URL remains useful when stock runs out. Only the private
+  // admin preview may include inactive products; deleted products stay hidden.
+  const visibleProduct = options.adminPreview ? isNull(products.deletedAt) : liveProduct();
   const [row] = await db
     .select({
       product: products,
@@ -288,7 +294,7 @@ export async function findProductByPublicId(productId: string): Promise<{ produc
     .from(products)
     .leftJoin(categories, eq(categories.id, products.categoryId))
     .leftJoin(brands, eq(brands.id, products.brandId))
-    .where(and(eq(products.productId, productId), sellableProduct()))
+    .where(and(eq(products.productId, productId), visibleProduct))
     .limit(1);
 
   if (!row) return null;
@@ -307,7 +313,7 @@ export async function findProductByPublicId(productId: string): Promise<{ produc
     .leftJoin(brands, eq(brands.id, products.brandId))
     .where(
       and(
-        sellableProduct(),
+        visibleProduct,
         or(
           row.product.parentProductId
             ? eq(products.parentProductId, row.product.parentProductId)
