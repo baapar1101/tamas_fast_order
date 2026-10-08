@@ -16,6 +16,12 @@ import {
 import { useToast } from '../components/Toast';
 import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
+import { AnimatedDropdown } from '../admin/components/AnimatedDropdown';
+
+const BANK_OPTIONS = [
+  'بانک ملی', 'بانک ملت', 'بانک صادرات', 'بانک تجارت', 'بانک سپه', 'بانک سامان',
+  'بانک پاسارگاد', 'بانک پارسیان', 'بانک کشاورزی', 'بانک رفاه', 'بانک آینده', 'بانک شهر',
+].map((label) => ({ value: label, label }));
 
 export function CreditDashboard({ onBack }: { onBack: () => void }) {
   const toast = useToast();
@@ -622,24 +628,14 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
                   بانک صادرکننده <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
-                <select
+                <AnimatedDropdown
+                  variant="storefront"
+                  options={BANK_OPTIONS}
                   value={bankName}
-                  onChange={(e) => setBankName(e.target.value)}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: '13px', backgroundColor: 'var(--card)' }}
-                >
-                  <option value="بانک ملی">بانک ملی</option>
-                  <option value="بانک ملت">بانک ملت</option>
-                  <option value="بانک صادرات">بانک صادرات</option>
-                  <option value="بانک تجارت">بانک تجارت</option>
-                  <option value="بانک سپه">بانک سپه</option>
-                  <option value="بانک سامان">بانک سامان</option>
-                  <option value="بانک پاسارگاد">بانک پاسارگاد</option>
-                  <option value="بانک پارسیان">بانک پارسیان</option>
-                  <option value="بانک کشاورزی">بانک کشاورزی</option>
-                  <option value="بانک رفاه">بانک رفاه</option>
-                  <option value="بانک آینده">بانک آینده</option>
-                  <option value="بانک شهر">بانک شهر</option>
-                </select>
+                  onChange={setBankName}
+                  ariaLabel="بانک صادرکننده"
+                  buttonClassName="credit-bank-select"
+                />
               </div>
 
               <div>

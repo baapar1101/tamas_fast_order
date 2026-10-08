@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { BrandDTO, CategoryDTO, ProductDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { previewProductUrl } from './ProductLinks';
+import { AnimatedDropdown } from './AnimatedDropdown';
 import {
   DEFAULT_SHEET_COLUMNS,
   SHEET_COLUMNS,
@@ -81,6 +82,20 @@ function CellEditor({
         ? categories.map((category) => ({ value: category.name, label: category.faName || category.name }))
         : brands.map((brand) => ({ value: brand.name, label: brand.faName || brand.name }));
     const current = String(value);
+    if (choices.length > 5) return (
+      <AnimatedDropdown
+        options={[
+          ...(column.key !== 'status' ? [{ value: '', label: '—' }] : []),
+          ...(current && !choices.some((choice) => choice.value === current) ? [{ value: current, label: current }] : []),
+          ...choices,
+        ]}
+        value={current}
+        onChange={(next) => onChange(key, next)}
+        disabled={disabled}
+        ariaLabel={label}
+        buttonClassName="product-sheet__input product-sheet__select product-sheet__dropdown-button"
+      />
+    );
     return (
       <select
         className="product-sheet__input product-sheet__select"
@@ -121,6 +136,7 @@ export function ProductSheetView({
   drafts, onChange, onSave, onDiscard, saving, categories, brands, onEdit,
 }: Props) {
   const [visibleKeys, setVisibleKeys] = useState<SheetColumnKey[]>(() => initialColumns(storageId));
+  const [columnSearch, setColumnSearch] = useState('');
   useEffect(() => {
     try { localStorage.setItem(`product-sheet-columns:${storageId}`, JSON.stringify(visibleKeys)); } catch { /* Browsing still works. */ }
   }, [storageId, visibleKeys]);
@@ -153,10 +169,18 @@ export function ProductSheetView({
                 <strong>انتخاب ستون‌ها</strong>
                 <button type="button" onClick={() => setVisibleKeys(DEFAULT_SHEET_COLUMNS)}>پیش‌فرض</button>
               </div>
+              {SHEET_COLUMNS.length > 5 && <input
+                className="product-sheet__column-search"
+                type="search"
+                value={columnSearch}
+                onChange={(event) => setColumnSearch(event.target.value)}
+                placeholder="جستجوی ستون..."
+                aria-label="جستجوی ستون‌ها"
+              />}
               {(['کالا', 'قیمت و موجودی', 'نمایش'] as const).map((group) => (
                 <div className="product-sheet__column-group" key={group}>
                   <span>{group}</span>
-                  {SHEET_COLUMNS.filter((column) => column.group === group).map((column) => (
+                  {SHEET_COLUMNS.filter((column) => column.group === group && column.label.includes(columnSearch.trim())).map((column) => (
                     <label key={column.key}>
                       <input type="checkbox" checked={visibleKeys.includes(column.key)} disabled={visibleKeys.length === 1 && visibleKeys.includes(column.key)} onChange={() => toggleColumn(column.key)} />
                       {column.label}

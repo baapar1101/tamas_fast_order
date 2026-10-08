@@ -12,6 +12,10 @@
 .product-sheet__columns > summary::-webkit-details-marker { display: none; }
 .product-sheet__count { display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 7px; background: var(--a-brand-soft); color: var(--a-brand); font-size: 11px; }
 .product-sheet__column-panel { position: absolute; top: calc(100% + 9px); right: 0; z-index: 30; width: min(330px, calc(100vw - 44px)); max-height: min(70vh, 560px); overflow-y: auto; padding: 14px; border: 1px solid var(--a-border); border-radius: 14px; background: var(--a-dropdown-bg); box-shadow: 0 18px 48px rgba(0, 0, 0, .20); }
+body.admin-page-active .product-sheet__column-panel { background: #101b2d; }
+body.admin-page-active.admin-theme-light .product-sheet__column-panel { background: #fff; }
+.product-sheet__column-search { display: block; width: 100%; height: 38px; margin-top: 10px; padding: 0 10px; border: 1px solid var(--a-border); border-radius: 8px; outline: 0; background: transparent; color: var(--a-t1); font: inherit; }
+.product-sheet__column-search:focus { border-color: var(--a-brand); }
 .product-sheet__panel-head { display: flex; justify-content: space-between; align-items: center; padding: 0 4px 10px; border-bottom: 1px solid var(--a-border); }
 .product-sheet__panel-head button { border: 0; background: none; color: var(--a-brand); cursor: pointer; font: inherit; font-size: 12px; }
 .product-sheet__column-group { padding: 11px 0 4px; }
@@ -43,6 +47,7 @@
 .product-sheet__input:disabled { opacity: .65; }
 .product-sheet__number { font-variant-numeric: tabular-nums; }
 .product-sheet__select { cursor: pointer; }
+.product-sheet__dropdown-button { display: flex; justify-content: space-between; font-weight: inherit; }
 .product-sheet__readonly { display: block; overflow: hidden; padding: 0 8px; color: var(--a-t3); text-overflow: ellipsis; }
 .product-sheet__mono { direction: ltr; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; text-align: left; }
 .product-sheet__lock { margin-inline-start: 5px; color: var(--a-t4); font-size: 13px; }

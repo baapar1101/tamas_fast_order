@@ -7,6 +7,7 @@ import { Icon } from '../components/Icon';
 import { stockFor } from '../store/cart';
 import { resolveProductColor } from './productColor';
 import { isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneModelImages } from './productVariants';
+import { AnimatedDropdown } from '../admin/components/AnimatedDropdown';
 
 import type { CartLine } from '../store/cart';
 
@@ -250,7 +251,18 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                 </div>
                 <span className="color-picker">
                   <span className="color-dot" style={{ background: resolveProductColor(selectedVariant, colorMap) }} aria-hidden />
-                  <select
+                  {displayVariants.length > 5 ? <AnimatedDropdown
+                    variant="storefront"
+                    className="color-select-searchable"
+                    buttonClassName="color-select-searchable__button"
+                    value={String(activeIndex)}
+                    onChange={(next) => setSelectedIndex(Number(next))}
+                    ariaLabel="انتخاب رنگ"
+                    options={displayVariants.map((v, i) => ({
+                      value: String(i),
+                      label: `${v.color || 'اصلی'}${canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}${v.sku ? ` (${v.sku})` : ''}`,
+                    }))}
+                  /> : <select
                     className="color-select"
                     value={activeIndex}
                     onChange={(e) => setSelectedIndex(Number(e.target.value))}
@@ -261,7 +273,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                         {v.color || 'اصلی'}{canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}{v.sku ? ` (${v.sku})` : ''}
                       </option>
                     ))}
-                  </select>
+                  </select>}
                   <span className="color-count">{formatNumber(displayVariants.length)} رنگ</span>
                 </span>
               </>
