@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { SvgSprite } from './components/Icon';
 import { useAuth } from './store/auth';
 import { StorefrontPage } from './storefront/StorefrontPage';
@@ -9,6 +9,7 @@ import { OrdersPage } from './storefront/OrdersPage';
 import { WalletPage } from './storefront/WalletPage';
 import { CheckoutPage } from './storefront/CheckoutPage';
 import { CreditPage } from './storefront/CreditPage';
+import { AccountLayout } from './storefront/AccountLayout';
 
 import { PaymentResultPage } from './storefront/PaymentResultPage';
 import { captureAttribution } from './lib/attribution';
@@ -18,6 +19,11 @@ import { captureAttribution } from './lib/attribution';
  * tables, editors and charts that only a manager needs.
  */
 const AdminApp = lazy(() => import('./admin/AdminApp'));
+
+function LegacyAccountRedirect({ target }: { target: string }) {
+  const location = useLocation();
+  return <Navigate to={`${target}${location.search}${location.hash}`} state={location.state} replace />;
+}
 
 function AdminLoadingSpinner() {
   // Retrieve theme for basic background styling before AdminApp mounts
@@ -74,9 +80,16 @@ export function App() {
       <Routes>
         <Route path="/" element={<StorefrontPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/credit" element={<CreditPage />} />
-        <Route path="/orders" element={<OrdersPage />} />
-        <Route path="/wallet" element={<WalletPage />} />
+        <Route path="/account" element={<AccountLayout />}>
+          <Route index element={<OrdersPage />} />
+          <Route path="orders" element={<Navigate to="/account" replace />} />
+          <Route path="wallet" element={<WalletPage />} />
+          <Route path="credit" element={<CreditPage />} />
+        </Route>
+        <Route path="/orders" element={<LegacyAccountRedirect target="/account" />} />
+        <Route path="/profile/orders" element={<LegacyAccountRedirect target="/account" />} />
+        <Route path="/wallet" element={<LegacyAccountRedirect target="/account/wallet" />} />
+        <Route path="/credit" element={<LegacyAccountRedirect target="/account/credit" />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/p/:productId" element={<ProductPage />} />
         <Route path="/admin/preview/p/:productId" element={<ProductPage adminPreview />} />

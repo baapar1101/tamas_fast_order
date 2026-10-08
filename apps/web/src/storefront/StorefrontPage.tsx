@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import type { CreditApplicationDTO, ProductDTO, Warehouse } from '@tamas/shared';
+import type { ProductDTO, Warehouse } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { useToast } from '../components/Toast';
-import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { cartCount, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
@@ -69,14 +68,13 @@ export function StorefrontPage() {
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, complete, isAdmin, logout } = useAuth();
+  const { user, complete, logout } = useAuth();
   const addToCart = useCart((s) => s.add);
   const lines = useCart((s) => s.lines);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const observedUrlRef = useRef(searchParams.toString());
 
-  const [userCreditApp, setUserCreditApp] = useState<CreditApplicationDTO | null>(null);
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const [category, setCategory] = useState<string | null>(searchParams.get('cat') || null);
   const [brands, setBrands] = useState<string[]>(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
@@ -220,7 +218,7 @@ export function StorefrontPage() {
   }, [navigate, location.pathname, location.search]);
 
   const goToCredit = useCallback(() => {
-    navigate('/credit', { state: { returnTo: `${location.pathname}${location.search}` } });
+    navigate('/account/credit', { state: { returnTo: `${location.pathname}${location.search}` } });
   }, [navigate, location.pathname, location.search]);
 
   const openCheckout = useCallback(() => {
@@ -259,20 +257,6 @@ export function StorefrontPage() {
     } else {
       setPromoOrange(false);
     }
-  }, [user]);
-
-  // Fetch user credit application status for header & profile dropdown
-  useEffect(() => {
-    if (!user) {
-      setUserCreditApp(null);
-      return;
-    }
-    api
-      .get<{ ok: true; application: CreditApplicationDTO | null }>('/credit/my-application')
-      .then((res) => {
-        if (res.ok) setUserCreditApp(res.application);
-      })
-      .catch(() => {});
   }, [user]);
 
   const groups = products.data?.groups ?? [];
@@ -355,103 +339,10 @@ export function StorefrontPage() {
               <Icon name="heart" />
             </button>
             {user ? (
-              <div className="profile-dropdown-wrapper" style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  className="btn primary"
-                  onClick={(e) => {
-                    const dropdown = e.currentTarget.nextElementSibling as HTMLElement;
-                    if (dropdown) dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
-                  }}
-                >
-                  <Icon name="user" />
-                  <span>{`${user.name || 'حساب'} ${user.lastName}`.trim()}</span>
-                </button>
-                <div 
-                  className="profile-dropdown-menu" 
-                  style={{ 
-                    display: 'none', position: 'absolute', top: '110%', left: 0, 
-                    backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', 
-                    boxShadow: 'var(--shadow-lg)', minWidth: '180px', padding: '8px', zIndex: 100,
-                    flexDirection: 'column', gap: '4px'
-                  }}
-                >
-                  <Link to="/orders" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--text)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
-                    <Icon name="bag" style={{ marginInlineEnd: 8 }} /> سفارش‌های من
-                  </Link>
-                  <Link to="/wallet" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--tamas-accent)', textDecoration: 'none', fontSize: '14px', fontWeight: 700 }}>
-                    <span style={{ marginInlineEnd: 8 }}>◈</span> کیف پول من
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={goToCredit}
-                    style={{
-                      width: '100%',
-                      textAlign: 'right',
-                      padding: '10px 16px',
-                      borderRadius: '8px',
-                      color: 'var(--tamas-accent)',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '8px',
-                    }}
-                  >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                      💳 پرونده اعتباری
-                    </span>
-                    {userCreditApp && (
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 800,
-                          padding: '3px 8px',
-                          borderRadius: '12px',
-                          backgroundColor:
-                            userCreditApp.status === 'active'
-                              ? '#dcfce7'
-                              : userCreditApp.status === 'action_required'
-                              ? '#fee2e2'
-                              : '#fef3c7',
-                          color:
-                            userCreditApp.status === 'active'
-                              ? '#15803d'
-                              : userCreditApp.status === 'action_required'
-                              ? '#dc2626'
-                              : '#d97706',
-                        }}
-                      >
-                        ● {userCreditApp.status === 'active'
-                          ? 'تأیید شده'
-                          : userCreditApp.status === 'action_required'
-                          ? 'رد شده'
-                          : 'در حال بررسی'}
-                      </span>
-                    )}
-                  </button>
-                  {isAdmin && (
-                    <Link to="/admin" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--tamas-admin-emerald)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
-                      <Icon name="grid" style={{ marginInlineEnd: 8 }} /> پنل مدیریت
-                    </Link>
-                  )}
-                  <div style={{ height: '1px', backgroundColor: 'var(--border)', margin: '4px 0' }} />
-                  <button 
-                    type="button" 
-                    onClick={async () => {
-                      await logout();
-                      toast.ok('از حساب خود خارج شدید.');
-                    }}
-                    style={{ width: '100%', textAlign: 'right', padding: '10px 16px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'transparent', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    <Icon name="chevron" style={{ marginInlineEnd: 8, transform: 'rotate(180deg)' }} /> خروج از حساب
-                  </button>
-                </div>
-              </div>
+              <Link to="/account" state={{ returnTo: `${location.pathname}${location.search}` }} className="btn primary" aria-label="رفتن به حساب کاربری">
+                <Icon name="user" />
+                <span>{`${user.name || 'حساب'} ${user.lastName || ''}`.trim()}</span>
+              </Link>
             ) : (
               <button
                 type="button"
@@ -510,11 +401,7 @@ export function StorefrontPage() {
               <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--tamas-accent)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 800, margin: '0 auto 16px' }}>{user.name?.[0] || 'U'}</div>
               <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--tamas-fg)', marginBottom: 4 }}>{user.name} {user.lastName}</h2>
               <p style={{ fontSize: 14, color: 'var(--tamas-muted)', marginBottom: 24 }}>{user.phone}</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <Link to="/orders" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'var(--tamas-info-bg)', borderRadius: 12, color: 'var(--tamas-fg)', textDecoration: 'none', fontWeight: 600 }}><Icon name="bag" /> سفارش‌های من</Link>
-                {isAdmin && <Link to="/admin" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'rgba(5, 150, 105, 0.1)', borderRadius: 12, color: '#10b981', textDecoration: 'none', fontWeight: 600 }}><Icon name="grid" /> پنل مدیریت</Link>}
-                <button type="button" onClick={async () => { await logout(); toast.ok('از حساب خود خارج شدید.'); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'rgba(225, 29, 72, 0.1)', borderRadius: 12, color: 'var(--danger)', border: 'none', fontWeight: 600, cursor: 'pointer' }}><Icon name="chevron" style={{ transform: 'rotate(180deg)' }} /> خروج از حساب</button>
-              </div>
+              <Link to="/account" state={{ returnTo: `${location.pathname}${location.search}` }} className="btn primary w-full">ورود به صفحهٔ حساب کاربری</Link>
             </div>
           ) : (
             <div style={{ background: 'var(--card)', borderRadius: 16, padding: 32, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center', marginTop: 40, border: '1px solid var(--tamas-border)' }}>
@@ -880,9 +767,15 @@ export function StorefrontPage() {
         <button type="button" className={`tabbar-item ${mobileTab === 'cart' ? 'active' : ''}`} onClick={() => setMobileTab('cart')}>
           <span className="tabbar-icon"><Icon name="bag" />{lines.length > 0 && <span className="badge-count">{formatNumber(cartCount(lines))}</span>}</span><span>سبد خرید</span>
         </button>
-        <button type="button" className={`tabbar-item ${mobileTab === 'profile' ? 'active' : ''}`} onClick={() => setMobileTab('profile')}>
-          <span className="tabbar-icon"><Icon name="user" /></span><span>{user ? 'حساب کاربری' : 'ورود / عضویت'}</span>
-        </button>
+        {user ? (
+          <Link to="/account" state={{ returnTo: `${location.pathname}${location.search}` }} className="tabbar-item">
+            <span className="tabbar-icon"><Icon name="user" /></span><span>حساب کاربری</span>
+          </Link>
+        ) : (
+          <button type="button" className={`tabbar-item ${mobileTab === 'profile' ? 'active' : ''}`} onClick={() => setMobileTab('profile')}>
+            <span className="tabbar-icon"><Icon name="user" /></span><span>ورود / عضویت</span>
+          </button>
+        )}
       </nav>
 
       {/* CRM Chat Widget */}

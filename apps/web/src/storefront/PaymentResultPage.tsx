@@ -62,7 +62,7 @@ export function PaymentResultPage() {
         </div>
 
         <div style={{ display: 'flex', gap: 15, justifyContent: 'center' }}>
-          <Link to="/profile/orders" className="btn primary">پیگیری سفارشات</Link>
+          <Link to="/account" className="btn primary">پیگیری سفارشات</Link>
           <Link to="/" className="btn outline">بازگشت به فروشگاه</Link>
         </div>
       </div>

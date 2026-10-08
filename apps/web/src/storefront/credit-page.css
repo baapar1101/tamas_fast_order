@@ -1,29 +1,5 @@
-.credit-shell {
-  min-width: 0;
-}
-
-.credit-shell .credit-topbar-inner {
-  max-width: 1120px;
-  display: flex;
-}
-
-.credit-back {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border: 1px solid var(--tamas-border);
-  border-radius: 50%;
-  color: var(--tamas-fg);
-  text-decoration: none;
-}
-
 .credit-page {
-  width: min(100% - 40px, 1120px);
-  margin: 0 auto;
-  padding: 36px 0 72px;
-  flex: 1;
+  width: 100%;
   min-width: 0;
 }
 
@@ -39,7 +15,7 @@
   font-weight: 700;
 }
 
-.credit-page-heading h1 {
+.credit-page-heading h2 {
   margin: 0 0 8px;
   font-size: clamp(22px, 3vw, 30px);
   line-height: 1.4;
@@ -60,17 +36,11 @@
   box-shadow: var(--tamas-shadow-sm);
 }
 
-.credit-page-state,
 .credit-load-error {
   padding: 36px 24px;
   text-align: center;
 }
 
-.credit-page-state h2 {
-  margin: 14px 0 6px;
-}
-
-.credit-page-state p,
 .credit-load-error p {
   color: var(--tamas-muted);
   line-height: 1.8;
@@ -133,25 +103,6 @@
 }
 
 @media (max-width: 640px) {
-  .credit-shell .credit-topbar-inner {
-    gap: 10px;
-    padding: 10px 16px;
-  }
-
-  .credit-topbar-inner .logo img {
-    height: 34px;
-  }
-
-  .credit-shell .credit-back-label,
-  .credit-shell .credit-topbar-inner .logo-tagline {
-    display: none;
-  }
-
-  .credit-page {
-    width: 100%;
-    padding: 22px 14px 42px;
-  }
-
   .credit-page-heading {
     margin-bottom: 16px;
   }
@@ -198,7 +149,6 @@
     font-size: 12px;
   }
 
-  .credit-page-state,
   .credit-load-error {
     padding: 24px 16px;
   }

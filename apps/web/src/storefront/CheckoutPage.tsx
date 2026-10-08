@@ -86,7 +86,7 @@ export function CheckoutPage() {
         ) : (
           <CheckoutFlow
             onCancel={() => navigate(returnTo)}
-            onFinished={() => navigate('/orders', { replace: true })}
+            onFinished={() => navigate('/account', { replace: true })}
             onNeedsProfile={() => setProfileOpen(true)}
           />
         )}

@@ -1,0 +1,313 @@
+.account-shell {
+  min-width: 0;
+}
+
+.account-shell .account-topbar-inner {
+  max-width: 1280px;
+  display: flex;
+}
+
+.account-header-back {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--tamas-border);
+  border-radius: 50%;
+  color: var(--tamas-fg);
+  text-decoration: none;
+}
+
+.account-page {
+  width: min(100% - 40px, 1280px);
+  margin: 0 auto;
+  padding: 32px 0 72px;
+  flex: 1;
+  min-width: 0;
+}
+
+.account-heading {
+  margin-bottom: 22px;
+}
+
+.account-heading > span {
+  color: var(--tamas-accent-deep);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.account-heading h1 {
+  margin: 4px 0;
+  color: var(--tamas-fg);
+  font-size: clamp(23px, 3vw, 30px);
+}
+
+.account-heading p {
+  margin: 0;
+  color: var(--tamas-muted);
+  line-height: 1.8;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+  min-width: 0;
+}
+
+.account-sidebar {
+  position: sticky;
+  top: 92px;
+  padding: 16px;
+  border: 1px solid var(--tamas-border);
+  border-radius: 18px;
+  background: var(--tamas-surface);
+  box-shadow: var(--tamas-shadow-sm);
+  min-width: 0;
+}
+
+.account-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 4px 4px 16px;
+  border-bottom: 1px solid var(--tamas-border);
+  margin-bottom: 12px;
+}
+
+.account-identity > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.account-identity strong,
+.account-identity small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-identity strong {
+  color: var(--tamas-fg);
+  font-size: 14px;
+}
+
+.account-identity small {
+  color: var(--tamas-muted);
+  font-size: 12px;
+}
+
+.account-avatar {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--tamas-accent);
+  color: #fff;
+  font-weight: 800;
+}
+
+.account-nav,
+.account-sidebar-actions {
+  display: grid;
+  gap: 5px;
+}
+
+.account-sidebar-actions {
+  border-top: 1px solid var(--tamas-border);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.account-nav-item {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--tamas-fg);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: right;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.account-nav-item:hover,
+.account-nav-item.active {
+  background: var(--tamas-info-bg);
+  color: var(--tamas-accent);
+}
+
+.account-nav-item.active {
+  box-shadow: inset -3px 0 var(--tamas-accent);
+}
+
+.account-nav-item svg,
+.account-nav-glyph {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  display: inline-grid;
+  place-items: center;
+}
+
+.account-nav-admin {
+  color: var(--tamas-admin-emerald, #0c9068);
+}
+
+.account-nav-logout {
+  width: 100%;
+  color: var(--danger);
+}
+
+.account-content {
+  min-width: 0;
+}
+
+.account-content .ord-page,
+.account-content .credit-page {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.account-content .wallet-page {
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.account-content .wallet-header {
+  margin-bottom: 18px;
+}
+
+.account-state {
+  max-width: 640px;
+  padding: 36px 24px;
+  text-align: center;
+}
+
+.account-state h2 {
+  margin: 14px 0 6px;
+}
+
+.account-state p {
+  color: var(--tamas-muted);
+  line-height: 1.8;
+}
+
+@media (max-width: 800px) {
+  .account-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .account-sidebar {
+    position: static;
+  }
+
+  .account-nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 7px;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .account-nav-item {
+    flex: 0 0 auto;
+  }
+
+  .account-nav-item.active {
+    box-shadow: inset 0 -3px var(--tamas-accent);
+  }
+
+  .account-sidebar-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .account-sidebar-actions .account-nav-item {
+    min-width: 0;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .account-content .ord-main-title {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .account-shell .account-topbar-inner {
+    gap: 10px;
+    padding: 10px 16px;
+  }
+
+  .account-topbar-inner .logo img {
+    height: 34px;
+  }
+
+  .account-shell .account-header-shop,
+  .account-shell .account-topbar-inner .logo-tagline {
+    display: none;
+  }
+
+  .account-page {
+    width: 100%;
+    padding: 22px 14px 42px;
+  }
+
+  .account-heading {
+    margin-bottom: 16px;
+  }
+
+  .account-heading p {
+    font-size: 13px;
+  }
+
+  .account-sidebar {
+    padding: 12px;
+  }
+
+  .account-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .account-nav-item {
+    min-width: 0;
+    min-height: 42px;
+    padding: 9px 10px;
+    font-size: 12px;
+    white-space: normal;
+  }
+
+  .account-content .wallet-hero {
+    padding: 18px;
+  }
+
+  .account-content .wallet-panel {
+    padding: 16px;
+  }
+
+  .account-state {
+    padding: 24px 16px;
+  }
+}
