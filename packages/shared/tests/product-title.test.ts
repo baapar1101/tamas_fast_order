@@ -14,6 +14,8 @@ describe('formatProductTitle', () => {
   it('keeps model codes, technical acronyms, units, and intentional brand case', () => {
     assert.equal(formatProductTitle('USB-C 4G 128 GB 100cm iPhone MicroUSB'),
       'USB-C 4G 128 GB 100cm iPhone MicroUSB');
+    assert.equal(formatProductTitle('OG SUPER X LX-24 CH/A GALAXY S25 FE'),
+      'OG Super X LX-24 CH/A Galaxy S25 FE');
   });
 
   it('leaves Persian text unchanged and is idempotent', () => {
