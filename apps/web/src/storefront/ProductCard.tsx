@@ -333,5 +333,33 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
-});
+}, (prev, next) => {
+  if (
+    prev.group !== next.group ||
+    prev.colorMap !== next.colorMap ||
+    prev.canViewPrices !== next.canViewPrices ||
+    prev.viewMode !== next.viewMode ||
+    prev.onAdd !== next.onAdd ||
+    prev.onUpdateQty !== next.onUpdateQty ||
+    prev.onPreview !== next.onPreview
+  ) {
+    return false;
+  }
 
+  // Optimization: Only re-render if the cart quantities for THIS specific product group have changed.
+  // This prevents all other product cards from re-rendering when an unrelated item is added to the cart.
+  const productIds = prev.group.variants.map((v) => v.productId);
+
+  const prevLines = prev.cartLines.filter((l) => productIds.includes(l.productId));
+  const nextLines = next.cartLines.filter((l) => productIds.includes(l.productId));
+
+  if (prevLines.length !== nextLines.length) return false;
+
+  for (let i = 0; i < prevLines.length; i++) {
+    const p = prevLines[i]!;
+    const n = nextLines.find((l) => l.key === p.key);
+    if (!n || p.qty !== n.qty) return false;
+  }
+
+  return true;
+});
