@@ -103,7 +103,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [editing, setEditing] = useState<ProductDTO | 'new' | null>(null);
   const [bulkPrompt, setBulkPrompt] = useState<'setStock' | 'adjustPrice' | null>(null);
   const [bulkValue, setBulkValue] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'table' | 'sheet'>('table');
+  const [viewMode, setViewMode] = useState<'grid' | 'table' | 'sheet'>(() => Object.keys(restoreSheetDrafts()).length ? 'sheet' : 'table');
   const [sheetDrafts, setSheetDrafts] = useState<SheetDrafts>(restoreSheetDrafts);
   const [sheetSaving, setSheetSaving] = useState(false);
   const [variantsProduct, setVariantsProduct] = useState<ProductDTO | null>(null);
