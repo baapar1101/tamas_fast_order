@@ -54,7 +54,8 @@ const db = postgres(process.env.DATABASE_URL, { max: 1 });
 try {
   const products = await db`
     SELECT p.id, p.product_id, p.sku, p.title, p.price, p.kerman_stock,
-           p.tehran_stock, p.stock, p.updated_at, p.type, p.bundle_items,
+           p.tehran_stock, p.stock, p.updated_at::text AS updated_at_exact,
+           p.type, p.bundle_items,
            c.name AS category_name
     FROM products p
     LEFT JOIN categories c ON c.id = p.category_id
@@ -134,7 +135,7 @@ try {
       changes.push({
         id: product.id, sku, title: product.title,
         old_price: oldPrice, old_kerman: oldKerman, old_tehran: oldTehran,
-        old_stock: oldStock, old_updated_at: product.updated_at.toISOString(),
+        old_stock: oldStock, old_updated_at: product.updated_at_exact,
         new_price: newPrice, new_kerman: newKerman, new_stock: newStock,
       });
     }
