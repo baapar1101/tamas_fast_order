@@ -21,6 +21,23 @@ export function Modal({ open, title, onClose, children, footer, wide, size, busy
   useEffect(() => {
     if (!open) return undefined;
     previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    // Keep the focus lifecycle tied to opening/closing the modal. Callbacks and
+    // busy state can change while a user types (or a parent timer rerenders).
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const focusTimer = window.setTimeout(() => {
+      const preferred = panelRef.current?.querySelector<HTMLElement>('[autofocus], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])');
+      preferred?.focus();
+    }, 0);
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.body.style.overflow = previous;
+      previousFocusRef.current?.focus();
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !busy) onClose();
       if (e.key === 'Tab' && panelRef.current) {
@@ -33,17 +50,8 @@ export function Modal({ open, title, onClose, children, footer, wide, size, busy
       }
     };
     document.addEventListener('keydown', onKey);
-    // Stop the page behind the dialog from scrolling with it.
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    window.setTimeout(() => {
-      const preferred = panelRef.current?.querySelector<HTMLElement>('[autofocus], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])');
-      preferred?.focus();
-    }, 0);
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previous;
-      previousFocusRef.current?.focus();
     };
   }, [open, onClose, busy]);
 
