@@ -860,3 +860,112 @@
     font-size: 13px;
   }
 }
+
+/* Product image viewer */
+.pp-lightbox {
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 18px;
+}
+
+.pp-lightbox-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  direction: rtl;
+}
+
+.pp-lightbox-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  max-width: 100%;
+}
+
+.pp-lightbox-stage img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(850px, calc(100vw - 170px));
+  max-height: calc(100dvh - 130px);
+  box-sizing: border-box;
+  object-fit: contain;
+}
+
+.pp-lightbox-stage:not(.has-navigation) img {
+  max-width: min(950px, calc(100vw - 36px));
+}
+
+.pp-lightbox-nav,
+.pp-lightbox-close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #1f2937;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.pp-lightbox-nav:hover,
+.pp-lightbox-close:hover {
+  background: #e6f7fa;
+  color: var(--tamas-accent, #087f91);
+}
+
+.pp-lightbox-close {
+  position: absolute;
+  z-index: 1;
+  top: 12px;
+  inset-inline-start: 80px;
+  width: 38px;
+  height: 38px;
+  font-size: 27px;
+}
+
+.pp-lightbox-counter {
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .pp-lightbox {
+    padding: 12px;
+  }
+
+  .pp-lightbox-stage {
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 10px;
+  }
+
+  .pp-lightbox-stage img,
+  .pp-lightbox-stage:not(.has-navigation) img {
+    order: -1;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 150px);
+  }
+
+  .pp-lightbox-stage.has-navigation img {
+    flex: 0 0 100%;
+  }
+
+  .pp-lightbox-close {
+    top: 10px;
+    inset-inline-start: 10px;
+  }
+}

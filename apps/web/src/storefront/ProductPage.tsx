@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
@@ -58,12 +58,16 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
   const setQty = useCart((s) => s.setQty);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [relatedPreview, setRelatedPreview] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'desc' | 'specs'>('desc');
   const [authStep, setAuthStep] = useState<'phone' | 'profile'>('phone');
   const [shareOpen, setShareOpen] = useState(false);
   const shareRef = useRef<HTMLDivElement>(null);
+  const previewDialogRef = useRef<HTMLDivElement>(null);
+  const previewCloseRef = useRef<HTMLButtonElement>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const query = useQuery({
     queryKey: ['product', productId, adminPreview],
@@ -102,6 +106,55 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
     if (list.length === 0) list.push('/logo.png');
     return [...new Set(list)];
   }, [selected]);
+
+  const previewOpen = previewIndex !== null;
+  const showPreviewImage = (direction: -1 | 1) => {
+    if (images.length < 2) return;
+    setPreviewIndex((current) => current === null ? null : (current + direction + images.length) % images.length);
+  };
+
+  useEffect(() => {
+    if (!previewOpen) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    previewCloseRef.current?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setPreviewIndex(null);
+        return;
+      }
+      if (event.key === 'Tab') {
+        const controls = previewDialogRef.current?.querySelectorAll<HTMLButtonElement>('button');
+        if (controls?.length) {
+          const first = controls[0];
+          const last = controls[controls.length - 1];
+          if (first && last && event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (first && last && !event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        }
+      }
+      if (images.length < 2) return;
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        setPreviewIndex((current) => current === null ? null : (current + 1) % images.length);
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        setPreviewIndex((current) => current === null ? null : (current - 1 + images.length) % images.length);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [previewOpen, images.length]);
 
   const bootstrap = useBootstrap();
 
@@ -290,7 +343,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
             <button
               type="button"
               className="pp-main-img"
-              onClick={() => setPreview(images[0] || null)}
+              onClick={() => setPreviewIndex(0)}
               aria-label="بزرگ‌نمایی تصویر"
             >
               {isPromo && (
@@ -309,13 +362,13 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
             </button>
             {images.length > 1 && (
               <div className="pp-thumbs">
-                {images.map((src) => (
+                {images.map((src, index) => (
                   <button
                     key={src}
                     type="button"
                     className={`pp-thumb${src === images[0] ? ' active' : ''}`}
-                    onClick={() => setPreview(src)}
-                    aria-label="مشاهده تصویر"
+                    onClick={() => setPreviewIndex(index)}
+                    aria-label={`مشاهده تصویر ${formatNumber(index + 1)} از ${formatNumber(images.length)}`}
                   >
                     <img src={src} alt="" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.png'; }} />
                   </button>
@@ -562,7 +615,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
                   cartLines={lines}
                   onAdd={handleAdd}
                   onUpdateQty={handleUpdateQty}
-                  onPreview={setPreview}
+                  onPreview={setRelatedPreview}
                 />
               ))}
             </div>
@@ -616,9 +669,46 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
         </div>
       )}
 
-      {preview && (
-        <div className="lightbox" onClick={() => setPreview(null)} role="presentation">
-          <img src={preview} alt="" />
+      {previewIndex !== null && images.length > 0 && (
+        <div className="lightbox pp-lightbox" onClick={(event) => { if (event.target === event.currentTarget) setPreviewIndex(null); }} role="presentation">
+          <div
+            ref={previewDialogRef}
+            className="pp-lightbox-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`تصاویر محصول ${selected.title}`}
+            onTouchStart={(event) => {
+              const touch = event.touches.item(0);
+              if (touch) touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+            }}
+            onTouchEnd={(event) => {
+              const start = touchStartRef.current;
+              touchStartRef.current = null;
+              if (!start || images.length < 2) return;
+              const touch = event.changedTouches.item(0);
+              if (!touch) return;
+              const dx = touch.clientX - start.x;
+              const dy = touch.clientY - start.y;
+              if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) showPreviewImage(dx < 0 ? 1 : -1);
+            }}
+          >
+            <button ref={previewCloseRef} type="button" className="pp-lightbox-close" aria-label="بستن تصویر" onClick={() => setPreviewIndex(null)}>×</button>
+            <div className={`pp-lightbox-stage${images.length > 1 ? ' has-navigation' : ''}`}>
+              {images.length > 1 && (
+                <button type="button" className="pp-lightbox-nav" aria-label="عکس قبلی" onClick={() => showPreviewImage(-1)}>›</button>
+              )}
+              <img src={images[previewIndex] ?? images[0] ?? '/logo.png'} alt={`تصویر ${formatNumber(previewIndex + 1)} از ${formatNumber(images.length)} محصول ${selected.title}`} onError={(event) => { event.currentTarget.src = '/logo.png'; }} />
+              {images.length > 1 && (
+                <button type="button" className="pp-lightbox-nav" aria-label="عکس بعدی" onClick={() => showPreviewImage(1)}>‹</button>
+              )}
+            </div>
+            {images.length > 1 && <span className="pp-lightbox-counter" aria-live="polite">{formatNumber(previewIndex + 1)} از {formatNumber(images.length)}</span>}
+          </div>
+        </div>
+      )}
+      {relatedPreview && (
+        <div className="lightbox" onClick={() => setRelatedPreview(null)} role="presentation">
+          <img src={relatedPreview} alt="" />
         </div>
       )}
 
