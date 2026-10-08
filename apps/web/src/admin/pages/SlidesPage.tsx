@@ -4,6 +4,8 @@ import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 import { ImagePicker } from '../components/ImagePicker';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { GoldenCampaignCopy } from '../../storefront/GoldenCampaignCopy';
+import { GOLDEN_CAMPAIGN_END_AT, isGoldenCampaignSlide } from '../../storefront/goldenCampaign';
 
 interface Slide {
   id: number;
@@ -220,9 +222,11 @@ export function SlidesPage() {
                   <button type="button" className={previewDevice === 'mobile' ? 'active' : ''} onClick={() => setPreviewDevice('mobile')}>موبایل</button>
                 </div>
               </div>
-              <div className={`slides-preview-frame slides-preview-frame--${previewDevice}`}>
+              <div className={`slides-preview-frame slides-preview-frame--${previewDevice}${isGoldenCampaignSlide(formData) ? ' slides-preview-frame--golden' : ''}`}>
                 {previewImage ? <img src={previewImage} alt={formData.title || 'پیش‌نمایش بنر'} /> : <div className="slides-preview-empty">تصویر بنر را انتخاب کنید</div>}
+                {previewImage && isGoldenCampaignSlide(formData) && <GoldenCampaignCopy />}
               </div>
+              {isGoldenCampaignSlide(formData) && <p className="a-hint mt-3">این بنر پس از پایان ۲۰ مهر ۱۴۰۵ به‌طور خودکار از فروشگاه پنهان می‌شود{Date.now() >= GOLDEN_CAMPAIGN_END_AT ? ' (اکنون منقضی شده است).' : '.'}</p>}
               <dl className="slides-preview-meta">
                 <div><dt>عنوان</dt><dd>{formData.title || 'بدون عنوان'}</dd></div>
                 <div><dt>مقصد</dt><dd dir="ltr">{formData.linkUrl || 'بدون لینک'}</dd></div>

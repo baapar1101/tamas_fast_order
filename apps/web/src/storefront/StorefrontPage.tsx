@@ -17,6 +17,8 @@ import { CrmChat } from '../components/CrmChat';
 import { StoreFooter } from './StoreFooter';
 import { IncompleteProfilePopup } from './IncompleteProfilePopup';
 import { GuestPromoPopup } from './GuestPromoPopup';
+import { GoldenCampaignCopy } from './GoldenCampaignCopy';
+import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_IMAGE_URL, isGoldenCampaignSlide, visibleCampaignSlides } from './goldenCampaign';
 import './storefront.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
@@ -146,6 +148,16 @@ export function StorefrontPage() {
   }, [searchParams]);
 
   const [activeSlide, setActiveSlide] = useState(0);
+  const [campaignExpired, setCampaignExpired] = useState(() => Date.now() >= GOLDEN_CAMPAIGN_END_AT);
+
+  useEffect(() => {
+    if (campaignExpired) return undefined;
+    const timer = window.setTimeout(
+      () => setCampaignExpired(true),
+      Math.max(0, GOLDEN_CAMPAIGN_END_AT - Date.now()),
+    );
+    return () => window.clearTimeout(timer);
+  }, [campaignExpired]);
 
   const [authOpen, setAuthOpen] = useState(false);
   const [authStep, setAuthStep] = useState<'phone' | 'profile'>('phone');
@@ -161,7 +173,10 @@ export function StorefrontPage() {
 
   const bootstrap = useBootstrap();
   const products = useProducts(filters);
-  const heroSlides = bootstrap.data?.slides ?? FALLBACK_HERO_SLIDES;
+  const heroSlides = useMemo(
+    () => visibleCampaignSlides(bootstrap.data?.slides ?? FALLBACK_HERO_SLIDES, campaignExpired ? GOLDEN_CAMPAIGN_END_AT : Date.now()),
+    [bootstrap.data?.slides, campaignExpired],
+  );
 
   useEffect(() => {
     setActiveSlide((current) => Math.min(current, Math.max(0, heroSlides.length - 1)));
@@ -413,15 +428,16 @@ export function StorefrontPage() {
           )}
         </div>
         {/* Hero Carousel Slider */}
-        {heroSlides.length > 0 && <section className="hero-slider" aria-label="بنرهای فروشگاه" aria-roledescription="carousel">
+        {heroSlides.length > 0 && <section className={`hero-slider${heroSlides[activeSlide]?.imageUrl === GOLDEN_CAMPAIGN_IMAGE_URL ? ' hero-slider--golden' : ''}`} aria-label="بنرهای فروشگاه" aria-roledescription="carousel">
           {heroSlides.map((slide, i) => {
+            const isGoldenCampaign = isGoldenCampaignSlide(slide);
             const picture = (
               <picture>
                 {slide.mobileImageUrl && <source media="(max-width: 768px)" srcSet={slide.mobileImageUrl} />}
                 <img
                   className="hero-slide-image"
                   src={slide.imageUrl}
-                  alt={slide.title || `بنر ${i + 1}`}
+                  alt={isGoldenCampaign ? '' : slide.title || `بنر ${i + 1}`}
                   loading={i === 0 ? 'eager' : 'lazy'}
                   fetchPriority={i === 0 ? 'high' : 'auto'}
                 />
@@ -433,8 +449,9 @@ export function StorefrontPage() {
                 : <Link to={slide.linkUrl} tabIndex={i === activeSlide ? 0 : -1} aria-label={slide.title || 'مشاهده بنر'}>{picture}</Link>
               : picture;
             return (
-              <div key={slide.id} className={`hero-slide${i === activeSlide ? ' active' : ''}${slide.mobileImageUrl ? ' has-mobile-art' : ''}`} aria-hidden={i !== activeSlide}>
+              <div key={slide.id} className={`hero-slide${i === activeSlide ? ' active' : ''}${slide.mobileImageUrl ? ' has-mobile-art' : ''}${isGoldenCampaign ? ' hero-slide--golden' : ''}`} aria-hidden={i !== activeSlide}>
                 {linkedPicture}
+                {isGoldenCampaign && <GoldenCampaignCopy />}
               </div>
             );
           })}

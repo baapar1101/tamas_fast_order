@@ -7,6 +7,10 @@ import { notFound } from '../lib/errors.js';
 import { findProductByPublicId, listBrands, listCategories, listColors, queryProducts } from '../services/catalog.js';
 import { getPublicSettings } from '../services/settings.js';
 
+const GOLDEN_CAMPAIGN_IMAGE_URL = '/assets/slides/golden-days-2026-10.webp';
+// Midnight at the start of 21 Mehr 1405 in Tehran.
+const GOLDEN_CAMPAIGN_END_AT = Date.parse('2026-10-12T20:30:00.000Z');
+
 /**
  * Everything a shopper's first paint needs. Responses carry a short
  * `s-maxage` so a CDN or reverse proxy in front of the API can absorb the
@@ -58,7 +62,10 @@ const routes: FastifyPluginAsync = async (app) => {
       }).from(slides).where(eq(slides.isActive, true)).orderBy(desc(slides.sortOrder), desc(slides.id)),
     ]);
     reply.header('cache-control', 'public, max-age=30, s-maxage=120');
-    return { ok: true, categories, brands, colors, settings, slides: activeSlides };
+    const visibleSlides = Date.now() >= GOLDEN_CAMPAIGN_END_AT
+      ? activeSlides.filter((slide) => slide.imageUrl !== GOLDEN_CAMPAIGN_IMAGE_URL)
+      : activeSlides;
+    return { ok: true, categories, brands, colors, settings, slides: visibleSlides };
   });
 };
 
