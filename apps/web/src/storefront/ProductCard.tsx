@@ -4,7 +4,7 @@ import type { ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber, hasRealDiscount } from '@tamas/shared';
 import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
-import { stockFor } from '../store/cart';
+import { isProductUnavailable, stockFor } from '../store/cart';
 import { resolveProductColor } from './productColor';
 import { isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneModelImages } from './productVariants';
 import { AnimatedDropdown } from '../admin/components/AnimatedDropdown';
@@ -78,6 +78,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
   const isPromo = Boolean(group.promotion || selectedVariant.promotion);
   const titleClass = productTitleClass(group.title);
   const whButtons = getWarehouseButtons(selectedVariant);
+  const selectedUnavailable = isProductUnavailable(selectedVariant);
 
   if (viewMode === 'list') {
     return (
@@ -102,6 +103,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
           <div className="list-variants">
             {displayVariants.map((v) => {
               const whButtonsV = getWarehouseButtons(v);
+              const unavailable = isProductUnavailable(v);
               const types = sellTypes(v.sellType);
               return (
                 <div key={v.productId} className="variant">
@@ -127,12 +129,12 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                     {v.warranty && <div className="warranty-text"><Icon name="shield" /> {v.warranty}</div>}
                   </div>
 
-                  <div className={`variant-price${canViewPrices ? '' : ' price-obscured'}`} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
+                  {!unavailable && <div className={`variant-price${canViewPrices ? '' : ' price-obscured'}`} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
                     {hasRealDiscount(v.price, v.oldPrice) && (
                       <span className="card-old-price"><Price amount={v.oldPrice!} /></span>
                     )}
                     <div className="card-price">{v.price > 0 ? <Price amount={v.price} /> : 'قیمت‌گذاری نشده'}</div>
-                  </div>
+                  </div>}
 
                   {whButtonsV.length > 0 && (
                     <div className="warehouse-section">
@@ -167,7 +169,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                       })}
                     </div>
                   )}
-                  {whButtonsV.length === 0 && <span className="catalog-unavailable">{v.price <= 0 ? 'قیمت‌گذاری نشده' : 'ناموجود'}</span>}
+                  {whButtonsV.length === 0 && <span className="catalog-unavailable">{unavailable ? 'ناموجود' : 'قیمت‌گذاری نشده'}</span>}
                 </div>
               );
             })}
@@ -244,7 +246,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                       className={`color-swatch-dot${i === activeIndex ? ' active' : ''}`}
                       style={{ background: resolveProductColor(v, colorMap) }}
                       onClick={() => setSelectedIndex(i)}
-                      title={`${v.color || v.colorEn || 'رنگ'}${canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}`}
+                      title={`${v.color || v.colorEn || 'رنگ'}${canViewPrices && !isProductUnavailable(v) && v.price ? ` — ${formatMoney(v.price)}` : ''}`}
                       aria-label={`انتخاب رنگ ${v.color || v.colorEn}`}
                     />
                   ))}
@@ -260,7 +262,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                     ariaLabel="انتخاب رنگ"
                     options={displayVariants.map((v, i) => ({
                       value: String(i),
-                      label: `${v.color || 'اصلی'}${canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}${v.sku ? ` (${v.sku})` : ''}`,
+                      label: `${v.color || 'اصلی'}${canViewPrices && !isProductUnavailable(v) && v.price ? ` — ${formatMoney(v.price)}` : ''}${v.sku ? ` (${v.sku})` : ''}`,
                     }))}
                   /> : <select
                     className="color-select"
@@ -270,7 +272,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                   >
                     {displayVariants.map((v, i) => (
                       <option key={v.productId} value={i}>
-                        {v.color || 'اصلی'}{canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}{v.sku ? ` (${v.sku})` : ''}
+                        {v.color || 'اصلی'}{canViewPrices && !isProductUnavailable(v) && v.price ? ` — ${formatMoney(v.price)}` : ''}{v.sku ? ` (${v.sku})` : ''}
                       </option>
                     ))}
                   </select>}
@@ -296,12 +298,12 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
 
       <div className="card-price-box">
-        <div className={canViewPrices ? undefined : 'price-obscured'} style={{ marginBottom: 8 }} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
+        {!selectedUnavailable && <div className={canViewPrices ? undefined : 'price-obscured'} style={{ marginBottom: 8 }} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
           {hasRealDiscount(selectedVariant.price, selectedVariant.oldPrice) && (
             <span className="card-old-price"><Price amount={selectedVariant.oldPrice!} /></span>
           )}
           <div className="card-price">{selectedVariant.price > 0 ? <Price amount={selectedVariant.price} /> : 'قیمت‌گذاری نشده'}</div>
-        </div>
+        </div>}
 
         {whButtons.length > 0 && (
           <div className="warehouse-section" style={{ marginBottom: 8 }}>
@@ -341,7 +343,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
             })}
           </div>
         )}
-        {whButtons.length === 0 && <div className="catalog-unavailable">{selectedVariant.price <= 0 ? 'قیمت‌گذاری نشده' : 'ناموجود'}</div>}
+        {whButtons.length === 0 && <div className="catalog-unavailable">{selectedUnavailable ? 'ناموجود' : 'قیمت‌گذاری نشده'}</div>}
 
         <Link
           to={`/p/${selectedVariant.productId}`}

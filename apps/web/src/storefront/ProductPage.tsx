@@ -6,7 +6,7 @@ import { WAREHOUSE_LABELS, formatNumber, hasRealDiscount } from '@tamas/shared';
 import { api, ApiRequestError } from '../lib/api';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../store/auth';
-import { cartCount, stockFor, useCart } from '../store/cart';
+import { cartCount, isProductUnavailable, stockFor, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
 import { CrmChat } from '../components/CrmChat';
 import { Price } from '../components/Price';
@@ -329,6 +329,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
 
   const brand = selected.brandFaName || selected.brandName || 'متفرقه';
   const category = selected.categoryFaName || selected.categoryName || '';
+  const selectedUnavailable = isProductUnavailable(selected);
   const whButtons = !adminPreview && selected.status === 'active' && selected.price > 0
     ? getWarehouseButtons(selected)
     : [];
@@ -453,7 +454,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
               </div>
             )}
 
-            <div className="pp-price-row">
+            {!selectedUnavailable && <div className="pp-price-row">
               <div className={canViewPrices ? undefined : 'price-obscured'} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
                 {hasRealDiscount(selected.price, selected.oldPrice) && (
                   <span className="card-old-price"><Price amount={selected.oldPrice!} /></span>
@@ -461,9 +462,9 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
                 <div className="pp-price">{selected.price > 0 ? <Price amount={selected.price} /> : 'قیمت‌گذاری نشده'}</div>
               </div>
               {selected.discount > 0 && <span className="pp-discount-badge">٪{formatNumber(selected.discount)} تخفیف</span>}
-            </div>
+            </div>}
 
-            {!canViewPrices && (
+            {!selectedUnavailable && !canViewPrices && (
               <div className="price-lock-note pp-lock-note">
                 <span>{user ? 'قیمت‌ها پس از تأیید حساب همکاری نمایش داده می‌شوند.' : 'برای مشاهده قیمت‌های عمده وارد حساب همکار شوید.'}</span>
                 {!user && (
@@ -516,7 +517,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
             )}
             {whButtons.length === 0 && !adminPreview && (
               <div className="pp-out-of-stock">
-                <Icon name="warn" /> {selected.price <= 0 ? 'قیمت این کالا هنوز تعیین نشده است.' : 'این کالا فعلاً موجود نیست.'}
+                <Icon name="warn" /> {selectedUnavailable ? 'این کالا فعلاً موجود نیست.' : 'قیمت این کالا هنوز تعیین نشده است.'}
               </div>
             )}
             {adminPreview && <div className="pp-out-of-stock">خرید در پیش‌نمایش مدیریت غیرفعال است.</div>}
@@ -726,7 +727,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
       )}
       {whButtons.length === 0 && !adminPreview && (
         <div className="pp-mobile-bar">
-          <span className="pp-mobile-price-note">این کالا فعلاً موجود نیست.</span>
+          <span className="pp-mobile-price-note">{selectedUnavailable ? 'این کالا فعلاً موجود نیست.' : 'قیمت این کالا هنوز تعیین نشده است.'}</span>
           <button type="button" className="pp-mobile-add pp-mobile-add--muted" disabled>
             ناموجود
           </button>
