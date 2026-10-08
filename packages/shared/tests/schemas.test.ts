@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { idSchema, productCodeSchema, sheetBool } from '../src/schemas.js';
+import { catalogQuerySchema, idSchema, productCodeSchema, sheetBool } from '../src/schemas.js';
 
 describe('shared schemas', () => {
   it('coerces positive integer ids and rejects invalid ids', () => {
@@ -18,5 +18,12 @@ describe('shared schemas', () => {
     for (const value of ['1010112982', 'ABC-01', '0', '']) {
       assert.throws(() => productCodeSchema.parse(value));
     }
+  });
+
+  it('parses the catalog stock switch from URL query strings', () => {
+    assert.equal(catalogQuerySchema.parse({}).inStock, true);
+    assert.equal(catalogQuerySchema.parse({ inStock: 'true' }).inStock, true);
+    assert.equal(catalogQuerySchema.parse({ inStock: 'false' }).inStock, false);
+    assert.equal(catalogQuerySchema.parse({ inStock: false }).inStock, false);
   });
 });

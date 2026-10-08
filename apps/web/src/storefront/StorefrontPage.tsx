@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { CreditApplicationDTO, ProductDTO, Warehouse } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
@@ -74,6 +74,7 @@ export function StorefrontPage() {
   const lines = useCart((s) => s.lines);
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const observedUrlRef = useRef(searchParams.toString());
 
   const [creditOpen, setCreditOpen] = useState(false);
   const [userCreditApp, setUserCreditApp] = useState<CreditApplicationDTO | null>(null);
@@ -91,6 +92,9 @@ export function StorefrontPage() {
   const brandsStr = brands.join(',');
 
   useEffect(() => {
+    // An external URL change (back/forward or a link) must update local state
+    // before the local-to-URL effect is allowed to write again.
+    if (searchParams.toString() !== observedUrlRef.current) return;
     const params = new URLSearchParams(searchParams);
     if (search) params.set('q', search); else params.delete('q');
     if (category) params.set('cat', category); else params.delete('cat');
@@ -108,6 +112,8 @@ export function StorefrontPage() {
   }, [search, category, brandsStr, promotion, creditOnly, inStockOnly, sort, page, viewMode, searchParams, setSearchParams]);
 
   useEffect(() => {
+    if (searchParams.toString() === observedUrlRef.current) return;
+    observedUrlRef.current = searchParams.toString();
     const q = searchParams.get('q') || '';
     if (search !== q) setSearch(q);
 
@@ -149,8 +155,8 @@ export function StorefrontPage() {
 
   const debouncedSearch = useDebounced(search);
   const filters: CatalogFilters = useMemo(
-    () => ({ q: debouncedSearch, category, brands, promotion, creditOnly, sort, page }),
-    [debouncedSearch, category, brands, promotion, creditOnly, sort, page],
+    () => ({ q: debouncedSearch, category, brands, promotion, creditOnly, inStockOnly, sort, page }),
+    [debouncedSearch, category, brands, promotion, creditOnly, inStockOnly, sort, page],
   );
 
   const bootstrap = useBootstrap();
@@ -651,7 +657,14 @@ export function StorefrontPage() {
               <div className="side-title" style={{ marginTop: 20 }}>فیلترهای سریع</div>
               <div className="switch-row">
                 <span>فقط کالاهای موجود</span>
-                <button type="button" className={`switch${inStockOnly ? ' on' : ''}`} onClick={() => setInStockOnly(!inStockOnly)}>
+                <button
+                  type="button"
+                  className={`switch${inStockOnly ? ' on' : ''}`}
+                  role="switch"
+                  aria-label="فقط کالاهای موجود"
+                  aria-checked={inStockOnly}
+                  onClick={() => { setInStockOnly(!inStockOnly); resetPage(); }}
+                >
                   <i />
                 </button>
               </div>

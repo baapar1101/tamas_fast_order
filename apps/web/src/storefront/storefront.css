@@ -3309,3 +3309,11 @@
 .ipp-actions .btn {
   flex: 1;
 }
+
+.catalog-unavailable {
+  display: inline-block;
+  margin: 0.35rem 0 0.7rem;
+  color: var(--tamas-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}

@@ -33,6 +33,7 @@ export interface CatalogFilters {
   brands: string[];
   promotion: boolean;
   creditOnly?: boolean;
+  inStockOnly: boolean;
   sort: 'price_asc' | 'price_desc' | 'newest' | 'title';
   page: number;
 }
@@ -44,7 +45,8 @@ interface ProductsResponse {
   perPage: number;
 }
 
-function sanitizeProducts(response: ProductsResponse): ProductsResponse {
+function sanitizeProducts(response: ProductsResponse, inStockOnly: boolean): ProductsResponse {
+  if (!inStockOnly) return response;
   const groups = response.groups
     .map((group) => {
       const variants = group.variants.filter(
@@ -79,13 +81,14 @@ export function useProducts(filters: CatalogFilters) {
             brands: filters.brands,
             promotion: filters.promotion || undefined,
             creditOnly: filters.creditOnly || undefined,
+            inStock: filters.inStockOnly,
             sort: filters.sort,
             page: filters.page,
             perPage: 24,
           },
           signal,
         );
-        return sanitizeProducts(response);
+        return sanitizeProducts(response, filters.inStockOnly);
       } catch (err) {
         // Inventory must always come from the same API/database used by the
         // admin panel. The legacy snapshot is intentionally not used here:

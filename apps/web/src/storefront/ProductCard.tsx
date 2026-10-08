@@ -39,6 +39,7 @@ function sellTypes(raw: string | null): Array<{ label: string; icon: 'cash' | 'c
 const WAREHOUSE_ORDER: Warehouse[] = ['kerman', 'tehran'];
 
 function getWarehouseButtons(product: ProductDTO): Warehouse[] {
+  if (product.price <= 0 || product.status !== 'active') return [];
   const hasSplit = product.kermanStock + product.tehranStock > 0;
   if (hasSplit) {
     return WAREHOUSE_ORDER.filter((warehouse) => stockFor(product, warehouse) > 0);
@@ -124,7 +125,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                     {hasRealDiscount(v.price, v.oldPrice) && (
                       <span className="card-old-price"><Price amount={v.oldPrice!} /></span>
                     )}
-                    <div className="card-price"><Price amount={v.price} /></div>
+                    <div className="card-price">{v.price > 0 ? <Price amount={v.price} /> : 'قیمت‌گذاری نشده'}</div>
                   </div>
 
                   {whButtonsV.length > 0 && (
@@ -160,6 +161,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                       })}
                     </div>
                   )}
+                  {whButtonsV.length === 0 && <span className="catalog-unavailable">{v.price <= 0 ? 'قیمت‌گذاری نشده' : 'ناموجود'}</span>}
                 </div>
               );
             })}
@@ -281,7 +283,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
           {hasRealDiscount(selectedVariant.price, selectedVariant.oldPrice) && (
             <span className="card-old-price"><Price amount={selectedVariant.oldPrice!} /></span>
           )}
-          <div className="card-price"><Price amount={selectedVariant.price} /></div>
+          <div className="card-price">{selectedVariant.price > 0 ? <Price amount={selectedVariant.price} /> : 'قیمت‌گذاری نشده'}</div>
         </div>
 
         {whButtons.length > 0 && (
@@ -322,6 +324,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
             })}
           </div>
         )}
+        {whButtons.length === 0 && <div className="catalog-unavailable">{selectedVariant.price <= 0 ? 'قیمت‌گذاری نشده' : 'ناموجود'}</div>}
 
         <Link
           to={`/p/${selectedVariant.productId}`}

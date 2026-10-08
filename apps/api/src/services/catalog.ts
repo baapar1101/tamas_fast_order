@@ -108,7 +108,7 @@ export async function queryProducts(q: CatalogQuery): Promise<{
     | undefined;
   if (cached) return cached;
 
-  const filters = [sellableProduct()];
+  const filters = [q.inStock ? sellableProduct() : liveProduct()];
   if (q.promotion) filters.push(eq(products.promotion, true));
   if (q.creditOnly) {
     filters.push(
@@ -186,7 +186,7 @@ export async function queryProducts(q: CatalogQuery): Promise<{
         minPrice: Number.MAX_SAFE_INTEGER,
         variants: [],
       };
-      byTitle.set(dto.title, group);
+      byTitle.set(groupKey, group);
     }
     group.variants.push(dto);
     group.promotion ||= dto.promotion;
