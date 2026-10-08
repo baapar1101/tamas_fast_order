@@ -2290,12 +2290,20 @@
     top: auto;
     right: auto;
     grid-area: promo;
-    border-radius: 14px 14px 0 0;
-    border-bottom-left-radius: 0;
-    border-top-right-radius: 14px;
-    width: 100%;
+    /* Span the card's inner padding so the ribbon meets its gold border. */
+    width: calc(100% + 24px);
+    max-width: calc(100% + 24px);
+    min-width: 0;
+    margin-inline: -12px;
+    box-sizing: border-box;
+    border-radius: 12px 12px 0 0;
     justify-content: center;
-    padding: 5px 14px;
+    flex-wrap: wrap;
+    text-align: center;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    line-height: 1.5;
+    padding: 6px 10px;
     font-size: 11px;
   }
 
