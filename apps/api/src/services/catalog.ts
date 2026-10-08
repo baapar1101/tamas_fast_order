@@ -110,7 +110,10 @@ export async function queryProducts(q: CatalogQuery): Promise<{
   if (cached) return cached;
 
   const filters = [q.inStock ? sellableProduct() : liveProduct()];
-  if (q.promotion) filters.push(eq(products.promotion, true));
+  // Baskets belong in both campaign filters, even when their promotion flag is unset.
+  const isBasket = or(eq(categories.name, 'Bondle'), eq(categories.faName, 'سبد ها'))!;
+  if (q.promotion) filters.push(or(eq(products.promotion, true), isBasket)!);
+  if (q.basketOnly) filters.push(isBasket);
   if (q.creditOnly) {
     filters.push(
       or(

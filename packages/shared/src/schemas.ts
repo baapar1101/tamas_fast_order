@@ -139,6 +139,10 @@ export const catalogQuerySchema = z.object({
     .transform((v) => (v == null ? [] : Array.isArray(v) ? v : v.split(',')))
     .pipe(z.array(z.string().trim().min(1)).max(50)),
   promotion: z.coerce.boolean().optional(),
+  basketOnly: z.union([
+    z.boolean(),
+    z.enum(['true', 'false']).transform((value) => value === 'true'),
+  ]).optional(),
   creditOnly: z.coerce.boolean().optional(),
   inStock: z.union([
     z.boolean(),

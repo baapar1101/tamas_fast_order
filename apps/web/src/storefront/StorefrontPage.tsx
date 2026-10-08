@@ -83,7 +83,7 @@ export function StorefrontPage() {
   const [category, setCategory] = useState<string | null>(searchParams.get('cat') || null);
   const [brands, setBrands] = useState<string[]>(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
   const [promotion, setPromotion] = useState(searchParams.get('promo') === '1');
-  const [creditOnly, setCreditOnly] = useState(searchParams.get('credit') === '1');
+  const [basketOnly, setBasketOnly] = useState(searchParams.get('basket') === '1' || searchParams.get('credit') === '1');
   const [inStockOnly, setInStockOnly] = useState(searchParams.get('stock') !== '0');
   const [sort, setSort] = useState<CatalogFilters['sort']>((searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc');
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
@@ -105,7 +105,8 @@ export function StorefrontPage() {
     if (category) params.set('cat', category); else params.delete('cat');
     if (brandsStr) params.set('brand', brandsStr); else params.delete('brand');
     if (promotion) params.set('promo', '1'); else params.delete('promo');
-    if (creditOnly) params.set('credit', '1'); else params.delete('credit');
+    if (basketOnly) params.set('basket', '1'); else params.delete('basket');
+    params.delete('credit');
     if (!inStockOnly) params.set('stock', '0'); else params.delete('stock');
     if (sort !== 'price_asc') params.set('sort', sort); else params.delete('sort');
     if (page > 1) params.set('page', String(page)); else params.delete('page');
@@ -114,7 +115,7 @@ export function StorefrontPage() {
     if (params.toString() !== searchParams.toString()) {
       setSearchParams(params, { replace: true });
     }
-  }, [search, category, brandsStr, promotion, creditOnly, inStockOnly, sort, page, viewMode, searchParams, setSearchParams]);
+  }, [search, category, brandsStr, promotion, basketOnly, inStockOnly, sort, page, viewMode, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (searchParams.toString() === observedUrlRef.current) return;
@@ -133,8 +134,8 @@ export function StorefrontPage() {
     const promo = searchParams.get('promo') === '1';
     if (promotion !== promo) setPromotion(promo);
 
-    const credit = searchParams.get('credit') === '1';
-    if (creditOnly !== credit) setCreditOnly(credit);
+    const basket = searchParams.get('basket') === '1' || searchParams.get('credit') === '1';
+    if (basketOnly !== basket) setBasketOnly(basket);
 
     const stock = searchParams.get('stock') !== '0';
     if (inStockOnly !== stock) setInStockOnly(stock);
@@ -169,8 +170,8 @@ export function StorefrontPage() {
 
   const debouncedSearch = useDebounced(search);
   const filters: CatalogFilters = useMemo(
-    () => ({ q: debouncedSearch, category, brands, promotion, creditOnly, inStockOnly, sort, page }),
-    [debouncedSearch, category, brands, promotion, creditOnly, inStockOnly, sort, page],
+    () => ({ q: debouncedSearch, category, brands, promotion, basketOnly, inStockOnly, sort, page }),
+    [debouncedSearch, category, brands, promotion, basketOnly, inStockOnly, sort, page],
   );
 
   const bootstrap = useBootstrap();
@@ -591,6 +592,9 @@ export function StorefrontPage() {
                 <button
                   type="button"
                   className={`switch${promotion ? ' on' : ''}`}
+                  role="switch"
+                  aria-label="هرکی میگه ۱۶ نیست!"
+                  aria-checked={promotion}
                   onClick={() => {
                     setPromotion(!promotion);
                     resetPage();
@@ -603,9 +607,12 @@ export function StorefrontPage() {
                 <span>سبد های پر سود جشنواره</span>
                 <button
                   type="button"
-                  className={`switch${creditOnly ? ' on' : ''}`}
+                  className={`switch${basketOnly ? ' on' : ''}`}
+                  role="switch"
+                  aria-label="سبد های پر سود جشنواره"
+                  aria-checked={basketOnly}
                   onClick={() => {
-                    setCreditOnly(!creditOnly);
+                    setBasketOnly(!basketOnly);
                     resetPage();
                   }}
                 >
@@ -623,7 +630,7 @@ export function StorefrontPage() {
                   <strong>{formatNumber(total)}</strong>
                   <span>کالا پیدا شد</span>
                 </div>
-                {(brands.length > 0 || category || promotion || creditOnly || search) && (
+                {(brands.length > 0 || category || promotion || basketOnly || search) && (
                   <button
                     type="button"
                     className="btn sm toolbar-reset"
@@ -632,7 +639,7 @@ export function StorefrontPage() {
                       setCategory(null);
                       setBrands([]);
                       setPromotion(false);
-                      setCreditOnly(false);
+                      setBasketOnly(false);
                       setInStockOnly(false);
                       resetPage();
                     }}

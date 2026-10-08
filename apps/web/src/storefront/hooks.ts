@@ -32,7 +32,7 @@ export interface CatalogFilters {
   category: string | null;
   brands: string[];
   promotion: boolean;
-  creditOnly?: boolean;
+  basketOnly: boolean;
   inStockOnly: boolean;
   sort: 'price_asc' | 'price_desc' | 'newest' | 'title';
   page: number;
@@ -80,7 +80,7 @@ export function useProducts(filters: CatalogFilters) {
             category: filters.category ?? undefined,
             brands: filters.brands,
             promotion: filters.promotion || undefined,
-            creditOnly: filters.creditOnly || undefined,
+            basketOnly: filters.basketOnly || undefined,
             inStock: filters.inStockOnly,
             sort: filters.sort,
             page: filters.page,
