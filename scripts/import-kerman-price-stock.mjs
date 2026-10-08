@@ -175,7 +175,6 @@ try {
         rows: changes,
       };
       await writeFile(backupPath, gzipSync(Buffer.from(JSON.stringify(backup))), { flag: 'wx', mode: 0o600 });
-      const payload = JSON.stringify(changes);
       await db.begin(async (tx) => {
         const updated = await tx`
           UPDATE products p SET
@@ -183,7 +182,7 @@ try {
             kerman_stock = incoming.new_kerman,
             stock = incoming.new_stock,
             updated_at = NOW()
-          FROM jsonb_to_recordset(${payload}::jsonb) AS incoming(
+          FROM jsonb_to_recordset(${db.json(changes)}::jsonb) AS incoming(
             id integer, old_price bigint, old_kerman integer,
             old_tehran integer, old_stock integer, old_updated_at timestamptz,
             new_price bigint, new_kerman integer, new_stock integer
@@ -203,7 +202,7 @@ try {
         await tx`
           INSERT INTO crm_sync_logs (entity, entity_key, action, status, payload)
           SELECT 'product', p.product_id, 'update', 'pending',
-                 ${JSON.stringify({ source: 'kerman-price-stock-import', attempt: 0 })}::jsonb
+                 ${db.json({ source: 'kerman-price-stock-import', attempt: 0 })}::jsonb
           FROM products p
           WHERE p.product_id = ANY(${updatedSkus}::text[])
             AND NOT EXISTS (
@@ -215,7 +214,7 @@ try {
         await tx`
           INSERT INTO audit_log (actor_id, action, entity, entity_key, detail)
           VALUES (NULL, 'bulk_kerman_import', 'product', NULL,
-            ${JSON.stringify({
+            ${db.json({
               updated: updated.length, backupPath,
               priceSha256: priceSource.sha256, stockSha256: stockSource.sha256,
               stockOnly, allowUnpriced,
