@@ -9,6 +9,7 @@ import { brands, categories, products, productTrackingLinks, trackingSites } fro
 import { badRequest, conflict, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { buildSearchText, findProductByPublicId, invalidateCatalog, toProductDTO } from '../../services/catalog.js';
+import { catalogExportScopeFilter, catalogExportScopeSchema } from '../../services/catalog-export-scope.js';
 import { logAction } from '../../services/audit.js';
 import { enqueueCrmProductSync } from '../../services/crm-product-sync.js';
 import { duplicateProductMessage, findProductDuplicate } from '../../services/product-duplicates.js';
@@ -76,6 +77,7 @@ const listQuery = z.object({
   parentProductId: z.string().max(80).optional(),
   parentOnly: z.coerce.boolean().default(false),
   type: z.string().max(50).optional(),
+  catalogScope: catalogExportScopeSchema.default('all'),
 });
 
 const bulkSchema = z.object({
@@ -158,6 +160,8 @@ const routes: FastifyPluginAsync = async (app) => {
     if (q.type) {
       filters.push(eq(products.type, q.type));
     }
+    const scopeFilter = catalogExportScopeFilter(q.catalogScope);
+    if (scopeFilter) filters.push(scopeFilter);
 
     const where = filters.length > 0 ? and(...filters) : undefined;
 
@@ -186,7 +190,7 @@ const routes: FastifyPluginAsync = async (app) => {
         .orderBy(order)
         .limit(q.perPage)
         .offset(offsetOf(q)),
-      db.select({ n: count() }).from(products).where(where),
+      db.select({ n: count() }).from(products).leftJoin(categories, eq(categories.id, products.categoryId)).where(where),
     ]);
 
     const trackingLinkMap = await loadTrackingLinks(rows.map((row) => row.product.id));

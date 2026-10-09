@@ -7,12 +7,15 @@ import { resolveImageUrl, useImageFallback, waitForImages } from '../../lib/imag
 import { useToast } from '../../components/Toast';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
 
+type CatalogScope = 'all' | 'festival_singles' | 'baskets';
+
 export function CatalogExportPage() {
   const toast = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfProgress, setPdfProgress] = useState(0);
 
   // Filters
+  const [catalogScope, setCatalogScope] = useState<CatalogScope>('all');
   const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [selectedBrand, setSelectedBrand] = useState<number | 'all'>('all');
   const [stockStatus, setStockStatus] = useState<'all' | 'in' | 'out'>('all');
@@ -31,12 +34,13 @@ export function CatalogExportPage() {
 
   // Fetch products based on filters
   const { data: productsData, isLoading: isLoadingProducts } = useQuery({
-    queryKey: ['admin', 'products', 'catalog-export', selectedCategory, selectedBrand, stockStatus],
+    queryKey: ['admin', 'products', 'catalog-export', catalogScope, selectedCategory, selectedBrand, stockStatus],
     queryFn: () =>
       api.get<{ items: ProductDTO[] }>('/admin/products', {
         categoryId: selectedCategory === 'all' ? undefined : selectedCategory,
         brandId: selectedBrand === 'all' ? undefined : selectedBrand,
         stock: stockStatus,
+        catalogScope,
         status: 'active',
         page: 1,
         perPage: 5000,
@@ -55,6 +59,11 @@ export function CatalogExportPage() {
   const ITEMS_PER_PAGE = 20; // 4 columns x 5 rows
   const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
   const today = new Date().toLocaleDateString('fa-IR');
+  const catalogTitle = catalogScope === 'festival_singles'
+    ? 'کاتالوگ محصولات تکی جشنواره'
+    : catalogScope === 'baskets'
+      ? 'کاتالوگ سبدها'
+      : 'کاتالوگ محصولات تماس مارکت';
 
   const handleGeneratePdf = async () => {
     if (products.length === 0) {
@@ -91,16 +100,34 @@ export function CatalogExportPage() {
           <h3 className="a-card-title">فیلترهای صدور کاتالوگ</h3>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
+            <div>
+              <label className="a-label">نوع کاتالوگ</label>
+              <AnimatedDropdown
+                value={catalogScope}
+                ariaLabel="نوع کاتالوگ"
+                onChange={(value) => {
+                  setCatalogScope(value as CatalogScope);
+                  setSelectedCategory('all');
+                  setSelectedBrand('all');
+                }}
+                options={[
+                  { value: 'all', label: 'همه محصولات' },
+                  { value: 'festival_singles', label: 'محصولات تکی جشنواره' },
+                  { value: 'baskets', label: 'سبدها (جداگانه)' },
+                ]}
+              />
+            </div>
             {/* Category Filter */}
             <div>
               <label className="a-label">دسته‌بندی</label>
               <AnimatedDropdown
                 value={String(selectedCategory)}
+                disabled={catalogScope === 'baskets'}
                 onChange={(val) => setSelectedCategory(val === 'all' ? 'all' : Number(val))}
                 options={[
-                  { value: 'all', label: 'همه دسته‌بندی‌ها' },
-                  ...categories.map((cat: CategoryDTO) => ({
+                  { value: 'all', label: catalogScope === 'baskets' ? 'سبدها (خودکار)' : 'همه دسته‌بندی‌ها' },
+                  ...categories.filter((cat: CategoryDTO) => catalogScope !== 'festival_singles' || (cat.name !== 'Bondle' && cat.faName !== 'سبد ها')).map((cat: CategoryDTO) => ({
                     value: String(cat.id),
                     label: cat.faName || cat.name,
                   })),
@@ -227,7 +254,7 @@ export function CatalogExportPage() {
                     }}>
                       <div>
                         <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 'bold', letterSpacing: '-0.3px' }}>
-                          کاتالوگ محصولات تماس مارکت
+                          {catalogTitle}
                         </h2>
                         <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>
                           تعداد کالاها: {formatNumber(products.length)} عدد
