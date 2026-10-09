@@ -54,7 +54,16 @@ export function AnimatedDropdown({
   useEffect(() => { setActiveIndex(0); }, [query]);
   useEffect(() => { if (disabled) setIsOpen(false); }, [disabled]);
   useEffect(() => {
-    if (isOpen) panelRef.current?.querySelector(`[data-dropdown-index="${activeIndex}"]`)?.scrollIntoView({ block: 'nearest' });
+    if (!isOpen) return;
+    const list = panelRef.current?.querySelector<HTMLElement>('.searchable-select__options');
+    const option = list?.querySelector<HTMLElement>(`[data-dropdown-index="${activeIndex}"]`);
+    if (!list || !option) return;
+    // scrollIntoView also scrolls the document for a portal. That can move the
+    // trigger outside the viewport as soon as the menu opens.
+    const listRect = list.getBoundingClientRect();
+    const optionRect = option.getBoundingClientRect();
+    if (optionRect.top < listRect.top) list.scrollTop -= listRect.top - optionRect.top;
+    else if (optionRect.bottom > listRect.bottom) list.scrollTop += optionRect.bottom - listRect.bottom;
   }, [activeIndex, isOpen]);
 
   useLayoutEffect(() => {

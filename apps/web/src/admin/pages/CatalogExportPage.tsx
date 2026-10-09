@@ -9,6 +9,12 @@ import { AnimatedDropdown } from '../components/AnimatedDropdown';
 
 type CatalogScope = 'all' | 'festival_singles' | 'baskets';
 
+const catalogScopes: { value: CatalogScope; label: string; hint: string }[] = [
+  { value: 'all', label: 'همه محصولات', hint: 'کاتالوگ عمومی فروشگاه' },
+  { value: 'festival_singles', label: 'محصولات تکی جشنواره', hint: 'بدون سبدها و باندل‌ها' },
+  { value: 'baskets', label: 'سبدها', hint: 'کاتالوگ جداگانه سبدها' },
+];
+
 export function CatalogExportPage() {
   const toast = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -100,24 +106,28 @@ export function CatalogExportPage() {
           <h3 className="a-card-title">فیلترهای صدور کاتالوگ</h3>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
-            <div>
-              <label className="a-label">نوع کاتالوگ</label>
-              <AnimatedDropdown
-                value={catalogScope}
-                ariaLabel="نوع کاتالوگ"
-                onChange={(value) => {
-                  setCatalogScope(value as CatalogScope);
-                  setSelectedCategory('all');
-                  setSelectedBrand('all');
-                }}
-                options={[
-                  { value: 'all', label: 'همه محصولات' },
-                  { value: 'festival_singles', label: 'محصولات تکی جشنواره' },
-                  { value: 'baskets', label: 'سبدها (جداگانه)' },
-                ]}
-              />
+          <div className="mb-6">
+            <div className="a-label mb-3">نوع کاتالوگ</div>
+            <div className="catalog-scope-grid" role="group" aria-label="نوع کاتالوگ">
+              {catalogScopes.map((scope) => (
+                <button
+                  key={scope.value}
+                  type="button"
+                  aria-pressed={catalogScope === scope.value}
+                  onClick={() => {
+                    setCatalogScope(scope.value);
+                    setSelectedCategory('all');
+                    setSelectedBrand('all');
+                  }}
+                  className={`rounded-xl border p-4 text-right transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-500 ${catalogScope === scope.value ? 'border-cyan-500 bg-cyan-500/15' : 'border-[var(--a-border)] hover:border-cyan-500/60'}`}
+                >
+                  <span className="block font-bold text-[var(--a-t1)]">{scope.label}</span>
+                  <span className="block mt-1 text-xs text-[var(--a-t2)]">{scope.hint}</span>
+                </button>
+              ))}
             </div>
+          </div>
+          <div className="catalog-filter-grid mb-6">
             {/* Category Filter */}
             <div>
               <label className="a-label">دسته‌بندی</label>
@@ -175,6 +185,7 @@ export function CatalogExportPage() {
               عدد ({formatNumber(totalPages)} صفحه A4)
             </div>
             <button
+              type="button"
               className="a-btn a-btn--primary px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all"
               onClick={handleGeneratePdf}
               disabled={isGenerating || isLoadingProducts || products.length === 0}
