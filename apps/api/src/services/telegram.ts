@@ -1,6 +1,7 @@
 import https from 'node:https';
+import { timingSafeEqual } from 'node:crypto';
 import { SocksProxyAgent } from 'socks-proxy-agent';
-import { getAllSettings } from './settings.js';
+import { generateSecret, getAllSettings, setSetting } from './settings.js';
 
 export const TELEGRAM_EVENTS = [
   'order.created',
@@ -33,12 +34,23 @@ export interface TelegramConfig {
   proxyUrl: string;
   groups: TelegramGroup[];
   routes: Partial<Record<TelegramEvent, string[]>>;
+  operationsEnabled: boolean;
+  allowedUserIds: string[];
+  webhookSecret: string;
+  webhookUrl: string;
+}
+
+export interface TelegramButton {
+  text: string;
+  callbackData?: string;
+  url?: string;
 }
 
 export interface TelegramNotification {
   title: string;
   fields?: Array<{ label: string; value: unknown }>;
   text?: string;
+  keyboard?: TelegramButton[][];
 }
 
 function parseBool(value: string | undefined): boolean {
@@ -58,6 +70,10 @@ function envValue(key: string): string {
   return process.env[key]?.trim() ?? '';
 }
 
+export function parseTelegramUserIds(value: string | undefined): string[] {
+  return [...new Set(String(value ?? '').split(/[\s,،;]+/).map((item) => item.trim()).filter((item) => /^\d{3,20}$/.test(item)))];
+}
+
 export async function getTelegramConfig(): Promise<TelegramConfig> {
   const settings = await getAllSettings();
   const groups = parseJson<TelegramGroup[]>(settings.TELEGRAM_GROUPS ?? envValue('TELEGRAM_GROUPS'), []);
@@ -74,6 +90,10 @@ export async function getTelegramConfig(): Promise<TelegramConfig> {
       ? groups.filter((group) => group && group.id && group.chatId).map((group) => ({ ...group, enabled: group.enabled !== false }))
       : [],
     routes: routes && typeof routes === 'object' ? routes : {},
+    operationsEnabled: parseBool(settings.TELEGRAM_OPERATIONS_ENABLED ?? envValue('TELEGRAM_OPERATIONS_ENABLED')),
+    allowedUserIds: parseTelegramUserIds(settings.TELEGRAM_ALLOWED_USER_IDS ?? envValue('TELEGRAM_ALLOWED_USER_IDS')),
+    webhookSecret: (settings.private_TELEGRAM_WEBHOOK_SECRET ?? envValue('TELEGRAM_WEBHOOK_SECRET')).trim(),
+    webhookUrl: (settings.TELEGRAM_WEBHOOK_URL ?? envValue('TELEGRAM_WEBHOOK_URL')).trim(),
   };
 }
 
@@ -103,7 +123,7 @@ interface TelegramApiResponse {
   result?: unknown;
 }
 
-function callTelegramApi(
+export function callTelegramApi(
   token: string,
   method: string,
   body: Record<string, unknown>,
@@ -169,6 +189,89 @@ async function sendToGroup(config: TelegramConfig, group: TelegramGroup, text: s
   );
 }
 
+function keyboardPayload(keyboard?: TelegramButton[][]): Record<string, unknown> {
+  if (!keyboard?.length) return {};
+  return {
+    reply_markup: {
+      inline_keyboard: keyboard.map((row) => row.map((button) => ({
+        text: button.text,
+        ...(button.callbackData ? { callback_data: button.callbackData } : {}),
+        ...(button.url ? { url: button.url } : {}),
+      }))),
+    },
+  };
+}
+
+export async function sendTelegramMessage(
+  chatId: string | number,
+  text: string,
+  keyboard?: TelegramButton[][],
+  messageThreadId?: number,
+): Promise<void> {
+  const config = await getTelegramConfig();
+  if (!config.enabled || !config.botToken) throw new Error('ربات تلگرام فعال و تنظیم نشده است.');
+  await callTelegramApi(config.botToken, 'sendMessage', {
+    chat_id: chatId,
+    text: text.slice(0, 4096),
+    parse_mode: 'HTML',
+    disable_web_page_preview: true,
+    ...keyboardPayload(keyboard),
+    ...(messageThreadId ? { message_thread_id: messageThreadId } : {}),
+  }, config.proxyUrl);
+}
+
+export async function answerTelegramCallback(callbackQueryId: string, text: string, showAlert = false): Promise<void> {
+  const config = await getTelegramConfig();
+  if (!config.botToken) return;
+  await callTelegramApi(config.botToken, 'answerCallbackQuery', {
+    callback_query_id: callbackQueryId,
+    text: text.slice(0, 200),
+    show_alert: showAlert,
+  }, config.proxyUrl);
+}
+
+export function telegramSecretMatches(expected: string, received: string | undefined): boolean {
+  if (!expected || !received) return false;
+  const a = Buffer.from(expected);
+  const b = Buffer.from(received);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+export async function configureTelegramWebhook(webhookUrl: string): Promise<{ enabled: boolean; url: string; pendingUpdates: number }> {
+  let config = await getTelegramConfig();
+  if (!config.botToken) throw new Error('توکن ربات تلگرام تنظیم نشده است.');
+  if (!/^https:\/\//i.test(webhookUrl)) throw new Error('آدرس وب‌هوک باید با https:// شروع شود.');
+
+  if (!config.webhookSecret) {
+    await setSetting('private_TELEGRAM_WEBHOOK_SECRET', await generateSecret());
+    config = await getTelegramConfig();
+  }
+
+  if (!config.operationsEnabled) {
+    await callTelegramApi(config.botToken, 'deleteWebhook', { drop_pending_updates: false }, config.proxyUrl);
+    return { enabled: false, url: '', pendingUpdates: 0 };
+  }
+
+  await callTelegramApi(config.botToken, 'setWebhook', {
+    url: webhookUrl,
+    secret_token: config.webhookSecret,
+    allowed_updates: ['message', 'callback_query'],
+    drop_pending_updates: false,
+  }, config.proxyUrl);
+  await callTelegramApi(config.botToken, 'setMyCommands', {
+    commands: [
+      { command: 'start', description: 'منوی مدیریت تماس مارکت' },
+      { command: 'pending', description: 'مشتریان در انتظار تأیید' },
+      { command: 'orders', description: 'آخرین سفارش‌ها' },
+      { command: 'id', description: 'نمایش شناسه تلگرام من' },
+    ],
+  }, config.proxyUrl);
+  await setSetting('TELEGRAM_WEBHOOK_URL', webhookUrl);
+  const info = await callTelegramApi(config.botToken, 'getWebhookInfo', {}, config.proxyUrl);
+  const result = (info.result ?? {}) as { url?: string; pending_update_count?: number };
+  return { enabled: true, url: result.url ?? webhookUrl, pendingUpdates: Number(result.pending_update_count ?? 0) };
+}
+
 /** Send one event to every enabled group assigned to it. A failed group never blocks the others. */
 export async function sendTelegramNotification(
   event: TelegramEvent,
@@ -182,7 +285,19 @@ export async function sendTelegramNotification(
   if (targets.length === 0) return { sent: 0, errors: [] };
 
   const text = formatTelegramMessage(notification);
-  const results = await Promise.allSettled(targets.map((group) => sendToGroup(config, group, text)));
+  const results = await Promise.allSettled(targets.map((group) => callTelegramApi(
+    config.botToken,
+    'sendMessage',
+    {
+      chat_id: group.chatId,
+      text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+      ...keyboardPayload(config.operationsEnabled ? notification.keyboard : undefined),
+      ...(group.messageThreadId ? { message_thread_id: group.messageThreadId } : {}),
+    },
+    config.proxyUrl,
+  ).then(() => undefined)));
   const errors: string[] = [];
   results.forEach((result, index) => {
     if (result.status === 'rejected') errors.push(`${targets[index]!.name}: ${String(result.reason?.message ?? result.reason)}`);

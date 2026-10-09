@@ -310,7 +310,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       });
     }
 
-    import('./telegram.js').then(({ sendTelegramNotification }) => {
+    Promise.all([import('./telegram.js'), import('./telegram-operations.js')]).then(([{ sendTelegramNotification }, { telegramActionButtons }]) => {
       void sendTelegramNotification('order.created', {
         title: '🛒 سفارش جدید',
         fields: [
@@ -322,6 +322,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           { label: 'تعداد', value: order.quantity },
           { label: 'روش پرداخت', value: order.paymentMethod },
         ],
+        keyboard: telegramActionButtons.order(order.id),
       }).then((result) => {
         if (result.errors.length) console.error('[Telegram] order.created:', result.errors.join('; '));
       }).catch((err) => console.error('[Telegram] order.created failed:', err));

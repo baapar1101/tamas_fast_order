@@ -6,7 +6,7 @@ import { db } from '../../db/client.js';
 import { orderItems, orders, products, syncState, users } from '../../db/schema.js';
 import { deleteSetting, getAllSettings, setSetting } from '../../services/settings.js';
 import { recentAudit } from '../../services/audit.js';
-import { TELEGRAM_EVENTS, testTelegramGroup } from '../../services/telegram.js';
+import { configureTelegramWebhook, TELEGRAM_EVENTS, testTelegramGroup } from '../../services/telegram.js';
 import { badRequest } from '../../lib/errors.js';
 
 const routes: FastifyPluginAsync = async (app) => {
@@ -221,6 +221,24 @@ const routes: FastifyPluginAsync = async (app) => {
     } catch (error) {
       req.log.warn({ err: error }, 'Telegram connection test failed');
       throw badRequest(`تست تلگرام ناموفق بود: ${(error as Error).message}`);
+    }
+  });
+
+  app.post('/admin/telegram/webhook', { preHandler: app.requirePermission('manage_settings') }, async (req) => {
+    const body = z.object({ webhookUrl: z.string().url().max(1000).optional() }).parse(req.body ?? {});
+    const webhookUrl = body.webhookUrl || `${req.protocol}://${req.hostname}/api/telegram/webhook`;
+    try {
+      const result = await configureTelegramWebhook(webhookUrl);
+      return {
+        ok: true,
+        ...result,
+        message: result.enabled
+          ? `عملیات ربات فعال شد. وب‌هوک به ${result.url} متصل است.`
+          : 'عملیات ربات غیرفعال و وب‌هوک حذف شد.',
+      };
+    } catch (error) {
+      req.log.warn({ err: error }, 'Telegram webhook setup failed');
+      throw badRequest(`راه‌اندازی عملیات ربات ناموفق بود: ${(error as Error).message}`);
     }
   });
 

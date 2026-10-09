@@ -165,7 +165,10 @@ const routes: FastifyPluginAsync = async (app) => {
       address: updatedUser.address,
     });
 
-    const { sendTelegramNotification } = await import('../services/telegram.js');
+    const [{ sendTelegramNotification }, { telegramActionButtons }] = await Promise.all([
+      import('../services/telegram.js'),
+      import('../services/telegram-operations.js'),
+    ]);
     void sendTelegramNotification('user.profile_updated', {
       title: missing.length === 0 ? '👤 پروفایل کاربر تکمیل شد' : '👤 پروفایل کاربر ویرایش شد',
       fields: [
@@ -174,6 +177,7 @@ const routes: FastifyPluginAsync = async (app) => {
         { label: 'تلفن', value: updatedUser.phone },
         { label: 'وضعیت پروفایل', value: missing.length === 0 ? 'کامل' : 'ناقص' },
       ],
+      keyboard: missing.length === 0 && !updatedUser.isActive ? telegramActionButtons.customer(updatedUser.id) : undefined,
     }).catch((err) => req.log.error({ err }, 'failed to send Telegram profile notification'));
 
     return {

@@ -39,6 +39,7 @@ import crmRoutes from './routes/crm.js';
 
 import creditRoutes from './routes/credit.js';
 import adminCreditRoutes from './routes/admin/credit.js';
+import telegramRoutes from './routes/telegram.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
 
@@ -140,6 +141,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       async (api) => {
         await api.register(catalogRoutes);
         await api.register(authRoutes);
+        await api.register(telegramRoutes);
         await api.register(orderRoutes);
         await api.register(paymentRoutes);
         await api.register(walletRoutes);

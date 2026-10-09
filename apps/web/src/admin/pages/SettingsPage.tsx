@@ -255,6 +255,10 @@ export function SettingsPage() {
     'TELEGRAM_PROXY_URL',
     'TELEGRAM_GROUPS',
     'TELEGRAM_ROUTES',
+    'TELEGRAM_OPERATIONS_ENABLED',
+    'TELEGRAM_ALLOWED_USER_IDS',
+    'TELEGRAM_WEBHOOK_URL',
+    'private_TELEGRAM_WEBHOOK_SECRET',
     'ARVAN_CDN_DOMAIN',
     'ARVAN_CDN_API_BASE',
     'private_ARVAN_API_KEY',
@@ -431,6 +435,65 @@ export function SettingsPage() {
               </div>
             </div>
             <p className="a-note">ربات را به هر گروه اضافه و اجازه ارسال پیام بدهید. شناسه گروه معمولاً عددی منفی مانند <code>-1001234567890</code> است.</p>
+          </section>
+
+          <section className="a-card">
+            <div className="a-card-head a-card-head--split">
+              <div>
+                <h3 className="a-card-title">عملیات مدیریتی داخل ربات</h3>
+                <p className="a-card-desc">تأیید مشتری، تغییر وضعیت سفارش و ثبت پرداخت با تأیید دو مرحله‌ای.</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.TELEGRAM_OPERATIONS_ENABLED === 'true'}
+                className="a-switch"
+                onClick={() => setForm({
+                  ...form,
+                  TELEGRAM_OPERATIONS_ENABLED: form.TELEGRAM_OPERATIONS_ENABLED === 'true' ? 'false' : 'true',
+                })}
+              />
+            </div>
+            <div className="a-form-grid a-cols--2">
+              <div className="a-field">
+                <label className="a-label">Telegram User ID مدیران مجاز</label>
+                <input
+                  className="a-input a-ltr"
+                  dir="ltr"
+                  placeholder="123456789, 987654321"
+                  value={form.TELEGRAM_ALLOWED_USER_IDS ?? ''}
+                  onChange={(e) => setForm({ ...form, TELEGRAM_ALLOWED_USER_IDS: e.target.value })}
+                />
+                <p className="a-note">هر مدیر در ربات دستور <code>/id</code> را بفرستد؛ چند شناسه را با ویرگول جدا کنید.</p>
+              </div>
+              <div className="a-field">
+                <label className="a-label">آدرس Webhook (اختیاری)</label>
+                <input
+                  className="a-input a-ltr"
+                  dir="ltr"
+                  placeholder="https://tamasmarket.com/api/telegram/webhook"
+                  value={form.TELEGRAM_WEBHOOK_URL ?? ''}
+                  onChange={(e) => setForm({ ...form, TELEGRAM_WEBHOOK_URL: e.target.value })}
+                />
+                <p className="a-note">اگر خالی باشد، آدرس امن سایت به‌صورت خودکار استفاده می‌شود.</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <button type="button" className="a-btn a-btn--primary" onClick={async () => {
+                try {
+                  await save.mutateAsync(form);
+                  const res = await api.post<{ message: string }>('/admin/telegram/webhook', {
+                    ...(form.TELEGRAM_WEBHOOK_URL?.trim() ? { webhookUrl: form.TELEGRAM_WEBHOOK_URL.trim() } : {}),
+                  });
+                  toast.ok(res.message);
+                } catch (err) {
+                  toast.error((err as Error).message);
+                }
+              }}>
+                ذخیره و راه‌اندازی عملیات ربات
+              </button>
+            </div>
+            <p className="a-note mt-3">دستورهای ربات: <code>/pending</code> مشتریان در انتظار، <code>/orders</code> آخرین سفارش‌ها و <code>/id</code> شناسه کاربر.</p>
           </section>
 
           <section className="a-card">
