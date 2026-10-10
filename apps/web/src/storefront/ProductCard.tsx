@@ -54,6 +54,40 @@ function productTitleClass(title: string): string {
   return '';
 }
 
+function propsAreEqual(prev: Props, next: Props) {
+  // Shallow compare all props EXCEPT cartLines to avoid maintenance hazards if props change
+  for (const key of Object.keys(next) as Array<keyof Props>) {
+    if (key !== 'cartLines' && prev[key] !== next[key]) {
+      return false;
+    }
+  }
+
+  // The main optimization: Only re-render if the qty of any of THIS group's variants changes.
+  // cartLines is re-created on every cart change, causing all cards to re-render without this.
+  const getQty = (lines: CartLine[], key: string) => {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line && line.key === key) return line.qty;
+    }
+    return 0;
+  };
+
+  const variants = next.group.variants;
+  for (let i = 0; i < variants.length; i++) {
+    const v = variants[i];
+    if (!v) continue;
+    // Check all possible warehouses for this variant
+    for (const wh of WAREHOUSE_ORDER) {
+      const key = `${v.productId}::${wh}`;
+      if (getQty(prev.cartLines, key) !== getQty(next.cartLines, key)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFav, setIsFav] = useState(false);
@@ -333,5 +367,5 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
-});
+}, propsAreEqual);
 
