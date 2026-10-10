@@ -271,6 +271,11 @@ export const orderCreateSchema = z.object({
 });
 export type OrderCreate = z.infer<typeof orderCreateSchema>;
 
+export const orderItemsReplaceSchema = z.object({
+  items: z.array(orderItemInputSchema).min(1, 'سفارش باید حداقل یک قلم داشته باشد').max(200),
+});
+export type OrderItemsReplace = z.infer<typeof orderItemsReplaceSchema>;
+
 export const orderPatchSchema = z.object({
   status: z.enum(ORDER_STATUSES).optional(),
   paymentStatus: z.enum(['paid', 'unpaid', 'pending']).optional(),

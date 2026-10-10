@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { OrderDTO, OrderStatus } from '@tamas/shared';
-import { ORDER_STATUSES, ORDER_STATUS_LABELS, formatMoney, formatNumber } from '@tamas/shared';
+import type { OrderDTO, OrderStatus, Warehouse } from '@tamas/shared';
+import { ORDER_STATUSES, ORDER_STATUS_LABELS, WAREHOUSE_LABELS, formatMoney, formatNumber } from '@tamas/shared';
 import { Price } from '../../components/Price';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
@@ -13,6 +13,28 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 interface OrdersResponse {
   items: OrderDTO[];
   total: number;
+}
+
+interface OrderProductOption {
+  productId: string;
+  sku: string | null;
+  title: string;
+  color: string | null;
+  price: number;
+  kermanStock: number;
+  tehranStock: number;
+  stock: number;
+  type: string;
+}
+
+interface OrderItemDraft {
+  productId: string;
+  sku: string | null;
+  title: string;
+  color: string | null;
+  price: number;
+  qty: number;
+  warehouse: Warehouse;
 }
 
 const downloadOrderExcel = (order: OrderDTO) =>
@@ -38,9 +60,13 @@ export function OrdersPage() {
   const [detail, setDetail] = useState<OrderDTO | null>(null);
   const [detailTab, setDetailTab] = useState<'info' | 'items'>('info');
   const [note, setNote] = useState('');
+  const [editingItems, setEditingItems] = useState(false);
+  const [itemDrafts, setItemDrafts] = useState<OrderItemDraft[]>([]);
+  const [productSearch, setProductSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ kind: 'one'; order: OrderDTO } | { kind: 'bulk'; ids: number[] } | null>(null);
 
   const debounced = useDebounced(search);
+  const debouncedProductSearch = useDebounced(productSearch);
   const query = useMemo(() => ({ q: debounced, status, page, perPage: 30 }), [debounced, status, page]);
 
   const orders = useQuery({
@@ -55,6 +81,15 @@ export function OrdersPage() {
     queryFn: () => api.get<{ counts: Record<string, number>; total: number }>('/admin/orders/status-counts'),
   });
 
+  const productOptions = useQuery({
+    queryKey: ['admin', 'orders', 'product-options', debouncedProductSearch],
+    queryFn: () => api.get<{ items: OrderProductOption[] }>('/admin/orders/product-options', {
+      q: debouncedProductSearch,
+      limit: 20,
+    }),
+    enabled: editingItems && debouncedProductSearch.trim().length > 0,
+  });
+
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ['admin', 'orders'] });
     void qc.invalidateQueries({ queryKey: ['admin', 'counters'] });
@@ -67,6 +102,20 @@ export function OrdersPage() {
     onSuccess: (res) => {
       toast.ok('سفارش به روزرسانی شد.');
       setDetail(res.order);
+      refresh();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const replaceItems = useMutation({
+    mutationFn: ({ id, items }: { id: number; items: Array<{ productId: string; warehouse: Warehouse; qty: number }> }) =>
+      api.put<{ order: OrderDTO }>(`/admin/orders/${id}/items`, { items }),
+    onSuccess: (res) => {
+      toast.ok('اقلام سفارش و مبلغ کل به‌روزرسانی شد.');
+      setDetail(res.order);
+      setItemDrafts(res.order.items.map((item) => ({ ...item })));
+      setEditingItems(false);
+      setProductSearch('');
       refresh();
     },
     onError: (err: Error) => toast.error(err.message),
@@ -107,6 +156,41 @@ export function OrdersPage() {
   const items = orders.data?.items ?? [];
   const total = orders.data?.total ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / 30));
+  const canEditOrderItems = Boolean(
+    detail && ['new', 'confirmed'].includes(detail.status) && detail.paymentStatus !== 'paid',
+  );
+  const draftTotal = itemDrafts.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+  const beginItemEditing = () => {
+    if (!detail || !canEditOrderItems) return;
+    setItemDrafts(detail.items.map((item) => ({ ...item })));
+    setProductSearch('');
+    setEditingItems(true);
+  };
+
+  const cancelItemEditing = () => {
+    setEditingItems(false);
+    setProductSearch('');
+    setItemDrafts(detail?.items.map((item) => ({ ...item })) ?? []);
+  };
+
+  const addOrderProduct = (product: OrderProductOption, warehouse: Warehouse) => {
+    setItemDrafts((current) => {
+      const index = current.findIndex((item) => item.productId === product.productId && item.warehouse === warehouse);
+      if (index >= 0) {
+        return current.map((item, itemIndex) => itemIndex === index ? { ...item, qty: item.qty + 1 } : item);
+      }
+      return [...current, {
+        productId: product.productId,
+        sku: product.sku,
+        title: product.title,
+        color: product.color,
+        price: product.price,
+        qty: 1,
+        warehouse,
+      }];
+    });
+  };
 
   return (
     <div className="a-page a-page--orders a-fade">
@@ -336,6 +420,9 @@ export function OrdersPage() {
                             setDetail(o);
                             setDetailTab('info');
                             setNote(o.note ?? '');
+                            setEditingItems(false);
+                            setItemDrafts(o.items.map((item) => ({ ...item })));
+                            setProductSearch('');
                           }}
                         >
                           بررسی و ویرایش
@@ -385,7 +472,11 @@ export function OrdersPage() {
           open={true}
           wide
           title={`جزئیات سفارش #${detail.orderCode}`}
-          onClose={() => setDetail(null)}
+          onClose={() => {
+            setDetail(null);
+            setEditingItems(false);
+            setProductSearch('');
+          }}
           footer={
             <>
               <button
@@ -426,14 +517,32 @@ export function OrdersPage() {
                 </span>
               </button>
             </div>
-            <button
-              type="button"
-              className="a-btn a-btn--secondary a-btn--sm"
-              onClick={() => void downloadOrderExcel(detail)}
-            >
-              <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-              اکسل سفارش
-            </button>
+            <div className="flex flex-wrap gap-2">
+              {detailTab === 'items' && !editingItems && (
+                <button
+                  type="button"
+                  className="a-btn a-btn--primary a-btn--sm"
+                  disabled={!canEditOrderItems}
+                  title={canEditOrderItems ? 'ویرایش اقلام سفارش' : 'فقط سفارش جدید یا تأییدشده و پرداخت‌نشده قابل ویرایش است'}
+                  onClick={beginItemEditing}
+                >
+                  ویرایش اقلام
+                </button>
+              )}
+              {detailTab === 'items' && editingItems && (
+                <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={cancelItemEditing}>
+                  انصراف از ویرایش
+                </button>
+              )}
+              <button
+                type="button"
+                className="a-btn a-btn--secondary a-btn--sm"
+                onClick={() => void downloadOrderExcel(detail)}
+              >
+                <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                اکسل سفارش
+              </button>
+            </div>
           </div>
 
           {detailTab === 'info' && (
@@ -509,35 +618,165 @@ export function OrdersPage() {
           )}
 
           {detailTab === 'items' && (
-            <div className="a-table-wrap">
-              <table className="a-table">
-                <thead>
-                  <tr>
-                    <th>کد کالا</th>
-                    <th>نام کالا</th>
-                    <th>مشخصات</th>
-                    <th>تعداد</th>
-                    <th>قیمت واحد</th>
-                    <th>جمع کل</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {detail.items.map((item) => (
-                    <tr key={item.id}>
-                      <td className="text-xs text-slate-400 font-mono">{item.productId}</td>
-                      <td className="font-bold text-white">{item.title}</td>
-                      <td className="text-xs text-slate-400">
-                        {item.color ? `رنگ: ${item.color}` : '—'}
-                      </td>
-                      <td className="font-bold text-emerald-300 text-center">{formatNumber(item.qty)}</td>
-                      <td className="text-slate-300"><Price amount={item.price} /></td>
-                      <td className="font-bold text-white"><Price amount={item.price * item.qty} /></td>
+            <div className="space-y-4">
+              {!canEditOrderItems && (
+                <div className="a-note rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-amber-200">
+                  اقلام سفارش پرداخت‌شده، لغوشده یا واردشده به مرحله آماده‌سازی و ارسال قابل ویرایش نیست.
+                </div>
+              )}
+
+              {editingItems && (
+                <div className="a-card space-y-3">
+                  <label className="a-label">افزودن کالا با جست‌وجوی نام، کد یا SKU</label>
+                  <input
+                    className="a-input"
+                    value={productSearch}
+                    placeholder="حداقل بخشی از نام یا کد کالا را وارد کنید..."
+                    onChange={(event) => setProductSearch(event.target.value)}
+                  />
+                  {productSearch.trim() && (
+                    <div className="max-h-64 space-y-2 overflow-y-auto rounded-xl border border-white/[0.08] p-2">
+                      {productOptions.isFetching ? (
+                        <div className="a-empty py-4">در حال جست‌وجو...</div>
+                      ) : (productOptions.data?.items.length ?? 0) === 0 ? (
+                        <div className="a-empty py-4">کالایی پیدا نشد.</div>
+                      ) : productOptions.data?.items.map((product) => {
+                        const siteOnly = product.kermanStock + product.tehranStock === 0;
+                        return (
+                          <div key={product.productId} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white/[0.04] p-3">
+                            <div className="min-w-0 flex-1">
+                              <div className="font-bold text-white">{product.title}</div>
+                              <div className="mt-1 text-[11px] text-slate-400" dir="ltr">
+                                {product.sku || product.productId} · {formatMoney(product.price)} تومان
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                className="a-btn a-btn--secondary a-btn--xs"
+                                disabled={product.kermanStock <= 0}
+                                onClick={() => addOrderProduct(product, 'kerman')}
+                              >
+                                کرمان ({formatNumber(product.kermanStock)})
+                              </button>
+                              <button
+                                type="button"
+                                className="a-btn a-btn--secondary a-btn--xs"
+                                disabled={product.tehranStock <= 0}
+                                onClick={() => addOrderProduct(product, 'tehran')}
+                              >
+                                تهران ({formatNumber(product.tehranStock)})
+                              </button>
+                              {siteOnly && (
+                                <button
+                                  type="button"
+                                  className="a-btn a-btn--secondary a-btn--xs"
+                                  disabled={product.stock <= 0}
+                                  onClick={() => addOrderProduct(product, 'site')}
+                                >
+                                  سایت ({formatNumber(product.stock)})
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="a-table-wrap">
+                <table className="a-table">
+                  <thead>
+                    <tr>
+                      <th>کد کالا</th>
+                      <th>نام کالا</th>
+                      <th>مشخصات</th>
+                      <th>انبار</th>
+                      <th>تعداد</th>
+                      <th>قیمت واحد</th>
+                      <th>جمع کل</th>
+                      {editingItems && <th>عملیات</th>}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              {detail.items.length === 0 && (
-                <div className="a-empty">محصولی در این سفارش یافت نشد!</div>
+                  </thead>
+                  <tbody>
+                    {(editingItems ? itemDrafts : detail.items).map((item) => {
+                      const key = `${item.productId}:${item.warehouse}`;
+                      return (
+                        <tr key={key}>
+                          <td className="text-xs text-slate-400 font-mono">{item.sku || item.productId}</td>
+                          <td className="font-bold text-white">{item.title}</td>
+                          <td className="text-xs text-slate-400">{item.color ? `رنگ: ${item.color}` : '—'}</td>
+                          <td className="text-xs text-slate-300">{WAREHOUSE_LABELS[item.warehouse]}</td>
+                          <td className="font-bold text-emerald-300 text-center">
+                            {editingItems ? (
+                              <input
+                                type="number"
+                                inputMode="numeric"
+                                min={1}
+                                max={10_000}
+                                className="a-input a-ltr w-24 text-center"
+                                value={item.qty}
+                                onChange={(event) => {
+                                  const qty = Math.max(1, Math.min(10_000, Number(event.target.value) || 1));
+                                  setItemDrafts((current) => current.map((draft) =>
+                                    draft.productId === item.productId && draft.warehouse === item.warehouse
+                                      ? { ...draft, qty }
+                                      : draft,
+                                  ));
+                                }}
+                              />
+                            ) : formatNumber(item.qty)}
+                          </td>
+                          <td className="text-slate-300"><Price amount={item.price} /></td>
+                          <td className="font-bold text-white"><Price amount={item.price * item.qty} /></td>
+                          {editingItems && (
+                            <td>
+                              <button
+                                type="button"
+                                className="a-btn a-btn--danger a-btn--xs"
+                                disabled={itemDrafts.length <= 1}
+                                onClick={() => setItemDrafts((current) => current.filter((draft) =>
+                                  !(draft.productId === item.productId && draft.warehouse === item.warehouse),
+                                ))}
+                              >
+                                حذف
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {(editingItems ? itemDrafts : detail.items).length === 0 && (
+                  <div className="a-empty">محصولی در این سفارش یافت نشد!</div>
+                )}
+              </div>
+
+              {editingItems && (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.06] p-4">
+                  <div>
+                    <div className="text-xs text-slate-400">مبلغ جدید سفارش</div>
+                    <div className="mt-1 text-lg font-black text-emerald-300"><Price amount={draftTotal} /></div>
+                  </div>
+                  <button
+                    type="button"
+                    className="a-btn a-btn--primary"
+                    disabled={replaceItems.isPending || itemDrafts.length === 0}
+                    onClick={() => replaceItems.mutate({
+                      id: detail.id,
+                      items: itemDrafts.map((item) => ({
+                        productId: item.productId,
+                        warehouse: item.warehouse,
+                        qty: item.qty,
+                      })),
+                    })}
+                  >
+                    {replaceItems.isPending ? 'در حال ذخیره...' : 'ذخیره اقلام و محاسبه مجدد'}
+                  </button>
+                </div>
               )}
             </div>
           )}

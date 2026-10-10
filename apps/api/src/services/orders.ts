@@ -1,9 +1,9 @@
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
-import type { OrderCreate, OrderDTO, Warehouse } from '@tamas/shared';
+import type { OrderCreate, OrderDTO, OrderItemsReplace, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { orderItems, orders, products } from '../db/schema.js';
-import { badRequest, conflict, profileIncomplete } from '../lib/errors.js';
+import { badRequest, conflict, notFound, profileIncomplete } from '../lib/errors.js';
 import { invalidateCatalog } from './catalog.js';
 import { missingProfileFields, type UserRow } from './auth.js';
 import { upsertOrderPayment } from './payments.js';
@@ -330,6 +330,182 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
 
     return toOrderDTO(order, items);
   });
+}
+
+export async function replaceOrderItems(orderId: number, input: OrderItemsReplace): Promise<{
+  order: OrderDTO;
+  previousTotal: number;
+  previousItems: OrderItemRow[];
+}> {
+  const result = await db.transaction(async (tx) => {
+    const [order] = await tx
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, orderId), isNull(orders.deletedAt)))
+      .for('update')
+      .limit(1);
+    if (!order) throw notFound('سفارش پیدا نشد.');
+    if (!['new', 'confirmed'].includes(order.status)) {
+      throw conflict('فقط اقلام سفارش جدید یا تأییدشده قابل ویرایش است.');
+    }
+    if (order.paymentStatus === 'paid') {
+      throw conflict('اقلام سفارش پرداخت‌شده قابل ویرایش نیست. ابتدا وضعیت پرداخت را اصلاح کنید.');
+    }
+
+    const previousItems = await tx
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, orderId))
+      .for('update');
+
+    const desired = new Map<string, { productId: string; warehouse: Warehouse; qty: number }>();
+    for (const item of input.items) {
+      const key = `${item.productId}::${item.warehouse}`;
+      const current = desired.get(key);
+      if (current) current.qty += item.qty;
+      else desired.set(key, { productId: item.productId, warehouse: item.warehouse, qty: item.qty });
+    }
+
+    const requestedProductIds = [...new Set([
+      ...previousItems.map((item) => item.productId),
+      ...[...desired.values()].map((item) => item.productId),
+    ])];
+    const productRows = await tx
+      .select()
+      .from(products)
+      .where(inArray(products.productId, requestedProductIds))
+      .for('update');
+    const productById = new Map(productRows.map((product) => [product.productId, product]));
+
+    const componentIds = new Set<string>();
+    for (const product of productRows) {
+      if (product.type !== 'bundle') continue;
+      for (const item of product.bundleItems ?? []) componentIds.add(item.productId);
+    }
+    const missingComponentIds = [...componentIds].filter((id) => !productById.has(id));
+    if (missingComponentIds.length > 0) {
+      const components = await tx
+        .select()
+        .from(products)
+        .where(inArray(products.productId, missingComponentIds))
+        .for('update');
+      for (const product of components) productById.set(product.productId, product);
+    }
+
+    const previousByKey = new Map<string, OrderItemRow>();
+    const previousQtyByKey = new Map<string, number>();
+    for (const item of previousItems) {
+      const key = `${item.productId}::${item.warehouse}`;
+      if (!previousByKey.has(key)) previousByKey.set(key, item);
+      previousQtyByKey.set(key, (previousQtyByKey.get(key) ?? 0) + item.qty);
+    }
+
+    const replacementRows: Array<typeof orderItems.$inferInsert> = [];
+    for (const [key, item] of desired) {
+      const product = productById.get(item.productId);
+      if (!product) throw badRequest(`محصول «${item.productId}» پیدا نشد.`);
+      const previous = previousByKey.get(key);
+      const addsUnits = item.qty > (previousQtyByKey.get(key) ?? 0);
+      if ((!previous || addsUnits) && (product.deletedAt || product.status !== 'active')) {
+        throw conflict(`محصول «${product.title}» در حال حاضر قابل افزودن به سفارش نیست.`);
+      }
+      replacementRows.push({
+        orderId,
+        productId: product.productId,
+        sku: previous?.sku ?? product.sku,
+        title: previous?.title ?? product.title,
+        color: previous?.color ?? product.color,
+        price: previous?.price ?? product.price,
+        qty: item.qty,
+        warehouse: item.warehouse,
+      });
+    }
+
+    type Need = { product: typeof products.$inferSelect; kerman: number; tehran: number; site: number };
+    const inventoryNeeds = (lines: Array<{ productId: string; warehouse: Warehouse; qty: number }>) => {
+      const needs = new Map<number, Need>();
+      const add = (product: typeof products.$inferSelect, warehouse: Warehouse, qty: number) => {
+        const need = needs.get(product.id) ?? { product, kerman: 0, tehran: 0, site: 0 };
+        need[warehouse] += qty;
+        needs.set(product.id, need);
+      };
+      for (const line of lines) {
+        const product = productById.get(line.productId);
+        if (!product) throw badRequest(`محصول «${line.productId}» پیدا نشد.`);
+        if (product.type === 'bundle' && (product.bundleItems?.length ?? 0) > 0) {
+          for (const bundleItem of product.bundleItems) {
+            const component = productById.get(bundleItem.productId);
+            if (!component) throw badRequest(`جزء «${bundleItem.productId}» از سبد پیدا نشد.`);
+            add(component, line.warehouse, line.qty * bundleItem.qty);
+          }
+        } else {
+          add(product, line.warehouse, line.qty);
+        }
+      }
+      return needs;
+    };
+
+    const beforeNeeds = inventoryNeeds(previousItems);
+    const afterNeeds = inventoryNeeds([...desired.values()]);
+    const affectedProductIds = new Set([...beforeNeeds.keys(), ...afterNeeds.keys()]);
+    for (const productDbId of affectedProductIds) {
+      const before = beforeNeeds.get(productDbId);
+      const after = afterNeeds.get(productDbId);
+      const product = after?.product ?? before!.product;
+      const delta = {
+        kerman: (after?.kerman ?? 0) - (before?.kerman ?? 0),
+        tehran: (after?.tehran ?? 0) - (before?.tehran ?? 0),
+        site: (after?.site ?? 0) - (before?.site ?? 0),
+      };
+      const available = {
+        kerman: product.kermanStock,
+        tehran: product.tehranStock,
+        site: product.stock,
+      };
+      for (const warehouse of ['kerman', 'tehran', 'site'] as const) {
+        if (delta[warehouse] > available[warehouse]) {
+          throw conflict(
+            `موجودی «${product.title}» در ${WAREHOUSE_LABELS[warehouse]} فقط ${available[warehouse]} عدد است.`,
+            { productId: product.productId, available: available[warehouse] },
+          );
+        }
+      }
+      const nextKerman = product.kermanStock - delta.kerman;
+      const nextTehran = product.tehranStock - delta.tehran;
+      const nextSite = product.stock - delta.site;
+      await tx
+        .update(products)
+        .set({
+          kermanStock: nextKerman,
+          tehranStock: nextTehran,
+          stock: delta.kerman !== 0 || delta.tehran !== 0 ? nextKerman + nextTehran : nextSite,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, productDbId));
+    }
+
+    const total = replacementRows.reduce((sum, item) => sum + Number(item.price) * Number(item.qty), 0);
+    const quantity = replacementRows.reduce((sum, item) => sum + Number(item.qty), 0);
+    if (!Number.isSafeInteger(total) || total < 0) throw badRequest('مبلغ نهایی سفارش معتبر نیست.');
+
+    await tx.delete(orderItems).where(eq(orderItems.orderId, orderId));
+    const inserted = await tx.insert(orderItems).values(replacementRows).returning();
+    const [updated] = await tx
+      .update(orders)
+      .set({ total, quantity, updatedAt: new Date() })
+      .where(eq(orders.id, orderId))
+      .returning();
+    if (!updated) throw notFound('سفارش پیدا نشد.');
+    await upsertOrderPayment(tx, updated.id, updated.userId ?? null, total, updated.paymentStatus);
+
+    return {
+      order: toOrderDTO(updated, inserted),
+      previousTotal: order.total,
+      previousItems,
+    };
+  });
+  invalidateCatalog();
+  return result;
 }
 
 export async function listOrdersForUser(userId: number, limit = 50): Promise<OrderDTO[]> {

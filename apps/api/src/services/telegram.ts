@@ -5,6 +5,7 @@ import { generateSecret, getAllSettings, setSetting } from './settings.js';
 
 export const TELEGRAM_EVENTS = [
   'order.created',
+  'order.items_changed',
   'order.status_changed',
   'payment.paid',
   'payment.failed',

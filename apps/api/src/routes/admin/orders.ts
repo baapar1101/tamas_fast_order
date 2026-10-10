@@ -2,12 +2,12 @@ import { and, count, desc, eq, gte, ilike, inArray, isNull, lte, or, sql, type S
 import type { FastifyPluginAsync } from 'fastify';
 import * as xlsx from '@e965/xlsx';
 import { z } from 'zod';
-import { ORDER_STATUSES, ORDER_STATUS_LABELS, orderPatchSchema } from '@tamas/shared';
+import { ORDER_STATUSES, ORDER_STATUS_LABELS, orderItemsReplaceSchema, orderPatchSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
-import { orderItems, orders, users } from '../../db/schema.js';
+import { orderItems, orders, products, users } from '../../db/schema.js';
 import { badRequest, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
-import { toOrderDTO } from '../../services/orders.js';
+import { replaceOrderItems, toOrderDTO } from '../../services/orders.js';
 import { upsertOrderPayment } from '../../services/payments.js';
 import { logAction } from '../../services/audit.js';
 import { refundWalletOrder } from '../../services/wallet.js';
@@ -19,6 +19,11 @@ const listQuery = z.object({
   to: z.string().datetime().optional(),
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(200).default(50),
+});
+
+const productOptionsQuery = z.object({
+  q: z.string().trim().min(1).max(200),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
 });
 
 const routes: FastifyPluginAsync = async (app) => {
@@ -77,6 +82,36 @@ const routes: FastifyPluginAsync = async (app) => {
     };
   });
 
+  app.get('/admin/orders/product-options', async (req) => {
+    const q = productOptionsQuery.parse(req.query);
+    const term = `%${q.q.toLowerCase()}%`;
+    const rows = await db
+      .select({
+        productId: products.productId,
+        sku: products.sku,
+        title: products.title,
+        color: products.color,
+        price: products.price,
+        kermanStock: products.kermanStock,
+        tehranStock: products.tehranStock,
+        stock: products.stock,
+        type: products.type,
+      })
+      .from(products)
+      .where(and(
+        isNull(products.deletedAt),
+        eq(products.status, 'active'),
+        or(
+          ilike(products.searchText, term),
+          ilike(products.productId, term),
+          ilike(products.sku, term),
+        ),
+      ))
+      .orderBy(desc(products.updatedAt))
+      .limit(q.limit);
+    return { ok: true, items: rows };
+  });
+
   app.get('/admin/orders/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
     const [row] = await db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1);
@@ -86,6 +121,37 @@ const routes: FastifyPluginAsync = async (app) => {
       ? await db.select().from(users).where(eq(users.id, row.userId)).limit(1)
       : [undefined];
     return { ok: true, order: toOrderDTO(row, items), customer: customer ?? null };
+  });
+
+  app.put('/admin/orders/:id/items', async (req) => {
+    const id = z.coerce.number().int().positive().parse((req.params as { id: string }).id);
+    const body = orderItemsReplaceSchema.parse(req.body);
+    const result = await replaceOrderItems(id, body);
+    await logAction(req.currentUser!.id, 'update-items', 'order', result.order.orderCode, {
+      previousTotal: result.previousTotal,
+      total: result.order.total,
+      previousItems: result.previousItems.map((item) => ({
+        productId: item.productId,
+        warehouse: item.warehouse,
+        qty: item.qty,
+      })),
+      items: result.order.items.map((item) => ({
+        productId: item.productId,
+        warehouse: item.warehouse,
+        qty: item.qty,
+      })),
+    });
+    const { sendTelegramNotification } = await import('../../services/telegram.js');
+    void sendTelegramNotification('order.items_changed', {
+      title: '✏️ ویرایش اقلام سفارش',
+      fields: [
+        { label: 'شماره سفارش', value: result.order.orderCode },
+        { label: 'مبلغ قبلی', value: `${result.previousTotal.toLocaleString('fa-IR')} تومان` },
+        { label: 'مبلغ جدید', value: `${result.order.total.toLocaleString('fa-IR')} تومان` },
+        { label: 'تعداد اقلام', value: result.order.quantity },
+      ],
+    }).catch((err) => req.log.error({ err }, 'failed to send Telegram order item notification'));
+    return { ok: true, order: result.order };
   });
 
   /** Minimal one-column workbook used by Sepidar: customer header, then one SKU per unit. */

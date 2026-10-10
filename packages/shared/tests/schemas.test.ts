@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { catalogQuerySchema, idSchema, productCodeSchema, productPatchSchema, sheetBool } from '../src/schemas.js';
+import { catalogQuerySchema, idSchema, orderItemsReplaceSchema, productCodeSchema, productPatchSchema, sheetBool } from '../src/schemas.js';
 
 describe('shared schemas', () => {
   it('coerces positive integer ids and rejects invalid ids', () => {
@@ -31,5 +31,15 @@ describe('shared schemas', () => {
     const items = Array.from({ length: 100 }, (_, index) => ({ productId: `0${index + 1}`, qty: 1 }));
     assert.equal(productPatchSchema.parse({ bundleItems: items }).bundleItems?.length, 100);
     assert.throws(() => productPatchSchema.parse({ bundleItems: Array.from({ length: 201 }, () => items[0]) }));
+  });
+
+  it('validates complete order item replacements', () => {
+    assert.deepEqual(orderItemsReplaceSchema.parse({
+      items: [{ productId: '01010113528', warehouse: 'kerman', qty: '2' }],
+    }).items, [{ productId: '01010113528', warehouse: 'kerman', qty: 2 }]);
+    assert.throws(() => orderItemsReplaceSchema.parse({ items: [] }));
+    assert.throws(() => orderItemsReplaceSchema.parse({
+      items: [{ productId: '01010113528', warehouse: 'kerman', qty: 0 }],
+    }));
   });
 });
