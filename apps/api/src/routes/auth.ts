@@ -1,6 +1,17 @@
 import { eq } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
-import { normalizeLandline, otpRequestSchema, otpVerifySchema, profileWriteSchema, passwordLoginSchema, setPasswordSchema, toAsciiDigits, type UserDTO } from '@tamas/shared';
+import {
+  isValidJalaliDate,
+  normalizeJalaliDate,
+  normalizeLandline,
+  otpRequestSchema,
+  otpVerifySchema,
+  passwordLoginSchema,
+  profileWriteSchema,
+  setPasswordSchema,
+  toAsciiDigits,
+  type UserDTO,
+} from '@tamas/shared';
 import { db } from '../db/client.js';
 import { users } from '../db/schema.js';
 import { env } from '../env.js';
@@ -192,17 +203,10 @@ const routes: FastifyPluginAsync = async (app) => {
   app.post('/auth/inquiry-identity', { preHandler: [app.requireUser] }, async (req) => {
     const { national_code, birth_date } = req.body as { national_code?: string; birth_date?: string };
     const cleanNationalCode = toAsciiDigits(national_code).replace(/\D/g, '');
-    const normalizedBirthDate = toAsciiDigits(birth_date)
-      .trim()
-      .replace(/[/.]/g, '-')
-      .replace(/[^\d-]/g, '');
-    const birthDateDigits = normalizedBirthDate.replace(/\D/g, '');
-    const cleanBirthDate = !normalizedBirthDate.includes('-') && birthDateDigits.length === 8
-      ? `${birthDateDigits.slice(0, 4)}-${birthDateDigits.slice(4, 6)}-${birthDateDigits.slice(6)}`
-      : normalizedBirthDate;
+    const cleanBirthDate = normalizeJalaliDate(birth_date);
 
-    if (!/^\d{10}$/.test(cleanNationalCode) || !/^\d{4}-\d{2}-\d{2}$/.test(cleanBirthDate)) {
-      throw badRequest('برای استعلام اختیاری، کد ملی ۱۰ رقمی و تاریخ تولد شمسی را به صورت YYYY-MM-DD وارد کنید. اعداد فارسی و انگلیسی پذیرفته می‌شوند.');
+    if (!/^\d{10}$/.test(cleanNationalCode) || !isValidJalaliDate(cleanBirthDate)) {
+      throw badRequest('برای استعلام اختیاری، کد ملی ۱۰ رقمی و تاریخ تولد شمسی معتبر را وارد کنید. اعداد فارسی و انگلیسی پذیرفته می‌شوند.');
     }
 
     try {

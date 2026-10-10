@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CreditApplicationDTO, UserDTO } from '@tamas/shared';
-import { PROFILE_FIELD_LABELS, formatMoney, formatNumber, isValidPhone, normalizePhone, toAsciiDigits } from '@tamas/shared';
+import {
+  PROFILE_FIELD_LABELS,
+  formatMoney,
+  formatNumber,
+  isValidJalaliDate,
+  isValidPhone,
+  joinJalaliDate,
+  normalizeJalaliDate,
+  normalizePhone,
+  splitJalaliDate,
+  toAsciiDigits,
+} from '@tamas/shared';
 import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { ApiRequestError, api } from '../lib/api';
@@ -50,14 +61,98 @@ const PROFILE_FIELDS = [
 
 type ProfileForm = Record<string, string>;
 
-function normalizeJalaliDate(value: string): string {
-  const normalized = toAsciiDigits(value)
-    .replace(/[/.]/g, '-')
-    .replace(/[^\d-]/g, '');
-  const digits = normalized.replace(/\D/g, '');
-  return !normalized.includes('-') && digits.length === 8
-    ? `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`
-    : normalized;
+function JalaliBirthDateField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const monthRef = useRef<HTMLInputElement>(null);
+  const dayRef = useRef<HTMLInputElement>(null);
+  const parts = splitJalaliDate(value);
+  const normalized = normalizeJalaliDate(value);
+  const isComplete = /^\d{4}-\d{2}-\d{2}$/.test(normalized);
+  const isInvalid = isComplete && !isValidJalaliDate(normalized);
+
+  const updatePart = (
+    key: 'year' | 'month' | 'day',
+    rawValue: string,
+    maxLength: number,
+    next?: React.RefObject<HTMLInputElement | null>,
+  ) => {
+    const digits = toAsciiDigits(rawValue).replace(/\D/g, '');
+    if (key === 'year' && digits.length >= 8) {
+      onChange(normalizeJalaliDate(digits.slice(0, 8)));
+      window.requestAnimationFrame(() => dayRef.current?.focus());
+      return;
+    }
+
+    const nextValue = digits.slice(0, maxLength);
+    onChange(joinJalaliDate({ ...parts, [key]: nextValue }));
+    if (nextValue.length === maxLength && next) {
+      window.requestAnimationFrame(() => next.current?.focus());
+    }
+  };
+
+  const padPart = (key: 'month' | 'day') => {
+    const current = parts[key];
+    if (current.length === 1) onChange(joinJalaliDate({ ...parts, [key]: `0${current}` }));
+  };
+
+  return (
+    <div className="field jalali-birth-field">
+      <label id="inquiry-birth-label">تاریخ تولد شمسی</label>
+      <div
+        className={`jalali-date-control${isInvalid ? ' invalid' : ''}`}
+        role="group"
+        aria-labelledby="inquiry-birth-label"
+        aria-describedby="inquiry-birth-help"
+        aria-invalid={isInvalid}
+      >
+        <label className="jalali-date-part">
+          <span>سال</span>
+          <input
+            id="inquiry-birth-year"
+            inputMode="numeric"
+            autoComplete="bday-year"
+            maxLength={8}
+            placeholder="۱۳۷۷"
+            value={parts.year}
+            aria-label="سال تولد شمسی"
+            onChange={(event) => updatePart('year', event.target.value, 4, monthRef)}
+          />
+        </label>
+        <span className="jalali-date-separator" aria-hidden="true">/</span>
+        <label className="jalali-date-part">
+          <span>ماه</span>
+          <input
+            ref={monthRef}
+            inputMode="numeric"
+            autoComplete="bday-month"
+            maxLength={2}
+            placeholder="۰۹"
+            value={parts.month}
+            aria-label="ماه تولد شمسی"
+            onChange={(event) => updatePart('month', event.target.value, 2, dayRef)}
+            onBlur={() => padPart('month')}
+          />
+        </label>
+        <span className="jalali-date-separator" aria-hidden="true">/</span>
+        <label className="jalali-date-part">
+          <span>روز</span>
+          <input
+            ref={dayRef}
+            inputMode="numeric"
+            autoComplete="bday-day"
+            maxLength={2}
+            placeholder="۳۰"
+            value={parts.day}
+            aria-label="روز تولد شمسی"
+            onChange={(event) => updatePart('day', event.target.value, 2)}
+            onBlur={() => padPart('day')}
+          />
+        </label>
+      </div>
+      <span id="inquiry-birth-help" className={`jalali-date-help${isInvalid ? ' invalid' : ''}`}>
+        {isInvalid ? 'تاریخ واردشده معتبر نیست.' : 'مثال: ۱۳۷۷ / ۰۹ / ۳۰ — اعداد فارسی و انگلیسی پذیرفته می‌شوند.'}
+      </span>
+    </div>
+  );
 }
 
 const emptyProfile = (user: UserDTO | null): ProfileForm => ({
@@ -244,8 +339,8 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
       setError('کد ملی را ۱۰ رقمی و کامل وارد کنید (مثلاً 2080819925).');
       return;
     }
-    if (!cleanBirth || !/^\d{4}-\d{2}-\d{2}$/.test(cleanBirth)) {
-      setError('تاریخ تولد شمسی را به صورت YYYY-MM-DD (مثلاً 1377-09-30) وارد کنید.');
+    if (!isValidJalaliDate(cleanBirth)) {
+      setError('تاریخ تولد شمسی معتبر را با سال، ماه و روز کامل وارد کنید.');
       return;
     }
 
@@ -455,7 +550,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
                 <p className="muted" style={{ margin: 0, fontSize: 12 }}>
                   این مرحله اختیاری است و می‌توانید بدون انجام آن ثبت‌نام را کامل کنید. اعداد فارسی و انگلیسی هر دو پذیرفته می‌شوند.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div className="identity-inquiry-fields">
                   <div className="field">
                     <label htmlFor="inquiry-national">کد ملی</label>
                     <input
@@ -467,16 +562,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
                       onChange={(e) => setNationalCode(toAsciiDigits(e.target.value).replace(/\D/g, ''))}
                     />
                   </div>
-                  <div className="field">
-                    <label htmlFor="inquiry-birth">تاریخ تولد شمسی</label>
-                    <input
-                      id="inquiry-birth"
-                      className="input ltr"
-                      placeholder="1377-09-30"
-                      value={birthDate}
-                      onChange={(e) => setBirthDate(normalizeJalaliDate(e.target.value))}
-                    />
-                  </div>
+                  <JalaliBirthDateField value={birthDate} onChange={setBirthDate} />
                 </div>
                 <button
                   type="button"
