@@ -87,6 +87,20 @@ export function StoreFooter() {
             </a>
           </div>
         </div>
+
+        <section className="footer-map" aria-labelledby="footer-map-title">
+          <h3 id="footer-map-title" className="footer-title">موقعیت فروشگاه</h3>
+          <div className="footer-map-frame">
+            <iframe
+              title="موقعیت تماس مارکت روی نقشه نشان"
+              src="https://neshan.org/maps/iframe/places/vbPokRNdYB50/30.2918334/57.0545972"
+              width="600"
+              height="450"
+              allowFullScreen
+              loading="lazy"
+            />
+          </div>
+        </section>
       </div>
 
       <div className="footer-bottom">
