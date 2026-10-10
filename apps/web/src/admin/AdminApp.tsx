@@ -9,6 +9,7 @@ import { ProductsPage } from './pages/ProductsPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { BrandsPage } from './pages/BrandsPage';
 import { OrdersPage } from './pages/OrdersPage';
+import { ProformasPage } from './pages/ProformasPage';
 import { UsersPage } from './pages/UsersPage';
 import { AttributesPage } from './AttributesPage';
 import { WarehousesPage } from './WarehousesPage';
@@ -59,6 +60,17 @@ const NAV_MAIN = [
     icon: (
       <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_orders',
+  },
+  {
+    to: '/admin/proformas',
+    label: 'پیش‌فاکتورهای مشتریان',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5A3.375 3.375 0 0010.125 2.25H5.625A1.125 1.125 0 004.5 3.375v17.25a1.125 1.125 0 001.125 1.125h12.75a1.125 1.125 0 001.125-1.125V14.25z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15h7.5m-7.5 3h4.5" />
       </svg>
     ),
     requiredPermission: 'manage_orders',
@@ -360,7 +372,7 @@ const NAV_GROUPS = [
     id: 'sales',
     label: 'فروش و سفارش‌ها',
     description: 'سفارش، اعتبار و امور مالی',
-    paths: ['/admin/orders', '/admin/credit', '/admin/financial', '/admin/wallets'],
+    paths: ['/admin/orders', '/admin/proformas', '/admin/credit', '/admin/financial', '/admin/wallets'],
     iconPath: 'M3.75 7.5h16.5l-1.5 12H5.25l-1.5-12zm4.5 0V6a3.75 3.75 0 117.5 0v1.5',
   },
   {
@@ -944,6 +956,7 @@ export default function AdminApp() {
             <Route path="target-sites" element={<TargetSitesPage />} />
             <Route path="slides" element={<SlidesPage />} />
             <Route path="orders" element={<OrdersPage />} />
+            <Route path="proformas" element={<ProformasPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="credit" element={<CreditApplicationsPage />} />
             <Route path="catalog-export" element={<CatalogExportPage />} />

@@ -25,7 +25,7 @@ function generateVersionJsonPlugin(): Plugin {
   };
 }
 
-const GENERATED_CHUNK_FILE = /^(?:index|admin|vendor|react|router|query)-[A-Za-z0-9_-]{8,}\.(?:js(?:\.map)?|css)$/;
+const GENERATED_CHUNK_FILE = /^(?:index|admin|vendor|react|router|query|pdf)-[A-Za-z0-9_-]{8,}\.(?:js(?:\.map)?|css)$/;
 
 function pruneStaleGeneratedChunksPlugin(): Plugin {
   return {
@@ -77,6 +77,12 @@ export default defineConfig({
         // The admin panel is a separate chunk: a shopper never downloads it.
         manualChunks(id) {
           if (id.includes('node_modules')) {
+            if (
+              id.includes('html2pdf.js') ||
+              id.includes('html2canvas') ||
+              id.includes('jspdf') ||
+              id.includes('dompurify')
+            ) return 'pdf';
             if (id.includes('react-router')) return 'router';
             // `scheduler` belongs with react-dom: splitting them makes the two
             // chunks import each other in a cycle.
