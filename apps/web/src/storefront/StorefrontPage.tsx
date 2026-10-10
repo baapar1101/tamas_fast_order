@@ -575,12 +575,12 @@ export function StorefrontPage() {
 
               <div className="side-title" style={{ marginTop: 20 }}>فیلترهای سریع</div>
               <div className="switch-row">
-                <span>فقط کالاهای موجود</span>
+                <span>موجودها</span>
                 <button
                   type="button"
                   className={`switch${inStockOnly ? ' on' : ''}`}
                   role="switch"
-                  aria-label="فقط کالاهای موجود"
+                  aria-label="موجودها"
                   aria-checked={inStockOnly}
                   onClick={() => { setInStockOnly(!inStockOnly); resetPage(); }}
                 >
@@ -588,12 +588,12 @@ export function StorefrontPage() {
                 </button>
               </div>
               <div className="switch-row">
-                <span>هرکی میگه ۱۶ نیست!</span>
+                <span>کالاهای جشنواره</span>
                 <button
                   type="button"
                   className={`switch${promotion ? ' on' : ''}`}
                   role="switch"
-                  aria-label="هرکی میگه ۱۶ نیست!"
+                  aria-label="کالاهای جشنواره"
                   aria-checked={promotion}
                   onClick={() => {
                     setPromotion(!promotion);
@@ -604,12 +604,12 @@ export function StorefrontPage() {
                 </button>
               </div>
               <div className="switch-row">
-                <span>سبد های پر سود جشنواره</span>
+                <span>سبدهای جشنواره</span>
                 <button
                   type="button"
                   className={`switch${basketOnly ? ' on' : ''}`}
                   role="switch"
-                  aria-label="سبد های پر سود جشنواره"
+                  aria-label="سبدهای جشنواره"
                   aria-checked={basketOnly}
                   onClick={() => {
                     setBasketOnly(!basketOnly);
