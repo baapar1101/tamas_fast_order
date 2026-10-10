@@ -74,6 +74,11 @@ const envSchema = z.object({
   CRM_SYNC_ENABLED: bool.default(true),
   CRM_SYNC_DEBOUNCE_MS: z.coerce.number().int().min(0).default(500),
   CRM_PRODUCT_SYNC_INTERVAL_SECONDS: z.coerce.number().int().min(15).max(86400).default(60),
+
+  /* --- Zohal identity and financial inquiry --- */
+  ZOHAL_API_TOKEN: z.string().default(''),
+  ZOHAL_API_BASE_URL: z.string().url().default('https://service.zohal.io/api/v0'),
+  ZOHAL_TIMEOUT_MS: z.coerce.number().int().min(1000).max(60000).default(15000),
 });
 
 const parsed = envSchema.safeParse(process.env);

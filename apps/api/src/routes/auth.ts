@@ -15,9 +15,10 @@ import {
 import { db } from '../db/client.js';
 import { users } from '../db/schema.js';
 import { env } from '../env.js';
-import { badRequest } from '../lib/errors.js';
+import { AppError, badRequest } from '../lib/errors.js';
 import { createSession, destroySession, missingProfileFields, findOrCreateUser, toUserDTO } from '../services/auth.js';
 import { resendCooldown, sendOtp, verifyOtp } from '../services/otp.js';
+import { ZohalClient, ZohalError } from '../services/zohal.js';
 import { crmClient } from '../lib/crm.js';
 import { hashPassword, verifyPassword } from '../lib/hash.js';
 
@@ -210,28 +211,12 @@ const routes: FastifyPluginAsync = async (app) => {
     }
 
     try {
-      const response = await fetch(
-        'https://service.zohal.io/api/v0/services/inquiry/national_identity_inquiry',
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer 0c23148ee07366592d9fc19dd8bb1528c2a0f1bb',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            national_code: cleanNationalCode,
-            birth_date: cleanBirthDate,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw badRequest(`ارتباط با سامانه استعلام هویتی ناموفق بود (${response.status})`);
-      }
-
-      const resData = await response.json();
-      const firstItem = Array.isArray(resData) ? resData[0] : resData;
-      const inquiryBody = firstItem?.data?.result?.response_body?.data;
+      const zohal = new ZohalClient({
+        token: env.ZOHAL_API_TOKEN,
+        baseUrl: env.ZOHAL_API_BASE_URL,
+        timeoutMs: env.ZOHAL_TIMEOUT_MS,
+      });
+      const inquiryBody = await zohal.inquiryIdentity(cleanNationalCode, cleanBirthDate);
 
       if (!inquiryBody || !inquiryBody.matched) {
         throw badRequest('اطلاعات هویتی با کد ملی و تاریخ تولد واردشده مطابقت ندارد.');
@@ -241,30 +226,8 @@ const routes: FastifyPluginAsync = async (app) => {
         throw badRequest('امکان استعلام و تایید برای این کد ملی وجود ندارد.');
       }
 
-      // 2. Bounced Cheque Inquiry
-      const chequeResponse = await fetch(
-        'https://service.zohal.io/api/v0/services/inquiry/bounced_cheque',
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer 0c23148ee07366592d9fc19dd8bb1528c2a0f1bb',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            national_code: cleanNationalCode,
-            nationality_type: 1,
-          }),
-        },
-      );
-
-      if (!chequeResponse.ok) {
-        throw badRequest(`ارتباط با سامانه استعلام چک برگشتی ناموفق بود (${chequeResponse.status})`);
-      }
-
-      const chequeData = await chequeResponse.json();
-      const chequeFirst = Array.isArray(chequeData) ? chequeData[0] : chequeData;
-      // Zohal payload might be nested depending on gateway wrapping
-      const chequeCount = chequeFirst?.response_body?.data?.count ?? chequeFirst?.data?.result?.response_body?.data?.count ?? 0;
+      const chequeData = await zohal.inquiryBouncedCheque(cleanNationalCode);
+      const chequeCount = Number(chequeData.count) || 0;
 
       if (chequeCount > 0) {
         throw badRequest(`کد ملی وارد شده دارای ${chequeCount} چک برگشتی است و امکان تأیید حساب وجود ندارد.`);
@@ -333,8 +296,16 @@ const routes: FastifyPluginAsync = async (app) => {
         },
       };
     } catch (err) {
-      if (err instanceof Error && err.message.includes('استعلام')) throw err;
-      throw badRequest(err instanceof Error ? err.message : 'خطایی در فرآیند استعلام رخ داد.');
+      if (err instanceof AppError) throw err;
+      if (err instanceof ZohalError) {
+        req.log.warn(
+          { statusCode: err.statusCode, providerCode: err.providerCode },
+          'Zohal inquiry failed',
+        );
+        throw new AppError(err.message, err.statusCode === 401 || err.statusCode === 403 ? 503 : 400, 'zohal_inquiry_failed');
+      }
+      req.log.error({ err }, 'unexpected identity inquiry failure');
+      throw new AppError('خطایی در فرآیند استعلام رخ داد.', 500, 'identity_inquiry_failed');
     }
   });
 
