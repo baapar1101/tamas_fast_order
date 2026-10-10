@@ -575,6 +575,50 @@ export const comments = pgTable(
 );
 
 /* ------------------------------------------------------------------ *
+ * Customer support chat
+ * ------------------------------------------------------------------ */
+
+export const customerChatConversations = pgTable(
+  'customer_chat_conversations',
+  {
+    id: serial('id').primaryKey(),
+    visitorTokenHash: varchar('visitor_token_hash', { length: 64 }).notNull(),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+    firstName: varchar('first_name', { length: 120 }).notNull(),
+    lastName: varchar('last_name', { length: 120 }).notNull().default(''),
+    email: varchar('email', { length: 200 }),
+    phone: varchar('phone', { length: 20 }).notNull(),
+    pageUrl: text('page_url'),
+    deviceType: varchar('device_type', { length: 20 }).notNull().default('desktop'),
+    status: varchar('status', { length: 20 }).notNull().default('open'),
+    lastMessageAt: timestamp('last_message_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('customer_chat_conversations_token_key').on(t.visitorTokenHash),
+    index('customer_chat_conversations_status_idx').on(t.status, t.lastMessageAt),
+    index('customer_chat_conversations_user_idx').on(t.userId),
+  ],
+);
+
+export const customerChatMessages = pgTable(
+  'customer_chat_messages',
+  {
+    id: serial('id').primaryKey(),
+    conversationId: integer('conversation_id')
+      .notNull()
+      .references(() => customerChatConversations.id, { onDelete: 'cascade' }),
+    senderRole: varchar('sender_role', { length: 20 }).notNull(),
+    body: text('body').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('customer_chat_messages_conversation_idx').on(t.conversationId, t.createdAt),
+  ],
+);
+
+/* ------------------------------------------------------------------ *
  * Settings, uploads
  * ------------------------------------------------------------------ */
 
@@ -756,4 +800,16 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
   user: one(users, { fields: [comments.userId], references: [users.id] }),
   parent: one(comments, { fields: [comments.replyTo], references: [comments.id], relationName: 'replies' }),
   replies: many(comments, { relationName: 'replies' }),
+}));
+
+export const customerChatConversationsRelations = relations(customerChatConversations, ({ one, many }) => ({
+  user: one(users, { fields: [customerChatConversations.userId], references: [users.id] }),
+  messages: many(customerChatMessages),
+}));
+
+export const customerChatMessagesRelations = relations(customerChatMessages, ({ one }) => ({
+  conversation: one(customerChatConversations, {
+    fields: [customerChatMessages.conversationId],
+    references: [customerChatConversations.id],
+  }),
 }));

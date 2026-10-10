@@ -1,12 +1,50 @@
-import { count, eq, isNull } from 'drizzle-orm';
+import { createHash, randomBytes } from 'node:crypto';
+import { and, count, desc, eq, isNull } from 'drizzle-orm';
+import { z } from 'zod';
+import { toAsciiDigits } from '@tamas/shared';
 import type {
   FastifyInstance,
   FastifyPluginAsync,
   FastifyRequest,
   FastifyReply,
 } from 'fastify';
+import { db } from '../db/client.js';
+import { customerChatConversations, customerChatMessages } from '../db/schema.js';
+import { AppError } from '../lib/errors.js';
 import { processCrmWebhook } from '../lib/crm.js';
 import { getCrmConfig } from '../services/settings.js';
+
+const chatStartSchema = z.object({
+  first_name: z.string().trim().min(1).max(120),
+  last_name: z.string().trim().max(120).optional().default(''),
+  email: z.string().trim().email().max(200).optional().or(z.literal('')),
+  phone: z.string().transform((value) => toAsciiDigits(value).replace(/\D/g, '')).pipe(z.string().regex(/^09\d{9}$/)),
+  page_url: z.string().trim().max(2000).optional(),
+  device_type: z.enum(['mobile', 'tablet', 'desktop']).optional().default('desktop'),
+  initial_message: z.string().trim().min(1).max(4000),
+});
+
+const chatMessageSchema = z.object({
+  visitor_token: z.string().min(20).max(200),
+  conversation_id: z.coerce.number().int().positive(),
+  body: z.string().trim().min(1).max(4000),
+});
+
+const agentMessageSchema = z.object({ body: z.string().trim().min(1).max(4000) });
+
+function hashChatToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+function messageDto(message: typeof customerChatMessages.$inferSelect) {
+  return {
+    id: message.id,
+    conversation_id: message.conversationId,
+    sender_role: message.senderRole,
+    body: message.body,
+    created_at: message.createdAt.toISOString(),
+  };
+}
 
 /**
  * CRM Integration Routes
@@ -560,55 +598,185 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
   );
 
   /**
-   * CRM Web Chat Proxy Routes
+   * Customer chat routes.
+   *
+   * Chat is persisted in the site database so a CRM outage cannot stop
+   * customers from contacting support. The admin inbox reads the same data.
    */
   const chatApiPrefix = '/crm/chat';
-  
-  app.get(`${chatApiPrefix}/conversations`, { preHandler: [app.requirePermission('manage_settings')] }, async (req, reply) => {
-    const config = await getCrmConfig();
-    if (!config.apiBase || !config.apiKey) return reply.status(400).send({ ok: false, error: 'CRM not configured' });
-    const url = `${config.apiBase.replace(/\/$/, '')}/api/v1/crm/businesses/${config.businessId}/chat/conversations`;
-    const res = await fetch(url, { headers: { 'Authorization': `ApiKey ${config.apiKey}` } });
-    const data = await res.json();
-    return reply.status(res.status).send(data);
+
+  app.post(`${chatApiPrefix}/public/conversations/start`, async (req) => {
+    const body = chatStartSchema.parse(req.body);
+    const visitorToken = randomBytes(32).toString('base64url');
+    const now = new Date();
+
+    const result = await db.transaction(async (tx) => {
+      const [conversation] = await tx
+        .insert(customerChatConversations)
+        .values({
+          visitorTokenHash: hashChatToken(visitorToken),
+          firstName: body.first_name,
+          lastName: body.last_name,
+          email: body.email || null,
+          phone: body.phone,
+          pageUrl: body.page_url || null,
+          deviceType: body.device_type,
+          lastMessageAt: now,
+          updatedAt: now,
+        })
+        .returning({ id: customerChatConversations.id });
+
+      if (!conversation) throw new AppError('ایجاد مکالمه ناموفق بود.', 500, 'chat_start_failed');
+
+      await tx.insert(customerChatMessages).values({
+        conversationId: conversation.id,
+        senderRole: 'visitor',
+        body: body.initial_message,
+        createdAt: now,
+      });
+
+      return conversation;
+    });
+
+    return {
+      ok: true,
+      data: {
+        conversation_id: result.id,
+        visitor_token: visitorToken,
+      },
+    };
   });
 
-  app.get(`${chatApiPrefix}/conversations/:id/messages`, { preHandler: [app.requirePermission('manage_settings')] }, async (req, reply) => {
-    const config = await getCrmConfig();
+  app.get(`${chatApiPrefix}/public/conversations/:id/messages`, async (req) => {
     const { id } = req.params as { id: string };
-    if (!config.apiBase || !config.apiKey) return reply.status(400).send({ ok: false, error: 'CRM not configured' });
-    const url = `${config.apiBase.replace(/\/$/, '')}/api/v1/crm/businesses/${config.businessId}/chat/conversations/${id}/messages`;
-    const res = await fetch(url, { headers: { 'Authorization': `ApiKey ${config.apiKey}` } });
-    const data = await res.json();
-    return reply.status(res.status).send(data);
+    const conversationId = z.coerce.number().int().positive().parse(id);
+    const query = (req.query as { visitor_token?: string } | undefined) ?? {};
+    const headerToken = req.headers['x-visitor-token'];
+    const visitorToken = (typeof headerToken === 'string' ? headerToken : query.visitor_token)?.trim();
+    if (!visitorToken) throw new AppError('نشست چت معتبر نیست.', 401, 'chat_unauthorized');
+
+    const [conversation] = await db
+      .select({ id: customerChatConversations.id })
+      .from(customerChatConversations)
+      .where(and(
+        eq(customerChatConversations.id, conversationId),
+        eq(customerChatConversations.visitorTokenHash, hashChatToken(visitorToken)),
+      ))
+      .limit(1);
+    if (!conversation) throw new AppError('نشست چت معتبر نیست.', 401, 'chat_unauthorized');
+
+    const messages = await db
+      .select()
+      .from(customerChatMessages)
+      .where(eq(customerChatMessages.conversationId, conversationId))
+      .orderBy(customerChatMessages.createdAt)
+      .limit(100);
+
+    return { ok: true, data: messages.map(messageDto) };
   });
 
-  app.post(`${chatApiPrefix}/conversations/:id/messages`, { preHandler: [app.requirePermission('manage_settings')] }, async (req, reply) => {
-    const config = await getCrmConfig();
-    const { id } = req.params as { id: string };
-    if (!config.apiBase || !config.apiKey) return reply.status(400).send({ ok: false, error: 'CRM not configured' });
-    const url = `${config.apiBase.replace(/\/$/, '')}/api/v1/crm/businesses/${config.businessId}/chat/conversations/${id}/messages`;
-    const res = await fetch(url, { 
-      method: 'POST',
-      headers: { 'Authorization': `ApiKey ${config.apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body)
+  app.post(`${chatApiPrefix}/public/messages`, async (req) => {
+    const body = chatMessageSchema.parse(req.body);
+    const headerToken = req.headers['x-visitor-token'];
+    const visitorToken = (typeof headerToken === 'string' ? headerToken : body.visitor_token).trim();
+
+    const [conversation] = await db
+      .select({ id: customerChatConversations.id })
+      .from(customerChatConversations)
+      .where(and(
+        eq(customerChatConversations.id, body.conversation_id),
+        eq(customerChatConversations.visitorTokenHash, hashChatToken(visitorToken)),
+      ))
+      .limit(1);
+    if (!conversation) throw new AppError('نشست چت معتبر نیست.', 401, 'chat_unauthorized');
+
+    const now = new Date();
+    const [message] = await db.transaction(async (tx) => {
+      const inserted = await tx
+        .insert(customerChatMessages)
+        .values({ conversationId: conversation.id, senderRole: 'visitor', body: body.body, createdAt: now })
+        .returning();
+      await tx
+        .update(customerChatConversations)
+        .set({ status: 'open', lastMessageAt: now, updatedAt: now })
+        .where(eq(customerChatConversations.id, conversation.id));
+      return inserted;
     });
-    const data = await res.json();
-    return reply.status(res.status).send(data);
+
+    return { ok: true, data: message ? messageDto(message) : null };
   });
-  
-  app.patch(`${chatApiPrefix}/conversations/:id`, { preHandler: [app.requirePermission('manage_settings')] }, async (req, reply) => {
-    const config = await getCrmConfig();
+
+  app.get(`${chatApiPrefix}/conversations`, { preHandler: [app.requirePermission('manage_settings')] }, async () => {
+    const conversations = await db
+      .select()
+      .from(customerChatConversations)
+      .orderBy(desc(customerChatConversations.lastMessageAt))
+      .limit(200);
+
+    return {
+      ok: true,
+      data: conversations.map((conversation) => ({
+        id: conversation.id,
+        first_name: conversation.firstName,
+        last_name: conversation.lastName,
+        email: conversation.email,
+        phone: conversation.phone,
+        status: conversation.status,
+        created_at: conversation.createdAt.toISOString(),
+        last_message_at: conversation.lastMessageAt.toISOString(),
+      })),
+    };
+  });
+
+  app.get(`${chatApiPrefix}/conversations/:id/messages`, { preHandler: [app.requirePermission('manage_settings')] }, async (req) => {
     const { id } = req.params as { id: string };
-    if (!config.apiBase || !config.apiKey) return reply.status(400).send({ ok: false, error: 'CRM not configured' });
-    const url = `${config.apiBase.replace(/\/$/, '')}/api/v1/crm/businesses/${config.businessId}/chat/conversations/${id}`;
-    const res = await fetch(url, { 
-      method: 'PATCH',
-      headers: { 'Authorization': `ApiKey ${config.apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body)
+    const conversationId = z.coerce.number().int().positive().parse(id);
+    const messages = await db
+      .select()
+      .from(customerChatMessages)
+      .where(eq(customerChatMessages.conversationId, conversationId))
+      .orderBy(customerChatMessages.createdAt)
+      .limit(200);
+    return { ok: true, data: messages.map(messageDto) };
+  });
+
+  app.post(`${chatApiPrefix}/conversations/:id/messages`, { preHandler: [app.requirePermission('manage_settings')] }, async (req) => {
+    const { id } = req.params as { id: string };
+    const conversationId = z.coerce.number().int().positive().parse(id);
+    const body = agentMessageSchema.parse(req.body);
+    const now = new Date();
+    const [existing] = await db
+      .select({ id: customerChatConversations.id })
+      .from(customerChatConversations)
+      .where(eq(customerChatConversations.id, conversationId))
+      .limit(1);
+    if (!existing) throw new AppError('مکالمه پیدا نشد.', 404, 'chat_not_found');
+
+    const [message] = await db.transaction(async (tx) => {
+      const inserted = await tx
+        .insert(customerChatMessages)
+        .values({ conversationId, senderRole: 'agent', body: body.body, createdAt: now })
+        .returning();
+      await tx
+        .update(customerChatConversations)
+        .set({ lastMessageAt: now, updatedAt: now })
+        .where(eq(customerChatConversations.id, conversationId));
+      return inserted;
     });
-    const data = await res.json();
-    return reply.status(res.status).send(data);
+    return { ok: true, data: message ? messageDto(message) : null };
+  });
+
+  app.patch(`${chatApiPrefix}/conversations/:id`, { preHandler: [app.requirePermission('manage_settings')] }, async (req) => {
+    const { id } = req.params as { id: string };
+    const conversationId = z.coerce.number().int().positive().parse(id);
+    const body = z.object({ status: z.enum(['open', 'resolved']) }).parse(req.body);
+    const [conversation] = await db
+      .update(customerChatConversations)
+      .set({ status: body.status, updatedAt: new Date() })
+      .where(eq(customerChatConversations.id, conversationId))
+      .returning({ id: customerChatConversations.id, status: customerChatConversations.status });
+    if (!conversation) throw new AppError('مکالمه پیدا نشد.', 404, 'chat_not_found');
+    return { ok: true, data: conversation };
   });
 };
 

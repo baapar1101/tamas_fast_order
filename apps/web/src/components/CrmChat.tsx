@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 /* ─── Config ─────────────────────────────────────────────── */
-const API_BASE       = 'https://tamastore.ir';
-const PUBLIC_KEY     = 'wPzldz3FGwE2EX8tYS4WYew2kf9aL72Y';
-const WS_URL         = 'wss://tamastore.ir/ws/crm-chat';
+const API_BASE       = '';
+const WS_URL         = import.meta.env.VITE_CRM_CHAT_WS_URL?.trim() || '';
 const SESSION_KEY    = 'tamas_crm_session';
 const MAX_WS_RETRIES = 5;
 
@@ -66,9 +65,16 @@ function extractArray(data: any): any[] {
 async function apiPost(path: string, body: object, token?: string) {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['X-Visitor-Token'] = token;
-  const res = await fetch(`${API_BASE}${path}`, { method: 'POST', headers, body: JSON.stringify(body) });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.error?.message ?? data?.detail?.message ?? 'خطای سرور');
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST', headers, body: JSON.stringify(body), credentials: 'same-origin',
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const message = typeof data?.error === 'string'
+      ? data.error
+      : data?.error?.message ?? data?.detail?.message ?? 'خطای سرور';
+    throw new Error(message);
+  }
   return data;
 }
 
@@ -77,14 +83,15 @@ async function apiGet(path: string, token: string): Promise<Message[]> {
   const url = `${API_BASE}${path}${separator}visitor_token=${encodeURIComponent(token)}`;
   let res: Response;
   try {
-    res = await fetch(url, { headers: { 'X-Visitor-Token': token } });
+    res = await fetch(url, { headers: { 'X-Visitor-Token': token }, credentials: 'same-origin' });
   } catch {
     // Only a rejected fetch means the network is genuinely unreachable
     throw new Error('network');
   }
   // If the body isn't JSON (proxy error page, empty reply), it's a server hiccup — not a disconnect
   let data: any;
-  try { data = await res.json(); } catch { return []; }
+  try { data = await res.json(); } catch { throw new Error('invalid_response'); }
+  if (!res.ok) throw new Error(data?.error ?? 'chat_session_invalid');
   const raw = extractArray(data);
   return raw.map((m: any) => ({
     id: String(m.id ?? Date.now()),
@@ -249,8 +256,13 @@ export function CrmChat({ user }: CrmChatProps) {
     if (!s) return;
     setSession(s);
     setPhase('chat');
-    apiGet(`/api/v1/public/crm-chat/conversations/${s.conversationId}/messages?limit=80`, s.visitorToken)
-      .then(setMessages).catch(() => {});
+    apiGet(`/api/crm/chat/public/conversations/${s.conversationId}/messages?limit=80`, s.visitorToken)
+      .then(setMessages)
+      .catch(() => {
+        clearSession();
+        setSession(null);
+        setPhase('intake');
+      });
   }, []);
 
   useEffect(() => { if (isOpen && phase !== 'idle') setTimeout(() => inputRef.current?.focus(), 120); }, [isOpen, phase]);
@@ -258,6 +270,7 @@ export function CrmChat({ user }: CrmChatProps) {
 
   /* WebSocket */
   const openWs = useCallback((s: Session) => {
+    if (!WS_URL) { setWsStatus('offline'); return; }
     if (intentRef.current || wsRef.current?.readyState === WebSocket.OPEN) return;
     // Give up silently after MAX_WS_RETRIES — avoids console spam when WS is unavailable
     if (reconnAtt.current >= MAX_WS_RETRIES) { setWsStatus('offline'); return; }
@@ -347,7 +360,7 @@ export function CrmChat({ user }: CrmChatProps) {
     const delay = isWsConnected ? 8000 : 3000;
     const tick = () => {
       apiGet(
-        `/api/v1/public/crm-chat/conversations/${session.conversationId}/messages?limit=80`,
+        `/api/crm/chat/public/conversations/${session.conversationId}/messages?limit=80`,
         session.visitorToken
       ).then(fresh => {
         failRef.current = 0;
@@ -407,8 +420,7 @@ export function CrmChat({ user }: CrmChatProps) {
 
     setSending(true);
     try {
-      const data = await apiPost('/api/v1/public/crm-chat/conversations/start', {
-        public_key: PUBLIC_KEY,
+      const data = await apiPost('/api/crm/chat/public/conversations/start', {
         first_name: newAns.name,
         last_name: '-',
         email: `${newAns.phone}@tamas.local`,
@@ -422,7 +434,7 @@ export function CrmChat({ user }: CrmChatProps) {
       const s: Session = { visitorToken: d.visitor_token, conversationId: Number(d.conversation_id) };
       saveSession(s);
       setSession(s);
-      const history = await apiGet(`/api/v1/public/crm-chat/conversations/${s.conversationId}/messages?limit=80`, s.visitorToken);
+      const history = await apiGet(`/api/crm/chat/public/conversations/${s.conversationId}/messages?limit=80`, s.visitorToken);
       setMessages(history.length > 0 ? history : [{ id: String(Date.now()), senderRole: 'visitor', body: newAns.msg, createdAt: new Date().toISOString() }]);
       setPhase('chat');
     } catch (ex: any) {
@@ -444,10 +456,10 @@ export function CrmChat({ user }: CrmChatProps) {
     setSending(true);
     setIsTyping(true);
     try {
-      await apiPost('/api/v1/public/crm-chat/messages', { visitor_token: session.visitorToken, conversation_id: session.conversationId, body }, session.visitorToken);
+      await apiPost('/api/crm/chat/public/messages', { visitor_token: session.visitorToken, conversation_id: session.conversationId, body }, session.visitorToken);
       setNetAlive(true);
       // Refresh messages immediately to get true server ID & any agent reply
-      const fresh = await apiGet(`/api/v1/public/crm-chat/conversations/${session.conversationId}/messages?limit=80`, session.visitorToken);
+      const fresh = await apiGet(`/api/crm/chat/public/conversations/${session.conversationId}/messages?limit=80`, session.visitorToken);
       if (fresh && fresh.length > 0) {
         setMessages(fresh);
       }
