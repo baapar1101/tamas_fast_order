@@ -44,6 +44,14 @@ const STATUS_EVENTS: SmsEventDef[] = ORDER_STATUSES.map((status) => ({
 
 const ENTRIES_EVENTS: SmsEventDef[] = [
   {
+    key: 'user_approved',
+    templateKey: 'sms_template_user_approved',
+    title: 'تأیید حساب کاربری',
+    desc: 'هنگامی که مدیر حساب مشتری را تأیید و فعال می‌کند',
+    vars: [],
+    placeholder: 'حساب کاربری شما در تماس مارکت تایید شد',
+  },
+  {
     key: 'otp',
     templateKey: 'sms_template_otp',
     title: 'کد تایید ورود',
@@ -138,14 +146,19 @@ export function SmsPage() {
           <div className="a-option-copy">
             <div className="a-option-title">{def.title}</div>
             <div className="a-option-desc">
-              {def.desc} — متغیرها:{' '}
-              {def.vars.map((v) => (
-                <code key={v} className="mx-0.5 rounded bg-slate-800 px-1 py-0.5 text-[10px] text-emerald-300" dir="ltr">
-                  {'{'}
-                  {v}
-                  {'}'}
-                </code>
-              ))}
+              {def.desc}
+              {def.vars.length > 0 && (
+                <>
+                  {' — متغیرها: '}
+                  {def.vars.map((v) => (
+                    <code key={v} className="mx-0.5 rounded bg-slate-800 px-1 py-0.5 text-[10px] text-emerald-300" dir="ltr">
+                      {'{'}
+                      {v}
+                      {'}'}
+                    </code>
+                  ))}
+                </>
+              )}
             </div>
           </div>
           <button

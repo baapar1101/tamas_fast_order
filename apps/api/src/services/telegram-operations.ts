@@ -4,7 +4,7 @@ import { db } from '../db/client.js';
 import { orders, sessions, users } from '../db/schema.js';
 import { logAction } from './audit.js';
 import { upsertOrderPayment } from './payments.js';
-import { sendTemplatedSms } from './sms.js';
+import { sendTemplatedSms, sendUserApprovedSms } from './sms.js';
 import {
   answerTelegramCallback,
   getTelegramConfig,
@@ -139,6 +139,7 @@ async function updateCustomer(action: UserAction, actor: TelegramUser): Promise<
     telegramActor: actorLabel(actor),
     userId: action.id,
   });
+  if (isActive) void sendUserApprovedSms(updated.phone).catch(() => undefined);
   return `✅ مشتری <b>${escapeHtml([updated!.name, updated!.lastName].filter(Boolean).join(' ') || updated!.phone)}</b> ${isActive ? 'تأیید و فعال' : 'غیرفعال'} شد.`;
 }
 

@@ -75,3 +75,12 @@ export async function sendTemplatedSms(
 
   return sendSms(toPhone, text);
 }
+
+export function sendUserApprovedSms(toPhone: string): Promise<{ ok: boolean; error?: string }> {
+  return sendTemplatedSms(
+    toPhone,
+    'sms_template_user_approved',
+    {},
+    'حساب کاربری شما در تماس مارکت تایید شد',
+  );
+}

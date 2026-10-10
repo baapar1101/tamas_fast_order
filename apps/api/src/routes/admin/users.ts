@@ -8,6 +8,7 @@ import { badRequest, forbidden, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { toUserDTO } from '../../services/auth.js';
 import { logAction } from '../../services/audit.js';
+import { sendUserApprovedSms } from '../../services/sms.js';
 
 const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
@@ -63,6 +64,12 @@ const routes: FastifyPluginAsync = async (app) => {
   app.patch('/admin/users/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
     const body = userPatchSchema.parse(req.body);
+    const [current] = await db
+      .select({ isActive: users.isActive })
+      .from(users)
+      .where(and(eq(users.id, id), isNull(users.deletedAt)))
+      .limit(1);
+    if (!current) throw notFound('کاربر پیدا نشد.');
 
     // An admin must not be able to lock themselves out of their own panel.
     if (id === req.currentUser!.id && (body.role === 'customer' || body.isActive === false)) {
@@ -101,6 +108,13 @@ const routes: FastifyPluginAsync = async (app) => {
           { label: 'نقش', value: updated.role },
         ],
       }).catch((err) => req.log.error({ err }, 'failed to send Telegram user notification'));
+    }
+    if (body.isActive === true && current.isActive === false) {
+      void sendUserApprovedSms(updated.phone)
+        .then((result) => {
+          if (!result.ok) req.log.error({ error: result.error, userId: updated.id }, 'failed to send user approval sms');
+        })
+        .catch((err) => req.log.error({ err, userId: updated.id }, 'failed to send user approval sms'));
     }
     return { ok: true, user: toUserDTO(updated) };
   });
@@ -189,10 +203,16 @@ const routes: FastifyPluginAsync = async (app) => {
     const changed = await db
       .update(users)
       .set({ isActive, updatedAt: new Date() })
-      .where(and(inArray(users.id, ids), isNull(users.deletedAt)))
-      .returning({ id: users.id });
+      .where(and(inArray(users.id, ids), eq(users.isActive, !isActive), isNull(users.deletedAt)))
+      .returning({ id: users.id, phone: users.phone });
 
     if (!isActive) await db.delete(sessions).where(inArray(sessions.userId, ids));
+    if (isActive) {
+      void Promise.allSettled(changed.map(async (user) => {
+        const result = await sendUserApprovedSms(user.phone);
+        if (!result.ok) req.log.error({ error: result.error, userId: user.id }, 'failed to send bulk user approval sms');
+      }));
+    }
     const { sendTelegramNotification } = await import('../../services/telegram.js');
     void sendTelegramNotification('user.status_changed', {
       title: '👥 تغییر گروهی وضعیت کاربران',
