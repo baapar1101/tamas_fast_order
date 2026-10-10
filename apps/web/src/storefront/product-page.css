@@ -101,13 +101,13 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  background: #D7795B;
   color: #fff;
   font-size: 12px;
   font-weight: 800;
   padding: 5px 12px;
   border-radius: 999px;
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+  box-shadow: 0 4px 14px rgba(153, 69, 44, 0.3);
 }
 
 .pp-ribbon {
@@ -168,7 +168,7 @@
 }
 
 .pp-title .ic {
-  color: #f59e0b;
+  color: #D7795B;
 }
 
 .pp-subtitle {

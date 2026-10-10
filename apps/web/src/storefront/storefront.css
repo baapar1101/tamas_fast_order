@@ -906,16 +906,16 @@
 
 .product-accordion.is-promotion,
 .product-card.is-promotion {
-  border: 2px solid #ffd700;
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.5), var(--shadow);
+  border: 2px solid #D7795B;
+  box-shadow: 0 0 8px rgba(215, 121, 91, 0.38), var(--shadow);
 }
 
 .promo-tag {
   position: absolute;
   top: 0;
   right: 0;
-  background: linear-gradient(135deg, var(--tamas-warning), #f7c85c);
-  color: #4a2d00;
+  background: #D7795B;
+  color: #ffffff;
   font-size: 11.5px;
   font-weight: 800;
   padding: 4px 14px;
@@ -1554,16 +1554,21 @@
 /* Keep promoted products visually distinct in both grid and list views. */
 .product-card.is-promotion,
 .product-accordion.is-promotion {
-  border: 2px solid #d6a72b;
+  border: 2px solid #D7795B;
   box-shadow:
-    0 0 0 1px rgba(255, 226, 132, 0.65),
-    0 6px 20px rgba(166, 113, 8, 0.16);
+    0 0 0 1px rgba(215, 121, 91, 0.24),
+    0 6px 20px rgba(153, 69, 44, 0.16);
 }
 
 .product-card.is-promotion:hover {
   box-shadow:
-    0 0 0 1px rgba(255, 226, 132, 0.8),
-    0 10px 28px rgba(166, 113, 8, 0.24);
+    0 0 0 1px rgba(215, 121, 91, 0.38),
+    0 10px 28px rgba(153, 69, 44, 0.24);
+}
+
+.product-card.is-promotion .title-star,
+.product-accordion.is-promotion .title-star {
+  color: #D7795B;
 }
 
 .products-list .list-product-content {
@@ -2318,7 +2323,7 @@
     top: auto;
     right: auto;
     grid-area: promo;
-    /* Span the card's inner padding so the ribbon meets its gold border. */
+    /* Span the card's inner padding so the ribbon meets its brand-orange border. */
     width: calc(100% + 24px);
     max-width: calc(100% + 24px);
     min-width: 0;
