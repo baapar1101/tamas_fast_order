@@ -50,6 +50,16 @@ const PROFILE_FIELDS = [
 
 type ProfileForm = Record<string, string>;
 
+function normalizeJalaliDate(value: string): string {
+  const normalized = toAsciiDigits(value)
+    .replace(/[/.]/g, '-')
+    .replace(/[^\d-]/g, '');
+  const digits = normalized.replace(/\D/g, '');
+  return !normalized.includes('-') && digits.length === 8
+    ? `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`
+    : normalized;
+}
+
 const emptyProfile = (user: UserDTO | null): ProfileForm => ({
   name: user?.name ?? '',
   lastName: user?.lastName ?? '',
@@ -228,7 +238,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
 
   const inquireIdentity = useCallback(async () => {
     const cleanNational = toAsciiDigits(nationalCode).replace(/\D/g, '');
-    const cleanBirth = toAsciiDigits(birthDate).trim();
+    const cleanBirth = normalizeJalaliDate(birthDate).trim();
 
     if (!cleanNational || cleanNational.length < 10) {
       setError('کد ملی را ۱۰ رقمی و کامل وارد کنید (مثلاً 2080819925).');
@@ -433,6 +443,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
           <div className="card" style={{ padding: 14, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8 }}>
             <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--primary)' }}>
               <Icon name="shield" /> <span>استعلام و تایید اطلاعات هویتی (ثبت احوال)</span>
+              {!inquirySuccess && <span className="badge" style={{ marginInlineStart: 'auto' }}>اختیاری</span>}
               {inquirySuccess && <span className="badge success" style={{ marginInlineStart: 'auto' }}>✓ هویتی تاییدشده</span>}
             </div>
             {inquirySuccess && verifiedInfo ? (
@@ -442,7 +453,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
             ) : (
               <div className="stack" style={{ gap: 8 }}>
                 <p className="muted" style={{ margin: 0, fontSize: 12 }}>
-                  جهت تایید هویت و استعلام نام و نام خانوادگی، کد ملی و تاریخ تولد شمسی را وارد کنید:
+                  این مرحله اختیاری است و می‌توانید بدون انجام آن ثبت‌نام را کامل کنید. اعداد فارسی و انگلیسی هر دو پذیرفته می‌شوند.
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   <div className="field">
@@ -463,7 +474,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
                       className="input ltr"
                       placeholder="1377-09-30"
                       value={birthDate}
-                      onChange={(e) => setBirthDate(toAsciiDigits(e.target.value))}
+                      onChange={(e) => setBirthDate(normalizeJalaliDate(e.target.value))}
                     />
                   </div>
                 </div>
