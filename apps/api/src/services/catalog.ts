@@ -308,12 +308,16 @@ export async function findProductByPublicId(
   if (mainProduct.type === 'bundle' && mainProduct.bundleItems.length > 0) {
     const productIds = [...new Set(mainProduct.bundleItems.map((item) => item.productId))];
     const componentRows = await db
-      .select({ productId: products.productId, title: products.title })
+      .select({ productId: products.productId, title: products.title, imageUrl: products.imageUrl })
       .from(products)
       .where(and(inArray(products.productId, productIds), isNull(products.deletedAt)));
     bundleContents = resolveBundleContents(
       mainProduct.bundleItems,
-      componentRows.map((item) => ({ productId: item.productId, title: sanitizeExternalText(item.title) })),
+      componentRows.map((item) => ({
+        productId: item.productId,
+        title: sanitizeExternalText(item.title),
+        imageUrl: item.imageUrl,
+      })),
     );
   }
   

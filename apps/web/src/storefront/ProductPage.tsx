@@ -102,7 +102,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
   const bundleContents = isBundle
     ? (query.data?.bundleContents?.length
       ? query.data.bundleContents
-      : selected.bundleItems.map((item) => ({ ...item, title: `کالا با کد ${item.productId}` })))
+      : selected.bundleItems.map((item) => ({ ...item, title: `کالا با کد ${item.productId}`, imageUrl: null })))
     : [];
   const bundleQuantity = bundleContents.reduce((total, item) => total + item.qty, 0);
   const bundleSearchTerm = normalizeBundleSearch(bundleSearch);
@@ -630,6 +630,15 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
                       {filteredBundleContents.map((item) => (
                         <div className="pp-bundle-item" role="listitem" key={`${item.productId}-${item.position}`}>
                           <span className="pp-bundle-item-index" aria-hidden="true">{formatNumber(item.position)}</span>
+                          <div className="pp-bundle-item-media">
+                            <img
+                              src={imageSrc(item.imageUrl) ?? '/logo.png'}
+                              alt={item.title}
+                              loading="lazy"
+                              decoding="async"
+                              onError={(event) => { event.currentTarget.src = '/logo.png'; }}
+                            />
+                          </div>
                           <div className="pp-bundle-item-details">
                             <strong>{item.title}</strong>
                             <span dir="ltr">{item.productId}</span>

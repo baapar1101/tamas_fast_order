@@ -54,9 +54,10 @@ export interface BundleItem {
   qty: number;
 }
 
-/** Public bundle detail: names and quantities only, never component prices. */
+/** Public bundle detail: names, quantities and product images, never component prices. */
 export interface BundleContentDTO extends BundleItem {
   title: string;
+  imageUrl: string | null;
 }
 
 export interface ProductDTO {
