@@ -250,7 +250,7 @@ export function ProductPage() {
           </Link>
           <div className="pp-header-actions">
             <Link to="/" className="btn pp-back-btn"><Icon name="home" /> <span className="pp-back-text">بازگشت به فروشگاه</span></Link>
-            <Link to="/" className="btn btn-icon-only pp-cart-btn" title="سبد خرید">
+            <Link to="/" className="btn btn-icon-only pp-cart-btn" title="سبد خرید" aria-label="سبد خرید">
               <Icon name="bag" />
               {cartTotalQty > 0 && <span className="badge-count">{formatNumber(cartTotalQty)}</span>}
             </Link>
