@@ -535,7 +535,7 @@ export function CrmChat({ user }: CrmChatProps) {
           src="/logo.svg"
           alt="تماس"
           style={{
-            width: 30, height: 30, objectFit: 'contain',
+            width: 42, height: 42, objectFit: 'contain',
             filter: 'brightness(0) invert(1)',
             pointerEvents: 'none',
           }}
