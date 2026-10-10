@@ -233,7 +233,7 @@ export const ORDER_STATUSES = [
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  new: 'جدید',
+  new: 'در انتظار تایید (موجودی رزرو)',
   confirmed: 'تایید شده',
   preparing: 'در حال آماده‌سازی',
   shipped: 'ارسال شده',

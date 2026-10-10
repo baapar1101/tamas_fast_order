@@ -8,6 +8,7 @@ import { badRequest, notFound } from '../lib/errors.js';
 import paymentGateway from '@tamas/payment';
 import { env } from '../env.js';
 import { applyWalletTransaction } from '../services/wallet.js';
+import { transitionOrderStatusInTransaction } from '../services/order-inventory.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   // Create a payment transaction and return the bank URL
@@ -111,8 +112,9 @@ const routes: FastifyPluginAsync = async (app) => {
              .where(eq(payments.id, paymentRecord.id));
              
            if (paymentRecord.orderId) {
+             await transitionOrderStatusInTransaction(tx, paymentRecord.orderId, 'confirmed');
              await tx.update(orders)
-               .set({ paymentStatus: 'paid', status: 'confirmed', updatedAt: new Date() })
+               .set({ paymentStatus: 'paid', updatedAt: new Date() })
                .where(eq(orders.id, paymentRecord.orderId));
            }
            if (isWalletTopup && paymentRecord.userId) {

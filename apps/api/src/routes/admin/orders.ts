@@ -8,9 +8,9 @@ import { orderItems, orders, products, users } from '../../db/schema.js';
 import { badRequest, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { replaceOrderItems, toOrderDTO } from '../../services/orders.js';
+import { transitionOrderStatus, transitionOrdersStatus } from '../../services/order-inventory.js';
 import { upsertOrderPayment } from '../../services/payments.js';
 import { logAction } from '../../services/audit.js';
-import { refundWalletOrder } from '../../services/wallet.js';
 
 const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
@@ -183,7 +183,7 @@ const routes: FastifyPluginAsync = async (app) => {
     // Check old status if we are updating it to avoid duplicate SMS
     let oldStatus: string | undefined;
     let oldPaymentStatus: string | undefined;
-    if (body.status || body.paymentStatus) {
+    if (body.paymentStatus) {
       const [oldRow] = await db.select({ status: orders.status, paymentStatus: orders.paymentStatus }).from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt)));
       if (oldRow) {
         oldStatus = oldRow.status;
@@ -191,21 +191,19 @@ const routes: FastifyPluginAsync = async (app) => {
       }
     }
 
-    const [updated] = await db
-      .update(orders)
-      .set({
-        ...(body.status ? { status: body.status } : {}),
-        ...(body.paymentStatus ? { paymentStatus: body.paymentStatus } : {}),
-        ...(body.note !== undefined ? { note: body.note } : {}),
-        updatedAt: new Date(),
-      })
-      .where(and(eq(orders.id, id), isNull(orders.deletedAt)))
-      .returning();
-    if (!updated) throw notFound('سفارش پیدا نشد.');
-
-    if (updated.status === 'cancelled') {
-      await db.transaction((tx) => refundWalletOrder(tx, updated));
+    const statusTransition = body.status ? await transitionOrderStatus(id, body.status) : undefined;
+    let updated = statusTransition?.order;
+    if (statusTransition) oldStatus = statusTransition.previousStatus;
+    if (body.paymentStatus || body.note !== undefined || !updated) {
+      [updated] = await db.update(orders).set({
+          ...(body.paymentStatus ? { paymentStatus: body.paymentStatus } : {}),
+          ...(body.note !== undefined ? { note: body.note } : {}),
+          updatedAt: new Date(),
+        })
+        .where(and(eq(orders.id, id), isNull(orders.deletedAt)))
+        .returning();
     }
+    if (!updated) throw notFound('سفارش پیدا نشد.');
 
     if (body.paymentStatus) {
       await upsertOrderPayment(db, id, updated.userId ?? null, updated.total, body.paymentStatus);
@@ -285,23 +283,9 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.post('/admin/orders/bulk-status', async (req) => {
     const body = bulkStatus.parse(req.body);
-    const oldOrders = await db.select({ id: orders.id, status: orders.status, userId: orders.userId, total: orders.total, orderCode: orders.orderCode, paymentMethod: orders.paymentMethod }).from(orders).where(and(inArray(orders.id, body.ids), isNull(orders.deletedAt)));
-    const changedIds = oldOrders.filter((o) => o.status !== body.status).map((o) => o.id);
-
-    if (changedIds.length === 0) return { ok: true, changed: 0 };
-
-    const changed = await db
-      .update(orders)
-      .set({ status: body.status, updatedAt: new Date() })
-      .where(and(inArray(orders.id, changedIds), isNull(orders.deletedAt)))
-      .returning({ id: orders.id, phone: orders.phone, orderCode: orders.orderCode, customerName: orders.customerName });
-
-    if (body.status === 'cancelled') {
-      const changedSet = new Set(changed.map((item) => item.id));
-      await db.transaction(async (tx) => {
-        for (const order of oldOrders) if (changedSet.has(order.id)) await refundWalletOrder(tx, order);
-      });
-    }
+    const transitions = await transitionOrdersStatus(body.ids, body.status);
+    const changed = transitions.map((result) => result.order);
+    if (changed.length === 0) return { ok: true, changed: 0 };
 
     const { sendTemplatedSms } = await import('../../services/sms.js');
     const templateKey = `sms_template_order_${body.status}`;

@@ -46,6 +46,11 @@ export const orderStatusEnum = pgEnum('order_status', [
 ]);
 export const paymentStatusEnum = pgEnum('payment_status', ['paid', 'unpaid', 'pending']);
 export const warehouseEnum = pgEnum('warehouse', ['kerman', 'tehran', 'site']);
+export const inventoryReservationStatusEnum = pgEnum('inventory_reservation_status', [
+  'reserved',
+  'committed',
+  'released',
+]);
 export const uploadKindEnum = pgEnum('upload_kind', [
   'product',
   'brand',
@@ -473,6 +478,36 @@ export const orderItems = pgTable(
     warehouse: warehouseEnum('warehouse').notNull().default('kerman'),
   },
   (t) => [index('order_items_order_idx').on(t.orderId)],
+);
+
+/**
+ * Exact physical units held for an order. Bundle rows point at their real
+ * component products, so releasing an order never depends on a bundle's
+ * current (and possibly edited) composition.
+ */
+export const inventoryReservations = pgTable(
+  'inventory_reservations',
+  {
+    id: serial('id').primaryKey(),
+    orderId: integer('order_id')
+      .notNull()
+      .references(() => orders.id, { onDelete: 'cascade' }),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'restrict' }),
+    warehouse: warehouseEnum('warehouse').notNull(),
+    quantity: integer('quantity').notNull(),
+    status: inventoryReservationStatusEnum('status').notNull().default('reserved'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    committedAt: timestamp('committed_at', { withTimezone: true }),
+    releasedAt: timestamp('released_at', { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex('inventory_reservations_order_product_warehouse_key').on(t.orderId, t.productId, t.warehouse),
+    index('inventory_reservations_order_status_idx').on(t.orderId, t.status),
+    index('inventory_reservations_product_status_idx').on(t.productId, t.status),
+  ],
 );
 
 /* ------------------------------------------------------------------ *

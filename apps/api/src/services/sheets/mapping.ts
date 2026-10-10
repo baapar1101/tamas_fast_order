@@ -15,6 +15,7 @@ import {
 } from '../../db/schema.js';
 import { buildSearchText } from '../catalog.js';
 import { findProductDuplicate } from '../product-duplicates.js';
+import { transitionOrderStatus } from '../order-inventory.js';
 
 /**
  * Every tab carries an `updated_at` column. Together with the saved row hash,
@@ -712,7 +713,7 @@ export const orderMapping: EntityMapping = {
   },
 
   async applySheetRow(key, cells, updatedAt) {
-    const [existing] = await db.select({ id: orders.id }).from(orders).where(eq(orders.orderCode, key)).limit(1);
+    const [existing] = await db.select({ id: orders.id, status: orders.status }).from(orders).where(eq(orders.orderCode, key)).limit(1);
 
     const rawStatus = str(cells.status).toLowerCase();
     const parsedStatus = ORDER_STATUS_SET.has(rawStatus) ? (rawStatus as any) : 'new';
@@ -758,9 +759,9 @@ export const orderMapping: EntityMapping = {
       updatedAt,
       note: str(cells.note) || null,
       paymentMethod: str(cells.payment) || null,
-      status: parsedStatus,
     };
 
+    if (existing.status !== parsedStatus) await transitionOrderStatus(existing.id, parsedStatus);
     await db.update(orders).set(patch).where(eq(orders.id, existing.id));
     return 'updated';
   },

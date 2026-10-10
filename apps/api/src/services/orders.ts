@@ -1,14 +1,15 @@
-import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
 import type { OrderCreate, OrderDTO, OrderItemsReplace, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS } from '@tamas/shared';
 import { db } from '../db/client.js';
-import { orderItems, orders, products } from '../db/schema.js';
+import { inventoryReservations, orderItems, orders, products } from '../db/schema.js';
 import { badRequest, conflict, notFound, profileIncomplete } from '../lib/errors.js';
 import { invalidateCatalog } from './catalog.js';
 import { missingProfileFields, type UserRow } from './auth.js';
 import { upsertOrderPayment } from './payments.js';
 import { applyWalletTransaction } from './wallet.js';
 import { getSetting } from './settings.js';
+import { allocateInventory, type InventoryQuantities } from './inventory-policy.js';
 
 type OrderRow = typeof orders.$inferSelect;
 type OrderItemRow = typeof orderItems.$inferSelect;
@@ -256,37 +257,49 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
         deductions.set(update.id, deduction);
       }
 
-      for (const { product, kerman, tehran, default: defaultQty } of deductions.values()) {
-        const requestedByWarehouse: Array<[Warehouse, number]> = [
-          ['kerman', kerman],
-          ['tehran', tehran],
-          ['site', defaultQty],
-        ];
-        for (const [warehouse, requested] of requestedByWarehouse) {
-          const available = stockIn(product, warehouse);
-          if (requested > available) {
+      const reservationStatus = order.status === 'new' ? 'reserved' as const : 'committed' as const;
+      const reservationRows: Array<typeof inventoryReservations.$inferInsert> = [];
+      const now = new Date();
+      for (const [productId, { product, kerman, tehran, default: defaultQty }] of deductions) {
+        const requested: InventoryQuantities = { kerman, tehran, site: defaultQty };
+        const { allocation } = allocateInventory(product, requested);
+        const splitStock = product.kermanStock + product.tehranStock > 0;
+        const physicalAvailable: InventoryQuantities = {
+          kerman: product.kermanStock,
+          tehran: product.tehranStock,
+          site: product.stock,
+        };
+        for (const warehouse of ['kerman', 'tehran', 'site'] as const) {
+          if (allocation[warehouse] > physicalAvailable[warehouse]) {
             throw conflict(
-              `موجودی «${product.title}» در ${WAREHOUSE_LABELS[warehouse]} فقط ${available} عدد است.`,
-              { productId: product.productId, available },
+              `موجودی «${product.title}» در ${WAREHOUSE_LABELS[warehouse]} فقط ${physicalAvailable[warehouse]} عدد است.`,
+              { productId: product.productId, available: physicalAvailable[warehouse] },
             );
           }
         }
+
+        const nextKerman = product.kermanStock - allocation.kerman;
+        const nextTehran = product.tehranStock - allocation.tehran;
+        await tx.update(products).set({
+          kermanStock: nextKerman,
+          tehranStock: nextTehran,
+          stock: splitStock ? nextKerman + nextTehran : product.stock - allocation.site,
+          updatedAt: now,
+        }).where(eq(products.id, productId));
+
+        for (const warehouse of ['kerman', 'tehran', 'site'] as const) {
+          if (allocation[warehouse] <= 0) continue;
+          reservationRows.push({
+            orderId: order.id,
+            productId,
+            warehouse,
+            quantity: allocation[warehouse],
+            status: reservationStatus,
+            committedAt: reservationStatus === 'committed' ? now : null,
+          });
+        }
       }
-
-      const rows = [...deductions.entries()].map(
-        ([id, qty]) => sql`(${id}::integer, ${qty.kerman}::integer, ${qty.tehran}::integer, ${qty.default}::integer)`,
-      );
-
-      await tx.execute(sql`
-        UPDATE products AS p
-        SET
-          kerman_stock = greatest(0, p.kerman_stock - v.qty_kerman),
-          tehran_stock = greatest(0, p.tehran_stock - v.qty_tehran),
-          stock = greatest(0, p.stock - v.qty_default),
-          updated_at = NOW()
-        FROM (VALUES ${sql.join(rows, sql`, `)}) AS v(id, qty_kerman, qty_tehran, qty_default)
-        WHERE p.id = v.id
-      `);
+      if (reservationRows.length > 0) await tx.insert(inventoryReservations).values(reservationRows);
     }
 
     invalidateCatalog();
@@ -357,6 +370,14 @@ export async function replaceOrderItems(orderId: number, input: OrderItemsReplac
       .from(orderItems)
       .where(eq(orderItems.orderId, orderId))
       .for('update');
+    const previousReservations = await tx
+      .select()
+      .from(inventoryReservations)
+      .where(and(
+        eq(inventoryReservations.orderId, orderId),
+        inArray(inventoryReservations.status, ['reserved', 'committed']),
+      ))
+      .for('update');
 
     const desired = new Map<string, { productId: string; warehouse: Warehouse; qty: number }>();
     for (const item of input.items) {
@@ -390,6 +411,15 @@ export async function replaceOrderItems(orderId: number, input: OrderItemsReplac
         .where(inArray(products.productId, missingComponentIds))
         .for('update');
       for (const product of components) productById.set(product.productId, product);
+    }
+    const knownProductDbIds = new Set([...productById.values()].map((product) => product.id));
+    const missingReservedProductDbIds = [...new Set(previousReservations.map((row) => row.productId))]
+      .filter((id) => !knownProductDbIds.has(id));
+    if (missingReservedProductDbIds.length > 0) {
+      const reservedProducts = await tx.select().from(products)
+        .where(inArray(products.id, missingReservedProductDbIds))
+        .for('update');
+      for (const product of reservedProducts) productById.set(product.productId, product);
     }
 
     const previousByKey = new Map<string, OrderItemRow>();
@@ -447,42 +477,83 @@ export async function replaceOrderItems(orderId: number, input: OrderItemsReplac
 
     const beforeNeeds = inventoryNeeds(previousItems);
     const afterNeeds = inventoryNeeds([...desired.values()]);
-    const affectedProductIds = new Set([...beforeNeeds.keys(), ...afterNeeds.keys()]);
+    const beforePhysical = new Map<number, InventoryQuantities>();
+    for (const reservation of previousReservations) {
+      const quantities = beforePhysical.get(reservation.productId) ?? { kerman: 0, tehran: 0, site: 0 };
+      quantities[reservation.warehouse] += reservation.quantity;
+      beforePhysical.set(reservation.productId, quantities);
+    }
+    // Compatibility for an order created before the reservation ledger existed.
+    if (previousReservations.length === 0) {
+      for (const [productId, need] of beforeNeeds) {
+        const splitStock = need.product.kermanStock + need.product.tehranStock > 0;
+        beforePhysical.set(productId, splitStock
+          ? { kerman: need.kerman, tehran: need.tehran, site: need.site }
+          : { kerman: 0, tehran: 0, site: need.kerman + need.tehran + need.site });
+      }
+    }
+
+    const affectedProductIds = new Set([...beforePhysical.keys(), ...afterNeeds.keys()]);
+    const nextReservations: Array<typeof inventoryReservations.$inferInsert> = [];
+    const reservationStatus = order.status === 'new' ? 'reserved' as const : 'committed' as const;
+    const now = new Date();
     for (const productDbId of affectedProductIds) {
-      const before = beforeNeeds.get(productDbId);
+      const before = beforePhysical.get(productDbId) ?? { kerman: 0, tehran: 0, site: 0 };
       const after = afterNeeds.get(productDbId);
-      const product = after?.product ?? before!.product;
-      const delta = {
-        kerman: (after?.kerman ?? 0) - (before?.kerman ?? 0),
-        tehran: (after?.tehran ?? 0) - (before?.tehran ?? 0),
-        site: (after?.site ?? 0) - (before?.site ?? 0),
+      const product = after?.product ?? [...productById.values()].find((row) => row.id === productDbId);
+      if (!product) throw conflict('یکی از کالاهای رزروشده دیگر در انبار پیدا نشد.');
+      const restoredLevels = {
+        kermanStock: product.kermanStock + before.kerman,
+        tehranStock: product.tehranStock + before.tehran,
+        stock: product.stock + before.site,
       };
-      const available = {
-        kerman: product.kermanStock,
-        tehran: product.tehranStock,
-        site: product.stock,
+      const requested: InventoryQuantities = {
+        kerman: after?.kerman ?? 0,
+        tehran: after?.tehran ?? 0,
+        site: after?.site ?? 0,
+      };
+      const { allocation } = allocateInventory(restoredLevels, requested);
+      const available: InventoryQuantities = {
+        kerman: restoredLevels.kermanStock,
+        tehran: restoredLevels.tehranStock,
+        site: restoredLevels.stock,
       };
       for (const warehouse of ['kerman', 'tehran', 'site'] as const) {
-        if (delta[warehouse] > available[warehouse]) {
+        if (allocation[warehouse] > available[warehouse]) {
           throw conflict(
             `موجودی «${product.title}» در ${WAREHOUSE_LABELS[warehouse]} فقط ${available[warehouse]} عدد است.`,
             { productId: product.productId, available: available[warehouse] },
           );
         }
       }
-      const nextKerman = product.kermanStock - delta.kerman;
-      const nextTehran = product.tehranStock - delta.tehran;
-      const nextSite = product.stock - delta.site;
+      const nextKerman = restoredLevels.kermanStock - allocation.kerman;
+      const nextTehran = restoredLevels.tehranStock - allocation.tehran;
+      const usesSplitStock = restoredLevels.kermanStock + restoredLevels.tehranStock > 0;
       await tx
         .update(products)
         .set({
           kermanStock: nextKerman,
           tehranStock: nextTehran,
-          stock: delta.kerman !== 0 || delta.tehran !== 0 ? nextKerman + nextTehran : nextSite,
-          updatedAt: new Date(),
+          stock: usesSplitStock ? nextKerman + nextTehran : restoredLevels.stock - allocation.site,
+          updatedAt: now,
         })
         .where(eq(products.id, productDbId));
+
+      for (const warehouse of ['kerman', 'tehran', 'site'] as const) {
+        if (allocation[warehouse] <= 0) continue;
+        nextReservations.push({
+          orderId,
+          productId: productDbId,
+          warehouse,
+          quantity: allocation[warehouse],
+          status: reservationStatus,
+          committedAt: reservationStatus === 'committed' ? now : null,
+        });
+      }
     }
+
+    await tx.delete(inventoryReservations).where(eq(inventoryReservations.orderId, orderId));
+    if (nextReservations.length > 0) await tx.insert(inventoryReservations).values(nextReservations);
 
     const total = replacementRows.reduce((sum, item) => sum + Number(item.price) * Number(item.qty), 0);
     const quantity = replacementRows.reduce((sum, item) => sum + Number(item.qty), 0);

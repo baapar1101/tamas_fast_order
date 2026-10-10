@@ -5,13 +5,13 @@ import { orders, sessions, users } from '../db/schema.js';
 import { logAction } from './audit.js';
 import { upsertOrderPayment } from './payments.js';
 import { sendTemplatedSms, sendUserApprovedSms } from './sms.js';
+import { transitionOrderStatus } from './order-inventory.js';
 import {
   answerTelegramCallback,
   getTelegramConfig,
   sendTelegramMessage,
   type TelegramButton,
 } from './telegram.js';
-import { refundWalletOrder } from './wallet.js';
 
 interface TelegramUser {
   id: number;
@@ -148,17 +148,9 @@ async function updateOrder(action: OrderAction, actor: TelegramUser): Promise<st
   if (!current) throw new Error('سفارش پیدا نشد.');
 
   if (action.operation === 'status') {
-    if (current.status === action.value) return `وضعیت سفارش از قبل «${ORDER_STATUS_LABELS[action.value]}» است.`;
-    const [updated] = action.value === 'cancelled'
-      ? await db.transaction(async (tx) => {
-          const [row] = await tx.update(orders).set({ status: action.value, updatedAt: new Date() })
-            .where(and(eq(orders.id, action.id), eq(orders.status, current.status), isNull(orders.deletedAt))).returning();
-          if (row) await refundWalletOrder(tx, row);
-          return [row];
-        })
-      : await db.update(orders).set({ status: action.value, updatedAt: new Date() })
-          .where(and(eq(orders.id, action.id), eq(orders.status, current.status), isNull(orders.deletedAt))).returning();
-    if (!updated) return 'این سفارش لحظاتی قبل توسط مدیر دیگری تغییر کرده است.';
+    const transition = await transitionOrderStatus(action.id, action.value);
+    const updated = transition.order;
+    if (transition.previousStatus === updated.status) return `وضعیت سفارش از قبل «${ORDER_STATUS_LABELS[action.value]}» است.`;
     if (updated.phone) {
       void sendTemplatedSms(updated.phone, `sms_template_order_${action.value}`, {
         order_code: updated.orderCode,
@@ -169,7 +161,7 @@ async function updateOrder(action: OrderAction, actor: TelegramUser): Promise<st
     await logAction(null, 'telegram:update-status', 'order', updated.orderCode, {
       telegramUserId: actor.id,
       telegramActor: actorLabel(actor),
-      previousStatus: current.status,
+      previousStatus: transition.previousStatus,
       status: action.value,
     });
     return `✅ وضعیت سفارش <b>${escapeHtml(updated.orderCode)}</b> به «${ORDER_STATUS_LABELS[action.value]}» تغییر کرد.`;
