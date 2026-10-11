@@ -38,6 +38,8 @@ const envSchema = z.object({
   MELIPAYAMAK_API_KEY: z.string().default(''),
   MELIPAYAMAK_FROM: z.string().default(''),
   MELIPAYAMAK_BASE_URL: z.string().url().default('https://rest.payamak-panel.com/api/SendSMS'),
+  MELIPAYAMAK_PATTERN_BASE_URL: z.string().url().default('https://rest.payamak-panel.com/api/SendSMS/BaseServiceNumber'),
+  MELIPAYAMAK_OTP_BODY_ID: z.string().default('556182'),
   SMSIR_API_KEY: z.string().default(''),
   SMSIR_LINE_NUMBER: z.string().default(''),
   SMSIR_BASE_URL: z.string().url().default('https://api.sms.ir'),

@@ -1,10 +1,16 @@
 import { getAllSettings } from './settings.js';
 import { sendPayamresanSms } from './payamresan-sms.js';
-import { sendMelipayamakSms, type SmsTransportResult } from './melipayamak-sms.js';
+import {
+  sendMelipayamakPatternSms,
+  sendMelipayamakSms,
+  type SmsTransportResult,
+} from './melipayamak-sms.js';
 import { sendSmsIrBulk, sendSmsIrVerify, type SmsIrVerifyInput } from './smsir-sms.js';
 import { getSmsRuntimeConfig, type SmsRuntimeConfig } from './sms-config.js';
 
 type SmsIrTemplate = Pick<SmsIrVerifyInput, 'templateId' | 'parameters'>;
+type MelipayamakTemplate = { bodyId: string; values: string[] };
+type SmsTemplates = { melipayamak?: MelipayamakTemplate; smsir?: SmsIrTemplate };
 
 function melipayamakInput(config: SmsRuntimeConfig, toPhone: string, text: string) {
   return {
@@ -17,6 +23,17 @@ function melipayamakInput(config: SmsRuntimeConfig, toPhone: string, text: strin
   };
 }
 
+function melipayamakPatternInput(config: SmsRuntimeConfig, toPhone: string, template: MelipayamakTemplate) {
+  return {
+    username: config.melipayamak.username,
+    apiKey: config.melipayamak.apiKey,
+    patternBaseUrl: config.melipayamak.patternBaseUrl,
+    toPhone,
+    bodyId: template.bodyId,
+    values: template.values,
+  };
+}
+
 function smsIrBaseInput(config: SmsRuntimeConfig, toPhone: string) {
   return {
     apiKey: config.smsir.apiKey,
@@ -25,8 +42,17 @@ function smsIrBaseInput(config: SmsRuntimeConfig, toPhone: string) {
   };
 }
 
-async function sendPrimarySms(config: SmsRuntimeConfig, toPhone: string, text: string): Promise<SmsTransportResult> {
-  if (config.smsProvider === 'melipayamak') return sendMelipayamakSms(melipayamakInput(config, toPhone, text));
+async function sendPrimarySms(
+  config: SmsRuntimeConfig,
+  toPhone: string,
+  text: string,
+  melipayamakTemplate?: MelipayamakTemplate,
+): Promise<SmsTransportResult> {
+  if (config.smsProvider === 'melipayamak') {
+    return melipayamakTemplate
+      ? sendMelipayamakPatternSms(melipayamakPatternInput(config, toPhone, melipayamakTemplate))
+      : sendMelipayamakSms(melipayamakInput(config, toPhone, text));
+  }
 
   if (config.smsProvider === 'payamresan') {
     return sendPayamresanSms({
@@ -77,25 +103,27 @@ async function sendPrimarySms(config: SmsRuntimeConfig, toPhone: string, text: s
 export async function sendSms(
   toPhone: string,
   text: string,
-  smsIrTemplate?: SmsIrTemplate,
+  templates: SmsTemplates = {},
 ): Promise<{ ok: boolean; error?: string }> {
   const config = await getSmsRuntimeConfig();
-  let result = await sendPrimarySms(config, toPhone, text);
+  let result = await sendPrimarySms(config, toPhone, text, templates.melipayamak);
   if (result.ok) return { ok: true };
 
   const errors = [result.error ?? 'ارسال از سرویس اصلی ناموفق بود'];
   if (!result.fallbackSafe) return { ok: false, error: errors.join('؛ ') };
 
   if (config.firstFallback === 'melipayamak' && config.smsProvider !== 'melipayamak') {
-    result = await sendMelipayamakSms(melipayamakInput(config, toPhone, text));
+    result = templates.melipayamak
+      ? await sendMelipayamakPatternSms(melipayamakPatternInput(config, toPhone, templates.melipayamak))
+      : await sendMelipayamakSms(melipayamakInput(config, toPhone, text));
     if (result.ok) return { ok: true };
     errors.push(`سرویس جایگزین اول: ${result.error ?? 'ناموفق بود'}`);
     if (!result.fallbackSafe) return { ok: false, error: errors.join('؛ ') };
   }
 
   if (config.secondFallback === 'smsir') {
-    result = smsIrTemplate
-      ? await sendSmsIrVerify({ ...smsIrBaseInput(config, toPhone), ...smsIrTemplate })
+    result = templates.smsir
+      ? await sendSmsIrVerify({ ...smsIrBaseInput(config, toPhone), ...templates.smsir })
       : await sendSmsIrBulk({
         ...smsIrBaseInput(config, toPhone),
         lineNumber: config.smsir.lineNumber,
@@ -109,12 +137,30 @@ export async function sendSms(
 }
 
 export async function testSmsProvider(
-  provider: 'rastin' | 'payamresan' | 'melipayamak' | 'smsir' | 'chain',
+  provider: 'rastin' | 'payamresan' | 'melipayamak' | 'melipayamak-otp' | 'smsir' | 'chain' | 'chain-otp',
   toPhone: string,
   text: string,
 ): Promise<{ ok: boolean; error?: string }> {
   if (provider === 'chain') return sendSms(toPhone, text);
   const config = await getSmsRuntimeConfig();
+  if (provider === 'chain-otp') {
+    const templates: SmsTemplates = {
+      melipayamak: { bodyId: config.melipayamak.otpBodyId, values: [text] },
+    };
+    if (config.smsir.otpTemplateId) {
+      templates.smsir = {
+        templateId: config.smsir.otpTemplateId,
+        parameters: [{ name: config.smsir.otpParameter, value: text }],
+      };
+    }
+    return sendSms(toPhone, `کد تایید شما در تماس مارکت: ${text}`, templates);
+  }
+  if (provider === 'melipayamak-otp') {
+    return sendMelipayamakPatternSms(melipayamakPatternInput(config, toPhone, {
+      bodyId: config.melipayamak.otpBodyId,
+      values: ['12345'],
+    }));
+  }
   if (provider === 'smsir') {
     return sendSmsIrBulk({
       ...smsIrBaseInput(config, toPhone),
@@ -150,17 +196,25 @@ export async function sendTemplatedSms(
   }
 
   const smsConfig = await getSmsRuntimeConfig();
-  const smsIrTemplate = templateKey === 'sms_template_otp' && smsConfig.smsir.otpTemplateId
-    ? {
+  const isOtp = templateKey === 'sms_template_otp';
+  const templates: SmsTemplates = {};
+  if (isOtp && smsConfig.melipayamak.otpBodyId) {
+    templates.melipayamak = {
+      bodyId: smsConfig.melipayamak.otpBodyId,
+      values: [variables.code ?? text],
+    };
+  }
+  if (isOtp && smsConfig.smsir.otpTemplateId) {
+    templates.smsir = {
       templateId: smsConfig.smsir.otpTemplateId,
       parameters: [{
         name: smsConfig.smsir.otpParameter,
         value: variables.code ?? text,
       }],
-    }
-    : undefined;
+    };
+  }
 
-  return sendSms(toPhone, text, smsIrTemplate);
+  return sendSms(toPhone, text, templates);
 }
 
 export function sendUserApprovedSms(toPhone: string): Promise<{ ok: boolean; error?: string }> {

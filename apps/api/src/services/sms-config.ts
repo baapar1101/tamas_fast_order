@@ -12,7 +12,14 @@ export interface SmsRuntimeConfig {
   secondFallback: SmsSecondFallback;
   rastin: { username: string; password: string; sender: string; url: string };
   payamresan: { apiKey: string; sender: string; baseUrl: string };
-  melipayamak: { username: string; apiKey: string; sender: string; baseUrl: string };
+  melipayamak: {
+    username: string;
+    apiKey: string;
+    sender: string;
+    baseUrl: string;
+    patternBaseUrl: string;
+    otpBodyId: string;
+  };
   smsir: { apiKey: string; lineNumber: string; baseUrl: string; otpTemplateId: string; otpParameter: string };
 }
 
@@ -31,6 +38,8 @@ export interface SmsConfigUpdate {
   melipayamakApiKey?: string;
   melipayamakSender?: string;
   melipayamakBaseUrl?: string;
+  melipayamakPatternBaseUrl?: string;
+  melipayamakOtpBodyId?: string;
   smsirApiKey?: string;
   smsirLineNumber?: string;
   smsirBaseUrl?: string;
@@ -100,6 +109,8 @@ export async function getSmsRuntimeConfig(): Promise<SmsRuntimeConfig> {
       apiKey: secret(settings, 'melipayamak_api_key', env.MELIPAYAMAK_API_KEY),
       sender: value(settings, 'melipayamak_sender', env.MELIPAYAMAK_FROM),
       baseUrl: value(settings, 'melipayamak_base_url', env.MELIPAYAMAK_BASE_URL),
+      patternBaseUrl: value(settings, 'melipayamak_pattern_base_url', env.MELIPAYAMAK_PATTERN_BASE_URL),
+      otpBodyId: value(settings, 'melipayamak_otp_body_id', env.MELIPAYAMAK_OTP_BODY_ID),
     },
     smsir: {
       apiKey: secret(settings, 'smsir_api_key', env.SMSIR_API_KEY),
@@ -123,6 +134,8 @@ const NORMAL_FIELDS: Array<[keyof SmsConfigUpdate, string]> = [
   ['melipayamakUsername', 'melipayamak_username'],
   ['melipayamakSender', 'melipayamak_sender'],
   ['melipayamakBaseUrl', 'melipayamak_base_url'],
+  ['melipayamakPatternBaseUrl', 'melipayamak_pattern_base_url'],
+  ['melipayamakOtpBodyId', 'melipayamak_otp_body_id'],
   ['smsirLineNumber', 'smsir_line_number'],
   ['smsirBaseUrl', 'smsir_base_url'],
   ['smsirOtpTemplateId', 'smsir_otp_template_id'],
@@ -166,6 +179,8 @@ export function smsConfigForAdmin(config: SmsRuntimeConfig) {
     melipayamakApiKeySet: Boolean(config.melipayamak.apiKey),
     melipayamakSender: config.melipayamak.sender,
     melipayamakBaseUrl: config.melipayamak.baseUrl,
+    melipayamakPatternBaseUrl: config.melipayamak.patternBaseUrl,
+    melipayamakOtpBodyId: config.melipayamak.otpBodyId,
     smsirApiKeySet: Boolean(config.smsir.apiKey),
     smsirLineNumber: config.smsir.lineNumber,
     smsirBaseUrl: config.smsir.baseUrl,

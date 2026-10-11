@@ -29,6 +29,8 @@ interface SmsProviderConfig {
   melipayamakApiKeySet: boolean;
   melipayamakSender: string;
   melipayamakBaseUrl: string;
+  melipayamakPatternBaseUrl: string;
+  melipayamakOtpBodyId: string;
   smsirApiKeySet: boolean;
   smsirLineNumber: string;
   smsirBaseUrl: string;
@@ -51,6 +53,8 @@ const EMPTY_PROVIDER_CONFIG: SmsProviderConfig = {
   melipayamakApiKeySet: false,
   melipayamakSender: '',
   melipayamakBaseUrl: 'https://rest.payamak-panel.com/api/SendSMS',
+  melipayamakPatternBaseUrl: 'https://rest.payamak-panel.com/api/SendSMS/BaseServiceNumber',
+  melipayamakOtpBodyId: '556182',
   smsirApiKeySet: false,
   smsirLineNumber: '',
   smsirBaseUrl: 'https://api.sms.ir',
@@ -206,7 +210,7 @@ export function SmsPage() {
   });
 
   const testProvider = useMutation({
-    mutationFn: (provider: 'rastin' | 'payamresan' | 'melipayamak' | 'smsir' | 'chain') =>
+    mutationFn: (provider: 'rastin' | 'payamresan' | 'melipayamak' | 'melipayamak-otp' | 'smsir' | 'chain') =>
       api.post<{ ok: boolean; message: string }>('/admin/sms/providers/test', {
         phone: testPhone.trim(),
         provider,
@@ -378,10 +382,25 @@ export function SmsPage() {
           </div>
 
           <div className="rounded-2xl border border-white/[0.08] p-4 space-y-3">
-            <div className="flex items-center justify-between"><strong>ملی‌پیامک</strong>{providerTestButton('melipayamak')}</div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <strong>ملی‌پیامک</strong>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="a-btn a-btn--secondary a-btn--xs"
+                  disabled={!testPhone.trim() || testProvider.isPending}
+                  onClick={() => testProvider.mutate('melipayamak-otp')}
+                >
+                  تست الگوی OTP
+                </button>
+                {providerTestButton('melipayamak')}
+              </div>
+            </div>
             <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.melipayamakUsername} onChange={(e) => updateProvider('melipayamakUsername', e.target.value)} placeholder="نام کاربری" />
             <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.melipayamakSender} onChange={(e) => updateProvider('melipayamakSender', e.target.value)} placeholder="خط فرستنده" />
             <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.melipayamakBaseUrl} onChange={(e) => updateProvider('melipayamakBaseUrl', e.target.value)} placeholder="Base URL" />
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.melipayamakPatternBaseUrl} onChange={(e) => updateProvider('melipayamakPatternBaseUrl', e.target.value)} placeholder="Pattern Base URL" />
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.melipayamakOtpBodyId} onChange={(e) => updateProvider('melipayamakOtpBodyId', e.target.value)} placeholder="کد الگوی OTP" inputMode="numeric" />
             <input className="a-input w-full a-ltr" dir="ltr" type="password" value={secretDrafts.melipayamakApiKey} onChange={(e) => setSecretDrafts((prev) => ({ ...prev, melipayamakApiKey: e.target.value }))} placeholder={providerDraft.melipayamakApiKeySet ? 'API Key تنظیم شده — برای تغییر مقدار جدید وارد کنید' : 'API Key'} autoComplete="new-password" />
           </div>
 
