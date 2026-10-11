@@ -11,6 +11,7 @@ import { getSmsRuntimeConfig, type SmsRuntimeConfig } from './sms-config.js';
 type SmsIrTemplate = Pick<SmsIrVerifyInput, 'templateId' | 'parameters'>;
 type MelipayamakTemplate = { bodyId: string; values: string[] };
 type SmsTemplates = { melipayamak?: MelipayamakTemplate; smsir?: SmsIrTemplate };
+type SmsAttempt = { label: string; send: () => Promise<SmsTransportResult> };
 
 function melipayamakInput(config: SmsRuntimeConfig, toPhone: string, text: string) {
   return {
@@ -98,6 +99,67 @@ async function sendPrimarySms(
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** Starts every attempt before awaiting any result; one accepted send is enough. */
+export async function settleParallelSmsAttempts(
+  attempts: SmsAttempt[],
+): Promise<{ ok: boolean; error?: string }> {
+  if (attempts.length === 0) return { ok: false, error: 'هیچ درگاه پیامکی برای ارسال مجدد تنظیم نشده است.' };
+  const results = await Promise.all(attempts.map(async ({ label, send }) => {
+    try {
+      return { label, result: await send() };
+    } catch {
+      return { label, result: { ok: false, error: 'خطای پیش‌بینی‌نشده' } as SmsTransportResult };
+    }
+  }));
+  if (results.some(({ result }) => result.ok)) return { ok: true };
+  return {
+    ok: false,
+    error: results.map(({ label, result }) => `${label}: ${result.error ?? 'ناموفق'}`).join('؛ '),
+  };
+}
+
+/** On an explicit resend, broadcasts one identical OTP through all configured routes. */
+export async function resendOtpAcrossProviders(
+  toPhone: string,
+  code: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const config = await getSmsRuntimeConfig();
+  const text = `کد تایید شما در تماس مارکت: ${code}`;
+  const melipayamakTemplate: MelipayamakTemplate = {
+    bodyId: config.melipayamak.otpBodyId,
+    values: [code],
+  };
+  const attempts: SmsAttempt[] = [{
+    label: 'درگاه اصلی',
+    send: () => sendPrimarySms(config, toPhone, text, melipayamakTemplate),
+  }];
+
+  if (config.firstFallback === 'melipayamak' && config.smsProvider !== 'melipayamak') {
+    attempts.push({
+      label: 'ملی‌پیامک',
+      send: () => sendMelipayamakPatternSms(melipayamakPatternInput(config, toPhone, melipayamakTemplate)),
+    });
+  }
+  if (config.secondFallback === 'smsir') {
+    attempts.push({
+      label: 'sms.ir',
+      send: () => config.smsir.otpTemplateId
+        ? sendSmsIrVerify({
+          ...smsIrBaseInput(config, toPhone),
+          templateId: config.smsir.otpTemplateId,
+          parameters: [{ name: config.smsir.otpParameter, value: code }],
+        })
+        : sendSmsIrBulk({
+          ...smsIrBaseInput(config, toPhone),
+          lineNumber: config.smsir.lineNumber,
+          text,
+        }),
+    });
+  }
+
+  return settleParallelSmsAttempts(attempts);
 }
 
 export async function sendSms(

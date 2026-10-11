@@ -78,7 +78,7 @@ async function assertUnderHourlyLimit(phone: string): Promise<void> {
   }
 }
 
-import { sendTemplatedSms } from './sms.js';
+import { resendOtpAcrossProviders, sendTemplatedSms } from './sms.js';
 
 const inMemoryOtp = new Map<string, { code: string; expiresAt: Date }>();
 
@@ -86,15 +86,27 @@ export async function sendOtp(phone: string, ip: string | undefined): Promise<Se
   const code = randomDigits(env.OTP_LENGTH);
   const expiresAt = new Date(Date.now() + env.OTP_TTL_SECONDS * 1000);
 
-  const sendCodeSms = async () => {
+  let isResend = inMemoryOtp.has(phone);
+  const sendCodeSms = async (broadcast: boolean) => {
     if (env.OTP_PROVIDER === 'rastin' || env.OTP_PROVIDER === 'payamresan' || env.OTP_PROVIDER === 'melipayamak') {
-      const sms = await sendTemplatedSms(phone, 'sms_template_otp', { code }, `کد تایید شما در تماس مارکت: {code}`);
+      const sms = broadcast
+        ? await resendOtpAcrossProviders(phone, code)
+        : await sendTemplatedSms(phone, 'sms_template_otp', { code }, `کد تایید شما در تماس مارکت: {code}`);
       if (!sms.ok) throw badRequest(sms.error || 'ارسال پیامک ناموفق بود.');
     }
   };
 
   try {
-    const wait = await resendCooldown(phone);
+    const [latest] = await db
+      .select({ createdAt: otpCodes.createdAt })
+      .from(otpCodes)
+      .where(eq(otpCodes.phone, phone))
+      .orderBy(raw`${otpCodes.createdAt} desc`)
+      .limit(1);
+    isResend = Boolean(latest);
+    const wait = latest
+      ? Math.max(0, Math.ceil(env.OTP_RESEND_SECONDS - ((Date.now() - latest.createdAt.getTime()) / 1000)))
+      : 0;
     if (wait > 0) throw tooMany(`تا ارسال مجدد ${wait} ثانیه صبر کنید.`);
     await assertUnderHourlyLimit(phone);
 
@@ -107,7 +119,7 @@ export async function sendOtp(phone: string, ip: string | undefined): Promise<Se
       return { ok: true };
     }
 
-    await sendCodeSms();
+    await sendCodeSms(isResend);
 
     await db.insert(otpCodes).values({
       phone,
@@ -118,7 +130,7 @@ export async function sendOtp(phone: string, ip: string | undefined): Promise<Se
   } catch (err) {
     if (isConnectionRefused(err)) {
       console.warn(`[otp] Postgres offline, falling back to in-memory code for ${phone}`);
-      await sendCodeSms();
+      await sendCodeSms(isResend);
       inMemoryOtp.set(phone, { code, expiresAt });
     } else {
       throw err;
