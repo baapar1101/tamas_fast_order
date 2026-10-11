@@ -16,6 +16,21 @@ export interface SmsTransportResult {
   fallbackSafe?: boolean;
 }
 
+interface MelipayamakResponse {
+  Value?: unknown;
+  RetStatus?: unknown;
+  StrRetStatus?: unknown;
+}
+
+function isPositiveReceipt(value: unknown): boolean {
+  const receipt = String(value ?? '').trim();
+  return /^\d+$/.test(receipt) && !/^0+$/.test(receipt);
+}
+
+function isProviderResponse(value: unknown): value is MelipayamakResponse {
+  return typeof value === 'object' && value !== null;
+}
+
 /** Lightweight implementation of the official melipayamak-node REST send contract. */
 export async function sendMelipayamakSms(
   input: MelipayamakSmsInput,
@@ -60,10 +75,19 @@ export async function sendMelipayamakSms(
     } catch {
       // The legacy endpoint may return a plain numeric receipt id.
     }
-    const receiptId = Number(parsed);
-    if (response.ok && Number.isSafeInteger(receiptId) && receiptId > 0) return { ok: true };
+    const accepted = isProviderResponse(parsed)
+      ? Number(parsed.RetStatus) === 1 && isPositiveReceipt(parsed.Value)
+      : isPositiveReceipt(parsed);
+    if (response.ok && accepted) return { ok: true };
 
-    const safeResponse = /^-?\d+$/.test(String(parsed)) ? String(parsed) : `HTTP ${response.status}`;
+    const status = isProviderResponse(parsed) ? Number(parsed.RetStatus) : undefined;
+    const detail = isProviderResponse(parsed) && typeof parsed.StrRetStatus === 'string'
+      ? parsed.StrRetStatus.trim().slice(0, 180)
+      : '';
+    const plainCode = /^-?\d+$/.test(String(parsed)) ? String(parsed) : '';
+    const safeResponse = Number.isFinite(status)
+      ? `وضعیت ${status}${detail ? `: ${detail}` : ''}`
+      : plainCode || `HTTP ${response.status}`;
     return { ok: false, error: `ملی‌پیامک ارسال را نپذیرفت (پاسخ ${safeResponse}).`, fallbackSafe: true };
   } catch {
     return { ok: false, error: 'ارتباط با وب‌سرویس ملی‌پیامک برقرار نشد.', fallbackSafe: false };

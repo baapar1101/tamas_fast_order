@@ -23,7 +23,11 @@ describe('Meli Payamak SMS transport', () => {
       assert.equal(body.get('from'), '5000123456');
       assert.equal(body.get('text'), 'پیام آزمایشی');
       assert.equal(body.get('isFlash'), 'false');
-      return new Response('123456789', { status: 200 });
+      return new Response(JSON.stringify({
+        Value: '4973768981299226115',
+        RetStatus: 1,
+        StrRetStatus: 'Ok',
+      }), { status: 200 });
     }) as typeof fetch;
 
     assert.deepEqual(await sendMelipayamakSms(config, fakeFetch), { ok: true });
@@ -34,6 +38,19 @@ describe('Meli Payamak SMS transport', () => {
     assert.deepEqual(await sendMelipayamakSms(config, fakeFetch), {
       ok: false,
       error: 'ملی‌پیامک ارسال را نپذیرفت (پاسخ -7).',
+      fallbackSafe: true,
+    });
+  });
+
+  it('returns the provider status without exposing credentials', async () => {
+    const fakeFetch = (async () => new Response(JSON.stringify({
+      Value: null,
+      RetStatus: 0,
+      StrRetStatus: 'Authentication failed',
+    }), { status: 200 })) as typeof fetch;
+    assert.deepEqual(await sendMelipayamakSms(config, fakeFetch), {
+      ok: false,
+      error: 'ملی‌پیامک ارسال را نپذیرفت (پاسخ وضعیت 0: Authentication failed).',
       fallbackSafe: true,
     });
   });
