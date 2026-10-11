@@ -54,6 +54,37 @@ function productTitleClass(title: string): string {
   return '';
 }
 
+function arePropsEqual(oldProps: Props, newProps: Props) {
+  if (
+    oldProps.group !== newProps.group ||
+    oldProps.colorMap !== newProps.colorMap ||
+    oldProps.canViewPrices !== newProps.canViewPrices ||
+    oldProps.viewMode !== newProps.viewMode ||
+    oldProps.onAdd !== newProps.onAdd ||
+    oldProps.onUpdateQty !== newProps.onUpdateQty ||
+    oldProps.onPreview !== newProps.onPreview
+  ) {
+    return false;
+  }
+
+  // Deep comparison of cartLines relevant to this product group
+  const variantIds = new Set(newProps.group.variants.map((v) => v.productId));
+  const oldRelevantLines = oldProps.cartLines.filter((l) => variantIds.has(l.productId));
+  const newRelevantLines = newProps.cartLines.filter((l) => variantIds.has(l.productId));
+
+  if (oldRelevantLines.length !== newRelevantLines.length) return false;
+
+  for (let i = 0; i < oldRelevantLines.length; i++) {
+    const oldLine = oldRelevantLines[i]!;
+    const newLine = newRelevantLines[i]!;
+    if (oldLine.key !== newLine.key || oldLine.qty !== newLine.qty) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFav, setIsFav] = useState(false);
@@ -333,5 +364,5 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
-});
+}, arePropsEqual);
 
