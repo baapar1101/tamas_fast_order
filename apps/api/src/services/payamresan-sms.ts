@@ -1,4 +1,5 @@
 import { isValidPhone, normalizePhone } from '@tamas/shared';
+import type { SmsTransportResult } from './melipayamak-sms.js';
 
 interface PayamresanSmsInput {
   apiKey: string;
@@ -30,21 +31,26 @@ function providerError(data: PayamresanResponse): string {
   return `سامانه پیام‌رسان ارسال پیامک را نپذیرفت${codeText}${detailText}.`;
 }
 
+function mayUseFallback(data: PayamresanResponse): boolean {
+  const code = data.errorCode ?? data.ErrorCode;
+  return Number.isInteger(code) && ![4, 5, 20, 100].includes(Number(code));
+}
+
 /** Direct Payam Resan V3/V4 transport. Never put the API key or message in the URL. */
 export async function sendPayamresanSms(
   input: PayamresanSmsInput,
   fetchImpl: typeof fetch = fetch,
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<SmsTransportResult> {
   if (!input.apiKey.trim() || !input.sender.trim()) {
-    return { ok: false, error: 'کلید API یا خط فرستندهٔ سامانه پیام‌رسان تنظیم نشده است.' };
+    return { ok: false, error: 'کلید API یا خط فرستندهٔ سامانه پیام‌رسان تنظیم نشده است.', fallbackSafe: true };
   }
 
   const sender = Number(input.sender.trim());
   if (!/^\d+$/.test(input.sender.trim()) || !Number.isSafeInteger(sender)) {
-    return { ok: false, error: 'شماره خط فرستندهٔ پیام‌رسان معتبر نیست.' };
+    return { ok: false, error: 'شماره خط فرستندهٔ پیام‌رسان معتبر نیست.', fallbackSafe: true };
   }
   if (!isValidPhone(input.toPhone)) {
-    return { ok: false, error: 'شماره همراه گیرنده معتبر نیست.' };
+    return { ok: false, error: 'شماره همراه گیرنده معتبر نیست.', fallbackSafe: false };
   }
 
   let endpoint: URL;
@@ -55,7 +61,7 @@ export async function sendPayamresanSms(
     endpoint = new URL(`${input.baseUrl.replace(/\/+$/, '')}/${v4 ? 'Send' : 'SendBulk'}`);
     if (endpoint.protocol !== 'https:') throw new Error('Insecure SMS endpoint');
   } catch {
-    return { ok: false, error: 'نشانی امن سامانه پیام‌رسان معتبر نیست.' };
+    return { ok: false, error: 'نشانی امن سامانه پیام‌رسان معتبر نیست.', fallbackSafe: true };
   }
 
   const controller = new AbortController();
@@ -78,9 +84,9 @@ export async function sendPayamresanSms(
     const data = (await response.json()) as PayamresanResponse;
     if (response.ok && (data?.Success === true || data?.success === true)) return { ok: true };
 
-    return { ok: false, error: providerError(data) };
+    return { ok: false, error: providerError(data), fallbackSafe: mayUseFallback(data) };
   } catch {
-    return { ok: false, error: 'ارتباط با سامانه پیام‌رسان برقرار نشد.' };
+    return { ok: false, error: 'ارتباط با سامانه پیام‌رسان برقرار نشد.', fallbackSafe: false };
   } finally {
     clearTimeout(timer);
   }

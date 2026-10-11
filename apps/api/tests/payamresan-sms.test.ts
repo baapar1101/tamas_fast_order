@@ -34,6 +34,7 @@ describe('Payam Resan SMS transport', () => {
     assert.deepEqual(await sendPayamresanSms(config, fakeFetch), {
       ok: false,
       error: 'سامانه پیام‌رسان ارسال پیامک را نپذیرفت (کد 12).',
+      fallbackSafe: true,
     });
   });
 
@@ -69,6 +70,7 @@ describe('Payam Resan SMS transport', () => {
     }, fakeFetch), {
       ok: false,
       error: 'سامانه پیام‌رسان ارسال پیامک را نپذیرفت (کد 12): خط فرستنده در دسترس حساب نیست.',
+      fallbackSafe: true,
     });
   });
 

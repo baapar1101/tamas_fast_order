@@ -1,8 +1,22 @@
 import { env } from '../env.js';
 import { getAllSettings } from './settings.js';
 import { sendPayamresanSms } from './payamresan-sms.js';
+import { sendMelipayamakSms, type SmsTransportResult } from './melipayamak-sms.js';
 
-export async function sendSms(toPhone: string, text: string): Promise<{ ok: boolean; error?: string }> {
+function melipayamakInput(toPhone: string, text: string) {
+  return {
+    username: env.MELIPAYAMAK_USERNAME,
+    apiKey: env.MELIPAYAMAK_API_KEY,
+    sender: env.MELIPAYAMAK_FROM,
+    baseUrl: env.MELIPAYAMAK_BASE_URL,
+    toPhone,
+    text,
+  };
+}
+
+async function sendPrimarySms(toPhone: string, text: string): Promise<SmsTransportResult> {
+  if (env.SMS_PROVIDER === 'melipayamak') return sendMelipayamakSms(melipayamakInput(toPhone, text));
+
   if (env.SMS_PROVIDER === 'payamresan') {
     return sendPayamresanSms({
       apiKey: env.PAYAMRESAN_API_KEY,
@@ -14,7 +28,7 @@ export async function sendSms(toPhone: string, text: string): Promise<{ ok: bool
   }
 
   if (!env.RASTIN_SMS_USERNAME || !env.RASTIN_SMS_PASSWORD || !env.RASTIN_SMS_FROM) {
-    return { ok: false, error: 'اطلاعات سامانه پیامک تنظیم نشده است.' };
+    return { ok: false, error: 'اطلاعات سامانه پیامک تنظیم نشده است.', fallbackSafe: true };
   }
 
   const params = new URLSearchParams({
@@ -39,14 +53,28 @@ export async function sendSms(toPhone: string, text: string): Promise<{ ok: bool
     if (res.ok && (body === '1' || Number(body) > 0)) {
       return { ok: true };
     }
-    return { ok: false, error: `ارسال پیامک ناموفق بود (پاسخ: ${body}).` };
+    return { ok: false, error: `ارسال پیامک ناموفق بود (پاسخ: ${body}).`, fallbackSafe: true };
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error(`[rastin-sms] error sending to ${toPhone}:`, err);
-    return { ok: false, error: err instanceof Error ? err.message : 'خطا در ارتباط با سامانه پیامک' };
+    return { ok: false, error: err instanceof Error ? err.message : 'خطا در ارتباط با سامانه پیامک', fallbackSafe: false };
   } finally {
     clearTimeout(timer);
   }
+}
+
+export async function sendSms(toPhone: string, text: string): Promise<{ ok: boolean; error?: string }> {
+  const primary = await sendPrimarySms(toPhone, text);
+  if (primary.ok || !primary.fallbackSafe || env.SMS_FALLBACK_PROVIDER !== 'melipayamak' || env.SMS_PROVIDER === 'melipayamak') {
+    return { ok: primary.ok, ...(primary.error ? { error: primary.error } : {}) };
+  }
+
+  const fallback = await sendMelipayamakSms(melipayamakInput(toPhone, text));
+  if (fallback.ok) return { ok: true };
+  return {
+    ok: false,
+    error: `${primary.error ?? 'ارسال از سرویس اصلی ناموفق بود'}؛ سرویس جایگزین: ${fallback.error ?? 'ناموفق بود'}`,
+  };
 }
 
 export async function sendTemplatedSms(
