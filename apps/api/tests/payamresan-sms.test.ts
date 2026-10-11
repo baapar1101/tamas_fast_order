@@ -37,6 +37,41 @@ describe('Payam Resan SMS transport', () => {
     });
   });
 
+  it('supports the Payam Resan V4 Send contract with a numeric trace id', async () => {
+    const fakeFetch = (async (url: URL, init: RequestInit) => {
+      assert.equal(url.href, 'https://www.payam-resan.com/uapi/v4/Send');
+      assert.deepEqual(JSON.parse(String(init.body)), {
+        ApiKey: 'test-api-key',
+        Text: 'کد تایید: 12345',
+        Sender: 30004040,
+        Recipients: [{ Destination: 9121234567, UserTraceId: 1001 }],
+      });
+      return new Response(JSON.stringify({ success: true, errorCode: null }), { status: 200 });
+    }) as typeof fetch;
+
+    assert.deepEqual(await sendPayamresanSms({
+      ...config,
+      baseUrl: 'https://www.payam-resan.com/uapi/v4',
+      userTraceId: 1001,
+    }, fakeFetch), { ok: true });
+  });
+
+  it('returns the descriptive V4 provider error instead of hiding it', async () => {
+    const fakeFetch = (async () => new Response(JSON.stringify({
+      success: false,
+      errorCode: 12,
+      error: 'خط فرستنده در دسترس حساب نیست',
+    }), { status: 200 })) as typeof fetch;
+
+    assert.deepEqual(await sendPayamresanSms({
+      ...config,
+      baseUrl: 'https://www.payam-resan.com/uapi/v4',
+    }, fakeFetch), {
+      ok: false,
+      error: 'سامانه پیام‌رسان ارسال پیامک را نپذیرفت (کد 12): خط فرستنده در دسترس حساب نیست.',
+    });
+  });
+
   it('rejects missing credentials before making a network request', async () => {
     const fakeFetch = (async () => {
       assert.fail('fetch should not be called');
