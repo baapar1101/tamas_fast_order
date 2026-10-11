@@ -2,6 +2,9 @@ import { env } from '../env.js';
 import { getAllSettings } from './settings.js';
 import { sendPayamresanSms } from './payamresan-sms.js';
 import { sendMelipayamakSms, type SmsTransportResult } from './melipayamak-sms.js';
+import { sendSmsIrBulk, sendSmsIrVerify, type SmsIrVerifyInput } from './smsir-sms.js';
+
+type SmsIrTemplate = Pick<SmsIrVerifyInput, 'templateId' | 'parameters'>;
 
 function melipayamakInput(toPhone: string, text: string) {
   return {
@@ -11,6 +14,14 @@ function melipayamakInput(toPhone: string, text: string) {
     baseUrl: env.MELIPAYAMAK_BASE_URL,
     toPhone,
     text,
+  };
+}
+
+function smsIrBaseInput(toPhone: string) {
+  return {
+    apiKey: env.SMSIR_API_KEY,
+    baseUrl: env.SMSIR_BASE_URL,
+    toPhone,
   };
 }
 
@@ -63,18 +74,37 @@ async function sendPrimarySms(toPhone: string, text: string): Promise<SmsTranspo
   }
 }
 
-export async function sendSms(toPhone: string, text: string): Promise<{ ok: boolean; error?: string }> {
-  const primary = await sendPrimarySms(toPhone, text);
-  if (primary.ok || !primary.fallbackSafe || env.SMS_FALLBACK_PROVIDER !== 'melipayamak' || env.SMS_PROVIDER === 'melipayamak') {
-    return { ok: primary.ok, ...(primary.error ? { error: primary.error } : {}) };
+export async function sendSms(
+  toPhone: string,
+  text: string,
+  smsIrTemplate?: SmsIrTemplate,
+): Promise<{ ok: boolean; error?: string }> {
+  let result = await sendPrimarySms(toPhone, text);
+  if (result.ok) return { ok: true };
+
+  const errors = [result.error ?? 'ارسال از سرویس اصلی ناموفق بود'];
+  if (!result.fallbackSafe) return { ok: false, error: errors.join('؛ ') };
+
+  if (env.SMS_FALLBACK_PROVIDER === 'melipayamak' && env.SMS_PROVIDER !== 'melipayamak') {
+    result = await sendMelipayamakSms(melipayamakInput(toPhone, text));
+    if (result.ok) return { ok: true };
+    errors.push(`سرویس جایگزین اول: ${result.error ?? 'ناموفق بود'}`);
+    if (!result.fallbackSafe) return { ok: false, error: errors.join('؛ ') };
   }
 
-  const fallback = await sendMelipayamakSms(melipayamakInput(toPhone, text));
-  if (fallback.ok) return { ok: true };
-  return {
-    ok: false,
-    error: `${primary.error ?? 'ارسال از سرویس اصلی ناموفق بود'}؛ سرویس جایگزین: ${fallback.error ?? 'ناموفق بود'}`,
-  };
+  if (env.SMS_SECOND_FALLBACK_PROVIDER === 'smsir') {
+    result = smsIrTemplate
+      ? await sendSmsIrVerify({ ...smsIrBaseInput(toPhone), ...smsIrTemplate })
+      : await sendSmsIrBulk({
+        ...smsIrBaseInput(toPhone),
+        lineNumber: env.SMSIR_LINE_NUMBER,
+        text,
+      });
+    if (result.ok) return { ok: true };
+    errors.push(`سرویس جایگزین دوم: ${result.error ?? 'ناموفق بود'}`);
+  }
+
+  return { ok: false, error: errors.join('؛ ') };
 }
 
 export async function sendTemplatedSms(
@@ -101,7 +131,17 @@ export async function sendTemplatedSms(
     text = text.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
   }
 
-  return sendSms(toPhone, text);
+  const smsIrTemplate = templateKey === 'sms_template_otp' && env.SMSIR_OTP_TEMPLATE_ID
+    ? {
+      templateId: env.SMSIR_OTP_TEMPLATE_ID,
+      parameters: [{
+        name: env.SMSIR_OTP_PARAMETER,
+        value: variables.code ?? text,
+      }],
+    }
+    : undefined;
+
+  return sendSms(toPhone, text, smsIrTemplate);
 }
 
 export function sendUserApprovedSms(toPhone: string): Promise<{ ok: boolean; error?: string }> {
