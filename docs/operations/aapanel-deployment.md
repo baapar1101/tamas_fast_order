@@ -25,7 +25,26 @@
 
 ### کش صفحهٔ اصلی فرانت
 
-مسیر SPA در فایل aaPanel یعنی `/www/server/panel/vhost/nginx/tamasmarket.com.conf` باید برای `location /` دستور `expires -1;` را پیش از `try_files $uri $uri/ /index.html;` داشته باشد. این کار باعث می‌شود مرورگر هنگام بازکردن یا بارگذاری دوبارهٔ صفحه، `index.html` و ارجاع‌های نسخهٔ جدید را اعتبارسنجی کند؛ فایل‌های نام‌دارِ JS/CSS همچنان طبق بلوک جداگانهٔ خود کش می‌شوند. پس از هر تغییر تنظیم، `nginx -t` و بارگذاری مجدد Nginx را انجام دهید. تب‌هایی که از قبل باز بوده‌اند برای دیدن نسخهٔ تازه همچنان یک‌بار نیاز به بازخوانی دارند.
+مسیر SPA در فایل aaPanel یعنی `/www/server/panel/vhost/nginx/tamasmarket.com.conf` باید برای `location /` هدر `Cache-Control: no-cache, no-store, must-revalidate` داشته باشد و `version.json` نیز صریحاً بدون کش سرو شود. فایل‌های هش‌دار JS/CSS می‌توانند طبق بلوک جداگانهٔ خود کش شوند. کلاینت `version.json` را هر ۳۰ ثانیه و هنگام بازگشت به تب، focus و آنلاین‌شدن بررسی می‌کند و در صورت اختلاف نسخه با URL نسخه‌دار و پاک‌سازی CacheStorage بروزرسانی اجباری انجام می‌دهد. پس از هر تغییر تنظیم، `nginx -t` و بارگذاری مجدد Nginx را انجام دهید.
+
+```nginx
+location = /version.json {
+    expires -1;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+    try_files $uri =404;
+}
+
+location = /index.html {
+    expires -1;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+}
+
+location / {
+    expires -1;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+    try_files $uri $uri/ /index.html;
+}
+```
 
 ### سلامت فایل‌های تصویر
 

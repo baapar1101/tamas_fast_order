@@ -16,7 +16,7 @@ function generateVersionJsonPlugin(): Plugin {
         }
         fs.writeFileSync(
           path.resolve(outDir, 'version.json'),
-          JSON.stringify({ buildTime })
+          JSON.stringify({ buildTime, builtAt: new Date(buildTime).toISOString() })
         );
       } catch (e) {
         console.error('Failed to write version.json:', e);
