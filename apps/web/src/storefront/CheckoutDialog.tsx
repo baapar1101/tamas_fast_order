@@ -393,7 +393,7 @@ export function CheckoutDialog({ open, onClose, onNeedsProfile }: Props) {
                       <a href={secondaryData[f.key]} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', flex: 1, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontSize: 13, direction: 'ltr', textAlign: 'right' }}>
                         {secondaryData[f.key]}
                       </a>
-                      <button type="button" onClick={() => setSecondaryData({ ...secondaryData, [f.key]: '' })} style={{ background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer' }}>×</button>
+                      <button type="button" onClick={() => setSecondaryData({ ...secondaryData, [f.key]: '' })} aria-label="حذف فایل" style={{ background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer' }}>×</button>
                     </div>
                   ) : (
                     <input

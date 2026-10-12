@@ -33,6 +33,7 @@ export function ThemeToggle() {
       className="btn ghost icon-only theme-toggle"
       onClick={toggleTheme}
       title={isDark ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
+      aria-label={isDark ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
     >
       <Icon name={isDark ? 'sun' : 'moon'} />
     </button>

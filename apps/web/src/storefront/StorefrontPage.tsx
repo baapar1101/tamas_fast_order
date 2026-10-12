@@ -335,6 +335,7 @@ export function StorefrontPage() {
               className="btn btn-icon-only"
               onClick={() => document.getElementById('cart')?.scrollIntoView({ behavior: 'smooth' })}
               title="علاقه‌مندی‌ها"
+              aria-label="علاقه‌مندی‌ها"
             >
               <Icon name="heart" />
             </button>

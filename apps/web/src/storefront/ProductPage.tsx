@@ -250,7 +250,7 @@ export function ProductPage() {
           </Link>
           <div className="pp-header-actions">
             <Link to="/" className="btn pp-back-btn"><Icon name="home" /> <span className="pp-back-text">بازگشت به فروشگاه</span></Link>
-            <Link to="/" className="btn btn-icon-only pp-cart-btn" title="سبد خرید">
+            <Link to="/" className="btn btn-icon-only pp-cart-btn" title="سبد خرید" aria-label="مشاهده سبد خرید">
               <Icon name="bag" />
               {cartTotalQty > 0 && <span className="badge-count">{formatNumber(cartTotalQty)}</span>}
             </Link>
@@ -401,9 +401,9 @@ export function ProductPage() {
                       </div>
                       {qty > 0 ? (
                         <div className="pp-qty-stepper">
-                          <button type="button" className="add-wh-btn" onClick={() => handleUpdateQty(cartKey, qty - 1)}>-</button>
+                          <button type="button" className="add-wh-btn" onClick={() => handleUpdateQty(cartKey, qty - 1)} aria-label="کاهش تعداد">-</button>
                           <span>{formatNumber(qty)}</span>
-                          <button type="button" className="add-wh-btn" onClick={() => handleAdd(selected, wh)}>+</button>
+                          <button type="button" className="add-wh-btn" onClick={() => handleAdd(selected, wh)} aria-label="افزایش تعداد">+</button>
                         </div>
                       ) : (
                         <button type="button" className="btn primary pp-add-btn" onClick={() => handleAdd(selected, wh)}>
