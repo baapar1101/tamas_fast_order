@@ -1,0 +1,3 @@
+## 2024-05-24 - Passing Global State Arrays to React.memo Components
+**Learning:** In this codebase, the global Zustand state holds an array `cartLines`. Passing this array as a prop to `React.memo` components mapped in lists (like `ProductCard`) breaks the default shallow comparison because the array reference changes globally whenever the cart is updated, causing widespread unnecessary re-renders of all list items.
+**Action:** When a memoized child component receives a global array that updates frequently, use a custom `arePropsEqual` function. The custom function should perform a deep comparison on the specific subset of the array data (e.g. only variants matching the component's `productId`) relevant to that instance to avoid unnecessary re-renders.

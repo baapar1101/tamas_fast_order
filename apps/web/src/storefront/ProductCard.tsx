@@ -54,6 +54,34 @@ function productTitleClass(title: string): string {
   return '';
 }
 
+function arePropsEqual(prev: Props, next: Props) {
+  if (
+    prev.group !== next.group ||
+    prev.colorMap !== next.colorMap ||
+    prev.canViewPrices !== next.canViewPrices ||
+    prev.viewMode !== next.viewMode ||
+    prev.onAdd !== next.onAdd ||
+    prev.onUpdateQty !== next.onUpdateQty ||
+    prev.onPreview !== next.onPreview
+  ) {
+    return false;
+  }
+
+  const productIds = new Set(next.group.variants.map((v) => v.productId));
+
+  const prevRelevant = prev.cartLines.filter((l) => productIds.has(l.productId));
+  const nextRelevant = next.cartLines.filter((l) => productIds.has(l.productId));
+
+  if (prevRelevant.length !== nextRelevant.length) return false;
+
+  for (const nl of nextRelevant) {
+    const pl = prevRelevant.find((l) => l.key === nl.key);
+    if (!pl || pl.qty !== nl.qty) return false;
+  }
+
+  return true;
+}
+
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFav, setIsFav] = useState(false);
@@ -333,5 +361,5 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
-});
+}, arePropsEqual);
 
