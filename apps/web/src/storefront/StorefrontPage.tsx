@@ -20,6 +20,7 @@ import { IncompleteProfilePopup } from './IncompleteProfilePopup';
 import { GuestPromoPopup } from './GuestPromoPopup';
 import { GoldenCampaignCopy } from './GoldenCampaignCopy';
 import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_IMAGE_URL, GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL, isGoldenCampaignSlide, visibleCampaignSlides } from './goldenCampaign';
+import { HOMEPAGE_FILTER_SETTING_KEY, parseHomepageFilters, type HomepageFilterType } from './homepageFilters';
 import './storefront.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
@@ -262,6 +263,21 @@ export function StorefrontPage() {
   }, [lines.length, user, complete, toast, goToCheckout]);
 
   const settings = bootstrap.data?.settings ?? {};
+  const homepageFilters = useMemo(
+    () => parseHomepageFilters(settings[HOMEPAGE_FILTER_SETTING_KEY]).filter((filter) => filter.enabled && filter.label.trim()),
+    [settings[HOMEPAGE_FILTER_SETTING_KEY]],
+  );
+  const filterState: Record<HomepageFilterType, boolean> = {
+    in_stock: inStockOnly,
+    promotion,
+    basket: basketOnly,
+  };
+  const toggleHomepageFilter = (type: HomepageFilterType) => {
+    if (type === 'in_stock') setInStockOnly((current) => !current);
+    if (type === 'promotion') setPromotion((current) => !current);
+    if (type === 'basket') setBasketOnly((current) => !current);
+    resetPage();
+  };
   const canViewPrices = Boolean(user?.isActive);
   const [promoOrange, setPromoOrange] = useState(false);
 
@@ -573,52 +589,22 @@ export function StorefrontPage() {
                 </div>
               </div>
 
-              <div className="side-title" style={{ marginTop: 20 }}>فیلترهای سریع</div>
-              <div className="switch-row">
-                <span>موجودها</span>
-                <button
-                  type="button"
-                  className={`switch${inStockOnly ? ' on' : ''}`}
-                  role="switch"
-                  aria-label="موجودها"
-                  aria-checked={inStockOnly}
-                  onClick={() => { setInStockOnly(!inStockOnly); resetPage(); }}
-                >
-                  <i />
-                </button>
-              </div>
-              <div className="switch-row">
-                <span>کالاهای جشنواره</span>
-                <button
-                  type="button"
-                  className={`switch${promotion ? ' on' : ''}`}
-                  role="switch"
-                  aria-label="کالاهای جشنواره"
-                  aria-checked={promotion}
-                  onClick={() => {
-                    setPromotion(!promotion);
-                    resetPage();
-                  }}
-                >
-                  <i />
-                </button>
-              </div>
-              <div className="switch-row">
-                <span>سبدهای جشنواره</span>
-                <button
-                  type="button"
-                  className={`switch${basketOnly ? ' on' : ''}`}
-                  role="switch"
-                  aria-label="سبدهای جشنواره"
-                  aria-checked={basketOnly}
-                  onClick={() => {
-                    setBasketOnly(!basketOnly);
-                    resetPage();
-                  }}
-                >
-                  <i />
-                </button>
-              </div>
+              {homepageFilters.length > 0 && <div className="side-title" style={{ marginTop: 20 }}>فیلترهای سریع</div>}
+              {homepageFilters.map((filter) => (
+                <div className="switch-row" key={filter.id}>
+                  <span>{filter.label}</span>
+                  <button
+                    type="button"
+                    className={`switch${filterState[filter.type] ? ' on' : ''}`}
+                    role="switch"
+                    aria-label={filter.label}
+                    aria-checked={filterState[filter.type]}
+                    onClick={() => toggleHomepageFilter(filter.type)}
+                  >
+                    <i />
+                  </button>
+                </div>
+              ))}
             </div>
           </aside>
 

@@ -4,6 +4,13 @@ import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 import { ImagePicker } from '../components/ImagePicker';
 import { PaymentMethodsSettings } from '../components/PaymentMethodsSettings';
+import {
+  HOMEPAGE_FILTER_SETTING_KEY,
+  HOMEPAGE_FILTER_TYPE_LABELS,
+  parseHomepageFilters,
+  type HomepageFilter,
+  type HomepageFilterType,
+} from '../../storefront/homepageFilters';
 
 interface AuditEntry {
   id: number;
@@ -174,7 +181,7 @@ export function SettingsPage() {
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [testPhone, setTestPhone] = useState('');
-  const [activeTab, setActiveTab] = useState<'general' | 'payment' | 'wallet' | 'telegram' | 'arvan' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'storefront-filters' | 'payment' | 'wallet' | 'telegram' | 'arvan' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
   const [syncProgress, setSyncProgress] = useState<Record<string, { current: number; total: number; label: string; done: boolean; error: boolean }>>({});
   const syncRaf = useRef<Record<string, number>>({});
   const syncStart = useRef<Record<string, number>>({});
@@ -266,12 +273,18 @@ export function SettingsPage() {
     'ARVAN_API_KEY',
     'ARVAN_SECRET_KEY',
     'ATTRIBUTION_CHANNELS',
+    HOMEPAGE_FILTER_SETTING_KEY,
   ]);
   const extraKeys = Object.keys(form).filter((k) => !knownKeys.has(k)).sort();
 
   const telegramGroups = parseJsonSetting<TelegramGroup[]>(form.TELEGRAM_GROUPS, []);
   const telegramRoutes = parseJsonSetting<Partial<Record<TelegramEvent, string[]>>>(form.TELEGRAM_ROUTES, {});
   const attributionChannels = parseJsonSetting<AttributionChannel[]>(form.ATTRIBUTION_CHANNELS, DEFAULT_ATTRIBUTION_CHANNELS);
+  const homepageFilters = parseHomepageFilters(form[HOMEPAGE_FILTER_SETTING_KEY]);
+
+  const updateHomepageFilters = (filters: HomepageFilter[]) => {
+    setForm((current) => ({ ...current, [HOMEPAGE_FILTER_SETTING_KEY]: JSON.stringify(filters) }));
+  };
 
   const updateTelegramGroups = (groups: TelegramGroup[]) => {
     setForm((current) => ({ ...current, TELEGRAM_GROUPS: JSON.stringify(groups) }));
@@ -285,8 +298,9 @@ export function SettingsPage() {
     setForm((current) => ({ ...current, ATTRIBUTION_CHANNELS: JSON.stringify(channels) }));
   };
 
-  const TABS: { id: 'general' | 'payment' | 'wallet' | 'telegram' | 'arvan' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
+  const TABS: { id: 'general' | 'storefront-filters' | 'payment' | 'wallet' | 'telegram' | 'arvan' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
     { id: 'general', label: 'تنظیمات عمومی' },
+    { id: 'storefront-filters', label: 'فیلترهای صفحه اصلی' },
     { id: 'payment', label: '💳 روش‌های پرداخت' },
     { id: 'wallet', label: 'کیف پول' },
     { id: 'telegram', label: 'ربات تلگرام' },
@@ -350,6 +364,80 @@ export function SettingsPage() {
             <div className="a-field"><label className="a-label">حداکثر شارژ (تومان)</label><input className="a-input a-ltr" type="number" value={form.WALLET_MAX_TOPUP ?? '100000000'} onChange={e=>setForm({...form,WALLET_MAX_TOPUP:e.target.value})}/></div>
           </div>
           <div className="mt-5"><button className="a-btn a-btn--primary" disabled={save.isPending} onClick={()=>save.mutate(form)}>ذخیره تنظیمات کیف پول</button></div>
+        </section>
+      )}
+
+      {activeTab === 'storefront-filters' && (
+        <section className="a-card a-fade">
+          <div className="a-card-head a-card-head--split">
+            <div>
+              <h3 className="a-card-title">فیلترهای قابل مشاهده برای مشتری</h3>
+              <p className="a-card-desc">عنوان، ترتیب و وضعیت فیلترهای سریع سایدبار صفحه اصلی را مدیریت کنید.</p>
+            </div>
+            <button
+              type="button"
+              className="a-btn a-btn--secondary a-btn--xs"
+              onClick={() => updateHomepageFilters([
+                ...homepageFilters,
+                { id: `filter-${Date.now()}`, type: 'promotion', label: 'فیلتر جدید', enabled: true },
+              ])}
+            >
+              + ساخت فیلتر
+            </button>
+          </div>
+
+          <div className="a-page-stack">
+            {homepageFilters.map((filter, index) => (
+              <div className="a-card" key={filter.id}>
+                <div className="a-form-grid a-cols--2">
+                  <div className="a-field">
+                    <label className="a-label">عنوانی که مشتری می‌بیند</label>
+                    <input className="a-input" value={filter.label} onChange={(event) => {
+                      const next = [...homepageFilters];
+                      next[index] = { ...filter, label: event.target.value };
+                      updateHomepageFilters(next);
+                    }} />
+                  </div>
+                  <div className="a-field">
+                    <label className="a-label">نوع فیلتر</label>
+                    <select className="a-select" value={filter.type} onChange={(event) => {
+                      const next = [...homepageFilters];
+                      next[index] = { ...filter, type: event.target.value as HomepageFilterType };
+                      updateHomepageFilters(next);
+                    }}>
+                      {(Object.entries(HOMEPAGE_FILTER_TYPE_LABELS) as [HomepageFilterType, string][]).map(([value, label]) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <button type="button" className={`a-btn a-btn--xs ${filter.enabled ? 'a-btn--primary' : 'a-btn--secondary'}`} onClick={() => {
+                    const next = [...homepageFilters];
+                    next[index] = { ...filter, enabled: !filter.enabled };
+                    updateHomepageFilters(next);
+                  }}>{filter.enabled ? 'فعال' : 'غیرفعال'}</button>
+                  <button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={index === 0} onClick={() => {
+                    const next = [...homepageFilters];
+                    [next[index - 1], next[index]] = [next[index]!, next[index - 1]!];
+                    updateHomepageFilters(next);
+                  }}>بالاتر</button>
+                  <button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={index === homepageFilters.length - 1} onClick={() => {
+                    const next = [...homepageFilters];
+                    [next[index], next[index + 1]] = [next[index + 1]!, next[index]!];
+                    updateHomepageFilters(next);
+                  }}>پایین‌تر</button>
+                  <button type="button" className="a-btn a-btn--danger a-btn--xs" onClick={() => updateHomepageFilters(homepageFilters.filter((item) => item.id !== filter.id))}>حذف</button>
+                </div>
+              </div>
+            ))}
+            {homepageFilters.length === 0 && <p className="a-note">هیچ فیلتر سریعی برای صفحه اصلی تعریف نشده است.</p>}
+          </div>
+          <div className="mt-5">
+            <button type="button" className="a-btn a-btn--primary" disabled={save.isPending} onClick={() => save.mutate(form)}>
+              {save.isPending ? 'در حال ذخیره...' : 'ذخیره فیلترهای صفحه اصلی'}
+            </button>
+          </div>
         </section>
       )}
 
