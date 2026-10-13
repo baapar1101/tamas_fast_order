@@ -17,8 +17,8 @@ export const HOMEPAGE_FILTER_TYPE_LABELS: Record<HomepageFilterType, string> = {
 
 export const DEFAULT_HOMEPAGE_FILTERS: HomepageFilter[] = [
   { id: 'in-stock', type: 'in_stock', label: 'موجودها', enabled: true },
-  { id: 'promotion', type: 'promotion', label: 'کالاهای جشنواره', enabled: true },
-  { id: 'basket', type: 'basket', label: 'سبدهای جشنواره', enabled: true },
+  { id: 'promotion', type: 'promotion', label: 'کالاهای جشنواره', enabled: false },
+  { id: 'basket', type: 'basket', label: 'سبدهای جشنواره', enabled: false },
 ];
 
 const FILTER_TYPES = new Set<HomepageFilterType>(['in_stock', 'promotion', 'basket']);

@@ -4,6 +4,8 @@ import { DEFAULT_HOMEPAGE_FILTERS, parseHomepageFilters } from '../src/storefron
 
 test('homepage filters keep the existing storefront defaults before configuration', () => {
   assert.deepEqual(parseHomepageFilters(undefined), DEFAULT_HOMEPAGE_FILTERS);
+  assert.equal(DEFAULT_HOMEPAGE_FILTERS.find((filter) => filter.type === 'promotion')?.enabled, false);
+  assert.equal(DEFAULT_HOMEPAGE_FILTERS.find((filter) => filter.type === 'basket')?.enabled, false);
 });
 
 test('homepage filters preserve labels, order, and disabled state', () => {
