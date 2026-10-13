@@ -645,15 +645,25 @@ export function StorefrontPage() {
 
               <div className="side-title" style={{ marginTop: 20 }}>فیلترهای سریع</div>
               <div className="switch-row">
-                <span>فقط کالاهای موجود</span>
-                <button type="button" className={`switch${inStockOnly ? ' on' : ''}`} onClick={() => setInStockOnly(!inStockOnly)}>
+                <span id="filter-instock">فقط کالاهای موجود</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={inStockOnly}
+                  aria-labelledby="filter-instock"
+                  className={`switch${inStockOnly ? ' on' : ''}`}
+                  onClick={() => setInStockOnly(!inStockOnly)}
+                >
                   <i />
                 </button>
               </div>
               <div className="switch-row">
-                <span>پیشنهاد ویژه</span>
+                <span id="filter-promotion">پیشنهاد ویژه</span>
                 <button
                   type="button"
+                  role="switch"
+                  aria-checked={promotion}
+                  aria-labelledby="filter-promotion"
                   className={`switch${promotion ? ' on' : ''}`}
                   onClick={() => {
                     setPromotion(!promotion);
@@ -664,9 +674,12 @@ export function StorefrontPage() {
                 </button>
               </div>
               <div className="switch-row">
-                <span>تسویه چکی و اعتباری</span>
+                <span id="filter-credit">تسویه چکی و اعتباری</span>
                 <button
                   type="button"
+                  role="switch"
+                  aria-checked={creditOnly}
+                  aria-labelledby="filter-credit"
                   className={`switch${creditOnly ? ' on' : ''}`}
                   onClick={() => {
                     setCreditOnly(!creditOnly);
