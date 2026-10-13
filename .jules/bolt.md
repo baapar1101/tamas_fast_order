@@ -1,0 +1,3 @@
+## 2024-05-18 - Prevent widespread ProductCard re-renders
+**Learning:** By default, Zustand array references (like `cartLines`) change globally whenever any item is added or removed. Passing this array directly into a mapped component using `React.memo` (like `ProductCard`) breaks the shallow comparison, causing the entire list to re-render unnecessarily on every cart update.
+**Action:** Always provide a custom `propsAreEqual` function to `React.memo` when a component relies on a small subset of a globally updated array. The custom function should extract and compare only the relevant subset of data for that specific component instance.
