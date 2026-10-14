@@ -5,6 +5,7 @@ import { catalogProductImage, catalogProductStock } from '../src/admin/component
 
 test('catalog image uses the product image and falls back to its own gallery', () => {
   assert.equal(catalogProductImage({ imageUrl: '/main.webp', gallery: ['/gallery.webp'] }), '/main.webp');
+  assert.equal(catalogProductImage({ imageUrl: '   ', gallery: ['', ' /gallery.webp '] }), '/gallery.webp');
   assert.equal(catalogProductImage({ imageUrl: null, gallery: ['', '/gallery.webp'] }), '/gallery.webp');
   assert.equal(catalogProductImage({ imageUrl: null, gallery: [] }), '/logo.png');
 });

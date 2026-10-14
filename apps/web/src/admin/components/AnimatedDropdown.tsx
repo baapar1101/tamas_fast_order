@@ -95,7 +95,11 @@ export function AnimatedDropdown({
 
   useEffect(() => {
     if (!isOpen) return;
-    if (searchable) searchRef.current?.focus();
+    // The panel is portalled after the application root. On catalogue pages the
+    // root can be tens of thousands of pixels tall, so a normal focus call may
+    // scroll the document all the way to the portal before its fixed position
+    // has been painted. Keep the viewport anchored to the dropdown trigger.
+    if (searchable) searchRef.current?.focus({ preventScroll: true });
     const closeOutside = (event: MouseEvent) => {
       const target = event.target as Node;
       if (!triggerRef.current?.contains(target) && !panelRef.current?.contains(target)) setIsOpen(false);
@@ -115,7 +119,7 @@ export function AnimatedDropdown({
     onChange(option.value);
     setIsOpen(false);
     setQuery('');
-    triggerRef.current?.focus();
+    triggerRef.current?.focus({ preventScroll: true });
   }
 
   function handleListKeys(event: KeyboardEvent) {

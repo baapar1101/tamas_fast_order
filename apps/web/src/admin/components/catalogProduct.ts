@@ -2,7 +2,9 @@ import type { ProductDTO } from '@tamas/shared';
 import { resolveImageUrl } from '../../lib/images';
 
 export function catalogProductImage(product: Pick<ProductDTO, 'imageUrl' | 'gallery'>): string {
-  return resolveImageUrl(product.imageUrl || product.gallery?.find((image) => Boolean(image?.trim())));
+  const primaryImage = product.imageUrl?.trim();
+  const galleryImage = product.gallery?.find((image) => Boolean(image?.trim()))?.trim();
+  return resolveImageUrl(primaryImage || galleryImage);
 }
 
 /** Warehouse counts are authoritative when present; otherwise use legacy flat stock. */

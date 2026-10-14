@@ -318,13 +318,14 @@ export function CatalogExportPage() {
                         return (
                           <div
                             key={p.id}
+                            data-catalog-product-id={p.productId}
                             style={{
                               backgroundColor: '#f8fafc',
                               border: '1px solid #e2e8f0',
                               borderRadius: '8px',
                               padding: '6px 8px',
                               display: 'grid',
-                              gridTemplateRows: '74px minmax(0, 1fr) auto',
+                              gridTemplateRows: '74px minmax(0, 1fr) 35px',
                               boxSizing: 'border-box',
                               overflow: 'hidden',
                             }}
@@ -343,7 +344,7 @@ export function CatalogExportPage() {
                               <img
                                 src={catalogProductImage(p)}
                                 alt={p.title}
-                                style={{ maxHeight: '66px', maxWidth: '100%', objectFit: 'contain' }}
+                                style={{ display: 'block', width: '100%', height: '66px', objectFit: 'contain' }}
                                 crossOrigin="anonymous"
                                 loading="eager"
                                 decoding="async"
@@ -378,8 +379,8 @@ export function CatalogExportPage() {
                             </div>
 
                             {/* Divider & Price */}
-                            <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '4px', marginTop: '2px', textAlign: 'center' }}>
-                              <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#0284c7', direction: 'rtl' }}>
+                            <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '4px', marginTop: '2px', textAlign: 'center', overflow: 'hidden' }}>
+                              <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#0284c7', direction: 'rtl', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                                 {p.price > 0 ? `${formatNumber(p.price)} تومان` : 'تماس بگیرید'}
                               </div>
                               <div
