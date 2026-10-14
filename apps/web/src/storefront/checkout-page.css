@@ -181,22 +181,32 @@
   backdrop-filter: blur(14px);
 }
 
-.checkout-page .modal-foot .btn-primary {
+.checkout-page .modal-foot .btn.primary {
   min-height: 50px;
   border: 0;
   border-radius: 15px;
   background: linear-gradient(110deg, var(--tamas-accent-deep), var(--tamas-accent));
+  color: #fff;
   box-shadow: 0 10px 24px color-mix(in srgb, var(--tamas-accent) 24%, transparent);
   font-size: 15px;
   transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
 }
 
-.checkout-page .modal-foot .btn-primary:not(:disabled):hover {
+.checkout-page .modal-foot .btn.primary:not(:disabled):hover {
+  color: #fff;
   transform: translateY(-1px);
   box-shadow: 0 13px 28px color-mix(in srgb, var(--tamas-accent) 30%, transparent);
 }
 
-.checkout-page .modal-foot > .btn:not(.btn-primary) {
+.checkout-page .modal-foot .btn.primary:disabled {
+  color: rgb(255 255 255 / 92%);
+  border-color: transparent;
+  background: linear-gradient(110deg, var(--tamas-accent-deep), var(--tamas-accent));
+  box-shadow: none;
+  opacity: 0.58;
+}
+
+.checkout-page .modal-foot > .btn:not(.primary) {
   min-width: 92px;
   min-height: 50px;
   border-radius: 15px;
@@ -864,7 +874,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .checkout-back,
-  .checkout-page .modal-foot .btn-primary {
+  .checkout-page .modal-foot .btn.primary {
     transition: none;
   }
 }
