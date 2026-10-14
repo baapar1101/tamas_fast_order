@@ -733,7 +733,16 @@ select.select {
   display: none;
 }
 
+.catalog-print-portal {
+  display: none;
+}
+
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
   html, body {
     overflow: visible !important;
     height: auto !important;
@@ -742,6 +751,32 @@ select.select {
   /* Invoice layouts are rendered directly under body, outside the hidden app. */
   body:has(> .is-print-target) > #root {
     display: none !important;
+  }
+
+  body:has(> .catalog-print-portal) > #root {
+    display: none !important;
+  }
+
+  body > .catalog-print-portal {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  body > .catalog-print-portal .pdf-page-sheet {
+    display: flex !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  body > .catalog-print-portal .pdf-page-sheet:last-child {
+    break-after: auto;
+    page-break-after: auto;
   }
 
   .print-invoice-layout {

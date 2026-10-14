@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import type { ProductDTO, CategoryDTO, BrandDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
-import { resolveImageUrl, useImageFallback, waitForImages } from '../../lib/images';
+import { useImageFallback, waitForImages } from '../../lib/images';
 import { useToast } from '../../components/Toast';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
+import { catalogProductImage, catalogProductStock } from '../components/catalogProduct';
 
 type CatalogScope = 'all' | 'festival_singles' | 'baskets';
 
@@ -72,20 +73,46 @@ export function CatalogExportPage() {
       : 'کاتالوگ محصولات تماس مارکت';
 
   const handleGeneratePdf = async () => {
+    if (isGenerating) return;
     if (products.length === 0) {
       toast.error('هیچ محصولی برای تهیه کاتالوگ یافت نشد.');
       return;
     }
     setIsGenerating(true);
     setPdfProgress(10);
-    await waitForImages(printContainerRef.current);
-    setPdfProgress(100);
-    toast.ok('لطفاً در پنجره باز شده، گزینه Save as PDF را انتخاب کنید.');
-    window.setTimeout(() => {
-      window.print();
+    const source = printContainerRef.current;
+    if (!source) {
       setIsGenerating(false);
       setPdfProgress(0);
-    }, 100);
+      toast.error('پیش‌نمایش کاتالوگ آماده نیست. دوباره تلاش کنید.');
+      return;
+    }
+
+    const printPortal = source.cloneNode(true) as HTMLDivElement;
+    printPortal.className = 'catalog-print-portal';
+    printPortal.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(printPortal);
+    let cleaned = false;
+    const cleanup = () => {
+      if (cleaned) return;
+      cleaned = true;
+      printPortal.remove();
+      setIsGenerating(false);
+      setPdfProgress(0);
+    };
+
+    try {
+      setPdfProgress(45);
+      await waitForImages(printPortal);
+      setPdfProgress(100);
+      toast.ok('لطفاً در پنجره باز شده، گزینه Save as PDF را انتخاب کنید.');
+      window.addEventListener('afterprint', cleanup, { once: true });
+      window.print();
+      window.setTimeout(cleanup, 60_000);
+    } catch {
+      cleanup();
+      toast.error('ساخت نسخه چاپی کاتالوگ ناموفق بود.');
+    }
   };
 
   return (
@@ -127,7 +154,7 @@ export function CatalogExportPage() {
               ))}
             </div>
           </div>
-          <div className="catalog-filter-grid mb-6">
+          <div className="catalog-filter-grid mb-6" onClick={(event) => event.stopPropagation()}>
             {/* Category Filter */}
             <div>
               <label className="a-label">دسته‌بندی</label>
@@ -200,7 +227,7 @@ export function CatalogExportPage() {
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                   </svg>
-                  <span>دانلود کاتالوگ PDF (اصلاح‌شده)</span>
+                  <span>دانلود کاتالوگ PDF</span>
                 </>
               )}
             </button>
@@ -287,6 +314,7 @@ export function CatalogExportPage() {
                     }}>
                       {pageProducts.map((p) => {
                         const brandLabel = (p as any).brandFaName || (p as any).brandName || '';
+                        const availableStock = catalogProductStock(p);
                         return (
                           <div
                             key={p.id}
@@ -295,9 +323,8 @@ export function CatalogExportPage() {
                               border: '1px solid #e2e8f0',
                               borderRadius: '8px',
                               padding: '6px 8px',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              justifyContent: 'space-between',
+                              display: 'grid',
+                              gridTemplateRows: '74px minmax(0, 1fr) auto',
                               boxSizing: 'border-box',
                               overflow: 'hidden',
                             }}
@@ -314,7 +341,7 @@ export function CatalogExportPage() {
                               padding: '2px',
                             }}>
                               <img
-                                src={resolveImageUrl(p.imageUrl)}
+                                src={catalogProductImage(p)}
                                 alt={p.title}
                                 style={{ maxHeight: '66px', maxWidth: '100%', objectFit: 'contain' }}
                                 crossOrigin="anonymous"
@@ -360,10 +387,10 @@ export function CatalogExportPage() {
                                   fontSize: '8.5px',
                                   fontWeight: 'bold',
                                   marginTop: '1px',
-                                  color: p.stock > 0 || p.kermanStock > 0 || p.tehranStock > 0 ? '#16a34a' : '#dc2626',
+                                  color: availableStock > 0 ? '#16a34a' : '#dc2626',
                                 }}
                               >
-                                {p.stock > 0 || p.kermanStock > 0 || p.tehranStock > 0 ? 'موجود' : 'ناموجود'}
+                                {availableStock > 0 ? `موجود (${formatNumber(availableStock)})` : 'ناموجود'}
                               </div>
                             </div>
                           </div>
