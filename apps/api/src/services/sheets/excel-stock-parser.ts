@@ -11,11 +11,12 @@ function asciiDigits(value: string): string {
 }
 
 export function normalizeExcelSku(value: unknown): string {
-  return asciiDigits(String(value ?? ''))
+  const normalized = asciiDigits(String(value ?? ''))
     .normalize('NFKC')
     .replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, '')
     .replace(/\s+/g, '')
     .toLowerCase();
+  return /^\d+$/.test(normalized) && !normalized.startsWith('0') ? `0${normalized}` : normalized;
 }
 
 /** null means blank/leave unchanged; undefined means invalid. */

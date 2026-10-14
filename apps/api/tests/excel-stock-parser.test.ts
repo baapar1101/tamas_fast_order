@@ -29,6 +29,23 @@ describe('Excel stock input', () => {
     assert.equal(parseOptionalExcelInteger('-1'), undefined);
     assert.equal(parseOptionalExcelInteger('1.5'), undefined);
     assert.equal(normalizeExcelSku(' ۰۱۰۲۰۱۰۰۱۲۷\u200b '), '01020100127');
+    assert.equal(normalizeExcelSku('10010100063'), '010010100063');
+    assert.equal(normalizeExcelSku('۰۲۰۳۰۵۰۰۰۹۴'), '02030500094');
+    assert.equal(normalizeExcelSku('SKU-1001'), 'sku-1001');
+  });
+
+  it('automatically restores a missing leading zero in an Excel SKU', () => {
+    const workbook = xlsx.utils.book_new();
+    const sheet = xlsx.utils.aoa_to_sheet([
+      ['price', 'sku'],
+      [1_500_000, '10010100063'],
+    ]);
+    xlsx.utils.book_append_sheet(workbook, sheet, 'Prices');
+
+    const [row] = parseExcelStockRows(Buffer.from(xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' })));
+    assert.equal(row?.displayedSku, '10010100063');
+    assert.equal(row?.sku, '010010100063');
+    assert.equal(row?.priceRial, 1_500_000);
   });
 
   it('accepts any supported subset in any order and ignores extra columns', () => {
