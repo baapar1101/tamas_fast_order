@@ -54,7 +54,37 @@ function productTitleClass(title: string): string {
   return '';
 }
 
+
+function arePropsEqual(prev: Props, next: Props) {
+  if (
+    prev.group !== next.group ||
+    prev.colorMap !== next.colorMap ||
+    prev.canViewPrices !== next.canViewPrices ||
+    prev.viewMode !== next.viewMode ||
+    prev.onAdd !== next.onAdd ||
+    prev.onUpdateQty !== next.onUpdateQty ||
+    prev.onPreview !== next.onPreview
+  ) {
+    return false;
+  }
+
+  // Deep comparison for cartLines related to this product's variants
+  const variantIds = new Set(prev.group.variants.map((v) => String(v.productId)));
+  const prevLines = prev.cartLines.filter((l) => variantIds.has(l.key.split('::')[0]!));
+  const nextLines = next.cartLines.filter((l) => variantIds.has(l.key.split('::')[0]!));
+
+  if (prevLines.length !== nextLines.length) return false;
+
+  for (const pLine of prevLines) {
+    const nLine = nextLines.find((l) => l.key === pLine.key);
+    if (!nLine || pLine.qty !== nLine.qty) return false;
+  }
+
+  return true;
+}
+
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
+
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFav, setIsFav] = useState(false);
 
@@ -333,5 +363,5 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
-});
+}, arePropsEqual);
 
