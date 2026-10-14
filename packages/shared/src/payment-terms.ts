@@ -110,7 +110,7 @@ export const DEFAULT_PAYMENT_TERMS_CONFIG: PaymentTermsConfig = {
   mobileCategoryIds: [2],
   accessory: {
     enabled: true,
-    accountInstructions: 'شماره حساب ثابت حمید برای پرداخت کالاهای جانبی بلامانع است.\nبانک ملت - به نام حمید قاسم زاده\nشماره کارت: 6104-3311-4877-4871\nشماره شبا: IR980120010000007697585463',
+    accountInstructions: 'بانک ملت - به نام حمید قاسم زاده\nشماره کارت: 6104-3311-4877-4871\nشماره شبا: IR980120010000007697585463',
     rules: [
       ...accessoryRules('monthly', [100, 0, 0, 20, 30, 35, 40], [10, 5, 3, 0, 0, 0, 0]),
       ...accessoryRules('bimonthly', [100, 0, 20, 0, 35, 0, 50], [10, 5, 0, 0, 0, 0, 0]),
@@ -118,7 +118,7 @@ export const DEFAULT_PAYMENT_TERMS_CONFIG: PaymentTermsConfig = {
   },
   mobile: {
     enabled: true,
-    cashAccountInstructions: 'برای فاکتور نقدی، واریز به حساب حمید بلامانع است.\nبانک ملت - به نام حمید قاسم زاده\nشماره کارت: 6104-3311-4877-4871\nشماره شبا: IR980120010000007697585463',
+    cashAccountInstructions: 'بانک ملت - به نام حمید قاسم زاده\nشماره کارت: 6104-3311-4877-4871\nشماره شبا: IR980120010000007697585463',
     dailyAccountInstructions: 'شماره حساب دریافت سررسیدهای روزانه متغیر است و توسط واحد مالی اعلام می‌شود.',
     rules: [
       {
