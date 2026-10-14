@@ -48,9 +48,16 @@ export function CheckoutPage() {
 
       <main className="checkout-page">
         <div className="checkout-page-heading">
-          <span className="checkout-page-step">مرحله نهایی خرید</span>
-          <h1>تأیید و ثبت سفارش</h1>
-          <p>نشانی تحویل، روش پرداخت و جزئیات سفارش را بررسی کنید.</p>
+          <div className="checkout-page-heading__copy">
+            <span className="checkout-page-step"><Icon name="shield" /> مرحله نهایی و امن خرید</span>
+            <h1>تأیید و ثبت سفارش</h1>
+            <p>اطلاعات تحویل و شرایط پرداخت را بررسی کنید؛ مبلغ نهایی پیش از ثبت سفارش مشخص است.</p>
+          </div>
+          <ol className="checkout-progress" aria-label="مراحل خرید">
+            <li className="is-complete"><span><Icon name="check" /></span><b>سبد خرید</b></li>
+            <li className="is-active"><span>۲</span><b>اطلاعات و پرداخت</b></li>
+            <li><span>۳</span><b>ثبت نهایی</b></li>
+          </ol>
         </div>
 
         {!ready ? (

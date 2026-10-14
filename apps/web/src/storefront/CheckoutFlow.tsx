@@ -625,25 +625,30 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
         {error && <div className="alert error">{error}</div>}
 
         <section className="checkout-flow-fields" aria-labelledby="checkout-details-title">
-          <h2 id="checkout-details-title">اطلاعات تحویل و پرداخت</h2>
+          <div className="checkout-section-heading">
+            <span className="checkout-section-heading__icon"><Icon name="pin" /></span>
+            <div>
+              <h2 id="checkout-details-title">اطلاعات تحویل</h2>
+              <p>مشخصات گیرنده و نشانی ارسال سفارش</p>
+            </div>
+          </div>
+
+        <div className="checkout-card checkout-delivery-card">
 
         {user && (
-          <div className="card" style={{ padding: 12 }}>
-            <div className="stack" style={{ gap: 5, fontSize: 13 }}>
-              <div className="row">
-                <span className="muted">خریدار</span>
-                <span className="spacer" />
+          <div className="checkout-customer-card">
+              <span className="checkout-customer-card__avatar"><Icon name="user" /></span>
+              <div className="checkout-customer-card__item">
+                <span>خریدار</span>
                 <b>
                   {user.name} {user.lastName}
                   {user.storeName ? ` (${user.storeName})` : ""}
                 </b>
               </div>
-              <div className="row">
-                <span className="muted">موبایل</span>
-                <span className="spacer" />
+              <div className="checkout-customer-card__item checkout-customer-card__phone">
+                <span>شماره همراه</span>
                 <b className="ltr-inline">{user.phone}</b>
               </div>
-            </div>
           </div>
         )}
 
@@ -687,16 +692,24 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
           />
         </div>
 
-        <div className="field">
-          <label htmlFor="payment-kind-select">روش پرداخت و تسویه حساب</label>
+        </div>
+
+        <div className="field checkout-card checkout-payment-card">
+          <div className="checkout-section-heading checkout-section-heading--compact">
+            <span className="checkout-section-heading__icon"><Icon name="card" /></span>
+            <div>
+              <h2>روش پرداخت و تسویه حساب</h2>
+              <p>شرایط دلخواه را مرحله‌به‌مرحله انتخاب کنید.</p>
+            </div>
+          </div>
           <div style={{ display: "grid", gap: "8px", marginTop: "4px" }}>
             {termsQuery.isPending && <div className="alert">در حال محاسبه شرایط پرداخت…</div>}
             {termsQuery.isError && <div className="alert warn">محاسبه شرایط پرداخت انجام نشد؛ روش‌های عادی همچنان در دسترس هستند.</div>}
             {termsQuery.data?.message && <div className="alert warn">{termsQuery.data.message}</div>}
             {!termsQuery.isPending && (
-              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))' }}>
-                <div className="field" style={{ margin: 0 }}>
-                  <label htmlFor="payment-kind-select" style={{ fontSize: 12 }}>۱. نوع پرداخت</label>
+              <div className="checkout-payment-steps">
+                <div className="field checkout-payment-step">
+                  <label htmlFor="payment-kind-select"><span>۱</span> نوع پرداخت</label>
                   <select
                     id="payment-kind-select"
                     className="input"
@@ -715,8 +728,8 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
                 </div>
 
                 {activePaymentPlan?.kind === 'cheque' && (
-                  <div className="field" style={{ margin: 0 }}>
-                    <label htmlFor="payment-term-select" style={{ fontSize: 12 }}>۲. مدت بازپرداخت</label>
+                  <div className="field checkout-payment-step">
+                    <label htmlFor="payment-term-select"><span>۲</span> مدت بازپرداخت</label>
                     <select id="payment-term-select" className="input" value={activeChequeTerm ?? ''} onChange={(event) => selectChequeTerm(Number(event.target.value))} style={{ minHeight: 48 }}>
                       {chequeTerms.map((term) => <option key={term} value={term}>{formatNumber(term)} ماهه</option>)}
                     </select>
@@ -724,8 +737,8 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
                 )}
 
                 {activePaymentPlan?.kind === 'cheque' && chequeIntervals.length > 0 && (
-                  <div className="field" style={{ margin: 0 }}>
-                    <label htmlFor="payment-interval-select" style={{ fontSize: 12 }}>۳. فاصله پرداخت چک‌ها</label>
+                  <div className="field checkout-payment-step">
+                    <label htmlFor="payment-interval-select"><span>۳</span> فاصله پرداخت چک‌ها</label>
                     <select id="payment-interval-select" className="input" value={activePaymentPlan.installmentIntervalMonths ?? ''} onChange={(event) => selectChequeInterval(Number(event.target.value))} style={{ minHeight: 48 }}>
                       {chequeIntervals.map((interval) => (
                         <option key={interval} value={interval}>{interval === 1 ? 'ماه‌به‌ماه' : `هر ${formatNumber(interval)} ماه`}</option>
@@ -735,8 +748,8 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
                 )}
 
                 {activePaymentPlan?.kind === 'daily' && (
-                  <div className="field" style={{ margin: 0 }}>
-                    <label htmlFor="payment-days-select" style={{ fontSize: 12 }}>۲. مدت تسویه</label>
+                  <div className="field checkout-payment-step">
+                    <label htmlFor="payment-days-select"><span>۲</span> مدت تسویه</label>
                     <select id="payment-days-select" className="input" value={activePaymentPlan.settlementDays ?? ''} onChange={(event) => {
                       const plan = dailyPlans.find((item) => item.settlementDays === Number(event.target.value));
                       if (plan) setPaymentMethod(plan.id);
@@ -749,29 +762,31 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             )}
 
             {activePaymentPlan && (
-              <div className="card" style={{ padding: 12, borderColor: 'var(--primary)', background: 'var(--primary-light)' }}>
-                <div className="row" style={{ gap: 8 }}>
-                  <strong>{activePaymentPlan.label}</strong><span className="spacer" /><strong><Price amount={activePaymentPlan.finalAmount} /></strong>
+              <div className="checkout-plan-card">
+                <div className="checkout-plan-card__head">
+                  <span className="checkout-plan-card__icon"><Icon name={activePaymentPlan.kind === 'cash' ? 'cash' : 'calendar'} /></span>
+                  <div><span>طرح انتخاب‌شده</span><strong>{activePaymentPlan.label}</strong></div>
+                  <strong className="checkout-plan-card__price"><Price amount={activePaymentPlan.finalAmount} /></strong>
                 </div>
-                <p className="muted" style={{ fontSize: 12, margin: '6px 0 0' }}>{activePaymentPlan.description}</p>
+                <p className="checkout-plan-card__description">{activePaymentPlan.description}</p>
                 {activePaymentPlan.upfrontAmount != null && activePaymentPlan.upfrontPercent != null && activePaymentPlan.kind !== 'cash' && (
-                  <p style={{ fontSize: 12, margin: '6px 0 0' }}>پیش‌پرداخت: {formatNumber(activePaymentPlan.upfrontPercent)}٪ - <Price amount={activePaymentPlan.upfrontAmount} /></p>
+                  <div className="checkout-plan-card__upfront"><span>پیش‌پرداخت</span><b>{formatNumber(activePaymentPlan.upfrontPercent)}٪</b><span>معادل</span><b><Price amount={activePaymentPlan.upfrontAmount} /></b></div>
                 )}
                 {activePaymentPlan.schedule.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 8 }}>
+                  <div className="checkout-plan-schedule">
                     {activePaymentPlan.schedule.map((item, index) => (
-                      <span key={`${item.dueLabel}-${index}`} className="chip" style={{ fontSize: 11 }}>
-                        {item.dueLabel}: {item.optional ? 'اختیاری' : `${formatNumber(item.percent ?? 0)}٪`}
+                      <span key={`${item.dueLabel}-${index}`}>
+                        <small>{item.dueLabel}</small><b>{item.optional ? 'اختیاری' : `${formatNumber(item.percent ?? 0)}٪`}</b>
                       </span>
                     ))}
                   </div>
                 )}
-                {activePaymentPlan.instructions && <p style={{ fontSize: 12, margin: '8px 0 0', whiteSpace: 'pre-line', lineHeight: 1.7 }}>{activePaymentPlan.instructions}</p>}
+                {activePaymentPlan.instructions && <div className="checkout-plan-card__instructions"><Icon name="bank" /><p>{activePaymentPlan.instructions}</p></div>}
               </div>
             )}
 
             {activeConfiguredMethod && (
-              <div className="card" style={{ padding: 12 }}>
+              <div className="checkout-plan-card checkout-plan-card--simple">
                 <strong>{activeConfiguredMethod.label}</strong>
                 <p className="muted" style={{ fontSize: 12, margin: '6px 0 0' }}>
                   {activeConfiguredMethod.id === 'wallet' && walletQuery.data
@@ -787,9 +802,17 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
         </section>
 
         <section className="checkout-flow-summary" aria-labelledby="checkout-summary-title">
-          <h2 id="checkout-summary-title">خلاصه سفارش</h2>
-        <div className="table-wrap">
-          <table className="data">
+          <div className="checkout-section-heading">
+            <span className="checkout-section-heading__icon"><Icon name="receipt" /></span>
+            <div>
+              <h2 id="checkout-summary-title">خلاصه سفارش</h2>
+              <p>{formatNumber(lines.length)} ردیف کالا در این سفارش</p>
+            </div>
+          </div>
+
+        <div className="checkout-card checkout-summary-card">
+        <div className="table-wrap checkout-order-table-wrap">
+          <table className="data checkout-order-table">
             <thead>
               <tr>
                 <th>کالا</th>
@@ -817,40 +840,26 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
         </div>
 
         {activePaymentPlan && (
-          <div className="card" style={{ padding: 12, marginTop: 12, borderColor: 'var(--primary)' }}>
-            <div className="row"><span className="muted">جمع قیمت کالاها</span><span className="spacer" /><Price amount={activePaymentPlan.baseAmount} /></div>
+          <div className="checkout-totals">
+            <div className="checkout-totals__row"><span>جمع قیمت کالاها</span><Price amount={activePaymentPlan.baseAmount} /></div>
             {activePaymentPlan.adjustmentAmount !== 0 && (
-              <div className="row" style={{ marginTop: 6 }}>
-                <span className="muted">{activePaymentPlan.adjustmentAmount < 0 ? 'تخفیف شرایط پرداخت' : 'هزینه خدمات'}</span>
-                <span className="spacer" />
+              <div className="checkout-totals__row checkout-totals__row--adjustment">
+                <span>{activePaymentPlan.adjustmentAmount < 0 ? 'تخفیف شرایط پرداخت' : 'هزینه خدمات'}</span>
                 <span>{activePaymentPlan.adjustmentAmount < 0 ? '-' : '+'}<Price amount={Math.abs(activePaymentPlan.adjustmentAmount)} /></span>
               </div>
             )}
-            <div className="row" style={{ marginTop: 8, fontWeight: 800 }}><span>مبلغ نهایی قابل پرداخت</span><span className="spacer" /><Price amount={activePaymentPlan.finalAmount} /></div>
+            <div className="checkout-totals__final"><span>مبلغ نهایی قابل پرداخت</span><strong><Price amount={activePaymentPlan.finalAmount} /></strong></div>
           </div>
         )}
 
-        <label
-          className="card"
-          style={{
-            padding: 12,
-            display: "flex",
-            gap: 10,
-            alignItems: "flex-start",
-            cursor: "pointer",
-            background: "var(--warn-bg)",
-            borderColor: "var(--warn)",
-          }}
-        >
+        <label className="checkout-consent">
           <input
             type="checkbox"
             checked={agreeTerms}
             onChange={(e) => setAgreeTerms(e.target.checked)}
-            style={{ marginTop: 3, width: 18, height: 18, cursor: "pointer" }}
           />
-          <span
-            style={{ fontSize: 12.5, lineHeight: 1.8, color: "var(--text)" }}
-          >
+          <span>
+            <b><Icon name="shield" /> تأیید شرایط سفارش</b>
             با تیک زدن این گزینه، اینجانب تمامی شرایط و مفاد مندرج در این فاکتور
             (از جمله شرایط حفظ مالکیت کالا و تعهدات بازپرداخت) را مطالعه کرده و
             به عنوان «امضای دیجیتال» خود تأیید می‌نمایم. من آگاه هستم که این
@@ -870,10 +879,12 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
           </span>
         </label>
 
-        <p className="faint" style={{ margin: 0, fontSize: 12 }}>
+        <p className="checkout-price-note">
+          <Icon name="help" />
           قیمت‌ها در لحظه ثبت سفارش از سرور خوانده می‌شوند و ممکن است با نمایش
           فعلی تفاوت جزئی داشته باشند.
         </p>
+        </div>
         </section>
       </div>
     </Modal>
