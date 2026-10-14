@@ -15,6 +15,8 @@ test('default config reproduces accessory cash discount and cheque prepayment', 
   assert.equal(cash?.finalAmount, 900_000);
   assert.equal(cash?.discountPercent, 10);
   assert.equal(fourMonth?.upfrontAmount, 300_000);
+  assert.equal(fourMonth?.termMonths, 4);
+  assert.equal(fourMonth?.installmentIntervalMonths, 1);
   assert.equal(fourMonth?.schedule.length, 4);
   assert.equal(fourMonth?.schedule.reduce((sum, item) => sum + (item.amount ?? 0), 0), 700_000);
   const oneMonth = quote.plans.find((plan) => plan.id === 'accessory-monthly-1');
@@ -27,6 +29,7 @@ test('default config reproduces mobile service fees and daily schedule', () => {
   const quote = buildPaymentTermsQuote(10_000_000, ['mobile'], config);
   const fiveDays = quote.plans.find((plan) => plan.id === 'mobile-5-days');
   assert.equal(fiveDays?.finalAmount, 10_130_000);
+  assert.equal(fiveDays?.settlementDays, 5);
   assert.deepEqual(fiveDays?.schedule.map((item) => item.percent), [null, 20, 20, 20, 20]);
   assert.equal(repricePaymentPlan(fiveDays!, 20_000_000).finalAmount, 20_260_000);
 });

@@ -69,6 +69,11 @@ export interface PaymentPlanQuote {
   schedule: PaymentScheduleItem[];
   instructions: string;
   requiresPaymentInfo: boolean;
+  /** Checkout selector metadata for accessory cheque plans. */
+  termMonths: number | null;
+  installmentIntervalMonths: number | null;
+  /** Checkout selector metadata for mobile settlement plans. */
+  settlementDays: number | null;
 }
 
 export interface PaymentTermsQuoteResult {
@@ -300,6 +305,9 @@ export function buildPaymentTermsQuote(
         schedule,
         instructions: config.accessory.accountInstructions,
         requiresPaymentInfo: rule.termMonths > 0,
+        termMonths: rule.termMonths,
+        installmentIntervalMonths: rule.termMonths > 0 ? (rule.group === 'bimonthly' ? 2 : 1) : null,
+        settlementDays: null,
       };
     });
     return { audience, baseAmount, plans };
@@ -332,6 +340,9 @@ export function buildPaymentTermsQuote(
       schedule,
       instructions: rule.days === 0 ? config.mobile.cashAccountInstructions : config.mobile.dailyAccountInstructions,
       requiresPaymentInfo: rule.days === 0,
+      termMonths: null,
+      installmentIntervalMonths: null,
+      settlementDays: rule.days,
     };
   });
   return { audience, baseAmount, plans };

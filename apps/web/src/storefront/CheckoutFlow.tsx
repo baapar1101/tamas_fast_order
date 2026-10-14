@@ -223,7 +223,44 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
   );
   const activePaymentPlan = paymentPlans.find((plan) => plan.id === activePaymentMethod) ?? null;
   const activeConfiguredMethod = availableMethods.find((method) => method.id === activePaymentMethod) ?? null;
+  const paymentKindValue = activePaymentPlan
+    ? `plan:${activePaymentPlan.kind}`
+    : activeConfiguredMethod
+      ? `method:${activeConfiguredMethod.id}`
+      : '';
+  const chequePlans = paymentPlans.filter((plan) => plan.kind === 'cheque');
+  const chequeTerms = [...new Set(chequePlans.map((plan) => plan.termMonths).filter((value): value is number => value != null))].sort((a, b) => a - b);
+  const activeChequeTerm = activePaymentPlan?.kind === 'cheque' ? activePaymentPlan.termMonths : null;
+  const chequeIntervals = [...new Set(chequePlans
+    .filter((plan) => plan.termMonths === activeChequeTerm)
+    .map((plan) => plan.installmentIntervalMonths)
+    .filter((value): value is number => value != null))].sort((a, b) => a - b);
+  const dailyPlans = paymentPlans.filter((plan) => plan.kind === 'daily');
   const payableTotal = activePaymentPlan?.finalAmount ?? quotedBaseAmount;
+
+  function selectPaymentKind(value: string) {
+    if (value.startsWith('method:')) {
+      setPaymentMethod(value.slice('method:'.length));
+      return;
+    }
+    const kind = value.slice('plan:'.length);
+    const plan = paymentPlans.find((item) => item.kind === kind);
+    if (plan) setPaymentMethod(plan.id);
+  }
+
+  function selectChequeTerm(termMonths: number) {
+    const plan = chequePlans.find((item) =>
+      item.termMonths === termMonths && item.installmentIntervalMonths === activePaymentPlan?.installmentIntervalMonths,
+    ) ?? chequePlans.find((item) => item.termMonths === termMonths);
+    if (plan) setPaymentMethod(plan.id);
+  }
+
+  function selectChequeInterval(intervalMonths: number) {
+    const plan = chequePlans.find((item) =>
+      item.termMonths === activeChequeTerm && item.installmentIntervalMonths === intervalMonths,
+    );
+    if (plan) setPaymentMethod(plan.id);
+  }
 
   const deliveryAddress = address.trim() || user?.address || "";
 
@@ -651,35 +688,64 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
         </div>
 
         <div className="field">
-          <label htmlFor="payment-method-select">روش پرداخت و تسویه حساب</label>
+          <label htmlFor="payment-kind-select">روش پرداخت و تسویه حساب</label>
           <div style={{ display: "grid", gap: "8px", marginTop: "4px" }}>
             {termsQuery.isPending && <div className="alert">در حال محاسبه شرایط پرداخت…</div>}
             {termsQuery.isError && <div className="alert warn">محاسبه شرایط پرداخت انجام نشد؛ روش‌های عادی همچنان در دسترس هستند.</div>}
             {termsQuery.data?.message && <div className="alert warn">{termsQuery.data.message}</div>}
             {!termsQuery.isPending && (
-              <select
-                id="payment-method-select"
-                className="input"
-                value={activePaymentMethod}
-                onChange={(event) => setPaymentMethod(event.target.value)}
-                style={{ minHeight: 48, fontWeight: 700 }}
-              >
-                {paymentPlans.length > 0 && (
-                  <optgroup label="شرایط پرداخت کالا">
-                    {paymentPlans.map((plan) => (
-                      <option key={plan.id} value={plan.id}>{plan.label} - {formatMoney(plan.finalAmount)}</option>
-                    ))}
-                  </optgroup>
-                )}
-                {availableMethods.length > 0 && (
-                  <optgroup label={paymentPlans.length > 0 ? 'سایر روش‌های پرداخت' : 'روش‌های پرداخت'}>
+              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))' }}>
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor="payment-kind-select" style={{ fontSize: 12 }}>۱. نوع پرداخت</label>
+                  <select
+                    id="payment-kind-select"
+                    className="input"
+                    value={paymentKindValue}
+                    onChange={(event) => selectPaymentKind(event.target.value)}
+                    style={{ minHeight: 48, fontWeight: 700 }}
+                  >
+                    {paymentPlans.some((plan) => plan.kind === 'cash') && <option value="plan:cash">نقدی</option>}
+                    {chequePlans.length > 0 && <option value="plan:cheque">پرداخت با چک</option>}
+                    {dailyPlans.length > 0 && <option value="plan:daily">تسویه مدت‌دار</option>}
                     {availableMethods.map((method) => {
                       const disabled = method.id === 'wallet' && !canUseWallet;
-                      return <option key={method.id} value={method.id} disabled={disabled}>{method.label}{disabled ? ' - موجودی کافی نیست' : ''}</option>;
+                      return <option key={method.id} value={`method:${method.id}`} disabled={disabled}>{method.label}{disabled ? ' - موجودی کافی نیست' : ''}</option>;
                     })}
-                  </optgroup>
+                  </select>
+                </div>
+
+                {activePaymentPlan?.kind === 'cheque' && (
+                  <div className="field" style={{ margin: 0 }}>
+                    <label htmlFor="payment-term-select" style={{ fontSize: 12 }}>۲. مدت بازپرداخت</label>
+                    <select id="payment-term-select" className="input" value={activeChequeTerm ?? ''} onChange={(event) => selectChequeTerm(Number(event.target.value))} style={{ minHeight: 48 }}>
+                      {chequeTerms.map((term) => <option key={term} value={term}>{formatNumber(term)} ماهه</option>)}
+                    </select>
+                  </div>
                 )}
-              </select>
+
+                {activePaymentPlan?.kind === 'cheque' && chequeIntervals.length > 0 && (
+                  <div className="field" style={{ margin: 0 }}>
+                    <label htmlFor="payment-interval-select" style={{ fontSize: 12 }}>۳. فاصله پرداخت چک‌ها</label>
+                    <select id="payment-interval-select" className="input" value={activePaymentPlan.installmentIntervalMonths ?? ''} onChange={(event) => selectChequeInterval(Number(event.target.value))} style={{ minHeight: 48 }}>
+                      {chequeIntervals.map((interval) => (
+                        <option key={interval} value={interval}>{interval === 1 ? 'ماه‌به‌ماه' : `هر ${formatNumber(interval)} ماه`}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {activePaymentPlan?.kind === 'daily' && (
+                  <div className="field" style={{ margin: 0 }}>
+                    <label htmlFor="payment-days-select" style={{ fontSize: 12 }}>۲. مدت تسویه</label>
+                    <select id="payment-days-select" className="input" value={activePaymentPlan.settlementDays ?? ''} onChange={(event) => {
+                      const plan = dailyPlans.find((item) => item.settlementDays === Number(event.target.value));
+                      if (plan) setPaymentMethod(plan.id);
+                    }} style={{ minHeight: 48 }}>
+                      {dailyPlans.map((plan) => <option key={plan.id} value={plan.settlementDays ?? 0}>{formatNumber(plan.settlementDays ?? 0)} روزه</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
             )}
 
             {activePaymentPlan && (
