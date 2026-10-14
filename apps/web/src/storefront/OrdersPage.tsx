@@ -91,6 +91,12 @@ export function OrdersPage() {
                         <span className="ord-stat-label">مبلغ کل</span>
                         <b className="ord-stat-value"><Price amount={order.total} /></b>
                       </div>
+                      {order.paymentPlan && (
+                        <div className="ord-stat">
+                          <span className="ord-stat-label">شرایط پرداخت</span>
+                          <b className="ord-stat-value">{order.paymentPlan.label}</b>
+                        </div>
+                      )}
                     </div>
                   </header>
 
@@ -136,6 +142,8 @@ export function OrdersPage() {
                     customerName={user?.name}
                     customerPhone={user?.phone}
                     total={order.total}
+                    subtotal={order.subtotal}
+                    paymentLabel={order.paymentPlan?.label}
                     items={items}
                     showStamp={order.status !== 'cancelled'}
                   />

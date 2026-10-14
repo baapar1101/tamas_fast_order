@@ -886,9 +886,10 @@ select.select {
     border: 2px solid #000;
     padding: 12px 24px;
     border-radius: 8px;
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto;
     align-items: center;
-    gap: 16px;
+    gap: 6px 16px;
     color: #000 !important;
   }
 

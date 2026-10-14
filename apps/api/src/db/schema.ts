@@ -14,7 +14,7 @@ import {
   uniqueIndex,
   varchar,
 } from 'drizzle-orm/pg-core';
-import type { ProductAttribute } from '@tamas/shared';
+import type { PaymentPlanQuote, ProductAttribute } from '@tamas/shared';
 
 /* ------------------------------------------------------------------ *
  * Shared column bundles
@@ -439,11 +439,15 @@ export const orders = pgTable(
     phone: varchar('phone', { length: 15 }).notNull(),
     storeName: varchar('store_name', { length: 200 }),
     address: text('address').notNull().default(''),
+    /** Sum of catalogue line prices before payment discounts or service fees. */
+    subtotal: bigint('subtotal', { mode: 'number' }).notNull().default(0),
     total: bigint('total', { mode: 'number' }).notNull().default(0),
     quantity: integer('quantity').notNull().default(1),
     status: orderStatusEnum('status').notNull().default('new'),
     paymentStatus: paymentStatusEnum('payment_status').notNull().default('unpaid'),
     paymentMethod: varchar('payment_method', { length: 100 }),
+    /** Immutable snapshot of the selected payment rule at checkout time. */
+    paymentPlan: jsonb('payment_plan').$type<PaymentPlanQuote>(),
     note: text('note'),
     acquisitionSource: varchar('acquisition_source', { length: 120 }),
     acquisitionMedium: varchar('acquisition_medium', { length: 120 }),

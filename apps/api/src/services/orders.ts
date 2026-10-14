@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
-import type { OrderCreate, OrderDTO, OrderItemsReplace, Warehouse } from '@tamas/shared';
-import { WAREHOUSE_LABELS } from '@tamas/shared';
+import type { OrderCreate, OrderDTO, OrderItemsReplace, PaymentPlanQuote, Warehouse } from '@tamas/shared';
+import { WAREHOUSE_LABELS, repricePaymentPlan } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { inventoryReservations, orderItems, orders, products } from '../db/schema.js';
 import { badRequest, conflict, notFound, profileIncomplete } from '../lib/errors.js';
@@ -10,6 +10,7 @@ import { upsertOrderPayment } from './payments.js';
 import { applyWalletTransaction } from './wallet.js';
 import { getSetting } from './settings.js';
 import { allocateInventory, type InventoryQuantities } from './inventory-policy.js';
+import { getPaymentTermsConfig, quotePaymentTerms, selectPaymentPlan } from './payment-terms.js';
 
 type OrderRow = typeof orders.$inferSelect;
 type OrderItemRow = typeof orderItems.$inferSelect;
@@ -24,10 +25,12 @@ export function toOrderDTO(row: OrderRow, items: OrderItemRow[]): OrderDTO {
     storeName: row.storeName,
     address: row.address,
     total: row.total,
+    subtotal: row.subtotal,
     quantity: row.quantity,
     status: row.status,
     paymentStatus: row.paymentStatus,
     paymentMethod: row.paymentMethod,
+    paymentPlan: row.paymentPlan ?? null,
     note: row.note,
     acquisitionSource: row.acquisitionSource,
     acquisitionMedium: row.acquisitionMedium,
@@ -95,6 +98,9 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
   const productIds = [...new Set(lines.map((l) => l.productId))];
 
   const walletPayment = input.paymentMethod?.trim() === 'wallet';
+  if (walletPayment && input.paymentPlanId) {
+    throw badRequest('پرداخت با کیف پول و شرایط مدت‌دار را نمی‌توان هم‌زمان انتخاب کرد.');
+  }
   if (walletPayment) {
     const [walletEnabled, orderPaymentEnabled] = await Promise.all([
       getSetting('WALLET_ENABLED'),
@@ -134,7 +140,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       }
     }
 
-    let total = 0;
+    let subtotal = 0;
     const toInsert: Array<typeof orderItems.$inferInsert> = [];
     const stockUpdates: Array<{ id: number; warehouse: Warehouse; qty: number }> = [];
 
@@ -159,7 +165,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           stockUpdates.push({ id: part.id, warehouse: line.warehouse, qty: requiredQty });
         }
         // Add bundle itself to order line items (but stockUpdates only has parts)
-        total += product.price * line.qty;
+        subtotal += product.price * line.qty;
         toInsert.push({
           orderId: 0,
           productId: product.productId,
@@ -180,7 +186,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           );
         }
 
-        total += product.price * line.qty;
+        subtotal += product.price * line.qty;
         toInsert.push({
           orderId: 0,
           productId: product.productId,
@@ -195,6 +201,20 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       }
     }
 
+    let paymentPlan: PaymentPlanQuote | null = null;
+    let total = subtotal;
+    if (input.paymentPlanId) {
+      const config = await getPaymentTermsConfig();
+      const quote = quotePaymentTerms(lines.map((line) => {
+        const product = byId.get(line.productId)!;
+        return { categoryId: product.categoryId, price: product.price, qty: line.qty };
+      }), config);
+      if (quote.audience === 'mixed') throw badRequest(quote.message ?? 'شرایط پرداخت برای سبد ترکیبی قابل اعمال نیست.');
+      paymentPlan = selectPaymentPlan(quote, input.paymentPlanId);
+      if (!paymentPlan) throw badRequest('شرایط پرداخت انتخاب‌شده معتبر یا فعال نیست.');
+      total = paymentPlan.finalAmount;
+    }
+
     const customerName = [user.name, user.lastName].filter(Boolean).join(' ').trim() || user.phone;
 
     const [order] = await tx
@@ -206,11 +226,13 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
         phone: user.phone,
         storeName: user.storeName || null,
         address: (input.address || user.address).trim(),
+        subtotal,
         total,
         quantity: lines.reduce((acc, l) => acc + l.qty, 0),
         status: walletPayment ? 'confirmed' : 'new',
         paymentStatus: walletPayment ? 'paid' : 'unpaid',
-        paymentMethod: input.paymentMethod?.trim() || null,
+        paymentMethod: paymentPlan?.id ?? (input.paymentMethod?.trim() || null),
+        paymentPlan,
         note: input.note?.trim() || null,
         acquisitionSource: input.attribution?.source?.trim().toLowerCase() || null,
         acquisitionMedium: input.attribution?.medium?.trim().toLowerCase() || null,
@@ -333,7 +355,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           { label: 'تلفن', value: order.phone },
           { label: 'مبلغ', value: `${order.total.toLocaleString('fa-IR')} تومان` },
           { label: 'تعداد', value: order.quantity },
-          { label: 'روش پرداخت', value: order.paymentMethod },
+          { label: 'روش پرداخت', value: paymentPlan?.label ?? order.paymentMethod },
         ],
         keyboard: telegramActionButtons.order(order.id),
       }).then((result) => {
@@ -555,7 +577,9 @@ export async function replaceOrderItems(orderId: number, input: OrderItemsReplac
     await tx.delete(inventoryReservations).where(eq(inventoryReservations.orderId, orderId));
     if (nextReservations.length > 0) await tx.insert(inventoryReservations).values(nextReservations);
 
-    const total = replacementRows.reduce((sum, item) => sum + Number(item.price) * Number(item.qty), 0);
+    const subtotal = replacementRows.reduce((sum, item) => sum + Number(item.price) * Number(item.qty), 0);
+    const paymentPlan = order.paymentPlan ? repricePaymentPlan(order.paymentPlan, subtotal) : null;
+    const total = paymentPlan?.finalAmount ?? subtotal;
     const quantity = replacementRows.reduce((sum, item) => sum + Number(item.qty), 0);
     if (!Number.isSafeInteger(total) || total < 0) throw badRequest('مبلغ نهایی سفارش معتبر نیست.');
 
@@ -563,7 +587,7 @@ export async function replaceOrderItems(orderId: number, input: OrderItemsReplac
     const inserted = await tx.insert(orderItems).values(replacementRows).returning();
     const [updated] = await tx
       .update(orders)
-      .set({ total, quantity, updatedAt: new Date() })
+      .set({ subtotal, total, paymentPlan, quantity, updatedAt: new Date() })
       .where(eq(orders.id, orderId))
       .returning();
     if (!updated) throw notFound('سفارش پیدا نشد.');

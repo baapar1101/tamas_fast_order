@@ -59,7 +59,7 @@ export function ProformaDocument({ order }: { order: OrderDTO }) {
           <p><span>نام خریدار:</span><strong>{order.customerName || 'مشتری تماس مارکت'}</strong></p>
           <p><span>فروشگاه:</span><strong>{order.storeName || '—'}</strong></p>
           <p><span>شماره همراه:</span><strong dir="ltr">{order.phone || '—'}</strong></p>
-          <p><span>روش پرداخت:</span><strong>{paymentMethodLabel(order.paymentMethod)}</strong></p>
+          <p><span>روش پرداخت:</span><strong>{order.paymentPlan?.label ?? paymentMethodLabel(order.paymentMethod)}</strong></p>
           <p className="proforma-party-address"><span>آدرس:</span><strong>{order.address || '—'}</strong></p>
         </div>
       </section>
@@ -102,6 +102,7 @@ export function ProformaDocument({ order }: { order: OrderDTO }) {
         </div>
         <div className="proforma-total">
           <span>جمع تعداد</span><strong>{formatNumber(order.quantity)} عدد</strong>
+          {order.subtotal !== order.total && <><span>جمع کالاها</span><strong>{money(order.subtotal)}</strong></>}
           <span>مبلغ کل</span><strong>{money(order.total)}</strong>
         </div>
       </section>

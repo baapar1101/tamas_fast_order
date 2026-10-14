@@ -1,4 +1,5 @@
 import type { ChequeStatus, CreditStatus, OrderStatus, UploadKind, Warehouse } from './schemas.js';
+import type { PaymentPlanQuote } from './payment-terms.js';
 
 export interface ApiError {
   ok: false;
@@ -202,10 +203,12 @@ export interface OrderDTO {
   storeName: string | null;
   address: string;
   total: number;
+  subtotal: number;
   quantity: number;
   status: OrderStatus;
   paymentStatus: 'paid' | 'unpaid' | 'pending';
   paymentMethod: string | null;
+  paymentPlan: PaymentPlanQuote | null;
   note: string | null;
   acquisitionSource?: string | null;
   acquisitionMedium?: string | null;

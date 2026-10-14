@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { OrderDTO } from "@tamas/shared";
+import type { OrderDTO, PaymentPlanQuote, PaymentTermsQuoteResult } from "@tamas/shared";
 import { WAREHOUSE_LABELS, formatMoney, formatNumber } from "@tamas/shared";
 import { Price } from "../components/Price";
 import { Modal } from "../components/Modal";
@@ -166,6 +166,45 @@ const SECONDARY_INFO: Record<
   },
 };
 
+function PaymentPlanOption({ plan, selected, onSelect }: { plan: PaymentPlanQuote; selected: boolean; onSelect: () => void }) {
+  return (
+    <label
+      style={{
+        display: 'flex', alignItems: 'flex-start', gap: 10, padding: 12,
+        border: selected ? '2px solid var(--primary)' : '1px solid var(--border)',
+        borderRadius: 10, cursor: 'pointer', background: selected ? 'var(--primary-light)' : 'var(--card)',
+      }}
+    >
+      <input type="radio" name="paymentMethod" value={plan.id} checked={selected} onChange={onSelect} style={{ marginTop: 4, width: 16, height: 16, accentColor: 'var(--primary)' }} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, width: '100%' }}>
+        <div className="row" style={{ gap: 8 }}>
+          <strong style={{ fontSize: 14, color: selected ? 'var(--primary-dark)' : 'var(--text)' }}>{plan.label}</strong>
+          <span className="spacer" />
+          <strong><Price amount={plan.finalAmount} /></strong>
+        </div>
+        <span style={{ fontSize: 12, color: 'var(--muted)' }}>{plan.description}</span>
+        {plan.upfrontAmount != null && plan.upfrontPercent != null && plan.kind !== 'cash' && (
+          <span style={{ fontSize: 12 }}>پیش‌پرداخت: {formatNumber(plan.upfrontPercent)}٪ - <Price amount={plan.upfrontAmount} /></span>
+        )}
+        {selected && plan.schedule.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 3 }}>
+            {plan.schedule.map((item, index) => (
+              <span key={`${item.dueLabel}-${index}`} className="chip" style={{ fontSize: 11 }}>
+                {item.dueLabel}: {item.optional ? 'اختیاری' : `${formatNumber(item.percent ?? 0)}٪`}
+              </span>
+            ))}
+          </div>
+        )}
+        {selected && plan.instructions && (
+          <div style={{ fontSize: 12, color: 'var(--primary-dark)', background: 'rgba(14, 165, 233, 0.08)', padding: '8px 10px', borderRadius: 6, whiteSpace: 'pre-line', lineHeight: 1.7 }}>
+            {plan.instructions}
+          </div>
+        )}
+      </div>
+    </label>
+  );
+}
+
 export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
   const toast = useToast();
   const user = useAuth((s) => s.user);
@@ -174,7 +213,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
 
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("aqayepardakht");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -192,20 +231,37 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
     queryFn: () => api.get<{ wallet: { balance: number; isFrozen: boolean }; config: { enabled: boolean; orderPaymentEnabled: boolean } }>('/wallet'),
     enabled: Boolean(user),
   });
+  const termsQuery = useQuery({
+    queryKey: ['payment-terms', 'quote', lines.map((line) => [line.productId, line.qty])],
+    queryFn: () => api.post<PaymentTermsQuoteResult>('/payment/terms/quote', {
+      items: lines.map((line) => ({ productId: line.productId, qty: line.qty })),
+    }),
+    enabled: lines.length > 0,
+  });
 
   const configuredMethods = parsePaymentMethods(bootstrap.data?.settings.payment_methods);
+  const quotedBaseAmount = termsQuery.data?.baseAmount ?? total;
+  const paymentPlans = termsQuery.data?.plans ?? [];
   const availableMethods = configuredMethods.filter(
     (m) =>
       m.enabled !== false &&
-      (!m.minAmount || total >= m.minAmount) &&
-      (!m.maxAmount || total <= m.maxAmount)
+      (!m.minAmount || quotedBaseAmount >= m.minAmount) &&
+      (!m.maxAmount || quotedBaseAmount <= m.maxAmount) &&
+      (paymentPlans.length === 0 || ['wallet', 'aqayepardakht'].includes(m.id))
   );
 
-  const canUseWallet = Boolean(walletQuery.data?.config.enabled && walletQuery.data.config.orderPaymentEnabled && !walletQuery.data.wallet.isFrozen && walletQuery.data.wallet.balance >= total);
+  const canUseWallet = Boolean(walletQuery.data?.config.enabled && walletQuery.data.config.orderPaymentEnabled && !walletQuery.data.wallet.isFrozen && walletQuery.data.wallet.balance >= quotedBaseAmount);
 
-  const activePaymentMethod = availableMethods.some((m) => m.id === paymentMethod && (m.id !== 'wallet' || canUseWallet))
-    ? paymentMethod
-    : availableMethods.find((m) => m.id !== 'wallet' || canUseWallet)?.id || 'aqayepardakht';
+  const selectedPlan = paymentPlans.find((plan) => plan.id === paymentMethod) ?? null;
+  const selectedConfiguredMethod = availableMethods.some((m) => m.id === paymentMethod && (m.id !== 'wallet' || canUseWallet));
+  const activePaymentMethod = selectedPlan?.id ?? (
+    (selectedConfiguredMethod ? paymentMethod : '')
+    || paymentPlans[0]?.id
+    || availableMethods.find((m) => m.id !== 'wallet' || canUseWallet)?.id
+    || 'aqayepardakht'
+  );
+  const activePaymentPlan = paymentPlans.find((plan) => plan.id === activePaymentMethod) ?? null;
+  const payableTotal = activePaymentPlan?.finalAmount ?? quotedBaseAmount;
 
   const deliveryAddress = address.trim() || user?.address || "";
 
@@ -239,6 +295,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
         address: address.trim() || undefined,
         note: note.trim() || undefined,
         paymentMethod: activePaymentMethod,
+        paymentPlanId: activePaymentPlan?.id,
         attribution: readAttribution(),
       });
       clear();
@@ -261,7 +318,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
       }
 
       // For non-gateway methods, show secondary form if configured or standard
-      const hasSecondary = SECONDARY_INFO[activePaymentMethod] || availableMethods.find(m => m.id === activePaymentMethod)?.instructions;
+      const hasSecondary = res.order.paymentPlan || SECONDARY_INFO[activePaymentMethod] || availableMethods.find(m => m.id === activePaymentMethod)?.instructions;
       if (hasSecondary) {
         setCompletedOrder(res.order);
         setCompletedMethod(activePaymentMethod);
@@ -305,7 +362,25 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
 
   // ── Secondary form view (post-order) ────────────────────────────
   if (completedOrder) {
-    const info = SECONDARY_INFO[completedMethod];
+    const plan = completedOrder.paymentPlan;
+    const planSchedule = plan?.schedule.map((item) => `${item.dueLabel}: ${item.optional ? 'اختیاری' : `${item.percent}٪`}`) ?? [];
+    const info = plan ? {
+      title: `تکمیل سفارش - ${plan.label}`,
+      instructions: [
+        plan.description,
+        ...(plan.instructions ? [plan.instructions] : []),
+        ...planSchedule,
+      ],
+      fields: plan.kind === 'cheque' ? [
+        { key: 'checkNumber', label: 'شماره چک صیادی', placeholder: 'شماره ۱۶ رقمی چک' },
+        { key: 'checkBankName', label: 'نام بانک', placeholder: 'مثال: بانک ملت' },
+        { key: 'checkDate', label: 'تاریخ اولین سررسید', placeholder: 'مثال: ۱۴۰۵/۰۸/۱۵', type: 'text' },
+        { key: 'checkNote', label: 'توضیحات سایر چک‌ها (اختیاری)', placeholder: 'شماره و تاریخ سایر چک‌ها' },
+      ] : plan.kind === 'cash' ? [
+        { key: 'receiptImageUrl', label: 'آپلود رسید (تصویر)', placeholder: 'انتخاب فایل', type: 'file' },
+        { key: 'receiptNote', label: 'شماره پیگیری یا توضیحات', placeholder: 'کد رهگیری، ساعت واریز یا توضیح' },
+      ] : [],
+    } : SECONDARY_INFO[completedMethod];
     const customMethodObj = availableMethods.find(m => m.id === completedMethod);
 
     if (info) {
@@ -323,9 +398,9 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
                 className="btn primary"
                 style={{ flex: 1 }}
                 disabled={secondaryBusy}
-                onClick={() => void submitSecondary()}
+                onClick={() => info.fields.length > 0 ? void submitSecondary() : handleClose()}
               >
-                {secondaryBusy ? "در حال ثبت…" : "ثبت اطلاعات پرداخت"}
+                {secondaryBusy ? "در حال ثبت…" : info.fields.length > 0 ? "ثبت اطلاعات پرداخت" : "تأیید و پایان"}
               </button>
               <button
                 type="button"
@@ -525,14 +600,14 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             type="button"
             className="btn primary"
             style={{ flex: 1 }}
-            disabled={busy || !agreeTerms}
+            disabled={busy || !agreeTerms || termsQuery.isPending}
             onClick={() => void submit()}
           >
-            {busy ? (
-              "در حال ثبت…"
+            {busy || termsQuery.isPending ? (
+              termsQuery.isPending ? "در حال محاسبه شرایط…" : "در حال ثبت…"
             ) : (
               <>
-                ثبت سفارش — <Price amount={total} />
+                ثبت سفارش — <Price amount={payableTotal} />
               </>
             )}
           </button>
@@ -616,6 +691,17 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
         <div className="field">
           <label>روش پرداخت و تسویه حساب</label>
           <div style={{ display: "grid", gap: "8px", marginTop: "4px" }}>
+            {termsQuery.isPending && <div className="alert">در حال محاسبه شرایط پرداخت…</div>}
+            {termsQuery.isError && <div className="alert warn">محاسبه شرایط پرداخت انجام نشد؛ روش‌های عادی همچنان در دسترس هستند.</div>}
+            {termsQuery.data?.message && <div className="alert warn">{termsQuery.data.message}</div>}
+            {paymentPlans.map((plan) => (
+              <PaymentPlanOption
+                key={plan.id}
+                plan={plan}
+                selected={activePaymentMethod === plan.id}
+                onSelect={() => setPaymentMethod(plan.id)}
+              />
+            ))}
             {availableMethods.map((method) => {
               const isSelected = activePaymentMethod === method.id;
               const disabled = method.id === 'wallet' && !canUseWallet;
@@ -731,6 +817,20 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             </tbody>
           </table>
         </div>
+
+        {activePaymentPlan && (
+          <div className="card" style={{ padding: 12, marginTop: 12, borderColor: 'var(--primary)' }}>
+            <div className="row"><span className="muted">جمع قیمت کالاها</span><span className="spacer" /><Price amount={activePaymentPlan.baseAmount} /></div>
+            {activePaymentPlan.adjustmentAmount !== 0 && (
+              <div className="row" style={{ marginTop: 6 }}>
+                <span className="muted">{activePaymentPlan.adjustmentAmount < 0 ? 'تخفیف شرایط پرداخت' : 'هزینه خدمات'}</span>
+                <span className="spacer" />
+                <span>{activePaymentPlan.adjustmentAmount < 0 ? '-' : '+'}<Price amount={Math.abs(activePaymentPlan.adjustmentAmount)} /></span>
+              </div>
+            )}
+            <div className="row" style={{ marginTop: 8, fontWeight: 800 }}><span>مبلغ نهایی قابل پرداخت</span><span className="spacer" /><Price amount={activePaymentPlan.finalAmount} /></div>
+          </div>
+        )}
 
         <label
           className="card"

@@ -406,7 +406,7 @@ export function OrdersPage() {
                       </span>
                     </td>
                     <td className="text-xs text-slate-400">
-                      {o.paymentMethod === 'card_to_card' ? 'کارت به کارت' : 'آنلاین / نقدی'}
+                      {o.paymentPlan?.label ?? (o.paymentMethod === 'card_to_card' ? 'کارت به کارت' : 'آنلاین / نقدی')}
                     </td>
                     <td className="text-xs text-slate-400">
                       {new Date(o.createdAt).toLocaleDateString('fa-IR')}

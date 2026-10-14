@@ -4,6 +4,8 @@ import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 import { ImagePicker } from '../components/ImagePicker';
 import { PaymentMethodsSettings } from '../components/PaymentMethodsSettings';
+import { PaymentTermsSettings } from '../components/PaymentTermsSettings';
+import { PAYMENT_TERMS_SETTING_KEY, type CategoryDTO } from '@tamas/shared';
 import {
   HOMEPAGE_FILTER_SETTING_KEY,
   HOMEPAGE_FILTER_TYPE_LABELS,
@@ -153,6 +155,11 @@ export function SettingsPage() {
     queryFn: () => api.get<{ settings: Record<string, string> }>('/admin/settings'),
   });
 
+  const categories = useQuery({
+    queryKey: ['catalog', 'categories', 'payment-terms'],
+    queryFn: () => api.get<{ categories: CategoryDTO[] }>('/catalog/categories'),
+  });
+
   const crmStats = useQuery({
     queryKey: ['admin', 'crm-stats'],
     queryFn: () => api.get<CrmStats>('/crm/stats'),
@@ -181,7 +188,7 @@ export function SettingsPage() {
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [testPhone, setTestPhone] = useState('');
-  const [activeTab, setActiveTab] = useState<'general' | 'storefront-filters' | 'payment' | 'wallet' | 'telegram' | 'arvan' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'storefront-filters' | 'payment' | 'payment-terms' | 'wallet' | 'telegram' | 'arvan' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
   const [syncProgress, setSyncProgress] = useState<Record<string, { current: number; total: number; label: string; done: boolean; error: boolean }>>({});
   const syncRaf = useRef<Record<string, number>>({});
   const syncStart = useRef<Record<string, number>>({});
@@ -252,6 +259,7 @@ export function SettingsPage() {
   const knownKeys = new Set<string>([
     ...KNOWN_SETTINGS.map((s) => s.key),
     'payment_methods',
+    PAYMENT_TERMS_SETTING_KEY,
     'WALLET_ENABLED',
     'WALLET_ORDER_PAYMENT_ENABLED',
     'WALLET_MIN_TOPUP',
@@ -298,10 +306,11 @@ export function SettingsPage() {
     setForm((current) => ({ ...current, ATTRIBUTION_CHANNELS: JSON.stringify(channels) }));
   };
 
-  const TABS: { id: 'general' | 'storefront-filters' | 'payment' | 'wallet' | 'telegram' | 'arvan' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
+  const TABS: { id: 'general' | 'storefront-filters' | 'payment' | 'payment-terms' | 'wallet' | 'telegram' | 'arvan' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
     { id: 'general', label: 'تنظیمات عمومی' },
     { id: 'storefront-filters', label: 'فیلترهای صفحه اصلی' },
     { id: 'payment', label: '💳 روش‌های پرداخت' },
+    { id: 'payment-terms', label: 'شرایط پرداخت کالا' },
     { id: 'wallet', label: 'کیف پول' },
     { id: 'telegram', label: 'ربات تلگرام' },
     { id: 'arvan', label: 'تحلیل اروان کلاد' },
@@ -349,6 +358,16 @@ export function SettingsPage() {
         <PaymentMethodsSettings
           value={form.payment_methods}
           onChange={(newValue) => setForm({ ...form, payment_methods: newValue })}
+          onSave={() => save.mutate(form)}
+          isSaving={save.isPending}
+        />
+      )}
+
+      {activeTab === 'payment-terms' && (
+        <PaymentTermsSettings
+          value={form[PAYMENT_TERMS_SETTING_KEY]}
+          categories={categories.data?.categories ?? []}
+          onChange={(newValue) => setForm((current) => ({ ...current, [PAYMENT_TERMS_SETTING_KEY]: newValue }))}
           onSave={() => save.mutate(form)}
           isSaving={save.isPending}
         />

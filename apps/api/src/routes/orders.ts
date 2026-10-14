@@ -67,7 +67,7 @@ const routes: FastifyPluginAsync = async (app) => {
         fields: [
           { label: 'شماره سفارش', value: order.orderCode },
           { label: 'مشتری', value: order.customerName },
-          { label: 'روش پرداخت', value: body.paymentMethod },
+          { label: 'روش پرداخت', value: order.paymentPlan?.label ?? body.paymentMethod },
           { label: 'واریزکننده', value: body.depositorName },
           { label: 'شماره پیگیری', value: body.refNumber },
           { label: 'شماره چک', value: body.checkNumber },

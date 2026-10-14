@@ -260,6 +260,7 @@ export const orderCreateSchema = z.object({
   items: z.array(orderItemInputSchema).min(1).max(200),
   address: z.string().trim().max(1000).optional(),
   paymentMethod: z.string().trim().max(100).optional(),
+  paymentPlanId: z.string().trim().max(120).optional(),
   note: z.string().trim().max(1000).optional(),
   attribution: z.object({
     source: z.string().trim().max(120).optional(),

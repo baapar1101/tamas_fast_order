@@ -1,16 +1,47 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../db/client.js';
-import { orders, payments } from '../db/schema.js';
+import { orders, payments, products } from '../db/schema.js';
 import { badRequest, notFound } from '../lib/errors.js';
 // @ts-ignore
 import paymentGateway from '@tamas/payment';
 import { env } from '../env.js';
 import { applyWalletTransaction } from '../services/wallet.js';
 import { transitionOrderStatusInTransaction } from '../services/order-inventory.js';
+import { getPaymentTermsConfig, quotePaymentTerms } from '../services/payment-terms.js';
 
 const routes: FastifyPluginAsync = async (app) => {
+  app.post('/payment/terms/quote', async (req) => {
+    const body = z.object({
+      items: z.array(z.object({
+        productId: z.string().trim().min(1).max(80),
+        qty: z.coerce.number().int().min(1).max(10_000),
+      })).min(1).max(200),
+    }).parse(req.body);
+    const quantityByProduct = new Map<string, number>();
+    for (const item of body.items) {
+      quantityByProduct.set(item.productId, (quantityByProduct.get(item.productId) ?? 0) + item.qty);
+    }
+    const ids = [...quantityByProduct.keys()];
+    const rows = await db.select({
+      productId: products.productId,
+      categoryId: products.categoryId,
+      price: products.price,
+      status: products.status,
+    }).from(products).where(and(inArray(products.productId, ids), isNull(products.deletedAt)));
+    if (rows.length !== ids.length || rows.some((row) => row.status !== 'active')) {
+      throw badRequest('یکی از کالاهای سبد دیگر قابل سفارش نیست. سبد خرید را تازه‌سازی کنید.');
+    }
+    const config = await getPaymentTermsConfig();
+    const quote = quotePaymentTerms(rows.map((row) => ({
+      categoryId: row.categoryId,
+      price: row.price,
+      qty: quantityByProduct.get(row.productId) ?? 0,
+    })), config);
+    return { ok: true, ...quote };
+  });
+
   // Create a payment transaction and return the bank URL
   app.post(
     '/payment/create',
