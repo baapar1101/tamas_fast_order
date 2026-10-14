@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { OrderDTO, PaymentPlanQuote, PaymentTermsQuoteResult } from "@tamas/shared";
+import type { OrderDTO, PaymentTermsQuoteResult } from "@tamas/shared";
 import { WAREHOUSE_LABELS, formatMoney, formatNumber } from "@tamas/shared";
 import { Price } from "../components/Price";
 import { Modal } from "../components/Modal";
@@ -166,45 +166,6 @@ const SECONDARY_INFO: Record<
   },
 };
 
-function PaymentPlanOption({ plan, selected, onSelect }: { plan: PaymentPlanQuote; selected: boolean; onSelect: () => void }) {
-  return (
-    <label
-      style={{
-        display: 'flex', alignItems: 'flex-start', gap: 10, padding: 12,
-        border: selected ? '2px solid var(--primary)' : '1px solid var(--border)',
-        borderRadius: 10, cursor: 'pointer', background: selected ? 'var(--primary-light)' : 'var(--card)',
-      }}
-    >
-      <input type="radio" name="paymentMethod" value={plan.id} checked={selected} onChange={onSelect} style={{ marginTop: 4, width: 16, height: 16, accentColor: 'var(--primary)' }} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, width: '100%' }}>
-        <div className="row" style={{ gap: 8 }}>
-          <strong style={{ fontSize: 14, color: selected ? 'var(--primary-dark)' : 'var(--text)' }}>{plan.label}</strong>
-          <span className="spacer" />
-          <strong><Price amount={plan.finalAmount} /></strong>
-        </div>
-        <span style={{ fontSize: 12, color: 'var(--muted)' }}>{plan.description}</span>
-        {plan.upfrontAmount != null && plan.upfrontPercent != null && plan.kind !== 'cash' && (
-          <span style={{ fontSize: 12 }}>پیش‌پرداخت: {formatNumber(plan.upfrontPercent)}٪ - <Price amount={plan.upfrontAmount} /></span>
-        )}
-        {selected && plan.schedule.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 3 }}>
-            {plan.schedule.map((item, index) => (
-              <span key={`${item.dueLabel}-${index}`} className="chip" style={{ fontSize: 11 }}>
-                {item.dueLabel}: {item.optional ? 'اختیاری' : `${formatNumber(item.percent ?? 0)}٪`}
-              </span>
-            ))}
-          </div>
-        )}
-        {selected && plan.instructions && (
-          <div style={{ fontSize: 12, color: 'var(--primary-dark)', background: 'rgba(14, 165, 233, 0.08)', padding: '8px 10px', borderRadius: 6, whiteSpace: 'pre-line', lineHeight: 1.7 }}>
-            {plan.instructions}
-          </div>
-        )}
-      </div>
-    </label>
-  );
-}
-
 export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
   const toast = useToast();
   const user = useAuth((s) => s.user);
@@ -261,6 +222,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
     || 'aqayepardakht'
   );
   const activePaymentPlan = paymentPlans.find((plan) => plan.id === activePaymentMethod) ?? null;
+  const activeConfiguredMethod = availableMethods.find((method) => method.id === activePaymentMethod) ?? null;
   const payableTotal = activePaymentPlan?.finalAmount ?? quotedBaseAmount;
 
   const deliveryAddress = address.trim() || user?.address || "";
@@ -689,100 +651,70 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
         </div>
 
         <div className="field">
-          <label>روش پرداخت و تسویه حساب</label>
+          <label htmlFor="payment-method-select">روش پرداخت و تسویه حساب</label>
           <div style={{ display: "grid", gap: "8px", marginTop: "4px" }}>
             {termsQuery.isPending && <div className="alert">در حال محاسبه شرایط پرداخت…</div>}
             {termsQuery.isError && <div className="alert warn">محاسبه شرایط پرداخت انجام نشد؛ روش‌های عادی همچنان در دسترس هستند.</div>}
             {termsQuery.data?.message && <div className="alert warn">{termsQuery.data.message}</div>}
-            {paymentPlans.map((plan) => (
-              <PaymentPlanOption
-                key={plan.id}
-                plan={plan}
-                selected={activePaymentMethod === plan.id}
-                onSelect={() => setPaymentMethod(plan.id)}
-              />
-            ))}
-            {availableMethods.map((method) => {
-              const isSelected = activePaymentMethod === method.id;
-              const disabled = method.id === 'wallet' && !canUseWallet;
-              return (
-                <label
-                  key={method.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: "10px",
-                    padding: "12px",
-                    border: isSelected
-                      ? "2px solid var(--primary)"
-                      : "1px solid var(--border)",
-                    borderRadius: "10px",
-                    cursor: disabled ? "not-allowed" : "pointer",
-                    opacity: disabled ? .55 : 1,
-                    background: isSelected
-                      ? "var(--primary-light)"
-                      : "var(--card)",
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value={method.id}
-                    checked={isSelected}
-                    disabled={disabled}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    style={{
-                      marginTop: "4px",
-                      width: "16px",
-                      height: "16px",
-                      cursor: "pointer",
-                      accentColor: "var(--primary)",
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "2px",
-                      width: "100%",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontWeight: 600,
-                        fontSize: "14px",
-                        color: isSelected
-                          ? "var(--primary-dark)"
-                          : "var(--text)",
-                      }}
-                    >
-                      {method.label}
-                    </span>
-                    {method.desc && (
-                      <span style={{ fontSize: "12px", color: "var(--muted)" }}>
-                        {method.id === 'wallet' && walletQuery.data ? `موجودی: ${walletQuery.data.wallet.balance.toLocaleString('fa-IR')} تومان${disabled ? ' — موجودی کافی نیست' : ''}` : method.desc}
+            {!termsQuery.isPending && (
+              <select
+                id="payment-method-select"
+                className="input"
+                value={activePaymentMethod}
+                onChange={(event) => setPaymentMethod(event.target.value)}
+                style={{ minHeight: 48, fontWeight: 700 }}
+              >
+                {paymentPlans.length > 0 && (
+                  <optgroup label="شرایط پرداخت کالا">
+                    {paymentPlans.map((plan) => (
+                      <option key={plan.id} value={plan.id}>{plan.label} - {formatMoney(plan.finalAmount)}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {availableMethods.length > 0 && (
+                  <optgroup label={paymentPlans.length > 0 ? 'سایر روش‌های پرداخت' : 'روش‌های پرداخت'}>
+                    {availableMethods.map((method) => {
+                      const disabled = method.id === 'wallet' && !canUseWallet;
+                      return <option key={method.id} value={method.id} disabled={disabled}>{method.label}{disabled ? ' - موجودی کافی نیست' : ''}</option>;
+                    })}
+                  </optgroup>
+                )}
+              </select>
+            )}
+
+            {activePaymentPlan && (
+              <div className="card" style={{ padding: 12, borderColor: 'var(--primary)', background: 'var(--primary-light)' }}>
+                <div className="row" style={{ gap: 8 }}>
+                  <strong>{activePaymentPlan.label}</strong><span className="spacer" /><strong><Price amount={activePaymentPlan.finalAmount} /></strong>
+                </div>
+                <p className="muted" style={{ fontSize: 12, margin: '6px 0 0' }}>{activePaymentPlan.description}</p>
+                {activePaymentPlan.upfrontAmount != null && activePaymentPlan.upfrontPercent != null && activePaymentPlan.kind !== 'cash' && (
+                  <p style={{ fontSize: 12, margin: '6px 0 0' }}>پیش‌پرداخت: {formatNumber(activePaymentPlan.upfrontPercent)}٪ - <Price amount={activePaymentPlan.upfrontAmount} /></p>
+                )}
+                {activePaymentPlan.schedule.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 8 }}>
+                    {activePaymentPlan.schedule.map((item, index) => (
+                      <span key={`${item.dueLabel}-${index}`} className="chip" style={{ fontSize: 11 }}>
+                        {item.dueLabel}: {item.optional ? 'اختیاری' : `${formatNumber(item.percent ?? 0)}٪`}
                       </span>
-                    )}
-                    {method.instructions && isSelected && (
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          color: "var(--primary-dark)",
-                          background: "rgba(14, 165, 233, 0.08)",
-                          padding: "8px 10px",
-                          borderRadius: "6px",
-                          marginTop: "6px",
-                          whiteSpace: "pre-line",
-                          lineHeight: "1.6",
-                        }}
-                      >
-                        ℹ️ {method.instructions}
-                      </div>
-                    )}
+                    ))}
                   </div>
-                </label>
-              );
-            })}
+                )}
+                {activePaymentPlan.instructions && <p style={{ fontSize: 12, margin: '8px 0 0', whiteSpace: 'pre-line', lineHeight: 1.7 }}>{activePaymentPlan.instructions}</p>}
+              </div>
+            )}
+
+            {activeConfiguredMethod && (
+              <div className="card" style={{ padding: 12 }}>
+                <strong>{activeConfiguredMethod.label}</strong>
+                <p className="muted" style={{ fontSize: 12, margin: '6px 0 0' }}>
+                  {activeConfiguredMethod.id === 'wallet' && walletQuery.data
+                    ? `موجودی: ${walletQuery.data.wallet.balance.toLocaleString('fa-IR')} تومان`
+                    : activeConfiguredMethod.desc}
+                </p>
+                {activeConfiguredMethod.instructions && <p style={{ fontSize: 12, margin: '8px 0 0', whiteSpace: 'pre-line', lineHeight: 1.7 }}>{activeConfiguredMethod.instructions}</p>}
+              </div>
+            )}
           </div>
         </div>
 
