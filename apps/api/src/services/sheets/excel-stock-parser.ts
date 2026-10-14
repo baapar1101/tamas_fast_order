@@ -38,6 +38,13 @@ export interface ExcelStockRow {
   tehranStock: number | null | undefined;
 }
 
+const SUPPORTED_HEADERS = ['sku', 'price', 'kerman_stock', 'tehran_stock'] as const;
+type SupportedHeader = (typeof SUPPORTED_HEADERS)[number];
+
+function normalizeHeader(value: unknown): string {
+  return String(value ?? '').normalize('NFKC').trim().toLowerCase();
+}
+
 /** Read actual cell values, not accounting-format display strings or phantom styled rows. */
 export function parseExcelStockRows(buffer: Buffer): ExcelStockRow[] {
   let workbook: xlsx.WorkBook;
@@ -52,32 +59,48 @@ export function parseExcelStockRows(buffer: Buffer): ExcelStockRow[] {
   if (!worksheet) throw badRequest('تب اکسل نامعتبر است.');
 
   // Some exports style nearly one million empty rows; !ref then points to the
-  // Excel row limit even though only a few hundred rows contain data.
+  // Excel row limit even though only a few hundred rows contain data. Inspect
+  // actual valued cells to find the real bounds instead.
   let lastRealRow = 0;
+  let lastRealColumn = 0;
   for (const [address, cell] of Object.entries(worksheet)) {
-    if (!/^[A-D][1-9]\d*$/.test(address) || !cell || cell.v == null || cell.v === '') continue;
-    lastRealRow = Math.max(lastRealRow, xlsx.utils.decode_cell(address).r);
+    if (address.startsWith('!') || !cell || cell.v == null || cell.v === '') continue;
+    const position = xlsx.utils.decode_cell(address);
+    lastRealRow = Math.max(lastRealRow, position.r);
+    lastRealColumn = Math.max(lastRealColumn, position.c);
   }
   if (lastRealRow < 1) throw badRequest('فایل باید حداقل شامل یک سطر عنوان و یک سطر داده باشد.');
-  worksheet['!ref'] = xlsx.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: lastRealRow, c: 3 } });
+  worksheet['!ref'] = xlsx.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: lastRealRow, c: lastRealColumn } });
   const rows = xlsx.utils.sheet_to_json<unknown[]>(worksheet, { header: 1, raw: true, blankrows: true });
-  const header = (rows[0] ?? []).map((value) => String(value ?? '').trim().toLowerCase());
-  if (header[0] !== 'sku' || header[1] !== 'price' || header[2] !== 'kerman_stock' || header[3] !== 'tehran_stock') {
-    throw badRequest('ستون‌های فایل باید به‌ترتیب sku، price، kerman_stock و tehran_stock باشند.');
+  const header = (rows[0] ?? []).map(normalizeHeader);
+  const columnIndexes = new Map<SupportedHeader, number>();
+  for (const supportedHeader of SUPPORTED_HEADERS) {
+    const indexes = header.flatMap((value, index) => value === supportedHeader ? [index] : []);
+    if (indexes.length > 1) throw badRequest(`ستون «${supportedHeader}» در فایل تکراری است.`);
+    if (indexes[0] !== undefined) columnIndexes.set(supportedHeader, indexes[0]);
   }
+  if (!columnIndexes.has('sku')) throw badRequest('فایل باید ستون sku را برای شناسایی کالا داشته باشد.');
+  if (!columnIndexes.has('price') && !columnIndexes.has('kerman_stock') && !columnIndexes.has('tehran_stock')) {
+    throw badRequest('فایل باید حداقل یکی از ستون‌های price، kerman_stock یا tehran_stock را داشته باشد.');
+  }
+
+  const cell = (row: unknown[], name: SupportedHeader): unknown => {
+    const columnIndex = columnIndexes.get(name);
+    return columnIndex === undefined ? null : row[columnIndex];
+  };
 
   const parsed: ExcelStockRow[] = [];
   for (let index = 1; index < rows.length; index += 1) {
     const row = rows[index] ?? [];
     if (!row.some((value) => value != null && value !== '')) continue;
-    const displayedSku = String(row[0] ?? '').trim();
+    const displayedSku = String(cell(row, 'sku') ?? '').trim();
     parsed.push({
       rowNumber: index + 1,
       displayedSku,
       sku: normalizeExcelSku(displayedSku),
-      priceRial: parseOptionalExcelInteger(row[1]),
-      kermanStock: parseOptionalExcelInteger(row[2]),
-      tehranStock: parseOptionalExcelInteger(row[3]),
+      priceRial: parseOptionalExcelInteger(cell(row, 'price')),
+      kermanStock: parseOptionalExcelInteger(cell(row, 'kerman_stock')),
+      tehranStock: parseOptionalExcelInteger(cell(row, 'tehran_stock')),
     });
   }
   return parsed;

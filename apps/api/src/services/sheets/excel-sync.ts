@@ -23,6 +23,7 @@ export interface ExcelSyncReport {
 interface UploadOptions {
   dryRun?: boolean;
   expectedPlanHash?: string;
+  onProgress?: (current: number, total: number) => void;
 }
 
 /** Blank cells leave existing values intact; an explicit numeric zero clears them. */
@@ -110,6 +111,7 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
     next: [next.price, next.kermanStock, next.tehranStock, next.stock],
   })))).digest('hex');
   report.updated = plan.length;
+  options.onProgress?.(0, plan.length);
   if (options.dryRun || plan.length === 0) return report;
   if (options.expectedPlanHash && options.expectedPlanHash !== report.planHash) {
     throw badRequest('داده‌های سایت یا فایل از زمان پیش‌نمایش تغییر کرده‌اند؛ دوباره پیش‌نمایش بگیرید.');
@@ -129,13 +131,14 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
   }, null, 2), { mode: 0o600 });
 
   await db.transaction(async (tx) => {
-    for (const { product, next } of plan) {
+    for (const [index, { product, next }] of plan.entries()) {
       const [updated] = await tx.update(products).set({ ...next, updatedAt: new Date() })
         .where(and(eq(products.id, product.id), isNull(products.deletedAt),
           eq(products.price, product.price), eq(products.kermanStock, product.kermanStock),
           eq(products.tehranStock, product.tehranStock), eq(products.stock, product.stock)))
         .returning({ id: products.id });
       if (!updated) throw badRequest(`محصول ${product.productId} هم‌زمان تغییر کرده است؛ هیچ‌یک از ردیف‌ها اعمال نشد.`);
+      options.onProgress?.(index + 1, plan.length);
     }
   });
 

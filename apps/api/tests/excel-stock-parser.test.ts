@@ -30,4 +30,45 @@ describe('Excel stock input', () => {
     assert.equal(parseOptionalExcelInteger('1.5'), undefined);
     assert.equal(normalizeExcelSku(' ۰۱۰۲۰۱۰۰۱۲۷\u200b '), '01020100127');
   });
+
+  it('accepts any supported subset in any order and ignores extra columns', () => {
+    const workbook = xlsx.utils.book_new();
+    const sheet = xlsx.utils.aoa_to_sheet([
+      ['title', 'tehran_stock', 'sku', 'notes'],
+      ['محصول نمونه', 7, '01020100127', 'بدون تغییر قیمت و موجودی کرمان'],
+    ]);
+    xlsx.utils.book_append_sheet(workbook, sheet, 'Stock');
+
+    const rows = parseExcelStockRows(Buffer.from(xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' })));
+    assert.deepEqual(rows, [{
+      rowNumber: 2,
+      displayedSku: '01020100127',
+      sku: '01020100127',
+      priceRial: null,
+      kermanStock: null,
+      tehranStock: 7,
+    }]);
+  });
+
+  it('requires sku and at least one editable column', () => {
+    const workbookWithoutSku = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbookWithoutSku, xlsx.utils.aoa_to_sheet([
+      ['price'],
+      [1000],
+    ]), 'Prices');
+    assert.throws(
+      () => parseExcelStockRows(Buffer.from(xlsx.write(workbookWithoutSku, { type: 'buffer', bookType: 'xlsx' }))),
+      /ستون sku/,
+    );
+
+    const workbookWithoutValue = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbookWithoutValue, xlsx.utils.aoa_to_sheet([
+      ['sku', 'title'],
+      ['1001', 'محصول'],
+    ]), 'Products');
+    assert.throws(
+      () => parseExcelStockRows(Buffer.from(xlsx.write(workbookWithoutValue, { type: 'buffer', bookType: 'xlsx' }))),
+      /حداقل یکی از ستون‌های/,
+    );
+  });
 });
