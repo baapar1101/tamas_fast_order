@@ -1,0 +1,3 @@
+## 2025-02-18 - Optimized React.memo for Array Props
+**Learning:** In the `ProductCard` component (and likely elsewhere in the codebase), the global `cartLines` array from Zustand is passed directly as a prop. Since the array reference changes on every cart update (even for unrelated items), `React.memo`'s default shallow comparison breaks, causing unnecessary widespread re-renders of list components.
+**Action:** Always provide a custom `propsAreEqual` function to `React.memo` when a component depends on a specific slice of a globally updated array or object prop, to avoid re-rendering untouched items.

@@ -54,6 +54,38 @@ function productTitleClass(title: string): string {
   return '';
 }
 
+function arePropsEqual(prev: Props, next: Props): boolean {
+  if (
+    prev.group !== next.group ||
+    prev.colorMap !== next.colorMap ||
+    prev.canViewPrices !== next.canViewPrices ||
+    prev.viewMode !== next.viewMode ||
+    prev.onAdd !== next.onAdd ||
+    prev.onUpdateQty !== next.onUpdateQty ||
+    prev.onPreview !== next.onPreview
+  ) {
+    return false;
+  }
+
+  if (prev.cartLines === next.cartLines) return true;
+
+  // Check if any variant's quantity has changed in the cart
+  for (const variant of next.group.variants) {
+    const kermanKey = `${variant.productId}::kerman`;
+    const tehranKey = `${variant.productId}::tehran`;
+    const siteKey = `${variant.productId}::site`;
+
+    const getQty = (lines: CartLine[], key: string) =>
+      lines.find((l) => l.key === key)?.qty ?? 0;
+
+    if (getQty(prev.cartLines, kermanKey) !== getQty(next.cartLines, kermanKey)) return false;
+    if (getQty(prev.cartLines, tehranKey) !== getQty(next.cartLines, tehranKey)) return false;
+    if (getQty(prev.cartLines, siteKey) !== getQty(next.cartLines, siteKey)) return false;
+  }
+
+  return true;
+}
+
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFav, setIsFav] = useState(false);
@@ -333,5 +365,5 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
-});
+}, arePropsEqual);
 
