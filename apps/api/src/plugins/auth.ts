@@ -12,6 +12,7 @@ declare module 'fastify' {
   interface FastifyInstance {
     requireUser: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
     requireAdmin: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    requireInvestor: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
     requirePermission: (permission: string) => (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }
@@ -41,6 +42,13 @@ const plugin: FastifyPluginAsync = async (app) => {
   app.decorate('requireAdmin', async (req: FastifyRequest) => {
     if (!req.currentUser) throw unauthorized();
     if (req.currentUser.role !== 'admin' && req.currentUser.role !== 'operator') throw forbidden('این بخش فقط برای مدیران است.');
+  });
+
+  app.decorate('requireInvestor', async (req: FastifyRequest) => {
+    if (!req.currentUser) throw unauthorized();
+    if (req.currentUser.role !== 'admin' && req.currentUser.role !== 'investor') {
+      throw forbidden('این بخش فقط برای سرمایه‌گذار و مدیر ارشد قابل مشاهده است.');
+    }
   });
 
   app.decorate('requirePermission', (permission: string) => async (req: FastifyRequest) => {

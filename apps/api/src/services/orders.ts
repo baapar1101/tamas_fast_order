@@ -173,6 +173,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           title: product.title,
           color: product.color,
           price: product.price,
+          costPrice: product.costPrice,
           qty: line.qty,
           warehouse: line.warehouse,
         });
@@ -194,6 +195,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           title: product.title,
           color: product.color,
           price: product.price,
+          costPrice: product.costPrice,
           qty: line.qty,
           warehouse: line.warehouse,
         });
@@ -468,6 +470,7 @@ export async function replaceOrderItems(orderId: number, input: OrderItemsReplac
         title: previous?.title ?? product.title,
         color: previous?.color ?? product.color,
         price: previous?.price ?? product.price,
+        costPrice: previous?.costPrice ?? product.costPrice,
         qty: item.qty,
         warehouse: item.warehouse,
       });

@@ -168,7 +168,7 @@ export interface UserDTO {
   fatherName?: string;
   isVerifiedIdentity?: boolean;
   isActive: boolean;
-  role: 'customer' | 'admin' | 'operator';
+  role: 'customer' | 'admin' | 'operator' | 'investor';
   accessGroupId?: number | null;
   permissions?: string[];
   createdAt: string;
@@ -301,6 +301,94 @@ export interface PaymentDTO {
   note: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export type InvestmentEntryType =
+  | 'capital_injection'
+  | 'capital_withdrawal'
+  | 'purchase'
+  | 'expense'
+  | 'profit_distribution'
+  | 'adjustment';
+
+export type InvestmentEntryStatus = 'paid' | 'pending' | 'cancelled';
+
+export interface InvestmentEntryDTO {
+  id: number;
+  type: InvestmentEntryType;
+  status: InvestmentEntryStatus;
+  amount: number;
+  title: string;
+  category: string | null;
+  reference: string | null;
+  notes: string | null;
+  transactionDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InvestorSettingsDTO {
+  initialCapital: number;
+  investorSharePercent: number;
+  executorSharePercent: number;
+  companyLabel: string;
+}
+
+export interface InvestorDashboardDTO {
+  period: { range: '7d' | '30d' | '90d' | '365d'; from: string; to: string };
+  settings: InvestorSettingsDTO;
+  metrics: {
+    inventoryUnits: number;
+    inventoryValue: number;
+    valuedInventoryUnits: number;
+    unvaluedInventoryUnits: number;
+    netSales: number;
+    netPurchases: number;
+    operatingExpenses: number;
+    costOfGoodsSold: number;
+    grossProfit: number;
+    netProfit: number;
+    distributableProfit: number;
+    investorShare: number;
+    executorShare: number;
+    orderCount: number;
+    averageOrderValue: number;
+    grossMarginPercent: number;
+    availableWorkingCapital: number;
+  };
+  dataQuality: {
+    inventoryCostCoveragePercent: number;
+    salesCostCoveragePercent: number;
+    productsWithoutCost: number;
+  };
+  cheques: {
+    pendingAmount: number;
+    pendingCount: number;
+    passedAmount: number;
+    bouncedAmount: number;
+    bouncedCount: number;
+  };
+  trend: Array<{ date: string; sales: number; purchases: number; expenses: number; profit: number }>;
+  topInventory: Array<{
+    productId: string;
+    sku: string | null;
+    title: string;
+    units: number;
+    costPrice: number;
+    value: number;
+  }>;
+  recentEntries: InvestmentEntryDTO[];
+}
+
+export interface InventoryCostDTO {
+  id: number;
+  productId: string;
+  sku: string | null;
+  title: string;
+  stock: number;
+  costPrice: number;
+  salePrice: number;
+  inventoryValue: number;
 }
 
 export interface CommentDTO {

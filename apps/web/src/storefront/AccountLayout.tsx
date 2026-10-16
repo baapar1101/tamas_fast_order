@@ -17,7 +17,7 @@ export function AccountLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const toast = useToast();
-  const { user, ready, isAdmin, logout } = useAuth();
+  const { user, ready, isAdmin, isInvestor, logout } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const savedReturn = (location.state as { returnTo?: unknown } | null)?.returnTo;
   const returnTo = typeof savedReturn === 'string' && savedReturn.startsWith('/') && !savedReturn.startsWith('//')
@@ -89,6 +89,11 @@ export function AccountLayout() {
                 {isAdmin && (
                   <Link to="/admin" className="account-nav-item account-nav-admin">
                     <Icon name="grid" /> <span>پنل مدیریت</span>
+                  </Link>
+                )}
+                {(isInvestor || isAdmin) && (
+                  <Link to="/investor" className="account-nav-item account-nav-admin">
+                    <span className="account-nav-glyph" aria-hidden="true">◒</span> <span>پنل سرمایه‌گذار</span>
                   </Link>
                 )}
               </nav>

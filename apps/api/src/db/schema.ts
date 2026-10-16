@@ -35,7 +35,7 @@ const syncColumns = {
 };
 
 export const productStatusEnum = pgEnum('product_status', ['active', 'inactive']);
-export const userRoleEnum = pgEnum('user_role', ['customer', 'admin', 'operator']);
+export const userRoleEnum = pgEnum('user_role', ['customer', 'admin', 'operator', 'investor']);
 export const orderStatusEnum = pgEnum('order_status', [
   'new',
   'confirmed',
@@ -70,6 +70,15 @@ export const chequeStatusEnum = pgEnum('cheque_status', ['pending', 'passed', 'b
 export const crmSyncEntityEnum = pgEnum('crm_sync_entity', ['order', 'product', 'person', 'chat_message']);
 export const crmSyncActionEnum = pgEnum('crm_sync_action', ['create', 'update', 'delete', 'sync']);
 export const crmSyncStatusEnum = pgEnum('crm_sync_status', ['success', 'error', 'pending', 'skipped']);
+export const investmentEntryTypeEnum = pgEnum('investment_entry_type', [
+  'capital_injection',
+  'capital_withdrawal',
+  'purchase',
+  'expense',
+  'profit_distribution',
+  'adjustment',
+]);
+export const investmentEntryStatusEnum = pgEnum('investment_entry_status', ['paid', 'pending', 'cancelled']);
 
 /* ------------------------------------------------------------------ *
  * Credit Applications & Cheques
@@ -249,6 +258,8 @@ export const products = pgTable(
     colorEn: varchar('color_en', { length: 160 }),
     colorCode: varchar('color_code', { length: 32 }),
     price: bigint('price', { mode: 'number' }).notNull().default(0),
+    /** Latest unit acquisition cost, used for inventory valuation and profit snapshots. */
+    costPrice: bigint('cost_price', { mode: 'number' }).notNull().default(0),
     oldPrice: bigint('old_price', { mode: 'number' }),
     discount: integer('discount').notNull().default(0),
     stock: integer('stock').notNull().default(0),
@@ -478,6 +489,8 @@ export const orderItems = pgTable(
     color: varchar('color', { length: 160 }),
     /** Price is frozen at checkout so later catalogue edits cannot rewrite history. */
     price: bigint('price', { mode: 'number' }).notNull().default(0),
+    /** Acquisition cost frozen at checkout for auditable historical profit. */
+    costPrice: bigint('cost_price', { mode: 'number' }).notNull().default(0),
     qty: integer('qty').notNull().default(1),
     warehouse: warehouseEnum('warehouse').notNull().default('kerman'),
   },
@@ -584,6 +597,35 @@ export const payments = pgTable(
     index('payments_user_idx').on(t.userId),
     index('payments_status_idx').on(t.status),
     index('payments_created_idx').on(t.createdAt),
+  ],
+);
+
+/**
+ * Auditable investor ledger. Product stock remains the inventory source of
+ * truth; this ledger records the money side of purchases, operating costs,
+ * capital movements and profit distributions.
+ */
+export const investmentEntries = pgTable(
+  'investment_entries',
+  {
+    id: serial('id').primaryKey(),
+    type: investmentEntryTypeEnum('type').notNull(),
+    status: investmentEntryStatusEnum('status').notNull().default('paid'),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    title: varchar('title', { length: 240 }).notNull(),
+    category: varchar('category', { length: 120 }),
+    reference: varchar('reference', { length: 160 }),
+    notes: text('notes'),
+    transactionDate: timestamp('transaction_date', { withTimezone: true }).notNull().defaultNow(),
+    createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  },
+  (t) => [
+    index('investment_entries_type_idx').on(t.type),
+    index('investment_entries_status_idx').on(t.status),
+    index('investment_entries_date_idx').on(t.transactionDate),
   ],
 );
 
@@ -832,6 +874,10 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 export const paymentsRelations = relations(payments, ({ one }) => ({
   order: one(orders, { fields: [payments.orderId], references: [orders.id] }),
   user: one(users, { fields: [payments.userId], references: [users.id] }),
+}));
+
+export const investmentEntriesRelations = relations(investmentEntries, ({ one }) => ({
+  creator: one(users, { fields: [investmentEntries.createdBy], references: [users.id] }),
 }));
 
 export const commentsRelations = relations(comments, ({ one, many }) => ({

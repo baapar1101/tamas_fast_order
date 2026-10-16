@@ -747,6 +747,7 @@ export const orderMapping: EntityMapping = {
             title: String(i.title || 'محصول نامشخص'),
             color: i.color ? String(i.color) : null,
             price: Number(i.price) || 0,
+            costPrice: Number(i.cost_price) || 0,
             qty: Number(i.qty) || 1,
             warehouse: i.warehouse || 'kerman',
           }))

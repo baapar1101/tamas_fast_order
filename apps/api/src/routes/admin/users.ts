@@ -13,7 +13,7 @@ import { sendUserApprovedSms } from '../../services/sms.js';
 const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
   status: z.enum(['active', 'pending', 'all']).default('all'),
-  role: z.enum(['customer', 'admin', 'operator', 'all']).default('all'),
+  role: z.enum(['customer', 'admin', 'operator', 'investor', 'all']).default('all'),
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(200).default(50),
 });
@@ -72,7 +72,7 @@ const routes: FastifyPluginAsync = async (app) => {
     if (!current) throw notFound('کاربر پیدا نشد.');
 
     // An admin must not be able to lock themselves out of their own panel.
-    if (id === req.currentUser!.id && (body.role === 'customer' || body.isActive === false)) {
+    if (id === req.currentUser!.id && (body.role === 'customer' || body.role === 'investor' || body.isActive === false)) {
       throw badRequest('نمی‌توانید دسترسی مدیریت خودتان را بردارید.');
     }
 
@@ -92,7 +92,7 @@ const routes: FastifyPluginAsync = async (app) => {
     if (!updated) throw notFound('کاربر پیدا نشد.');
 
     // Demoting or deactivating someone must end their live sessions too.
-    if (body.role === 'customer' || body.isActive === false) {
+    if (body.role === 'customer' || body.role === 'investor' || body.isActive === false) {
       await db.delete(sessions).where(eq(sessions.userId, id));
     }
 
