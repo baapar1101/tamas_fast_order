@@ -174,7 +174,21 @@ const routes: FastifyPluginAsync = async (app) => {
                 { label: 'کد پیگیری', value: trackingCode },
               ],
             }).catch((err) => req.log.error({ err }, 'failed to send Telegram payment notification'));
+            void import('../services/customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+              paidOrder.userId,
+              'payment.paid',
+              '✅ پرداخت با موفقیت انجام شد',
+              `پرداخت سفارش ${paidOrder.orderCode} به مبلغ ${paymentRecord.amount.toLocaleString('fa-IR')} تومان تأیید شد. کد پیگیری: ${trackingCode}`,
+            )).catch((err) => req.log.error({ err }, 'failed to send customer Telegram payment notification'));
           }
+        }
+        if (isWalletTopup && paymentRecord.userId) {
+          void import('../services/customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+            paymentRecord.userId,
+            'wallet.changed',
+            '💳 کیف پول شارژ شد',
+            `${paymentRecord.amount.toLocaleString('fa-IR')} تومان به کیف پول شما افزوده شد. موجودی جدید از بخش کیف پول قابل مشاهده است.`,
+          )).catch((err) => req.log.error({ err }, 'failed to send customer Telegram wallet notification'));
         }
 
         return reply.redirect(`${resultPath}?status=success&orderId=${paymentRecord.orderId ?? ''}&trackingCode=${trackingCode}`);
@@ -192,6 +206,12 @@ const routes: FastifyPluginAsync = async (app) => {
             { label: 'خطا', value: verifyData?.code || 'verification_failed' },
           ],
         }).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send Telegram payment failure notification'));
+        void import('../services/customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+          paymentRecord.userId,
+          'payment.failed',
+          '❌ پرداخت ناموفق بود',
+          `پرداخت ${paymentRecord.amount.toLocaleString('fa-IR')} تومان تأیید نشد. مبلغ کسرشده احتمالی طبق روال بانک بازگردانده می‌شود.`,
+        )).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send customer Telegram payment failure notification'));
            
         return reply.redirect(`${resultPath}?status=failed&orderId=${paymentRecord.orderId ?? ''}&error=${verifyData?.code || 'verification_failed'}`);
       }
@@ -211,6 +231,12 @@ const routes: FastifyPluginAsync = async (app) => {
           { label: 'خطا', value: (err as Error).message },
         ],
       }).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send Telegram payment failure notification'));
+      void import('../services/customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+        paymentRecord.userId,
+        'payment.failed',
+        '❌ بررسی پرداخت ناموفق بود',
+        `بررسی پرداخت ${paymentRecord.amount.toLocaleString('fa-IR')} تومان با خطا روبه‌رو شد. در صورت کسر وجه، مبلغ طبق روال بانک بازگردانده می‌شود.`,
+      )).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send customer Telegram payment failure notification'));
          
       return reply.redirect(`${resultPath}?status=failed&orderId=${paymentRecord.orderId ?? ''}&error=server_error`);
     }

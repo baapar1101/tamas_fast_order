@@ -252,6 +252,12 @@ const routes: FastifyPluginAsync = async (app) => {
           { label: 'مبلغ', value: `${updated.total.toLocaleString('fa-IR')} تومان` },
         ],
       }).catch((err) => req.log.error({ err }, 'failed to send Telegram payment notification'));
+      void import('../../services/customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+        updated.userId,
+        'payment.paid',
+        '✅ پرداخت سفارش تأیید شد',
+        `پرداخت سفارش ${updated.orderCode} به مبلغ ${updated.total.toLocaleString('fa-IR')} تومان تأیید شد.`,
+      )).catch((err) => req.log.error({ err }, 'failed to send customer Telegram payment notification'));
     }
 
     const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));

@@ -111,7 +111,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     }
   }
 
-  return db.transaction(async (tx) => {
+  const created = await db.transaction(async (tx) => {
     let rows = await tx
       .select()
       .from(products)
@@ -367,6 +367,23 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
 
     return toOrderDTO(order, items);
   });
+  void import('./customer-telegram.js').then(({ sendCustomerTelegramNotification }) => {
+    void sendCustomerTelegramNotification(
+      user.id,
+      'order.created',
+      '🛒 سفارش شما ثبت شد',
+      `سفارش ${created.orderCode} به مبلغ ${created.total.toLocaleString('fa-IR')} تومان ثبت شد و از همین ربات می‌توانید وضعیت آن را پیگیری کنید.`,
+    ).catch((err) => console.error('[Customer Telegram] order.created failed:', err));
+    if (walletPayment) {
+      void sendCustomerTelegramNotification(
+        user.id,
+        'wallet.changed',
+        '💳 پرداخت از کیف پول',
+        `${created.total.toLocaleString('fa-IR')} تومان بابت سفارش ${created.orderCode} از کیف پول شما کسر شد.`,
+      ).catch((err) => console.error('[Customer Telegram] wallet.changed failed:', err));
+    }
+  });
+  return created;
 }
 
 export async function replaceOrderItems(orderId: number, input: OrderItemsReplace): Promise<{
@@ -603,6 +620,12 @@ export async function replaceOrderItems(orderId: number, input: OrderItemsReplac
     };
   });
   invalidateCatalog();
+  void import('./customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+    result.order.userId,
+    'order.items_changed',
+    '✏️ اقلام سفارش تغییر کرد',
+    `اقلام سفارش ${result.order.orderCode} به‌روزرسانی شد. مبلغ جدید: ${result.order.total.toLocaleString('fa-IR')} تومان.`,
+  )).catch((err) => console.error('[Customer Telegram] order.items_changed failed:', err));
   return result;
 }
 

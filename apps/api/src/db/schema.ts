@@ -437,6 +437,51 @@ export const sessions = pgTable(
 );
 
 /* ------------------------------------------------------------------ *
+ * Customer Telegram bot linking
+ * ------------------------------------------------------------------ */
+
+export const customerTelegramAccounts = pgTable(
+  'customer_telegram_accounts',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    telegramUserId: varchar('telegram_user_id', { length: 32 }).notNull(),
+    chatId: varchar('chat_id', { length: 32 }).notNull(),
+    username: varchar('username', { length: 120 }),
+    firstName: varchar('first_name', { length: 160 }),
+    lastName: varchar('last_name', { length: 160 }),
+    notificationsEnabled: boolean('notifications_enabled').notNull().default(true),
+    notificationPreferences: jsonb('notification_preferences').$type<Record<string, boolean>>().notNull().default(sql`'{}'::jsonb`),
+    linkedAt: timestamp('linked_at', { withTimezone: true }).notNull().defaultNow(),
+    lastInteractionAt: timestamp('last_interaction_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('customer_telegram_accounts_user_key').on(t.userId),
+    uniqueIndex('customer_telegram_accounts_telegram_user_key').on(t.telegramUserId),
+    index('customer_telegram_accounts_chat_idx').on(t.chatId),
+  ],
+);
+
+export const customerTelegramLinkTokens = pgTable(
+  'customer_telegram_link_tokens',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: varchar('token_hash', { length: 64 }).notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    consumedAt: timestamp('consumed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('customer_telegram_link_tokens_hash_key').on(t.tokenHash),
+    index('customer_telegram_link_tokens_user_idx').on(t.userId),
+    index('customer_telegram_link_tokens_expires_idx').on(t.expiresAt),
+  ],
+);
+
+/* ------------------------------------------------------------------ *
  * Orders
  * ------------------------------------------------------------------ */
 
@@ -860,7 +905,16 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
   payments: many(payments),
   comments: many(comments),
+  customerTelegramAccount: one(customerTelegramAccounts),
   accessGroup: one(accessGroups, { fields: [users.accessGroupId], references: [accessGroups.id] }),
+}));
+
+export const customerTelegramAccountsRelations = relations(customerTelegramAccounts, ({ one }) => ({
+  user: one(users, { fields: [customerTelegramAccounts.userId], references: [users.id] }),
+}));
+
+export const customerTelegramLinkTokensRelations = relations(customerTelegramLinkTokens, ({ one }) => ({
+  user: one(users, { fields: [customerTelegramLinkTokens.userId], references: [users.id] }),
 }));
 
 export const accessGroupsRelations = relations(accessGroups, ({ many }) => ({

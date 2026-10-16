@@ -97,6 +97,7 @@ export async function transitionOrderStatusInTransaction(
 export async function transitionOrderStatus(orderId: number, nextStatus: OrderStatus): Promise<OrderStatusTransitionResult> {
   const result = await db.transaction((tx) => transitionOrderStatusInTransaction(tx, orderId, nextStatus));
   if (result.inventoryEffect === 'release') invalidateCatalog();
+  if (result.previousStatus !== result.order.status) notifyCustomerOrderStatus(result);
   return result;
 }
 
@@ -111,5 +112,34 @@ export async function transitionOrdersStatus(orderIds: number[], nextStatus: Ord
     return changed;
   });
   if (results.some((result) => result.inventoryEffect === 'release')) invalidateCatalog();
+  for (const result of results) notifyCustomerOrderStatus(result);
   return results;
+}
+
+const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  new: 'جدید',
+  confirmed: 'تأییدشده',
+  preparing: 'در حال آماده‌سازی',
+  shipped: 'ارسال‌شده',
+  delivered: 'تحویل‌شده',
+  cancelled: 'لغوشده',
+};
+
+function notifyCustomerOrderStatus(result: OrderStatusTransitionResult): void {
+  const order = result.order;
+  void import('./customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+    order.userId,
+    'order.status_changed',
+    '📦 وضعیت سفارش تغییر کرد',
+    `وضعیت سفارش ${order.orderCode} به «${ORDER_STATUS_LABELS[order.status]}» تغییر کرد.`,
+  )).catch((err) => console.error('[Customer Telegram] order.status_changed failed:', err));
+
+  if (result.previousStatus !== 'cancelled' && order.status === 'cancelled' && order.paymentMethod === 'wallet') {
+    void import('./customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+      order.userId,
+      'wallet.changed',
+      '↩️ بازگشت وجه به کیف پول',
+      `${order.total.toLocaleString('fa-IR')} تومان بابت لغو سفارش ${order.orderCode} به کیف پول شما بازگشت.`,
+    )).catch((err) => console.error('[Customer Telegram] wallet refund failed:', err));
+  }
 }

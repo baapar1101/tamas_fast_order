@@ -10,9 +10,11 @@ import { WalletPage } from './storefront/WalletPage';
 import { CheckoutPage } from './storefront/CheckoutPage';
 import { CreditPage } from './storefront/CreditPage';
 import { AccountLayout } from './storefront/AccountLayout';
+import { TelegramPage } from './storefront/TelegramPage';
 
 import { PaymentResultPage } from './storefront/PaymentResultPage';
 import { captureAttribution } from './lib/attribution';
+import { TelegramConnectPrompt } from './storefront/TelegramConnectPrompt';
 
 /*
  * The admin panel is a lazy chunk. A shopper on a phone never downloads the
@@ -78,6 +80,7 @@ export function App() {
   return (
     <>
       <SvgSprite />
+      <TelegramConnectPrompt />
       <Routes>
         <Route path="/" element={<StorefrontPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
@@ -86,6 +89,7 @@ export function App() {
           <Route path="orders" element={<Navigate to="/account" replace />} />
           <Route path="wallet" element={<WalletPage />} />
           <Route path="credit" element={<CreditPage />} />
+          <Route path="telegram" element={<TelegramPage />} />
         </Route>
         <Route path="/orders" element={<LegacyAccountRedirect target="/account" />} />
         <Route path="/profile/orders" element={<LegacyAccountRedirect target="/account" />} />

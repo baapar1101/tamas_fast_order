@@ -86,6 +86,11 @@ export function AccountLayout() {
                 <NavLink to="/account/credit" state={{ returnTo }} className={({ isActive }) => `account-nav-item${isActive ? ' active' : ''}`}>
                   <span className="account-nav-glyph" aria-hidden="true">💳</span> <span>پرونده اعتباری</span>
                 </NavLink>
+                {user.role === 'customer' && (
+                  <NavLink to="/account/telegram" state={{ returnTo }} className={({ isActive }) => `account-nav-item${isActive ? ' active' : ''}`}>
+                    <span className="account-nav-glyph" aria-hidden="true">✈</span> <span>ربات تلگرام</span>
+                  </NavLink>
+                )}
                 {isAdmin && (
                   <Link to="/admin" className="account-nav-item account-nav-admin">
                     <Icon name="grid" /> <span>پنل مدیریت</span>
