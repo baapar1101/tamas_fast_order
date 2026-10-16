@@ -2,6 +2,7 @@ import { and, count, desc, eq, gte, ilike, inArray, isNull, lte, or, sql, type S
 import type { FastifyPluginAsync } from 'fastify';
 import * as xlsx from '@e965/xlsx';
 import { z } from 'zod';
+import type { InvestorSettingsDTO, OrderDTO } from '@tamas/shared';
 import { ORDER_STATUSES, ORDER_STATUS_LABELS, orderItemsReplaceSchema, orderPatchSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { orderItems, orders, products, users } from '../../db/schema.js';
@@ -11,6 +12,8 @@ import { replaceOrderItems, toOrderDTO } from '../../services/orders.js';
 import { transitionOrderStatus, transitionOrdersStatus } from '../../services/order-inventory.js';
 import { upsertOrderPayment } from '../../services/payments.js';
 import { logAction } from '../../services/audit.js';
+import { getInvestorSettings } from '../../services/investor-finance.js';
+import { calculateOrderInvestment } from '../../services/investor-model.js';
 
 const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
@@ -26,11 +29,28 @@ const productOptionsQuery = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });
 
+function toAdminOrderDTO(
+  row: typeof orders.$inferSelect,
+  items: Array<typeof orderItems.$inferSelect>,
+  settings: InvestorSettingsDTO,
+): OrderDTO {
+  const dto = toOrderDTO(row, items);
+  dto.items = dto.items.map((item, index) => ({ ...item, costPrice: items[index]?.costPrice ?? 0 }));
+  dto.investment = calculateOrderInvestment({
+    total: row.total,
+    paymentStatus: row.paymentStatus,
+    status: row.status,
+    items,
+  }, settings);
+  return dto;
+}
+
 const routes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requirePermission('manage_orders'));
 
   app.get('/admin/orders', async (req) => {
     const q = listQuery.parse(req.query);
+    const settingsPromise = getInvestorSettings();
     const filters: SQL[] = [isNull(orders.deletedAt)];
 
     if (q.status !== 'all') filters.push(eq(orders.status, q.status));
@@ -54,8 +74,9 @@ const routes: FastifyPluginAsync = async (app) => {
       db.select({ n: count() }).from(orders).where(where),
     ]);
 
-    const items = rows.length
-      ? await db
+    const [items, investorSettings] = await Promise.all([
+      rows.length
+      ? db
           .select()
           .from(orderItems)
           .where(
@@ -64,7 +85,9 @@ const routes: FastifyPluginAsync = async (app) => {
               rows.map((r) => r.id),
             ),
           )
-      : [];
+      : Promise.resolve([]),
+      settingsPromise,
+    ]);
 
     const byOrder = new Map<number, typeof items>();
     for (const it of items) {
@@ -75,7 +98,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
     return {
       ok: true,
-      items: rows.map((r) => toOrderDTO(r, byOrder.get(r.id) ?? [])),
+      items: rows.map((r) => toAdminOrderDTO(r, byOrder.get(r.id) ?? [], investorSettings)),
       total: Number(total?.n ?? 0),
       page: q.page,
       perPage: q.perPage,
@@ -92,6 +115,7 @@ const routes: FastifyPluginAsync = async (app) => {
         title: products.title,
         color: products.color,
         price: products.price,
+        costPrice: products.costPrice,
         kermanStock: products.kermanStock,
         tehranStock: products.tehranStock,
         stock: products.stock,
@@ -116,11 +140,12 @@ const routes: FastifyPluginAsync = async (app) => {
     const id = Number((req.params as { id: string }).id);
     const [row] = await db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1);
     if (!row) throw notFound('سفارش پیدا نشد.');
-    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
-    const [customer] = row.userId
-      ? await db.select().from(users).where(eq(users.id, row.userId)).limit(1)
-      : [undefined];
-    return { ok: true, order: toOrderDTO(row, items), customer: customer ?? null };
+    const [items, customerRows, investorSettings] = await Promise.all([
+      db.select().from(orderItems).where(eq(orderItems.orderId, id)),
+      row.userId ? db.select().from(users).where(eq(users.id, row.userId)).limit(1) : Promise.resolve([]),
+      getInvestorSettings(),
+    ]);
+    return { ok: true, order: toAdminOrderDTO(row, items, investorSettings), customer: customerRows[0] ?? null };
   });
 
   app.put('/admin/orders/:id/items', async (req) => {
@@ -151,7 +176,13 @@ const routes: FastifyPluginAsync = async (app) => {
         { label: 'تعداد اقلام', value: result.order.quantity },
       ],
     }).catch((err) => req.log.error({ err }, 'failed to send Telegram order item notification'));
-    return { ok: true, order: result.order };
+    const [[row], items, investorSettings] = await Promise.all([
+      db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1),
+      db.select().from(orderItems).where(eq(orderItems.orderId, id)),
+      getInvestorSettings(),
+    ]);
+    if (!row) throw notFound('سفارش پیدا نشد.');
+    return { ok: true, order: toAdminOrderDTO(row, items, investorSettings) };
   });
 
   /** Minimal one-column workbook used by Sepidar: customer header, then one SKU per unit. */
@@ -260,9 +291,12 @@ const routes: FastifyPluginAsync = async (app) => {
       )).catch((err) => req.log.error({ err }, 'failed to send customer Telegram payment notification'));
     }
 
-    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
+    const [items, investorSettings] = await Promise.all([
+      db.select().from(orderItems).where(eq(orderItems.orderId, id)),
+      getInvestorSettings(),
+    ]);
     await logAction(req.currentUser!.id, 'update', 'order', updated.orderCode, body as Record<string, unknown>);
-    return { ok: true, order: toOrderDTO(updated, items) };
+    return { ok: true, order: toAdminOrderDTO(updated, items, investorSettings) };
   });
 
   app.delete('/admin/orders/:id', async (req) => {
@@ -354,6 +388,7 @@ const routes: FastifyPluginAsync = async (app) => {
     if (q.from) filters.push(gte(orders.createdAt, new Date(q.from)));
     if (q.to) filters.push(lte(orders.createdAt, new Date(q.to)));
 
+    const settingsPromise = getInvestorSettings();
     const rows = await db
       .select()
       .from(orders)
@@ -378,12 +413,19 @@ const routes: FastifyPluginAsync = async (app) => {
       list.push(it);
       byOrder.set(it.orderId, list);
     }
+    const investorSettings = await settingsPromise;
 
     const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const header = ['order_code', 'date', 'customer', 'store', 'phone', 'address', 'status', 'total', 'items'];
+    const header = ['order_code', 'date', 'customer', 'store', 'phone', 'address', 'status', 'payment_status', 'total', 'cost_of_goods', 'gross_profit', 'investor_share', 'executor_share', 'cost_coverage_percent', 'items'];
     const lines = [header.join(',')];
     for (const r of rows) {
       const line = (byOrder.get(r.id) ?? []).map((i) => `${i.title} (${i.color ?? '-'}) ×${i.qty}`).join(' | ');
+      const investment = calculateOrderInvestment({
+        total: r.total,
+        paymentStatus: r.paymentStatus,
+        status: r.status,
+        items: byOrder.get(r.id) ?? [],
+      }, investorSettings);
       lines.push(
         [
           esc(r.orderCode),
@@ -393,7 +435,13 @@ const routes: FastifyPluginAsync = async (app) => {
           esc(r.phone),
           esc(r.address),
           esc(r.status),
+          esc(r.paymentStatus),
           esc(r.total),
+          esc(investment.costOfGoodsSold),
+          esc(investment.grossProfit),
+          esc(investment.investorShare),
+          esc(investment.executorShare),
+          esc(investment.costCoveragePercent),
           esc(line),
         ].join(','),
       );

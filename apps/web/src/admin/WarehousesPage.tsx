@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { api } from '../lib/api';
 import { useToast } from '../components/Toast';
 import { Modal } from '../components/Modal';
+import type { WarehouseInvestmentSummaryDTO } from '@tamas/shared';
+import { formatNumber } from '@tamas/shared';
 
 interface Warehouse {
   id: string;
@@ -28,6 +30,11 @@ export function WarehousesPage() {
     },
   });
 
+  const investment = useQuery({
+    queryKey: ['admin', 'warehouses', 'investment-summary'],
+    queryFn: async () => (await api.get<{ summary: WarehouseInvestmentSummaryDTO }>('/admin/warehouses/investment-summary')).summary,
+  });
+
   const saveMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       if (editingId) {
@@ -37,6 +44,7 @@ export function WarehousesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'warehouses'] });
+      queryClient.invalidateQueries({ queryKey: ['investor', 'dashboard'] });
       toast.ok(editingId ? 'انبار بروز شد' : 'انبار اضافه شد');
       setEditingId(null);
       setFormData({ code: '', name: '', location: '', isActive: true });
@@ -51,6 +59,7 @@ export function WarehousesPage() {
     mutationFn: (id: string) => api.del(`/admin/warehouses/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'warehouses'] });
+      queryClient.invalidateQueries({ queryKey: ['investor', 'dashboard'] });
       toast.ok('انبار حذف شد');
     },
     onError: (err: any) => toast.error(err.message || 'خطا در حذف انبار'),
@@ -89,6 +98,51 @@ export function WarehousesPage() {
         <div className="a-page-actions">
           <button type="button" className="a-btn a-btn--primary" onClick={handleCreate}>+ افزودن انبار</button>
         </div>
+      </section>
+
+      <section className="a-stat-strip" aria-label="ارزش سرمایه موجودی انبارها">
+        <article className="a-stat-card">
+          <span className="a-stat-label">موجودی کل</span>
+          <strong className="a-stat-value">{formatNumber(investment.data?.totals.units ?? 0)}</strong>
+          <small className="a-stat-caption">عدد کالا</small>
+        </article>
+        <article className="a-stat-card">
+          <span className="a-stat-label">ارزش موجودی</span>
+          <strong className="a-stat-value">{formatNumber(investment.data?.totals.inventoryValue ?? 0)}</strong>
+          <small className="a-stat-caption">تومان</small>
+        </article>
+        <article className="a-stat-card">
+          <span className="a-stat-label">سهم سرمایه‌گذار · {formatNumber(investment.data?.settings.investorSharePercent ?? 60)}٪</span>
+          <strong className="a-stat-value">{formatNumber(investment.data?.totals.investorValue ?? 0)}</strong>
+          <small className="a-stat-caption">تومان از ارزش موجودی</small>
+        </article>
+        <article className="a-stat-card">
+          <span className="a-stat-label">پوشش قیمت خرید</span>
+          <strong className="a-stat-value">{formatNumber(investment.data?.totals.costCoveragePercent ?? 0)}٪</strong>
+          <small className="a-stat-caption">{formatNumber(investment.data?.totals.productsWithoutCost ?? 0)} کالا بدون قیمت خرید</small>
+        </article>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {investment.isLoading ? (
+          <div className="a-card a-empty lg:col-span-3">در حال محاسبه ارزش انبارها…</div>
+        ) : investment.data?.warehouses.map((bucket) => (
+          <article className="a-card" key={bucket.warehouse}>
+            <div className="a-card-head">
+              <div>
+                <h3 className="a-card-title">{bucket.label}</h3>
+                <p className="a-card-sub">ارزش‌گذاری بر اساس آخرین قیمت خرید ثبت‌شده</p>
+              </div>
+              <span className="a-badge a-badge--neutral">{formatNumber(bucket.units)} عدد</span>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between"><span className="text-[var(--a-t4)]">ارزش موجودی</span><strong className="text-[var(--a-t1)]">{formatNumber(bucket.inventoryValue)} تومان</strong></div>
+              <div className="flex items-center justify-between"><span className="text-[var(--a-t4)]">سهم سرمایه‌گذار</span><strong className="text-emerald-500">{formatNumber(bucket.investorValue)} تومان</strong></div>
+              <div className="flex items-center justify-between"><span className="text-[var(--a-t4)]">سهم مجری</span><strong className="text-amber-500">{formatNumber(bucket.executorValue)} تومان</strong></div>
+              <div className="flex items-center justify-between"><span className="text-[var(--a-t4)]">پوشش قیمت خرید</span><strong className="text-[var(--a-t1)]">{formatNumber(bucket.costCoveragePercent)}٪</strong></div>
+            </div>
+          </article>
+        ))}
       </section>
 
       <Modal

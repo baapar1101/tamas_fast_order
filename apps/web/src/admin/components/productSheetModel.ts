@@ -3,11 +3,11 @@ import { toAsciiDigits } from '@tamas/shared';
 
 export type SheetColumnKey =
   | 'title' | 'sku' | 'model' | 'categoryName' | 'brandName' | 'color'
-  | 'price' | 'oldPrice' | 'discount' | 'stock' | 'kermanStock' | 'tehranStock'
-  | 'totalStock' | 'status' | 'promotion' | 'warranty' | 'seller'
+  | 'price' | 'costPrice' | 'oldPrice' | 'discount' | 'stock' | 'kermanStock' | 'tehranStock'
+  | 'totalStock' | 'inventoryValue' | 'status' | 'promotion' | 'warranty' | 'seller'
   | 'sortOrder' | 'createdAt' | 'updatedAt' | 'imageUrl';
 
-export type SheetEditableKey = Exclude<SheetColumnKey, 'sku' | 'totalStock' | 'createdAt' | 'updatedAt' | 'imageUrl'>;
+export type SheetEditableKey = Exclude<SheetColumnKey, 'sku' | 'totalStock' | 'inventoryValue' | 'createdAt' | 'updatedAt' | 'imageUrl'>;
 export type SheetDraft = Partial<Record<SheetEditableKey, string | boolean>>;
 export type SheetDrafts = Record<number, SheetDraft>;
 
@@ -28,12 +28,14 @@ export const SHEET_COLUMNS: SheetColumn[] = [
   { key: 'brandName', label: 'برند', group: 'کالا', kind: 'select', width: 160 },
   { key: 'color', label: 'رنگ', group: 'کالا', kind: 'text', width: 140 },
   { key: 'price', label: 'قیمت (تومان)', group: 'قیمت و موجودی', kind: 'number', width: 155 },
+  { key: 'costPrice', label: 'قیمت خرید', group: 'قیمت و موجودی', kind: 'number', width: 155, hint: 'مبنای ارزش موجودی و محاسبه سود سرمایه‌گذاری.' },
   { key: 'oldPrice', label: 'قیمت قبلی', group: 'قیمت و موجودی', kind: 'number', width: 155 },
   { key: 'discount', label: 'تخفیف ٪', group: 'قیمت و موجودی', kind: 'number', width: 110 },
   { key: 'stock', label: 'موجودی کلی', group: 'قیمت و موجودی', kind: 'number', width: 120, hint: 'اگر موجودی انبارها ثبت شده باشد، فروشگاه جمع آن‌ها را ملاک قرار می‌دهد.' },
   { key: 'kermanStock', label: 'انبار کرمان', group: 'قیمت و موجودی', kind: 'number', width: 120 },
   { key: 'tehranStock', label: 'انبار تهران', group: 'قیمت و موجودی', kind: 'number', width: 120 },
   { key: 'totalStock', label: 'موجودی نمایشی', group: 'قیمت و موجودی', kind: 'read', width: 135 },
+  { key: 'inventoryValue', label: 'ارزش سرمایه موجودی', group: 'قیمت و موجودی', kind: 'read', width: 175 },
   { key: 'status', label: 'وضعیت', group: 'نمایش', kind: 'select', width: 135 },
   { key: 'promotion', label: 'پیشنهاد ویژه', group: 'نمایش', kind: 'toggle', width: 125 },
   { key: 'warranty', label: 'گارانتی', group: 'نمایش', kind: 'text', width: 180 },
@@ -45,7 +47,7 @@ export const SHEET_COLUMNS: SheetColumn[] = [
 ];
 
 export const DEFAULT_SHEET_COLUMNS: SheetColumnKey[] = [
-  'title', 'sku', 'color', 'price', 'stock', 'kermanStock', 'tehranStock', 'status', 'updatedAt',
+  'title', 'sku', 'color', 'price', 'costPrice', 'stock', 'kermanStock', 'tehranStock', 'inventoryValue', 'status', 'updatedAt',
 ];
 
 const OPTIONAL_TEXT_LIMITS: Partial<Record<SheetEditableKey, number>> = {
@@ -56,6 +58,11 @@ export function sheetCellValue(product: ProductDTO, key: SheetColumnKey): string
   if (key === 'totalStock') {
     const split = product.kermanStock + product.tehranStock;
     return String(split > 0 ? split : product.stock);
+  }
+  if (key === 'inventoryValue') {
+    const split = product.kermanStock + product.tehranStock;
+    const units = split > 0 ? split : product.stock;
+    return String(product.inventoryValue ?? units * (product.costPrice ?? 0));
   }
   if (key === 'createdAt' || key === 'updatedAt') {
     const date = product[key];

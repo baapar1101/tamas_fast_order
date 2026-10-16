@@ -151,6 +151,9 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ['admin', 'products'] });
     void qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
+    void qc.invalidateQueries({ queryKey: ['admin', 'warehouses', 'investment-summary'] });
+    void qc.invalidateQueries({ queryKey: ['admin', 'financial', 'costs'] });
+    void qc.invalidateQueries({ queryKey: ['investor', 'dashboard'] });
   };
 
   const save = useMutation({
@@ -609,6 +612,11 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                   </th>
                   <th className="">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <span>خرید / ارزش سرمایه</span>
+                    </div>
+                  </th>
+                  <th className="">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                       <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m6 4.125 2.25 2.25m0 0 2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
                       <span>موجودی (عدد)</span>
                     </div>
@@ -655,6 +663,10 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                       <td className="">
                         <div className="text-sm font-bold text-[var(--a-t1)]">{formatNumber(p.price)}</div>
                         {p.oldPrice && p.oldPrice > p.price && <div className="text-xs text-[var(--a-t4)] line-through">{formatNumber(p.oldPrice)}</div>}
+                      </td>
+                      <td className="">
+                        <div className="text-sm font-bold text-[var(--a-t1)]">{formatNumber(p.costPrice ?? 0)}</div>
+                        <div className="text-xs text-[var(--a-t4)]">ارزش: {formatNumber(p.inventoryValue ?? totalStock * (p.costPrice ?? 0))}</div>
                       </td>
                       <td className="">
                         {totalStock === 0 ? (
@@ -786,6 +798,9 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                     <div className="admin-product-card__stock">
                       <span className={`a-badge ${totalStock === 0 ? 'a-badge--red' : 'a-badge--green'}`}>
                         {totalStock === 0 ? 'ناموجود' : `${formatNumber(totalStock)} عدد`}
+                      </span>
+                      <span className="a-badge a-badge--neutral">
+                        سرمایه موجودی: {formatNumber(p.inventoryValue ?? totalStock * (p.costPrice ?? 0))} تومان
                       </span>
                     </div>
                   </div>

@@ -21,6 +21,7 @@ interface OrderProductOption {
   title: string;
   color: string | null;
   price: number;
+  costPrice: number;
   kermanStock: number;
   tehranStock: number;
   stock: number;
@@ -33,6 +34,7 @@ interface OrderItemDraft {
   title: string;
   color: string | null;
   price: number;
+  costPrice?: number;
   qty: number;
   warehouse: Warehouse;
 }
@@ -186,6 +188,7 @@ export function OrdersPage() {
         title: product.title,
         color: product.color,
         price: product.price,
+        costPrice: product.costPrice,
         qty: 1,
         warehouse,
       }];
@@ -336,6 +339,9 @@ export function OrdersPage() {
                     </div>
                   </th>
                   <th>
+                    <div><span>سود / سهم سرمایه‌گذار</span></div>
+                  </th>
+                  <th>
                     <div>
                       <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg>
                       <span>وضعیت پرداخت</span>
@@ -395,6 +401,15 @@ export function OrdersPage() {
                       {formatNumber(o.quantity ?? 1)}
                     </td>
                     <td className="font-bold text-emerald-300"><Price amount={o.total} /></td>
+                    <td>
+                      <div className={`font-bold ${(o.investment?.grossProfit ?? 0) < 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                        <Price amount={o.investment?.grossProfit ?? 0} />
+                      </div>
+                      <div className="mt-1 text-[11px] text-[var(--a-t4)]">
+                        سهم {formatNumber(o.investment?.investorSharePercent ?? 60)}٪: {formatMoney(o.investment?.investorShare ?? 0)} تومان
+                      </div>
+                      {o.investment && !o.investment.realized && <span className="a-badge a-badge--neutral mt-1">پیش‌بینی</span>}
+                    </td>
                     <td>
                       <span className={`chip ${o.paymentStatus === 'paid' ? 'chip-brand' : o.paymentStatus === 'pending' ? 'chip-amber' : 'chip-rose'}`}>
                         {o.paymentStatus === 'paid' ? 'پرداخت شده' : o.paymentStatus === 'pending' ? 'در انتظار' : 'پرداخت نشده'}
@@ -562,6 +577,25 @@ export function OrdersPage() {
                 </div>
               </div>
 
+              {detail.investment && (
+                <div className="a-card">
+                  <div className="a-card-head">
+                    <div>
+                      <h3 className="a-card-title">اثر مالی و سرمایه‌گذاری سفارش</h3>
+                      <p className="a-card-sub">{detail.investment.realized ? 'قطعی؛ سفارش پرداخت شده و لغو نشده است.' : 'پیش‌بینی؛ پس از پرداخت و قطعی‌شدن سفارش وارد داشبورد سرمایه‌گذار می‌شود.'}</p>
+                    </div>
+                    <span className={`a-badge ${detail.investment.realized ? 'a-badge--green' : 'a-badge--neutral'}`}>{detail.investment.realized ? 'قطعی' : 'پیش‌بینی'}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
+                    <div><span className="text-[var(--a-t4)]">بهای تمام‌شده</span><strong className="mt-1 block text-[var(--a-t1)]"><Price amount={detail.investment.costOfGoodsSold} /></strong></div>
+                    <div><span className="text-[var(--a-t4)]">سود ناخالص · {formatNumber(detail.investment.grossMarginPercent)}٪</span><strong className={`mt-1 block ${detail.investment.grossProfit < 0 ? 'text-rose-500' : 'text-emerald-500'}`}><Price amount={detail.investment.grossProfit} /></strong></div>
+                    <div><span className="text-[var(--a-t4)]">سرمایه‌گذار · {formatNumber(detail.investment.investorSharePercent)}٪</span><strong className="mt-1 block text-emerald-500"><Price amount={detail.investment.investorShare} /></strong></div>
+                    <div><span className="text-[var(--a-t4)]">مجری · {formatNumber(detail.investment.executorSharePercent)}٪</span><strong className="mt-1 block text-amber-500"><Price amount={detail.investment.executorShare} /></strong></div>
+                  </div>
+                  <div className="mt-3 text-[11px] text-[var(--a-t4)]">پوشش قیمت خرید اقلام: {formatNumber(detail.investment.costCoveragePercent)}٪</div>
+                </div>
+              )}
+
               <div>
                 <label className="a-label mb-2">تغییر وضعیت سفارش:</label>
                 <div className="flex flex-wrap gap-2">
@@ -696,6 +730,8 @@ export function OrdersPage() {
                       <th>انبار</th>
                       <th>تعداد</th>
                       <th>قیمت واحد</th>
+                      <th>بهای خرید</th>
+                      <th>سود قلم</th>
                       <th>جمع کل</th>
                       {editingItems && <th>عملیات</th>}
                     </tr>
@@ -730,6 +766,8 @@ export function OrdersPage() {
                             ) : formatNumber(item.qty)}
                           </td>
                           <td className="text-slate-300"><Price amount={item.price} /></td>
+                          <td className="text-slate-300"><Price amount={item.costPrice ?? 0} /></td>
+                          <td className={(item.price - (item.costPrice ?? 0)) * item.qty < 0 ? 'text-rose-500' : 'text-emerald-500'}><Price amount={(item.price - (item.costPrice ?? 0)) * item.qty} /></td>
                           <td className="font-bold text-white"><Price amount={item.price * item.qty} /></td>
                           {editingItems && (
                             <td>

@@ -76,6 +76,10 @@ export interface ProductDTO {
   colorEn: string | null;
   colorCode: string | null;
   price: number;
+  /** Admin-only latest unit acquisition cost; omitted from public catalogue responses. */
+  costPrice?: number;
+  /** Admin-only current inventory valuation based on costPrice. */
+  inventoryValue?: number;
   oldPrice: number | null;
   discount: number;
   stock: number;
@@ -190,8 +194,23 @@ export interface OrderItemDTO {
   title: string;
   color: string | null;
   price: number;
+  /** Admin-only acquisition-cost snapshot frozen when the order item was created. */
+  costPrice?: number;
   qty: number;
   warehouse: Warehouse;
+}
+
+export interface AdminOrderInvestmentDTO {
+  costOfGoodsSold: number;
+  grossProfit: number;
+  grossMarginPercent: number;
+  distributableProfit: number;
+  investorShare: number;
+  executorShare: number;
+  investorSharePercent: number;
+  executorSharePercent: number;
+  costCoveragePercent: number;
+  realized: boolean;
 }
 
 export interface OrderDTO {
@@ -214,6 +233,8 @@ export interface OrderDTO {
   acquisitionMedium?: string | null;
   acquisitionCampaign?: string | null;
   items: OrderItemDTO[];
+  /** Admin-only investment and profitability view; omitted from customer responses. */
+  investment?: AdminOrderInvestmentDTO;
   createdAt: string;
   updatedAt: string;
 }
@@ -332,6 +353,31 @@ export interface InvestorSettingsDTO {
   investorSharePercent: number;
   executorSharePercent: number;
   companyLabel: string;
+}
+
+export interface WarehouseInvestmentBucketDTO {
+  warehouse: 'kerman' | 'tehran' | 'site';
+  label: string;
+  units: number;
+  valuedUnits: number;
+  inventoryValue: number;
+  investorValue: number;
+  executorValue: number;
+  costCoveragePercent: number;
+}
+
+export interface WarehouseInvestmentSummaryDTO {
+  settings: InvestorSettingsDTO;
+  totals: {
+    units: number;
+    valuedUnits: number;
+    inventoryValue: number;
+    investorValue: number;
+    executorValue: number;
+    productsWithoutCost: number;
+    costCoveragePercent: number;
+  };
+  warehouses: WarehouseInvestmentBucketDTO[];
 }
 
 export interface InvestorDashboardDTO {

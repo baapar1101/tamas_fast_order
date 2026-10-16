@@ -3,9 +3,9 @@ import { test } from 'node:test';
 import type { ProductDTO } from '@tamas/shared';
 import { parseSheetPatch, sheetCellValue } from '../src/admin/components/productSheetModel.ts';
 
-test('sheet parses Persian digits and grouped prices into numeric patch fields', () => {
-  assert.deepEqual(parseSheetPatch({ price: '۱۲,۴۵۰,۰۰۰', kermanStock: '۳', tehranStock: '0', oldPrice: '' }), {
-    price: 12_450_000, kermanStock: 3, tehranStock: 0, oldPrice: null,
+test('sheet parses Persian digits, sale price and acquisition cost into numeric patch fields', () => {
+  assert.deepEqual(parseSheetPatch({ price: '۱۲,۴۵۰,۰۰۰', costPrice: '۱۰,۰۰۰,۰۰۰', kermanStock: '۳', tehranStock: '0', oldPrice: '' }), {
+    price: 12_450_000, costPrice: 10_000_000, kermanStock: 3, tehranStock: 0, oldPrice: null,
   });
 });
 
@@ -17,8 +17,9 @@ test('sheet rejects invalid cells before writes', () => {
 });
 
 test('sheet represents readable stock without changing warehouse fields', () => {
-  const product = { stock: 8, kermanStock: 3, tehranStock: 2, productId: '01010113528' } as ProductDTO;
+  const product = { stock: 8, kermanStock: 3, tehranStock: 2, costPrice: 100_000, productId: '01010113528' } as ProductDTO;
   assert.equal(sheetCellValue(product, 'totalStock'), '5');
+  assert.equal(sheetCellValue(product, 'inventoryValue'), '500000');
   assert.equal(sheetCellValue(product, 'sku'), '');
   assert.deepEqual(parseSheetPatch({ status: 'inactive', promotion: true }), { status: 'inactive', promotion: true });
 });

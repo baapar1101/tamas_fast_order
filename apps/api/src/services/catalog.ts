@@ -65,6 +65,9 @@ export function toProductDTO(
     updatedAt: row.updatedAt.toISOString(),
   };
   if (options.includeAdminSource) {
+    const units = availableStock(row);
+    dto.costPrice = row.costPrice;
+    dto.inventoryValue = units * row.costPrice;
     dto.digikalaLink = row.digikalaLink ?? null;
     dto.targetSiteUrl = row.targetSiteUrl ?? null;
   }

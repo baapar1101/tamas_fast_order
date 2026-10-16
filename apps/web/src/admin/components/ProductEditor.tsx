@@ -78,6 +78,7 @@ export interface ProductForm {
   colorEn: string;
   colorCode: string;
   price: number;
+  costPrice: number;
   oldPrice: number | null;
   discount: number;
   stock: number;
@@ -201,6 +202,7 @@ const blank = (): ProductForm => ({
   colorEn: '',
   colorCode: '',
   price: 0,
+  costPrice: 0,
   oldPrice: null,
   discount: 0,
   stock: 0,
@@ -243,6 +245,7 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   colorEn: p.colorEn ?? '',
   colorCode: p.colorCode ?? '',
   price: p.price,
+  costPrice: p.costPrice ?? 0,
   oldPrice: p.oldPrice,
   discount: p.discount,
   stock: p.stock,
@@ -282,6 +285,10 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
     return { ...initial, type: 'bundle', categoryName: initial.categoryName || basket?.name || '' };
   });
   const [error, setError] = useState('');
+  const inventoryUnits = form.kermanStock + form.tehranStock > 0
+    ? form.kermanStock + form.tehranStock
+    : form.stock;
+  const unitGrossProfit = form.price - form.costPrice;
 
   // Variants Fetching (if editing an existing parent product)
   const { data: variantsData, isLoading: variantsLoading } = useQuery({
@@ -648,7 +655,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
           <ProductAccordionSection
             id="pe-pricing-section"
             title="قیمت‌گذاری و موجودی"
-            summary={`${formatNumber(form.price)} تومان · موجودی ${formatNumber(form.stock)}`}
+            summary={`${formatNumber(form.price)} تومان · سرمایه موجودی ${formatNumber(inventoryUnits * form.costPrice)} تومان`}
           >
             <div className="a-form-grid">
               <div className="a-field">
@@ -660,6 +667,17 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                   value={form.price}
                   onChange={(e) => set('price', Number(e.target.value.replace(/\D/g, '')))}
                 />
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-cost-price">قیمت خرید واحد (تومان)</label>
+                <input
+                  id="pe-cost-price"
+                  className="a-input a-ltr"
+                  inputMode="numeric"
+                  value={form.costPrice}
+                  onChange={(e) => set('costPrice', Number(e.target.value.replace(/\D/g, '')))}
+                />
+                <small className="a-help">مبنای ارزش موجودی و محاسبه سود سرمایه‌گذاری</small>
               </div>
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-old-price">قیمت خط‌خورده (تومان)</label>
@@ -704,6 +722,15 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-warranty">گارانتی</label>
                 <input id="pe-warranty" className="a-input" value={form.warranty} onChange={(e) => set('warranty', e.target.value)} />
+              </div>
+              <div className="a-field a-span-2">
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div><small className="a-help">ارزش سرمایه موجودی</small><strong className="block text-[var(--a-t1)]">{formatNumber(inventoryUnits * form.costPrice)} تومان</strong></div>
+                    <div><small className="a-help">سود ناخالص واحد</small><strong className={`block ${unitGrossProfit < 0 ? 'text-rose-500' : 'text-emerald-500'}`}>{formatNumber(unitGrossProfit)} تومان</strong></div>
+                    <div><small className="a-help">حاشیه سود واحد</small><strong className="block text-[var(--a-t1)]">{form.price ? `${((unitGrossProfit / form.price) * 100).toLocaleString('fa-IR', { maximumFractionDigits: 1 })}٪` : '—'}</strong></div>
+                  </div>
+                </div>
               </div>
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-digikala">لینک دیجی‌کالا</label>
