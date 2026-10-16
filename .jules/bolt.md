@@ -1,0 +1,3 @@
+## 2024-10-16 - Array References in Global State Breaks React.memo
+**Learning:** Passing a frequently updated global state array (like `cartLines` from Zustand) directly as a prop to a memoized child component (like `ProductCard`) mapped in a list causes widespread unnecessary re-renders. When the cart is updated, the array reference changes globally, breaking `React.memo`'s default shallow comparison, making it re-render all instances in the list even if their specific items didn't change.
+**Action:** Supply a custom `propsAreEqual` function to `React.memo` to perform deep comparison only on the relevant subsets of the global array that the specific component instance cares about.
