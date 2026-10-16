@@ -9,7 +9,7 @@ import { resolveProductColor } from './productColor';
 
 import type { CartLine } from '../store/cart';
 
-interface Props {
+export interface Props {
   group: ProductGroupDTO;
   colorMap: Map<string, string>;
   canViewPrices: boolean;
@@ -52,6 +52,33 @@ function productTitleClass(title: string): string {
   if (len > 105) return 'title-very-long';
   if (len > 65) return 'title-long';
   return '';
+}
+
+function arePropsEqual(prevProps: Props, nextProps: Props) {
+  if (prevProps.group !== nextProps.group) return false;
+  if (prevProps.colorMap !== nextProps.colorMap) return false;
+  if (prevProps.canViewPrices !== nextProps.canViewPrices) return false;
+  if (prevProps.viewMode !== nextProps.viewMode) return false;
+  if (prevProps.onAdd !== nextProps.onAdd) return false;
+  if (prevProps.onUpdateQty !== nextProps.onUpdateQty) return false;
+  if (prevProps.onPreview !== nextProps.onPreview) return false;
+
+  const productIds = new Set(nextProps.group.variants.map((v) => v.productId));
+
+  const prevRelevantLines = prevProps.cartLines.filter((l) => productIds.has(l.productId));
+  const nextRelevantLines = nextProps.cartLines.filter((l) => productIds.has(l.productId));
+
+  if (prevRelevantLines.length !== nextRelevantLines.length) return false;
+
+  for (let i = 0; i < prevRelevantLines.length; i++) {
+    const prev = prevRelevantLines[i]!;
+    const next = nextRelevantLines[i]!;
+    if (prev.key !== next.key || prev.qty !== next.qty || prev.price !== next.price) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
@@ -333,5 +360,5 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
-});
+}, arePropsEqual);
 
