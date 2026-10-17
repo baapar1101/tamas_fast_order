@@ -45,7 +45,7 @@ export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout }: Props)
     if (canViewPrices) text += `\nجمع کل: ${formatMoney(total)}\n`;
     else text += `\nقیمت پس از تأیید حساب همکاری اعلام می‌شود.\n`;
     if (notes) text += `\nتوضیحات: ${notes}\n`;
-    window.open(`https://wa.me/989901046596?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(`https://wa.me/989135006644?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   return (
