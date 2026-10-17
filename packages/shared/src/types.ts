@@ -511,12 +511,32 @@ export interface ChequeNotificationDTO {
   severity: 'info' | 'warning' | 'danger';
 }
 
+export interface CreditChequeInstallmentDTO {
+  index: number;
+  amount: number;
+  dueDate: string;
+  dueLabel: string;
+  registered: boolean;
+}
+
+export interface CreditChequeOrderDTO {
+  orderId: number;
+  orderCode: string;
+  createdAt: string;
+  submissionDeadline: string;
+  canSubmitNextCheque: boolean;
+  blockedReason: string | null;
+  schedule: CreditChequeInstallmentDTO[];
+  nextInstallment: CreditChequeInstallmentDTO | null;
+}
+
 export interface CreditDashboardDTO {
   application: CreditApplicationDTO | null;
   totalCreditLimit: number;
   usedCredit: number;
   remainingCredit: number;
   cheques: CreditChequeDTO[];
+  chequeOrders: CreditChequeOrderDTO[];
   notifications: ChequeNotificationDTO[];
 }
 

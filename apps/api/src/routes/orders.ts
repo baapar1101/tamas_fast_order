@@ -6,6 +6,8 @@ import { createOrder, listOrdersForUser } from '../services/orders.js';
 import { processUpload } from '../services/uploads.js';
 import { db } from '../db/client.js';
 import { orders } from '../db/schema.js';
+import { badRequest } from '../lib/errors.js';
+import { registerOrderCheque } from '../services/credit-cheques.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   app.post(
@@ -38,7 +40,6 @@ const routes: FastifyPluginAsync = async (app) => {
         creditNote: z.string().optional(),
         checkNumber: z.string().optional(),
         checkBankName: z.string().optional(),
-        checkDate: z.string().optional(),
         checkNote: z.string().optional(),
       }).parse(req.body);
 
@@ -50,6 +51,22 @@ const routes: FastifyPluginAsync = async (app) => {
 
       if (!order) {
         return { ok: false, message: 'سفارش یافت نشد.' };
+      }
+
+      let registeredCheque: Awaited<ReturnType<typeof registerOrderCheque>>['cheque'] | null = null;
+      if (order.paymentPlan?.kind === 'cheque') {
+        if (!body.checkNumber?.trim() || !body.checkBankName?.trim()) {
+          throw badRequest('شماره صیادی و نام بانک چک اول را وارد کنید.');
+        }
+        const result = await registerOrderCheque(req.currentUser!.id, {
+          orderId: order.id,
+          chequeNumber: body.checkNumber.trim(),
+          bankName: body.checkBankName.trim(),
+          accountHolder: order.customerName,
+          imageUrl: body.receiptImageUrl || null,
+          notes: body.checkNote || null,
+        });
+        registeredCheque = result.cheque;
       }
 
       // Build a payment info note
@@ -71,6 +88,8 @@ const routes: FastifyPluginAsync = async (app) => {
           { label: 'واریزکننده', value: body.depositorName },
           { label: 'شماره پیگیری', value: body.refNumber },
           { label: 'شماره چک', value: body.checkNumber },
+          { label: 'مبلغ چک', value: registeredCheque ? `${Number(registeredCheque.amount).toLocaleString('fa-IR')} تومان` : undefined },
+          { label: 'سررسید چک', value: registeredCheque?.dueDate },
         ],
       }).catch((err) => req.log.error({ err }, 'failed to send Telegram payment info notification'));
 

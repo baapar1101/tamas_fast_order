@@ -1,8 +1,16 @@
-import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lt, ne, sql } from 'drizzle-orm';
 import type { OrderCreate, OrderDTO, OrderItemsReplace, PaymentPlanQuote, Warehouse } from '@tamas/shared';
-import { WAREHOUSE_LABELS, repricePaymentPlan } from '@tamas/shared';
+import {
+  WAREHOUSE_LABELS,
+  chequeDueDate,
+  formatPersianDueDate,
+  nextThursdayDueDate,
+  paymentAudienceForCategory,
+  repricePaymentPlan,
+  tehranWeekWindow,
+} from '@tamas/shared';
 import { db } from '../db/client.js';
-import { discountCodes, discountRedemptions, inventoryReservations, orderItems, orderPaymentInstructions, orders, products } from '../db/schema.js';
+import { discountCodes, discountRedemptions, inventoryReservations, orderItems, orderPaymentInstructions, orders, products, users } from '../db/schema.js';
 import { badRequest, conflict, notFound, profileIncomplete } from '../lib/errors.js';
 import { invalidateCatalog } from './catalog.js';
 import { missingProfileFields, type UserRow } from './auth.js';
@@ -123,7 +131,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     }
   }
 
-  const paymentRouting = await getPaymentRoutingConfig();
+  const [paymentRouting, paymentTermsConfig] = await Promise.all([getPaymentRoutingConfig(), getPaymentTermsConfig()]);
   const created = await db.transaction(async (tx) => {
     let rows = await tx
       .select()
@@ -224,11 +232,10 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     let total = discountedSubtotal;
     let paymentInstructionsPending = false;
     if (input.paymentPlanId) {
-      const config = await getPaymentTermsConfig();
       const quote = quotePaymentTerms(lines.map((line) => {
         const product = byId.get(line.productId)!;
         return { categoryId: product.categoryId, price: product.price, qty: line.qty };
-      }), config);
+      }), paymentTermsConfig);
       if (quote.audience === 'mixed') throw badRequest(quote.message ?? 'شرایط پرداخت برای سبد ترکیبی قابل اعمال نیست.');
       paymentPlan = selectPaymentPlan(quote, input.paymentPlanId);
       if (!paymentPlan) throw badRequest('شرایط پرداخت انتخاب‌شده معتبر یا فعال نیست.');
@@ -237,6 +244,53 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       paymentPlan = secured.plan;
       paymentInstructionsPending = secured.pending;
       total = paymentPlan.finalAmount;
+    }
+    if (!paymentPlan && input.paymentMethod?.trim() === 'credit_weekly') {
+      const audiences = new Set(lines.map((line) => paymentAudienceForCategory(byId.get(line.productId)!.categoryId, paymentTermsConfig)));
+      if (audiences.size !== 1 || !audiences.has('accessory')) throw badRequest('اعتبار هفتگی فقط برای کالاهای جانبی قابل استفاده است.');
+      await tx.select({ id: users.id }).from(users).where(eq(users.id, user.id)).for('update').limit(1);
+      const week = tehranWeekWindow(new Date());
+      const [weeklyUsage] = await tx
+        .select({ amount: sql<number>`COALESCE(SUM(${orders.subtotal}), 0)::bigint` })
+        .from(orders)
+        .where(and(
+          eq(orders.userId, user.id),
+          eq(orders.paymentMethod, 'credit_weekly'),
+          ne(orders.status, 'cancelled'),
+          isNull(orders.deletedAt),
+          gte(orders.createdAt, week.start),
+          lt(orders.createdAt, week.end),
+        ));
+      const usedThisWeek = Number(weeklyUsage?.amount ?? 0);
+      if (usedThisWeek + subtotal > paymentTermsConfig.accessory.weeklyCreditLimit) {
+        const remaining = Math.max(0, paymentTermsConfig.accessory.weeklyCreditLimit - usedThisWeek);
+        throw badRequest(`سقف خرید اعتباری هفتگی کالاهای جانبی ${paymentTermsConfig.accessory.weeklyCreditLimit.toLocaleString('fa-IR')} تومان است؛ اعتبار باقی‌مانده این هفته ${remaining.toLocaleString('fa-IR')} تومان است.`);
+      }
+      const dueDate = nextThursdayDueDate(new Date());
+      paymentPlan = {
+        id: 'credit_weekly', label: 'اعتباری هفتگی', description: `تسویه کامل در پنجشنبه ${formatPersianDueDate(dueDate)}`,
+        audience: 'accessory', kind: 'daily', baseAmount: discountedSubtotal, finalAmount: discountedSubtotal,
+        adjustmentAmount: 0, discountPercent: 0, serviceFeePercent: 0, upfrontPercent: null, upfrontAmount: null,
+        schedule: [{ dueLabel: formatPersianDueDate(dueDate), dueDate, percent: 100, amount: discountedSubtotal, optional: false }],
+        instructions: paymentTermsConfig.accessory.accountInstructions, requiresPaymentInfo: false,
+        termMonths: null, installmentIntervalMonths: null, settlementDays: null,
+      };
+      const secured = securePaymentPlan(paymentPlan, paymentRouting);
+      paymentPlan = secured.plan;
+      paymentInstructionsPending = secured.pending;
+      total = paymentPlan.finalAmount;
+    }
+    if (paymentPlan?.kind === 'cheque') {
+      const interval = paymentPlan.installmentIntervalMonths ?? 1;
+      const termMonths = paymentPlan.termMonths;
+      const anchor = new Date();
+      paymentPlan = {
+        ...paymentPlan,
+        schedule: paymentPlan.schedule.map((item, index) => {
+          const dueDate = chequeDueDate(anchor, index, interval, termMonths);
+          return { ...item, dueDate, dueLabel: formatPersianDueDate(dueDate) };
+        }),
+      };
     }
     if (!paymentPlan && paymentRouting.enabled && total > paymentRouting.thresholdAmount && /credit|check|cheque|اعتبار|چک/i.test(input.paymentMethod ?? '')) {
       paymentInstructionsPending = true;

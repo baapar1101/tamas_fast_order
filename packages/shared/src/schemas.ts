@@ -395,11 +395,10 @@ export const CHEQUE_STATUS_LABELS: Record<ChequeStatus, string> = {
 };
 
 export const creditChequeWriteSchema = z.object({
+  orderId: z.coerce.number().int().positive('سفارش چکی را انتخاب کنید'),
   chequeNumber: z.string().trim().min(3, 'شماره چک/صیادی را وارد کنید'),
   bankName: z.string().trim().min(2, 'نام بانک را وارد کنید'),
   accountHolder: z.string().trim().min(2, 'نام صاحب حساب را وارد کنید'),
-  amount: z.coerce.number().int().min(1000, 'مبلغ چک را وارد کنید'),
-  dueDate: z.string().trim().min(8, 'تاریخ سررسید چک الزامی است'),
   imageUrl: z.string().trim().optional().nullable(),
   notes: z.string().trim().optional().nullable(),
 });

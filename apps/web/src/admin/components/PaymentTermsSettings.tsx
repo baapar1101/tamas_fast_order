@@ -116,6 +116,14 @@ export function PaymentTermsSettings({ value, categories, onChange, onSave, isSa
             accessory: { ...config.accessory, accountInstructions: event.target.value },
           })} />
         </div>
+        <div className="a-field mb-4">
+          <label className="a-label">سقف خرید اعتباری هفتگی جانبی (تومان)</label>
+          <input className="a-input a-ltr" type="number" min="0" value={config.accessory.weeklyCreditLimit} onChange={(event) => update({
+            ...config,
+            accessory: { ...config.accessory, weeklyCreditLimit: numeric(event.target.value) },
+          })} />
+          <p className="a-note">این سقف مجموع سفارش‌های جانبی هر مشتری از شنبه تا جمعه است؛ سررسید هر سفارش اولین پنجشنبه بعد از ثبت آن خواهد بود.</p>
+        </div>
         {(['monthly', 'bimonthly'] as const).map((group) => (
           <div className="a-table-wrap mb-5" key={group}>
             <table className="a-table">

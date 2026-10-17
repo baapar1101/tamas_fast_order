@@ -1385,6 +1385,58 @@
   cursor: zoom-in;
 }
 
+.catalog-image-gallery {
+  min-width: 0;
+}
+
+.catalog-image-gallery__hero,
+.catalog-image-gallery__thumb {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.catalog-image-gallery__hero {
+  display: block;
+  width: 100%;
+}
+
+.catalog-image-gallery__hero .card-thumb,
+.catalog-image-gallery__hero .product-thumb {
+  display: block;
+}
+
+.catalog-image-gallery__thumbs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 3px 1px 8px;
+  scrollbar-width: thin;
+}
+
+.catalog-image-gallery__thumb {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border: 1px solid var(--tamas-border);
+  border-radius: 9px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.catalog-image-gallery__thumb.is-active {
+  border-color: var(--tamas-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tamas-accent) 18%, transparent);
+}
+
+.catalog-image-gallery__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .product-card:hover .card-thumb {
   transform: scale(1.05);
 }
@@ -1594,6 +1646,26 @@
   object-fit: contain !important;
   background: #ffffff !important;
   border: 1px solid var(--tamas-border) !important;
+}
+
+.products-list .catalog-image-gallery--list {
+  grid-area: image;
+  width: 156px;
+  align-self: center;
+  justify-self: center;
+}
+
+.products-list .catalog-image-gallery--list .catalog-image-gallery__thumbs {
+  justify-content: flex-start;
+  width: 156px;
+}
+
+.product-list-detail {
+  margin-inline-start: auto;
+  padding: 5px 9px;
+  font-size: 11px;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .products-list .product-head {
@@ -2501,6 +2573,23 @@
     max-height: 78px !important;
     border-radius: 10px !important;
     padding: 4px !important;
+  }
+
+  .products-list .catalog-image-gallery--list {
+    width: 90px;
+  }
+
+  .products-list .catalog-image-gallery--list .catalog-image-gallery__thumbs {
+    width: 90px;
+    gap: 3px;
+    padding-bottom: 3px;
+  }
+
+  .products-list .catalog-image-gallery--list .catalog-image-gallery__thumb {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+    border-radius: 6px;
   }
 
   .products-list .list-variants {

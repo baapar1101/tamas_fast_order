@@ -644,7 +644,7 @@ export function StorefrontPage() {
                       className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
                       onClick={() => setViewMode('list')}
                     >
-                      <Icon name="filter" /> لیستی (عمده)
+                      <Icon name="filter" /> خرید سریع
                     </button>
                     <button
                       type="button"

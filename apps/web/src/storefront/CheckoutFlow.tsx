@@ -129,12 +129,7 @@ const SECONDARY_INFO: Record<
         label: "نام بانک",
         placeholder: "مثال: بانک ملت",
       },
-      {
-        key: "checkDate",
-        label: "تاریخ سررسید",
-        placeholder: "مثال: ۱۴۰۵/۰۸/۱۵",
-        type: "text",
-      },
+      { key: "receiptImageUrl", label: "تصویر چک (اختیاری)", placeholder: "انتخاب فایل", type: "file" },
       { key: "checkNote", label: "توضیحات (اختیاری)", placeholder: "" },
     ],
   },
@@ -155,12 +150,7 @@ const SECONDARY_INFO: Record<
         label: "نام بانک",
         placeholder: "مثال: بانک ملت",
       },
-      {
-        key: "checkDate",
-        label: "تاریخ سررسید",
-        placeholder: "مثال: ۱۴۰۵/۱۰/۱۵",
-        type: "text",
-      },
+      { key: "receiptImageUrl", label: "تصویر چک (اختیاری)", placeholder: "انتخاب فایل", type: "file" },
       { key: "checkNote", label: "توضیحات (اختیاری)", placeholder: "" },
     ],
   },
@@ -216,7 +206,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
       m.enabled !== false &&
       (!m.minAmount || quotedBaseAmount >= m.minAmount) &&
       (!m.maxAmount || quotedBaseAmount <= m.maxAmount) &&
-      (paymentPlans.length === 0 || ['wallet', 'aqayepardakht'].includes(m.id))
+      (paymentPlans.length === 0 || ['wallet', 'aqayepardakht', 'credit_weekly'].includes(m.id))
   );
 
   const canUseWallet = Boolean(walletQuery.data?.config.enabled && walletQuery.data.config.orderPaymentEnabled && !walletQuery.data.wallet.isFrozen && walletQuery.data.wallet.balance >= quotedBaseAmount);
@@ -390,7 +380,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
   // ── Secondary form view (post-order) ────────────────────────────
   if (completedOrder) {
     const plan = completedOrder.paymentPlan;
-    const planSchedule = plan?.schedule.map((item) => `${item.dueLabel}: ${item.optional ? 'اختیاری' : `${item.percent}٪`}`) ?? [];
+    const planSchedule = plan?.schedule.map((item) => `${item.dueLabel}: ${item.optional || item.amount == null ? 'اختیاری' : `${item.amount.toLocaleString('fa-IR')} تومان`}`) ?? [];
     const pendingInstructions = completedOrder.paymentInstructions?.status === 'pending';
     const baseInfo = plan ? {
       title: `تکمیل سفارش - ${plan.label}`,
@@ -402,7 +392,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
       fields: pendingInstructions ? [] : plan.kind === 'cheque' ? [
         { key: 'checkNumber', label: 'شماره چک صیادی', placeholder: 'شماره ۱۶ رقمی چک' },
         { key: 'checkBankName', label: 'نام بانک', placeholder: 'مثال: بانک ملت' },
-        { key: 'checkDate', label: 'تاریخ اولین سررسید', placeholder: 'مثال: ۱۴۰۵/۰۸/۱۵', type: 'text' },
+        { key: 'receiptImageUrl', label: 'تصویر چک اول (اختیاری)', placeholder: 'انتخاب فایل', type: 'file' },
         { key: 'checkNote', label: 'توضیحات سایر چک‌ها (اختیاری)', placeholder: 'شماره و تاریخ سایر چک‌ها' },
       ] : plan.kind === 'cash' ? [
         { key: 'receiptImageUrl', label: 'آپلود رسید (تصویر)', placeholder: 'انتخاب فایل', type: 'file' },
@@ -807,13 +797,13 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
                 </div>
                 <p className="checkout-plan-card__description">{activePaymentPlan.description}</p>
                 {activePaymentPlan.upfrontAmount != null && activePaymentPlan.upfrontPercent != null && activePaymentPlan.kind !== 'cash' && (
-                  <div className="checkout-plan-card__upfront"><span>پیش‌پرداخت</span><b>{formatNumber(activePaymentPlan.upfrontPercent)}٪</b><span>معادل</span><b><Price amount={activePaymentPlan.upfrontAmount} /></b></div>
+                  <div className="checkout-plan-card__upfront"><span>پیش‌پرداخت</span><b><Price amount={activePaymentPlan.upfrontAmount} /></b></div>
                 )}
                 {activePaymentPlan.schedule.length > 0 && (
                   <div className="checkout-plan-schedule">
                     {activePaymentPlan.schedule.map((item, index) => (
                       <span key={`${item.dueLabel}-${index}`}>
-                        <small>{item.dueLabel}</small><b>{item.optional ? 'اختیاری' : `${formatNumber(item.percent ?? 0)}٪`}</b>
+                        <small>{item.dueLabel}</small><b>{item.optional || item.amount == null ? 'اختیاری' : <Price amount={item.amount} />}</b>
                       </span>
                     ))}
                   </div>

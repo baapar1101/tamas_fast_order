@@ -4,5 +4,6 @@ export * from './money.js';
 export * from './product-title.js';
 export * from './payment-terms.js';
 export * from './financial-automation.js';
+export * from './payment-dates.js';
 export * from './schemas.js';
 export * from './types.js';

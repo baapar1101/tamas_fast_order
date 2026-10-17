@@ -36,6 +36,7 @@ export interface PaymentTermsConfig {
   accessory: {
     enabled: boolean;
     accountInstructions: string;
+    weeklyCreditLimit: number;
     rules: AccessoryPaymentRule[];
   };
   mobile: {
@@ -48,6 +49,7 @@ export interface PaymentTermsConfig {
 
 export interface PaymentScheduleItem {
   dueLabel: string;
+  dueDate: string | null;
   percent: number | null;
   amount: number | null;
   optional: boolean;
@@ -110,6 +112,7 @@ export const DEFAULT_PAYMENT_TERMS_CONFIG: PaymentTermsConfig = {
   mobileCategoryIds: [2],
   accessory: {
     enabled: true,
+    weeklyCreditLimit: 300_000_000,
     accountInstructions: 'بانک ملت - به نام حمید قاسم زاده\nشماره کارت: 6104-3311-4877-4871\nشماره شبا: IR980120010000007697585463',
     rules: [
       ...accessoryRules('monthly', [100, 0, 0, 20, 30, 35, 40], [10, 5, 3, 0, 0, 0, 0]),
@@ -197,6 +200,7 @@ export function parsePaymentTermsConfig(raw: string | PaymentTermsConfig | null 
     accessory: {
       enabled: accessory.enabled !== false,
       accountInstructions: text(accessory.accountInstructions, defaults.accessory.accountInstructions),
+      weeklyCreditLimit: numberInRange(accessory.weeklyCreditLimit, defaults.accessory.weeklyCreditLimit, 0, 10_000_000_000),
       rules: parsedAccessoryRules.map((rule, index) => ({
         id: text(rule?.id, `accessory-rule-${index}`),
         label: text(rule?.label, `شرایط پرداخت ${index + 1}`),
@@ -235,6 +239,7 @@ export function paymentAudienceForCategory(categoryId: number | null, config: Pa
 }
 
 const roundedPercent = (amount: number, percent: number): number => Math.round(amount * percent / 100);
+const roundedChequeAmount = (amount: number): number => Math.max(0, Math.round(amount / 10_000) * 10_000);
 
 export function buildPaymentTermsQuote(
   baseAmount: number,
@@ -265,8 +270,11 @@ export function buildPaymentTermsQuote(
       seenCash.add(signature);
       return true;
     }).map<PaymentPlanQuote>((rule) => {
-      const finalAmount = Math.max(0, baseAmount - roundedPercent(baseAmount, rule.discountPercent));
-      const upfrontAmount = roundedPercent(finalAmount, rule.upfrontPercent);
+      const calculatedFinalAmount = Math.max(0, baseAmount - roundedPercent(baseAmount, rule.discountPercent));
+      const finalAmount = rule.termMonths > 0 ? roundedChequeAmount(calculatedFinalAmount) : calculatedFinalAmount;
+      const upfrontAmount = rule.termMonths > 0
+        ? roundedChequeAmount(roundedPercent(finalAmount, rule.upfrontPercent))
+        : roundedPercent(finalAmount, rule.upfrontPercent);
       const remainingPercent = Math.max(0, 100 - rule.upfrontPercent);
       const groupLabel = rule.group === 'monthly' ? 'چک ماه‌به‌ماه' : 'چک دوماه‌به‌دوماه';
       const dueMonths: number[] = [];
@@ -276,14 +284,16 @@ export function buildPaymentTermsQuote(
         if (dueMonths.length === 0 || dueMonths.at(-1) !== rule.termMonths) dueMonths.push(rule.termMonths);
       }
       const remainingAmount = finalAmount - upfrontAmount;
+      const regularAmount = dueMonths.length ? roundedChequeAmount(remainingAmount / dueMonths.length) : 0;
       const schedule = dueMonths.map((month, index) => {
         const isLast = index === dueMonths.length - 1;
         const percent = remainingPercent / dueMonths.length;
-        const previousAmount = Math.round(remainingAmount / dueMonths.length) * index;
+        const previousAmount = regularAmount * index;
         return {
           dueLabel: `ماه ${month}`,
+          dueDate: null,
           percent,
-          amount: isLast ? remainingAmount - previousAmount : Math.round(remainingAmount / dueMonths.length),
+          amount: isLast ? Math.max(0, remainingAmount - previousAmount) : regularAmount,
           optional: false,
         };
       });
@@ -292,7 +302,7 @@ export function buildPaymentTermsQuote(
         label: rule.label,
         description: rule.termMonths === 0
           ? `پرداخت نقدی با ${rule.discountPercent}٪ تخفیف`
-          : `${groupLabel}، ${rule.upfrontPercent}٪ پیش‌پرداخت${rule.discountPercent ? ` و ${rule.discountPercent}٪ تخفیف` : ''}`,
+          : `${groupLabel}، پیش‌پرداخت ${upfrontAmount.toLocaleString('fa-IR')} تومان${rule.discountPercent ? ' با تخفیف شرایط پرداخت' : ''}`,
         audience,
         kind: rule.termMonths === 0 ? 'cash' : 'cheque',
         baseAmount,
@@ -318,6 +328,7 @@ export function buildPaymentTermsQuote(
     const finalAmount = baseAmount + roundedPercent(baseAmount, rule.totalServicePercent);
     const schedule = rule.installments.map<PaymentScheduleItem>((item) => ({
       dueLabel: `روز ${item.day}`,
+      dueDate: null,
       percent: item.percent,
       amount: item.percent == null ? null : roundedPercent(finalAmount, item.percent),
       optional: item.percent == null,
@@ -350,10 +361,19 @@ export function buildPaymentTermsQuote(
 
 /** Reprice an already-snapshotted plan after an admin changes order items. */
 export function repricePaymentPlan(plan: PaymentPlanQuote, baseAmount: number): PaymentPlanQuote {
-  const finalAmount = baseAmount
+  const calculatedFinalAmount = baseAmount
     - roundedPercent(baseAmount, plan.discountPercent)
     + roundedPercent(baseAmount, plan.serviceFeePercent);
-  const upfrontAmount = plan.upfrontPercent == null ? null : roundedPercent(finalAmount, plan.upfrontPercent);
+  const finalAmount = plan.kind === 'cheque' ? roundedChequeAmount(calculatedFinalAmount) : calculatedFinalAmount;
+  const upfrontAmount = plan.upfrontPercent == null
+    ? null
+    : plan.kind === 'cheque'
+      ? roundedChequeAmount(roundedPercent(finalAmount, plan.upfrontPercent))
+      : roundedPercent(finalAmount, plan.upfrontPercent);
+  const payableBySchedule = Math.max(0, finalAmount - (upfrontAmount ?? 0));
+  const payableItems = plan.schedule.filter((item) => item.percent != null);
+  const regularAmount = payableItems.length ? roundedChequeAmount(payableBySchedule / payableItems.length) : 0;
+  let pricedItems = 0;
   return {
     ...plan,
     baseAmount,
@@ -362,7 +382,11 @@ export function repricePaymentPlan(plan: PaymentPlanQuote, baseAmount: number): 
     upfrontAmount,
     schedule: plan.schedule.map((item) => ({
       ...item,
-      amount: item.percent == null ? null : roundedPercent(finalAmount, item.percent),
+      amount: item.percent == null ? null : plan.kind === 'cheque'
+        ? (++pricedItems === payableItems.length
+            ? Math.max(0, payableBySchedule - regularAmount * (payableItems.length - 1))
+            : regularAmount)
+        : roundedPercent(finalAmount, item.percent),
     })),
   };
 }

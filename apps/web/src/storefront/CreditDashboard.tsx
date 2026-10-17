@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type {
   CreditApplicationDTO,
   CreditDashboardDTO,
@@ -12,6 +12,7 @@ import {
   CREDIT_STATUS_LABELS,
   CHEQUE_STATUS_LABELS,
   formatMoney,
+  formatPersianDueDate,
 } from '@tamas/shared';
 import { useToast } from '../components/Toast';
 import { api } from '../lib/api';
@@ -53,10 +54,9 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
 
   // New Cheque Submission Form State
   const [chequeNum, setChequeNum] = useState('');
+  const [selectedOrderId, setSelectedOrderId] = useState('');
   const [bankName, setBankName] = useState('بانک ملی');
   const [accountHolder, setAccountHolder] = useState(user ? `${user.name || ''} ${user.lastName || ''}`.trim() : '');
-  const [chequeAmount, setChequeAmount] = useState('');
-  const [dueDate, setDueDate] = useState('');
   const [chequeImageUrl, setChequeImageUrl] = useState('');
   const [chequeNotes, setChequeNotes] = useState('');
   const [submittingCheque, setSubmittingCheque] = useState(false);
@@ -68,7 +68,12 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
     try {
       const res = await api.get<{ ok: true } & CreditDashboardDTO>('/credit/dashboard');
       if (res.ok) {
-        setDashboard(res);
+        const chequeOrders = res.chequeOrders ?? [];
+        setDashboard({ ...res, chequeOrders });
+        setSelectedOrderId((current) => {
+          const stillAvailable = chequeOrders.some((order) => String(order.orderId) === current && order.canSubmitNextCheque);
+          return stillAvailable ? current : String(chequeOrders.find((order) => order.canSubmitNextCheque)?.orderId ?? '');
+        });
         setExistingApp(res.application);
         if (res.application) {
           setNationalId(res.application.nationalId || '');
@@ -90,6 +95,11 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     void fetchDashboard();
   }, []);
+
+  const selectedChequeOrder = useMemo(
+    () => dashboard?.chequeOrders.find((order) => String(order.orderId) === selectedOrderId) ?? null,
+    [dashboard?.chequeOrders, selectedOrderId],
+  );
 
   // Upload file helper
   const handleFileUpload = async (field: string, file: File) => {
@@ -176,23 +186,20 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
       toast.error('لطفاً شماره صیادی / چک را وارد کنید');
       return;
     }
-    if (!chequeAmount || Number(chequeAmount) <= 0) {
-      toast.error('لطفاً مبلغ چک را معتبر وارد کنید');
-      return;
-    }
-    if (!dueDate.trim()) {
-      toast.error('لطفاً تاریخ سررسید چک را وارد کنید');
+    if (!selectedChequeOrder?.canSubmitNextCheque || !selectedChequeOrder.nextInstallment) {
+      toast.error(selectedChequeOrder?.blockedReason || 'سفارش چکی قابل ثبت را انتخاب کنید');
       return;
     }
 
     setSubmittingCheque(true);
     try {
       const res = await api.post<{ ok: true }>('/credit/cheques', {
+        orderId: selectedChequeOrder.orderId,
         chequeNumber: chequeNum.trim(),
         bankName,
         accountHolder: accountHolder.trim() || 'صاحب حساب',
-        amount: Number(chequeAmount),
-        dueDate: dueDate.trim(),
+        amount: selectedChequeOrder.nextInstallment.amount,
+        dueDate: selectedChequeOrder.nextInstallment.dueDate,
         imageUrl: chequeImageUrl || null,
         notes: chequeNotes.trim() || null,
       });
@@ -200,8 +207,6 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
       if (res.ok) {
         toast.ok('چک جدید با موفقیت در سامانه اعتباری ثبت شد');
         setChequeNum('');
-        setChequeAmount('');
-        setDueDate('');
         setChequeImageUrl('');
         setChequeNotes('');
         setActiveTab('cheques');
@@ -503,7 +508,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                       <strong>{notif.title}: </strong>
                       <span>{notif.message}</span>
                     </div>
-                    <span style={{ fontSize: '12px', fontWeight: 800 }}>{notif.dueDate}</span>
+                    <span style={{ fontSize: '12px', fontWeight: 800 }}>{formatPersianDueDate(notif.dueDate)}</span>
                   </div>
                 ))}
               </div>
@@ -538,7 +543,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <strong style={{ fontSize: '14px' }}>{notif.title}</strong>
                     <span style={{ fontSize: '12px', fontWeight: 800, padding: '2px 8px', borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.6)' }}>
-                      سررسید: {notif.dueDate}
+                      سررسید: {formatPersianDueDate(notif.dueDate)}
                     </span>
                   </div>
                   <div>{notif.message}</div>
@@ -589,7 +594,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                         <td style={{ padding: '10px 12px' }}>{c.bankName}</td>
                         <td style={{ padding: '10px 12px' }}>{c.accountHolder}</td>
                         <td style={{ padding: '10px 12px', fontWeight: 700 }}>{formatMoney(c.amount)}</td>
-                        <td style={{ padding: '10px 12px' }}>{c.dueDate}</td>
+                        <td style={{ padding: '10px 12px' }}>{formatPersianDueDate(c.dueDate)}</td>
                         <td style={{ padding: '10px 12px' }}>{renderChequeStatusBadge(c.status)}</td>
                       </tr>
                     ))}
@@ -609,6 +614,43 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
         {activeTab === 'new_cheque' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', backgroundColor: 'var(--card)', padding: '16px', borderRadius: '12px', border: '1px solid var(--tamas-border)' }}>
             <strong style={{ fontSize: '14px', color: 'var(--tamas-fg)' }}>➕ ثبت اطلاعات چک جدید</strong>
+
+            {dashboard?.chequeOrders.some((order) => order.canSubmitNextCheque) ? (
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
+                  سفارش چکی <span style={{ color: 'var(--danger)' }}>*</span>
+                </label>
+                <AnimatedDropdown
+                  variant="storefront"
+                  options={dashboard.chequeOrders
+                    .filter((order) => order.canSubmitNextCheque)
+                    .map((order) => ({
+                      value: String(order.orderId),
+                      label: `${order.orderCode} — قسط ${order.nextInstallment ? formatMoney(order.nextInstallment.amount) : ''}`,
+                    }))}
+                  value={selectedOrderId}
+                  onChange={setSelectedOrderId}
+                  ariaLabel="انتخاب سفارش چکی"
+                  buttonClassName="credit-bank-select"
+                />
+                {selectedChequeOrder?.nextInstallment && (
+                  <div style={{ marginTop: '8px', padding: '10px 12px', borderRadius: '10px', background: 'var(--tamas-surface)', fontSize: '12.5px', lineHeight: 1.8 }}>
+                    مبلغ و سررسید توسط سامانه تعیین شده است: <strong>{formatMoney(selectedChequeOrder.nextInstallment.amount)}</strong>
+                    {' — '}سررسید <strong>{selectedChequeOrder.nextInstallment.dueLabel}</strong>
+                    {selectedChequeOrder.schedule.every((item) => !item.registered) && (
+                      <div>چک اول باید حداکثر تا {new Date(selectedChequeOrder.submissionDeadline).toLocaleDateString('fa-IR')} ثبت شود.</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div role="alert" style={{ padding: '12px', borderRadius: '10px', background: '#fff7ed', color: '#9a3412', fontSize: '13px' }}>
+                سفارش چکی فعالی برای ثبت قسط بعدی وجود ندارد.
+                {dashboard?.chequeOrders.find((order) => order.blockedReason)?.blockedReason
+                  ? ` ${dashboard.chequeOrders.find((order) => order.blockedReason)?.blockedReason}`
+                  : ''}
+              </div>
+            )}
 
             <div className="credit-form-grid" style={{ display: 'grid', gap: '12px' }}>
               <div>
@@ -652,26 +694,24 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
 
               <div>
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
-                  مبلغ چک (تومان) <span style={{ color: 'var(--danger)' }}>*</span>
+                  مبلغ چک
                 </label>
                 <input
-                  type="number"
-                  placeholder="مثال: ۱۰,۰۰۰,۰۰۰"
-                  value={chequeAmount}
-                  onChange={(e) => setChequeAmount(e.target.value)}
+                  type="text"
+                  readOnly
+                  value={selectedChequeOrder?.nextInstallment ? formatMoney(selectedChequeOrder.nextInstallment.amount) : ''}
                   style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: '13px' }}
                 />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
-                  تاریخ سررسید (شمسی) <span style={{ color: 'var(--danger)' }}>*</span>
+                  تاریخ سررسید
                 </label>
                 <input
                   type="text"
-                  placeholder="مثال: ۱۴۰۳/۰۸/۱۵"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
+                  readOnly
+                  value={selectedChequeOrder?.nextInstallment?.dueLabel ?? ''}
                   style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: '13px' }}
                 />
               </div>
@@ -718,7 +758,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               <button
                 type="button"
                 className="btn primary"
-                disabled={submittingCheque}
+                disabled={submittingCheque || !selectedChequeOrder?.canSubmitNextCheque}
                 onClick={handleCreateCheque}
                 style={{ padding: '10px 20px', borderRadius: '10px', fontSize: '13.5px' }}
               >

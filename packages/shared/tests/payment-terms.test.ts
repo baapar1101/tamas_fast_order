@@ -19,6 +19,11 @@ test('default config reproduces accessory cash discount and cheque prepayment', 
   assert.equal(fourMonth?.installmentIntervalMonths, 1);
   assert.equal(fourMonth?.schedule.length, 4);
   assert.equal(fourMonth?.schedule.reduce((sum, item) => sum + (item.amount ?? 0), 0), 700_000);
+  assert.ok(fourMonth?.schedule.every((item) => item.amount != null && item.amount % 10_000 === 0));
+  const rounded = buildPaymentTermsQuote(1_003_333, ['accessory'], config).plans.find((plan) => plan.id === 'accessory-monthly-4');
+  assert.equal(rounded?.finalAmount, 1_000_000);
+  assert.equal(rounded?.upfrontAmount, 300_000);
+  assert.ok(rounded?.schedule.every((item) => item.amount != null && item.amount % 10_000 === 0));
   const oneMonth = quote.plans.find((plan) => plan.id === 'accessory-monthly-1');
   assert.equal(repricePaymentPlan(oneMonth!, 2_000_000).finalAmount, 1_900_000);
 });

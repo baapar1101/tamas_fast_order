@@ -8,6 +8,8 @@ import { isProductUnavailable, stockFor } from '../store/cart';
 import { resolveProductColor } from './productColor';
 import { isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneModelImages } from './productVariants';
 import { AnimatedDropdown } from '../admin/components/AnimatedDropdown';
+import { resolveImageUrl } from '../lib/images';
+import { ProductImageGallery } from './ProductImageGallery';
 
 import type { CartLine } from '../store/cart';
 
@@ -66,15 +68,17 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
   const defaultIndex = isPhone ? phoneDefaultVariantIndex(displayVariants) : 0;
   const activeIndex = selectedIndex !== null && selectedIndex < displayVariants.length ? selectedIndex : defaultIndex;
   const selectedVariant = displayVariants[activeIndex] || group.variants[0];
+  const allImages = useMemo(() => {
+    const raw = isPhone
+      ? phoneModelImages(group.variants)
+      : group.variants.flatMap((variant) => [variant.imageUrl, ...variant.gallery]);
+    if (group.imageUrl) raw.unshift(group.imageUrl);
+    return [...new Set(raw.filter((item): item is string => Boolean(item?.trim())).map((item) => resolveImageUrl(item)))];
+  }, [group.imageUrl, group.variants, isPhone]);
+  const images = allImages.length ? allImages : ['/logo.png'];
   if (!selectedVariant) return null;
 
   const brand = selectedVariant.brandFaName || selectedVariant.brandName || 'متفرقه';
-  const rawImage = isPhone ? phoneModelImages(group.variants)[0] : group.imageUrl || selectedVariant.imageUrl;
-  const image = rawImage
-    ? rawImage.startsWith('http') || rawImage.startsWith('/')
-      ? rawImage
-      : `/uploads/${rawImage}`
-    : '/logo.png';
   const isPromo = Boolean(group.promotion || selectedVariant.promotion);
   const titleClass = productTitleClass(group.title);
   const whButtons = getWarehouseButtons(selectedVariant);
@@ -98,6 +102,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
             {selectedVariant.rating != null && (
               <span className="card-rating"><span aria-hidden="true">★</span> {(selectedVariant.rating / 100).toLocaleString('fa-IR', { maximumFractionDigits: 2 })}</span>
             )}
+            <Link to={`/p/${selectedVariant.productId}`} className="btn product-list-detail"><Icon name="eye" /> مشاهده جزئیات</Link>
           </div>
 
           <div className="list-variants">
@@ -176,18 +181,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
           </div>
         </div>
 
-        <img
-          className="product-thumb"
-          src={image}
-          alt={group.title}
-          loading="lazy"
-          decoding="async"
-          onClick={() => onPreview(image)}
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = '/logo.png';
-          }}
-          style={{ cursor: 'zoom-in' }}
-        />
+        <ProductImageGallery key={`${group.key}:${selectedVariant.productId}:list`} images={images} title={group.title} mode="list" onPreview={onPreview} />
       </article>
     );
   }
@@ -209,17 +203,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
         <Icon name={isFav ? 'heart-fill' : 'heart'} />
       </button>
 
-      <img
-        className="card-thumb"
-        src={image}
-        alt={group.title}
-        loading="lazy"
-        decoding="async"
-        onClick={() => onPreview(image)}
-        onError={(e) => {
-          (e.currentTarget as HTMLImageElement).src = '/logo.png';
-        }}
-      />
+      <ProductImageGallery key={`${group.key}:${selectedVariant.productId}:grid`} images={images} title={group.title} mode="grid" onPreview={onPreview} />
 
       <div style={{ minWidth: 0 }}>
         <div className={`card-title ${titleClass}`}>
