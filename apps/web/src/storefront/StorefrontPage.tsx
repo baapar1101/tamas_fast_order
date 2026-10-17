@@ -610,7 +610,7 @@ export function StorefrontPage() {
 
           {/* Main Content (Center Column) */}
           <section className="main-content">
-            <div className="toolbar">
+            <div className="toolbar" aria-label="کنترل نمایش محصولات">
               <div className="toolbar-head">
                 <div className="toolbar-result">
                   <strong>{formatNumber(total)}</strong>
@@ -637,11 +637,12 @@ export function StorefrontPage() {
 
               <div className="toolbar-controls">
                 <div className="view-control">
-                  <span className="toolbar-control-label">نحوه نمایش</span>
-                  <div className="view-btn-group">
+                  <span id="view-mode-label" className="toolbar-control-label">نحوه نمایش</span>
+                  <div className="view-btn-group" role="group" aria-labelledby="view-mode-label">
                     <button
                       type="button"
                       className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
+                      aria-pressed={viewMode === 'list'}
                       onClick={() => setViewMode('list')}
                     >
                       <Icon name="filter" /> خرید سریع
@@ -649,6 +650,7 @@ export function StorefrontPage() {
                     <button
                       type="button"
                       className={`view-btn${viewMode === 'grid' ? ' active' : ''}`}
+                      aria-pressed={viewMode === 'grid'}
                       onClick={() => setViewMode('grid')}
                     >
                       <Icon name="grid" /> شبکه‌ای
@@ -657,7 +659,7 @@ export function StorefrontPage() {
                 </div>
 
                 <div className="sort-control">
-                  <label htmlFor="sort">مرتب‌سازی</label>
+                  <label htmlFor="sort"><Icon name="sort" /> مرتب‌سازی</label>
                   <select
                     id="sort"
                     className="select sort-select"
