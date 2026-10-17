@@ -228,6 +228,15 @@ export interface OrderDTO {
   paymentStatus: 'paid' | 'unpaid' | 'pending';
   paymentMethod: string | null;
   paymentPlan: PaymentPlanQuote | null;
+  discountCode: string | null;
+  discountAmount: number;
+  freeShipping: boolean;
+  paymentInstructions?: {
+    status: 'pending' | 'sent';
+    instructions: string | null;
+    sentAt: string | null;
+    channels: string[];
+  } | null;
   note: string | null;
   acquisitionSource?: string | null;
   acquisitionMedium?: string | null;

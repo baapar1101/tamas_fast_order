@@ -47,13 +47,20 @@ export function TelegramConnectPrompt() {
     staleTime: 30_000,
     refetchInterval: waiting ? 3_000 : false,
   });
+  const baleStatus = useQuery({
+    queryKey: ['customer-bale-status', customerId],
+    queryFn: () => api.get<Omit<TelegramStatus, 'popup'>>('/customer-bale/status'),
+    enabled: customerId !== null,
+    staleTime: 30_000,
+    refetchInterval: waiting ? 3_000 : false,
+  });
 
   const linked = status.data?.account.linked === true;
   useEffect(() => {
-    if (!waiting || !linked) return;
+    if (!waiting || (!linked && baleStatus.data?.account.linked !== true)) return;
     setWaiting(false);
-    toast.ok('حساب تلگرام شما با موفقیت متصل شد.');
-  }, [linked, toast, waiting]);
+    toast.ok('حساب پیام‌رسان شما با موفقیت متصل شد.');
+  }, [baleStatus.data?.account.linked, linked, toast, waiting]);
 
   const close = () => {
     rememberDismissed(storageKey);
@@ -77,7 +84,20 @@ export function TelegramConnectPrompt() {
     }
   };
 
-  const open = Boolean(customerId && status.data?.enabled && !linked && !dismissed);
+  const connectBale = async () => {
+    const target = window.open('about:blank', '_blank');
+    if (target) target.opener = null;
+    setBusy(true);
+    try {
+      const result = await api.post<LinkResponse>('/customer-bale/link');
+      if (target) target.location.replace(result.url); else window.location.assign(result.url);
+      setWaiting(true);
+    } catch (error) { target?.close(); toast.error((error as Error).message); }
+    finally { setBusy(false); }
+  };
+
+  const baleLinked = baleStatus.data?.account.linked === true;
+  const open = Boolean(customerId && !dismissed && ((status.data?.enabled && !linked) || (baleStatus.data?.enabled && !baleLinked)));
   const popup = status.data?.popup;
 
   return (
@@ -93,6 +113,7 @@ export function TelegramConnectPrompt() {
           <button type="button" className="btn primary" onClick={() => void connect()} disabled={busy}>
             {busy ? 'در حال ساخت لینک…' : waiting ? 'باز کردن دوباره تلگرام' : (popup?.button ?? 'اتصال امن به تلگرام')}
           </button>
+          {baleStatus.data?.enabled && !baleLinked && <button type="button" className="btn primary" onClick={() => void connectBale()} disabled={busy}>اتصال امن به بله</button>}
         </div>
       )}
     >

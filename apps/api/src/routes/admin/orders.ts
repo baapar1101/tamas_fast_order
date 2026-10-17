@@ -5,7 +5,7 @@ import { z } from 'zod';
 import type { InvestorSettingsDTO, OrderDTO } from '@tamas/shared';
 import { ORDER_STATUSES, ORDER_STATUS_LABELS, orderItemsReplaceSchema, orderPatchSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
-import { orderItems, orders, products, users } from '../../db/schema.js';
+import { orderItems, orderPaymentInstructions, orders, products, users } from '../../db/schema.js';
 import { badRequest, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { replaceOrderItems, toOrderDTO } from '../../services/orders.js';
@@ -33,8 +33,9 @@ function toAdminOrderDTO(
   row: typeof orders.$inferSelect,
   items: Array<typeof orderItems.$inferSelect>,
   settings: InvestorSettingsDTO,
+  instruction?: typeof orderPaymentInstructions.$inferSelect | null,
 ): OrderDTO {
-  const dto = toOrderDTO(row, items);
+  const dto = toOrderDTO(row, items, instruction);
   dto.items = dto.items.map((item, index) => ({ ...item, costPrice: items[index]?.costPrice ?? 0 }));
   dto.investment = calculateOrderInvestment({
     total: row.total,
@@ -74,7 +75,7 @@ const routes: FastifyPluginAsync = async (app) => {
       db.select({ n: count() }).from(orders).where(where),
     ]);
 
-    const [items, investorSettings] = await Promise.all([
+    const [items, instructions, investorSettings] = await Promise.all([
       rows.length
       ? db
           .select()
@@ -86,6 +87,7 @@ const routes: FastifyPluginAsync = async (app) => {
             ),
           )
       : Promise.resolve([]),
+      rows.length ? db.select().from(orderPaymentInstructions).where(inArray(orderPaymentInstructions.orderId, rows.map((r) => r.id))) : Promise.resolve([]),
       settingsPromise,
     ]);
 
@@ -98,7 +100,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
     return {
       ok: true,
-      items: rows.map((r) => toAdminOrderDTO(r, byOrder.get(r.id) ?? [], investorSettings)),
+      items: rows.map((r) => toAdminOrderDTO(r, byOrder.get(r.id) ?? [], investorSettings, instructions.find((item) => item.orderId === r.id))),
       total: Number(total?.n ?? 0),
       page: q.page,
       perPage: q.perPage,
@@ -140,12 +142,52 @@ const routes: FastifyPluginAsync = async (app) => {
     const id = Number((req.params as { id: string }).id);
     const [row] = await db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1);
     if (!row) throw notFound('سفارش پیدا نشد.');
-    const [items, customerRows, investorSettings] = await Promise.all([
+    const [items, customerRows, investorSettings, instructionRows] = await Promise.all([
       db.select().from(orderItems).where(eq(orderItems.orderId, id)),
       row.userId ? db.select().from(users).where(eq(users.id, row.userId)).limit(1) : Promise.resolve([]),
       getInvestorSettings(),
+      db.select().from(orderPaymentInstructions).where(eq(orderPaymentInstructions.orderId, id)).limit(1),
     ]);
-    return { ok: true, order: toAdminOrderDTO(row, items, investorSettings), customer: customerRows[0] ?? null };
+    return { ok: true, order: toAdminOrderDTO(row, items, investorSettings, instructionRows[0]), customer: customerRows[0] ?? null };
+  });
+
+  app.post('/admin/orders/:id/payment-instructions', async (req) => {
+    const id = z.coerce.number().int().positive().parse((req.params as { id: string }).id);
+    const body = z.object({
+      instructions: z.string().trim().min(10).max(3000),
+      sendSms: z.boolean().default(true),
+      sendTelegram: z.boolean().default(true),
+      sendBale: z.boolean().default(true),
+    }).parse(req.body);
+    const [order] = await db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1);
+    if (!order) throw notFound('سفارش پیدا نشد.');
+    const channels: string[] = ['site'];
+    const message = `اطلاعات پرداخت سفارش ${order.orderCode}:\n${body.instructions}`;
+    if (body.sendSms && order.phone) {
+      const { sendSms } = await import('../../services/sms.js');
+      const result = await sendSms(order.phone, message);
+      if (result.ok) channels.push('sms');
+    }
+    const { sendCustomerNotification } = await import('../../services/customer-messaging.js');
+    const delivery = await sendCustomerNotification(order.userId, 'payment.instructions_ready', '💳 اطلاعات پرداخت سفارش', message, {
+      telegram: body.sendTelegram,
+      bale: body.sendBale,
+    });
+    if (delivery.telegram) channels.push('telegram');
+    if (delivery.bale) channels.push('bale');
+    const now = new Date();
+    const [saved] = await db.insert(orderPaymentInstructions).values({
+      orderId: id, status: 'sent', instructions: body.instructions, channels, sentBy: req.currentUser!.id, sentAt: now,
+    }).onConflictDoUpdate({
+      target: orderPaymentInstructions.orderId,
+      set: { status: 'sent', instructions: body.instructions, channels, sentBy: req.currentUser!.id, sentAt: now, updatedAt: now },
+    }).returning();
+    await logAction(req.currentUser!.id, 'send-payment-instructions', 'order', order.orderCode, { channels });
+    return {
+      ok: true,
+      paymentInstructions: saved ? { status: saved.status, instructions: saved.instructions, sentAt: saved.sentAt?.toISOString() ?? null, channels: saved.channels } : null,
+      message: `اطلاعات پرداخت ثبت شد و از مسیرهای ${channels.join('، ')} ارسال شد.`,
+    };
   });
 
   app.put('/admin/orders/:id/items', async (req) => {
@@ -283,12 +325,12 @@ const routes: FastifyPluginAsync = async (app) => {
           { label: 'مبلغ', value: `${updated.total.toLocaleString('fa-IR')} تومان` },
         ],
       }).catch((err) => req.log.error({ err }, 'failed to send Telegram payment notification'));
-      void import('../../services/customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+      void import('../../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
         updated.userId,
         'payment.paid',
         '✅ پرداخت سفارش تأیید شد',
         `پرداخت سفارش ${updated.orderCode} به مبلغ ${updated.total.toLocaleString('fa-IR')} تومان تأیید شد.`,
-      )).catch((err) => req.log.error({ err }, 'failed to send customer Telegram payment notification'));
+      )).catch((err) => req.log.error({ err }, 'failed to send customer payment notification'));
     }
 
     const [items, investorSettings] = await Promise.all([

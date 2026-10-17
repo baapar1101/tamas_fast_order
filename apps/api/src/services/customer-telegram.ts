@@ -24,6 +24,8 @@ export const CUSTOMER_TELEGRAM_EVENTS = [
   'credit.application_status_changed',
   'credit.cheque_status_changed',
   'wallet.changed',
+  'payment.instructions_ready',
+  'discount.created',
   'promotion',
 ] as const;
 
@@ -260,7 +262,7 @@ async function sendProfile(chatId: number, userId: number): Promise<void> {
 
 async function sendNotificationSettings(chatId: number, account: typeof customerTelegramAccounts.$inferSelect): Promise<void> {
   const prefs = account.notificationPreferences ?? {};
-  const labels: Record<CustomerTelegramEvent, string> = { 'order.created': 'ثبت سفارش', 'order.status_changed': 'وضعیت سفارش', 'order.items_changed': 'تغییر اقلام', 'payment.paid': 'پرداخت موفق', 'payment.failed': 'پرداخت ناموفق', 'credit.application_status_changed': 'پرونده اعتبار', 'credit.cheque_status_changed': 'وضعیت چک', 'wallet.changed': 'گردش کیف پول', promotion: 'جشنواره‌ها' };
+  const labels: Record<CustomerTelegramEvent, string> = { 'order.created': 'ثبت سفارش', 'order.status_changed': 'وضعیت سفارش', 'order.items_changed': 'تغییر اقلام', 'payment.paid': 'پرداخت موفق', 'payment.failed': 'پرداخت ناموفق', 'credit.application_status_changed': 'پرونده اعتبار', 'credit.cheque_status_changed': 'وضعیت چک', 'wallet.changed': 'گردش کیف پول', 'payment.instructions_ready': 'اطلاعات پرداخت', 'discount.created': 'کد تخفیف', promotion: 'جشنواره‌ها' };
   const rows = CUSTOMER_TELEGRAM_EVENTS.map((event) => [{ text: `${prefs[event] !== false ? '✅' : '☑️'} ${labels[event]}`, data: `ctg:toggle:${event}` }]);
   rows.unshift([{ text: account.notificationsEnabled ? '🔕 توقف همه اعلان‌ها' : '🔔 فعال‌کردن همه اعلان‌ها', data: 'ctg:toggle-all' }]);
   rows.push([{ text: '🔙 بازگشت به منو', data: 'ctg:menu' }]);
@@ -365,13 +367,14 @@ export async function createCustomerTelegramLink(userId: number): Promise<{ url:
   return { url: `https://t.me/${config.botUsername}?start=link_${token}`, expiresAt: expiresAt.toISOString() };
 }
 
-export async function sendCustomerTelegramNotification(userId: number | null | undefined, event: CustomerTelegramEvent, title: string, text: string): Promise<void> {
-  if (!userId) return;
+export async function sendCustomerTelegramNotification(userId: number | null | undefined, event: CustomerTelegramEvent, title: string, text: string): Promise<boolean> {
+  if (!userId) return false;
   const config = await getCustomerTelegramConfig();
-  if (!config.enabled || !config.botToken || !config.events[event]) return;
+  if (!config.enabled || !config.botToken || !config.events[event]) return false;
   const [account] = await db.select().from(customerTelegramAccounts).where(eq(customerTelegramAccounts.userId, userId)).limit(1);
-  if (!account?.notificationsEnabled || account.notificationPreferences?.[event] === false) return;
+  if (!account?.notificationsEnabled || account.notificationPreferences?.[event] === false) return false;
   await sendCustomerBotMessage(account.chatId, `<b>${escapeHtml(title)}</b>\n\n${escapeHtml(text)}`, mainMenu(config));
+  return true;
 }
 
 export async function broadcastCustomerTelegramNotification(title: string, text: string): Promise<{ sent: number; failed: number }> {

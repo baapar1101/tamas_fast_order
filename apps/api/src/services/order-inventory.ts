@@ -127,7 +127,7 @@ const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
 
 function notifyCustomerOrderStatus(result: OrderStatusTransitionResult): void {
   const order = result.order;
-  void import('./customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+  void import('./customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
     order.userId,
     'order.status_changed',
     '📦 وضعیت سفارش تغییر کرد',
@@ -135,7 +135,7 @@ function notifyCustomerOrderStatus(result: OrderStatusTransitionResult): void {
   )).catch((err) => console.error('[Customer Telegram] order.status_changed failed:', err));
 
   if (result.previousStatus !== 'cancelled' && order.status === 'cancelled' && order.paymentMethod === 'wallet') {
-    void import('./customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+    void import('./customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
       order.userId,
       'wallet.changed',
       '↩️ بازگشت وجه به کیف پول',

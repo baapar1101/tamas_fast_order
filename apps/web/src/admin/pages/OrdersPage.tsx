@@ -62,6 +62,7 @@ export function OrdersPage() {
   const [detail, setDetail] = useState<OrderDTO | null>(null);
   const [detailTab, setDetailTab] = useState<'info' | 'items'>('info');
   const [note, setNote] = useState('');
+  const [paymentInstructions, setPaymentInstructions] = useState('');
   const [editingItems, setEditingItems] = useState(false);
   const [itemDrafts, setItemDrafts] = useState<OrderItemDraft[]>([]);
   const [productSearch, setProductSearch] = useState('');
@@ -118,6 +119,18 @@ export function OrdersPage() {
       setItemDrafts(res.order.items.map((item) => ({ ...item })));
       setEditingItems(false);
       setProductSearch('');
+      refresh();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const sendPaymentInstructions = useMutation({
+    mutationFn: ({ id, instructions }: { id: number; instructions: string }) => api.post<{ paymentInstructions: OrderDTO['paymentInstructions']; message: string }>(`/admin/orders/${id}/payment-instructions`, {
+      instructions, sendSms: true, sendTelegram: true, sendBale: true,
+    }),
+    onSuccess: (res) => {
+      toast.ok(res.message);
+      setDetail((current) => current ? { ...current, paymentInstructions: res.paymentInstructions } : current);
       refresh();
     },
     onError: (err: Error) => toast.error(err.message),
@@ -435,6 +448,7 @@ export function OrdersPage() {
                             setDetail(o);
                             setDetailTab('info');
                             setNote(o.note ?? '');
+                            setPaymentInstructions(o.paymentInstructions?.instructions ?? '');
                             setEditingItems(false);
                             setItemDrafts(o.items.map((item) => ({ ...item })));
                             setProductSearch('');
@@ -593,6 +607,27 @@ export function OrdersPage() {
                     <div><span className="text-[var(--a-t4)]">مجری · {formatNumber(detail.investment.executorSharePercent)}٪</span><strong className="mt-1 block text-amber-500"><Price amount={detail.investment.executorShare} /></strong></div>
                   </div>
                   <div className="mt-3 text-[11px] text-[var(--a-t4)]">پوشش قیمت خرید اقلام: {formatNumber(detail.investment.costCoveragePercent)}٪</div>
+                </div>
+              )}
+
+              {(detail.paymentInstructions || (detail.paymentPlan && detail.total >= 50_000_000)) && (
+                <div className="a-card">
+                  <div className="a-card-head">
+                    <div>
+                      <h3 className="a-card-title">اطلاعات پرداخت این سفارش</h3>
+                      <p className="a-card-sub">پس از ارسال، اطلاعات داخل سایت ثبت و هم‌زمان از پیامک، تلگرام و بله برای مشتری فرستاده می‌شود.</p>
+                    </div>
+                    <span className={`a-badge ${detail.paymentInstructions?.status === 'sent' ? 'a-badge--green' : 'a-badge--amber'}`}>
+                      {detail.paymentInstructions?.status === 'sent' ? 'ارسال‌شده' : 'در انتظار اپراتور'}
+                    </span>
+                  </div>
+                  <textarea className="a-textarea" rows={5} value={paymentInstructions} onChange={(event) => setPaymentInstructions(event.target.value)} placeholder={'بانک و نام صاحب حساب\nشماره کارت\nشماره شبا یا حساب'} />
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <button type="button" className="a-btn a-btn--primary" disabled={sendPaymentInstructions.isPending || paymentInstructions.trim().length < 10} onClick={() => sendPaymentInstructions.mutate({ id: detail.id, instructions: paymentInstructions.trim() })}>
+                      {sendPaymentInstructions.isPending ? 'در حال ارسال…' : 'ثبت و ارسال به مشتری'}
+                    </button>
+                    {detail.paymentInstructions?.channels?.length ? <span className="a-note">مسیرهای ارسال: {detail.paymentInstructions.channels.join('، ')}</span> : null}
+                  </div>
                 </div>
               )}
 

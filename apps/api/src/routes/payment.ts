@@ -10,6 +10,7 @@ import { env } from '../env.js';
 import { applyWalletTransaction } from '../services/wallet.js';
 import { transitionOrderStatusInTransaction } from '../services/order-inventory.js';
 import { getPaymentTermsConfig, quotePaymentTerms } from '../services/payment-terms.js';
+import { getPaymentRoutingConfig, securePaymentPlan } from '../services/payment-routing.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   app.post('/payment/terms/quote', async (req) => {
@@ -33,13 +34,13 @@ const routes: FastifyPluginAsync = async (app) => {
     if (rows.length !== ids.length || rows.some((row) => row.status !== 'active')) {
       throw badRequest('یکی از کالاهای سبد دیگر قابل سفارش نیست. سبد خرید را تازه‌سازی کنید.');
     }
-    const config = await getPaymentTermsConfig();
+    const [config, routing] = await Promise.all([getPaymentTermsConfig(), getPaymentRoutingConfig()]);
     const quote = quotePaymentTerms(rows.map((row) => ({
       categoryId: row.categoryId,
       price: row.price,
       qty: quantityByProduct.get(row.productId) ?? 0,
     })), config);
-    return { ok: true, ...quote };
+    return { ok: true, ...quote, plans: quote.plans.map((plan) => securePaymentPlan(plan, routing).plan) };
   });
 
   // Create a payment transaction and return the bank URL
@@ -174,7 +175,7 @@ const routes: FastifyPluginAsync = async (app) => {
                 { label: 'کد پیگیری', value: trackingCode },
               ],
             }).catch((err) => req.log.error({ err }, 'failed to send Telegram payment notification'));
-            void import('../services/customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+            void import('../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
               paidOrder.userId,
               'payment.paid',
               '✅ پرداخت با موفقیت انجام شد',
@@ -183,7 +184,7 @@ const routes: FastifyPluginAsync = async (app) => {
           }
         }
         if (isWalletTopup && paymentRecord.userId) {
-          void import('../services/customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+          void import('../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
             paymentRecord.userId,
             'wallet.changed',
             '💳 کیف پول شارژ شد',
@@ -206,7 +207,7 @@ const routes: FastifyPluginAsync = async (app) => {
             { label: 'خطا', value: verifyData?.code || 'verification_failed' },
           ],
         }).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send Telegram payment failure notification'));
-        void import('../services/customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+        void import('../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
           paymentRecord.userId,
           'payment.failed',
           '❌ پرداخت ناموفق بود',
@@ -231,7 +232,7 @@ const routes: FastifyPluginAsync = async (app) => {
           { label: 'خطا', value: (err as Error).message },
         ],
       }).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send Telegram payment failure notification'));
-      void import('../services/customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+      void import('../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
         paymentRecord.userId,
         'payment.failed',
         '❌ بررسی پرداخت ناموفق بود',

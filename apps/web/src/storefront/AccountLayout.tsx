@@ -88,7 +88,7 @@ export function AccountLayout() {
                 </NavLink>
                 {user.role === 'customer' && (
                   <NavLink to="/account/telegram" state={{ returnTo }} className={({ isActive }) => `account-nav-item${isActive ? ' active' : ''}`}>
-                    <span className="account-nav-glyph" aria-hidden="true">✈</span> <span>ربات تلگرام</span>
+                    <span className="account-nav-glyph" aria-hidden="true">✈</span> <span>ربات تلگرام و بله</span>
                   </NavLink>
                 )}
                 {isAdmin && (

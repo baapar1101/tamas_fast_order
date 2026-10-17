@@ -5,7 +5,15 @@ import { api } from '../../lib/api';
 import { ImagePicker } from '../components/ImagePicker';
 import { PaymentMethodsSettings } from '../components/PaymentMethodsSettings';
 import { PaymentTermsSettings } from '../components/PaymentTermsSettings';
-import { PAYMENT_TERMS_SETTING_KEY, type CategoryDTO } from '@tamas/shared';
+import {
+  CUSTOMER_DISCOUNT_SETTING_KEY,
+  PAYMENT_ROUTING_SETTING_KEY,
+  PAYMENT_TERMS_SETTING_KEY,
+  parseCustomerDiscountConfig,
+  parsePaymentRoutingConfig,
+  type CategoryDTO,
+  type PaymentAccountConfig,
+} from '@tamas/shared';
 import {
   HOMEPAGE_FILTER_SETTING_KEY,
   HOMEPAGE_FILTER_TYPE_LABELS,
@@ -126,6 +134,8 @@ type CustomerTelegramEvent =
   | 'credit.application_status_changed'
   | 'credit.cheque_status_changed'
   | 'wallet.changed'
+  | 'payment.instructions_ready'
+  | 'discount.created'
   | 'promotion';
 
 const CUSTOMER_TELEGRAM_EVENT_LABELS: Record<CustomerTelegramEvent, string> = {
@@ -137,6 +147,8 @@ const CUSTOMER_TELEGRAM_EVENT_LABELS: Record<CustomerTelegramEvent, string> = {
   'credit.application_status_changed': 'وضعیت پرونده اعتباری',
   'credit.cheque_status_changed': 'وضعیت چک',
   'wallet.changed': 'گردش کیف پول',
+  'payment.instructions_ready': 'آماده‌شدن اطلاعات پرداخت',
+  'discount.created': 'کد تخفیف جدید',
   promotion: 'جشنواره و پیشنهادها',
 };
 
@@ -213,7 +225,7 @@ export function SettingsPage() {
   const [testPhone, setTestPhone] = useState('');
   const [customerTelegramBroadcast, setCustomerTelegramBroadcast] = useState({ title: '', message: '' });
   const [customerTelegramBroadcasting, setCustomerTelegramBroadcasting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'storefront-filters' | 'payment' | 'payment-terms' | 'wallet' | 'telegram' | 'customer-telegram' | 'arvan' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'storefront-filters' | 'payment' | 'payment-terms' | 'financial-automation' | 'wallet' | 'telegram' | 'customer-telegram' | 'arvan' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
   const [syncProgress, setSyncProgress] = useState<Record<string, { current: number; total: number; label: string; done: boolean; error: boolean }>>({});
   const syncRaf = useRef<Record<string, number>>({});
   const syncStart = useRef<Record<string, number>>({});
@@ -291,6 +303,8 @@ export function SettingsPage() {
     ...KNOWN_SETTINGS.map((s) => s.key),
     'payment_methods',
     PAYMENT_TERMS_SETTING_KEY,
+    CUSTOMER_DISCOUNT_SETTING_KEY,
+    PAYMENT_ROUTING_SETTING_KEY,
     'WALLET_ENABLED',
     'WALLET_ORDER_PAYMENT_ENABLED',
     'WALLET_MIN_TOPUP',
@@ -318,6 +332,13 @@ export function SettingsPage() {
     'CUSTOMER_TELEGRAM_POPUP_TEXT',
     'CUSTOMER_TELEGRAM_POPUP_BUTTON',
     'CUSTOMER_TELEGRAM_NOTIFICATION_EVENTS',
+    'CUSTOMER_BALE_ENABLED',
+    'private_CUSTOMER_BALE_BOT_TOKEN',
+    'CUSTOMER_BALE_BOT_USERNAME',
+    'private_CUSTOMER_BALE_WEBHOOK_SECRET',
+    'CUSTOMER_BALE_WEBHOOK_URL',
+    'CUSTOMER_BALE_WELCOME',
+    'CUSTOMER_BALE_SITE_URL',
     'ARVAN_CDN_DOMAIN',
     'ARVAN_CDN_API_BASE',
     'private_ARVAN_API_KEY',
@@ -334,6 +355,10 @@ export function SettingsPage() {
   const customerTelegramEvents = parseJsonSetting<Partial<Record<CustomerTelegramEvent, boolean>>>(form.CUSTOMER_TELEGRAM_NOTIFICATION_EVENTS, {});
   const attributionChannels = parseJsonSetting<AttributionChannel[]>(form.ATTRIBUTION_CHANNELS, DEFAULT_ATTRIBUTION_CHANNELS);
   const homepageFilters = parseHomepageFilters(form[HOMEPAGE_FILTER_SETTING_KEY]);
+  const customerDiscount = parseCustomerDiscountConfig(form[CUSTOMER_DISCOUNT_SETTING_KEY]);
+  const paymentRouting = parsePaymentRoutingConfig(form[PAYMENT_ROUTING_SETTING_KEY]);
+  const updateCustomerDiscount = (next: typeof customerDiscount) => setForm((current) => ({ ...current, [CUSTOMER_DISCOUNT_SETTING_KEY]: JSON.stringify(next) }));
+  const updatePaymentRouting = (next: typeof paymentRouting) => setForm((current) => ({ ...current, [PAYMENT_ROUTING_SETTING_KEY]: JSON.stringify(next) }));
 
   const updateHomepageFilters = (filters: HomepageFilter[]) => {
     setForm((current) => ({ ...current, [HOMEPAGE_FILTER_SETTING_KEY]: JSON.stringify(filters) }));
@@ -355,11 +380,12 @@ export function SettingsPage() {
     setForm((current) => ({ ...current, ATTRIBUTION_CHANNELS: JSON.stringify(channels) }));
   };
 
-  const TABS: { id: 'general' | 'storefront-filters' | 'payment' | 'payment-terms' | 'wallet' | 'telegram' | 'customer-telegram' | 'arvan' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
+  const TABS: { id: 'general' | 'storefront-filters' | 'payment' | 'payment-terms' | 'financial-automation' | 'wallet' | 'telegram' | 'customer-telegram' | 'arvan' | 'tools' | 'crm' | 'logs' | 'advanced-sync'; label: string }[] = [
     { id: 'general', label: 'تنظیمات عمومی' },
     { id: 'storefront-filters', label: 'فیلترهای صفحه اصلی' },
     { id: 'payment', label: '💳 روش‌های پرداخت' },
     { id: 'payment-terms', label: 'شرایط پرداخت کالا' },
+    { id: 'financial-automation', label: 'مالی و تخفیف' },
     { id: 'wallet', label: 'کیف پول' },
     { id: 'telegram', label: 'ربات مدیران' },
     { id: 'customer-telegram', label: 'ربات مشتریان' },
@@ -421,6 +447,40 @@ export function SettingsPage() {
           onSave={() => save.mutate(form)}
           isSaving={save.isPending}
         />
+      )}
+
+      {activeTab === 'financial-automation' && (
+        <div className="a-page-stack a-fade">
+          <section className="a-card">
+            <div className="a-card-head a-card-head--split">
+              <div><h3 className="a-card-title">کد تخفیف اختصاصی مشتریان</h3><p className="a-card-desc">برای هر مشتری یک کد امن و شخصی ساخته می‌شود؛ محدودیت سفارش اول و بازه زمانی در زمان ثبت سفارش کنترل می‌شود.</p></div>
+              <button type="button" role="switch" className="a-switch" aria-checked={customerDiscount.enabled} onClick={() => updateCustomerDiscount({ ...customerDiscount, enabled: !customerDiscount.enabled })} />
+            </div>
+            <div className="a-form-grid a-cols--3">
+              <div className="a-field"><label className="a-label">نوع تخفیف</label><select className="a-select" value={customerDiscount.kind} onChange={(event) => updateCustomerDiscount({ ...customerDiscount, kind: event.target.value as typeof customerDiscount.kind })}><option value="percent">درصدی</option><option value="fixed">مبلغ ثابت</option><option value="free_shipping">ارسال رایگان</option></select></div>
+              <div className="a-field"><label className="a-label">مقدار {customerDiscount.kind === 'percent' ? '(درصد)' : '(تومان)'}</label><input className="a-input a-ltr" type="number" disabled={customerDiscount.kind === 'free_shipping'} value={customerDiscount.value} onChange={(event) => updateCustomerDiscount({ ...customerDiscount, value: Number(event.target.value) })} /></div>
+              <div className="a-field"><label className="a-label">پیشوند کد</label><input className="a-input a-ltr" dir="ltr" value={customerDiscount.prefix} onChange={(event) => updateCustomerDiscount({ ...customerDiscount, prefix: event.target.value.toUpperCase() })} /></div>
+              <div className="a-field"><label className="a-label">حداقل سفارش (تومان)</label><input className="a-input a-ltr" type="number" value={customerDiscount.minOrderAmount} onChange={(event) => updateCustomerDiscount({ ...customerDiscount, minOrderAmount: Number(event.target.value) })} /></div>
+              <div className="a-field"><label className="a-label">سقف تخفیف (خالی = بدون سقف)</label><input className="a-input a-ltr" type="number" value={customerDiscount.maxDiscountAmount ?? ''} onChange={(event) => updateCustomerDiscount({ ...customerDiscount, maxDiscountAmount: event.target.value ? Number(event.target.value) : null })} /></div>
+              <div className="a-field"><label className="a-label">دفعات مجاز</label><input className="a-input a-ltr" type="number" min={1} value={customerDiscount.usageLimit} onChange={(event) => updateCustomerDiscount({ ...customerDiscount, usageLimit: Number(event.target.value) })} /></div>
+              <div className="a-field"><label className="a-label">شروع اعتبار</label><input className="a-input a-ltr" type="datetime-local" value={customerDiscount.startsAt?.slice(0, 16) ?? ''} onChange={(event) => updateCustomerDiscount({ ...customerDiscount, startsAt: event.target.value || null })} /></div>
+              <div className="a-field"><label className="a-label">پایان اعتبار</label><input className="a-input a-ltr" type="datetime-local" value={customerDiscount.endsAt?.slice(0, 16) ?? ''} onChange={(event) => updateCustomerDiscount({ ...customerDiscount, endsAt: event.target.value || null })} /></div>
+              <div className="a-field"><label className="a-label">قواعد</label><label className="a-note"><input type="checkbox" checked={customerDiscount.firstOrderOnly} onChange={(event) => updateCustomerDiscount({ ...customerDiscount, firstOrderOnly: event.target.checked })} /> فقط سفارش اول</label><label className="a-note"><input type="checkbox" checked={customerDiscount.autoGenerate} onChange={(event) => updateCustomerDiscount({ ...customerDiscount, autoGenerate: event.target.checked })} /> ساخت خودکار برای مشتری</label></div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2"><button type="button" className="a-btn a-btn--primary" onClick={() => save.mutate(form)}>ذخیره تنظیمات</button><button type="button" className="a-btn a-btn--secondary" onClick={async () => { try { await save.mutateAsync(form); const res = await api.post<{ message: string }>('/admin/discounts/generate'); toast.ok(res.message); } catch (err) { toast.error((err as Error).message); } }}>ساخت کد برای مشتریان فعلی</button></div>
+          </section>
+
+          <section className="a-card">
+            <div className="a-card-head a-card-head--split"><div><h3 className="a-card-title">مسیریابی هوشمند مبالغ بالا</h3><p className="a-card-desc">فاکتور اعتباری بالاتر از سقف، شماره حساب را پنهان می‌کند و وارد صف اپراتور می‌شود.</p></div><button type="button" role="switch" className="a-switch" aria-checked={paymentRouting.enabled} onClick={() => updatePaymentRouting({ ...paymentRouting, enabled: !paymentRouting.enabled })} /></div>
+            <div className="a-form-grid a-cols--2"><div className="a-field"><label className="a-label">سقف کنترل (تومان)</label><input className="a-input a-ltr" type="number" value={paymentRouting.thresholdAmount} onChange={(event) => updatePaymentRouting({ ...paymentRouting, thresholdAmount: Number(event.target.value) })} /></div><div className="a-field a-field--full"><label className="a-label">پیام انتظار مشتری</label><textarea className="a-textarea" rows={3} value={paymentRouting.pendingMessage} onChange={(event) => updatePaymentRouting({ ...paymentRouting, pendingMessage: event.target.value })} /></div></div>
+            <div className="a-card-head a-card-head--split mt-4"><h4 className="a-card-title">حساب‌های قابل اعلام</h4><button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={() => updatePaymentRouting({ ...paymentRouting, accounts: [...paymentRouting.accounts, { id: `account-${Date.now()}`, label: 'حساب جدید', bankName: '', holder: '', cardNumber: '', iban: '', accountNumber: '', enabled: true, minAmount: paymentRouting.thresholdAmount, maxAmount: null }] })}>+ افزودن حساب</button></div>
+            <div className="a-page-stack">{paymentRouting.accounts.map((account, index) => {
+              const updateAccount = (next: PaymentAccountConfig) => updatePaymentRouting({ ...paymentRouting, accounts: paymentRouting.accounts.map((item, itemIndex) => itemIndex === index ? next : item) });
+              return <div className="a-card" key={account.id}><div className="a-form-grid a-cols--3"><div className="a-field"><label className="a-label">عنوان</label><input className="a-input" value={account.label} onChange={(event) => updateAccount({ ...account, label: event.target.value })} /></div><div className="a-field"><label className="a-label">بانک</label><input className="a-input" value={account.bankName} onChange={(event) => updateAccount({ ...account, bankName: event.target.value })} /></div><div className="a-field"><label className="a-label">صاحب حساب</label><input className="a-input" value={account.holder} onChange={(event) => updateAccount({ ...account, holder: event.target.value })} /></div><div className="a-field"><label className="a-label">شماره کارت</label><input className="a-input a-ltr" dir="ltr" value={account.cardNumber} onChange={(event) => updateAccount({ ...account, cardNumber: event.target.value })} /></div><div className="a-field"><label className="a-label">شبا</label><input className="a-input a-ltr" dir="ltr" value={account.iban} onChange={(event) => updateAccount({ ...account, iban: event.target.value })} /></div><div className="a-field"><label className="a-label">شماره حساب</label><input className="a-input a-ltr" dir="ltr" value={account.accountNumber} onChange={(event) => updateAccount({ ...account, accountNumber: event.target.value })} /></div></div><div className="mt-3 flex gap-2"><button type="button" className={`a-btn a-btn--xs ${account.enabled ? 'a-btn--primary' : 'a-btn--secondary'}`} onClick={() => updateAccount({ ...account, enabled: !account.enabled })}>{account.enabled ? 'فعال' : 'غیرفعال'}</button><button type="button" className="a-btn a-btn--danger a-btn--xs" onClick={() => updatePaymentRouting({ ...paymentRouting, accounts: paymentRouting.accounts.filter((_, itemIndex) => itemIndex !== index) })}>حذف</button></div></div>;
+            })}</div>
+            <div className="mt-4"><button type="button" className="a-btn a-btn--primary" onClick={() => save.mutate(form)}>ذخیره مسیریابی مالی</button></div>
+          </section>
+        </div>
       )}
 
       {activeTab === 'wallet' && (
@@ -836,6 +896,20 @@ export function SettingsPage() {
                 } catch (err) { toast.error((err as Error).message); }
               }}>ذخیره و راه‌اندازی کامل ربات</button>
             </div>
+          </section>
+
+          <section className="a-card">
+            <div className="a-card-head a-card-head--split">
+              <div><h3 className="a-card-title">ربات داخلی بله</h3><p className="a-card-desc">سرویس داخلی کنار تلگرام؛ اتصال امن حساب، پیگیری سفارش، کیف پول و اعلان‌های مالی.</p></div>
+              <button type="button" role="switch" className="a-switch" aria-checked={form.CUSTOMER_BALE_ENABLED === 'true'} onClick={() => setForm({ ...form, CUSTOMER_BALE_ENABLED: form.CUSTOMER_BALE_ENABLED === 'true' ? 'false' : 'true' })} />
+            </div>
+            <div className="a-form-grid a-cols--2">
+              <div className="a-field"><label className="a-label">توکن ربات بله</label><input className="a-input a-ltr" dir="ltr" type="password" value={form.private_CUSTOMER_BALE_BOT_TOKEN ?? ''} onChange={(event) => setForm({ ...form, private_CUSTOMER_BALE_BOT_TOKEN: event.target.value })} /></div>
+              <div className="a-field"><label className="a-label">نام کاربری ربات</label><input className="a-input a-ltr" dir="ltr" value={form.CUSTOMER_BALE_BOT_USERNAME ?? ''} onChange={(event) => setForm({ ...form, CUSTOMER_BALE_BOT_USERNAME: event.target.value.replace(/^@/, '') })} /></div>
+              <div className="a-field"><label className="a-label">کلید محرمانه مسیر webhook</label><input className="a-input a-ltr" dir="ltr" type="password" value={form.private_CUSTOMER_BALE_WEBHOOK_SECRET ?? ''} onChange={(event) => setForm({ ...form, private_CUSTOMER_BALE_WEBHOOK_SECRET: event.target.value })} placeholder="یک رشته تصادفی طولانی" /></div>
+              <div className="a-field"><label className="a-label">آدرس پایه webhook (اختیاری)</label><input className="a-input a-ltr" dir="ltr" value={form.CUSTOMER_BALE_WEBHOOK_URL ?? ''} onChange={(event) => setForm({ ...form, CUSTOMER_BALE_WEBHOOK_URL: event.target.value })} placeholder="https://.../api/bale/customer/webhook" /><p className="a-note">مسیر محرمانه فقط در سرور افزوده می‌شود و در تنظیمات عمومی نمایش داده نمی‌شود.</p></div>
+            </div>
+            <div className="mt-4 flex gap-2"><button type="button" className="a-btn a-btn--secondary" onClick={async () => { try { await save.mutateAsync(form); const res = await api.post<{ message: string; botUsername: string }>('/admin/customer-bale/test'); setForm((current) => ({ ...current, CUSTOMER_BALE_BOT_USERNAME: res.botUsername })); toast.ok(res.message); } catch (err) { toast.error((err as Error).message); } }}>ذخیره و تست بله</button><button type="button" className="a-btn a-btn--primary" onClick={async () => { try { await save.mutateAsync(form); const webhookUrl = (form.CUSTOMER_BALE_WEBHOOK_URL ?? '').trim(); const res = await api.post<{ message: string }>('/admin/customer-bale/webhook', webhookUrl ? { webhookUrl } : {}); toast.ok(res.message); } catch (err) { toast.error((err as Error).message); } }}>راه‌اندازی webhook بله</button></div>
           </section>
 
           <section className="a-card">

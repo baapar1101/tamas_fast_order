@@ -79,6 +79,8 @@ export const investmentEntryTypeEnum = pgEnum('investment_entry_type', [
   'adjustment',
 ]);
 export const investmentEntryStatusEnum = pgEnum('investment_entry_status', ['paid', 'pending', 'cancelled']);
+export const discountKindEnum = pgEnum('discount_kind', ['percent', 'fixed', 'free_shipping']);
+export const paymentInstructionStatusEnum = pgEnum('payment_instruction_status', ['pending', 'sent']);
 
 /* ------------------------------------------------------------------ *
  * Credit Applications & Cheques
@@ -481,6 +483,75 @@ export const customerTelegramLinkTokens = pgTable(
   ],
 );
 
+/** Domestic customer-bot identity. Kept separate from Telegram so either service can be disconnected independently. */
+export const customerBaleAccounts = pgTable(
+  'customer_bale_accounts',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    baleUserId: varchar('bale_user_id', { length: 32 }).notNull(),
+    chatId: varchar('chat_id', { length: 32 }).notNull(),
+    username: varchar('username', { length: 120 }),
+    firstName: varchar('first_name', { length: 160 }),
+    lastName: varchar('last_name', { length: 160 }),
+    notificationsEnabled: boolean('notifications_enabled').notNull().default(true),
+    notificationPreferences: jsonb('notification_preferences').$type<Record<string, boolean>>().notNull().default(sql`'{}'::jsonb`),
+    linkedAt: timestamp('linked_at', { withTimezone: true }).notNull().defaultNow(),
+    lastInteractionAt: timestamp('last_interaction_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('customer_bale_accounts_user_key').on(t.userId),
+    uniqueIndex('customer_bale_accounts_bale_user_key').on(t.baleUserId),
+    index('customer_bale_accounts_chat_idx').on(t.chatId),
+  ],
+);
+
+export const customerBaleLinkTokens = pgTable(
+  'customer_bale_link_tokens',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: varchar('token_hash', { length: 64 }).notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    consumedAt: timestamp('consumed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('customer_bale_link_tokens_hash_key').on(t.tokenHash),
+    index('customer_bale_link_tokens_user_idx').on(t.userId),
+    index('customer_bale_link_tokens_expires_idx').on(t.expiresAt),
+  ],
+);
+
+export const discountCodes = pgTable(
+  'discount_codes',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    code: varchar('code', { length: 40 }).notNull(),
+    kind: discountKindEnum('kind').notNull(),
+    value: bigint('value', { mode: 'number' }).notNull().default(0),
+    firstOrderOnly: boolean('first_order_only').notNull().default(false),
+    minOrderAmount: bigint('min_order_amount', { mode: 'number' }).notNull().default(0),
+    maxDiscountAmount: bigint('max_discount_amount', { mode: 'number' }),
+    startsAt: timestamp('starts_at', { withTimezone: true }),
+    endsAt: timestamp('ends_at', { withTimezone: true }),
+    isActive: boolean('is_active').notNull().default(true),
+    usageLimit: integer('usage_limit').notNull().default(1),
+    usedCount: integer('used_count').notNull().default(0),
+    createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('discount_codes_code_key').on(t.code),
+    index('discount_codes_user_idx').on(t.userId),
+    index('discount_codes_active_idx').on(t.isActive),
+  ],
+);
+
 /* ------------------------------------------------------------------ *
  * Orders
  * ------------------------------------------------------------------ */
@@ -504,6 +575,9 @@ export const orders = pgTable(
     paymentMethod: varchar('payment_method', { length: 100 }),
     /** Immutable snapshot of the selected payment rule at checkout time. */
     paymentPlan: jsonb('payment_plan').$type<PaymentPlanQuote>(),
+    discountCode: varchar('discount_code', { length: 40 }),
+    discountAmount: bigint('discount_amount', { mode: 'number' }).notNull().default(0),
+    freeShipping: boolean('free_shipping').notNull().default(false),
     note: text('note'),
     acquisitionSource: varchar('acquisition_source', { length: 120 }),
     acquisitionMedium: varchar('acquisition_medium', { length: 120 }),
@@ -519,6 +593,41 @@ export const orders = pgTable(
     index('orders_created_idx').on(t.createdAt),
     index('orders_acquisition_source_idx').on(t.acquisitionSource),
   ],
+);
+
+export const discountRedemptions = pgTable(
+  'discount_redemptions',
+  {
+    id: serial('id').primaryKey(),
+    discountCodeId: integer('discount_code_id').notNull().references(() => discountCodes.id, { onDelete: 'restrict' }),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+    discountAmount: bigint('discount_amount', { mode: 'number' }).notNull().default(0),
+    freeShipping: boolean('free_shipping').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('discount_redemptions_order_key').on(t.orderId),
+    index('discount_redemptions_code_idx').on(t.discountCodeId),
+    index('discount_redemptions_user_idx').on(t.userId),
+  ],
+);
+
+export const orderPaymentInstructions = pgTable(
+  'order_payment_instructions',
+  {
+    id: serial('id').primaryKey(),
+    orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+    status: paymentInstructionStatusEnum('status').notNull().default('pending'),
+    accountId: varchar('account_id', { length: 80 }),
+    instructions: text('instructions'),
+    channels: jsonb('channels').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    sentBy: integer('sent_by').references(() => users.id, { onDelete: 'set null' }),
+    sentAt: timestamp('sent_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('order_payment_instructions_order_key').on(t.orderId), index('order_payment_instructions_status_idx').on(t.status)],
 );
 
 export const orderItems = pgTable(
@@ -894,6 +1003,8 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   user: one(users, { fields: [orders.userId], references: [users.id] }),
   items: many(orderItems),
   payments: many(payments),
+  discountRedemption: one(discountRedemptions),
+  paymentInstructions: one(orderPaymentInstructions),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
@@ -906,6 +1017,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   payments: many(payments),
   comments: many(comments),
   customerTelegramAccount: one(customerTelegramAccounts),
+  customerBaleAccount: one(customerBaleAccounts),
   accessGroup: one(accessGroups, { fields: [users.accessGroupId], references: [accessGroups.id] }),
 }));
 
@@ -915,6 +1027,28 @@ export const customerTelegramAccountsRelations = relations(customerTelegramAccou
 
 export const customerTelegramLinkTokensRelations = relations(customerTelegramLinkTokens, ({ one }) => ({
   user: one(users, { fields: [customerTelegramLinkTokens.userId], references: [users.id] }),
+}));
+
+export const customerBaleAccountsRelations = relations(customerBaleAccounts, ({ one }) => ({
+  user: one(users, { fields: [customerBaleAccounts.userId], references: [users.id] }),
+}));
+
+export const customerBaleLinkTokensRelations = relations(customerBaleLinkTokens, ({ one }) => ({
+  user: one(users, { fields: [customerBaleLinkTokens.userId], references: [users.id] }),
+}));
+
+export const discountCodesRelations = relations(discountCodes, ({ one, many }) => ({
+  user: one(users, { fields: [discountCodes.userId], references: [users.id] }),
+  redemptions: many(discountRedemptions),
+}));
+
+export const discountRedemptionsRelations = relations(discountRedemptions, ({ one }) => ({
+  code: one(discountCodes, { fields: [discountRedemptions.discountCodeId], references: [discountCodes.id] }),
+  order: one(orders, { fields: [discountRedemptions.orderId], references: [orders.id] }),
+}));
+
+export const orderPaymentInstructionsRelations = relations(orderPaymentInstructions, ({ one }) => ({
+  order: one(orders, { fields: [orderPaymentInstructions.orderId], references: [orders.id] }),
 }));
 
 export const accessGroupsRelations = relations(accessGroups, ({ many }) => ({

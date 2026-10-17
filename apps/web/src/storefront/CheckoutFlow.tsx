@@ -178,6 +178,9 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountQuote, setDiscountQuote] = useState<{ amount: number; freeShipping: boolean } | null>(null);
+  const [discountBusy, setDiscountBusy] = useState(false);
 
   // Secondary form state (post-order)
   const [completedOrder, setCompletedOrder] = useState<OrderDTO | null>(null);
@@ -190,6 +193,11 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
   const walletQuery = useQuery({
     queryKey: ['wallet', 'checkout'],
     queryFn: () => api.get<{ wallet: { balance: number; isFrozen: boolean }; config: { enabled: boolean; orderPaymentEnabled: boolean } }>('/wallet'),
+    enabled: Boolean(user),
+  });
+  const discountsQuery = useQuery({
+    queryKey: ['customer-discounts', user?.id ?? null],
+    queryFn: () => api.get<{ items: Array<{ code: string; kind: 'percent' | 'fixed' | 'free_shipping'; value: number; remainingUses: number }> }>('/discounts/my'),
     enabled: Boolean(user),
   });
   const termsQuery = useQuery({
@@ -295,12 +303,15 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
         note: note.trim() || undefined,
         paymentMethod: activePaymentMethod,
         paymentPlanId: activePaymentPlan?.id,
+        discountCode: discountQuote ? discountCode.trim() : undefined,
         attribution: readAttribution(),
       });
       clear();
       setAddress("");
       setNote("");
       setAgreeTerms(false);
+      setDiscountCode('');
+      setDiscountQuote(null);
 
       if (activePaymentMethod === "aqayepardakht") {
         toast.ok("سفارش ثبت شد، در حال انتقال به درگاه پرداخت...");
@@ -359,18 +370,36 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
     }
   }
 
+  async function applyDiscount() {
+    if (!discountCode.trim()) return;
+    setDiscountBusy(true);
+    setError('');
+    try {
+      const quote = await api.post<{ amount: number; freeShipping: boolean }>('/discounts/quote', {
+        code: discountCode.trim(),
+        items: lines.map((line) => ({ productId: line.productId, qty: line.qty })),
+      });
+      setDiscountQuote({ amount: quote.amount, freeShipping: quote.freeShipping });
+      toast.ok(quote.freeShipping ? 'ارسال رایگان برای سفارش فعال شد.' : `تخفیف ${quote.amount.toLocaleString('fa-IR')} تومان اعمال شد.`);
+    } catch (err) {
+      setDiscountQuote(null);
+      setError(err instanceof Error ? err.message : 'کد تخفیف معتبر نیست.');
+    } finally { setDiscountBusy(false); }
+  }
+
   // ── Secondary form view (post-order) ────────────────────────────
   if (completedOrder) {
     const plan = completedOrder.paymentPlan;
     const planSchedule = plan?.schedule.map((item) => `${item.dueLabel}: ${item.optional ? 'اختیاری' : `${item.percent}٪`}`) ?? [];
-    const info = plan ? {
+    const pendingInstructions = completedOrder.paymentInstructions?.status === 'pending';
+    const baseInfo = plan ? {
       title: `تکمیل سفارش - ${plan.label}`,
       instructions: [
         plan.description,
         ...(plan.instructions ? [plan.instructions] : []),
         ...planSchedule,
       ],
-      fields: plan.kind === 'cheque' ? [
+      fields: pendingInstructions ? [] : plan.kind === 'cheque' ? [
         { key: 'checkNumber', label: 'شماره چک صیادی', placeholder: 'شماره ۱۶ رقمی چک' },
         { key: 'checkBankName', label: 'نام بانک', placeholder: 'مثال: بانک ملت' },
         { key: 'checkDate', label: 'تاریخ اولین سررسید', placeholder: 'مثال: ۱۴۰۵/۰۸/۱۵', type: 'text' },
@@ -380,6 +409,14 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
         { key: 'receiptNote', label: 'شماره پیگیری یا توضیحات', placeholder: 'کد رهگیری، ساعت واریز یا توضیح' },
       ] : [],
     } : SECONDARY_INFO[completedMethod];
+    const routedInstructions = completedOrder.paymentInstructions?.instructions;
+    const info = baseInfo ? {
+      ...baseInfo,
+      instructions: routedInstructions
+        ? [pendingInstructions ? 'اطلاعات پرداخت پس از بررسی واحد مالی ارسال می‌شود.' : 'اطلاعات حساب تخصیص‌یافته به این سفارش:', routedInstructions]
+        : baseInfo.instructions,
+      fields: pendingInstructions ? [] : baseInfo.fields,
+    } : baseInfo;
     const customMethodObj = availableMethods.find(m => m.id === completedMethod);
 
     if (info) {
@@ -811,6 +848,15 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
           </div>
 
         <div className="checkout-card checkout-summary-card">
+        <div className="field" style={{ marginBottom: 16 }}>
+          <label htmlFor="discount-code">کد تخفیف اختصاصی</label>
+          <div className="row" style={{ gap: 8 }}>
+            <input id="discount-code" className="input" dir="ltr" value={discountCode} onChange={(event) => { setDiscountCode(event.target.value.toUpperCase()); setDiscountQuote(null); }} placeholder="مثال: TAMAS-..." />
+            <button type="button" className="btn" disabled={discountBusy || !discountCode.trim()} onClick={() => void applyDiscount()}>{discountBusy ? 'در حال بررسی…' : 'اعمال'}</button>
+          </div>
+          {discountQuote && <span className="alert" style={{ marginTop: 8 }}>{discountQuote.freeShipping ? 'ارسال رایگان فعال است.' : `${discountQuote.amount.toLocaleString('fa-IR')} تومان تخفیف اعمال می‌شود.`}</span>}
+          {!discountCode && discountsQuery.data?.items[0] && <button type="button" className="btn ghost" style={{ marginTop: 8 }} onClick={() => setDiscountCode(discountsQuery.data!.items[0]!.code)}>استفاده از کد اختصاصی من: <b dir="ltr">{discountsQuery.data.items[0].code}</b></button>}
+        </div>
         <div className="table-wrap checkout-order-table-wrap">
           <table className="data checkout-order-table">
             <thead>

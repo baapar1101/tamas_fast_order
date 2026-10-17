@@ -1,8 +1,8 @@
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import type { OrderCreate, OrderDTO, OrderItemsReplace, PaymentPlanQuote, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS, repricePaymentPlan } from '@tamas/shared';
 import { db } from '../db/client.js';
-import { inventoryReservations, orderItems, orders, products } from '../db/schema.js';
+import { discountCodes, discountRedemptions, inventoryReservations, orderItems, orderPaymentInstructions, orders, products } from '../db/schema.js';
 import { badRequest, conflict, notFound, profileIncomplete } from '../lib/errors.js';
 import { invalidateCatalog } from './catalog.js';
 import { missingProfileFields, type UserRow } from './auth.js';
@@ -11,11 +11,14 @@ import { applyWalletTransaction } from './wallet.js';
 import { getSetting } from './settings.js';
 import { allocateInventory, type InventoryQuantities } from './inventory-policy.js';
 import { getPaymentTermsConfig, quotePaymentTerms, selectPaymentPlan } from './payment-terms.js';
+import { validateCustomerDiscount } from './discounts.js';
+import { formatPaymentAccount, getPaymentRoutingConfig, securePaymentPlan, selectPaymentAccount } from './payment-routing.js';
 
 type OrderRow = typeof orders.$inferSelect;
 type OrderItemRow = typeof orderItems.$inferSelect;
+type PaymentInstructionRow = typeof orderPaymentInstructions.$inferSelect;
 
-export function toOrderDTO(row: OrderRow, items: OrderItemRow[]): OrderDTO {
+export function toOrderDTO(row: OrderRow, items: OrderItemRow[], instruction?: PaymentInstructionRow | null): OrderDTO {
   return {
     id: row.id,
     orderCode: row.orderCode,
@@ -31,6 +34,15 @@ export function toOrderDTO(row: OrderRow, items: OrderItemRow[]): OrderDTO {
     paymentStatus: row.paymentStatus,
     paymentMethod: row.paymentMethod,
     paymentPlan: row.paymentPlan ?? null,
+    discountCode: row.discountCode ?? null,
+    discountAmount: row.discountAmount ?? 0,
+    freeShipping: row.freeShipping ?? false,
+    paymentInstructions: instruction ? {
+      status: instruction.status,
+      instructions: instruction.instructions,
+      sentAt: instruction.sentAt?.toISOString() ?? null,
+      channels: instruction.channels,
+    } : null,
     note: row.note,
     acquisitionSource: row.acquisitionSource,
     acquisitionMedium: row.acquisitionMedium,
@@ -111,6 +123,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     }
   }
 
+  const paymentRouting = await getPaymentRoutingConfig();
   const created = await db.transaction(async (tx) => {
     let rows = await tx
       .select()
@@ -203,8 +216,13 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       }
     }
 
+    const appliedDiscount = input.discountCode
+      ? await validateCustomerDiscount(tx, user.id, input.discountCode, subtotal)
+      : null;
+    const discountedSubtotal = Math.max(0, subtotal - (appliedDiscount?.amount ?? 0));
     let paymentPlan: PaymentPlanQuote | null = null;
-    let total = subtotal;
+    let total = discountedSubtotal;
+    let paymentInstructionsPending = false;
     if (input.paymentPlanId) {
       const config = await getPaymentTermsConfig();
       const quote = quotePaymentTerms(lines.map((line) => {
@@ -214,7 +232,14 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       if (quote.audience === 'mixed') throw badRequest(quote.message ?? 'شرایط پرداخت برای سبد ترکیبی قابل اعمال نیست.');
       paymentPlan = selectPaymentPlan(quote, input.paymentPlanId);
       if (!paymentPlan) throw badRequest('شرایط پرداخت انتخاب‌شده معتبر یا فعال نیست.');
+      paymentPlan = repricePaymentPlan(paymentPlan, discountedSubtotal);
+      const secured = securePaymentPlan(paymentPlan, paymentRouting);
+      paymentPlan = secured.plan;
+      paymentInstructionsPending = secured.pending;
       total = paymentPlan.finalAmount;
+    }
+    if (!paymentPlan && paymentRouting.enabled && total > paymentRouting.thresholdAmount && /credit|check|cheque|اعتبار|چک/i.test(input.paymentMethod ?? '')) {
+      paymentInstructionsPending = true;
     }
 
     const customerName = [user.name, user.lastName].filter(Boolean).join(' ').trim() || user.phone;
@@ -235,6 +260,9 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
         paymentStatus: walletPayment ? 'paid' : 'unpaid',
         paymentMethod: paymentPlan?.id ?? (input.paymentMethod?.trim() || null),
         paymentPlan,
+        discountCode: appliedDiscount?.code ?? null,
+        discountAmount: appliedDiscount?.amount ?? 0,
+        freeShipping: appliedDiscount?.freeShipping ?? false,
         note: input.note?.trim() || null,
         acquisitionSource: input.attribution?.source?.trim().toLowerCase() || null,
         acquisitionMedium: input.attribution?.medium?.trim().toLowerCase() || null,
@@ -244,6 +272,38 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       })
       .returning();
     if (!order) throw new Error('order insert failed');
+
+    if (appliedDiscount) {
+      await tx.update(discountCodes).set({ usedCount: sql`${discountCodes.usedCount} + 1`, updatedAt: new Date() })
+        .where(eq(discountCodes.id, appliedDiscount.id));
+      await tx.insert(discountRedemptions).values({
+        discountCodeId: appliedDiscount.id,
+        userId: user.id,
+        orderId: order.id,
+        discountAmount: appliedDiscount.amount,
+        freeShipping: appliedDiscount.freeShipping,
+      });
+    }
+
+    let instructionDto: OrderDTO['paymentInstructions'] = null;
+    if (paymentInstructionsPending) {
+      const [instruction] = await tx.insert(orderPaymentInstructions).values({
+        orderId: order.id,
+        status: 'pending',
+        instructions: paymentRouting.pendingMessage,
+      }).returning();
+      instructionDto = instruction ? { status: 'pending', instructions: instruction.instructions, sentAt: null, channels: [] } : null;
+    } else {
+      const account = selectPaymentAccount(order.id, total, paymentRouting);
+      if (account) {
+        const instructions = formatPaymentAccount(account);
+        const now = new Date();
+        await tx.insert(orderPaymentInstructions).values({
+          orderId: order.id, status: 'sent', accountId: account.id, instructions, sentAt: now, channels: ['site'],
+        });
+        instructionDto = { status: 'sent', instructions, sentAt: now.toISOString(), channels: ['site'] };
+      }
+    }
 
     const items = await tx
       .insert(orderItems)
@@ -365,22 +425,22 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       }).catch((err) => console.error('[Telegram] order.created failed:', err));
     });
 
-    return toOrderDTO(order, items);
+    return { ...toOrderDTO(order, items), paymentInstructions: instructionDto };
   });
-  void import('./customer-telegram.js').then(({ sendCustomerTelegramNotification }) => {
-    void sendCustomerTelegramNotification(
+  void import('./customer-messaging.js').then(({ sendCustomerNotification }) => {
+    void sendCustomerNotification(
       user.id,
       'order.created',
       '🛒 سفارش شما ثبت شد',
       `سفارش ${created.orderCode} به مبلغ ${created.total.toLocaleString('fa-IR')} تومان ثبت شد و از همین ربات می‌توانید وضعیت آن را پیگیری کنید.`,
-    ).catch((err) => console.error('[Customer Telegram] order.created failed:', err));
+      ).catch((err) => console.error('[Customer messaging] order.created failed:', err));
     if (walletPayment) {
-      void sendCustomerTelegramNotification(
+      void sendCustomerNotification(
         user.id,
         'wallet.changed',
         '💳 پرداخت از کیف پول',
         `${created.total.toLocaleString('fa-IR')} تومان بابت سفارش ${created.orderCode} از کیف پول شما کسر شد.`,
-      ).catch((err) => console.error('[Customer Telegram] wallet.changed failed:', err));
+      ).catch((err) => console.error('[Customer messaging] wallet.changed failed:', err));
     }
   });
   return created;
@@ -598,8 +658,9 @@ export async function replaceOrderItems(orderId: number, input: OrderItemsReplac
     if (nextReservations.length > 0) await tx.insert(inventoryReservations).values(nextReservations);
 
     const subtotal = replacementRows.reduce((sum, item) => sum + Number(item.price) * Number(item.qty), 0);
-    const paymentPlan = order.paymentPlan ? repricePaymentPlan(order.paymentPlan, subtotal) : null;
-    const total = paymentPlan?.finalAmount ?? subtotal;
+    const discountedSubtotal = Math.max(0, subtotal - order.discountAmount);
+    const paymentPlan = order.paymentPlan ? repricePaymentPlan(order.paymentPlan, discountedSubtotal) : null;
+    const total = paymentPlan?.finalAmount ?? discountedSubtotal;
     const quantity = replacementRows.reduce((sum, item) => sum + Number(item.qty), 0);
     if (!Number.isSafeInteger(total) || total < 0) throw badRequest('مبلغ نهایی سفارش معتبر نیست.');
 
@@ -620,7 +681,7 @@ export async function replaceOrderItems(orderId: number, input: OrderItemsReplac
     };
   });
   invalidateCatalog();
-  void import('./customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+  void import('./customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
     result.order.userId,
     'order.items_changed',
     '✏️ اقلام سفارش تغییر کرد',
@@ -638,15 +699,10 @@ export async function listOrdersForUser(userId: number, limit = 50): Promise<Ord
     .limit(limit);
   if (rows.length === 0) return [];
 
-  const items = await db
-    .select()
-    .from(orderItems)
-    .where(
-      inArray(
-        orderItems.orderId,
-        rows.map((r) => r.id),
-      ),
-    );
+  const [items, instructions] = await Promise.all([
+    db.select().from(orderItems).where(inArray(orderItems.orderId, rows.map((r) => r.id))),
+    db.select().from(orderPaymentInstructions).where(inArray(orderPaymentInstructions.orderId, rows.map((r) => r.id))),
+  ]);
 
   const byOrder = new Map<number, OrderItemRow[]>();
   for (const it of items) {
@@ -654,7 +710,8 @@ export async function listOrdersForUser(userId: number, limit = 50): Promise<Ord
     list.push(it);
     byOrder.set(it.orderId, list);
   }
-  return rows.map((r) => toOrderDTO(r, byOrder.get(r.id) ?? []));
+  const instructionByOrder = new Map(instructions.map((item) => [item.orderId, item]));
+  return rows.map((r) => toOrderDTO(r, byOrder.get(r.id) ?? [], instructionByOrder.get(r.id)));
 }
 
 /** Fetch an order by its orderCode (used for CRM manual sync). */
@@ -666,10 +723,10 @@ export async function getOrderByCode(orderCode: string): Promise<OrderDTO | null
     .limit(1);
   if (!row) return null;
 
-  const items = await db
-    .select()
-    .from(orderItems)
-    .where(eq(orderItems.orderId, row.id));
+  const [items, [instruction]] = await Promise.all([
+    db.select().from(orderItems).where(eq(orderItems.orderId, row.id)),
+    db.select().from(orderPaymentInstructions).where(eq(orderPaymentInstructions.orderId, row.id)).limit(1),
+  ]);
 
-  return toOrderDTO(row, items);
+  return toOrderDTO(row, items, instruction);
 }

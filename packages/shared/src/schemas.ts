@@ -262,6 +262,7 @@ export const orderCreateSchema = z.object({
   address: z.string().trim().max(1000).optional(),
   paymentMethod: z.string().trim().max(100).optional(),
   paymentPlanId: z.string().trim().max(120).optional(),
+  discountCode: z.string().trim().max(40).optional(),
   note: z.string().trim().max(1000).optional(),
   attribution: z.object({
     source: z.string().trim().max(120).optional(),

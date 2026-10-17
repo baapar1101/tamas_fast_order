@@ -106,7 +106,7 @@ export const adminCreditRoutes: FastifyPluginAsync = async (app) => {
           { label: 'سقف اعتبار', value: Number(updated.assignedCreditLimit).toLocaleString('fa-IR') },
         ],
       }).catch((err) => req.log.error({ err }, 'failed to send Telegram credit status notification'));
-      void import('../../services/customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+      void import('../../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
         updated.userId,
         'credit.application_status_changed',
         '💳 وضعیت پرونده اعتباری تغییر کرد',
@@ -253,7 +253,7 @@ export const adminCreditRoutes: FastifyPluginAsync = async (app) => {
           { label: 'مبلغ', value: `${Number(updated.amount).toLocaleString('fa-IR')} تومان` },
         ],
       }).catch((err) => req.log.error({ err }, 'failed to send Telegram cheque status notification'));
-      void import('../../services/customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(
+      void import('../../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
         updated.userId,
         'credit.cheque_status_changed',
         '🧾 وضعیت چک تغییر کرد',

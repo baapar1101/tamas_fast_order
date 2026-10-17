@@ -20,6 +20,11 @@ export function TelegramPage() {
     queryFn: () => api.get<TelegramStatus>('/customer-telegram/status'),
     enabled: user?.role === 'customer',
   });
+  const baleStatus = useQuery({
+    queryKey: ['customer-bale-status', user?.id ?? null],
+    queryFn: () => api.get<TelegramStatus>('/customer-bale/status'),
+    enabled: user?.role === 'customer',
+  });
 
   const connect = async () => {
     const telegramWindow = window.open('about:blank', '_blank');
@@ -47,14 +52,36 @@ export function TelegramPage() {
     finally { setBusy(false); }
   };
 
-  if (user?.role !== 'customer') return <div className="card account-state">این بخش مخصوص حساب مشتریان است.</div>;
-  if (status.isLoading) return <div className="card account-state">در حال بررسی اتصال تلگرام…</div>;
-  if (status.error) return <div className="card account-state">دریافت وضعیت ربات ممکن نشد.</div>;
-  if (!status.data?.enabled) return <div className="card account-state"><h2>ربات مشتریان فعلاً غیرفعال است</h2><p>پس از فعال‌سازی توسط مدیریت، امکان اتصال از همین صفحه فراهم می‌شود.</p></div>;
+  const connectBale = async () => {
+    const target = window.open('about:blank', '_blank');
+    if (target) target.opener = null;
+    setBusy(true);
+    try {
+      const result = await api.post<{ url: string }>('/customer-bale/link');
+      if (target) target.location.replace(result.url); else window.location.assign(result.url);
+      toast.show('پس از زدن Start در ربات بله، وضعیت را دوباره بررسی کنید.');
+    } catch (error) { target?.close(); toast.error((error as Error).message); }
+    finally { setBusy(false); }
+  };
 
-  const linked = status.data.account.linked;
+  const disconnectBale = async () => {
+    if (!window.confirm('اتصال حساب بله قطع شود؟')) return;
+    setBusy(true);
+    try { await api.del('/customer-bale/link'); await queryClient.invalidateQueries({ queryKey: ['customer-bale-status', user?.id ?? null] }); toast.ok('اتصال ربات بله قطع شد.'); }
+    catch (error) { toast.error((error as Error).message); }
+    finally { setBusy(false); }
+  };
+
+  if (user?.role !== 'customer') return <div className="card account-state">این بخش مخصوص حساب مشتریان است.</div>;
+  if (status.isLoading || baleStatus.isLoading) return <div className="card account-state">در حال بررسی اتصال پیام‌رسان‌ها…</div>;
+  if (status.error) return <div className="card account-state">دریافت وضعیت ربات ممکن نشد.</div>;
+  if (!status.data?.enabled && !baleStatus.data?.enabled) return <div className="card account-state"><h2>ربات مشتریان فعلاً غیرفعال است</h2><p>پس از فعال‌سازی توسط مدیریت، امکان اتصال از همین صفحه فراهم می‌شود.</p></div>;
+
+  const linked = status.data?.account.linked === true;
+  const baleLinked = baleStatus.data?.account.linked === true;
   return (
-    <section className="card account-telegram-card">
+    <div className="stack">
+    {status.data?.enabled && <section className="card account-telegram-card">
       <div className="account-telegram-logo" aria-hidden="true">✈</div>
       <div>
         <span className={`account-status-pill ${linked ? 'is-linked' : ''}`}>{linked ? 'متصل' : 'متصل نشده'}</span>
@@ -79,6 +106,19 @@ export function TelegramPage() {
           <button type="button" className="btn ghost" disabled={status.isFetching} onClick={() => void status.refetch()}>بررسی مجدد وضعیت</button>
         </div>
       </div>
-    </section>
+    </section>}
+    {baleStatus.data?.enabled && <section className="card account-telegram-card">
+      <div className="account-telegram-logo" aria-hidden="true">ب</div>
+      <div>
+        <span className={`account-status-pill ${baleLinked ? 'is-linked' : ''}`}>{baleLinked ? 'متصل' : 'متصل نشده'}</span>
+        <h2>ربات بله تماس مارکت</h2>
+        <p>{baleLinked ? 'اعلان‌های مالی و سفارش از سرویس داخلی بله نیز برای شما فعال است.' : 'برای دسترسی پایدار داخلی، حساب خود را به ربات بله متصل کنید.'}</p>
+        <div className="account-telegram-actions">
+          {baleLinked ? <><a className="btn primary" href={`https://ble.ir/${baleStatus.data.botUsername}`} target="_blank" rel="noreferrer">باز کردن بله</a><button type="button" className="btn danger" disabled={busy} onClick={() => void disconnectBale()}>قطع اتصال</button></> : <button type="button" className="btn primary" disabled={busy} onClick={() => void connectBale()}>اتصال امن به بله</button>}
+          <button type="button" className="btn ghost" onClick={() => void baleStatus.refetch()}>بررسی مجدد وضعیت</button>
+        </div>
+      </div>
+    </section>}
+    </div>
   );
 }
