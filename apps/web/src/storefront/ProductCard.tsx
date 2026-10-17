@@ -333,5 +333,35 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
+}, (prev, next) => {
+  if (
+    prev.group !== next.group ||
+    prev.colorMap !== next.colorMap ||
+    prev.canViewPrices !== next.canViewPrices ||
+    prev.viewMode !== next.viewMode ||
+    prev.onAdd !== next.onAdd ||
+    prev.onUpdateQty !== next.onUpdateQty ||
+    prev.onPreview !== next.onPreview
+  ) {
+    return false;
+  }
+
+  // Deep compare cartLines for the current group
+  const relevantProductIds = new Set(next.group.variants.map((v) => v.productId));
+
+  const prevLines = prev.cartLines.filter((l) => relevantProductIds.has(l.productId));
+  const nextLines = next.cartLines.filter((l) => relevantProductIds.has(l.productId));
+
+  if (prevLines.length !== nextLines.length) return false;
+
+  for (let i = 0; i < prevLines.length; i++) {
+    const pl = prevLines[i];
+    const nl = nextLines[i];
+    if (pl && nl && (pl.key !== nl.key || pl.qty !== nl.qty)) {
+      return false;
+    }
+  }
+
+  return true;
 });
 
