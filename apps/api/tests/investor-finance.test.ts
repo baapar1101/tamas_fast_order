@@ -42,9 +42,13 @@ test('invalid financial configuration is bounded and cannot create negative capi
 test('order investment uses frozen item costs and only marks paid non-cancelled orders as realized', () => {
   const result = calculateOrderInvestment({
     total: 1_000_000,
+    subtotal: 1_000_000,
     paymentStatus: 'paid',
     status: 'delivered',
-    items: [{ qty: 2, costPrice: 250_000 }, { qty: 1, costPrice: 100_000 }],
+    items: [
+      { qty: 2, price: 400_000, costPrice: 250_000, investorFinanced: true },
+      { qty: 1, price: 200_000, costPrice: 100_000, investorFinanced: true },
+    ],
   }, DEFAULT_INVESTOR_SETTINGS);
   assert.equal(result.costOfGoodsSold, 600_000);
   assert.equal(result.grossProfit, 400_000);
@@ -58,15 +62,34 @@ test('order investment uses frozen item costs and only marks paid non-cancelled 
 test('losses are visible but are never distributed between investor and executor', () => {
   const result = calculateOrderInvestment({
     total: 100_000,
+    subtotal: 100_000,
     paymentStatus: 'unpaid',
     status: 'new',
-    items: [{ qty: 1, costPrice: 140_000 }],
+    items: [{ qty: 1, price: 100_000, costPrice: 140_000, investorFinanced: true }],
   }, DEFAULT_INVESTOR_SETTINGS);
   assert.equal(result.grossProfit, -40_000);
   assert.equal(result.distributableProfit, 0);
   assert.equal(result.investorShare, 0);
   assert.equal(result.executorShare, 0);
   assert.equal(result.realized, false);
+});
+
+test('order investment excludes non-financed products and allocates discounts proportionally', () => {
+  const result = calculateOrderInvestment({
+    total: 900_000,
+    subtotal: 1_000_000,
+    paymentStatus: 'paid',
+    status: 'delivered',
+    items: [
+      { qty: 1, price: 600_000, costPrice: 400_000, investorFinanced: true },
+      { qty: 1, price: 400_000, costPrice: 250_000, investorFinanced: false },
+    ],
+  }, DEFAULT_INVESTOR_SETTINGS);
+  assert.equal(result.financedSales, 540_000);
+  assert.equal(result.financedUnits, 1);
+  assert.equal(result.costOfGoodsSold, 400_000);
+  assert.equal(result.grossProfit, 140_000);
+  assert.equal(result.investorShare, 84_000);
 });
 
 test('warehouse valuation does not double count flat stock when split warehouses exist', () => {

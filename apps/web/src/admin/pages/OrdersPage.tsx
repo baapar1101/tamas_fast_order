@@ -600,7 +600,8 @@ export function OrdersPage() {
                     </div>
                     <span className={`a-badge ${detail.investment.realized ? 'a-badge--green' : 'a-badge--neutral'}`}>{detail.investment.realized ? 'قطعی' : 'پیش‌بینی'}</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-3 text-xs md:grid-cols-5">
+                    <div><span className="text-[var(--a-t4)]">فروش مشمول · {formatNumber(detail.investment.financedUnits)} عدد</span><strong className="mt-1 block text-[var(--a-t1)]"><Price amount={detail.investment.financedSales} /></strong></div>
                     <div><span className="text-[var(--a-t4)]">بهای تمام‌شده</span><strong className="mt-1 block text-[var(--a-t1)]"><Price amount={detail.investment.costOfGoodsSold} /></strong></div>
                     <div><span className="text-[var(--a-t4)]">سود ناخالص · {formatNumber(detail.investment.grossMarginPercent)}٪</span><strong className={`mt-1 block ${detail.investment.grossProfit < 0 ? 'text-rose-500' : 'text-emerald-500'}`}><Price amount={detail.investment.grossProfit} /></strong></div>
                     <div><span className="text-[var(--a-t4)]">سرمایه‌گذار · {formatNumber(detail.investment.investorSharePercent)}٪</span><strong className="mt-1 block text-emerald-500"><Price amount={detail.investment.investorShare} /></strong></div>

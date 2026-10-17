@@ -4,7 +4,7 @@ import { toAsciiDigits } from '@tamas/shared';
 export type SheetColumnKey =
   | 'title' | 'sku' | 'model' | 'categoryName' | 'brandName' | 'color'
   | 'price' | 'costPrice' | 'oldPrice' | 'discount' | 'stock' | 'kermanStock' | 'tehranStock'
-  | 'totalStock' | 'inventoryValue' | 'status' | 'promotion' | 'warranty' | 'seller'
+  | 'totalStock' | 'inventoryValue' | 'status' | 'promotion' | 'investorFinanced' | 'warranty' | 'seller'
   | 'sortOrder' | 'createdAt' | 'updatedAt' | 'imageUrl';
 
 export type SheetEditableKey = Exclude<SheetColumnKey, 'sku' | 'totalStock' | 'inventoryValue' | 'createdAt' | 'updatedAt' | 'imageUrl'>;
@@ -38,6 +38,7 @@ export const SHEET_COLUMNS: SheetColumn[] = [
   { key: 'inventoryValue', label: 'ارزش سرمایه موجودی', group: 'قیمت و موجودی', kind: 'read', width: 175 },
   { key: 'status', label: 'وضعیت', group: 'نمایش', kind: 'select', width: 135 },
   { key: 'promotion', label: 'پیشنهاد ویژه', group: 'نمایش', kind: 'toggle', width: 125 },
+  { key: 'investorFinanced', label: 'تأمین مالی سرمایه‌گذار', group: 'نمایش', kind: 'toggle', width: 165, hint: 'فقط محصولات روشن‌شده در محاسبات پنل سرمایه‌گذار وارد می‌شوند.' },
   { key: 'warranty', label: 'گارانتی', group: 'نمایش', kind: 'text', width: 180 },
   { key: 'seller', label: 'فروشنده', group: 'نمایش', kind: 'text', width: 175 },
   { key: 'sortOrder', label: 'ترتیب نمایش', group: 'نمایش', kind: 'number', width: 125 },
@@ -47,7 +48,7 @@ export const SHEET_COLUMNS: SheetColumn[] = [
 ];
 
 export const DEFAULT_SHEET_COLUMNS: SheetColumnKey[] = [
-  'title', 'sku', 'color', 'price', 'costPrice', 'stock', 'kermanStock', 'tehranStock', 'inventoryValue', 'status', 'updatedAt',
+  'title', 'sku', 'color', 'price', 'costPrice', 'stock', 'kermanStock', 'tehranStock', 'investorFinanced', 'inventoryValue', 'status', 'updatedAt',
 ];
 
 const OPTIONAL_TEXT_LIMITS: Partial<Record<SheetEditableKey, number>> = {
@@ -68,7 +69,7 @@ export function sheetCellValue(product: ProductDTO, key: SheetColumnKey): string
     const date = product[key];
     return date ? new Date(date).toLocaleDateString('fa-IR') : '—';
   }
-  if (key === 'promotion') return product.promotion;
+  if (key === 'promotion' || key === 'investorFinanced') return Boolean(product[key]);
   if (key === 'imageUrl') return product.imageUrl ?? '';
   return String(product[key] ?? '');
 }
@@ -91,7 +92,7 @@ export function parseSheetPatch(draft: SheetDraft): Record<string, string | numb
     const column = SHEET_COLUMNS.find((item) => item.key === rawKey);
     if (!column || column.kind === 'read') continue;
     const key = column.key as SheetEditableKey;
-    if (key === 'promotion') {
+    if (key === 'promotion' || key === 'investorFinanced') {
       patch[key] = Boolean(rawValue);
     } else if (key === 'status') {
       if (rawValue !== 'active' && rawValue !== 'inactive') throw new Error('وضعیت معتبر نیست.');

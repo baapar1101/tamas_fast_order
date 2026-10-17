@@ -135,7 +135,7 @@ export function FinancialPage() {
 
   return (
     <div className="a-page a-page--financial a-fade">
-      <section className="a-page-head"><div className="a-titles"><h2 className="a-title">مرکز مالی و سرمایه‌گذاری</h2><p className="a-subtitle">دفتر ثبت مالی، بهای تمام‌شده کالا و تنظیمات پنل سرمایه‌گذار</p></div><div className="a-page-actions"><a className="a-btn a-btn--secondary" href="/investor" target="_blank" rel="noreferrer">مشاهده پنل سرمایه‌گذار</a><button className="a-btn a-btn--primary" type="button" onClick={openCreate}>ثبت رویداد مالی</button></div></section>
+      <section className="a-page-head"><div className="a-titles"><h2 className="a-title">مرکز مالی و سرمایه‌گذاری</h2><p className="a-subtitle">محاسبات سرمایه‌گذاری فقط شامل محصولاتی است که گزینه تأمین مالی آن‌ها در مدیریت محصولات روشن باشد.</p></div><div className="a-page-actions"><a className="a-btn a-btn--secondary" href="/investor" target="_blank" rel="noreferrer">مشاهده پنل سرمایه‌گذار</a><button className="a-btn a-btn--primary" type="button" onClick={openCreate}>ثبت رویداد مالی</button></div></section>
       <nav className="fin-tabs" aria-label="بخش‌های مالی">{([['overview', 'خلاصه'], ['entries', 'دفتر مالی'], ['costs', 'قیمت خرید کالا'], ['payments', 'پرداخت‌ها'], ['settings', 'تنظیمات مشارکت']] as Array<[Tab, string]>).map(([value, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}>{label}</button>)}</nav>
 
       {tab === 'overview' ? <>

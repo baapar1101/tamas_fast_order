@@ -31,7 +31,11 @@ const routes: FastifyPluginAsync = async (app) => {
         kermanStock: products.kermanStock,
         tehranStock: products.tehranStock,
         costPrice: products.costPrice,
-      }).from(products).where(and(isNull(products.deletedAt), eq(products.status, 'active'))),
+      }).from(products).where(and(
+        isNull(products.deletedAt),
+        eq(products.status, 'active'),
+        eq(products.investorFinanced, true),
+      )),
     ]);
     return { ok: true, summary: calculateWarehouseInvestment(productRows, settings) };
   });

@@ -68,6 +68,7 @@ const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
   status: z.enum(['active', 'inactive', 'all']).default('all'),
   stock: z.enum(['in', 'out', 'all']).default('all'),
+  investorFinanced: z.enum(['yes', 'no', 'all']).default('all'),
   categoryId: z.coerce.number().int().positive().optional(),
   brandId: z.coerce.number().int().positive().optional(),
   includeDeleted: z.coerce.boolean().default(false),
@@ -82,7 +83,7 @@ const listQuery = z.object({
 
 const bulkSchema = z.object({
   ids: z.array(z.coerce.number().int().positive()).min(1).max(500),
-  action: z.enum(['activate', 'deactivate', 'delete', 'restore', 'promote', 'demote', 'setStock', 'adjustPrice']),
+  action: z.enum(['activate', 'deactivate', 'delete', 'restore', 'promote', 'demote', 'finance', 'unfinance', 'setStock', 'adjustPrice']),
   stock: z.coerce.number().int().min(0).max(1_000_000).optional(),
   /** Percentage change, e.g. -10 to cut every selected price by a tenth. */
   percent: z.coerce.number().min(-90).max(900).optional(),
@@ -135,6 +136,7 @@ const routes: FastifyPluginAsync = async (app) => {
     if (!q.includeDeleted) filters.push(isNull(products.deletedAt));
 
     if (q.status !== 'all') filters.push(eq(products.status, q.status));
+    if (q.investorFinanced !== 'all') filters.push(eq(products.investorFinanced, q.investorFinanced === 'yes'));
     if (q.categoryId) filters.push(eq(products.categoryId, q.categoryId));
     if (q.brandId) filters.push(eq(products.brandId, q.brandId));
     if (q.parentProductId !== undefined) {
@@ -367,6 +369,12 @@ const routes: FastifyPluginAsync = async (app) => {
         break;
       case 'demote':
         changed = (await db.update(products).set({ promotion: false, updatedAt: now }).where(where).returning({ id: products.id })).length;
+        break;
+      case 'finance':
+        changed = (await db.update(products).set({ investorFinanced: true, updatedAt: now }).where(where).returning({ id: products.id })).length;
+        break;
+      case 'unfinance':
+        changed = (await db.update(products).set({ investorFinanced: false, updatedAt: now }).where(where).returning({ id: products.id })).length;
         break;
       case 'setStock': {
         if (body.stock == null) throw badRequest('مقدار موجودی را وارد کنید.');

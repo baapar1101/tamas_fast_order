@@ -161,7 +161,7 @@ export default function InvestorApp() {
 
       <main className="iv-main">
         <section className="iv-hero">
-          <div><span className="iv-eyebrow"><ShieldCheck size={15} /> گزارش محرمانه و به‌روز</span><h1>داشبورد سرمایه‌گذاری</h1><p>نمای یکپارچه سرمایه، موجودی، عملیات فروش و سهم سود</p></div>
+          <div><span className="iv-eyebrow"><ShieldCheck size={15} /> گزارش محرمانه و به‌روز</span><h1>داشبورد سرمایه‌گذاری</h1><p>فقط محصولات دارای برچسب «تأمین مالی سرمایه‌گذار» در موجودی، فروش و سود محاسبه می‌شوند.</p></div>
           <div className="iv-period" aria-label="بازه گزارش">{ranges.map((item) => <button key={item.value} className={range === item.value ? 'active' : ''} onClick={() => setRange(item.value)}>{item.label}</button>)}</div>
         </section>
 
@@ -170,9 +170,9 @@ export default function InvestorApp() {
         ) : null}
 
         <section className="iv-metrics">
-          <MetricCard label="موجودی تعدادی" value={`${metrics.inventoryUnits.toLocaleString('fa-IR')} عدد`} detail={`${data.dataQuality.productsWithoutCost.toLocaleString('fa-IR')} کالا بدون قیمت خرید`} tone="blue" icon={<Boxes />} />
+          <MetricCard label="موجودی تأمین‌شده" value={`${metrics.inventoryUnits.toLocaleString('fa-IR')} عدد`} detail={`${data.dataQuality.productsWithoutCost.toLocaleString('fa-IR')} کالا بدون قیمت خرید`} tone="blue" icon={<Boxes />} />
           <MetricCard label="ارزش موجودی" value={money(metrics.inventoryValue)} detail={`پوشش ارزش‌گذاری ${percent(data.dataQuality.inventoryCostCoveragePercent)}`} tone="violet" icon={<PackageCheck />} />
-          <MetricCard label="فروش خالص" value={money(metrics.netSales)} detail={`${metrics.orderCount.toLocaleString('fa-IR')} سفارش قطعی`} tone="emerald" icon={<TrendingUp />} />
+          <MetricCard label="فروش خالص مشمول" value={money(metrics.netSales)} detail={`${metrics.orderCount.toLocaleString('fa-IR')} سفارش دارای کالای تأمین‌شده`} tone="emerald" icon={<TrendingUp />} />
           <MetricCard label="خرید خالص" value={money(metrics.netPurchases)} detail="خریدهای پرداخت‌شده در بازه" tone="amber" icon={<ArrowDownLeft />} />
           <MetricCard label="هزینه‌های جاری" value={money(metrics.operatingExpenses)} detail="هزینه‌های عملیاتی پرداخت‌شده" tone="rose" icon={<ReceiptText />} />
           <MetricCard label="سرمایه در گردش" value={money(metrics.availableWorkingCapital)} detail={`سرمایه پایه ${money(data.settings.initialCapital)}`} tone="slate" icon={<WalletCards />} />

@@ -90,6 +90,7 @@ export interface ProductForm {
   sellType: string;
   seller: string;
   promotion: boolean;
+  investorFinanced: boolean;
   status: 'active' | 'inactive';
   imageUrl: string;
   gallery: string[];
@@ -214,6 +215,7 @@ const blank = (): ProductForm => ({
   sellType: '',
   seller: '',
   promotion: false,
+  investorFinanced: false,
   status: 'active',
   imageUrl: '',
   gallery: [],
@@ -257,6 +259,7 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   sellType: p.sellType ?? '',
   seller: p.seller ?? '',
   promotion: p.promotion,
+  investorFinanced: p.investorFinanced ?? false,
   status: p.status,
   imageUrl: p.imageUrl ?? '',
   gallery: p.gallery,
@@ -655,7 +658,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
           <ProductAccordionSection
             id="pe-pricing-section"
             title="قیمت‌گذاری و موجودی"
-            summary={`${formatNumber(form.price)} تومان · سرمایه موجودی ${formatNumber(inventoryUnits * form.costPrice)} تومان`}
+            summary={`${formatNumber(form.price)} تومان · ${form.investorFinanced ? 'سرمایه‌گذاری فعال' : 'خارج از سرمایه‌گذاری'}`}
           >
             <div className="a-form-grid">
               <div className="a-field">
@@ -677,7 +680,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                   value={form.costPrice}
                   onChange={(e) => set('costPrice', Number(e.target.value.replace(/\D/g, '')))}
                 />
-                <small className="a-help">مبنای ارزش موجودی و محاسبه سود سرمایه‌گذاری</small>
+                <small className="a-help">برای محصولات تأمین‌شده توسط سرمایه‌گذار، مبنای ارزش موجودی و سود است.</small>
               </div>
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-old-price">قیمت خط‌خورده (تومان)</label>
@@ -726,7 +729,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
               <div className="a-field a-span-2">
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div><small className="a-help">ارزش سرمایه موجودی</small><strong className="block text-[var(--a-t1)]">{formatNumber(inventoryUnits * form.costPrice)} تومان</strong></div>
+                    <div><small className="a-help">{form.investorFinanced ? 'ارزش سرمایه‌گذاری موجودی' : 'ارزش خرید موجودی'}</small><strong className="block text-[var(--a-t1)]">{formatNumber(inventoryUnits * form.costPrice)} تومان</strong></div>
                     <div><small className="a-help">سود ناخالص واحد</small><strong className={`block ${unitGrossProfit < 0 ? 'text-rose-500' : 'text-emerald-500'}`}>{formatNumber(unitGrossProfit)} تومان</strong></div>
                     <div><small className="a-help">حاشیه سود واحد</small><strong className="block text-[var(--a-t1)]">{form.price ? `${((unitGrossProfit / form.price) * 100).toLocaleString('fa-IR', { maximumFractionDigits: 1 })}٪` : '—'}</strong></div>
                   </div>
@@ -1113,7 +1116,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
           <ProductAccordionSection
             id="pe-settings-section"
             title="تنظیمات"
-            summary={`${form.status === 'active' ? 'فعال' : 'غیرفعال'}${form.promotion ? ' · پیشنهاد ویژه' : ''}`}
+            summary={`${form.status === 'active' ? 'فعال' : 'غیرفعال'}${form.investorFinanced ? ' · تأمین مالی سرمایه‌گذار' : ''}${form.promotion ? ' · پیشنهاد ویژه' : ''}`}
           >
             <div className="space-y-3">
               <div className={`a-option-row${form.status === 'active' ? ' a-option-row--on' : ''}`}>
@@ -1141,6 +1144,21 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                   aria-checked={form.promotion}
                   className="a-switch"
                   onClick={() => set('promotion', !form.promotion)}
+                />
+              </div>
+
+              <div className={`a-option-row${form.investorFinanced ? ' a-option-row--on' : ''}`}>
+                <div className="a-option-copy">
+                  <span className="a-option-title">تأمین مالی توسط سرمایه‌گذار</span>
+                  <span className="a-option-desc">موجودی، فروش و سود این محصول در پنل سرمایه‌گذار محاسبه می‌شود.</span>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-label="تأمین مالی محصول توسط سرمایه‌گذار"
+                  aria-checked={form.investorFinanced}
+                  className="a-switch"
+                  onClick={() => set('investorFinanced', !form.investorFinanced)}
                 />
               </div>
 

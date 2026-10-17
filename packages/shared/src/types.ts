@@ -90,6 +90,8 @@ export interface ProductDTO {
   sellType: string | null;
   seller: string | null;
   promotion: boolean;
+  /** Admin-only flag deciding whether this product is included in investor reports. */
+  investorFinanced?: boolean;
   status: 'active' | 'inactive';
   subTitle: string | null;
   description: string | null;
@@ -196,11 +198,15 @@ export interface OrderItemDTO {
   price: number;
   /** Admin-only acquisition-cost snapshot frozen when the order item was created. */
   costPrice?: number;
+  /** Admin-only financing-scope snapshot frozen when the order item was created. */
+  investorFinanced?: boolean;
   qty: number;
   warehouse: Warehouse;
 }
 
 export interface AdminOrderInvestmentDTO {
+  financedSales: number;
+  financedUnits: number;
   costOfGoodsSold: number;
   grossProfit: number;
   grossMarginPercent: number;

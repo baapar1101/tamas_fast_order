@@ -21,5 +21,7 @@ test('sheet represents readable stock without changing warehouse fields', () => 
   assert.equal(sheetCellValue(product, 'totalStock'), '5');
   assert.equal(sheetCellValue(product, 'inventoryValue'), '500000');
   assert.equal(sheetCellValue(product, 'sku'), '');
-  assert.deepEqual(parseSheetPatch({ status: 'inactive', promotion: true }), { status: 'inactive', promotion: true });
+  assert.deepEqual(parseSheetPatch({ status: 'inactive', promotion: true, investorFinanced: true }), {
+    status: 'inactive', promotion: true, investorFinanced: true,
+  });
 });

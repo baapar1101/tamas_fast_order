@@ -66,6 +66,51 @@ function bucketKey(date: Date, range: InvestorRange): string {
   return value.toISOString().slice(0, 10);
 }
 
+type FinancedSaleRow = {
+  orderId: number;
+  orderTotal: number;
+  orderSubtotal: number;
+  createdAt: Date;
+  price: number;
+  costPrice: number;
+  qty: number;
+};
+
+function summarizeFinancedSales(rows: FinancedSaleRow[]) {
+  const ordersById = new Map<number, {
+    createdAt: Date;
+    orderTotal: number;
+    orderSubtotal: number;
+    financedSubtotal: number;
+    cost: number;
+    units: number;
+    valuedUnits: number;
+  }>();
+  for (const row of rows) {
+    const current = ordersById.get(row.orderId) ?? {
+      createdAt: row.createdAt,
+      orderTotal: row.orderTotal,
+      orderSubtotal: row.orderSubtotal,
+      financedSubtotal: 0,
+      cost: 0,
+      units: 0,
+      valuedUnits: 0,
+    };
+    const qty = Math.max(0, row.qty);
+    current.financedSubtotal += Math.max(0, row.price) * qty;
+    current.cost += Math.max(0, row.costPrice) * qty;
+    current.units += qty;
+    if (row.costPrice > 0) current.valuedUnits += qty;
+    ordersById.set(row.orderId, current);
+  }
+  return [...ordersById.values()].map((order) => ({
+    ...order,
+    sales: order.orderSubtotal > 0
+      ? Math.round(order.orderTotal * order.financedSubtotal / order.orderSubtotal)
+      : 0,
+  }));
+}
+
 export async function buildInvestorDashboard(range: InvestorRange): Promise<InvestorDashboardDTO> {
   const to = new Date();
   const from = new Date(to.getTime() - (RANGE_DAYS[range] - 1) * DAY_MS);
@@ -81,14 +126,12 @@ export async function buildInvestorDashboard(range: InvestorRange): Promise<Inve
   const [
     investorSettings,
     productRows,
-    salesRows,
-    costRows,
-    costTrendRows,
+    periodSaleItemRows,
     periodEntries,
     allPaidEntries,
     chequeRows,
     recentEntries,
-    allTimeSalesRows,
+    allTimeSaleItemRows,
   ] = await Promise.all([
     getInvestorSettings(),
     db.select({
@@ -99,21 +142,23 @@ export async function buildInvestorDashboard(range: InvestorRange): Promise<Inve
       kermanStock: products.kermanStock,
       tehranStock: products.tehranStock,
       costPrice: products.costPrice,
-    }).from(products).where(and(isNull(products.deletedAt), eq(products.status, 'active'))),
+    }).from(products).where(and(
+      isNull(products.deletedAt),
+      eq(products.status, 'active'),
+      eq(products.investorFinanced, true),
+    )),
     db.select({
-      total: orders.total,
+      orderId: orders.id,
+      orderTotal: orders.total,
+      orderSubtotal: orders.subtotal,
       createdAt: orders.createdAt,
-    }).from(orders).where(paidOrderWhere),
-    db.select({
-      cost: sql<number>`coalesce(sum(${orderItems.costPrice} * ${orderItems.qty}), 0)`,
-      units: sql<number>`coalesce(sum(${orderItems.qty}), 0)`,
-      valuedUnits: sql<number>`coalesce(sum(case when ${orderItems.costPrice} > 0 then ${orderItems.qty} else 0 end), 0)`,
-    }).from(orderItems).innerJoin(orders, eq(orderItems.orderId, orders.id)).where(paidOrderWhere),
-    db.select({
-      createdAt: orders.createdAt,
+      price: orderItems.price,
       costPrice: orderItems.costPrice,
       qty: orderItems.qty,
-    }).from(orderItems).innerJoin(orders, eq(orderItems.orderId, orders.id)).where(paidOrderWhere),
+    }).from(orderItems).innerJoin(orders, eq(orderItems.orderId, orders.id)).where(and(
+      paidOrderWhere,
+      eq(orderItems.investorFinanced, true),
+    )),
     db.select().from(investmentEntries).where(and(
       isNull(investmentEntries.deletedAt),
       eq(investmentEntries.status, 'paid'),
@@ -127,11 +172,26 @@ export async function buildInvestorDashboard(range: InvestorRange): Promise<Inve
       status: creditCheques.status,
       amount: sql<number>`coalesce(sum(${creditCheques.amount}), 0)`,
       count: sql<number>`count(*)`,
-    }).from(creditCheques).groupBy(creditCheques.status),
+    }).from(creditCheques).where(sql`exists (
+      select 1 from ${orderItems}
+      where ${orderItems.orderId} = ${creditCheques.orderId}
+        and ${orderItems.investorFinanced} = true
+    )`).groupBy(creditCheques.status),
     db.select().from(investmentEntries)
       .where(isNull(investmentEntries.deletedAt))
       .orderBy(desc(investmentEntries.transactionDate), desc(investmentEntries.id)).limit(8),
-    db.select({ total: sql<number>`coalesce(sum(${orders.total}), 0)` }).from(orders).where(allPaidOrderWhere),
+    db.select({
+      orderId: orders.id,
+      orderTotal: orders.total,
+      orderSubtotal: orders.subtotal,
+      createdAt: orders.createdAt,
+      price: orderItems.price,
+      costPrice: orderItems.costPrice,
+      qty: orderItems.qty,
+    }).from(orderItems).innerJoin(orders, eq(orderItems.orderId, orders.id)).where(and(
+      allPaidOrderWhere,
+      eq(orderItems.investorFinanced, true),
+    )),
   ]);
 
   let inventoryUnits = 0;
@@ -148,11 +208,13 @@ export async function buildInvestorDashboard(range: InvestorRange): Promise<Inve
     return { productId: product.productId, sku: product.sku, title: product.title, units, costPrice: product.costPrice, value };
   }).filter((item) => item.units > 0).sort((a, b) => b.value - a.value || b.units - a.units).slice(0, 8);
 
-  const netSales = salesRows.reduce((sum, row) => sum + row.total, 0);
+  const salesRows = summarizeFinancedSales(periodSaleItemRows);
+  const allTimeSalesRows = summarizeFinancedSales(allTimeSaleItemRows);
+  const netSales = salesRows.reduce((sum, row) => sum + row.sales, 0);
   const orderCount = salesRows.length;
-  const costOfGoodsSold = Number(costRows[0]?.cost ?? 0);
-  const soldUnits = Number(costRows[0]?.units ?? 0);
-  const valuedSoldUnits = Number(costRows[0]?.valuedUnits ?? 0);
+  const costOfGoodsSold = salesRows.reduce((sum, row) => sum + row.cost, 0);
+  const soldUnits = salesRows.reduce((sum, row) => sum + row.units, 0);
+  const valuedSoldUnits = salesRows.reduce((sum, row) => sum + row.valuedUnits, 0);
   const sumEntry = (rows: typeof periodEntries, type: typeof investmentEntries.$inferSelect['type']) =>
     rows.filter((row) => row.type === type).reduce((sum, row) => sum + row.amount, 0);
   const netPurchases = sumEntry(periodEntries, 'purchase');
@@ -167,7 +229,7 @@ export async function buildInvestorDashboard(range: InvestorRange): Promise<Inve
   const availableWorkingCapital = investorSettings.initialCapital
     + allEntry('capital_injection')
     + allEntry('adjustment')
-    + Number(allTimeSalesRows[0]?.total ?? 0)
+    + allTimeSalesRows.reduce((sum, row) => sum + row.sales, 0)
     - allEntry('capital_withdrawal')
     - allEntry('purchase')
     - allEntry('expense')
@@ -183,8 +245,11 @@ export async function buildInvestorDashboard(range: InvestorRange): Promise<Inve
     trendMap.set(key, current);
     return current;
   };
-  for (const sale of salesRows) ensureTrend(sale.createdAt).sales += sale.total;
-  for (const item of costTrendRows) ensureTrend(item.createdAt).cost += item.costPrice * item.qty;
+  for (const sale of salesRows) {
+    const bucket = ensureTrend(sale.createdAt);
+    bucket.sales += sale.sales;
+    bucket.cost += sale.cost;
+  }
   for (const entry of periodEntries) {
     const bucket = ensureTrend(entry.transactionDate);
     if (entry.type === 'purchase') bucket.purchases += entry.amount;

@@ -36,9 +36,14 @@ function toAdminOrderDTO(
   instruction?: typeof orderPaymentInstructions.$inferSelect | null,
 ): OrderDTO {
   const dto = toOrderDTO(row, items, instruction);
-  dto.items = dto.items.map((item, index) => ({ ...item, costPrice: items[index]?.costPrice ?? 0 }));
+  dto.items = dto.items.map((item, index) => ({
+    ...item,
+    costPrice: items[index]?.costPrice ?? 0,
+    investorFinanced: items[index]?.investorFinanced ?? false,
+  }));
   dto.investment = calculateOrderInvestment({
     total: row.total,
+    subtotal: row.subtotal,
     paymentStatus: row.paymentStatus,
     status: row.status,
     items,
@@ -118,6 +123,7 @@ const routes: FastifyPluginAsync = async (app) => {
         color: products.color,
         price: products.price,
         costPrice: products.costPrice,
+        investorFinanced: products.investorFinanced,
         kermanStock: products.kermanStock,
         tehranStock: products.tehranStock,
         stock: products.stock,
@@ -464,6 +470,7 @@ const routes: FastifyPluginAsync = async (app) => {
       const line = (byOrder.get(r.id) ?? []).map((i) => `${i.title} (${i.color ?? '-'}) ×${i.qty}`).join(' | ');
       const investment = calculateOrderInvestment({
         total: r.total,
+        subtotal: r.subtotal,
         paymentStatus: r.paymentStatus,
         status: r.status,
         items: byOrder.get(r.id) ?? [],

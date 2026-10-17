@@ -81,6 +81,7 @@ export const productWriteSchema = z.object({
   sellType: z.string().trim().max(200).optional().nullable(),
   seller: z.string().trim().max(200).optional().nullable(),
   promotion: sheetBool.default(false),
+  investorFinanced: sheetBool.default(false),
   status: z.enum(['active', 'inactive']).default('active'),
   subTitle: z.string().trim().max(400).optional().nullable(),
   description: z.string().optional().nullable(),

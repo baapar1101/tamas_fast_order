@@ -272,6 +272,8 @@ export const products = pgTable(
     sellType: varchar('sell_type', { length: 200 }),
     seller: varchar('seller', { length: 200 }),
     promotion: boolean('promotion').notNull().default(false),
+    /** Whether this product's inventory and sales belong to the investor-financed scope. */
+    investorFinanced: boolean('investor_financed').notNull().default(false),
     status: productStatusEnum('status').notNull().default('active'),
     subTitle: varchar('sub_title', { length: 400 }),
     description: text('description'),
@@ -305,6 +307,7 @@ export const products = pgTable(
     index('products_title_idx').on(t.title),
     index('products_status_idx').on(t.status),
     index('products_promotion_idx').on(t.promotion),
+    index('products_investor_financed_idx').on(t.investorFinanced),
     index('products_updated_idx').on(t.updatedAt),
     index('products_search_idx').using('gin', sql`${t.searchText} gin_trgm_ops`),
   ],
@@ -645,6 +648,8 @@ export const orderItems = pgTable(
     price: bigint('price', { mode: 'number' }).notNull().default(0),
     /** Acquisition cost frozen at checkout for auditable historical profit. */
     costPrice: bigint('cost_price', { mode: 'number' }).notNull().default(0),
+    /** Financing scope frozen at checkout so later product edits cannot rewrite history. */
+    investorFinanced: boolean('investor_financed').notNull().default(false),
     qty: integer('qty').notNull().default(1),
     warehouse: warehouseEnum('warehouse').notNull().default('kerman'),
   },

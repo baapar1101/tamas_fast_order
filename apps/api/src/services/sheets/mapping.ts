@@ -748,6 +748,7 @@ export const orderMapping: EntityMapping = {
             color: i.color ? String(i.color) : null,
             price: Number(i.price) || 0,
             costPrice: Number(i.cost_price) || 0,
+            investorFinanced: Boolean(i.investor_financed),
             qty: Number(i.qty) || 1,
             warehouse: i.warehouse || 'kerman',
           }))

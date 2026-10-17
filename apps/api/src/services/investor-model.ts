@@ -38,29 +38,40 @@ export function normalizeInvestorSettings(value: unknown): InvestorSettingsDTO {
 export function calculateOrderInvestment(
   order: {
     total: number;
+    subtotal: number;
     paymentStatus: 'paid' | 'unpaid' | 'pending';
     status: string;
-    items: Array<{ qty: number; costPrice: number }>;
+    items: Array<{ qty: number; price: number; costPrice: number; investorFinanced: boolean }>;
   },
   settings: InvestorSettingsDTO,
 ): AdminOrderInvestmentDTO {
   let costOfGoodsSold = 0;
   let totalUnits = 0;
   let valuedUnits = 0;
+  let financedSubtotal = 0;
   for (const item of order.items) {
+    if (!item.investorFinanced) continue;
     const qty = Math.max(0, Number(item.qty) || 0);
+    const price = Math.max(0, Number(item.price) || 0);
     const costPrice = Math.max(0, Number(item.costPrice) || 0);
     totalUnits += qty;
+    financedSubtotal += qty * price;
     costOfGoodsSold += qty * costPrice;
     if (costPrice > 0) valuedUnits += qty;
   }
-  const grossProfit = order.total - costOfGoodsSold;
+  const subtotal = Math.max(0, Number(order.subtotal) || 0);
+  const financedSales = subtotal > 0
+    ? Math.round(Math.max(0, Number(order.total) || 0) * financedSubtotal / subtotal)
+    : 0;
+  const grossProfit = financedSales - costOfGoodsSold;
   const distributableProfit = Math.max(0, grossProfit);
   const investorShare = Math.round(distributableProfit * settings.investorSharePercent / 100);
   return {
+    financedSales,
+    financedUnits: totalUnits,
     costOfGoodsSold,
     grossProfit,
-    grossMarginPercent: order.total ? Number(((grossProfit / order.total) * 100).toFixed(1)) : 0,
+    grossMarginPercent: financedSales ? Number(((grossProfit / financedSales) * 100).toFixed(1)) : 0,
     distributableProfit,
     investorShare,
     executorShare: distributableProfit - investorShare,
