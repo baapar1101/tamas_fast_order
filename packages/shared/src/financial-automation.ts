@@ -58,9 +58,11 @@ export const DEFAULT_PAYMENT_ROUTING_CONFIG: PaymentRoutingConfig = {
   version: 1,
   enabled: true,
   thresholdAmount: 50_000_000,
-  pendingMessage: 'مبلغ این فاکتور اعتباری بیش از ۵۰ میلیون تومان است. اطلاعات پرداخت به‌زودی از طریق پیامک، تلگرام یا بله برای شما ارسال خواهد شد.',
+  pendingMessage: 'مبلغ این سفارش بیش از ۵۰ میلیون تومان است. اطلاعات پرداخت به‌زودی از طریق پیامک، تلگرام یا بله برای شما ارسال خواهد شد.',
   accounts: [],
 };
+
+const LEGACY_CREDIT_PENDING_MESSAGE = 'مبلغ این فاکتور اعتباری بیش از ۵۰ میلیون تومان است. اطلاعات پرداخت به‌زودی از طریق پیامک، تلگرام یا بله برای شما ارسال خواهد شد.';
 
 function parseObject<T>(raw: string | T | null | undefined): Partial<T> {
   try {
@@ -103,12 +105,15 @@ export function parseCustomerDiscountConfig(raw: string | CustomerDiscountConfig
 
 export function parsePaymentRoutingConfig(raw: string | PaymentRoutingConfig | null | undefined): PaymentRoutingConfig {
   const value = parseObject<PaymentRoutingConfig>(raw);
+  const savedPendingMessage = String(value.pendingMessage ?? DEFAULT_PAYMENT_ROUTING_CONFIG.pendingMessage).trim();
   return {
     ...DEFAULT_PAYMENT_ROUTING_CONFIG,
     ...value,
     version: 1,
     thresholdAmount: amount(value.thresholdAmount, DEFAULT_PAYMENT_ROUTING_CONFIG.thresholdAmount),
-    pendingMessage: String(value.pendingMessage ?? DEFAULT_PAYMENT_ROUTING_CONFIG.pendingMessage).trim() || DEFAULT_PAYMENT_ROUTING_CONFIG.pendingMessage,
+    pendingMessage: !savedPendingMessage || savedPendingMessage === LEGACY_CREDIT_PENDING_MESSAGE
+      ? DEFAULT_PAYMENT_ROUTING_CONFIG.pendingMessage
+      : savedPendingMessage,
     accounts: Array.isArray(value.accounts) ? value.accounts.slice(0, 50).map((account, index) => ({
       id: String(account.id || `account-${index + 1}`).slice(0, 80),
       label: String(account.label || account.bankName || `حساب ${index + 1}`).slice(0, 160),
@@ -130,8 +135,22 @@ export function calculateDiscountAmount(kind: DiscountKind, value: number, subto
   return Math.max(0, Math.min(subtotal, maxDiscountAmount == null ? raw : Math.min(raw, maxDiscountAmount)));
 }
 
-export function isHighValueCreditPayment(finalAmount: number, kind: string | null | undefined, config: PaymentRoutingConfig): boolean {
-  return config.enabled && finalAmount > config.thresholdAmount && (kind === 'cheque' || kind === 'daily');
+export function requiresManualPaymentInstructions(finalAmount: number, config: PaymentRoutingConfig): boolean {
+  return config.enabled && finalAmount > config.thresholdAmount;
+}
+
+/** @deprecated Use requiresManualPaymentInstructions; routing now applies to every non-wallet payment method. */
+export function isHighValueCreditPayment(finalAmount: number, _kind: string | null | undefined, config: PaymentRoutingConfig): boolean {
+  return requiresManualPaymentInstructions(finalAmount, config);
+}
+
+export function selectPaymentAccount(orderId: number, finalAmount: number, config: PaymentRoutingConfig): PaymentAccountConfig | null {
+  if (!requiresManualPaymentInstructions(finalAmount, config)) return null;
+  const eligible = config.accounts.filter((account) => account.enabled
+    && finalAmount >= account.minAmount
+    && (account.maxAmount == null || finalAmount <= account.maxAmount));
+  if (eligible.length === 0) return null;
+  return eligible[Math.abs(orderId) % eligible.length] ?? null;
 }
 
 export function formatPaymentAccount(account: PaymentAccountConfig): string {

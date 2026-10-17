@@ -7,6 +7,7 @@ import {
   nextThursdayDueDate,
   paymentAudienceForCategory,
   repricePaymentPlan,
+  requiresManualPaymentInstructions,
   tehranWeekWindow,
 } from '@tamas/shared';
 import { db } from '../db/client.js';
@@ -20,7 +21,7 @@ import { getSetting } from './settings.js';
 import { allocateInventory, type InventoryQuantities } from './inventory-policy.js';
 import { getPaymentTermsConfig, quotePaymentTerms, selectPaymentPlan } from './payment-terms.js';
 import { validateCustomerDiscount } from './discounts.js';
-import { formatPaymentAccount, getPaymentRoutingConfig, securePaymentPlan, selectPaymentAccount } from './payment-routing.js';
+import { getPaymentRoutingConfig, securePaymentPlan } from './payment-routing.js';
 
 type OrderRow = typeof orders.$inferSelect;
 type OrderItemRow = typeof orderItems.$inferSelect;
@@ -294,7 +295,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
         }),
       };
     }
-    if (!paymentPlan && paymentRouting.enabled && total > paymentRouting.thresholdAmount && /credit|check|cheque|اعتبار|چک/i.test(input.paymentMethod ?? '')) {
+    if (!paymentPlan && !walletPayment && requiresManualPaymentInstructions(total, paymentRouting)) {
       paymentInstructionsPending = true;
     }
 
@@ -349,16 +350,6 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
         instructions: paymentRouting.pendingMessage,
       }).returning();
       instructionDto = instruction ? { status: 'pending', instructions: instruction.instructions, sentAt: null, channels: [] } : null;
-    } else {
-      const account = selectPaymentAccount(order.id, total, paymentRouting);
-      if (account) {
-        const instructions = formatPaymentAccount(account);
-        const now = new Date();
-        await tx.insert(orderPaymentInstructions).values({
-          orderId: order.id, status: 'sent', accountId: account.id, instructions, sentAt: now, channels: ['site'],
-        });
-        instructionDto = { status: 'sent', instructions, sentAt: now.toISOString(), channels: ['site'] };
-      }
     }
 
     const items = await tx

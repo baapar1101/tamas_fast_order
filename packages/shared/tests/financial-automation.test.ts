@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   calculateDiscountAmount,
-  isHighValueCreditPayment,
   parseCustomerDiscountConfig,
   parsePaymentRoutingConfig,
+  requiresManualPaymentInstructions,
+  selectPaymentAccount,
 } from '../src/financial-automation.js';
 
 test('percentage and fixed discounts never exceed subtotal or configured cap', () => {
@@ -20,10 +21,34 @@ test('discount config is parsed defensively', () => {
   assert.equal(config.prefix, 'TAMAS');
 });
 
-test('only high-value credit plans are held for operator instructions', () => {
+test('every payment above the routing threshold is held for operator instructions', () => {
   const config = parsePaymentRoutingConfig(null);
-  assert.equal(isHighValueCreditPayment(50_000_001, 'cheque', config), true);
-  assert.equal(isHighValueCreditPayment(50_000_001, 'daily', config), true);
-  assert.equal(isHighValueCreditPayment(50_000_000, 'cash', config), false);
-  assert.equal(isHighValueCreditPayment(50_000_000, 'cheque', config), false);
+  assert.equal(requiresManualPaymentInstructions(50_000_001, config), true);
+  assert.equal(requiresManualPaymentInstructions(50_000_000, config), false);
+  assert.equal(requiresManualPaymentInstructions(49_999_999, config), false);
+  assert.equal(requiresManualPaymentInstructions(100_000_000, { ...config, enabled: false }), false);
+});
+
+test('legacy credit-only pending message is upgraded to the general high-value message', () => {
+  const config = parsePaymentRoutingConfig(JSON.stringify({
+    pendingMessage: 'مبلغ این فاکتور اعتباری بیش از ۵۰ میلیون تومان است. اطلاعات پرداخت به‌زودی از طریق پیامک، تلگرام یا بله برای شما ارسال خواهد شد.',
+  }));
+  assert.match(config.pendingMessage, /مبلغ این سفارش/);
+});
+
+test('smart account routing uses only enabled accounts within the configured amount range', () => {
+  const config = parsePaymentRoutingConfig({
+    version: 1,
+    enabled: true,
+    thresholdAmount: 50_000_000,
+    pendingMessage: 'منتظر بمانید',
+    accounts: [
+      { id: 'small', label: 'کوچک', bankName: '', holder: '', cardNumber: '1', iban: '', accountNumber: '', enabled: true, minAmount: 0, maxAmount: 60_000_000 },
+      { id: 'large', label: 'بزرگ', bankName: '', holder: '', cardNumber: '2', iban: '', accountNumber: '', enabled: true, minAmount: 60_000_001, maxAmount: null },
+      { id: 'disabled', label: 'غیرفعال', bankName: '', holder: '', cardNumber: '3', iban: '', accountNumber: '', enabled: false, minAmount: 0, maxAmount: null },
+    ],
+  });
+  assert.equal(selectPaymentAccount(7, 55_000_000, config)?.id, 'small');
+  assert.equal(selectPaymentAccount(7, 80_000_000, config)?.id, 'large');
+  assert.equal(selectPaymentAccount(7, 50_000_000, config), null);
 });

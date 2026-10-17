@@ -136,6 +136,17 @@ export function OrdersPage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const autoSendPaymentInstructions = useMutation({
+    mutationFn: (id: number) => api.post<{ paymentInstructions: OrderDTO['paymentInstructions']; message: string }>(`/admin/orders/${id}/payment-instructions/auto`, {}),
+    onSuccess: (res) => {
+      toast.ok(res.message);
+      setPaymentInstructions(res.paymentInstructions?.instructions ?? '');
+      setDetail((current) => current ? { ...current, paymentInstructions: res.paymentInstructions } : current);
+      refresh();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   const bulkStatus = useMutation({
     mutationFn: (body: { ids: number[]; status: OrderStatus }) => api.post<{ changed: number }>('/admin/orders/bulk-status', body),
     onSuccess: (res) => {
@@ -448,7 +459,7 @@ export function OrdersPage() {
                             setDetail(o);
                             setDetailTab('info');
                             setNote(o.note ?? '');
-                            setPaymentInstructions(o.paymentInstructions?.instructions ?? '');
+                            setPaymentInstructions(o.paymentInstructions?.status === 'sent' ? o.paymentInstructions.instructions ?? '' : '');
                             setEditingItems(false);
                             setItemDrafts(o.items.map((item) => ({ ...item })));
                             setProductSearch('');
@@ -611,7 +622,7 @@ export function OrdersPage() {
                 </div>
               )}
 
-              {(detail.paymentInstructions || (detail.paymentPlan && detail.total >= 50_000_000)) && (
+              {(detail.paymentInstructions || detail.total > 50_000_000) && (
                 <div className="a-card">
                   <div className="a-card-head">
                     <div>
@@ -624,8 +635,11 @@ export function OrdersPage() {
                   </div>
                   <textarea className="a-textarea" rows={5} value={paymentInstructions} onChange={(event) => setPaymentInstructions(event.target.value)} placeholder={'بانک و نام صاحب حساب\nشماره کارت\nشماره شبا یا حساب'} />
                   <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <button type="button" className="a-btn a-btn--primary" disabled={sendPaymentInstructions.isPending || paymentInstructions.trim().length < 10} onClick={() => sendPaymentInstructions.mutate({ id: detail.id, instructions: paymentInstructions.trim() })}>
+                    <button type="button" className="a-btn a-btn--primary" disabled={sendPaymentInstructions.isPending || autoSendPaymentInstructions.isPending || paymentInstructions.trim().length < 10} onClick={() => sendPaymentInstructions.mutate({ id: detail.id, instructions: paymentInstructions.trim() })}>
                       {sendPaymentInstructions.isPending ? 'در حال ارسال…' : 'ثبت و ارسال به مشتری'}
+                    </button>
+                    <button type="button" className="a-btn a-btn--secondary" disabled={sendPaymentInstructions.isPending || autoSendPaymentInstructions.isPending} onClick={() => autoSendPaymentInstructions.mutate(detail.id)}>
+                      {autoSendPaymentInstructions.isPending ? 'در حال انتخاب حساب…' : 'انتخاب هوشمند حساب و ارسال'}
                     </button>
                     {detail.paymentInstructions?.channels?.length ? <span className="a-note">مسیرهای ارسال: {detail.paymentInstructions.channels.join('، ')}</span> : null}
                   </div>

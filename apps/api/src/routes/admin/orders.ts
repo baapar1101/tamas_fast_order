@@ -14,6 +14,7 @@ import { upsertOrderPayment } from '../../services/payments.js';
 import { logAction } from '../../services/audit.js';
 import { getInvestorSettings } from '../../services/investor-finance.js';
 import { calculateOrderInvestment } from '../../services/investor-model.js';
+import { formatPaymentAccount, getPaymentRoutingConfig, selectPaymentAccount } from '../../services/payment-routing.js';
 
 const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
@@ -49,6 +50,58 @@ function toAdminOrderDTO(
     items,
   }, settings);
   return dto;
+}
+
+async function deliverPaymentInstructions(
+  order: typeof orders.$inferSelect,
+  instructions: string,
+  sentBy: number,
+  options: { sendSms: boolean; sendTelegram: boolean; sendBale: boolean; accountId?: string | null },
+) {
+  const channels: string[] = ['site'];
+  const message = `اطلاعات پرداخت سفارش ${order.orderCode}:\n${instructions}`;
+  if (options.sendSms && order.phone) {
+    const { sendSms } = await import('../../services/sms.js');
+    const result = await sendSms(order.phone, message);
+    if (result.ok) channels.push('sms');
+  }
+  const { sendCustomerNotification } = await import('../../services/customer-messaging.js');
+  const delivery = await sendCustomerNotification(order.userId, 'payment.instructions_ready', '💳 اطلاعات پرداخت سفارش', message, {
+    telegram: options.sendTelegram,
+    bale: options.sendBale,
+  });
+  if (delivery.telegram) channels.push('telegram');
+  if (delivery.bale) channels.push('bale');
+  const now = new Date();
+  const [saved] = await db.insert(orderPaymentInstructions).values({
+    orderId: order.id,
+    status: 'sent',
+    accountId: options.accountId ?? null,
+    instructions,
+    channels,
+    sentBy,
+    sentAt: now,
+  }).onConflictDoUpdate({
+    target: orderPaymentInstructions.orderId,
+    set: {
+      status: 'sent',
+      accountId: options.accountId ?? null,
+      instructions,
+      channels,
+      sentBy,
+      sentAt: now,
+      updatedAt: now,
+    },
+  }).returning();
+  return {
+    paymentInstructions: saved ? {
+      status: saved.status,
+      instructions: saved.instructions,
+      sentAt: saved.sentAt?.toISOString() ?? null,
+      channels: saved.channels,
+    } : null,
+    channels,
+  };
 }
 
 const routes: FastifyPluginAsync = async (app) => {
@@ -167,32 +220,45 @@ const routes: FastifyPluginAsync = async (app) => {
     }).parse(req.body);
     const [order] = await db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1);
     if (!order) throw notFound('سفارش پیدا نشد.');
-    const channels: string[] = ['site'];
-    const message = `اطلاعات پرداخت سفارش ${order.orderCode}:\n${body.instructions}`;
-    if (body.sendSms && order.phone) {
-      const { sendSms } = await import('../../services/sms.js');
-      const result = await sendSms(order.phone, message);
-      if (result.ok) channels.push('sms');
-    }
-    const { sendCustomerNotification } = await import('../../services/customer-messaging.js');
-    const delivery = await sendCustomerNotification(order.userId, 'payment.instructions_ready', '💳 اطلاعات پرداخت سفارش', message, {
-      telegram: body.sendTelegram,
-      bale: body.sendBale,
-    });
-    if (delivery.telegram) channels.push('telegram');
-    if (delivery.bale) channels.push('bale');
-    const now = new Date();
-    const [saved] = await db.insert(orderPaymentInstructions).values({
-      orderId: id, status: 'sent', instructions: body.instructions, channels, sentBy: req.currentUser!.id, sentAt: now,
-    }).onConflictDoUpdate({
-      target: orderPaymentInstructions.orderId,
-      set: { status: 'sent', instructions: body.instructions, channels, sentBy: req.currentUser!.id, sentAt: now, updatedAt: now },
-    }).returning();
-    await logAction(req.currentUser!.id, 'send-payment-instructions', 'order', order.orderCode, { channels });
+    const result = await deliverPaymentInstructions(order, body.instructions, req.currentUser!.id, body);
+    await logAction(req.currentUser!.id, 'send-payment-instructions', 'order', order.orderCode, { channels: result.channels });
     return {
       ok: true,
-      paymentInstructions: saved ? { status: saved.status, instructions: saved.instructions, sentAt: saved.sentAt?.toISOString() ?? null, channels: saved.channels } : null,
-      message: `اطلاعات پرداخت ثبت شد و از مسیرهای ${channels.join('، ')} ارسال شد.`,
+      paymentInstructions: result.paymentInstructions,
+      message: `اطلاعات پرداخت ثبت شد و از مسیرهای ${result.channels.join('، ')} ارسال شد.`,
+    };
+  });
+
+  app.post('/admin/orders/:id/payment-instructions/auto', async (req) => {
+    const id = z.coerce.number().int().positive().parse((req.params as { id: string }).id);
+    const [order] = await db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1);
+    if (!order) throw notFound('سفارش پیدا نشد.');
+
+    const config = await getPaymentRoutingConfig();
+    if (!config.enabled || order.total <= config.thresholdAmount) {
+      throw badRequest('این سفارش مشمول مسیریابی مبالغ بالا نیست.');
+    }
+    const account = selectPaymentAccount(order.id, order.total, config);
+    if (!account) {
+      throw badRequest('حساب فعال متناسب با مبلغ سفارش پیدا نشد؛ ابتدا در تنظیمات مالی یک حساب و بازه مبلغ معتبر تعریف کنید.');
+    }
+
+    const instructions = formatPaymentAccount(account);
+    if (instructions.length < 10) throw badRequest('اطلاعات حساب انتخاب‌شده کامل نیست.');
+    const result = await deliverPaymentInstructions(order, instructions, req.currentUser!.id, {
+      sendSms: true,
+      sendTelegram: true,
+      sendBale: true,
+      accountId: account.id,
+    });
+    await logAction(req.currentUser!.id, 'auto-send-payment-instructions', 'order', order.orderCode, {
+      accountId: account.id,
+      channels: result.channels,
+    });
+    return {
+      ok: true,
+      paymentInstructions: result.paymentInstructions,
+      message: `حساب «${account.label}» انتخاب و اطلاعات پرداخت برای مشتری ارسال شد.`,
     };
   });
 
