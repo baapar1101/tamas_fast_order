@@ -199,28 +199,49 @@ await writeFile(backupPath, JSON.stringify({
 
 // Preserve every other cell in the row (especially price and warehouse stock)
 // and fix only the product identifier cell.
-await api.spreadsheets.batchUpdate({
-  spreadsheetId: env.SHEETS_SPREADSHEET_ID,
-  requestBody: {
-    requests: [productIdColumn, skuColumn].map((columnIndex) => ({
-      repeatCell: {
-        range: { sheetId, startColumnIndex: columnIndex, endColumnIndex: columnIndex + 1 },
-        cell: { userEnteredFormat: { numberFormat: { type: 'TEXT' } } },
-        fields: 'userEnteredFormat.numberFormat',
+const updateRequests = sheetIdUpdates.flatMap(({ source, nextProductId, nextSku }) => [
+  {
+    updateCells: {
+      range: {
+        sheetId,
+        startRowIndex: source.rowNumber - 1,
+        endRowIndex: source.rowNumber,
+        startColumnIndex: productIdColumn,
+        endColumnIndex: productIdColumn + 1,
       },
-    })),
-  },
-});
-for (let offset = 0; offset < sheetIdUpdates.length; offset += 200) {
-  await api.spreadsheets.values.batchUpdate({
-    spreadsheetId: env.SHEETS_SPREADSHEET_ID,
-    requestBody: {
-      valueInputOption: 'RAW',
-      data: sheetIdUpdates.slice(offset, offset + 200).flatMap(({ source, nextProductId, nextSku }) => [
-        { range: `Products!${columnLetter(productIdColumn)}${source.rowNumber}`, values: [[nextProductId]] },
-        { range: `Products!${columnLetter(skuColumn)}${source.rowNumber}`, values: [[nextSku]] },
-      ]),
+      rows: [{
+        values: [{
+          userEnteredValue: { stringValue: nextProductId },
+          userEnteredFormat: { numberFormat: { type: 'TEXT' } },
+        }],
+      }],
+      fields: 'userEnteredValue,userEnteredFormat.numberFormat',
     },
+  },
+  {
+    updateCells: {
+      range: {
+        sheetId,
+        startRowIndex: source.rowNumber - 1,
+        endRowIndex: source.rowNumber,
+        startColumnIndex: skuColumn,
+        endColumnIndex: skuColumn + 1,
+      },
+      rows: [{
+        values: [{
+          userEnteredValue: { stringValue: nextSku },
+          userEnteredFormat: { numberFormat: { type: 'TEXT' } },
+        }],
+      }],
+      fields: 'userEnteredValue,userEnteredFormat.numberFormat',
+    },
+  },
+]);
+
+for (let offset = 0; offset < updateRequests.length; offset += 200) {
+  await api.spreadsheets.batchUpdate({
+    spreadsheetId: env.SHEETS_SPREADSHEET_ID,
+    requestBody: { requests: updateRequests.slice(offset, offset + 200) },
   });
 }
 
