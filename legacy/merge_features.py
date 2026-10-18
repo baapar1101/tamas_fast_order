@@ -266,7 +266,7 @@ function addToCart(p, warehouse = 'kerman') {
   const stocks = getWarehouseStocks(p);
   const maxStock = stocks[warehouse] || stocks.total || 1;
   const cartKey = (p.product_id || p.sku || p.title) + '_' + warehouse;
-  const existing = cart.find(i => i.cart_key === cartKey || i.product_id === p.product_id);
+  const existing = cart.find(i => i.cart_key === cartKey || (i.product_id === p.product_id && (i.warehouse || 'kerman') === warehouse));
 
   if (existing) {
     if (existing.qty >= maxStock) {
