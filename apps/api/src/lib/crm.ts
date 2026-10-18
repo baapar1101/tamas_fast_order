@@ -469,6 +469,36 @@ function _normalizeEvent(payload: unknown, defaultBusinessId: string | number): 
 }
 
 /** Process an inbound CRM webhook and return a summary. */
+
+function _handlePersonCreated(details: Record<string, unknown>, data: unknown): void {
+  const person = (data as Record<string, unknown>) ?? {};
+  details.personId = person.id;
+  details.matched = 'stored_in_site_pending';
+}
+
+function _handleOrderCreated(details: Record<string, unknown>, data: unknown): void {
+  const order = (data as Record<string, unknown>) ?? {};
+  details.orderCode = order.order_code ?? order.orderCode;
+  details.remoteOrderId = order.id;
+}
+
+function _handleProductUpdated(details: Record<string, unknown>, data: unknown): void {
+  const product = (data as Record<string, unknown>) ?? {};
+  details.productId = product.product_id ?? product.id;
+}
+
+function _handleChatMessageCreated(details: Record<string, unknown>, data: unknown): void {
+  const msg = (data as Record<string, unknown>) ?? {};
+  details.messageId = msg.id;
+  details.conversationId = msg.conversation_id ?? msg.conversationId;
+}
+
+function _handlePaymentReceived(details: Record<string, unknown>, data: unknown): void {
+  const pay = (data as Record<string, unknown>) ?? {};
+  details.paymentId = pay.id;
+  details.amount = pay.amount;
+}
+
 export async function processCrmWebhook(
   rawBody: string,
   signature: string | undefined,
@@ -488,39 +518,25 @@ export async function processCrmWebhook(
   try {
     switch (eventType) {
       case 'crm.lead.created':
-      case 'person.created': {
-        const person = (data as Record<string, unknown>) ?? {};
-        details.personId = person.id;
-        details.matched = 'stored_in_site_pending';
+      case 'person.created':
+        _handlePersonCreated(details, data);
         break;
-      }
       case 'crm.order.created':
-      case 'order.created': {
-        const order = (data as Record<string, unknown>) ?? {};
-        details.orderCode = order.order_code ?? order.orderCode;
-        details.remoteOrderId = order.id;
+      case 'order.created':
+        _handleOrderCreated(details, data);
         break;
-      }
       case 'crm.product.updated':
-      case 'product.updated': {
-        const product = (data as Record<string, unknown>) ?? {};
-        details.productId = product.product_id ?? product.id;
+      case 'product.updated':
+        _handleProductUpdated(details, data);
         break;
-      }
       case 'crm.chat.message.created':
-      case 'chat.message': {
-        const msg = (data as Record<string, unknown>) ?? {};
-        details.messageId = msg.id;
-        details.conversationId = msg.conversation_id ?? msg.conversationId;
+      case 'chat.message':
+        _handleChatMessageCreated(details, data);
         break;
-      }
       case 'crm.payment.received':
-      case 'payment.received': {
-        const pay = (data as Record<string, unknown>) ?? {};
-        details.paymentId = pay.id;
-        details.amount = pay.amount;
+      case 'payment.received':
+        _handlePaymentReceived(details, data);
         break;
-      }
       default:
         details.warning = 'unhandled_event_type';
         break;
