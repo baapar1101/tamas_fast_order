@@ -185,22 +185,37 @@ function L(): Lookups {
 }
 
 /** Creates the taxonomy row on demand so a brand typed into the sheet just works. */
-async function ensureBrand(name: string): Promise<number | null> {
-  const clean = str(name);
-  if (!clean) return null;
-  const hit = L().brandByName.get(clean.toLowerCase());
-  if (hit) return hit;
-  const [created] = await db
-    .insert(brands)
-    .values({ name: clean, faName: clean })
-    .onConflictDoUpdate({ target: brands.name, set: { updatedAt: new Date() } })
-    .returning({ id: brands.id });
-  if (created) {
-    L().brandByName.set(clean.toLowerCase(), created.id);
-    L().brandNameById.set(created.id, clean);
-    return created.id;
+async function ensureBrands(names: string[]): Promise<number[]> {
+  const cleanNames = names.map(n => str(n)).filter(Boolean);
+  if (cleanNames.length === 0) return [];
+
+  const needed = new Map<string, string>(); // lower -> original
+  for (const name of cleanNames) {
+    const lower = name.toLowerCase();
+    if (!L().brandByName.has(lower)) {
+      needed.set(lower, name);
+    }
   }
-  return null;
+
+  if (needed.size > 0) {
+    const insertValues = Array.from(needed.values()).map(name => ({ name, faName: name }));
+    const created = await db
+      .insert(brands)
+      .values(insertValues)
+      .onConflictDoUpdate({ target: brands.name, set: { updatedAt: new Date() } })
+      .returning({ id: brands.id, name: brands.name });
+    for (const row of created) {
+      L().brandByName.set(row.name.toLowerCase(), row.id);
+      L().brandNameById.set(row.id, row.name);
+    }
+  }
+
+  const results: number[] = [];
+  for (const name of cleanNames) {
+    const hit = L().brandByName.get(name.toLowerCase());
+    if (hit) results.push(hit);
+  }
+  return results;
 }
 
 async function ensureCategory(name: string): Promise<number | null> {
@@ -306,7 +321,8 @@ export const productMapping: EntityMapping = {
       .limit(1);
     const title = str(cells.title) || str(cells.model) || key;
     const categoryId = await ensureCategory(str(cells.Category));
-    const brandId = await ensureBrand(str(cells.Brand));
+    const brandIdsResult = await ensureBrands([str(cells.Brand)]);
+    const brandId = brandIdsResult.length > 0 ? brandIdsResult[0] : null;
     const brandLabel = brandId ? (L().brandNameById.get(brandId) ?? '') : '';
 
     const kermanStock = num(cells.kerman_stock);
@@ -420,11 +436,7 @@ export const categoryMapping: EntityMapping = {
 
     // Rebuild the category↔brand links from the comma list in the sheet.
     const wanted = splitList(cells.Brand ?? '');
-    const brandIds: number[] = [];
-    for (const name of wanted) {
-      const bid = await ensureBrand(name);
-      if (bid) brandIds.push(bid);
-    }
+    const brandIds = await ensureBrands(wanted);
     await db.delete(categoryBrands).where(eq(categoryBrands.categoryId, id));
     if (brandIds.length > 0) {
       await db
