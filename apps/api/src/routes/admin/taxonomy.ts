@@ -1,4 +1,4 @@
-import { asc, eq, isNull } from 'drizzle-orm';
+import { asc, eq, isNull, sql } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import { brandWriteSchema, categoryWriteSchema, colorWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
@@ -98,15 +98,23 @@ const routes: FastifyPluginAsync = async (app) => {
     const { ids } = req.body as { ids: number[] };
     if (!Array.isArray(ids) || ids.length === 0) return { ok: true };
 
-    for (let i = 0; i < ids.length; i++) {
-      const id = ids[i];
-      if (id !== undefined) {
-        await db
-          .update(categories)
-          .set({ sortOrder: i + 1, updatedAt: new Date() })
-          .where(eq(categories.id, id));
-      }
+    const uniqueIds = Array.from(new Set(ids.filter((id) => id !== undefined)));
+    if (uniqueIds.length > 0) {
+      const values = uniqueIds.map((id) => {
+        const sortOrder = ids.lastIndexOf(id) + 1;
+        return sql`(${id}::int, ${sortOrder}::int)`;
+      });
+
+      const query = sql`
+        UPDATE ${categories}
+        SET sort_order = v.sort_order, updated_at = NOW()
+        FROM (VALUES ${sql.join(values, sql`, `)}) AS v(id, sort_order)
+        WHERE ${categories.id} = v.id
+      `;
+
+      await db.execute(query);
     }
+
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'update', 'category', 'reorder');
     return { ok: true };
@@ -167,15 +175,23 @@ const routes: FastifyPluginAsync = async (app) => {
     const { ids } = req.body as { ids: number[] };
     if (!Array.isArray(ids) || ids.length === 0) return { ok: true };
 
-    for (let i = 0; i < ids.length; i++) {
-      const id = ids[i];
-      if (id !== undefined) {
-        await db
-          .update(brands)
-          .set({ sortOrder: i + 1, updatedAt: new Date() })
-          .where(eq(brands.id, id));
-      }
+    const uniqueIds = Array.from(new Set(ids.filter((id) => id !== undefined)));
+    if (uniqueIds.length > 0) {
+      const values = uniqueIds.map((id) => {
+        const sortOrder = ids.lastIndexOf(id) + 1;
+        return sql`(${id}::int, ${sortOrder}::int)`;
+      });
+
+      const query = sql`
+        UPDATE ${brands}
+        SET sort_order = v.sort_order, updated_at = NOW()
+        FROM (VALUES ${sql.join(values, sql`, `)}) AS v(id, sort_order)
+        WHERE ${brands.id} = v.id
+      `;
+
+      await db.execute(query);
     }
+
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'update', 'brand', 'reorder');
     return { ok: true };
