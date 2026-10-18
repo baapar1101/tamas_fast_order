@@ -193,10 +193,9 @@ async function downloadImage(urlString: string, externalId: string, index: numbe
 async function prepareContent(link: string, uploadedBy: number): Promise<ImportedProductContent> {
   const externalId = extractExternalProductId(link);
   const parsed = parseProductContentPayload(await fetchProductPayload(externalId));
-  const localImages: string[] = [];
-  for (let index = 0; index < parsed.imageUrls.length; index += 1) {
-    localImages.push(await downloadImage(parsed.imageUrls[index]!, externalId, index, uploadedBy));
-  }
+  const localImages = await Promise.all(
+    parsed.imageUrls.map((url, index) => downloadImage(url!, externalId, index, uploadedBy))
+  );
   return {
     imageUrl: localImages[0] ?? null,
     gallery: localImages.slice(1),
