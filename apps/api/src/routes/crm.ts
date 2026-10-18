@@ -523,6 +523,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       const userRows = await db.select().from(users).where(eq(users.isActive, true)).orderBy(desc(users.createdAt)).limit(50);
       let synced = 0;
       const errors: string[] = [];
+      const logsToInsert: (typeof crmSyncLogs.$inferInsert)[] = [];
 
       for (const userRow of userRows) {
         const person = {
@@ -537,8 +538,8 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
         if (result.ok) synced++;
         else errors.push(`${userRow.phone}: ${result.error}`);
 
-        // Log the sync attempt
-        await db.insert(crmSyncLogs).values({
+        // Prepare the sync attempt log
+        logsToInsert.push({
           entity: 'person',
           entityKey: userRow.phone,
           action: 'create',
@@ -548,6 +549,10 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
           payload: { userId: userRow.id, phone: userRow.phone },
           response: result as unknown as Record<string, unknown>,
         });
+      }
+
+      if (logsToInsert.length > 0) {
+        await db.insert(crmSyncLogs).values(logsToInsert);
       }
 
       return {
