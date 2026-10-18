@@ -424,9 +424,9 @@ export function CrmChat({ user }: CrmChatProps) {
       const history = await apiGet(`/api/v1/public/crm-chat/conversations/${s.conversationId}/messages?limit=80`, s.visitorToken);
       setMessages(history.length > 0 ? history : [{ id: String(Date.now()), senderRole: 'visitor', body: newAns.msg, createdAt: new Date().toISOString() }]);
       setPhase('chat');
-    } catch (ex: any) {
+    } catch (ex: unknown) {
       setNetAlive(false);
-      setErr(ex?.message ?? 'خطا در اتصال. دوباره تلاش کن.');
+      setErr(ex instanceof Error ? ex.message : 'خطا در اتصال. دوباره تلاش کن.');
     } finally {
       setSending(false);
     }
