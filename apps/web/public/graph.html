@@ -137,7 +137,7 @@ function showInfo(nodeId) {
     <div class="field">Type: ${esc(n._file_type || 'unknown')}</div>
     <div class="field">Community: ${esc(n._community_name)}</div>
     <div class="field">Source: ${esc(n._source_file || '-')}</div>
-    <div class="field">Degree: ${n._degree}</div>
+    <div class="field">Degree: ${esc(n._degree)}</div>
     ${neighborIds.length ? `<div class="field" style="margin-top:8px;color:#aaa;font-size:11px">Neighbors (${neighborIds.length})</div><div id="neighbors-list">${neighborItems}</div>` : ''}
   `;
 }
@@ -264,9 +264,9 @@ LEGEND.forEach(c => {
     nodesDS.update(updates);
     updateSelectAllState();
   });
-  item.innerHTML = `<div class="legend-dot" style="background:${c.color}"></div>
-    <span class="legend-label">${c.label}</span>
-    <span class="legend-count">${c.count}</span>`;
+  item.innerHTML = `<div class="legend-dot" style="background:${esc(c.color)}"></div>
+    <span class="legend-label">${esc(c.label)}</span>
+    <span class="legend-count">${esc(c.count)}</span>`;
   item.prepend(cb);
   item.onclick = (e) => {
     if (e.target === cb) return;
