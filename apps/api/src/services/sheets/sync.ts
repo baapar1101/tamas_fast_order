@@ -1,11 +1,11 @@
-import { eq, lt, sql } from 'drizzle-orm';
-import type { SyncEntity, SyncReport, SyncRun } from '@tamas/shared';
-import { db } from '../../db/client.js';
-import { syncConflicts, syncState } from '../../db/schema.js';
-import { env } from '../../env.js';
-import { rowHash } from '../../lib/hash.js';
-import { invalidateCatalog } from '../catalog.js';
-import { readTab, writeTab } from './client.js';
+import { eq, lt, sql } from "drizzle-orm";
+import type { SyncEntity, SyncReport, SyncRun } from "@tamas/shared";
+import { db } from "../../db/client.js";
+import { syncConflicts, syncState } from "../../db/schema.js";
+import { env } from "../../env.js";
+import { rowHash } from "../../lib/hash.js";
+import { invalidateCatalog } from "../catalog.js";
+import { readTab, writeTab } from "./client.js";
 import {
   MAPPINGS,
   SYNC_ORDER,
@@ -14,7 +14,7 @@ import {
   refreshLookups,
   type EntityMapping,
   type SheetCells,
-} from './mapping.js';
+} from "./mapping.js";
 
 /**
  * How the engine reaches the spreadsheet. Kept behind an interface so the
@@ -62,7 +62,10 @@ interface SheetSideRow {
   hash: string;
 }
 
-function parseSheet(mapping: EntityMapping, rows: string[][]): { header: string[]; items: SheetSideRow[] } {
+function parseSheet(
+  mapping: EntityMapping,
+  rows: string[][],
+): { header: string[]; items: SheetSideRow[] } {
   if (rows.length === 0) return { header: mapping.columns, items: [] };
   const header = (rows[0] ?? []).map((h) => String(h).trim());
   const keyIdx = header.indexOf(mapping.keyColumn);
@@ -73,16 +76,16 @@ function parseSheet(mapping: EntityMapping, rows: string[][]): { header: string[
 
   for (let r = 1; r < rows.length; r += 1) {
     const row = rows[r] ?? [];
-    const key = String(row[keyIdx] ?? '').trim();
+    const key = String(row[keyIdx] ?? "").trim();
     if (!key || seen.has(key)) continue;
     seen.add(key);
 
     const cells: SheetCells = {};
     header.forEach((h, i) => {
-      cells[h] = String(row[i] ?? '').trim();
+      cells[h] = String(row[i] ?? "").trim();
     });
 
-    const rawUpdated = cells[UPDATED_AT_COLUMN] ?? '';
+    const rawUpdated = cells[UPDATED_AT_COLUMN] ?? "";
     const parsed = rawUpdated ? new Date(rawUpdated) : null;
     items.push({
       key,
@@ -93,14 +96,22 @@ function parseSheet(mapping: EntityMapping, rows: string[][]): { header: string[
       // Ignore unrelated/formatted Google Sheet columns (for example the
       // automatic "Column 21" headers created by a Sheet table). Only the
       // mapping contract participates in change detection, matching dbHash.
-      hash: rowHash(mapping.columns.filter((h) => h !== UPDATED_AT_COLUMN).map((h) => cells[h] ?? '')),
+      hash: rowHash(
+        mapping.columns
+          .filter((h) => h !== UPDATED_AT_COLUMN)
+          .map((h) => cells[h] ?? ""),
+      ),
     });
   }
   return { header, items };
 }
 
 function hashCells(mapping: EntityMapping, cells: SheetCells): string {
-  return rowHash(mapping.columns.filter((c) => c !== UPDATED_AT_COLUMN).map((c) => cells[c] ?? ''));
+  return rowHash(
+    mapping.columns
+      .filter((c) => c !== UPDATED_AT_COLUMN)
+      .map((c) => cells[c] ?? ""),
+  );
 }
 
 async function recordConflicts(
@@ -108,17 +119,17 @@ async function recordConflicts(
   key: string,
   dbCells: SheetCells,
   sheetCells: SheetCells,
-  winnerFor: (field: string) => 'db' | 'sheet',
+  winnerFor: (field: string) => "db" | "sheet",
 ): Promise<number> {
   const rows = mapping.columns
     .filter((c) => c !== UPDATED_AT_COLUMN)
-    .filter((c) => (dbCells[c] ?? '') !== (sheetCells[c] ?? ''))
+    .filter((c) => (dbCells[c] ?? "") !== (sheetCells[c] ?? ""))
     .map((field) => ({
       entity: mapping.entity,
       entityKey: key.slice(0, 200),
       field,
-      dbValue: (dbCells[field] ?? '').slice(0, 4000),
-      sheetValue: (sheetCells[field] ?? '').slice(0, 4000),
+      dbValue: (dbCells[field] ?? "").slice(0, 4000),
+      sheetValue: (sheetCells[field] ?? "").slice(0, 4000),
       resolvedTo: winnerFor(field),
     }));
 
@@ -139,35 +150,50 @@ interface EntityResult {
 
 async function syncEntity(
   entity: SyncEntity,
-  direction: SyncRun['direction'],
+  direction: SyncRun["direction"],
   dryRun: boolean,
   transport: SheetTransport,
 ): Promise<EntityResult> {
   const mapping = MAPPINGS[entity];
-  const result: EntityResult = { entity, pulled: 0, pushed: 0, created: 0, updated: 0, conflicts: 0, skipped: 0 };
+  const result: EntityResult = {
+    entity,
+    pulled: 0,
+    pushed: 0,
+    created: 0,
+    updated: 0,
+    conflicts: 0,
+    skipped: 0,
+  };
 
   if (mapping.private && !env.SHEETS_SYNC_PRIVATE_DATA) {
     result.skipped = 1;
     return result;
   }
 
-  const [sheetRaw, dbRows] = await Promise.all([transport.read(mapping.tab), mapping.loadDbRows()]);
+  const [sheetRaw, dbRows] = await Promise.all([
+    transport.read(mapping.tab),
+    mapping.loadDbRows(),
+  ]);
   const { items: sheetRows } = parseSheet(mapping, sheetRaw);
 
   const sheetByKey = new Map(sheetRows.map((r) => [r.key, r]));
   const dbByKey = new Map(dbRows.map((r) => [r.key, r]));
 
   /* ---------- sheet → database ---------- */
-  if (direction === 'pull' || direction === 'both') {
+  if (direction === "pull" || direction === "both") {
     for (const sheetRow of sheetRows) {
       const dbRow = dbByKey.get(sheetRow.key);
 
       if (!dbRow) {
         if (!dryRun) {
           const stamp = sheetRow.updatedAt ?? new Date();
-          const outcome = await mapping.applySheetRow(sheetRow.key, sheetRow.cells, stamp);
-          if (outcome === 'created') result.created += 1;
-          else if (outcome === 'updated') result.updated += 1;
+          const outcome = await mapping.applySheetRow(
+            sheetRow.key,
+            sheetRow.cells,
+            stamp,
+          );
+          if (outcome === "created") result.created += 1;
+          else if (outcome === "updated") result.updated += 1;
           else result.skipped += 1;
         }
         result.pulled += 1;
@@ -184,7 +210,10 @@ async function syncEntity(
        * that baseline, someone changed it there.
        */
       const baseline = dbRow.sheetHash;
-      const sheetChanged = baseline == null ? sheetRow.updatedAt != null : sheetRow.hash !== baseline;
+      const sheetChanged =
+        baseline == null
+          ? sheetRow.updatedAt != null
+          : sheetRow.hash !== baseline;
       const dbChanged = baseline == null ? true : dbHash !== baseline;
 
       let rowSheetWins: boolean;
@@ -195,18 +224,21 @@ async function syncEntity(
       } else {
         // Both sides moved (or there is no baseline at all): fall back to the
         // timestamps. A sheet row with no usable timestamp never wins here.
-        rowSheetWins = (sheetRow.updatedAt?.getTime() ?? 0) > dbRow.updatedAt.getTime();
+        rowSheetWins =
+          (sheetRow.updatedAt?.getTime() ?? 0) > dbRow.updatedAt.getTime();
       }
 
       const bothChanged = sheetChanged && dbChanged;
-      const sheetAuthoritative = new Set(mapping.sheetAuthoritativeColumns ?? []);
-      const winnerFor = (field: string): 'db' | 'sheet' => {
+      const sheetAuthoritative = new Set(
+        mapping.sheetAuthoritativeColumns ?? [],
+      );
+      const winnerFor = (field: string): "db" | "sheet" => {
         // Price and inventory are Sheet-owned even if the database is the only
         // side that moved. For a true conflict all remaining fields are
         // database-owned, as required by the sync policy.
-        if (sheetAuthoritative.has(field)) return 'sheet';
-        if (bothChanged) return 'db';
-        return rowSheetWins ? 'sheet' : 'db';
+        if (sheetAuthoritative.has(field)) return "sheet";
+        if (bothChanged) return "db";
+        return rowSheetWins ? "sheet" : "db";
       };
 
       if (!dryRun && bothChanged) {
@@ -225,19 +257,24 @@ async function syncEntity(
       const merged: SheetCells = { ...dbRow.cells };
       let hasSheetValuesToApply = false;
       for (const col of mapping.columns) {
-        if (!editable.has(col) || winnerFor(col) !== 'sheet') continue;
-        const sheetValue = sheetRow.cells[col] ?? '';
+        if (!editable.has(col) || winnerFor(col) !== "sheet") continue;
+        const sheetValue = sheetRow.cells[col] ?? "";
         merged[col] = sheetValue;
-        if (sheetValue !== (dbRow.cells[col] ?? '')) hasSheetValuesToApply = true;
+        if (sheetValue !== (dbRow.cells[col] ?? ""))
+          hasSheetValuesToApply = true;
       }
 
       if (hasSheetValuesToApply) {
         if (!dryRun) {
           // Stamped now, not from the cell: the edit is only being applied at
           // this moment, and a blank or stale cell must not look older than it.
-          const outcome = await mapping.applySheetRow(sheetRow.key, merged, new Date());
-          if (outcome === 'created') result.created += 1;
-          else if (outcome === 'updated') result.updated += 1;
+          const outcome = await mapping.applySheetRow(
+            sheetRow.key,
+            merged,
+            new Date(),
+          );
+          if (outcome === "created") result.created += 1;
+          else if (outcome === "updated") result.updated += 1;
           else result.skipped += 1;
         }
         result.pulled += 1;
@@ -246,7 +283,7 @@ async function syncEntity(
 
     // A pull-only pass still has to record the new baseline; in a `both` pass
     // the push step below does it after the sheet write lands.
-    if (direction === 'pull' && !dryRun) {
+    if (direction === "pull" && !dryRun) {
       await markSynced(
         mapping,
         sheetRows.map((r) => ({ key: r.key, hash: r.hash })),
@@ -255,7 +292,7 @@ async function syncEntity(
   }
 
   /* ---------- database → sheet ---------- */
-  if (direction === 'push' || direction === 'both') {
+  if (direction === "push" || direction === "both") {
     // Reload: the pull step above may have changed rows.
     const fresh = await mapping.loadDbRows();
     const out: string[][] = [mapping.columns];
@@ -271,13 +308,13 @@ async function syncEntity(
       // so their initial cached values are used when they are appended.
       if (sheetRow) {
         for (const col of sheetAuthoritative) {
-          outputCells[col] = sheetRow.cells[col] ?? '';
+          outputCells[col] = sheetRow.cells[col] ?? "";
         }
       }
 
       const outputHash = hashCells(mapping, outputCells);
       if (!sheetRow || sheetRow.hash !== outputHash) result.pushed += 1;
-      out.push(mapping.columns.map((c) => outputCells[c] ?? ''));
+      out.push(mapping.columns.map((c) => outputCells[c] ?? ""));
       marks.push({ key: row.key, hash: outputHash });
     }
 
@@ -286,7 +323,7 @@ async function syncEntity(
     const dbKeys = new Set(fresh.map((r) => r.key));
     for (const sheetRow of sheetRows) {
       if (dbKeys.has(sheetRow.key)) continue;
-      out.push(mapping.columns.map((c) => sheetRow.cells[c] ?? ''));
+      out.push(mapping.columns.map((c) => sheetRow.cells[c] ?? ""));
     }
 
     if (!dryRun) {
@@ -299,12 +336,15 @@ async function syncEntity(
   return result;
 }
 
-export async function runSync(options: SyncRun, transport: SheetTransport = googleTransport): Promise<SyncReport> {
+export async function runSync(
+  options: SyncRun,
+  transport: SheetTransport = googleTransport,
+): Promise<SyncReport> {
   if (transport === googleTransport && !env.SHEETS_ENABLED) {
-    throw new Error('همگام‌سازی گوگل شیت غیرفعال است (SHEETS_ENABLED=false).');
+    throw new Error("همگام‌سازی گوگل شیت غیرفعال است (SHEETS_ENABLED=false).");
   }
   if (running) {
-    throw new Error('یک همگام‌سازی در حال اجراست. تا پایان آن صبر کنید.');
+    throw new Error("یک همگام‌سازی در حال اجراست. تا پایان آن صبر کنید.");
   }
   running = true;
   const startedAt = new Date();
@@ -313,41 +353,76 @@ export async function runSync(options: SyncRun, transport: SheetTransport = goog
   try {
     await refreshLookups();
     const wanted = SYNC_ORDER.filter((e) => options.entities.includes(e));
+    const successUpdates: any[] = [];
+    const errorUpdates: any[] = [];
 
     for (const entity of wanted) {
       try {
-        const res = await syncEntity(entity, options.direction, options.dryRun, transport);
+        const res = await syncEntity(
+          entity,
+          options.direction,
+          options.dryRun,
+          transport,
+        );
         entities.push(res);
         if (!options.dryRun) {
-          await db
-            .insert(syncState)
-            .values({
-              entity,
-              lastPulledAt: options.direction !== 'push' ? new Date() : null,
-              lastPushedAt: options.direction !== 'pull' ? new Date() : null,
-              rowsPulled: res.pulled,
-              rowsPushed: res.pushed,
-              lastError: null,
-            })
-            .onConflictDoUpdate({
-              target: syncState.entity,
-              set: {
-                lastPulledAt: options.direction !== 'push' ? new Date() : sql`${syncState.lastPulledAt}`,
-                lastPushedAt: options.direction !== 'pull' ? new Date() : sql`${syncState.lastPushedAt}`,
-                rowsPulled: res.pulled,
-                rowsPushed: res.pushed,
-                lastError: null,
-              },
-            });
+          successUpdates.push({
+            entity,
+            lastPulledAt: options.direction !== "push" ? new Date() : null,
+            lastPushedAt: options.direction !== "pull" ? new Date() : null,
+            rowsPulled: res.pulled,
+            rowsPushed: res.pushed,
+            lastError: null,
+          });
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        entities.push({ entity, pulled: 0, pushed: 0, created: 0, updated: 0, conflicts: 0, skipped: 0, error: message });
-        await db
-          .insert(syncState)
-          .values({ entity, lastError: message })
-          .onConflictDoUpdate({ target: syncState.entity, set: { lastError: message } });
+        entities.push({
+          entity,
+          pulled: 0,
+          pushed: 0,
+          created: 0,
+          updated: 0,
+          conflicts: 0,
+          skipped: 0,
+          error: message,
+        });
+        errorUpdates.push({ entity, lastError: message });
       }
+    }
+
+    if (successUpdates.length > 0) {
+      await db
+        .insert(syncState)
+        .values(successUpdates)
+        .onConflictDoUpdate({
+          target: syncState.entity,
+          set: {
+            lastPulledAt:
+              options.direction !== "push"
+                ? sql`excluded.last_pulled_at`
+                : sql`${syncState.lastPulledAt}`,
+            lastPushedAt:
+              options.direction !== "pull"
+                ? sql`excluded.last_pushed_at`
+                : sql`${syncState.lastPushedAt}`,
+            rowsPulled: sql`excluded.rows_pulled`,
+            rowsPushed: sql`excluded.rows_pushed`,
+            lastError: sql`excluded.last_error`,
+          },
+        });
+    }
+
+    if (errorUpdates.length > 0) {
+      await db
+        .insert(syncState)
+        .values(errorUpdates)
+        .onConflictDoUpdate({
+          target: syncState.entity,
+          set: {
+            lastError: sql`excluded.last_error`,
+          },
+        });
     }
 
     if (!options.dryRun) invalidateCatalog();
@@ -378,5 +453,8 @@ export async function readSyncState() {
 }
 
 export async function clearSyncError(entity: string): Promise<void> {
-  await db.update(syncState).set({ lastError: null }).where(eq(syncState.entity, entity));
+  await db
+    .update(syncState)
+    .set({ lastError: null })
+    .where(eq(syncState.entity, entity));
 }
