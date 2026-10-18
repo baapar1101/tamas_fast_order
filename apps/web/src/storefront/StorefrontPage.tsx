@@ -334,9 +334,10 @@ export function StorefrontPage() {
               type="button"
               className="btn btn-icon-only"
               onClick={() => document.getElementById('cart')?.scrollIntoView({ behavior: 'smooth' })}
-              title="علاقه‌مندی‌ها"
+              title="سبد خرید"
+              aria-label="سبد خرید"
             >
-              <Icon name="heart" />
+              <Icon name="bag" />
             </button>
             {user ? (
               <div className="profile-dropdown-wrapper" style={{ position: 'relative' }}>
