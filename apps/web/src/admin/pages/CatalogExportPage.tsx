@@ -1,12 +1,11 @@
 import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import type { ProductDTO, CategoryDTO, BrandDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
+import { CatalogPageSheet } from '../components/CatalogPageSheet';
 
 // Convert image URL to Data URL for html2canvas reliability
 async function loadImageAsDataUrl(url: string): Promise<string | null> {
@@ -98,61 +97,60 @@ export function CatalogExportPage() {
         </div>
       </header>
 
-      {/* Control Card */}
+      {/* Control Panel */}
       <section className="a-card">
         <div className="a-card-head">
-          <h3 className="a-card-title">فیلترهای صدور کاتالوگ</h3>
+          <h3 className="a-card-title flex items-center gap-2">
+            <span>🎛️</span>
+            <span>تنظیمات و فیلترها</span>
+          </h3>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {/* Category Filter */}
             <div>
-              <label className="a-label">دسته‌بندی</label>
+              <label className="block text-sm font-bold text-[var(--a-t1)] mb-2">دسته‌بندی</label>
               <AnimatedDropdown
-                value={String(selectedCategory)}
-                onChange={(val) => setSelectedCategory(val === 'all' ? 'all' : Number(val))}
                 options={[
                   { value: 'all', label: 'همه دسته‌بندی‌ها' },
-                  ...categories.map((cat: CategoryDTO) => ({
-                    value: String(cat.id),
-                    label: cat.faName || cat.name,
-                  })),
+                  ...categories.map((c: any) => ({ value: String(c.id), label: c.title })),
                 ]}
+                value={String(selectedCategory)}
+                onChange={(val) => setSelectedCategory(val === 'all' ? 'all' : Number(val))}
+                placeholder="انتخاب دسته‌بندی"
               />
             </div>
 
             {/* Brand Filter */}
             <div>
-              <label className="a-label">برند</label>
+              <label className="block text-sm font-bold text-[var(--a-t1)] mb-2">برند</label>
               <AnimatedDropdown
-                value={String(selectedBrand)}
-                onChange={(val) => setSelectedBrand(val === 'all' ? 'all' : Number(val))}
                 options={[
                   { value: 'all', label: 'همه برندها' },
-                  ...brands.map((brand: BrandDTO) => ({
-                    value: String(brand.id),
-                    label: brand.faName || brand.name,
-                  })),
+                  ...brands.map((b: any) => ({ value: String(b.id), label: b.faName || b.name })),
                 ]}
+                value={String(selectedBrand)}
+                onChange={(val) => setSelectedBrand(val === 'all' ? 'all' : Number(val))}
+                placeholder="انتخاب برند"
               />
             </div>
 
             {/* Stock Filter */}
             <div>
-              <label className="a-label">وضعیت موجودی</label>
+              <label className="block text-sm font-bold text-[var(--a-t1)] mb-2">وضعیت موجودی</label>
               <AnimatedDropdown
-                value={stockStatus}
-                onChange={(val) => setStockStatus(val as any)}
                 options={[
-                  { value: 'all', label: 'همه موارد' },
-                  { value: 'in', label: 'فقط موجود' },
-                  { value: 'out', label: 'فقط ناموجود' },
+                  { value: 'all', label: 'همه (موجود و ناموجود)' },
+                  { value: 'in', label: 'فقط موجودها' },
+                  { value: 'out', label: 'فقط ناموجودها' },
                 ]}
+                value={stockStatus}
+                onChange={(val: any) => setStockStatus(val)}
               />
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between border-t border-[var(--a-border)] pt-6 gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-[var(--a-border)] gap-4">
             <div className="text-sm text-[var(--a-t2)]">
               تعداد کالاهای یافت‌شده:{' '}
               <strong className="text-[var(--a-t1)] text-base mx-1">
@@ -209,152 +207,14 @@ export function CatalogExportPage() {
                 const pageProducts = products.slice(pageIdx * ITEMS_PER_PAGE, (pageIdx + 1) * ITEMS_PER_PAGE);
 
                 return (
-                  <div
+                  <CatalogPageSheet
                     key={pageIdx}
-                    className="pdf-page-sheet shadow-2xl rounded-sm"
-                    style={{
-                      width: '210mm',
-                      height: '297mm',
-                      padding: '12mm',
-                      backgroundColor: '#ffffff',
-                      boxSizing: 'border-box',
-                      fontFamily: "'Vazirmatn', 'Peyda', sans-serif",
-                      direction: 'rtl',
-                      position: 'relative',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      color: '#0f172a',
-                    }}
-                  >
-                    {/* Header */}
-                    <div style={{
-                      backgroundColor: '#1f2937',
-                      color: '#ffffff',
-                      padding: '10px 16px',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: '12px',
-                    }}>
-                      <div>
-                        <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 'bold', letterSpacing: '-0.3px' }}>
-                          کاتالوگ محصولات تماس مارکت
-                        </h2>
-                        <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>
-                          تعداد کالاها: {formatNumber(products.length)} عدد
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'left', fontSize: '10px', opacity: 0.9, lineHeight: 1.4 }}>
-                        <div>تاریخ: {today}</div>
-                        <div>صفحه {pageIdx + 1} از {totalPages}</div>
-                      </div>
-                    </div>
-
-                    {/* Products Grid 4x5 */}
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(4, 1fr)',
-                      gridTemplateRows: 'repeat(5, 1fr)',
-                      gap: '8px',
-                      flex: 1,
-                    }}>
-                      {pageProducts.map((p) => {
-                        const brandLabel = (p as any).brandFaName || (p as any).brandName || '';
-                        return (
-                          <div
-                            key={p.id}
-                            style={{
-                              backgroundColor: '#f8fafc',
-                              border: '1px solid #e2e8f0',
-                              borderRadius: '8px',
-                              padding: '6px 8px',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              justifyContent: 'space-between',
-                              boxSizing: 'border-box',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            {/* Thumbnail Image */}
-                            <div style={{
-                              height: '70px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              overflow: 'hidden',
-                              backgroundColor: '#ffffff',
-                              borderRadius: '6px',
-                              padding: '2px',
-                            }}>
-                              <img
-                                src={p.imageUrl || '/logo.png'}
-                                alt={p.title}
-                                style={{ maxHeight: '66px', maxWidth: '100%', objectFit: 'contain' }}
-                                crossOrigin="anonymous"
-                              />
-                            </div>
-
-                            {/* Title & Brand */}
-                            <div style={{ marginTop: '4px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
-                              <div
-                                style={{
-                                  fontSize: '9.5px',
-                                  fontWeight: 'bold',
-                                  color: '#1e293b',
-                                  lineHeight: 1.35,
-                                  minHeight: '26px',
-                                  overflow: 'hidden',
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: 'vertical',
-                                  direction: 'rtl',
-                                  textAlign: 'right',
-                                }}
-                              >
-                                {p.title}
-                              </div>
-                              {brandLabel && (
-                                <div style={{ fontSize: '8px', color: '#64748b', marginTop: '2px', textAlign: 'right' }}>
-                                  {brandLabel}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Divider & Price */}
-                            <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '4px', marginTop: '2px', textAlign: 'center' }}>
-                              <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#0284c7', direction: 'rtl' }}>
-                                {p.price > 0 ? `${formatNumber(p.price)} تومان` : 'تماس بگیرید'}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: '8.5px',
-                                  fontWeight: 'bold',
-                                  marginTop: '1px',
-                                  color: p.stock > 0 || p.kermanStock > 0 || p.tehranStock > 0 ? '#16a34a' : '#dc2626',
-                                }}
-                              >
-                                {p.stock > 0 || p.kermanStock > 0 || p.tehranStock > 0 ? 'موجود' : 'ناموجود'}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Footer */}
-                    <div style={{
-                      marginTop: '8px',
-                      paddingTop: '6px',
-                      borderTop: '1px solid #e2e8f0',
-                      textAlign: 'center',
-                      fontSize: '8.5px',
-                      color: '#94a3b8',
-                    }}>
-                      تهیه شده توسط سیستم مدیریت تماس مارکت — TamasMarket.com
-                    </div>
-                  </div>
+                    pageIdx={pageIdx}
+                    totalPages={totalPages}
+                    productsLength={products.length}
+                    today={today}
+                    pageProducts={pageProducts}
+                  />
                 );
               })}
             </div>
