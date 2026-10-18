@@ -1,6 +1,6 @@
 # Jules session review — 18 October 2026
 
-Repository: `baapar1101/tamas_fast_order`. Snapshot: 95 Jules sessions and 86 PRs (#2–#87). This records a review of the proposed diffs against current `main`; a patch applying cleanly is not, by itself, an approval to merge.
+Repository: `baapar1101/tamas_fast_order`. The Jules API returned 95 sessions. This review covers 91 Jules PRs (#2–#90 and #92–#93) found through 15:04 UTC on 18 October 2026. #91 is the integration PR for this review. A patch applying cleanly to `main` is not, by itself, an approval to merge.
 
 ## Integrated on `codex/jules-reviewed-improvements`
 
@@ -102,8 +102,13 @@ Typecheck and production build passed. Shared (33), API (68 with test-only envir
 | [#85](https://github.com/baapar1101/tamas_fast_order/pull/85) | apps/api/src/declarations.d.ts, apps/api/src/routes/payment.ts | not checked | Deferred | A blanket module declaration weakens payment type checking. |
 | [#86](https://github.com/baapar1101/tamas_fast_order/pull/86) | legacy/merge_features.py | not checked | Deferred | Target legacy file is absent from current main. |
 | [#87](https://github.com/baapar1101/tamas_fast_order/pull/87) | — | empty | Deferred | PR has no changed files. |
+| [#88](https://github.com/baapar1101/tamas_fast_order/pull/88) | apps/web/src/storefront/ProductCard.tsx | not checked | Deferred | Cart-line comparator is based on an older ProductCard version; its render behavior needs targeted verification. |
+| [#89](https://github.com/baapar1101/tamas_fast_order/pull/89) | apps/web/src/admin/pages/CatalogExportPage.tsx | not checked | Deferred | Refactor changes category label from `faName/name` to `title`, which can make labels disappear. |
+| [#90](https://github.com/baapar1101/tamas_fast_order/pull/90) | apps/web/src/storefront/StorefrontPage.tsx | not checked | Covered | Same cart-button correction is included in this branch without the journal file. |
+| [#92](https://github.com/baapar1101/tamas_fast_order/pull/92) | apps/web/src/storefront/ProductCard.tsx, ProductPage.tsx | not checked | Deferred | Overlaps #88 and uses an older ProductCard version; requires render correctness and performance verification. |
+| [#93](https://github.com/baapar1101/tamas_fast_order/pull/93) | apps/web/src/storefront/CartPanel.tsx | not checked | Deferred | Memoizing one print-item mapping has no established material benefit; the journal discusses an unrelated bottleneck. |
 
-## Sessions without a completed PR at this snapshot
+## Sessions without a PR in the initial API snapshot
 
 - [13313955466882005107](https://jules.google.com/task/13313955466882005107) — IN_PROGRESS: Refactor CatalogExportPage by extracting sub-components
 - [5377493835969943580](https://jules.google.com/task/5377493835969943580) — FAILED: ⚡ Optimize product grouping loop in fallbackData.ts
