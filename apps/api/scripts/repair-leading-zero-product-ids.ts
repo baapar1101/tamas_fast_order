@@ -31,17 +31,6 @@ const parseNumber = (value: unknown): number => {
   return Number.isFinite(parsed) ? Math.trunc(parsed) : 0;
 };
 
-const columnLetter = (index: number): string => {
-  let value = index + 1;
-  let result = '';
-  while (value > 0) {
-    value--;
-    result = String.fromCharCode(65 + (value % 26)) + result;
-    value = Math.floor(value / 26);
-  }
-  return result;
-};
-
 function collisionGroups<T extends { productId: string; title: string }>(items: T[]): T[][] {
   const groups = new Map<string, T[]>();
   for (const item of items) {
@@ -199,28 +188,49 @@ await writeFile(backupPath, JSON.stringify({
 
 // Preserve every other cell in the row (especially price and warehouse stock)
 // and fix only the product identifier cell.
-await api.spreadsheets.batchUpdate({
-  spreadsheetId: env.SHEETS_SPREADSHEET_ID,
-  requestBody: {
-    requests: [productIdColumn, skuColumn].map((columnIndex) => ({
-      repeatCell: {
-        range: { sheetId, startColumnIndex: columnIndex, endColumnIndex: columnIndex + 1 },
-        cell: { userEnteredFormat: { numberFormat: { type: 'TEXT' } } },
-        fields: 'userEnteredFormat.numberFormat',
+const updateRequests = sheetIdUpdates.flatMap(({ source, nextProductId, nextSku }) => [
+  {
+    updateCells: {
+      range: {
+        sheetId,
+        startRowIndex: source.rowNumber - 1,
+        endRowIndex: source.rowNumber,
+        startColumnIndex: productIdColumn,
+        endColumnIndex: productIdColumn + 1,
       },
-    })),
-  },
-});
-for (let offset = 0; offset < sheetIdUpdates.length; offset += 200) {
-  await api.spreadsheets.values.batchUpdate({
-    spreadsheetId: env.SHEETS_SPREADSHEET_ID,
-    requestBody: {
-      valueInputOption: 'RAW',
-      data: sheetIdUpdates.slice(offset, offset + 200).flatMap(({ source, nextProductId, nextSku }) => [
-        { range: `Products!${columnLetter(productIdColumn)}${source.rowNumber}`, values: [[nextProductId]] },
-        { range: `Products!${columnLetter(skuColumn)}${source.rowNumber}`, values: [[nextSku]] },
-      ]),
+      rows: [{
+        values: [{
+          userEnteredValue: { stringValue: nextProductId },
+          userEnteredFormat: { numberFormat: { type: 'TEXT' } },
+        }],
+      }],
+      fields: 'userEnteredValue,userEnteredFormat.numberFormat',
     },
+  },
+  {
+    updateCells: {
+      range: {
+        sheetId,
+        startRowIndex: source.rowNumber - 1,
+        endRowIndex: source.rowNumber,
+        startColumnIndex: skuColumn,
+        endColumnIndex: skuColumn + 1,
+      },
+      rows: [{
+        values: [{
+          userEnteredValue: { stringValue: nextSku },
+          userEnteredFormat: { numberFormat: { type: 'TEXT' } },
+        }],
+      }],
+      fields: 'userEnteredValue,userEnteredFormat.numberFormat',
+    },
+  },
+]);
+
+for (let offset = 0; offset < updateRequests.length; offset += 200) {
+  await api.spreadsheets.batchUpdate({
+    spreadsheetId: env.SHEETS_SPREADSHEET_ID,
+    requestBody: { requests: updateRequests.slice(offset, offset + 200) },
   });
 }
 

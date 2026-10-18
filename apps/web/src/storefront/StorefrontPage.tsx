@@ -368,9 +368,10 @@ export function StorefrontPage() {
               type="button"
               className="btn btn-icon-only"
               onClick={() => document.getElementById('cart')?.scrollIntoView({ behavior: 'smooth' })}
-              title="علاقه‌مندی‌ها"
+              title="سبد خرید"
+              aria-label="رفتن به سبد خرید"
             >
-              <Icon name="heart" />
+              <Icon name="bag" />
             </button>
             {user ? (
               <Link to="/account" state={{ returnTo: `${location.pathname}${location.search}` }} className="btn primary" aria-label="رفتن به حساب کاربری">
