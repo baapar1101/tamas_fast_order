@@ -428,7 +428,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       const { db } = await import('../db/client.js');
       const { orders } = await import('../db/schema.js');
       const { crmSyncLogs } = await import('../db/schema.js');
-      const { desc, isNull, eq } = await import('drizzle-orm');
+      const { desc, isNull, eq, inArray } = await import('drizzle-orm');
       const config = await getCrmConfig();
 
       // Get recent orders (limit to 50)
@@ -436,10 +436,24 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       let synced = 0;
       const errors: string[] = [];
 
+      const { orderItems } = await import('../db/schema.js');
+      const orderIds = orderRows.map((o) => o.id);
+
+      const allOrderItems = orderIds.length > 0
+        ? await db.select().from(orderItems).where(inArray(orderItems.orderId, orderIds))
+        : [];
+
+      const itemsMap = new Map<number, typeof allOrderItems>();
+      for (const item of allOrderItems) {
+        if (!itemsMap.has(item.orderId)) {
+          itemsMap.set(item.orderId, []);
+        }
+        itemsMap.get(item.orderId)!.push(item);
+      }
+
       for (const orderRow of orderRows) {
-        // Fetch order items from database
-        const { orderItems } = await import('../db/schema.js');
-        const orderItemsRows = await db.select().from(orderItems).where(eq(orderItems.orderId, orderRow.id));
+        // Fetch order items from map
+        const orderItemsRows = itemsMap.get(orderRow.id) || [];
 
         if (orderItemsRows.length === 0) {
           const errorMsg = `سفارش ${orderRow.orderCode} فاقد آیتم است`;
