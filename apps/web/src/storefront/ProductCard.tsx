@@ -54,6 +54,35 @@ function productTitleClass(title: string): string {
   return '';
 }
 
+function arePropsEqual(prev: Props, next: Props) {
+  if (prev.group !== next.group) return false;
+  if (prev.canViewPrices !== next.canViewPrices) return false;
+  if (prev.viewMode !== next.viewMode) return false;
+  if (prev.colorMap !== next.colorMap) return false;
+
+  if (prev.onAdd !== next.onAdd) return false;
+  if (prev.onUpdateQty !== next.onUpdateQty) return false;
+  if (prev.onPreview !== next.onPreview) return false;
+
+  // We only care if the cart lines for THIS group's variants changed.
+  for (const v of next.group.variants) {
+    for (const wh of WAREHOUSE_ORDER) {
+      const key = `${v.productId}::${wh}`;
+      const prevQty = prev.cartLines.find((l) => l.key === key)?.qty || 0;
+      const nextQty = next.cartLines.find((l) => l.key === key)?.qty || 0;
+      if (prevQty !== nextQty) return false;
+    }
+
+    // Also check the 'site' warehouse, which might be used if there's no split
+    const key = `${v.productId}::site`;
+    const prevQtySite = prev.cartLines.find((l) => l.key === key)?.qty || 0;
+    const nextQtySite = next.cartLines.find((l) => l.key === key)?.qty || 0;
+    if (prevQtySite !== nextQtySite) return false;
+  }
+
+  return true;
+}
+
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFav, setIsFav] = useState(false);
@@ -333,5 +362,5 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
-});
+}, arePropsEqual);
 
