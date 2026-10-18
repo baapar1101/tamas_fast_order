@@ -238,24 +238,33 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     }
     await upsertOrderPayment(tx, order.id, user.id, total, order.paymentStatus, walletPayment ? 'wallet' : undefined);
 
+    const aggregatedUpdates = new Map<number, { kerman: number; tehran: number; site: number }>();
     for (const update of stockUpdates) {
-      const now = new Date();
-      if (update.warehouse === 'kerman') {
-        await tx
-          .update(products)
-          .set({ kermanStock: sql`greatest(0, ${products.kermanStock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
-      } else if (update.warehouse === 'tehran') {
-        await tx
-          .update(products)
-          .set({ tehranStock: sql`greatest(0, ${products.tehranStock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
-      } else {
-        await tx
-          .update(products)
-          .set({ stock: sql`greatest(0, ${products.stock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
+      let agg = aggregatedUpdates.get(update.id);
+      if (!agg) {
+        agg = { kerman: 0, tehran: 0, site: 0 };
+        aggregatedUpdates.set(update.id, agg);
       }
+      if (update.warehouse === 'kerman') agg.kerman += update.qty;
+      else if (update.warehouse === 'tehran') agg.tehran += update.qty;
+      else agg.site += update.qty;
+    }
+
+    if (aggregatedUpdates.size > 0) {
+      const now = new Date();
+      const values = Array.from(aggregatedUpdates.entries()).map(([id, agg]) => {
+        return sql`(${id}::int, ${agg.kerman}::int, ${agg.tehran}::int, ${agg.site}::int)`;
+      });
+      await tx.execute(sql`
+        UPDATE ${products}
+        SET
+          kerman_stock = greatest(0, ${products.kermanStock} - v.kerman),
+          tehran_stock = greatest(0, ${products.tehranStock} - v.tehran),
+          stock = greatest(0, ${products.stock} - v.site),
+          updated_at = ${now}
+        FROM (VALUES ${sql.join(values, sql`, `)}) AS v(id, kerman, tehran, site)
+        WHERE ${products.id} = v.id
+      `);
     }
 
     invalidateCatalog();
