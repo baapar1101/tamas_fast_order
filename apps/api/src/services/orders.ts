@@ -78,6 +78,75 @@ function stockIn(row: typeof products.$inferSelect, warehouse: Warehouse): numbe
  * in the same transaction that writes the order, so two shoppers racing for the
  * last unit cannot both win.
  */
+
+function buildOrderItemsAndStockUpdates(
+  lines: Array<{ productId: string; warehouse: Warehouse; qty: number }>,
+  byId: Map<string, typeof products.$inferSelect>
+) {
+  let total = 0;
+  const toInsert: Array<typeof orderItems.$inferInsert> = [];
+  const stockUpdates: Array<{ id: number; warehouse: Warehouse; qty: number }> = [];
+
+  for (const line of lines) {
+    const product = byId.get(line.productId);
+    if (!product) throw badRequest(`محصول «${line.productId}» دیگر موجود نیست.`);
+    if (product.status !== 'active') throw conflict(`«${product.title}» در حال حاضر قابل سفارش نیست.`);
+
+    if (product.type === 'bundle' && product.bundleItems && Array.isArray(product.bundleItems)) {
+      // Bundle stock validation
+      for (const bItem of product.bundleItems) {
+        const part = byId.get(bItem.productId);
+        if (!part) throw badRequest(`جزء «${bItem.productId}» از باندل پیدا نشد.`);
+        const requiredQty = line.qty * bItem.qty;
+        const available = stockIn(part, line.warehouse);
+        if (available < requiredQty) {
+          throw conflict(
+            `موجودی جزء «${part.title}» در ${WAREHOUSE_LABELS[line.warehouse]} برای این باندل کافی نیست (فقط ${available} عدد).`,
+            { productId: part.productId, available },
+          );
+        }
+        stockUpdates.push({ id: part.id, warehouse: line.warehouse, qty: requiredQty });
+      }
+      // Add bundle itself to order line items (but stockUpdates only has parts)
+      total += product.price * line.qty;
+      toInsert.push({
+        orderId: 0,
+        productId: product.productId,
+        sku: product.sku,
+        title: product.title,
+        color: product.color,
+        price: product.price,
+        qty: line.qty,
+        warehouse: line.warehouse,
+      });
+    } else {
+      // Normal product stock validation
+      const available = stockIn(product, line.warehouse);
+      if (available < line.qty) {
+        throw conflict(
+          `موجودی «${product.title}» در ${WAREHOUSE_LABELS[line.warehouse]} فقط ${available} عدد است.`,
+          { productId: product.productId, available },
+        );
+      }
+
+      total += product.price * line.qty;
+      toInsert.push({
+        orderId: 0,
+        productId: product.productId,
+        sku: product.sku,
+        title: product.title,
+        color: product.color,
+        price: product.price,
+        qty: line.qty,
+        warehouse: line.warehouse,
+      });
+      stockUpdates.push({ id: product.id, warehouse: line.warehouse, qty: line.qty });
+    }
+  }
+
+  return { total, toInsert, stockUpdates };
+}
+
 export async function createOrder(user: UserRow, input: OrderCreate): Promise<OrderDTO> {
   const missing = missingProfileFields(user);
   if (missing.length > 0) throw profileIncomplete(missing);
@@ -133,66 +202,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       }
     }
 
-    let total = 0;
-    const toInsert: Array<typeof orderItems.$inferInsert> = [];
-    const stockUpdates: Array<{ id: number; warehouse: Warehouse; qty: number }> = [];
-
-    for (const line of lines) {
-      const product = byId.get(line.productId);
-      if (!product) throw badRequest(`محصول «${line.productId}» دیگر موجود نیست.`);
-      if (product.status !== 'active') throw conflict(`«${product.title}» در حال حاضر قابل سفارش نیست.`);
-
-      if (product.type === 'bundle' && product.bundleItems && Array.isArray(product.bundleItems)) {
-        // Bundle stock validation
-        for (const bItem of product.bundleItems) {
-          const part = byId.get(bItem.productId);
-          if (!part) throw badRequest(`جزء «${bItem.productId}» از باندل پیدا نشد.`);
-          const requiredQty = line.qty * bItem.qty;
-          const available = stockIn(part, line.warehouse);
-          if (available < requiredQty) {
-            throw conflict(
-              `موجودی جزء «${part.title}» در ${WAREHOUSE_LABELS[line.warehouse]} برای این باندل کافی نیست (فقط ${available} عدد).`,
-              { productId: part.productId, available },
-            );
-          }
-          stockUpdates.push({ id: part.id, warehouse: line.warehouse, qty: requiredQty });
-        }
-        // Add bundle itself to order line items (but stockUpdates only has parts)
-        total += product.price * line.qty;
-        toInsert.push({
-          orderId: 0,
-          productId: product.productId,
-          sku: product.sku,
-          title: product.title,
-          color: product.color,
-          price: product.price,
-          qty: line.qty,
-          warehouse: line.warehouse,
-        });
-      } else {
-        // Normal product stock validation
-        const available = stockIn(product, line.warehouse);
-        if (available < line.qty) {
-          throw conflict(
-            `موجودی «${product.title}» در ${WAREHOUSE_LABELS[line.warehouse]} فقط ${available} عدد است.`,
-            { productId: product.productId, available },
-          );
-        }
-
-        total += product.price * line.qty;
-        toInsert.push({
-          orderId: 0,
-          productId: product.productId,
-          sku: product.sku,
-          title: product.title,
-          color: product.color,
-          price: product.price,
-          qty: line.qty,
-          warehouse: line.warehouse,
-        });
-        stockUpdates.push({ id: product.id, warehouse: line.warehouse, qty: line.qty });
-      }
-    }
+    const { total, toInsert, stockUpdates } = buildOrderItemsAndStockUpdates(lines, byId);
 
     const customerName = [user.name, user.lastName].filter(Boolean).join(' ').trim() || user.phone;
 
@@ -260,45 +270,68 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
 
     invalidateCatalog();
 
-    // Fire-and-forget CRM sync — failures are logged, never block the order.
-    const { crmClient } = await import('../lib/crm.js');
-    const { getCrmConfig } = await import('./settings.js');
-    getCrmConfig().then(config => crmClient.pushOrder(toOrderDTO(order, items), config)).catch((err: unknown) => {
-      // app.log?.warn?.({ err }, 'CRM pushOrder failed (non-blocking)');
-    });
 
-    // Fire-and-forget SMS notification
-    if (user.phone) {
-      import('./sms.js').then(({ sendTemplatedSms }) => {
-        sendTemplatedSms(user.phone, 'sms_template_order_new', {
-          order_code: order.orderCode,
-          name: customerName,
-        }).catch((err) => {
-          console.error('[SMS] Failed to send new order sms:', err);
-        });
-      });
-    }
-
-    import('./telegram.js').then(({ sendTelegramNotification }) => {
-      void sendTelegramNotification('order.created', {
-        title: '🛒 سفارش جدید',
-        fields: [
-          { label: 'شماره سفارش', value: order.orderCode },
-          { label: 'مشتری', value: customerName },
-          { label: 'فروشگاه', value: order.storeName },
-          { label: 'تلفن', value: order.phone },
-          { label: 'مبلغ', value: `${order.total.toLocaleString('fa-IR')} تومان` },
-          { label: 'تعداد', value: order.quantity },
-          { label: 'روش پرداخت', value: order.paymentMethod },
-        ],
-      }).then((result) => {
-        if (result.errors.length) console.error('[Telegram] order.created:', result.errors.join('; '));
-      }).catch((err) => console.error('[Telegram] order.created failed:', err));
+    triggerOrderSideEffects({
+      user,
+      order,
+      items,
+      customerName
     });
 
     return toOrderDTO(order, items);
   });
 }
+
+function triggerOrderSideEffects({
+  user,
+  order,
+  items,
+  customerName
+}: {
+  user: UserRow;
+  order: typeof orders.$inferSelect;
+  items: typeof orderItems.$inferSelect[];
+  customerName: string;
+}) {
+  // Fire-and-forget CRM sync — failures are logged, never block the order.
+  import('../lib/crm.js').then(({ crmClient }) => {
+    import('./settings.js').then(({ getCrmConfig }) => {
+      getCrmConfig().then(config => crmClient.pushOrder(toOrderDTO(order, items), config)).catch((err: unknown) => {
+        // app.log?.warn?.({ err }, 'CRM pushOrder failed (non-blocking)');
+      });
+    });
+  });
+
+  // Fire-and-forget SMS notification
+  if (user.phone) {
+    import('./sms.js').then(({ sendTemplatedSms }) => {
+      sendTemplatedSms(user.phone, 'sms_template_order_new', {
+        order_code: order.orderCode,
+        name: customerName,
+      }).catch((err) => {
+        console.error('[SMS] Failed to send new order sms:', err);
+      });
+    });
+  }
+
+  import('./telegram.js').then(({ sendTelegramNotification }) => {
+    void sendTelegramNotification('order.created', {
+      title: '🛒 سفارش جدید',
+      fields: [
+        { label: 'شماره سفارش', value: order.orderCode },
+        { label: 'مشتری', value: customerName },
+        { label: 'فروشگاه', value: order.storeName },
+        { label: 'تلفن', value: order.phone },
+        { label: 'مبلغ', value: `${order.total.toLocaleString('fa-IR')} تومان` },
+        { label: 'تعداد', value: order.quantity },
+        { label: 'روش پرداخت', value: order.paymentMethod },
+      ],
+    }).then((result) => {
+      if (result.errors.length) console.error('[Telegram] order.created:', result.errors.join('; '));
+    }).catch((err) => console.error('[Telegram] order.created failed:', err));
+  });
+}
+
 
 export async function listOrdersForUser(userId: number, limit = 50): Promise<OrderDTO[]> {
   const rows = await db
