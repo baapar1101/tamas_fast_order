@@ -1,5 +1,5 @@
-import { lookup } from 'node:dns/promises';
-import { isIP } from 'node:net';
+import { validatePublicTargetUrl } from '../lib/url.js';
+
 
 const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 const MAX_REDIRECTS = 3;
@@ -12,30 +12,9 @@ export interface TargetSiteSnapshot {
   error: string | null;
 }
 
-function isPrivateAddress(address: string): boolean {
-  const lower = address.toLowerCase();
-  if (lower === '::1' || lower === '::' || lower.startsWith('fc') || lower.startsWith('fd') || /^fe[89ab]/.test(lower)) return true;
-  const mappedV4 = lower.startsWith('::ffff:') ? address.slice(7) : address;
-  if (isIP(mappedV4) !== 4) return false;
-  const [a = 0, b = 0] = mappedV4.split('.').map(Number);
-  return a === 0 || a === 10 || a === 127 || (a === 100 && b >= 64 && b <= 127) ||
-    (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && (b === 0 || b === 168)) || (a === 198 && (b === 18 || b === 19)) || a >= 224;
-}
-
-async function validatePublicUrl(value: string): Promise<URL> {
-  const url = new URL(value);
-  if (!['http:', 'https:'].includes(url.protocol)) throw new Error('فقط لینک HTTP یا HTTPS مجاز است');
-  if (url.username || url.password) throw new Error('لینک دارای نام کاربری یا رمز عبور مجاز نیست');
-  const hostname = url.hostname.toLowerCase();
-  if (hostname === 'localhost' || hostname.endsWith('.localhost')) throw new Error('آدرس داخلی مجاز نیست');
-  const addresses = await lookup(hostname, { all: true, verbatim: true });
-  if (addresses.length === 0 || addresses.some(({ address }) => isPrivateAddress(address))) throw new Error('آدرس داخلی یا رزروشده مجاز نیست');
-  return url;
-}
 
 async function fetchPublic(value: string): Promise<Response> {
-  let url = await validatePublicUrl(value);
+  let url = await validatePublicTargetUrl(value);
   for (let redirects = 0; redirects <= MAX_REDIRECTS; redirects += 1) {
     const response = await fetch(url, {
       redirect: 'manual',
@@ -49,7 +28,7 @@ async function fetchPublic(value: string): Promise<Response> {
     if (![301, 302, 303, 307, 308].includes(response.status)) return response;
     const location = response.headers.get('location');
     if (!location) throw new Error('پاسخ تغییر مسیر معتبر نیست');
-    url = await validatePublicUrl(new URL(location, url).toString());
+    url = await validatePublicTargetUrl(new URL(location, url).toString());
   }
   throw new Error('تعداد تغییر مسیرهای سایت بیش از حد مجاز است');
 }
