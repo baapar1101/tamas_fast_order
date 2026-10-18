@@ -54,6 +54,28 @@ function productTitleClass(title: string): string {
   return '';
 }
 
+function propsAreEqual(prev: Props, next: Props) {
+  const keys = Object.keys(prev) as Array<keyof Props>;
+  for (const key of keys) {
+    if (key === 'cartLines') continue;
+    if (prev[key] !== next[key]) return false;
+  }
+
+  // Deep compare only the relevant cart lines for this product group
+  for (const variant of next.group.variants) {
+    for (const wh in WAREHOUSE_LABELS) {
+      const cartKey = `${variant.productId}::${wh}`;
+      const prevQty = prev.cartLines.find((l) => l.key === cartKey)?.qty || 0;
+      const nextQty = next.cartLines.find((l) => l.key === cartKey)?.qty || 0;
+      if (prevQty !== nextQty) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFav, setIsFav] = useState(false);
@@ -333,5 +355,5 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
-});
+}, propsAreEqual);
 
