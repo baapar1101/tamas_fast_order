@@ -52,14 +52,20 @@ function formatTime(iso: string) {
   try { return new Date(iso).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }); }
   catch { return ''; }
 }
-function extractArray(data: any): any[] {
+function extractArray<T = unknown>(data: unknown): T[] {
   if (!data) return [];
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data.data)) return data.data;
-  if (Array.isArray(data.items)) return data.items;
-  if (Array.isArray(data.messages)) return data.messages;
-  if (Array.isArray(data.data?.items)) return data.data.items;
-  if (Array.isArray(data.data?.messages)) return data.data.messages;
+  if (Array.isArray(data)) return data as T[];
+  if (typeof data === 'object' && data !== null) {
+    const d = data as Record<string, unknown>;
+    if (Array.isArray(d.data)) return d.data as T[];
+    if (Array.isArray(d.items)) return d.items as T[];
+    if (Array.isArray(d.messages)) return d.messages as T[];
+    if (typeof d.data === 'object' && d.data !== null) {
+      const dData = d.data as Record<string, unknown>;
+      if (Array.isArray(dData.items)) return dData.items as T[];
+      if (Array.isArray(dData.messages)) return dData.messages as T[];
+    }
+  }
   return [];
 }
 
