@@ -2703,7 +2703,7 @@
     display: none !important;
   }
 
-  /* Fix cart panel responsiveness on mobile */
+  /* Cart panel responsiveness on mobile */
   .cart,
   .mobile-only-cart .cart,
   .mobile-only-cart .cart-panel {
@@ -2731,7 +2731,7 @@
   }
 }
 
-/* Fix list mode layout bugs globally (desktop & mobile) */
+/* List mode layout bugs globally (desktop & mobile) */
 .product-accordion .thumb-box,
 .product-accordion .product-thumb {
   width: 132px !important;
