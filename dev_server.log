@@ -1,0 +1,191 @@
+
+> tamas-fast-order@2.0.0 predev
+> node scripts/fix-perms.js
+
+
+> tamas-fast-order@2.0.0 dev
+> npm-run-all --parallel dev:shared dev:api dev:web
+
+
+> tamas-fast-order@2.0.0 dev:web
+> npm run dev -w @tamas/web
+
+
+> tamas-fast-order@2.0.0 dev:shared
+> npm run dev -w @tamas/shared
+
+
+> tamas-fast-order@2.0.0 dev:api
+> npm run dev -w @tamas/api
+
+
+> @tamas/web@2.0.0 predev
+> node ../../scripts/fix-perms.js
+
+
+> @tamas/api@2.0.0 predev
+> node ../../scripts/fix-perms.js
+
+
+> @tamas/shared@2.0.0 dev
+> tsc -p tsconfig.json --watch
+
+
+> @tamas/web@2.0.0 dev
+> vite
+
+
+> @tamas/api@2.0.0 dev
+> cross-env PORT=3001 NODE_ENV=development tsx watch src/index.ts
+
+[2J[3J[H4:25:54 AM - Starting compilation in watch mode...
+
+
+  VITE v6.4.3  ready in 276 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://192.168.0.2:5173/
+
+4:25:57 AM - Found 0 errors. Watching for file changes.
+4:25:57 AM [tsx] change in ./../../packages/shared/dist/index.js Restarting...
+[04:26:02] INFO (61322): Server listening at http://127.0.0.1:3001
+[04:26:02] INFO (61322): Server listening at http://192.168.0.2:3001
+[04:26:39] INFO (61322): incoming request
+    reqId: "req-1"
+    req: {
+      "method": "GET",
+      "url": "/api/catalog/bootstrap",
+      "host": "127.0.0.1:3001",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 58186
+    }
+[04:26:39] INFO (61322): incoming request
+    reqId: "req-2"
+    req: {
+      "method": "GET",
+      "url": "/api/catalog/products?sort=price_asc&page=1&perPage=24",
+      "host": "127.0.0.1:3001",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 58196
+    }
+[04:26:39] INFO (61322): incoming request
+    reqId: "req-3"
+    req: {
+      "method": "GET",
+      "url": "/api/catalog/products?sort=price_asc&page=1&perPage=24",
+      "host": "127.0.0.1:3001",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 58210
+    }
+[04:26:39] ERROR (61322): unhandled error
+    reqId: "req-1"
+    err: {
+      "type": "DrizzleQueryError",
+      "message": "Failed query: select \"id\", \"name\", \"fa_name\", \"icon_url\", \"sort_order\", \"created_at\", \"updated_at\", \"deleted_at\", \"sheet_hash\", \"sheet_synced_at\" from \"categories\" where \"categories\".\"deleted_at\" is null order by \"categories\".\"sort_order\" asc, \"categories\".\"fa_name\" asc\nparams: : ",
+      "stack":
+          Error: Failed query: select "id", "name", "fa_name", "icon_url", "sort_order", "created_at", "updated_at", "deleted_at", "sheet_hash", "sheet_synced_at" from "categories" where "categories"."deleted_at" is null order by "categories"."sort_order" asc, "categories"."fa_name" asc
+          params:
+              at PostgresJsPreparedQuery.queryWithCache (/app/node_modules/src/pg-core/session.ts:73:11)
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+              at async <anonymous> (/app/node_modules/src/postgres-js/session.ts:58:17)
+              at async <anonymous> (/app/apps/api/src/services/catalog.ts:211:18)
+              at async TtlCache.wrap (/app/apps/api/src/lib/cache.ts:40:19)
+              at async Promise.all (index 0)
+              at async Object.<anonymous> (/app/apps/api/src/routes/catalog.ts:47:66)
+          caused by: AggregateError [ECONNREFUSED]:
+              at internalConnectMultiple (node:net:1134:18)
+              at afterConnectMultiple (node:net:1715:7)
+      "query": "select \"id\", \"name\", \"fa_name\", \"icon_url\", \"sort_order\", \"created_at\", \"updated_at\", \"deleted_at\", \"sheet_hash\", \"sheet_synced_at\" from \"categories\" where \"categories\".\"deleted_at\" is null order by \"categories\".\"sort_order\" asc, \"categories\".\"fa_name\" asc",
+      "params": []
+    }
+[04:26:39] INFO (61322): request completed
+    reqId: "req-1"
+    res: {
+      "statusCode": 500
+    }
+    responseTime: 61.16152100000181
+[04:26:39] ERROR (61322): unhandled error
+    reqId: "req-2"
+    err: {
+      "type": "DrizzleQueryError",
+      "message": "Failed query: select distinct COALESCE(NULLIF(\"products\".\"parent_product_id\", ''), \"products\".\"title\") from \"products\" left join \"categories\" on \"categories\".\"id\" = \"products\".\"category_id\" left join \"brands\" on \"brands\".\"id\" = \"products\".\"brand_id\" where ((\"products\".\"deleted_at\" is null and \"products\".\"status\" = $1) and \"products\".\"price\" > $2 and (\"products\".\"stock\" > $3 or \"products\".\"kerman_stock\" > $4 or \"products\".\"tehran_stock\" > $5)) order by COALESCE(NULLIF(\"products\".\"parent_product_id\", ''), \"products\".\"title\") asc limit $6\nparams: active,0,0,0,0,24: ",
+      "stack":
+          Error: Failed query: select distinct COALESCE(NULLIF("products"."parent_product_id", ''), "products"."title") from "products" left join "categories" on "categories"."id" = "products"."category_id" left join "brands" on "brands"."id" = "products"."brand_id" where (("products"."deleted_at" is null and "products"."status" = $1) and "products"."price" > $2 and ("products"."stock" > $3 or "products"."kerman_stock" > $4 or "products"."tehran_stock" > $5)) order by COALESCE(NULLIF("products"."parent_product_id", ''), "products"."title") asc limit $6
+          params: active,0,0,0,0,24
+              at PostgresJsPreparedQuery.queryWithCache (/app/node_modules/src/pg-core/session.ts:73:11)
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+              at async <anonymous> (/app/node_modules/src/postgres-js/session.ts:58:17)
+              at async queryProducts (/app/apps/api/src/services/catalog.ts:139:21)
+              at async Object.<anonymous> (/app/apps/api/src/routes/catalog.ts:18:20)
+          caused by: AggregateError [ECONNREFUSED]:
+              at internalConnectMultiple (node:net:1134:18)
+              at afterConnectMultiple (node:net:1715:7)
+      "query": "select distinct COALESCE(NULLIF(\"products\".\"parent_product_id\", ''), \"products\".\"title\") from \"products\" left join \"categories\" on \"categories\".\"id\" = \"products\".\"category_id\" left join \"brands\" on \"brands\".\"id\" = \"products\".\"brand_id\" where ((\"products\".\"deleted_at\" is null and \"products\".\"status\" = $1) and \"products\".\"price\" > $2 and (\"products\".\"stock\" > $3 or \"products\".\"kerman_stock\" > $4 or \"products\".\"tehran_stock\" > $5)) order by COALESCE(NULLIF(\"products\".\"parent_product_id\", ''), \"products\".\"title\") asc limit $6",
+      "params": [
+        "active",
+        0,
+        0,
+        0,
+        0,
+        24
+      ]
+    }
+[04:26:39] INFO (61322): request completed
+    reqId: "req-2"
+    res: {
+      "statusCode": 500
+    }
+    responseTime: 38.28285699999833
+[04:26:39] ERROR (61322): unhandled error
+    reqId: "req-3"
+    err: {
+      "type": "DrizzleQueryError",
+      "message": "Failed query: select distinct COALESCE(NULLIF(\"products\".\"parent_product_id\", ''), \"products\".\"title\") from \"products\" left join \"categories\" on \"categories\".\"id\" = \"products\".\"category_id\" left join \"brands\" on \"brands\".\"id\" = \"products\".\"brand_id\" where ((\"products\".\"deleted_at\" is null and \"products\".\"status\" = $1) and \"products\".\"price\" > $2 and (\"products\".\"stock\" > $3 or \"products\".\"kerman_stock\" > $4 or \"products\".\"tehran_stock\" > $5)) order by COALESCE(NULLIF(\"products\".\"parent_product_id\", ''), \"products\".\"title\") asc limit $6\nparams: active,0,0,0,0,24: ",
+      "stack":
+          Error: Failed query: select distinct COALESCE(NULLIF("products"."parent_product_id", ''), "products"."title") from "products" left join "categories" on "categories"."id" = "products"."category_id" left join "brands" on "brands"."id" = "products"."brand_id" where (("products"."deleted_at" is null and "products"."status" = $1) and "products"."price" > $2 and ("products"."stock" > $3 or "products"."kerman_stock" > $4 or "products"."tehran_stock" > $5)) order by COALESCE(NULLIF("products"."parent_product_id", ''), "products"."title") asc limit $6
+          params: active,0,0,0,0,24
+              at PostgresJsPreparedQuery.queryWithCache (/app/node_modules/src/pg-core/session.ts:73:11)
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+              at async <anonymous> (/app/node_modules/src/postgres-js/session.ts:58:17)
+              at async queryProducts (/app/apps/api/src/services/catalog.ts:139:21)
+              at async Object.<anonymous> (/app/apps/api/src/routes/catalog.ts:18:20)
+          caused by: AggregateError [ECONNREFUSED]:
+              at internalConnectMultiple (node:net:1134:18)
+              at afterConnectMultiple (node:net:1715:7)
+      "query": "select distinct COALESCE(NULLIF(\"products\".\"parent_product_id\", ''), \"products\".\"title\") from \"products\" left join \"categories\" on \"categories\".\"id\" = \"products\".\"category_id\" left join \"brands\" on \"brands\".\"id\" = \"products\".\"brand_id\" where ((\"products\".\"deleted_at\" is null and \"products\".\"status\" = $1) and \"products\".\"price\" > $2 and (\"products\".\"stock\" > $3 or \"products\".\"kerman_stock\" > $4 or \"products\".\"tehran_stock\" > $5)) order by COALESCE(NULLIF(\"products\".\"parent_product_id\", ''), \"products\".\"title\") asc limit $6",
+      "params": [
+        "active",
+        0,
+        0,
+        0,
+        0,
+        24
+      ]
+    }
+[04:26:39] INFO (61322): request completed
+    reqId: "req-3"
+    res: {
+      "statusCode": 500
+    }
+    responseTime: 33.698176999998395
+[04:27:02] WARN (61322): housekeeping failed
+    err: {
+      "type": "DrizzleQueryError",
+      "message": "Failed query: delete from \"sessions\" where \"sessions\".\"expires_at\" < $1 returning \"id\"\nparams: 2026-10-18T04:27:02.185Z: ",
+      "stack":
+          Error: Failed query: delete from "sessions" where "sessions"."expires_at" < $1 returning "id"
+          params: 2026-10-18T04:27:02.185Z
+              at PostgresJsPreparedQuery.queryWithCache (/app/node_modules/src/pg-core/session.ts:73:11)
+              at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+              at async <anonymous> (/app/node_modules/src/postgres-js/session.ts:58:17)
+              at async pruneSessions (/app/apps/api/src/services/auth.ts:206:16)
+              at async Promise.all (index 0)
+              at async housekeeping (/app/apps/api/src/scheduler.ts:39:43)
+          caused by: AggregateError [ECONNREFUSED]:
+              at internalConnectMultiple (node:net:1134:18)
+              at afterConnectMultiple (node:net:1715:7)
+      "query": "delete from \"sessions\" where \"sessions\".\"expires_at\" < $1 returning \"id\"",
+      "params": [
+        "2026-10-18T04:27:02.185Z"
+      ]
+    }
