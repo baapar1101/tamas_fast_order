@@ -1,22 +1,13 @@
 # Tamas Fast Order — Project Rules
 
-## Google Sheet is the Source of Truth for Price & Stock
+## Product source of truth
 
-**RULE: Price and stock values must ALWAYS be read from Google Sheet. Google Sheet wins all conflicts.**
+The site database is authoritative for product existence, codes, descriptions, prices and stock. Google Sheets and CRM are downstream mirrors of active site products.
 
-- `price`, `comparePrice` (or any price-related field) must **never** be taken from the local database as the authoritative value.
-- `stock` / `quantity` / `inStock` must **never** be taken from the local database as the authoritative value.
-- When a conflict exists between the database and Google Sheet, **Google Sheet always wins**.
-- Any code that writes price or stock to the DB must treat the DB copy as a **cache** only — it must be refreshed from Google Sheet before serving to clients.
-- Sync jobs, API endpoints, and UI logic must follow this hierarchy:
+- Product codes are strings of digits beginning with `0`. Never coerce them to numbers or strip leading zeros.
+- Creating, editing or deleting a product starts on the site. Publish those changes to Google Sheets and CRM.
+- A product deleted on the site must be absent from the Products sheet and removed from CRM. Keep local order history intact.
+- Spreadsheet edits must not recreate deleted products or overwrite site-owned product fields. Excel imports update the site first, then publish outward.
+- Other sheet tabs may have their own merge rules; do not infer product ownership from those tabs.
 
-```
-Google Sheet  →  (sync/cache)  →  Database  →  API  →  Client
-      ↑
-  Source of Truth
-```
-
-### Enforcement Checklist for Code Changes
-- [ ] Does this change read price/stock from the DB without first checking Google Sheet freshness? → **Fix it.**
-- [ ] Does this change allow a user or admin action to permanently override price/stock in the DB? → **Disallow it.**
-- [ ] Does this change add a price or stock field to a form/mutation? → **Ensure it still syncs from Sheet before persisting.**
+For repository layout and documentation entry points, see [`README.md`](../README.md).

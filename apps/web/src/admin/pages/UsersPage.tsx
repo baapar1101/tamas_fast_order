@@ -23,7 +23,7 @@ export function UsersPage() {
   const currentUser = useAuth((state) => state.user);
 
   const [search, setSearch] = useState('');
-  const [role, setRole] = useState<'all' | 'admin' | 'operator' | 'customer'>('all');
+  const [role, setRole] = useState<'all' | 'admin' | 'operator' | 'investor' | 'customer'>('all');
   const [page, setPage] = useState(1);
   const [editingUser, setEditingUser] = useState<UserDTO | null>(null);
   const [editRole, setEditRole] = useState<UserDTO['role']>('customer');
@@ -118,6 +118,7 @@ export function UsersPage() {
                 { value: 'all', label: 'همه نقش‌ها' },
                 { value: 'admin', label: 'مدیر ارشد (Admin)' },
                 { value: 'operator', label: 'اپراتور (Operator)' },
+                { value: 'investor', label: 'سرمایه‌گذار' },
                 { value: 'customer', label: 'مشتریان عادی' }
               ]}
             />
@@ -216,9 +217,9 @@ export function UsersPage() {
                     </td>
                     <td>
                       <div className="flex justify-center">
-                        <span className={`chip ${u.role === 'admin' ? 'chip-amber flex gap-1 items-center' : u.role === 'operator' ? 'chip-brand' : 'chip-slate'}`}>
+                        <span className={`chip ${u.role === 'admin' ? 'chip-amber flex gap-1 items-center' : u.role === 'operator' ? 'chip-brand' : u.role === 'investor' ? 'chip-amber' : 'chip-slate'}`}>
                           {u.role === 'admin' && <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path d="M5.23 7.21a1.25 1.25 0 0 1 1.06.59L10 13.91l3.71-6.11a1.25 1.25 0 0 1 2.12 1.3l-4.78 7.87a1.25 1.25 0 0 1-2.1 0L4.17 9.1a1.25 1.25 0 0 1 1.06-1.89Z" /><path d="M10 2.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Z" /><path d="M2.5 6.25a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Z" /><path d="M17.5 6.25a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Z" /></svg>}
-                          {u.role === 'admin' ? 'مدیر ارشد' : u.role === 'operator' ? 'اپراتور' : 'مشتری عادی'}
+                          {u.role === 'admin' ? 'مدیر ارشد' : u.role === 'operator' ? 'اپراتور' : u.role === 'investor' ? 'سرمایه‌گذار' : 'مشتری عادی'}
                         </span>
                       </div>
                     </td>
@@ -314,6 +315,7 @@ export function UsersPage() {
                   options={[
                     { value: 'customer', label: 'مشتری عادی' },
                     { value: 'operator', label: 'اپراتور' },
+                    { value: 'investor', label: 'سرمایه‌گذار' },
                     { value: 'admin', label: 'مدیر ارشد' }
                   ]}
                 />

@@ -1,0 +1,155 @@
+.credit-page {
+  width: 100%;
+  min-width: 0;
+}
+
+.credit-page-heading {
+  margin-bottom: 22px;
+}
+
+.credit-page-heading > span {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--tamas-accent-deep);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.credit-page-heading h2 {
+  margin: 0 0 8px;
+  font-size: clamp(22px, 3vw, 30px);
+  line-height: 1.4;
+}
+
+.credit-page-heading p {
+  margin: 0;
+  color: var(--tamas-muted);
+  line-height: 1.8;
+}
+
+.credit-dashboard {
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid var(--tamas-border);
+  border-radius: 18px;
+  background: var(--tamas-surface);
+  box-shadow: var(--tamas-shadow-sm);
+}
+
+.credit-load-error {
+  padding: 36px 24px;
+  text-align: center;
+}
+
+.credit-load-error p {
+  color: var(--tamas-muted);
+  line-height: 1.8;
+}
+
+.credit-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.credit-metrics > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.credit-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.credit-tabs .btn {
+  min-width: 0;
+  min-height: 44px;
+  white-space: normal;
+  line-height: 1.5;
+}
+
+.credit-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.credit-form-grid > * {
+  min-width: 0;
+}
+
+.credit-form-grid input,
+.credit-form-grid select,
+.credit-form-grid textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.credit-table-wrap table {
+  min-width: 680px;
+}
+
+.credit-table-hint {
+  display: none;
+}
+
+.credit-steps > div:not(:first-child) {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+@media (max-width: 800px) {
+  .credit-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .credit-page-heading {
+    margin-bottom: 16px;
+  }
+
+  .credit-page-heading p {
+    font-size: 13px;
+  }
+
+  .credit-dashboard {
+    padding: 16px 12px;
+    border-radius: 16px;
+  }
+
+  .credit-metrics {
+    grid-template-columns: 1fr;
+    padding: 10px !important;
+  }
+
+  .credit-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .credit-tabs .btn:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .credit-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .credit-steps > div:not(:first-child) {
+    padding-inline: 2px !important;
+  }
+
+  .credit-steps > div:not(:first-child) span {
+    font-size: 10px !important;
+    line-height: 1.4;
+  }
+
+  .credit-table-hint {
+    display: block;
+    margin: 0 0 8px;
+    color: var(--tamas-muted);
+    font-size: 12px;
+  }
+
+  .credit-load-error {
+    padding: 24px 16px;
+  }
+}

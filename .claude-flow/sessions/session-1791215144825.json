@@ -1,0 +1,15 @@
+{
+  "id": "session-1791215144825",
+  "startedAt": "2026-10-05T15:45:44.825Z",
+  "cwd": "D:\\tamas_fast_order",
+  "context": {},
+  "metrics": {
+    "edits": 4,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "restoredAt": "2026-10-05T16:29:51.415Z",
+  "endedAt": "2026-10-06T06:51:23.577Z",
+  "duration": 54338753
+}

@@ -22,6 +22,13 @@ interface ExcelSyncReport {
   errors: string[];
 }
 
+interface ExcelUploadProgress {
+  current: number;
+  total: number;
+  state: 'reading' | 'importing' | 'publishing' | 'done' | 'error';
+  message?: string;
+}
+
 interface SyncStatusResponse {
   ok: boolean;
   enabled: boolean;
@@ -94,15 +101,15 @@ export function SyncPage() {
     },
   });
 
-  /* ---------- Price & Stock Sync (Google Sheet → DB only) ---------- */
+  /* ---------- Product publish (site DB → Google Sheet) ---------- */
   const [priceStockReport, setPriceStockReport] = useState<PriceStockReport | null>(null);
 
   const priceStockSync = useMutation({
     mutationFn: () => api.post<{ ok: boolean; report: PriceStockReport }>('/admin/sync/price-stock', {}),
     onSuccess: (data) => {
-      const r = (data as any).report ?? data;
+      const r = data.report;
       setPriceStockReport(r);
-      toast.ok(`قیمت و موجودی بروزرسانی شد: ${r.updated} محصول بروز شد.`);
+      toast.ok(`اطلاعات سایت در شیت منتشر شد: ${r.updated} ردیف تغییر کرد.`);
       invalidate();
     },
     onError: (err: Error) => toast.error(err.message),
@@ -110,38 +117,63 @@ export function SyncPage() {
 
   /* ---------- Excel Sync ---------- */
   const [excelReport, setExcelReport] = useState<ExcelSyncReport | null>(null);
+  const [excelJobId, setExcelJobId] = useState<string | null>(null);
+  const [excelError, setExcelError] = useState<string | null>(null);
+  const [excelUploading, setExcelUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const excelProgress = useQuery({
+    queryKey: ['admin', 'sync', 'excel-progress', excelJobId],
+    queryFn: () => api.get<{ progress: ExcelUploadProgress }>(`/admin/sync/excel-upload/status/${excelJobId}`),
+    enabled: Boolean(excelJobId) && excelUploading,
+    refetchInterval: 400,
+  });
+
+  const progress = excelProgress.data?.progress;
+
   const excelSync = useMutation({
-    mutationFn: (file: File) => {
+    mutationFn: ({ file, jobId }: { file: File; jobId: string }) => {
       const formData = new FormData();
       formData.append('excel', file);
-      return api.upload<{ ok: boolean; report: ExcelSyncReport }>('/admin/sync/excel-upload', formData);
+      return api.upload<{ ok: boolean; report: ExcelSyncReport }>(`/admin/sync/excel-upload?jobId=${encodeURIComponent(jobId)}`, formData);
     },
     onSuccess: (data) => {
-      const r = (data as any).report ?? data;
+      const r = data.report;
       setExcelReport(r);
-      toast.ok(`بروزرسانی با اکسل موفق بود: ${r.updated} محصول بروز شد.`);
+      setExcelError(null);
+      const message = `از اکسل ${formatNumber(r.updated)} محصول به‌روز شد${r.skipped ? ` و ${formatNumber(r.skipped)} ردیف رد شد` : ''}.`;
+      if (r.skipped || r.errors.length) toast.show(message, 'info');
+      else toast.ok(message);
       invalidate();
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
     onError: (err: Error) => {
+      setExcelReport(null);
+      setExcelError(err.message);
       toast.error(err.message);
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
+    onSettled: () => setExcelUploading(false),
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    excelSync.mutate(file);
+    const jobId = typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `excel-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setExcelReport(null);
+    setExcelError(null);
+    setExcelJobId(jobId);
+    setExcelUploading(true);
+    excelSync.mutate({ file, jobId });
   };
 
   const downloadTemplate = async () => {
     try {
       await api.download('/admin/sync/excel-template', {}, 'price-update-template.xlsx');
-    } catch (err: any) {
-      toast.error(err.message || 'خطا در دانلود فایل نمونه');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'خطا در دانلود فایل نمونه');
     }
   };
 
@@ -168,7 +200,7 @@ export function SyncPage() {
       <section className="a-page-head">
         <div className="a-titles">
           <h2 className="a-title">همگام‌سازی گوگل شیت (Google Sheets)</h2>
-          <p className="a-subtitle">اتصال و همگام‌سازی ۲ طرفه دیتابیس و شیت گوگل</p>
+          <p className="a-subtitle">سایت منبع اصلی محصولات است؛ گوگل شیت نسخه همگام‌شده سایت را نگه می‌دارد.</p>
         </div>
         <div className="a-page-actions a-actions">
           <span className={`chip ${enabled ? 'chip-brand' : 'chip-rose'}`}>
@@ -191,11 +223,11 @@ export function SyncPage() {
       <section className="a-card" style={{ borderColor: 'var(--clr-brand)', borderWidth: 2 }}>
         <div className="a-card-head a-card-head--split">
           <div>
-            <h3 className="a-card-title">بروزرسانی قیمت و موجودی از گوگل شیت</h3>
+            <h3 className="a-card-title">انتشار محصولات سایت در گوگل شیت</h3>
             <p className="a-card-desc">
-              فقط قیمت، تخفیف، نوع فروش و موجودی انبارها را از گوگل شیت دریافت و در دیتابیس بروزرسانی می‌کند.
+              کد، مشخصات، قیمت و موجودی محصولات را از سایت در شیت منتشر می‌کند؛ محصولات حذف‌شده نیز از شیت حذف می‌شوند.
               <br />
-              <strong>گوگل شیت = منبع اصلی قیمت و موجودی</strong>
+              <strong>سایت = منبع اصلی همه اطلاعات محصول</strong>
             </p>
           </div>
           <div className="a-card-actions">
@@ -205,7 +237,7 @@ export function SyncPage() {
               disabled={priceStockSync.isPending}
               onClick={() => priceStockSync.mutate()}
             >
-              {priceStockSync.isPending ? 'در حال بروزرسانی...' : 'بروزرسانی قیمت و موجودی'}
+              {priceStockSync.isPending ? 'در حال انتشار...' : 'انتشار سایت در شیت'}
             </button>
           </div>
         </div>
@@ -249,7 +281,7 @@ export function SyncPage() {
           <div>
             <h3 className="a-card-title">آپدیت گروهی قیمت و موجودی با اکسل</h3>
             <p className="a-card-desc">
-              ابتدا فایل نمونه را دانلود کنید، مقادیر (قیمت به ریال) را وارد کرده و سپس فایل را آپلود کنید.
+              فایل اکسل ابتدا سایت را بروزرسانی می‌کند و سپس نتیجه به Google Sheet و CRM ارسال می‌شود. فقط ستون sku و یکی از ستون‌های price، kerman_stock یا tehran_stock کافی است؛ قیمت را به ریال وارد کنید.
             </p>
           </div>
           <div className="a-card-actions">
@@ -277,6 +309,50 @@ export function SyncPage() {
             </button>
           </div>
         </div>
+
+        {excelSync.isPending && (
+          <div className="a-card mt-4" aria-live="polite">
+            <div className="flex items-center justify-between gap-3">
+              <strong>
+                {progress?.state === 'publishing'
+                  ? 'در حال انتشار تغییرات در سرویس‌های متصل...'
+                  : progress?.total
+                    ? `در حال ورود محصول ${formatNumber(progress.current)} از ${formatNumber(progress.total)}`
+                    : 'در حال خواندن و بررسی فایل اکسل...'}
+              </strong>
+              {progress?.total ? <span>{formatNumber(Math.round((progress.current / progress.total) * 100))}٪</span> : null}
+            </div>
+            <div
+              className="progress-track"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={progress?.total || undefined}
+              aria-valuenow={progress?.total ? progress.current : undefined}
+            >
+              <div
+                className="progress-bar from-aqua-400 to-brand-400"
+                style={{ width: progress?.total ? `${Math.max(3, (progress.current / progress.total) * 100)}%` : '18%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {excelError && (
+          <div className="a-alert a-alert--error mt-4" role="alert">
+            <strong>ورود فایل ناموفق بود:</strong> {excelError}
+          </div>
+        )}
+
+        {excelReport && !excelSync.isPending && (
+          <div
+            className="a-alert mt-4"
+            role="status"
+            style={{ color: 'var(--clr-brand)', borderColor: 'rgba(16, 185, 129, .3)', background: 'rgba(16, 185, 129, .08)' }}
+          >
+            عملیات تمام شد: {formatNumber(excelReport.updated)} محصول با موفقیت به‌روزرسانی شد
+            {excelReport.skipped ? ` و ${formatNumber(excelReport.skipped)} ردیف رد شد` : ''}.
+          </div>
+        )}
 
         {/* Excel Report */}
         {excelReport && (
@@ -316,7 +392,7 @@ export function SyncPage() {
         <div className="a-card-head a-card-head--split">
           <div>
             <h3 className="a-card-title">اجرای دستی همگام‌سازی (پیشرفته)</h3>
-            <p className="a-card-desc">انتخاب جهت همگام‌سازی و جداول دلخواه برای اجرا</p>
+            <p className="a-card-desc">برای محصولات، سایت همیشه مرجع است و انتخاب Pull نیز چیزی را از شیت وارد سایت نمی‌کند.</p>
           </div>
           <div className="a-card-actions">
             <button

@@ -7,7 +7,6 @@ import { ORDER_STATUS_LABELS, WAREHOUSE_LABELS, formatNumber } from '@tamas/shar
 import { Price } from '../components/Price';
 import { PrintInvoiceLayout, type PrintInvoiceItem } from '../components/PrintInvoiceLayout';
 import { Icon } from '../components/Icon';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import './storefront.css';
@@ -38,26 +37,7 @@ export function OrdersPage() {
   });
 
   return (
-    <div className="shell">
-      <header className="topbar">
-        <div className="topbar-inner ord-header">
-          <Link to="/" className="ord-header-back" aria-label="بازگشت به فروشگاه">
-            <Icon name="home" />
-          </Link>
-          <Link to="/" className="logo ord-header-logo">
-            <img src="/logo.png" alt="تماس مارکت" />
-            <span className="logo-tagline">مرجع تخصصی فروش عمده کالای دیجیتال</span>
-          </Link>
-          <h1 className="ord-header-title">سفارش‌های من</h1>
-          <span className="spacer" />
-          <Link to="/" className="top-btn ord-header-shop">
-            بازگشت به فروشگاه
-          </Link>
-          <ThemeToggle />
-        </div>
-      </header>
-
-      <main className="container ord-page">
+    <section className="ord-page">
         <div className="ord-main-title">
           <h1>سفارش‌های من</h1>
           <p>پیگیری وضعیت سفارش‌ها و دانلود فاکتور</p>
@@ -111,6 +91,12 @@ export function OrdersPage() {
                         <span className="ord-stat-label">مبلغ کل</span>
                         <b className="ord-stat-value"><Price amount={order.total} /></b>
                       </div>
+                      {order.paymentPlan && (
+                        <div className="ord-stat">
+                          <span className="ord-stat-label">شرایط پرداخت</span>
+                          <b className="ord-stat-value">{order.paymentPlan.label}</b>
+                        </div>
+                      )}
                     </div>
                   </header>
 
@@ -156,6 +142,10 @@ export function OrdersPage() {
                     customerName={user?.name}
                     customerPhone={user?.phone}
                     total={order.total}
+                    subtotal={order.subtotal}
+                    paymentLabel={order.paymentPlan?.label}
+                    paymentSavings={order.paymentPlan ? Math.max(0, order.paymentPlan.baseAmount - order.paymentPlan.finalAmount) : 0}
+                    paymentSavingsLabel={order.paymentPlan?.kind === 'cash' ? 'سود شما از پرداخت نقدی' : 'سود شما از شرایط پرداخت'}
                     items={items}
                     showStamp={order.status !== 'cancelled'}
                   />
@@ -164,7 +154,6 @@ export function OrdersPage() {
             })}
           </div>
         )}
-      </main>
-    </div>
+    </section>
   );
 }

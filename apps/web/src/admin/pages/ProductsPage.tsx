@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ProductDTO } from '@tamas/shared';
@@ -9,10 +9,13 @@ import { AdminStatStrip } from '../components/AdminStatStrip';
 import { api } from '../../lib/api';
 import { useDebounced } from '../../storefront/hooks';
 import { ProductEditor, type ProductForm } from '../components/ProductEditor';
+import { copyPublicProductUrl, previewProductUrl } from '../components/ProductLinks';
 import { VariantsEditor } from '../components/VariantsEditor';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
 import { CatalogPrintView } from '../components/CatalogPrintView';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { ProductSheetView } from '../components/ProductSheetView';
+import { parseSheetPatch, sheetCellValue, type SheetDrafts, type SheetEditableKey } from '../components/productSheetModel';
 
 interface ProductsResponse {
   items: ProductDTO[];
@@ -21,7 +24,15 @@ interface ProductsResponse {
   perPage: number;
 }
 
-type BulkAction = 'activate' | 'deactivate' | 'delete' | 'promote' | 'demote' | 'setStock' | 'adjustPrice';
+type BulkAction = 'activate' | 'deactivate' | 'delete' | 'promote' | 'demote' | 'finance' | 'unfinance' | 'setStock' | 'adjustPrice';
+const SHEET_DRAFT_STORAGE_KEY = 'admin-product-sheet-drafts';
+
+function restoreSheetDrafts(): SheetDrafts {
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(SHEET_DRAFT_STORAGE_KEY) ?? '{}');
+    return stored && typeof stored === 'object' && !Array.isArray(stored) ? stored as SheetDrafts : {};
+  } catch { return {}; }
+}
 
 function Chevron() {
   return (
@@ -69,6 +80,12 @@ const STOCK_OPTIONS = [
   { value: 'out', label: 'تمام شده' },
 ];
 
+const INVESTOR_OPTIONS = [
+  { value: 'all', label: 'همه محصولات' },
+  { value: 'yes', label: 'تأمین‌شده توسط سرمایه‌گذار' },
+  { value: 'no', label: 'خارج از سرمایه‌گذاری' },
+];
+
 const SORT_OPTIONS = [
   { value: 'updated', label: 'آخرین تغییرات' },
   { value: 'title', label: 'عنوان کالا' },
@@ -84,6 +101,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [stock, setStock] = useState<'all' | 'in' | 'out'>('all');
+  const [investorFinanced, setInvestorFinanced] = useState<'all' | 'yes' | 'no'>('all');
   const [categoryId, setCategoryId] = useState<number | ''>('');
   const [brandId, setBrandId] = useState<number | ''>('');
   const [sort, setSort] = useState('updated');
@@ -92,7 +110,9 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [editing, setEditing] = useState<ProductDTO | 'new' | null>(null);
   const [bulkPrompt, setBulkPrompt] = useState<'setStock' | 'adjustPrice' | null>(null);
   const [bulkValue, setBulkValue] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+  const [viewMode, setViewMode] = useState<'grid' | 'table' | 'sheet'>(() => Object.keys(restoreSheetDrafts()).length ? 'sheet' : 'table');
+  const [sheetDrafts, setSheetDrafts] = useState<SheetDrafts>(restoreSheetDrafts);
+  const [sheetSaving, setSheetSaving] = useState(false);
   const [variantsProduct, setVariantsProduct] = useState<ProductDTO | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [bulkMenuOpen, setBulkMenuOpen] = useState(false);
@@ -101,6 +121,22 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [deleteTarget, setDeleteTarget] = useState<ProductDTO | 'bulk' | null>(null);
 
   const debounced = useDebounced(search);
+  const perPage = viewMode === 'sheet' ? 100 : 24;
+  const sheetDirtyCount = Object.keys(sheetDrafts).length;
+
+  useEffect(() => {
+    if (!sheetDirtyCount) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [sheetDirtyCount]);
+
+  useEffect(() => {
+    try {
+      if (sheetDirtyCount) sessionStorage.setItem(SHEET_DRAFT_STORAGE_KEY, JSON.stringify(sheetDrafts));
+      else sessionStorage.removeItem(SHEET_DRAFT_STORAGE_KEY);
+    } catch { /* Editing still works if temporary browser storage is unavailable. */ }
+  }, [sheetDrafts, sheetDirtyCount]);
 
   const taxonomy = useQuery({
     queryKey: ['admin', 'taxonomy'],
@@ -109,8 +145,8 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   });
 
   const query = useMemo(
-    () => ({ q: debounced, status, stock, categoryId: categoryId || undefined, brandId: brandId || undefined, sort, page, perPage: 24, parentOnly: true, type: typeFilter || undefined }),
-    [debounced, status, stock, categoryId, brandId, sort, page, typeFilter],
+    () => ({ q: debounced, status, stock, investorFinanced, categoryId: categoryId || undefined, brandId: brandId || undefined, sort, page, perPage, parentOnly: viewMode !== 'sheet', type: typeFilter || undefined }),
+    [debounced, status, stock, investorFinanced, categoryId, brandId, sort, page, perPage, viewMode, typeFilter],
   );
 
   const products = useQuery({
@@ -122,6 +158,9 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ['admin', 'products'] });
     void qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
+    void qc.invalidateQueries({ queryKey: ['admin', 'warehouses', 'investment-summary'] });
+    void qc.invalidateQueries({ queryKey: ['admin', 'financial', 'costs'] });
+    void qc.invalidateQueries({ queryKey: ['investor', 'dashboard'] });
   };
 
   const save = useMutation({
@@ -166,13 +205,13 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                 Array.isArray(responseData?.data?.items) ? responseData.data.items : [];
   
   const total = responseData?.total ?? responseData?.data?.total ?? items.length;
-  const pageCount = Math.max(1, Math.ceil(total / 24));
+  const pageCount = Math.max(1, Math.ceil(total / perPage));
   const allOnPageSelected = items.length > 0 && items.every((p: ProductDTO) => selected.has(p.id));
   
   const taxonomyData: any = taxonomy.data;
   const categoryOptions: CategoryDTO[] = taxonomyData?.categories ?? taxonomyData?.data?.categories ?? [];
   const brandOptions: BrandDTO[] = taxonomyData?.brands ?? taxonomyData?.data?.brands ?? [];
-  const activeFilterCount = (stock !== 'all' ? 1 : 0) + (categoryId !== '' ? 1 : 0) + (brandId !== '' ? 1 : 0);
+  const activeFilterCount = (stock !== 'all' ? 1 : 0) + (investorFinanced !== 'all' ? 1 : 0) + (categoryId !== '' ? 1 : 0) + (brandId !== '' ? 1 : 0);
 
   function toggle(id: number) {
     const next = new Set(selected);
@@ -188,6 +227,74 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
       else next.delete(p.id);
     }
     setSelected(next);
+  }
+
+  function switchView(next: 'grid' | 'table' | 'sheet') {
+    if (next === viewMode) return;
+    if (sheetDirtyCount && next !== 'sheet') {
+      toast.error('ابتدا تغییرات صفحه‌گسترده را ذخیره یا لغو کنید.');
+      return;
+    }
+    setSelected(new Set());
+    setPage(1);
+    setViewMode(next);
+  }
+
+  function changeSheetCell(product: ProductDTO, key: SheetEditableKey, value: string | boolean) {
+    const original = sheetCellValue(product, key);
+    setSheetDrafts((previous) => {
+      const row = { ...previous[product.id] };
+      if (value === original) delete row[key];
+      else row[key] = value;
+      const next = { ...previous };
+      if (Object.keys(row).length) next[product.id] = row;
+      else delete next[product.id];
+      return next;
+    });
+  }
+
+  async function saveSheet() {
+    if (sheetSaving || !sheetDirtyCount) return;
+    let updates: Array<{ id: number; patch: ReturnType<typeof parseSheetPatch> }>;
+    try {
+      updates = Object.entries(sheetDrafts).map(([id, draft]) => {
+        try {
+          return { id: Number(id), patch: parseSheetPatch(draft) };
+        } catch (error) {
+          const code = items.find((item) => item.id === Number(id))?.productId ?? id;
+          throw new Error(`${code}: ${error instanceof Error ? error.message : 'مقدار نامعتبر'}`);
+        }
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'مقدارهای ویرایش‌شده معتبر نیستند.');
+      return;
+    }
+    setSheetSaving(true);
+    const saved: number[] = [];
+    const failed: string[] = [];
+    try {
+      for (const { id, patch } of updates) {
+        try {
+          await api.patch(`/admin/products/${id}`, patch);
+          saved.push(id);
+        } catch (error) {
+          const code = items.find((item) => item.id === id)?.productId ?? String(id);
+          failed.push(`${code}: ${error instanceof Error ? error.message : 'خطا در ذخیره'}`);
+        }
+      }
+      if (saved.length) {
+        setSheetDrafts((previous) => {
+          const next = { ...previous };
+          saved.forEach((id) => { delete next[id]; });
+          return next;
+        });
+        invalidate();
+        toast.ok(`${formatNumber(saved.length)} محصول ذخیره شد.`);
+      }
+      if (failed.length) toast.error(`${formatNumber(failed.length)} محصول ذخیره نشد. ${failed[0]}`);
+    } finally {
+      setSheetSaving(false);
+    }
   }
 
   function runBulk(action: BulkAction) {
@@ -217,10 +324,16 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   function rowActions(p: ProductDTO): Array<{ label: string; danger?: boolean; run: () => void }> {
     return [
       { label: 'ویرایش', run: () => setEditing(p) },
+      { label: 'پیش‌نمایش محصول', run: () => { window.open(previewProductUrl(p.productId), '_blank', 'noopener,noreferrer'); } },
+      { label: 'کپی لینک نهایی', run: () => { void copyPublicProductUrl(p.productId).then(() => toast.ok('لینک نهایی محصول کپی شد.')).catch(() => toast.error('کپی لینک ممکن نشد.')); } },
       { label: 'مدیریت واریانت‌ها', run: () => setVariantsProduct(p) },
       {
         label: p.status === 'active' ? 'غیرفعال‌سازی' : 'فعال‌سازی',
         run: () => bulk.mutate({ ids: [p.id], action: p.status === 'active' ? 'deactivate' : 'activate' }),
+      },
+      {
+        label: p.investorFinanced ? 'حذف از سرمایه‌گذاری' : 'افزودن به سرمایه‌گذاری',
+        run: () => bulk.mutate({ ids: [p.id], action: p.investorFinanced ? 'unfinance' : 'finance' }),
       },
       { label: 'حذف', danger: true, run: () => setDeleteTarget(p) },
     ];
@@ -232,6 +345,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
         product={editing === 'new' ? null : editing}
         categories={categoryOptions}
         brands={brandOptions}
+        isBundleMode={typeFilter === 'bundle'}
         busy={save.isPending}
         onClose={() => setEditing(null)}
         onSave={(body) => save.mutate({ id: editing === 'new' ? null : editing.id, body })}
@@ -308,6 +422,12 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                 <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('demote')}>
                   حذف از پیشنهاد ویژه
                 </button>
+                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('finance')}>
+                  افزودن به سرمایه‌گذاری
+                </button>
+                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('unfinance')}>
+                  حذف از سرمایه‌گذاری
+                </button>
                 <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('setStock')}>
                   تنظیم موجودی…
                 </button>
@@ -350,16 +470,23 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           <button
             type="button"
             className={`a-seg${viewMode === 'grid' ? ' a-seg--on' : ''}`}
-            onClick={() => setViewMode('grid')}
+            onClick={() => switchView('grid')}
           >
             کارت‌ها
           </button>
           <button
             type="button"
             className={`a-seg${viewMode === 'table' ? ' a-seg--on' : ''}`}
-            onClick={() => setViewMode('table')}
+            onClick={() => switchView('table')}
           >
             جدول
+          </button>
+          <button
+            type="button"
+            className={`a-seg${viewMode === 'sheet' ? ' a-seg--on' : ''}`}
+            onClick={() => switchView('sheet')}
+          >
+            صفحه‌گسترده
           </button>
         </div>
       </section>
@@ -390,6 +517,17 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                 { value: '', label: 'همه دسته‌بندی‌ها' },
                 ...categoryOptions.map(c => ({ value: String(c.id), label: c.faName }))
               ]}
+            />
+          </div>
+          <div className="a-field">
+            <label>دامنه سرمایه‌گذاری</label>
+            <AnimatedDropdown
+              value={investorFinanced}
+              onChange={(value) => {
+                setInvestorFinanced(value as typeof investorFinanced);
+                setPage(1);
+              }}
+              options={INVESTOR_OPTIONS}
             />
           </div>
           <div className="a-field">
@@ -450,6 +588,28 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
               + {typeFilter === 'bundle' ? 'ایجاد باندل' : 'ایجاد محصول'}
             </button>
           </div>
+        ) : viewMode === 'sheet' ? (
+          <ProductSheetView
+            items={items}
+            page={page}
+            perPage={perPage}
+            storageId="products"
+            selected={selected}
+            allOnPageSelected={allOnPageSelected}
+            onToggle={toggle}
+            onToggleAll={toggleAll}
+            drafts={sheetDrafts}
+            onChange={changeSheetCell}
+            onSave={() => { void saveSheet(); }}
+            onDiscard={() => { if (window.confirm('تغییرات ذخیره‌نشده کنار گذاشته شوند؟')) setSheetDrafts({}); }}
+            saving={sheetSaving}
+            categories={categoryOptions}
+            brands={brandOptions}
+            onEdit={(product) => {
+              if (sheetDirtyCount) toast.error('ابتدا تغییرات صفحه‌گسترده را ذخیره یا لغو کنید.');
+              else setEditing(product);
+            }}
+          />
         ) : viewMode === 'table' ? (
           <div className="a-table-wrap">
             <table className="a-table">
@@ -476,6 +636,11 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                       <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
                       <span>قیمت (تومان)</span>
+                    </div>
+                  </th>
+                  <th className="">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <span>خرید / ارزش سرمایه</span>
                     </div>
                   </th>
                   <th className="">
@@ -520,12 +685,17 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                       <td className=" pp-cell-title">
                         <div className="flex items-center gap-2">
                           {p.promotion && <span className="a-badge a-badge--amber">ویژه</span>}
+                          {p.investorFinanced && <span className="a-badge a-badge--green">سرمایه‌گذار</span>}
                           <span className="text-sm font-semibold text-[var(--a-t1)] line-clamp-1">{p.title}</span>
                         </div>
                       </td>
                       <td className="">
                         <div className="text-sm font-bold text-[var(--a-t1)]">{formatNumber(p.price)}</div>
                         {p.oldPrice && p.oldPrice > p.price && <div className="text-xs text-[var(--a-t4)] line-through">{formatNumber(p.oldPrice)}</div>}
+                      </td>
+                      <td className="">
+                        <div className="text-sm font-bold text-[var(--a-t1)]">{formatNumber(p.costPrice ?? 0)}</div>
+                        <div className="text-xs text-[var(--a-t4)]">ارزش: {formatNumber(p.inventoryValue ?? totalStock * (p.costPrice ?? 0))}</div>
                       </td>
                       <td className="">
                         {totalStock === 0 ? (
@@ -602,6 +772,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                       aria-label={`انتخاب ${p.title}`}
                     />
                     {p.promotion && <span className="a-badge a-badge--amber pp-gbadge">ویژه</span>}
+                    {p.investorFinanced && <span className="a-badge a-badge--green" style={{ position: 'absolute', right: 12, bottom: 12 }}>سرمایه‌گذار</span>}
                   </div>
                   <div className="admin-product-card__body">
                     <div className="admin-product-card__meta">
@@ -615,6 +786,16 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                         {p.oldPrice && p.oldPrice > p.price && <del>{formatNumber(p.oldPrice)}</del>}
                       </div>
                       <div className="admin-product-card__actions">
+                        <a
+                          className="admin-product-card__action admin-product-card__action--brand"
+                          href={previewProductUrl(p.productId)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="پیش‌نمایش محصول"
+                          aria-label={`پیش‌نمایش ${p.title}`}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+                        </a>
                         <button type="button" className="admin-product-card__action" title="ویرایش" aria-label={`ویرایش ${p.title}`} onClick={() => setEditing(p)}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
@@ -648,6 +829,9 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                       <span className={`a-badge ${totalStock === 0 ? 'a-badge--red' : 'a-badge--green'}`}>
                         {totalStock === 0 ? 'ناموجود' : `${formatNumber(totalStock)} عدد`}
                       </span>
+                      <span className="a-badge a-badge--neutral">
+                        {p.investorFinanced ? 'سرمایه‌گذاری' : 'ارزش خرید'}: {formatNumber(p.inventoryValue ?? totalStock * (p.costPrice ?? 0))} تومان
+                      </span>
                     </div>
                   </div>
                 </article>
@@ -659,7 +843,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
         {items.length > 0 && (
           <div className="admin-product-pager">
             <span className="admin-product-pager__info">
-              {formatNumber((page - 1) * 24 + 1)} تا {formatNumber(Math.min(page * 24, total))} از {formatNumber(total)} محصول
+              {formatNumber((page - 1) * perPage + 1)} تا {formatNumber(Math.min(page * perPage, total))} از {formatNumber(total)} محصول
             </span>
             {pageCount > 1 && (
               <div className="admin-product-pager__actions">

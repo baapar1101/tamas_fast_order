@@ -1,8 +1,16 @@
-import { creditChequeWriteSchema, creditApplicationWriteSchema, formatMoney } from '@tamas/shared';
-import { desc, eq, sql } from 'drizzle-orm';
+import {
+  creditChequeWriteSchema,
+  creditApplicationWriteSchema,
+  chequeDueDate,
+  firstChequeSubmissionDeadline,
+  formatMoney,
+  formatPersianDueDate,
+} from '@tamas/shared';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import { db, schema } from '../db/client.js';
 import { badRequest, notFound } from '../lib/errors.js';
+import { registerOrderCheque } from '../services/credit-cheques.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   // Ensure tables exist safely if migration didn't run
@@ -98,6 +106,18 @@ const routes: FastifyPluginAsync = async (app) => {
       .from(schema.creditCheques)
       .where(eq(schema.creditCheques.userId, user.id))
       .orderBy(desc(schema.creditCheques.createdAt));
+
+    const customerOrders = await db
+      .select({
+        id: schema.orders.id,
+        orderCode: schema.orders.orderCode,
+        createdAt: schema.orders.createdAt,
+        status: schema.orders.status,
+        paymentPlan: schema.orders.paymentPlan,
+      })
+      .from(schema.orders)
+      .where(and(eq(schema.orders.userId, user.id), isNull(schema.orders.deletedAt)))
+      .orderBy(desc(schema.orders.createdAt));
 
     const applicationDTO = appRecord
       ? {
@@ -227,6 +247,38 @@ const routes: FastifyPluginAsync = async (app) => {
       updatedAt: c.updatedAt.toISOString(),
     }));
 
+    const chequeOrders = customerOrders.flatMap((order) => {
+      const plan = order.paymentPlan;
+      if (order.status === 'cancelled' || plan?.kind !== 'cheque') return [];
+      const registeredCount = chequesList.filter((cheque) => cheque.orderId === order.id).length;
+      const schedule = plan.schedule.flatMap((item, index) => {
+        if (item.amount == null || item.amount <= 0) return [];
+        const dueDate = item.dueDate ?? chequeDueDate(order.createdAt, index, plan.installmentIntervalMonths ?? 1, plan.termMonths);
+        return [{
+          index,
+          amount: item.amount,
+          dueDate,
+          dueLabel: formatPersianDueDate(dueDate),
+          registered: index < registeredCount,
+        }];
+      });
+      const nextInstallment = schedule.find((item) => !item.registered) ?? null;
+      const submissionDeadline = firstChequeSubmissionDeadline(order.createdAt);
+      const firstChequeExpired = registeredCount === 0 && Date.now() > submissionDeadline.getTime();
+      return [{
+        orderId: order.id,
+        orderCode: order.orderCode,
+        createdAt: order.createdAt.toISOString(),
+        submissionDeadline: submissionDeadline.toISOString(),
+        canSubmitNextCheque: Boolean(nextInstallment) && !firstChequeExpired,
+        blockedReason: firstChequeExpired
+          ? 'مهلت پنج‌روزه ثبت چک اول این سفارش پایان یافته است.'
+          : nextInstallment ? null : 'همه چک‌های این سفارش ثبت شده‌اند.',
+        schedule,
+        nextInstallment,
+      }];
+    });
+
     return reply.send({
       ok: true,
       application: applicationDTO,
@@ -234,6 +286,7 @@ const routes: FastifyPluginAsync = async (app) => {
       usedCredit,
       remainingCredit,
       cheques: chequesDTO,
+      chequeOrders,
       notifications,
     });
   });
@@ -243,29 +296,7 @@ const routes: FastifyPluginAsync = async (app) => {
     const user = req.currentUser!;
     const body = creditChequeWriteSchema.parse(req.body);
 
-    const [appRecord] = await db
-      .select()
-      .from(schema.creditApplications)
-      .where(eq(schema.creditApplications.userId, user.id))
-      .limit(1);
-
-    const [inserted] = await db
-      .insert(schema.creditCheques)
-      .values({
-        userId: user.id,
-        creditApplicationId: appRecord?.id ?? null,
-        chequeNumber: body.chequeNumber,
-        bankName: body.bankName,
-        accountHolder: body.accountHolder,
-        amount: body.amount,
-        dueDate: body.dueDate,
-        imageUrl: body.imageUrl || null,
-        notes: body.notes || null,
-        status: 'pending',
-      })
-      .returning();
-
-    if (!inserted) throw badRequest('خطا در ثبت چک.');
+    const { cheque: inserted, order } = await registerOrderCheque(user.id, body);
 
     const { sendTelegramNotification } = await import('../services/telegram.js');
     void sendTelegramNotification('credit.cheque_submitted', {
@@ -274,6 +305,7 @@ const routes: FastifyPluginAsync = async (app) => {
         { label: 'کاربر', value: [user.name, user.lastName].filter(Boolean).join(' ') || user.phone },
         { label: 'تلفن', value: user.phone },
         { label: 'شماره چک', value: inserted.chequeNumber },
+        { label: 'سفارش', value: order.orderCode },
         { label: 'بانک', value: inserted.bankName },
         { label: 'مبلغ', value: `${Number(inserted.amount).toLocaleString('fa-IR')} تومان` },
         { label: 'سررسید', value: inserted.dueDate },

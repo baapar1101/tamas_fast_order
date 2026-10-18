@@ -1,9 +1,10 @@
 import { and, asc, count, desc, eq, gt, inArray, isNull, or, sql } from 'drizzle-orm';
-import type { BrandDTO, CatalogQuery, CategoryDTO, ColorDTO, ProductDTO, ProductGroupDTO } from '@tamas/shared';
+import type { BrandDTO, BundleContentDTO, CatalogQuery, CategoryDTO, ColorDTO, ProductDTO, ProductGroupDTO } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { brands, categories, categoryBrands, colors, products } from '../db/schema.js';
 import { catalogCache } from '../lib/cache.js';
 import { sanitizeExternalText } from '../lib/external-content.js';
+import { resolveBundleContents } from './bundle-contents.js';
 import { offsetOf } from '../lib/pagination.js';
 
 type ProductRow = typeof products.$inferSelect;
@@ -64,6 +65,10 @@ export function toProductDTO(
     updatedAt: row.updatedAt.toISOString(),
   };
   if (options.includeAdminSource) {
+    const units = availableStock(row);
+    dto.costPrice = row.costPrice;
+    dto.inventoryValue = units * row.costPrice;
+    dto.investorFinanced = row.investorFinanced;
     dto.digikalaLink = row.digikalaLink ?? null;
     dto.targetSiteUrl = row.targetSiteUrl ?? null;
   }
@@ -108,8 +113,11 @@ export async function queryProducts(q: CatalogQuery): Promise<{
     | undefined;
   if (cached) return cached;
 
-  const filters = [sellableProduct()];
-  if (q.promotion) filters.push(eq(products.promotion, true));
+  const filters = [q.inStock ? sellableProduct() : liveProduct()];
+  // Baskets belong in both campaign filters, even when their promotion flag is unset.
+  const isBasket = or(eq(categories.name, 'Bondle'), eq(categories.faName, 'سبد ها'))!;
+  if (q.promotion) filters.push(or(eq(products.promotion, true), isBasket)!);
+  if (q.basketOnly) filters.push(isBasket);
   if (q.creditOnly) {
     filters.push(
       or(
@@ -186,7 +194,7 @@ export async function queryProducts(q: CatalogQuery): Promise<{
         minPrice: Number.MAX_SAFE_INTEGER,
         variants: [],
       };
-      byTitle.set(dto.title, group);
+      byTitle.set(groupKey, group);
     }
     group.variants.push(dto);
     group.promotion ||= dto.promotion;
@@ -278,7 +286,13 @@ export async function listColors(): Promise<ColorDTO[]> {
   }) as Promise<ColorDTO[]>;
 }
 
-export async function findProductByPublicId(productId: string): Promise<{ product: ProductDTO; variants: ProductDTO[] } | null> {
+export async function findProductByPublicId(
+  productId: string,
+  options: { adminPreview?: boolean } = {},
+): Promise<{ product: ProductDTO; variants: ProductDTO[]; bundleContents: BundleContentDTO[] } | null> {
+  // A direct product URL remains useful when stock runs out. Only the private
+  // admin preview may include inactive products; deleted products stay hidden.
+  const visibleProduct = options.adminPreview ? isNull(products.deletedAt) : liveProduct();
   const [row] = await db
     .select({
       product: products,
@@ -288,12 +302,28 @@ export async function findProductByPublicId(productId: string): Promise<{ produc
     .from(products)
     .leftJoin(categories, eq(categories.id, products.categoryId))
     .leftJoin(brands, eq(brands.id, products.brandId))
-    .where(and(eq(products.productId, productId), sellableProduct()))
+    .where(and(eq(products.productId, productId), visibleProduct))
     .limit(1);
 
   if (!row) return null;
 
   const mainProduct = toProductDTO(row.product, row.category, row.brand);
+  let bundleContents: BundleContentDTO[] = [];
+  if (mainProduct.type === 'bundle' && mainProduct.bundleItems.length > 0) {
+    const productIds = [...new Set(mainProduct.bundleItems.map((item) => item.productId))];
+    const componentRows = await db
+      .select({ productId: products.productId, title: products.title, imageUrl: products.imageUrl })
+      .from(products)
+      .where(and(inArray(products.productId, productIds), isNull(products.deletedAt)));
+    bundleContents = resolveBundleContents(
+      mainProduct.bundleItems,
+      componentRows.map((item) => ({
+        productId: item.productId,
+        title: sanitizeExternalText(item.title),
+        imageUrl: item.imageUrl,
+      })),
+    );
+  }
   
   // Find variants: either sharing the same parentProductId, or the same title as fallback
   const variantRows = await db
@@ -307,7 +337,7 @@ export async function findProductByPublicId(productId: string): Promise<{ produc
     .leftJoin(brands, eq(brands.id, products.brandId))
     .where(
       and(
-        sellableProduct(),
+        visibleProduct,
         or(
           row.product.parentProductId
             ? eq(products.parentProductId, row.product.parentProductId)
@@ -321,7 +351,7 @@ export async function findProductByPublicId(productId: string): Promise<{ produc
 
   const variants = variantRows.map((r) => toProductDTO(r.product, r.category, r.brand));
 
-  return { product: mainProduct, variants };
+  return { product: mainProduct, variants, bundleContents };
 }
 
 /** Every write path calls this so the storefront never serves a stale page. */

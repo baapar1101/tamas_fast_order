@@ -53,7 +53,7 @@ export function AttributesPage() {
       setFormData({ name: '', type: 'text', options: [] });
       setFormOpen(false);
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toast.error(err.message || 'خطا در ذخیره ویژگی');
     },
   });
@@ -64,7 +64,7 @@ export function AttributesPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'attributes'] });
       toast.ok('ویژگی حذف شد');
     },
-    onError: (err: any) => toast.error(err.message || 'خطا در حذف ویژگی'),
+    onError: (err: Error) => toast.error(err.message || 'خطا در حذف ویژگی'),
   });
 
   const handleEdit = (a: Attribute) => {

@@ -21,7 +21,8 @@ export function randomDigits(length: number): string {
 
 /** Constant-time compare for hex digests of equal length. */
 export function safeEqualHex(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
+  if (a.length === 0 || a.length !== b.length || a.length % 2 !== 0) return false;
+  if (!/^[0-9a-f]+$/iu.test(a) || !/^[0-9a-f]+$/iu.test(b)) return false;
   try {
     return timingSafeEqual(Buffer.from(a, 'hex'), Buffer.from(b, 'hex'));
   } catch {

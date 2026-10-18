@@ -39,6 +39,13 @@ export const productAttributeSchema = z.object({
   value: z.string().max(2000),
 });
 
+export const productCodeSchema = z
+  .string()
+  .trim()
+  .min(2)
+  .max(80)
+  .regex(/^0\d+$/, 'کد محصول باید فقط عدد باشد و با صفر شروع شود.');
+
 export const productTrackingLinkSchema = z.object({
   siteId: z.coerce.number().int().positive(),
   url: z.string().trim().url('لینک رهگیری معتبر نیست.').max(1000),
@@ -52,7 +59,7 @@ export const trackingSiteWriteSchema = z.object({
 });
 
 export const productWriteSchema = z.object({
-  productId: z.string().trim().min(1).max(80),
+  productId: productCodeSchema,
   parentProductId: z.string().trim().max(80).optional().nullable(),
   sku: z.string().trim().max(80).optional().nullable(),
   title: z.string().trim().min(1).max(400),
@@ -63,6 +70,7 @@ export const productWriteSchema = z.object({
   colorEn: z.string().trim().max(160).optional().nullable(),
   colorCode: z.string().trim().max(32).optional().nullable(),
   price: priceSchema.default(0),
+  costPrice: priceSchema.default(0),
   oldPrice: priceSchema.optional().nullable(),
   discount: z.coerce.number().int().min(0).max(100).default(0),
   stock: stockSchema.default(0),
@@ -73,6 +81,7 @@ export const productWriteSchema = z.object({
   sellType: z.string().trim().max(200).optional().nullable(),
   seller: z.string().trim().max(200).optional().nullable(),
   promotion: sheetBool.default(false),
+  investorFinanced: sheetBool.default(false),
   status: z.enum(['active', 'inactive']).default('active'),
   subTitle: z.string().trim().max(400).optional().nullable(),
   description: z.string().optional().nullable(),
@@ -89,7 +98,7 @@ export const productWriteSchema = z.object({
   bundleItems: z.array(z.object({
     productId: z.string().trim().min(1).max(80),
     qty: z.coerce.number().int().min(1).max(1000)
-  })).max(20).default([]),
+  })).max(200).default([]),
   digikalaLink: z.string().trim().max(1000).optional().nullable(),
   targetSiteUrl: z.string().trim().max(1000).optional().nullable(),
   trackingLinks: z.array(productTrackingLinkSchema).max(3, 'برای هر محصول حداکثر سه سایت قابل رهگیری است.').default([]),
@@ -132,8 +141,15 @@ export const catalogQuerySchema = z.object({
     .transform((v) => (v == null ? [] : Array.isArray(v) ? v : v.split(',')))
     .pipe(z.array(z.string().trim().min(1)).max(50)),
   promotion: z.coerce.boolean().optional(),
+  basketOnly: z.union([
+    z.boolean(),
+    z.enum(['true', 'false']).transform((value) => value === 'true'),
+  ]).optional(),
   creditOnly: z.coerce.boolean().optional(),
-  inStock: z.coerce.boolean().default(true),
+  inStock: z.union([
+    z.boolean(),
+    z.enum(['true', 'false']).transform((value) => value === 'true'),
+  ]).default(true),
   sort: z.enum(['price_asc', 'price_desc', 'newest', 'title']).default('price_asc'),
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(120).default(24),
@@ -219,7 +235,7 @@ export const ORDER_STATUSES = [
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  new: 'جدید',
+  new: 'در انتظار تایید (موجودی رزرو)',
   confirmed: 'تایید شده',
   preparing: 'در حال آماده‌سازی',
   shipped: 'ارسال شده',
@@ -246,6 +262,8 @@ export const orderCreateSchema = z.object({
   items: z.array(orderItemInputSchema).min(1).max(200),
   address: z.string().trim().max(1000).optional(),
   paymentMethod: z.string().trim().max(100).optional(),
+  paymentPlanId: z.string().trim().max(120).optional(),
+  discountCode: z.string().trim().max(40).optional(),
   note: z.string().trim().max(1000).optional(),
   attribution: z.object({
     source: z.string().trim().max(120).optional(),
@@ -256,6 +274,11 @@ export const orderCreateSchema = z.object({
   }).optional(),
 });
 export type OrderCreate = z.infer<typeof orderCreateSchema>;
+
+export const orderItemsReplaceSchema = z.object({
+  items: z.array(orderItemInputSchema).min(1, 'سفارش باید حداقل یک قلم داشته باشد').max(200),
+});
+export type OrderItemsReplace = z.infer<typeof orderItemsReplaceSchema>;
 
 export const orderPatchSchema = z.object({
   status: z.enum(ORDER_STATUSES).optional(),
@@ -279,7 +302,7 @@ export const userPatchSchema = z.object({
   activity: z.string().trim().max(120).optional(),
   pageWebsite: z.string().trim().max(255).optional(),
   isActive: z.boolean().optional(),
-  role: z.enum(['customer', 'admin', 'operator']).optional(),
+  role: z.enum(['customer', 'admin', 'operator', 'investor']).optional(),
   accessGroupId: z.number().int().positive().nullable().optional(),
 });
 
@@ -373,11 +396,10 @@ export const CHEQUE_STATUS_LABELS: Record<ChequeStatus, string> = {
 };
 
 export const creditChequeWriteSchema = z.object({
+  orderId: z.coerce.number().int().positive('سفارش چکی را انتخاب کنید'),
   chequeNumber: z.string().trim().min(3, 'شماره چک/صیادی را وارد کنید'),
   bankName: z.string().trim().min(2, 'نام بانک را وارد کنید'),
   accountHolder: z.string().trim().min(2, 'نام صاحب حساب را وارد کنید'),
-  amount: z.coerce.number().int().min(1000, 'مبلغ چک را وارد کنید'),
-  dueDate: z.string().trim().min(8, 'تاریخ سررسید چک الزامی است'),
   imageUrl: z.string().trim().optional().nullable(),
   notes: z.string().trim().optional().nullable(),
 });

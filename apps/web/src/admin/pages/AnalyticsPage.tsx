@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { formatNumber } from '@tamas/shared';
 import { Price } from '../../components/Price';
 import { api } from '../../lib/api';
+import { AnimatedDropdown } from '../components/AnimatedDropdown';
 
 interface AnalyticsDTO {
   revenueLast30Days: number;
@@ -79,11 +80,13 @@ export function AnalyticsPage() {
             <p className="a-card-desc">بازدیدکنندگان یکتا و مصرف CDN برای {arvan.data?.domain || 'دامنه فروشگاه'}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <select className="a-select a-select--compact" value={period} onChange={(event) => setPeriod(event.target.value as ArvanPeriod)}>
-              {(Object.keys(PERIOD_LABELS) as ArvanPeriod[]).map((value) => (
-                <option key={value} value={value}>{PERIOD_LABELS[value]}</option>
-              ))}
-            </select>
+            <AnimatedDropdown
+              className="a-select--compact"
+              value={period}
+              onChange={(next) => setPeriod(next as ArvanPeriod)}
+              options={(Object.keys(PERIOD_LABELS) as ArvanPeriod[]).map((value) => ({ value, label: PERIOD_LABELS[value] }))}
+              ariaLabel="بازه زمانی گزارش"
+            />
             <button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={arvan.isFetching} onClick={() => void arvan.refetch()}>
               {arvan.isFetching ? 'در حال دریافت…' : 'به‌روزرسانی'}
             </button>

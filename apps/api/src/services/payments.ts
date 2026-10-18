@@ -32,7 +32,7 @@ export async function upsertOrderPayment(
   const status = paymentTxStatus(paymentStatus);
 
   if (existing) {
-    await tx.update(payments).set({ status, updatedAt: new Date() }).where(eq(payments.id, existing.id));
+    await tx.update(payments).set({ amount, status, updatedAt: new Date() }).where(eq(payments.id, existing.id));
   } else {
     await tx.insert(payments).values({ orderId, userId, amount, status, ...(gateway ? { gateway } : {}) });
   }

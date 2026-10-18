@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
@@ -32,8 +32,8 @@ export function WalletPage() {
     } catch (error) { toast.error((error as Error).message); setBusy(false); }
   }
 
-  return <main className="wallet-page" dir="rtl">
-    <header className="wallet-header"><Link to="/">← بازگشت به فروشگاه</Link><div><h1>کیف پول من</h1><p>مدیریت موجودی، شارژ و سوابق مالی</p></div></header>
+  return <section className="wallet-page" dir="rtl">
+    <header className="wallet-header"><div><h1>کیف پول من</h1><p>مدیریت موجودی، شارژ و سوابق مالی</p></div></header>
     {query.isLoading ? <div className="wallet-loading">در حال دریافت کیف پول…</div> : query.isError ? <div className="wallet-error">{(query.error as Error).message}</div> : data && <>
       <section className="wallet-hero">
         <div><span>موجودی قابل استفاده</span><strong>{money(data.wallet.balance)}</strong><small>{data.wallet.isFrozen ? 'کیف پول مسدود است' : 'آماده پرداخت سفارش'}</small></div>
@@ -44,5 +44,5 @@ export function WalletPage() {
         <article className="wallet-panel wallet-history"><h2>گردش حساب</h2>{data.transactions.length === 0 ? <div className="wallet-empty">هنوز تراکنشی ثبت نشده است.</div> : <div className="wallet-list">{data.transactions.map(entry => <div className="wallet-row" key={entry.id}><i className={entry.direction}>{entry.direction === 'credit' ? '+' : '−'}</i><div><b>{entry.description}</b><span>{labels[entry.type] || entry.type} · {new Date(entry.createdAt).toLocaleString('fa-IR')}</span></div><div className={entry.direction}><strong>{entry.direction === 'credit' ? '+' : '−'} {money(entry.amount)}</strong><small>مانده: {money(entry.balanceAfter)}</small></div></div>)}</div>}</article>
       </section>
     </>}
-  </main>;
+  </section>;
 }

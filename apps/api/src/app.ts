@@ -39,6 +39,12 @@ import crmRoutes from './routes/crm.js';
 
 import creditRoutes from './routes/credit.js';
 import adminCreditRoutes from './routes/admin/credit.js';
+import telegramRoutes from './routes/telegram.js';
+import customerTelegramRoutes from './routes/customer-telegram.js';
+import investorRoutes from './routes/investor.js';
+import discountRoutes from './routes/discounts.js';
+import adminDiscountRoutes from './routes/admin/discounts.js';
+import customerBaleRoutes from './routes/customer-bale.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
 
@@ -140,9 +146,13 @@ export async function buildApp(): Promise<FastifyInstance> {
       async (api) => {
         await api.register(catalogRoutes);
         await api.register(authRoutes);
+        await api.register(telegramRoutes);
+        await api.register(customerTelegramRoutes);
+        await api.register(customerBaleRoutes);
         await api.register(orderRoutes);
         await api.register(paymentRoutes);
         await api.register(walletRoutes);
+        await api.register(discountRoutes);
         await api.register(adminDashboard);
         await api.register(adminProducts);
         await api.register(adminTaxonomy);
@@ -159,11 +169,13 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(adminProductContentImport);
         await api.register(adminTrackingSites);
         await api.register(adminWalletRoutes);
+        await api.register(adminDiscountRoutes);
         await api.register(accessGroupsRoutes);
         await api.register(smsRoutes);
         await api.register(crmRoutes); // <-- CRM integration routes
         await api.register(creditRoutes);
         await api.register(adminCreditRoutes);
+        await api.register(investorRoutes);
       },
       { prefix: '/api' },
     );

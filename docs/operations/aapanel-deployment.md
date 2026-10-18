@@ -1,0 +1,66 @@
+# استقرار تولید در aaPanel
+
+**مرجع اصلی عملیات سرور این پروژه:** تولید با aaPanel مدیریت می‌شود. این راهنما وضعیت مشاهده‌شده در ۷ اکتبر ۲۰۲۶ را ثبت می‌کند؛ پیش از عملیات، تنظیمات زندهٔ پنل و Nginx را دوباره بررسی کنید. جایگزین کردن مدیریت aaPanel با اجرای دستیِ دائمی، PM2 یا systemd می‌تواند سرویس موازی بسازد.
+
+## نقشهٔ سرویس
+
+| جزء | تنظیمات تولید |
+|---|---|
+| ریشهٔ مخزن روی سرور | `/www/wwwroot/tamas_fast_order` |
+| فرانت | سایت `tamasmarket.com` در بخش Websites/PHP Project در aaPanel؛ فایل‌های استاتیک React/Vite از `/www/wwwroot/tamas_fast_order/apps/web/dist` سرو می‌شوند. این نام‌گذاری پنل به معنای PHP بودن فرانت نیست. |
+| بک‌اند | پروژهٔ Node.js با نام `tamas_fast_order_production` در aaPanel، دامنهٔ `api.tamasmarket.com` و دستور سفارشی `npm run start:prod` |
+| درگاه بک‌اند | Nginx درخواست‌های `api.tamasmarket.com` را به `127.0.0.1:3102` می‌فرستد. اسکریپت `start:prod` در `apps/api/package.json` همین پورت و `NODE_ENV=production` را تعیین می‌کند. |
+| API روی دامنهٔ اصلی | Nginx مسیر `/api/` از `tamasmarket.com` را به همان سرویس روی پورت ۳۱۰۲ می‌فرستد؛ فرانت نیز به همین مسیر هم‌دامنه درخواست می‌زند. |
+| آپلودها | مسیر عمومی `/uploads/` در دامنهٔ اصلی از `/www/wwwroot/tamas_fast_order/apps/api/storage/` سرو می‌شود. |
+
+فایل‌های Nginx که aaPanel مدیریت می‌کند: `/www/server/panel/vhost/nginx/node_tamas_fast_order_production.conf` و `/www/server/panel/vhost/nginx/tamasmarket.com.conf`. فایل `.env` بک‌اند در `apps/api/.env` سرور است و نباید وارد Git یا مستندات شود. در محیط بررسی‌شده `TRUST_PROXY=true` بود.
+
+## روال تغییر و کنترل
+
+1. پیش از انتشار، تفاوت‌های مخزن و وضعیت تنظیمات aaPanel را بررسی کنید. فایل‌های زندهٔ Nginx یا `.env` را با فایل‌های عمومی مخزن جایگزین نکنید.
+2. وابستگی‌ها و خروجی‌ها را از ریشهٔ پروژه با `npm ci` و `npm run build` بسازید. دستور `npm run db:migrate` فقط پس از بررسی migration و پشتیبان دیتابیس مجاز است.
+3. API را از بخش Node.js Project در aaPanel کنترل/راه‌اندازی مجدد کنید و از ساختن نمونهٔ موازی با اجرای دستی پرهیز کنید. فرانت فایل‌های `apps/web/dist` را مستقیم سرو می‌کند.
+4. پس از تغییر Nginx، صحت آن را با `nginx -t` بررسی کنید؛ سپس از سازوکار aaPanel برای بارگذاری مجدد استفاده کنید.
+5. سلامت API را از خود سرور با `curl --noproxy '*' -i http://127.0.0.1:3102/health` و مسیر واقعی فرانت را با `curl --noproxy '*' -i https://tamasmarket.com/api/catalog/bootstrap` بررسی کنید. روی این سرور متغیرهای پراکسیِ پوسته تنظیم شده‌اند، بنابراین آزمایش localhost بدون `--noproxy '*'` ممکن است گمراه‌کننده باشد. مسیر `/api/health` در برنامه تعریف نشده و ۴۰۴ آن نشانهٔ خرابی API نیست.
+
+### کش صفحهٔ اصلی فرانت
+
+مسیر SPA در فایل aaPanel یعنی `/www/server/panel/vhost/nginx/tamasmarket.com.conf` باید برای `location /` هدر `Cache-Control: no-cache, no-store, must-revalidate` داشته باشد و `version.json` نیز صریحاً بدون کش سرو شود. فایل‌های هش‌دار JS/CSS می‌توانند طبق بلوک جداگانهٔ خود کش شوند. کلاینت `version.json` را هر ۳۰ ثانیه و هنگام بازگشت به تب، focus و آنلاین‌شدن بررسی می‌کند و در صورت اختلاف نسخه با URL نسخه‌دار و پاک‌سازی CacheStorage بروزرسانی اجباری انجام می‌دهد. پس از هر تغییر تنظیم، `nginx -t` و بارگذاری مجدد Nginx را انجام دهید.
+
+```nginx
+location = /version.json {
+    expires -1;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+    try_files $uri =404;
+}
+
+location = /index.html {
+    expires -1;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+}
+
+location / {
+    expires -1;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+    try_files $uri $uri/ /index.html;
+}
+```
+
+### سلامت فایل‌های تصویر
+
+فایل‌های `apps/api/storage` در Git نیستند، اما رکوردهای `products.image_url` و `products.gallery` در دیتابیس به آن‌ها اشاره می‌کنند. هنگام استقرار یا بازیابی بکاپ، دیتابیس و این پوشه باید با هم حفظ شوند؛ وجود آدرس `/uploads/...` در دیتابیس به‌تنهایی به معنی وجود فایل نیست. حذف یا بازسازی پوشهٔ storage باعث نمایش لوگوی جایگزین به‌جای عکس کالا می‌شود.
+
+برای بررسی بدون تغییر، از ریشهٔ پروژه `npm run images:repair-missing` را اجرا کنید. این دستور فقط تصویرهای گمشدهٔ محصولاتی را که لینک دیجی‌کالا دارند فهرست می‌کند. بعد از گرفتن بکاپ، `npm run images:repair-missing -- --apply` فایل‌ها را از منبع دوباره روی همین سرور دانلود می‌کند و فقط آدرس عکس‌های همان محصولات را در دیتابیس به‌روز می‌کند؛ قیمت، موجودی و توضیحات را تغییر نمی‌دهد. برای یک محصول: `npm run images:repair-missing -- --product-id=01010113528 --apply`.
+
+برای جایگزینی عکس اصلی محصولات از فایل‌هایی که نامشان SKU است، فایل‌ها را خارج از Git در یک پوشهٔ موقتِ قابل‌خواندن برای کاربر `www` روی سرور قرار دهید. ابتدا `npm run images:import-sku -- --dir=/path/to/images` را برای تطبیق خشک اجرا و همهٔ کدها را بازبینی کنید؛ سپس `npm run images:import-sku -- --dir=/path/to/images --apply` را اجرا کنید. ابزار فقط محصول فعالِ دارای تطبیق یکتا را می‌پذیرد و برای نام‌های بدون صفر ابتدایی، دقیقاً یک صفر را به‌عنوان جایگزین امتحان می‌کند. پیش از تغییر، آدرس عکس‌های قبلی را در `apps/api/storage/backups` ذخیره می‌کند. گالری، قیمت و موجودی دست‌نخورده می‌مانند.
+
+## مغایرت‌های مشاهده‌شده در ۷ اکتبر ۲۰۲۶
+
+این موارد **در این سند ثبت شده‌اند، نه اینکه روی سرور اصلاح شده باشند**:
+
+- گواهی Nginx برای `api.tamasmarket.com` فقط `tamasmarket.com` را در Subject Alternative Name دارد؛ مرورگر/کلاینت معتبرسنجی TLS را برای زیردامنه رد می‌کند. ابتدا باید گواهی شامل `api.tamasmarket.com` از طریق aaPanel صادر و به سایت Node.js متصل شود. با وجود این، API روی localhost و با چشم‌پوشی موقت از اعتبار گواهی، پاسخ ۲۰۰ می‌دهد؛ خود سرویس از کار نیفتاده است.
+- تصویر aaPanel کاربر `www` و Node `v24.18.0` را نشان می‌دهد، اما پردازشِ در حال اجرا با کاربر `root` و `/usr/bin/node` نسخهٔ `v22.23.2` دیده شد. پیش از restart، منشأ پردازش و تنظیمات واقعی aaPanel را تطبیق دهید؛ اجرای API با `root` مطلوب نیست.
+- تنظیم Nginx زیردامنهٔ API هنوز `TLSv1.1` و مجموعه‌رمزهای قدیمی مانند `3DES` را مجاز می‌کند و `ssl_early_data on` دارد. برای درخواست‌های دارای اثر جانبی، early data خطر replay دارد. به‌روزرسانی TLS و خاموش‌کردن early data باید در یک تغییر کنترل‌شده انجام و با `nginx -t` و آزمایش بیرونی تأیید شود.
+- در زیردامنهٔ API، سرآیند `Alt-Svc` برای HTTP/3 تبلیغ می‌شود، اما همین بلوک `listen 443 quic`/`http3 on` ندارد. این اعلان را با تنظیم واقعی هماهنگ کنید یا حذف کنید. همچنین `X-Forwarded-Proto` در این بلوک فرستاده نمی‌شود، در حالی که پروکسی دامنهٔ اصلی آن را می‌فرستد.
+
+پاسخ‌های موفقِ بررسی‌شده: `http://127.0.0.1:3102/health` و `https://tamasmarket.com/api/catalog/bootstrap` هر دو ۲۰۰ بودند. موفقیت این مسیرها، مشکل گواهی زیردامنه را برطرف نمی‌کند.

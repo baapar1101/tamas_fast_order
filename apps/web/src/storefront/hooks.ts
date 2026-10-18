@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ColorDTO, ProductGroupDTO } from '@tamas/shared';
 import { api } from '../lib/api';
-import { getFallbackBootstrap } from './fallbackData';
 
 export interface BootstrapData {
   categories: CategoryDTO[];
@@ -23,14 +22,7 @@ export interface StorefrontSlide {
 export function useBootstrap() {
   return useQuery({
     queryKey: ['bootstrap'],
-    queryFn: async () => {
-      try {
-        return await api.get<BootstrapData>('/catalog/bootstrap');
-      } catch (err) {
-        console.warn('API bootstrap failed, falling back to legacy catalog snapshot:', err);
-        return getFallbackBootstrap();
-      }
-    },
+    queryFn: () => api.get<BootstrapData>('/catalog/bootstrap'),
     staleTime: 5 * 60_000,
   });
 }
@@ -40,7 +32,8 @@ export interface CatalogFilters {
   category: string | null;
   brands: string[];
   promotion: boolean;
-  creditOnly?: boolean;
+  basketOnly: boolean;
+  inStockOnly: boolean;
   sort: 'price_asc' | 'price_desc' | 'newest' | 'title';
   page: number;
 }
@@ -52,7 +45,8 @@ interface ProductsResponse {
   perPage: number;
 }
 
-function sanitizeProducts(response: ProductsResponse): ProductsResponse {
+function sanitizeProducts(response: ProductsResponse, inStockOnly: boolean): ProductsResponse {
+  if (!inStockOnly) return response;
   const groups = response.groups
     .map((group) => {
       const variants = group.variants.filter(
@@ -86,14 +80,15 @@ export function useProducts(filters: CatalogFilters) {
             category: filters.category ?? undefined,
             brands: filters.brands,
             promotion: filters.promotion || undefined,
-            creditOnly: filters.creditOnly || undefined,
+            basketOnly: filters.basketOnly || undefined,
+            inStock: filters.inStockOnly,
             sort: filters.sort,
             page: filters.page,
             perPage: 24,
           },
           signal,
         );
-        return sanitizeProducts(response);
+        return sanitizeProducts(response, filters.inStockOnly);
       } catch (err) {
         // Inventory must always come from the same API/database used by the
         // admin panel. The legacy snapshot is intentionally not used here:

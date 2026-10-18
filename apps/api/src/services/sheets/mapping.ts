@@ -15,13 +15,13 @@ import {
 } from '../../db/schema.js';
 import { buildSearchText } from '../catalog.js';
 import { findProductDuplicate } from '../product-duplicates.js';
+import { transitionOrderStatus } from '../order-inventory.js';
 
 /**
  * Every tab carries an `updated_at` column. Together with the saved row hash,
- * it identifies one-sided edits and genuine conflicts. Conflict ownership is
- * then applied per column: product price/inventory belong to Sheets and the
- * remaining fields belong to the database. Editing a cell by hand and leaving
- * `updated_at` alone still works because the row hash catches the change.
+ * it identifies one-sided edits and genuine conflicts. Products are mastered
+ * by the site database and are published one-way to Sheets; the other tabs may
+ * still use the merge policy below.
  */
 export const UPDATED_AT_COLUMN = 'updated_at';
 
@@ -52,6 +52,8 @@ export interface EntityMapping {
   keyDbColumn: string;
   /** Set for tabs holding personal data, gated behind SHEETS_SYNC_PRIVATE_DATA. */
   private?: boolean;
+  /** The site database is the only authority; Sheet edits and extra rows are overwritten. */
+  databaseAuthoritative?: boolean;
   /** Columns a person may edit in the sheet; everything else is pushed only. */
   editableColumns: string[];
   /**
@@ -203,6 +205,39 @@ async function ensureBrand(name: string): Promise<number | null> {
   return null;
 }
 
+/** Resolves a category's brand list with at most one insert query. */
+async function ensureBrands(names: string[]): Promise<number[]> {
+  const uniqueNames = new Map<string, string>();
+  for (const name of names) {
+    const clean = str(name);
+    if (clean) uniqueNames.set(clean.toLowerCase(), clean);
+  }
+
+  const brandIds: number[] = [];
+  const missing: string[] = [];
+  for (const [lookupKey, clean] of uniqueNames) {
+    const hit = L().brandByName.get(lookupKey);
+    if (hit) brandIds.push(hit);
+    else missing.push(clean);
+  }
+
+  if (missing.length > 0) {
+    const created = await db
+      .insert(brands)
+      .values(missing.map((name) => ({ name, faName: name })))
+      .onConflictDoUpdate({ target: brands.name, set: { updatedAt: new Date() } })
+      .returning({ id: brands.id, name: brands.name });
+
+    for (const row of created) {
+      L().brandByName.set(row.name.toLowerCase(), row.id);
+      L().brandNameById.set(row.id, row.name);
+      brandIds.push(row.id);
+    }
+  }
+
+  return brandIds;
+}
+
 async function ensureCategory(name: string): Promise<number | null> {
   const clean = str(name);
   if (!clean) return null;
@@ -259,10 +294,8 @@ export const productMapping: EntityMapping = {
   keyColumn: 'product_id',
   tableName: 'products',
   keyDbColumn: 'product_id',
-  editableColumns: PRODUCT_COLUMNS.filter((c) => c !== 'product_id'),
-  // Price and warehouse inventory are caches in Postgres. Google Sheets is
-  // their source of truth, regardless of timestamps or which side changed.
-  sheetAuthoritativeColumns: ['price', 'old_price', 'discount%', 'kerman_stock', 'tehran_stock'],
+  editableColumns: [],
+  databaseAuthoritative: true,
 
   async loadDbRows() {
     const rows = await db.select().from(products).where(isNull(products.deletedAt));
@@ -319,7 +352,7 @@ export const productMapping: EntityMapping = {
       categoryId,
       brandId,
       color: str(cells.color) || null,
-      // `price` is the sole source of truth and is always expressed in toman.
+      // Product values are site-owned; price is stored and published in toman.
       price: num(cells.price),
       oldPrice: str(cells.old_price) ? num(cells.old_price) : null,
       discount: num(cells.discount ?? cells['discount%']),
@@ -420,11 +453,7 @@ export const categoryMapping: EntityMapping = {
 
     // Rebuild the category↔brand links from the comma list in the sheet.
     const wanted = splitList(cells.Brand ?? '');
-    const brandIds: number[] = [];
-    for (const name of wanted) {
-      const bid = await ensureBrand(name);
-      if (bid) brandIds.push(bid);
-    }
+    const brandIds = await ensureBrands(wanted);
     await db.delete(categoryBrands).where(eq(categoryBrands.categoryId, id));
     if (brandIds.length > 0) {
       await db
@@ -684,7 +713,7 @@ export const orderMapping: EntityMapping = {
   },
 
   async applySheetRow(key, cells, updatedAt) {
-    const [existing] = await db.select({ id: orders.id }).from(orders).where(eq(orders.orderCode, key)).limit(1);
+    const [existing] = await db.select({ id: orders.id, status: orders.status }).from(orders).where(eq(orders.orderCode, key)).limit(1);
 
     const rawStatus = str(cells.status).toLowerCase();
     const parsedStatus = ORDER_STATUS_SET.has(rawStatus) ? (rawStatus as any) : 'new';
@@ -718,6 +747,8 @@ export const orderMapping: EntityMapping = {
             title: String(i.title || 'محصول نامشخص'),
             color: i.color ? String(i.color) : null,
             price: Number(i.price) || 0,
+            costPrice: Number(i.cost_price) || 0,
+            investorFinanced: Boolean(i.investor_financed),
             qty: Number(i.qty) || 1,
             warehouse: i.warehouse || 'kerman',
           }))
@@ -730,9 +761,9 @@ export const orderMapping: EntityMapping = {
       updatedAt,
       note: str(cells.note) || null,
       paymentMethod: str(cells.payment) || null,
-      status: parsedStatus,
     };
 
+    if (existing.status !== parsedStatus) await transitionOrderStatus(existing.id, parsedStatus);
     await db.update(orders).set(patch).where(eq(orders.id, existing.id));
     return 'updated';
   },

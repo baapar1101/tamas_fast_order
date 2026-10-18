@@ -65,7 +65,7 @@ async function main(): Promise<void> {
 
   for (const [key, value] of Object.entries({
     store_name: 'تماس مارکت',
-    store_tagline: 'مرجع تخصصی فروش عمده لوازم جانبی موبایل',
+    store_tagline: 'مرجع تخصصی فروش عمده کالای دیجیتال',
     support_phone: '',
   })) {
     await db.insert(settings).values({ key, value }).onConflictDoUpdate({ target: settings.key, set: { value } });

@@ -1,15 +1,50 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../db/client.js';
-import { orders, payments } from '../db/schema.js';
+import { orders, payments, products } from '../db/schema.js';
 import { badRequest, notFound } from '../lib/errors.js';
 // @ts-ignore
 import paymentGateway from '@tamas/payment';
 import { env } from '../env.js';
 import { applyWalletTransaction } from '../services/wallet.js';
+import { transitionOrderStatusInTransaction } from '../services/order-inventory.js';
+import { getPaymentTermsConfig, quotePaymentTerms } from '../services/payment-terms.js';
+import { getPaymentRoutingConfig, securePaymentPlan } from '../services/payment-routing.js';
 
 const routes: FastifyPluginAsync = async (app) => {
+  app.post('/payment/terms/quote', async (req) => {
+    const body = z.object({
+      items: z.array(z.object({
+        productId: z.string().trim().min(1).max(80),
+        qty: z.coerce.number().int().min(1).max(10_000),
+      })).min(1).max(200),
+    }).parse(req.body);
+    const quantityByProduct = new Map<string, number>();
+    for (const item of body.items) {
+      quantityByProduct.set(item.productId, (quantityByProduct.get(item.productId) ?? 0) + item.qty);
+    }
+    const ids = [...quantityByProduct.keys()];
+    const rows = await db.select({
+      productId: products.productId,
+      categoryId: products.categoryId,
+      price: products.price,
+      sellType: products.sellType,
+      status: products.status,
+    }).from(products).where(and(inArray(products.productId, ids), isNull(products.deletedAt)));
+    if (rows.length !== ids.length || rows.some((row) => row.status !== 'active')) {
+      throw badRequest('یکی از کالاهای سبد دیگر قابل سفارش نیست. سبد خرید را تازه‌سازی کنید.');
+    }
+    const [config, routing] = await Promise.all([getPaymentTermsConfig(), getPaymentRoutingConfig()]);
+    const quote = quotePaymentTerms(rows.map((row) => ({
+      categoryId: row.categoryId,
+      price: row.price,
+      qty: quantityByProduct.get(row.productId) ?? 0,
+      sellType: row.sellType,
+    })), config);
+    return { ok: true, ...quote, plans: quote.plans.map((plan) => securePaymentPlan(plan, routing).plan) };
+  });
+
   // Create a payment transaction and return the bank URL
   app.post(
     '/payment/create',
@@ -111,8 +146,9 @@ const routes: FastifyPluginAsync = async (app) => {
              .where(eq(payments.id, paymentRecord.id));
              
            if (paymentRecord.orderId) {
+             await transitionOrderStatusInTransaction(tx, paymentRecord.orderId, 'confirmed');
              await tx.update(orders)
-               .set({ paymentStatus: 'paid', status: 'confirmed', updatedAt: new Date() })
+               .set({ paymentStatus: 'paid', updatedAt: new Date() })
                .where(eq(orders.id, paymentRecord.orderId));
            }
            if (isWalletTopup && paymentRecord.userId) {
@@ -141,7 +177,21 @@ const routes: FastifyPluginAsync = async (app) => {
                 { label: 'کد پیگیری', value: trackingCode },
               ],
             }).catch((err) => req.log.error({ err }, 'failed to send Telegram payment notification'));
+            void import('../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
+              paidOrder.userId,
+              'payment.paid',
+              '✅ پرداخت با موفقیت انجام شد',
+              `پرداخت سفارش ${paidOrder.orderCode} به مبلغ ${paymentRecord.amount.toLocaleString('fa-IR')} تومان تأیید شد. کد پیگیری: ${trackingCode}`,
+            )).catch((err) => req.log.error({ err }, 'failed to send customer Telegram payment notification'));
           }
+        }
+        if (isWalletTopup && paymentRecord.userId) {
+          void import('../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
+            paymentRecord.userId,
+            'wallet.changed',
+            '💳 کیف پول شارژ شد',
+            `${paymentRecord.amount.toLocaleString('fa-IR')} تومان به کیف پول شما افزوده شد. موجودی جدید از بخش کیف پول قابل مشاهده است.`,
+          )).catch((err) => req.log.error({ err }, 'failed to send customer Telegram wallet notification'));
         }
 
         return reply.redirect(`${resultPath}?status=success&orderId=${paymentRecord.orderId ?? ''}&trackingCode=${trackingCode}`);
@@ -159,6 +209,12 @@ const routes: FastifyPluginAsync = async (app) => {
             { label: 'خطا', value: verifyData?.code || 'verification_failed' },
           ],
         }).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send Telegram payment failure notification'));
+        void import('../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
+          paymentRecord.userId,
+          'payment.failed',
+          '❌ پرداخت ناموفق بود',
+          `پرداخت ${paymentRecord.amount.toLocaleString('fa-IR')} تومان تأیید نشد. مبلغ کسرشده احتمالی طبق روال بانک بازگردانده می‌شود.`,
+        )).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send customer Telegram payment failure notification'));
            
         return reply.redirect(`${resultPath}?status=failed&orderId=${paymentRecord.orderId ?? ''}&error=${verifyData?.code || 'verification_failed'}`);
       }
@@ -178,6 +234,12 @@ const routes: FastifyPluginAsync = async (app) => {
           { label: 'خطا', value: (err as Error).message },
         ],
       }).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send Telegram payment failure notification'));
+      void import('../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
+        paymentRecord.userId,
+        'payment.failed',
+        '❌ بررسی پرداخت ناموفق بود',
+        `بررسی پرداخت ${paymentRecord.amount.toLocaleString('fa-IR')} تومان با خطا روبه‌رو شد. در صورت کسر وجه، مبلغ طبق روال بانک بازگردانده می‌شود.`,
+      )).catch((notifyError) => req.log.error({ err: notifyError }, 'failed to send customer Telegram payment failure notification'));
          
       return reply.redirect(`${resultPath}?status=failed&orderId=${paymentRecord.orderId ?? ''}&error=server_error`);
     }

@@ -1,10 +1,11 @@
 import { useState, type ChangeEvent, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ProductDTO, TrackingSiteDTO } from '@tamas/shared';
-import { formatNumber } from '@tamas/shared';
+import { formatNumber, formatProductTitle } from '@tamas/shared';
 import { api } from '../../lib/api';
 import { ImagePicker } from './ImagePicker';
 import { Price } from '../../components/Price';
+import { ProductLinks } from './ProductLinks';
 import { AnimatedDropdown } from './AnimatedDropdown';
 
 import { useEffect } from 'react';
@@ -77,6 +78,7 @@ export interface ProductForm {
   colorEn: string;
   colorCode: string;
   price: number;
+  costPrice: number;
   oldPrice: number | null;
   discount: number;
   stock: number;
@@ -88,6 +90,7 @@ export interface ProductForm {
   sellType: string;
   seller: string;
   promotion: boolean;
+  investorFinanced: boolean;
   status: 'active' | 'inactive';
   imageUrl: string;
   gallery: string[];
@@ -200,6 +203,7 @@ const blank = (): ProductForm => ({
   colorEn: '',
   colorCode: '',
   price: 0,
+  costPrice: 0,
   oldPrice: null,
   discount: 0,
   stock: 0,
@@ -211,6 +215,7 @@ const blank = (): ProductForm => ({
   sellType: '',
   seller: '',
   promotion: false,
+  investorFinanced: false,
   status: 'active',
   imageUrl: '',
   gallery: [],
@@ -242,6 +247,7 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   colorEn: p.colorEn ?? '',
   colorCode: p.colorCode ?? '',
   price: p.price,
+  costPrice: p.costPrice ?? 0,
   oldPrice: p.oldPrice,
   discount: p.discount,
   stock: p.stock,
@@ -253,6 +259,7 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   sellType: p.sellType ?? '',
   seller: p.seller ?? '',
   promotion: p.promotion,
+  investorFinanced: p.investorFinanced ?? false,
   status: p.status,
   imageUrl: p.imageUrl ?? '',
   gallery: p.gallery,
@@ -274,8 +281,17 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
 });
 
 export function ProductEditor({ product, template, categories, brands, busy, isBundleMode, onClose, onSave, onManageVariants }: Props) {
-  const [form, setForm] = useState<ProductForm>(product ? fromProduct(product) : template ? fromProduct(template) : blank());
+  const [form, setForm] = useState<ProductForm>(() => {
+    const initial = product ? fromProduct(product) : template ? fromProduct(template) : blank();
+    if (!isBundleMode) return initial;
+    const basket = categories.find((category) => category.name === 'Bondle' || category.faName.replace(/\s/g, '') === 'سبدها');
+    return { ...initial, type: 'bundle', categoryName: initial.categoryName || basket?.name || '' };
+  });
   const [error, setError] = useState('');
+  const inventoryUnits = form.kermanStock + form.tehranStock > 0
+    ? form.kermanStock + form.tehranStock
+    : form.stock;
+  const unitGrossProfit = form.price - form.costPrice;
 
   // Variants Fetching (if editing an existing parent product)
   const { data: variantsData, isLoading: variantsLoading } = useQuery({
@@ -298,7 +314,8 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
   const trackingSites = (trackingSitesData?.items ?? []).filter((site) => site.isActive || form.trackingLinks.some((link) => link.siteId === site.id));
   const attrByKey = new Map((attributeDefs ?? []).map((d) => [d.name.trim(), d]));
 
-  const set = <K extends keyof ProductForm>(key: K, value: ProductForm[K]) => setForm({ ...form, [key]: value });
+  const set = <K extends keyof ProductForm>(key: K, value: ProductForm[K]) =>
+    setForm((current) => ({ ...current, [key]: value }));
 
   const setTrackingUrl = (siteId: number, url: string) => {
     const existing = form.trackingLinks.find((link) => link.siteId === siteId);
@@ -369,7 +386,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
     onSave({
       ...form,
       productId: form.productId.trim(),
-      title: form.title.trim(),
+      title: formatProductTitle(form.title.trim()),
       oldPrice: form.oldPrice && form.oldPrice > 0 ? form.oldPrice : null,
     });
   }
@@ -412,6 +429,8 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
         </div>
       )}
 
+      {product && <div className="mb-6"><ProductLinks productId={product.productId} active={product.status === 'active'} /></div>}
+
       {/* Main Grid Layout */}
       <div className="admin-page-grid">
         
@@ -445,13 +464,8 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                   id="pe-title"
                   className="a-input"
                   value={form.title}
-                  onChange={(e) => {
-                    const formatted = e.target.value.replace(
-                      /([a-zA-Z]+)/g,
-                      (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
-                    );
-                    set('title', formatted);
-                  }}
+                  onChange={(e) => set('title', e.target.value)}
+                  onBlur={(e) => set('title', formatProductTitle(e.target.value))}
                 />
               </div>
               <div className="a-field">
@@ -644,7 +658,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
           <ProductAccordionSection
             id="pe-pricing-section"
             title="قیمت‌گذاری و موجودی"
-            summary={`${formatNumber(form.price)} تومان · موجودی ${formatNumber(form.stock)}`}
+            summary={`${formatNumber(form.price)} تومان · ${form.investorFinanced ? 'سرمایه‌گذاری فعال' : 'خارج از سرمایه‌گذاری'}`}
           >
             <div className="a-form-grid">
               <div className="a-field">
@@ -656,6 +670,17 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                   value={form.price}
                   onChange={(e) => set('price', Number(e.target.value.replace(/\D/g, '')))}
                 />
+              </div>
+              <div className="a-field">
+                <label className="a-label" htmlFor="pe-cost-price">قیمت خرید واحد (تومان)</label>
+                <input
+                  id="pe-cost-price"
+                  className="a-input a-ltr"
+                  inputMode="numeric"
+                  value={form.costPrice}
+                  onChange={(e) => set('costPrice', Number(e.target.value.replace(/\D/g, '')))}
+                />
+                <small className="a-help">برای محصولات تأمین‌شده توسط سرمایه‌گذار، مبنای ارزش موجودی و سود است.</small>
               </div>
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-old-price">قیمت خط‌خورده (تومان)</label>
@@ -700,6 +725,15 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-warranty">گارانتی</label>
                 <input id="pe-warranty" className="a-input" value={form.warranty} onChange={(e) => set('warranty', e.target.value)} />
+              </div>
+              <div className="a-field a-span-2">
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div><small className="a-help">{form.investorFinanced ? 'ارزش سرمایه‌گذاری موجودی' : 'ارزش خرید موجودی'}</small><strong className="block text-[var(--a-t1)]">{formatNumber(inventoryUnits * form.costPrice)} تومان</strong></div>
+                    <div><small className="a-help">سود ناخالص واحد</small><strong className={`block ${unitGrossProfit < 0 ? 'text-rose-500' : 'text-emerald-500'}`}>{formatNumber(unitGrossProfit)} تومان</strong></div>
+                    <div><small className="a-help">حاشیه سود واحد</small><strong className="block text-[var(--a-t1)]">{form.price ? `${((unitGrossProfit / form.price) * 100).toLocaleString('fa-IR', { maximumFractionDigits: 1 })}٪` : '—'}</strong></div>
+                  </div>
+                </div>
               </div>
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-digikala">لینک دیجی‌کالا</label>
@@ -758,39 +792,33 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
               <div className="a-field a-span-2">
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {[
-                    { value: 'نقدی', icon: '💵' },
-                    { value: 'اعتباری', icon: '💳' },
-                    { value: 'چکی', icon: '📄' },
-                    { value: 'کارت به کارت', icon: '🏦' },
+                    { value: 'فقط نقدی', icon: '💵', help: 'فقط پرداخت کامل نقدی' },
+                    { value: 'چک فقط ۲ ماهه', icon: '📄', help: 'پیش‌پرداخت و چک ماه دوم' },
+                    { value: 'بدون محدودیت تا ۶ ماه', icon: '💳', help: 'طبق سقف شرایط پرداخت' },
                   ].map((st) => {
-                    const current = form.sellType.split(/[,،]+/).map(s => s.trim()).filter(Boolean);
-                    const isOn = current.includes(st.value);
+                    const isOn = form.sellType.trim() === st.value;
                     return (
                       <button
                         key={st.value}
                         type="button"
                         className={`a-chip-opt ${isOn ? 'a-chip-opt--on' : ''}`}
                         style={{ padding: '0.5rem 0.85rem', cursor: 'pointer' }}
-                        onClick={() => {
-                          const next = isOn
-                            ? current.filter(v => v !== st.value)
-                            : [...current, st.value];
-                          set('sellType', next.join('، '));
-                        }}
+                        aria-pressed={isOn}
+                        onClick={() => set('sellType', isOn ? '' : st.value)}
                       >
                         <span>{st.icon}</span>
-                        <span className="a-chip-opt-copy"><strong>{st.value}</strong></span>
+                        <span className="a-chip-opt-copy"><strong>{st.value}</strong><small>{st.help}</small></span>
                       </button>
                     );
                   })}
                 </div>
               </div>
               <div className="a-field a-span-2">
-                <label className="a-label" htmlFor="pe-sell-type">یا ورود دستی (با کاما جدا کنید)</label>
+                <label className="a-label" htmlFor="pe-sell-type">مقدار ثبت‌شده / ورود دستی</label>
                 <input
                   id="pe-sell-type"
                   className="a-input"
-                  placeholder="مثال: نقدی، اعتباری، چکی"
+                  placeholder="مثال: فقط نقدی، چک فقط ۲ ماهه، بدون محدودیت تا ۶ ماه"
                   value={form.sellType}
                   onChange={(e) => set('sellType', e.target.value)}
                 />
@@ -1082,7 +1110,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
           <ProductAccordionSection
             id="pe-settings-section"
             title="تنظیمات"
-            summary={`${form.status === 'active' ? 'فعال' : 'غیرفعال'}${form.promotion ? ' · پیشنهاد ویژه' : ''}`}
+            summary={`${form.status === 'active' ? 'فعال' : 'غیرفعال'}${form.investorFinanced ? ' · تأمین مالی سرمایه‌گذار' : ''}${form.promotion ? ' · پیشنهاد ویژه' : ''}`}
           >
             <div className="space-y-3">
               <div className={`a-option-row${form.status === 'active' ? ' a-option-row--on' : ''}`}>
@@ -1110,6 +1138,21 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                   aria-checked={form.promotion}
                   className="a-switch"
                   onClick={() => set('promotion', !form.promotion)}
+                />
+              </div>
+
+              <div className={`a-option-row${form.investorFinanced ? ' a-option-row--on' : ''}`}>
+                <div className="a-option-copy">
+                  <span className="a-option-title">تأمین مالی توسط سرمایه‌گذار</span>
+                  <span className="a-option-desc">موجودی، فروش و سود این محصول در پنل سرمایه‌گذار محاسبه می‌شود.</span>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-label="تأمین مالی محصول توسط سرمایه‌گذار"
+                  aria-checked={form.investorFinanced}
+                  className="a-switch"
+                  onClick={() => set('investorFinanced', !form.investorFinanced)}
                 />
               </div>
 

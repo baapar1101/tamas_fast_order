@@ -34,9 +34,14 @@ export function stockFor(product: ProductDTO, warehouse: Warehouse): number {
   return product.stock;
 }
 
-export function totalStock(product: ProductDTO): number {
+export function totalStock(product: Pick<ProductDTO, 'stock' | 'kermanStock' | 'tehranStock'>): number {
   const split = product.kermanStock + product.tehranStock;
   return split > 0 ? split : product.stock;
+}
+
+/** Match the storefront's purchase availability before exposing a product price. */
+export function isProductUnavailable(product: Pick<ProductDTO, 'status' | 'stock' | 'kermanStock' | 'tehranStock'>): boolean {
+  return product.status !== 'active' || totalStock(product) <= 0;
 }
 
 export const useCart = create<CartState>()(

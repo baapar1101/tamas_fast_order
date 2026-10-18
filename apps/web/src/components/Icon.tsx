@@ -1,4 +1,4 @@
-import type { SVGProps } from 'react';
+import { memo, type SVGProps } from 'react';
 
 export type IconName =
   | 'star'
@@ -46,16 +46,16 @@ interface IconProps extends SVGProps<SVGSVGElement> {
   className?: string;
 }
 
-export function Icon({ name, className = '', ...props }: IconProps) {
+export const Icon = memo(function Icon({ name, className = '', ...props }: IconProps) {
   const fullClass = `ic${className ? ` ${className}` : ''}`;
   return (
     <svg className={fullClass} aria-hidden="true" {...props}>
       <use href={`#i-${name}`} />
     </svg>
   );
-}
+});
 
-export function SvgSprite() {
+export const SvgSprite = memo(function SvgSprite() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" style={{ display: 'none' }} aria-hidden="true">
       <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.6l2.6 5.27 5.82.85-4.21 4.1.99 5.79L12 16.87l-5.2 2.74.99-5.79-4.21-4.1 5.82-.85z"/></symbol>
@@ -99,4 +99,4 @@ export function SvgSprite() {
       <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
     </svg>
   );
-}
+});

@@ -14,6 +14,54 @@ interface SmsEventDef {
   placeholder: string;
 }
 
+interface SmsProviderConfig {
+  smsProvider: 'rastin' | 'payamresan' | 'melipayamak';
+  firstFallback: 'none' | 'melipayamak';
+  secondFallback: 'none' | 'smsir';
+  rastinUsername: string;
+  rastinPasswordSet: boolean;
+  rastinSender: string;
+  rastinUrl: string;
+  payamresanApiKeySet: boolean;
+  payamresanSender: string;
+  payamresanBaseUrl: string;
+  melipayamakUsername: string;
+  melipayamakApiKeySet: boolean;
+  melipayamakSender: string;
+  melipayamakBaseUrl: string;
+  melipayamakPatternBaseUrl: string;
+  melipayamakOtpBodyId: string;
+  smsirApiKeySet: boolean;
+  smsirLineNumber: string;
+  smsirBaseUrl: string;
+  smsirOtpTemplateId: string;
+  smsirOtpParameter: string;
+}
+
+const EMPTY_PROVIDER_CONFIG: SmsProviderConfig = {
+  smsProvider: 'payamresan',
+  firstFallback: 'melipayamak',
+  secondFallback: 'smsir',
+  rastinUsername: '',
+  rastinPasswordSet: false,
+  rastinSender: '',
+  rastinUrl: 'https://www.rastinsms.com/APISend.aspx',
+  payamresanApiKeySet: false,
+  payamresanSender: '',
+  payamresanBaseUrl: 'https://api.sms-webservice.com/api/V3',
+  melipayamakUsername: '',
+  melipayamakApiKeySet: false,
+  melipayamakSender: '',
+  melipayamakBaseUrl: 'https://rest.payamak-panel.com/api/SendSMS',
+  melipayamakPatternBaseUrl: 'https://rest.payamak-panel.com/api/SendSMS/BaseServiceNumber',
+  melipayamakOtpBodyId: '556182',
+  smsirApiKeySet: false,
+  smsirLineNumber: '',
+  smsirBaseUrl: 'https://api.sms.ir',
+  smsirOtpTemplateId: '',
+  smsirOtpParameter: 'PARAMETER1',
+};
+
 const NEW_ORDER_EVENTS: SmsEventDef[] = [
   {
     key: 'order_new',
@@ -43,6 +91,14 @@ const STATUS_EVENTS: SmsEventDef[] = ORDER_STATUSES.map((status) => ({
 }));
 
 const ENTRIES_EVENTS: SmsEventDef[] = [
+  {
+    key: 'user_approved',
+    templateKey: 'sms_template_user_approved',
+    title: 'تأیید حساب کاربری',
+    desc: 'هنگامی که مدیر حساب مشتری را تأیید و فعال می‌کند',
+    vars: [],
+    placeholder: 'حساب کاربری شما در تماس مارکت تایید شد',
+  },
   {
     key: 'otp',
     templateKey: 'sms_template_otp',
@@ -76,11 +132,27 @@ export function SmsPage() {
   const [drafts, setDrafts] = useState<Record<string, string>>(getInitialDrafts);
   const [toggles, setToggles] = useState<Record<string, boolean>>({});
   const [testPhone, setTestPhone] = useState('');
+  const [providerDraft, setProviderDraft] = useState<SmsProviderConfig>(EMPTY_PROVIDER_CONFIG);
+  const [secretDrafts, setSecretDrafts] = useState({
+    rastinPassword: '',
+    payamresanApiKey: '',
+    melipayamakApiKey: '',
+    smsirApiKey: '',
+  });
 
   const settings = useQuery({
     queryKey: ['admin', 'settings'],
     queryFn: () => api.get<{ settings: Record<string, string> }>('/admin/settings'),
   });
+
+  const providers = useQuery({
+    queryKey: ['admin', 'sms', 'providers'],
+    queryFn: () => api.get<{ config: SmsProviderConfig }>('/admin/sms/providers'),
+  });
+
+  useEffect(() => {
+    if (providers.data?.config) setProviderDraft(providers.data.config);
+  }, [providers.data]);
 
   // Sync the local editable state from the server once loaded (and after saves).
   useEffect(() => {
@@ -124,6 +196,44 @@ export function SmsPage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const saveProviders = useMutation({
+    mutationFn: () => api.put<{ message: string; config: SmsProviderConfig }>('/admin/sms/providers', {
+      ...providerDraft,
+      ...Object.fromEntries(Object.entries(secretDrafts).filter(([, value]) => value.trim())),
+    }),
+    onSuccess: (res) => {
+      toast.ok(res.message);
+      setSecretDrafts({ rastinPassword: '', payamresanApiKey: '', melipayamakApiKey: '', smsirApiKey: '' });
+      void qc.invalidateQueries({ queryKey: ['admin', 'sms', 'providers'] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const testProvider = useMutation({
+    mutationFn: (provider: 'rastin' | 'payamresan' | 'melipayamak' | 'melipayamak-otp' | 'smsir' | 'chain') =>
+      api.post<{ ok: boolean; message: string }>('/admin/sms/providers/test', {
+        phone: testPhone.trim(),
+        provider,
+      }),
+    onSuccess: (res) => toast.ok(res.message),
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const updateProvider = <K extends keyof SmsProviderConfig>(key: K, value: SmsProviderConfig[K]) => {
+    setProviderDraft((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const providerTestButton = (provider: 'rastin' | 'payamresan' | 'melipayamak' | 'smsir') => (
+    <button
+      type="button"
+      className="a-btn a-btn--secondary a-btn--xs"
+      disabled={!testPhone.trim() || testProvider.isPending}
+      onClick={() => testProvider.mutate(provider)}
+    >
+      تست مستقل
+    </button>
+  );
+
   const savedCount = useMemo(
     () => ALL_EVENTS.filter((def) => toggles[def.templateKey] !== false && (drafts[def.templateKey] ?? def.placeholder).trim()).length,
     [drafts, toggles],
@@ -138,14 +248,19 @@ export function SmsPage() {
           <div className="a-option-copy">
             <div className="a-option-title">{def.title}</div>
             <div className="a-option-desc">
-              {def.desc} — متغیرها:{' '}
-              {def.vars.map((v) => (
-                <code key={v} className="mx-0.5 rounded bg-slate-800 px-1 py-0.5 text-[10px] text-emerald-300" dir="ltr">
-                  {'{'}
-                  {v}
-                  {'}'}
-                </code>
-              ))}
+              {def.desc}
+              {def.vars.length > 0 && (
+                <>
+                  {' — متغیرها: '}
+                  {def.vars.map((v) => (
+                    <code key={v} className="mx-0.5 rounded bg-slate-800 px-1 py-0.5 text-[10px] text-emerald-300" dir="ltr">
+                      {'{'}
+                      {v}
+                      {'}'}
+                    </code>
+                  ))}
+                </>
+              )}
             </div>
           </div>
           <button
@@ -203,6 +318,110 @@ export function SmsPage() {
           >
             {save.isPending ? 'در حال ذخیره...' : 'ذخیره همه پیامک‌ها'}
           </button>
+        </div>
+      </section>
+
+      {/* SMS providers */}
+      <section className="a-card">
+        <div className="a-card-head a-card-head--split">
+          <div>
+            <h3 className="a-card-title">درگاه‌ها و ترتیب fallback</h3>
+            <p className="a-card-desc">کلیدها هرگز از سرور به مرورگر برگردانده نمی‌شوند؛ کادر خالی یعنی کلید فعلی حفظ شود.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="a-btn a-btn--secondary"
+              disabled={!testPhone.trim() || testProvider.isPending}
+              onClick={() => testProvider.mutate('chain')}
+            >
+              تست زنجیره کامل
+            </button>
+            <button
+              type="button"
+              className="a-btn a-btn--primary"
+              disabled={saveProviders.isPending}
+              onClick={() => saveProviders.mutate()}
+            >
+              {saveProviders.isPending ? 'در حال ذخیره...' : 'ذخیره تنظیمات درگاه‌ها'}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <label className="space-y-2 text-xs glass-text-t2">
+            <span>درگاه اصلی</span>
+            <select className="a-input w-full" value={providerDraft.smsProvider} onChange={(e) => updateProvider('smsProvider', e.target.value as SmsProviderConfig['smsProvider'])}>
+              <option value="payamresan">پیام‌رسان</option>
+              <option value="melipayamak">ملی‌پیامک</option>
+              <option value="rastin">راستین</option>
+            </select>
+          </label>
+          <label className="space-y-2 text-xs glass-text-t2">
+            <span>fallback اول</span>
+            <select className="a-input w-full" value={providerDraft.firstFallback} onChange={(e) => updateProvider('firstFallback', e.target.value as SmsProviderConfig['firstFallback'])}>
+              <option value="melipayamak">ملی‌پیامک</option>
+              <option value="none">غیرفعال</option>
+            </select>
+          </label>
+          <label className="space-y-2 text-xs glass-text-t2">
+            <span>fallback دوم</span>
+            <select className="a-input w-full" value={providerDraft.secondFallback} onChange={(e) => updateProvider('secondFallback', e.target.value as SmsProviderConfig['secondFallback'])}>
+              <option value="smsir">sms.ir</option>
+              <option value="none">غیرفعال</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="mt-5 grid gap-4 xl:grid-cols-2">
+          <div className="rounded-2xl border border-white/[0.08] p-4 space-y-3">
+            <div className="flex items-center justify-between"><strong>پیام‌رسان</strong>{providerTestButton('payamresan')}</div>
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.payamresanSender} onChange={(e) => updateProvider('payamresanSender', e.target.value)} placeholder="شماره فرستنده" />
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.payamresanBaseUrl} onChange={(e) => updateProvider('payamresanBaseUrl', e.target.value)} placeholder="Base URL" />
+            <input className="a-input w-full a-ltr" dir="ltr" type="password" value={secretDrafts.payamresanApiKey} onChange={(e) => setSecretDrafts((prev) => ({ ...prev, payamresanApiKey: e.target.value }))} placeholder={providerDraft.payamresanApiKeySet ? 'API Key تنظیم شده — برای تغییر مقدار جدید وارد کنید' : 'API Key'} autoComplete="new-password" />
+          </div>
+
+          <div className="rounded-2xl border border-white/[0.08] p-4 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <strong>ملی‌پیامک</strong>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="a-btn a-btn--secondary a-btn--xs"
+                  disabled={!testPhone.trim() || testProvider.isPending}
+                  onClick={() => testProvider.mutate('melipayamak-otp')}
+                >
+                  تست الگوی OTP
+                </button>
+                {providerTestButton('melipayamak')}
+              </div>
+            </div>
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.melipayamakUsername} onChange={(e) => updateProvider('melipayamakUsername', e.target.value)} placeholder="نام کاربری" />
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.melipayamakSender} onChange={(e) => updateProvider('melipayamakSender', e.target.value)} placeholder="خط فرستنده" />
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.melipayamakBaseUrl} onChange={(e) => updateProvider('melipayamakBaseUrl', e.target.value)} placeholder="Base URL" />
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.melipayamakPatternBaseUrl} onChange={(e) => updateProvider('melipayamakPatternBaseUrl', e.target.value)} placeholder="Pattern Base URL" />
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.melipayamakOtpBodyId} onChange={(e) => updateProvider('melipayamakOtpBodyId', e.target.value)} placeholder="کد الگوی OTP" inputMode="numeric" />
+            <input className="a-input w-full a-ltr" dir="ltr" type="password" value={secretDrafts.melipayamakApiKey} onChange={(e) => setSecretDrafts((prev) => ({ ...prev, melipayamakApiKey: e.target.value }))} placeholder={providerDraft.melipayamakApiKeySet ? 'API Key تنظیم شده — برای تغییر مقدار جدید وارد کنید' : 'API Key'} autoComplete="new-password" />
+          </div>
+
+          <div className="rounded-2xl border border-white/[0.08] p-4 space-y-3">
+            <div className="flex items-center justify-between"><strong>sms.ir</strong>{providerTestButton('smsir')}</div>
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.smsirLineNumber} onChange={(e) => updateProvider('smsirLineNumber', e.target.value)} placeholder="خط ارسال" />
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.smsirBaseUrl} onChange={(e) => updateProvider('smsirBaseUrl', e.target.value)} placeholder="Base URL" />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.smsirOtpTemplateId} onChange={(e) => updateProvider('smsirOtpTemplateId', e.target.value)} placeholder="شناسه قالب OTP (اختیاری)" />
+              <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.smsirOtpParameter} onChange={(e) => updateProvider('smsirOtpParameter', e.target.value)} placeholder="نام پارامتر OTP" />
+            </div>
+            <input className="a-input w-full a-ltr" dir="ltr" type="password" value={secretDrafts.smsirApiKey} onChange={(e) => setSecretDrafts((prev) => ({ ...prev, smsirApiKey: e.target.value }))} placeholder={providerDraft.smsirApiKeySet ? 'API Key تنظیم شده — برای تغییر مقدار جدید وارد کنید' : 'API Key'} autoComplete="new-password" />
+          </div>
+
+          <div className="rounded-2xl border border-white/[0.08] p-4 space-y-3">
+            <div className="flex items-center justify-between"><strong>راستین (قدیمی)</strong>{providerTestButton('rastin')}</div>
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.rastinUsername} onChange={(e) => updateProvider('rastinUsername', e.target.value)} placeholder="نام کاربری" />
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.rastinSender} onChange={(e) => updateProvider('rastinSender', e.target.value)} placeholder="خط فرستنده" />
+            <input className="a-input w-full a-ltr" dir="ltr" value={providerDraft.rastinUrl} onChange={(e) => updateProvider('rastinUrl', e.target.value)} placeholder="URL" />
+            <input className="a-input w-full a-ltr" dir="ltr" type="password" value={secretDrafts.rastinPassword} onChange={(e) => setSecretDrafts((prev) => ({ ...prev, rastinPassword: e.target.value }))} placeholder={providerDraft.rastinPasswordSet ? 'رمز تنظیم شده — برای تغییر مقدار جدید وارد کنید' : 'رمز عبور'} autoComplete="new-password" />
+          </div>
         </div>
       </section>
 

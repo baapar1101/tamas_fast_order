@@ -66,8 +66,8 @@ export function CreditApplicationsPage() {
         setSelectedApp(null);
         loadData();
       }
-    } catch (err: any) {
-      toast.error(err.message || 'خطا در بروزرسانی پرونده اعتباری');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'خطا در بروزرسانی پرونده اعتباری');
     } finally {
       setSaving(false);
     }

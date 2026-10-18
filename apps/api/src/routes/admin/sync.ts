@@ -19,6 +19,16 @@ const conflictQuery = z.object({
   perPage: z.coerce.number().int().min(1).max(200).default(50),
 });
 
+interface ExcelUploadProgress {
+  current: number;
+  total: number;
+  state: 'reading' | 'importing' | 'publishing' | 'done' | 'error';
+  message?: string;
+}
+
+const excelUploadProgress = new Map<string, ExcelUploadProgress>();
+const excelJobIdSchema = z.string().trim().min(8).max(100).regex(/^[a-zA-Z0-9_-]+$/);
+
 const routes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requirePermission('manage_settings'));
 
@@ -98,11 +108,7 @@ const routes: FastifyPluginAsync = async (app) => {
     return { ok: true };
   });
 
-  /**
-   * Lightweight price & stock sync from the public Google Sheet.
-   * Google Sheet is the source of truth — this only updates price,
-   * old_price, discount, kerman_stock, tehran_stock, stock.
-   */
+  /** Publish the site-owned product catalogue, including price and stock. */
   app.post('/admin/sync/price-stock', async (req) => {
     if (isPriceStockSyncRunning()) {
       throw badRequest('همگام‌سازی قیمت/موجودی در حال اجراست. صبر کنید.');
@@ -141,19 +147,39 @@ const routes: FastifyPluginAsync = async (app) => {
     return reply.send(buffer);
   });
 
-  /** Upload Excel to update price/stock in Google Sheets & DB */
+  /** Upload Excel to update the site DB first, then publish external mirrors. */
   app.post('/admin/sync/excel-upload', async (req, reply) => {
     if (isPriceStockSyncRunning()) {
       throw badRequest('همگام‌سازی قیمت/موجودی در حال اجراست. صبر کنید.');
     }
     
+    const { jobId } = z.object({ jobId: excelJobIdSchema.optional() }).parse(req.query ?? {});
+    if (jobId) excelUploadProgress.set(jobId, { current: 0, total: 0, state: 'reading' });
     const file = await req.file();
     if (!file) {
       throw badRequest('فایلی برای آپلود انتخاب نشده است.');
     }
 
     const buffer = await file.toBuffer();
-    const report = await processExcelUpload(buffer);
+    let report: Awaited<ReturnType<typeof processExcelUpload>>;
+    try {
+      report = await processExcelUpload(buffer, {
+        onProgress: jobId ? (current, total) => {
+          excelUploadProgress.set(jobId, { current, total, state: current < total ? 'importing' : 'publishing' });
+        } : undefined,
+      });
+      if (jobId) excelUploadProgress.set(jobId, { current: report.updated, total: report.updated, state: 'done' });
+    } catch (error) {
+      if (jobId) excelUploadProgress.set(jobId, {
+        current: excelUploadProgress.get(jobId)?.current ?? 0,
+        total: excelUploadProgress.get(jobId)?.total ?? 0,
+        state: 'error',
+        message: error instanceof Error ? error.message : 'ورود فایل ناموفق بود.',
+      });
+      throw error;
+    } finally {
+      if (jobId) setTimeout(() => excelUploadProgress.delete(jobId), 5 * 60_000).unref();
+    }
     
     await logAction(req.currentUser!.id, 'sync:excel-upload', 'sheets', null, {
       updated: report.updated,
@@ -162,6 +188,14 @@ const routes: FastifyPluginAsync = async (app) => {
     });
     
     return { ok: true, report };
+  });
+
+  app.get('/admin/sync/excel-upload/status/:jobId', async (req) => {
+    const { jobId } = z.object({ jobId: excelJobIdSchema }).parse(req.params);
+    return {
+      ok: true,
+      progress: excelUploadProgress.get(jobId) ?? { current: 0, total: 0, state: 'reading' },
+    };
   });
 };
 

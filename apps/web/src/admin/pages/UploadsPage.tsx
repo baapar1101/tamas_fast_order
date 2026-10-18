@@ -32,8 +32,8 @@ export function UploadsPage() {
       toast.ok('تصویر با موفقیت بارگذاری شد.');
       void qc.invalidateQueries({ queryKey: ['admin', 'uploads'] });
       return res.url;
-    } catch (err: any) {
-      toast.error(err.message || 'خطا در بارگذاری تصویر');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'خطا در بارگذاری تصویر');
     } finally {
       setUploading(false);
     }

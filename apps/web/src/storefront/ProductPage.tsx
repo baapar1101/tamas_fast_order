@@ -1,12 +1,12 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import type { ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
+import type { BundleContentDTO, ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS, formatNumber, hasRealDiscount } from '@tamas/shared';
-import { api } from '../lib/api';
+import { api, ApiRequestError } from '../lib/api';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../store/auth';
-import { cartCount, stockFor, useCart } from '../store/cart';
+import { cartCount, isProductUnavailable, stockFor, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
 import { CrmChat } from '../components/CrmChat';
 import { Price } from '../components/Price';
@@ -14,6 +14,7 @@ import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { ProductCard } from './ProductCard';
 import { createColorMap, resolveProductColor } from './productColor';
+import { isPhoneMediaOnlyProduct, isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneModelImages } from './productVariants';
 import { StoreFooter } from './StoreFooter';
 import { IncompleteProfilePopup } from './IncompleteProfilePopup';
 import { useBootstrap } from './hooks';
@@ -23,9 +24,14 @@ import './product-page.css';
 interface ProductDetailResponse {
   product: ProductDTO;
   variants: ProductDTO[];
+  bundleContents: BundleContentDTO[];
 }
 
 const WAREHOUSE_ORDER: Warehouse[] = ['kerman', 'tehran'];
+
+function normalizeBundleSearch(value: string): string {
+  return value.toLocaleLowerCase().replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/\s+/g, ' ').trim();
+}
 
 function imageSrc(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -49,7 +55,7 @@ function ShareIcon() {
   );
 }
 
-export function ProductPage() {
+export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }) {
   const { productId } = useParams<{ productId: string }>();
   const toast = useToast();
   const { user, complete } = useAuth();
@@ -58,44 +64,125 @@ export function ProductPage() {
   const setQty = useCart((s) => s.setQty);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [relatedPreview, setRelatedPreview] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'desc' | 'specs'>('desc');
+  const [bundleSearch, setBundleSearch] = useState('');
   const [authStep, setAuthStep] = useState<'phone' | 'profile'>('phone');
   const [shareOpen, setShareOpen] = useState(false);
   const shareRef = useRef<HTMLDivElement>(null);
+  const previewDialogRef = useRef<HTMLDivElement>(null);
+  const previewCloseRef = useRef<HTMLButtonElement>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const query = useQuery({
-    queryKey: ['product', productId],
+    queryKey: ['product', productId, adminPreview],
     queryFn: async ({ signal }) =>
-      api.get<ProductDetailResponse>(`/catalog/products/${encodeURIComponent(productId ?? '')}`, undefined, signal),
+      api.get<ProductDetailResponse>(
+        adminPreview
+          ? `/admin/products/preview/${encodeURIComponent(productId ?? '')}`
+          : `/catalog/products/${encodeURIComponent(productId ?? '')}`,
+        undefined,
+        signal,
+      ),
     enabled: Boolean(productId),
     retry: false,
   });
 
   const variants = query.data?.variants ?? [];
   const main = query.data?.product ?? null;
-  const selected =
-    variants.find((v) => v.productId === (selectedId ?? main?.productId)) ?? variants[0] ?? main;
+  const isPhone = Boolean(main && isPhoneProduct(main));
+  const displayVariants = useMemo(() => isPhone ? phoneDisplayVariants(variants) : variants, [isPhone, variants]);
+  const requested = variants.find((v) => v.productId === (selectedId ?? main?.productId)) ?? main;
+  const selected = isPhone && requested && isPhoneMediaOnlyProduct(requested)
+    ? displayVariants[phoneDefaultVariantIndex(displayVariants)] ?? requested
+    : requested ?? displayVariants[0] ?? null;
+  const isBundle = selected?.type === 'bundle';
+  const bundleContents = isBundle
+    ? (query.data?.bundleContents?.length
+      ? query.data.bundleContents
+      : selected.bundleItems.map((item) => ({ ...item, title: `کالا با کد ${item.productId}`, imageUrl: null })))
+    : [];
+  const bundleQuantity = bundleContents.reduce((total, item) => total + item.qty, 0);
+  const bundleSearchTerm = normalizeBundleSearch(bundleSearch);
+  const filteredBundleContents = bundleContents
+    .map((item, index) => ({ ...item, position: index + 1 }))
+    .filter((item) => !bundleSearchTerm || normalizeBundleSearch(`${item.title} ${item.productId}`).includes(bundleSearchTerm));
+
+  useEffect(() => {
+    setActiveTab(main?.type === 'bundle' ? 'specs' : 'desc');
+    setBundleSearch('');
+  }, [main?.productId, main?.type]);
 
   const colorGroups = useMemo(() => {
+    if (isPhone) return displayVariants;
     const seen = new Map<string, ProductDTO>();
     for (const v of variants) {
-      const key = (v.colorEn || v.color || 'default').trim().toLowerCase();
+      const key = (v.color || v.colorEn || 'default').trim().toLowerCase();
       if (!seen.has(key)) seen.set(key, v);
     }
     return [...seen.values()];
-  }, [variants]);
+  }, [displayVariants, isPhone, variants]);
 
   const images = useMemo(() => {
     if (!selected) return [];
-    const title = selected.imageUrl;
-    const list = [title, ...(selected.gallery ?? [])]
+    const sources = isPhone ? phoneModelImages(variants.length ? variants : [selected]) : [selected.imageUrl, ...selected.gallery];
+    const list = sources
       .map((src) => imageSrc(src))
       .filter((s): s is string => Boolean(s));
     if (list.length === 0) list.push('/logo.png');
     return [...new Set(list)];
-  }, [selected]);
+  }, [isPhone, selected, variants]);
+
+  const previewOpen = previewIndex !== null;
+  const showPreviewImage = (direction: -1 | 1) => {
+    if (images.length < 2) return;
+    setPreviewIndex((current) => current === null ? null : (current + direction + images.length) % images.length);
+  };
+
+  useEffect(() => {
+    if (!previewOpen) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    previewCloseRef.current?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setPreviewIndex(null);
+        return;
+      }
+      if (event.key === 'Tab') {
+        const controls = previewDialogRef.current?.querySelectorAll<HTMLButtonElement>('button');
+        if (controls?.length) {
+          const first = controls[0];
+          const last = controls[controls.length - 1];
+          if (first && last && event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (first && last && !event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        }
+      }
+      if (images.length < 2) return;
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        setPreviewIndex((current) => current === null ? null : (current + 1) % images.length);
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        setPreviewIndex((current) => current === null ? null : (current - 1 + images.length) % images.length);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [previewOpen, images.length]);
 
   const bootstrap = useBootstrap();
 
@@ -117,7 +204,7 @@ export function ProductPage() {
         .filter((g) => !g.variants.some((v) => v.productId === selected?.productId))
         .slice(0, 6);
     },
-    enabled: Boolean(selected?.productId) && Boolean(selected?.categoryName || selected?.categoryFaName),
+    enabled: !adminPreview && Boolean(selected?.productId) && Boolean(selected?.categoryName || selected?.categoryFaName),
     staleTime: 60_000,
     retry: false,
   });
@@ -125,12 +212,13 @@ export function ProductPage() {
   const relatedGroups = relatedQuery.data ?? [];
 
   const isPromo = Boolean(selected?.promotion);
-  const canViewPrices = Boolean(user?.isActive);
+  const canViewPrices = adminPreview || Boolean(user?.isActive);
   const cartTotalQty = cartCount(lines);
   const shareUrl = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : '';
   const trackedShareUrl = (source: string) => `${shareUrl}?utm_source=${encodeURIComponent(source)}&utm_medium=share&utm_campaign=product-share`;
 
   function handleAdd(product: ProductDTO, warehouse: Warehouse) {
+    if (adminPreview || product.price <= 0 || product.status !== 'active') return;
     if (!user) {
       setAuthStep('phone');
       setAuthOpen(true);
@@ -142,6 +230,7 @@ export function ProductPage() {
   }
 
   function handleUpdateQty(key: string, qty: number) {
+    if (adminPreview) return;
     if (!user) {
       setAuthStep('phone');
       setAuthOpen(true);
@@ -227,9 +316,11 @@ export function ProductPage() {
         <main className="pp-wrap">
           <div className="pp-not-found">
             <div className="pp-not-found-icon"><Icon name="box" /></div>
-            <h1>محصول مورد نظر پیدا نشد</h1>
-            <p>این کالا در حال حاضر در فروشگاه موجود نیست یا آدرس آن اشتباه است.</p>
-            <Link to="/" className="btn primary">مشاهده همه کالاها</Link>
+            <h1>{adminPreview && query.error instanceof ApiRequestError && [401, 403].includes(query.error.status) ? 'دسترسی به پیش‌نمایش مجاز نیست' : 'محصول مورد نظر پیدا نشد'}</h1>
+            <p>{adminPreview
+              ? 'برای دیدن پیش‌نمایش باید با حسابی دارای دسترسی مدیریت محصولات وارد شوید.'
+              : 'این کالا غیرفعال شده یا آدرس آن اشتباه است.'}</p>
+            <Link to={adminPreview ? '/admin/products' : '/'} className="btn primary">{adminPreview ? 'بازگشت به مدیریت محصولات' : 'مشاهده همه کالاها'}</Link>
           </div>
         </main>
       </div>
@@ -238,7 +329,10 @@ export function ProductPage() {
 
   const brand = selected.brandFaName || selected.brandName || 'متفرقه';
   const category = selected.categoryFaName || selected.categoryName || '';
-  const whButtons = getWarehouseButtons(selected);
+  const selectedUnavailable = isProductUnavailable(selected);
+  const whButtons = !adminPreview && selected.status === 'active' && selected.price > 0
+    ? getWarehouseButtons(selected)
+    : [];
 
   return (
     <div className="shell">
@@ -260,6 +354,12 @@ export function ProductPage() {
       </header>
 
       <main className="pp-wrap">
+        {adminPreview && (
+          <div className="pp-admin-preview-notice" role="status">
+            پیش‌نمایش مدیریت — این حالت فقط برای مدیران است و امکان خرید در آن غیرفعال است.
+            <Link to="/admin/products">بازگشت به محصولات</Link>
+          </div>
+        )}
         <nav className="pp-crumbs" aria-label="مسیر">
           <Link to="/">خانه</Link>
           {category && <><span className="pp-crumb-sep">/</span><Link to={`/?cat=${encodeURIComponent(category)}`}>{category}</Link></>}
@@ -272,7 +372,7 @@ export function ProductPage() {
             <button
               type="button"
               className="pp-main-img"
-              onClick={() => setPreview(images[0] || null)}
+              onClick={() => setPreviewIndex(0)}
               aria-label="بزرگ‌نمایی تصویر"
             >
               {isPromo && (
@@ -291,13 +391,13 @@ export function ProductPage() {
             </button>
             {images.length > 1 && (
               <div className="pp-thumbs">
-                {images.map((src) => (
+                {images.map((src, index) => (
                   <button
                     key={src}
                     type="button"
                     className={`pp-thumb${src === images[0] ? ' active' : ''}`}
-                    onClick={() => setPreview(src)}
-                    aria-label="مشاهده تصویر"
+                    onClick={() => setPreviewIndex(index)}
+                    aria-label={`مشاهده تصویر ${formatNumber(index + 1)} از ${formatNumber(images.length)}`}
                   >
                     <img src={src} alt="" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.png'; }} />
                   </button>
@@ -347,24 +447,24 @@ export function ProductPage() {
               </div>
             )}
 
-            {variants.length > 1 && (
+            {colorGroups.length > 1 && (
               <div className="pp-colors">
                 <span className="pp-label">تعداد رنگ:</span>
-                <span className="pp-color-name">{formatNumber(variants.length)}</span>
+                <span className="pp-color-name">{formatNumber(colorGroups.length)}</span>
               </div>
             )}
 
-            <div className="pp-price-row">
+            {!selectedUnavailable && <div className="pp-price-row">
               <div className={canViewPrices ? undefined : 'price-obscured'} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
                 {hasRealDiscount(selected.price, selected.oldPrice) && (
                   <span className="card-old-price"><Price amount={selected.oldPrice!} /></span>
                 )}
-                <div className="pp-price"><Price amount={selected.price} /></div>
+                <div className="pp-price">{selected.price > 0 ? <Price amount={selected.price} /> : 'قیمت‌گذاری نشده'}</div>
               </div>
               {selected.discount > 0 && <span className="pp-discount-badge">٪{formatNumber(selected.discount)} تخفیف</span>}
-            </div>
+            </div>}
 
-            {!canViewPrices && (
+            {!selectedUnavailable && !canViewPrices && (
               <div className="price-lock-note pp-lock-note">
                 <span>{user ? 'قیمت‌ها پس از تأیید حساب همکاری نمایش داده می‌شوند.' : 'برای مشاهده قیمت‌های عمده وارد حساب همکار شوید.'}</span>
                 {!user && (
@@ -415,13 +515,14 @@ export function ProductPage() {
                 })}
               </div>
             )}
-            {whButtons.length === 0 && (
+            {whButtons.length === 0 && !adminPreview && (
               <div className="pp-out-of-stock">
-                <Icon name="warn" /> این کالا فعلاً موجود نیست.
+                <Icon name="warn" /> {selectedUnavailable ? 'این کالا فعلاً موجود نیست.' : 'قیمت این کالا هنوز تعیین نشده است.'}
               </div>
             )}
+            {adminPreview && <div className="pp-out-of-stock">خرید در پیش‌نمایش مدیریت غیرفعال است.</div>}
 
-            <div className="pp-share" ref={shareRef}>
+            {!adminPreview && <div className="pp-share" ref={shareRef}>
               <button
                 type="button"
                 className="btn pp-share-btn"
@@ -456,7 +557,7 @@ export function ProductPage() {
                   </button>
                 </div>
               )}
-            </div>
+            </div>}
           </div>
         </div>
 
@@ -491,7 +592,7 @@ export function ProductPage() {
               onClick={() => setActiveTab('specs')}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-              مشخصات فنی
+              {isBundle ? 'اقلام داخل باندل' : 'مشخصات فنی'}
             </button>
           </div>
           <div className="pp-tabs-content">
@@ -506,7 +607,52 @@ export function ProductPage() {
               )
             )}
             {activeTab === 'specs' && (
-              (selected.attributes ?? []).length > 0 ? (
+              isBundle ? (
+                bundleContents.length > 0 ? (
+                  <section className="pp-bundle-contents" aria-label="اقلام داخل باندل">
+                    <div className="pp-bundle-heading">
+                      <div>
+                        <h2>اقلام داخل باندل</h2>
+                        <p>{formatNumber(bundleContents.length)} قلم کالا · مجموع {formatNumber(bundleQuantity)} عدد</p>
+                      </div>
+                      {bundleContents.length > 5 && (
+                        <input
+                          className="pp-bundle-search"
+                          type="search"
+                          value={bundleSearch}
+                          onChange={(event) => setBundleSearch(event.target.value)}
+                          placeholder="جستجوی نام یا کد کالا"
+                          aria-label="جستجو در اقلام باندل"
+                        />
+                      )}
+                    </div>
+                    <div className="pp-bundle-list" role="list">
+                      {filteredBundleContents.map((item) => (
+                        <div className="pp-bundle-item" role="listitem" key={`${item.productId}-${item.position}`}>
+                          <span className="pp-bundle-item-index" aria-hidden="true">{formatNumber(item.position)}</span>
+                          <div className="pp-bundle-item-media">
+                            <img
+                              src={imageSrc(item.imageUrl) ?? '/logo.png'}
+                              alt={item.title}
+                              loading="lazy"
+                              decoding="async"
+                              onError={(event) => { event.currentTarget.src = '/logo.png'; }}
+                            />
+                          </div>
+                          <div className="pp-bundle-item-details">
+                            <strong>{item.title}</strong>
+                            <span dir="ltr">{item.productId}</span>
+                          </div>
+                          <span className="pp-bundle-item-qty">تعداد: {formatNumber(item.qty)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {filteredBundleContents.length === 0 && <p className="pp-bundle-no-results">کالایی با این نام یا کد پیدا نشد.</p>}
+                  </section>
+                ) : (
+                  <div className="pp-empty-state"><Icon name="box" /><p>هنوز کالایی برای این باندل ثبت نشده است.</p></div>
+                )
+              ) : (selected.attributes ?? []).length > 0 ? (
                 <table className="pp-attrs">
                   <tbody>
                     {(selected.attributes ?? []).map((attr) => (
@@ -543,7 +689,7 @@ export function ProductPage() {
                   cartLines={lines}
                   onAdd={handleAdd}
                   onUpdateQty={handleUpdateQty}
-                  onPreview={setPreview}
+                  onPreview={setRelatedPreview}
                 />
               ))}
             </div>
@@ -588,18 +734,55 @@ export function ProductPage() {
           </button>
         </div>
       )}
-      {whButtons.length === 0 && (
+      {whButtons.length === 0 && !adminPreview && (
         <div className="pp-mobile-bar">
-          <span className="pp-mobile-price-note">این کالا فعلاً موجود نیست.</span>
+          <span className="pp-mobile-price-note">{selectedUnavailable ? 'این کالا فعلاً موجود نیست.' : 'قیمت این کالا هنوز تعیین نشده است.'}</span>
           <button type="button" className="pp-mobile-add pp-mobile-add--muted" disabled>
             ناموجود
           </button>
         </div>
       )}
 
-      {preview && (
-        <div className="lightbox" onClick={() => setPreview(null)} role="presentation">
-          <img src={preview} alt="" />
+      {previewIndex !== null && images.length > 0 && (
+        <div className="lightbox pp-lightbox" onClick={(event) => { if (event.target === event.currentTarget) setPreviewIndex(null); }} role="presentation">
+          <div
+            ref={previewDialogRef}
+            className="pp-lightbox-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`تصاویر محصول ${selected.title}`}
+            onTouchStart={(event) => {
+              const touch = event.touches.item(0);
+              if (touch) touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+            }}
+            onTouchEnd={(event) => {
+              const start = touchStartRef.current;
+              touchStartRef.current = null;
+              if (!start || images.length < 2) return;
+              const touch = event.changedTouches.item(0);
+              if (!touch) return;
+              const dx = touch.clientX - start.x;
+              const dy = touch.clientY - start.y;
+              if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) showPreviewImage(dx < 0 ? 1 : -1);
+            }}
+          >
+            <button ref={previewCloseRef} type="button" className="pp-lightbox-close" aria-label="بستن تصویر" onClick={() => setPreviewIndex(null)}>×</button>
+            <div className={`pp-lightbox-stage${images.length > 1 ? ' has-navigation' : ''}`}>
+              {images.length > 1 && (
+                <button type="button" className="pp-lightbox-nav" aria-label="عکس قبلی" onClick={() => showPreviewImage(-1)}>›</button>
+              )}
+              <img src={images[previewIndex] ?? images[0] ?? '/logo.png'} alt={`تصویر ${formatNumber(previewIndex + 1)} از ${formatNumber(images.length)} محصول ${selected.title}`} onError={(event) => { event.currentTarget.src = '/logo.png'; }} />
+              {images.length > 1 && (
+                <button type="button" className="pp-lightbox-nav" aria-label="عکس بعدی" onClick={() => showPreviewImage(1)}>‹</button>
+              )}
+            </div>
+            {images.length > 1 && <span className="pp-lightbox-counter" aria-live="polite">{formatNumber(previewIndex + 1)} از {formatNumber(images.length)}</span>}
+          </div>
+        </div>
+      )}
+      {relatedPreview && (
+        <div className="lightbox" onClick={() => setRelatedPreview(null)} role="presentation">
+          <img src={relatedPreview} alt="" />
         </div>
       )}
 

@@ -21,13 +21,30 @@ const envSchema = z.object({
   SESSION_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
 
   /* --- OTP --- */
-  OTP_PROVIDER: z.enum(['eldery', 'rastin', 'console']).default('console'),
+  OTP_PROVIDER: z.enum(['eldery', 'rastin', 'payamresan', 'melipayamak', 'console']).default('console'),
   OTP_BASE_URL: z.string().default('https://otp.eldery.ir'),
   OTP_API_KEY: z.string().default(''),
   RASTIN_SMS_USERNAME: z.string().default(''),
   RASTIN_SMS_PASSWORD: z.string().default(''),
   RASTIN_SMS_FROM: z.string().default(''),
   RASTIN_SMS_URL: z.string().default('https://www.rastinsms.com/APISend.aspx'),
+  SMS_PROVIDER: z.enum(['rastin', 'payamresan', 'melipayamak']).default('rastin'),
+  SMS_FALLBACK_PROVIDER: z.enum(['none', 'melipayamak']).default('none'),
+  SMS_SECOND_FALLBACK_PROVIDER: z.enum(['none', 'smsir']).default('none'),
+  PAYAMRESAN_API_KEY: z.string().default(''),
+  PAYAMRESAN_SENDER: z.string().default(''),
+  PAYAMRESAN_BASE_URL: z.string().url().default('https://api.sms-webservice.com/api/V3'),
+  MELIPAYAMAK_USERNAME: z.string().default(''),
+  MELIPAYAMAK_API_KEY: z.string().default(''),
+  MELIPAYAMAK_FROM: z.string().default(''),
+  MELIPAYAMAK_BASE_URL: z.string().url().default('https://rest.payamak-panel.com/api/SendSMS'),
+  MELIPAYAMAK_PATTERN_BASE_URL: z.string().url().default('https://rest.payamak-panel.com/api/SendSMS/BaseServiceNumber'),
+  MELIPAYAMAK_OTP_BODY_ID: z.string().default('556182'),
+  SMSIR_API_KEY: z.string().default(''),
+  SMSIR_LINE_NUMBER: z.string().default(''),
+  SMSIR_BASE_URL: z.string().url().default('https://api.sms.ir'),
+  SMSIR_OTP_TEMPLATE_ID: z.string().default(''),
+  SMSIR_OTP_PARAMETER: z.string().default('PARAMETER1'),
   OTP_LENGTH: z.coerce.number().int().min(4).max(8).default(5),
   OTP_TTL_SECONDS: z.coerce.number().int().min(30).max(1800).default(180),
   OTP_RESEND_SECONDS: z.coerce.number().int().min(10).max(600).default(60),
@@ -40,6 +57,11 @@ const envSchema = z.object({
   /** Public base the browser uses to fetch uploads; the API serves it itself by default. */
   STORAGE_PUBLIC_URL: z.string().default('/uploads'),
   UPLOAD_MAX_BYTES: z.coerce.number().int().min(1024).default(15 * 1024 * 1024),
+  /** Periodically copy remote product images into local storage. */
+  PRODUCT_IMAGE_MIRROR_ENABLED: bool.default(true),
+  PRODUCT_IMAGE_MIRROR_INTERVAL_SECONDS: z.coerce.number().int().min(0).max(86400).default(300),
+  PRODUCT_IMAGE_MIRROR_BATCH_SIZE: z.coerce.number().int().min(1).max(1000).default(100),
+  PRODUCT_IMAGE_MIRROR_CONCURRENCY: z.coerce.number().int().min(1).max(8).default(4),
 
   /* --- Google Sheets --- */
   SHEETS_ENABLED: bool.default(false),
@@ -64,6 +86,12 @@ const envSchema = z.object({
   CRM_WEBHOOK_SECRET: z.string().default(''),
   CRM_SYNC_ENABLED: bool.default(true),
   CRM_SYNC_DEBOUNCE_MS: z.coerce.number().int().min(0).default(500),
+  CRM_PRODUCT_SYNC_INTERVAL_SECONDS: z.coerce.number().int().min(15).max(86400).default(60),
+
+  /* --- Zohal identity and financial inquiry --- */
+  ZOHAL_API_TOKEN: z.string().default(''),
+  ZOHAL_API_BASE_URL: z.string().url().default('https://service.zohal.io/api/v0'),
+  ZOHAL_TIMEOUT_MS: z.coerce.number().int().min(1000).max(60000).default(15000),
 });
 
 const parsed = envSchema.safeParse(process.env);

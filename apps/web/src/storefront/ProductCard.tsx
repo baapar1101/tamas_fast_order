@@ -4,8 +4,12 @@ import type { ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber, hasRealDiscount } from '@tamas/shared';
 import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
-import { stockFor } from '../store/cart';
+import { isProductUnavailable, stockFor } from '../store/cart';
 import { resolveProductColor } from './productColor';
+import { isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneModelImages } from './productVariants';
+import { AnimatedDropdown } from '../admin/components/AnimatedDropdown';
+import { resolveImageUrl } from '../lib/images';
+import { ProductImageGallery } from './ProductImageGallery';
 
 import type { CartLine } from '../store/cart';
 
@@ -39,6 +43,7 @@ function sellTypes(raw: string | null): Array<{ label: string; icon: 'cash' | 'c
 const WAREHOUSE_ORDER: Warehouse[] = ['kerman', 'tehran'];
 
 function getWarehouseButtons(product: ProductDTO): Warehouse[] {
+  if (product.price <= 0 || product.status !== 'active') return [];
   const hasSplit = product.kermanStock + product.tehranStock > 0;
   if (hasSplit) {
     return WAREHOUSE_ORDER.filter((warehouse) => stockFor(product, warehouse) > 0);
@@ -55,29 +60,36 @@ function productTitleClass(title: string): string {
 }
 
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isFav, setIsFav] = useState(false);
 
-  const selectedVariant = group.variants[selectedIndex] || group.variants[0];
+  const isPhone = Boolean(group.variants[0] && isPhoneProduct(group.variants[0]));
+  const displayVariants = useMemo(() => isPhone ? phoneDisplayVariants(group.variants) : group.variants, [group.variants, isPhone]);
+  const defaultIndex = isPhone ? phoneDefaultVariantIndex(displayVariants) : 0;
+  const activeIndex = selectedIndex !== null && selectedIndex < displayVariants.length ? selectedIndex : defaultIndex;
+  const selectedVariant = displayVariants[activeIndex] || group.variants[0];
+  const allImages = useMemo(() => {
+    const raw = isPhone
+      ? phoneModelImages(group.variants)
+      : group.variants.flatMap((variant) => [variant.imageUrl, ...variant.gallery]);
+    if (group.imageUrl) raw.unshift(group.imageUrl);
+    return [...new Set(raw.filter((item): item is string => Boolean(item?.trim())).map((item) => resolveImageUrl(item)))];
+  }, [group.imageUrl, group.variants, isPhone]);
+  const images = allImages.length ? allImages : ['/logo.png'];
   if (!selectedVariant) return null;
 
   const brand = selectedVariant.brandFaName || selectedVariant.brandName || 'متفرقه';
-  const rawImage = group.imageUrl || selectedVariant.imageUrl;
-  const image = rawImage
-    ? rawImage.startsWith('http') || rawImage.startsWith('/')
-      ? rawImage
-      : `/uploads/${rawImage}`
-    : '/logo.png';
   const isPromo = Boolean(group.promotion || selectedVariant.promotion);
   const titleClass = productTitleClass(group.title);
   const whButtons = getWarehouseButtons(selectedVariant);
+  const selectedUnavailable = isProductUnavailable(selectedVariant);
 
   if (viewMode === 'list') {
     return (
       <article className={`product-accordion${isPromo ? ' is-promotion' : ''}`}>
         {isPromo && (
           <div className="promo-tag">
-            <span className="star-icon"><Icon name="star-fill" /></span> پیشنهاد ویژه
+            <span className="star-icon"><Icon name="star-fill" /></span> هرکی میگه ۱۶ نیست،فقط تا ۲۰ام
           </div>
         )}
 
@@ -90,11 +102,13 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
             {selectedVariant.rating != null && (
               <span className="card-rating"><span aria-hidden="true">★</span> {(selectedVariant.rating / 100).toLocaleString('fa-IR', { maximumFractionDigits: 2 })}</span>
             )}
+            <Link to={`/p/${selectedVariant.productId}`} className="btn product-list-detail"><Icon name="eye" /> مشاهده جزئیات</Link>
           </div>
 
           <div className="list-variants">
-            {group.variants.map((v) => {
+            {displayVariants.map((v) => {
               const whButtonsV = getWarehouseButtons(v);
+              const unavailable = isProductUnavailable(v);
               const types = sellTypes(v.sellType);
               return (
                 <div key={v.productId} className="variant">
@@ -120,12 +134,12 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                     {v.warranty && <div className="warranty-text"><Icon name="shield" /> {v.warranty}</div>}
                   </div>
 
-                  <div className={`variant-price${canViewPrices ? '' : ' price-obscured'}`} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
+                  {!unavailable && <div className={`variant-price${canViewPrices ? '' : ' price-obscured'}`} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
                     {hasRealDiscount(v.price, v.oldPrice) && (
                       <span className="card-old-price"><Price amount={v.oldPrice!} /></span>
                     )}
-                    <div className="card-price"><Price amount={v.price} /></div>
-                  </div>
+                    <div className="card-price">{v.price > 0 ? <Price amount={v.price} /> : 'قیمت‌گذاری نشده'}</div>
+                  </div>}
 
                   {whButtonsV.length > 0 && (
                     <div className="warehouse-section">
@@ -160,24 +174,14 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                       })}
                     </div>
                   )}
+                  {whButtonsV.length === 0 && <span className="catalog-unavailable">{unavailable ? 'ناموجود' : 'قیمت‌گذاری نشده'}</span>}
                 </div>
               );
             })}
           </div>
         </div>
 
-        <img
-          className="product-thumb"
-          src={image}
-          alt={group.title}
-          loading="lazy"
-          decoding="async"
-          onClick={() => onPreview(image)}
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = '/logo.png';
-          }}
-          style={{ cursor: 'zoom-in' }}
-        />
+        <ProductImageGallery key={`${group.key}:${selectedVariant.productId}:list`} images={images} title={group.title} mode="list" onPreview={onPreview} />
       </article>
     );
   }
@@ -186,7 +190,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
     <article className={`product-card${isPromo ? ' is-promotion' : ''}`}>
       {isPromo && (
         <div className="promo-tag">
-          <span className="star-icon"><Icon name="star-fill" /></span> پیشنهاد ویژه
+          <span className="star-icon"><Icon name="star-fill" /></span> هرکی میگه ۱۶ نیست،فقط تا ۲۰ام
         </div>
       )}
 
@@ -199,17 +203,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
         <Icon name={isFav ? 'heart-fill' : 'heart'} />
       </button>
 
-      <img
-        className="card-thumb"
-        src={image}
-        alt={group.title}
-        loading="lazy"
-        decoding="async"
-        onClick={() => onPreview(image)}
-        onError={(e) => {
-          (e.currentTarget as HTMLImageElement).src = '/logo.png';
-        }}
-      />
+      <ProductImageGallery key={`${group.key}:${selectedVariant.productId}:grid`} images={images} title={group.title} mode="grid" onPreview={onPreview} />
 
       <div style={{ minWidth: 0 }}>
         <div className={`card-title ${titleClass}`}>
@@ -226,36 +220,47 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
               برند: <b className="ltr-inline">{brand}</b>
             </span>
 
-            {group.variants.length > 1 ? (
+            {displayVariants.length > 1 ? (
               <>
                 <div className="color-swatches" aria-label="رنگ‌های موجود">
-                  {group.variants.map((v, i) => (
+                  {displayVariants.map((v, i) => (
                     <button
                       key={v.productId}
                       type="button"
-                      className={`color-swatch-dot${i === selectedIndex ? ' active' : ''}`}
+                      className={`color-swatch-dot${i === activeIndex ? ' active' : ''}`}
                       style={{ background: resolveProductColor(v, colorMap) }}
                       onClick={() => setSelectedIndex(i)}
-                      title={`${v.color || v.colorEn || 'رنگ'}${canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}`}
+                      title={`${v.color || v.colorEn || 'رنگ'}${canViewPrices && !isProductUnavailable(v) && v.price ? ` — ${formatMoney(v.price)}` : ''}`}
                       aria-label={`انتخاب رنگ ${v.color || v.colorEn}`}
                     />
                   ))}
                 </div>
                 <span className="color-picker">
                   <span className="color-dot" style={{ background: resolveProductColor(selectedVariant, colorMap) }} aria-hidden />
-                  <select
+                  {displayVariants.length > 5 ? <AnimatedDropdown
+                    variant="storefront"
+                    className="color-select-searchable"
+                    buttonClassName="color-select-searchable__button"
+                    value={String(activeIndex)}
+                    onChange={(next) => setSelectedIndex(Number(next))}
+                    ariaLabel="انتخاب رنگ"
+                    options={displayVariants.map((v, i) => ({
+                      value: String(i),
+                      label: `${v.color || 'اصلی'}${canViewPrices && !isProductUnavailable(v) && v.price ? ` — ${formatMoney(v.price)}` : ''}${v.sku ? ` (${v.sku})` : ''}`,
+                    }))}
+                  /> : <select
                     className="color-select"
-                    value={selectedIndex}
+                    value={activeIndex}
                     onChange={(e) => setSelectedIndex(Number(e.target.value))}
                     aria-label="انتخاب رنگ"
                   >
-                    {group.variants.map((v, i) => (
+                    {displayVariants.map((v, i) => (
                       <option key={v.productId} value={i}>
-                        {v.color || 'اصلی'}{canViewPrices && v.price ? ` — ${formatMoney(v.price)}` : ''}{v.sku ? ` (${v.sku})` : ''}
+                        {v.color || 'اصلی'}{canViewPrices && !isProductUnavailable(v) && v.price ? ` — ${formatMoney(v.price)}` : ''}{v.sku ? ` (${v.sku})` : ''}
                       </option>
                     ))}
-                  </select>
-                  <span className="color-count">{formatNumber(group.variants.length)} رنگ</span>
+                  </select>}
+                  <span className="color-count">{formatNumber(displayVariants.length)} رنگ</span>
                 </span>
               </>
             ) : (
@@ -277,12 +282,12 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
 
       <div className="card-price-box">
-        <div className={canViewPrices ? undefined : 'price-obscured'} style={{ marginBottom: 8 }} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
+        {!selectedUnavailable && <div className={canViewPrices ? undefined : 'price-obscured'} style={{ marginBottom: 8 }} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
           {hasRealDiscount(selectedVariant.price, selectedVariant.oldPrice) && (
             <span className="card-old-price"><Price amount={selectedVariant.oldPrice!} /></span>
           )}
-          <div className="card-price"><Price amount={selectedVariant.price} /></div>
-        </div>
+          <div className="card-price">{selectedVariant.price > 0 ? <Price amount={selectedVariant.price} /> : 'قیمت‌گذاری نشده'}</div>
+        </div>}
 
         {whButtons.length > 0 && (
           <div className="warehouse-section" style={{ marginBottom: 8 }}>
@@ -322,6 +327,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
             })}
           </div>
         )}
+        {whButtons.length === 0 && <div className="catalog-unavailable">{selectedUnavailable ? 'ناموجود' : 'قیمت‌گذاری نشده'}</div>}
 
         <Link
           to={`/p/${selectedVariant.productId}`}

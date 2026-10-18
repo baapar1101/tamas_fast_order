@@ -1,30 +1,20 @@
 import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import type { ProductDTO, CategoryDTO, BrandDTO } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { api } from '../../lib/api';
+import { useImageFallback, waitForImages } from '../../lib/images';
 import { useToast } from '../../components/Toast';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
+import { catalogProductImage, catalogProductStock } from '../components/catalogProduct';
 
-// Convert image URL to Data URL for html2canvas reliability
-async function loadImageAsDataUrl(url: string): Promise<string | null> {
-  if (!url) return null;
-  if (url.startsWith('data:')) return url;
-  try {
-    const res = await fetch(url, { mode: 'cors' });
-    const blob = await res.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string || null);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-}
+type CatalogScope = 'all' | 'festival_singles' | 'baskets';
+
+const catalogScopes: { value: CatalogScope; label: string; hint: string }[] = [
+  { value: 'all', label: 'همه محصولات', hint: 'کاتالوگ عمومی فروشگاه' },
+  { value: 'festival_singles', label: 'محصولات تکی جشنواره', hint: 'بدون سبدها و باندل‌ها' },
+  { value: 'baskets', label: 'سبدها', hint: 'کاتالوگ جداگانه سبدها' },
+];
 
 export function CatalogExportPage() {
   const toast = useToast();
@@ -32,6 +22,7 @@ export function CatalogExportPage() {
   const [pdfProgress, setPdfProgress] = useState(0);
 
   // Filters
+  const [catalogScope, setCatalogScope] = useState<CatalogScope>('all');
   const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [selectedBrand, setSelectedBrand] = useState<number | 'all'>('all');
   const [stockStatus, setStockStatus] = useState<'all' | 'in' | 'out'>('all');
@@ -50,12 +41,13 @@ export function CatalogExportPage() {
 
   // Fetch products based on filters
   const { data: productsData, isLoading: isLoadingProducts } = useQuery({
-    queryKey: ['admin', 'products', 'catalog-export', selectedCategory, selectedBrand, stockStatus],
+    queryKey: ['admin', 'products', 'catalog-export', catalogScope, selectedCategory, selectedBrand, stockStatus],
     queryFn: () =>
       api.get<{ items: ProductDTO[] }>('/admin/products', {
         categoryId: selectedCategory === 'all' ? undefined : selectedCategory,
         brandId: selectedBrand === 'all' ? undefined : selectedBrand,
         stock: stockStatus,
+        catalogScope,
         status: 'active',
         page: 1,
         perPage: 5000,
@@ -74,16 +66,53 @@ export function CatalogExportPage() {
   const ITEMS_PER_PAGE = 20; // 4 columns x 5 rows
   const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
   const today = new Date().toLocaleDateString('fa-IR');
+  const catalogTitle = catalogScope === 'festival_singles'
+    ? 'کاتالوگ محصولات تکی جشنواره'
+    : catalogScope === 'baskets'
+      ? 'کاتالوگ سبدها'
+      : 'کاتالوگ محصولات تماس مارکت';
 
-  const handleGeneratePdf = () => {
+  const handleGeneratePdf = async () => {
+    if (isGenerating) return;
     if (products.length === 0) {
       toast.error('هیچ محصولی برای تهیه کاتالوگ یافت نشد.');
       return;
     }
-    toast.ok('لطفاً در پنجره باز شده، گزینه Save as PDF را انتخاب کنید.');
-    setTimeout(() => {
+    setIsGenerating(true);
+    setPdfProgress(10);
+    const source = printContainerRef.current;
+    if (!source) {
+      setIsGenerating(false);
+      setPdfProgress(0);
+      toast.error('پیش‌نمایش کاتالوگ آماده نیست. دوباره تلاش کنید.');
+      return;
+    }
+
+    const printPortal = source.cloneNode(true) as HTMLDivElement;
+    printPortal.className = 'catalog-print-portal';
+    printPortal.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(printPortal);
+    let cleaned = false;
+    const cleanup = () => {
+      if (cleaned) return;
+      cleaned = true;
+      printPortal.remove();
+      setIsGenerating(false);
+      setPdfProgress(0);
+    };
+
+    try {
+      setPdfProgress(45);
+      await waitForImages(printPortal);
+      setPdfProgress(100);
+      toast.ok('لطفاً در پنجره باز شده، گزینه Save as PDF را انتخاب کنید.');
+      window.addEventListener('afterprint', cleanup, { once: true });
       window.print();
-    }, 500);
+      window.setTimeout(cleanup, 60_000);
+    } catch {
+      cleanup();
+      toast.error('ساخت نسخه چاپی کاتالوگ ناموفق بود.');
+    }
   };
 
   return (
@@ -104,16 +133,38 @@ export function CatalogExportPage() {
           <h3 className="a-card-title">فیلترهای صدور کاتالوگ</h3>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="mb-6">
+            <div className="a-label mb-3">نوع کاتالوگ</div>
+            <div className="catalog-scope-grid" role="group" aria-label="نوع کاتالوگ">
+              {catalogScopes.map((scope) => (
+                <button
+                  key={scope.value}
+                  type="button"
+                  aria-pressed={catalogScope === scope.value}
+                  onClick={() => {
+                    setCatalogScope(scope.value);
+                    setSelectedCategory('all');
+                    setSelectedBrand('all');
+                  }}
+                  className={`rounded-xl border p-4 text-right transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-500 ${catalogScope === scope.value ? 'border-cyan-500 bg-cyan-500/15' : 'border-[var(--a-border)] hover:border-cyan-500/60'}`}
+                >
+                  <span className="block font-bold text-[var(--a-t1)]">{scope.label}</span>
+                  <span className="block mt-1 text-xs text-[var(--a-t2)]">{scope.hint}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="catalog-filter-grid mb-6" onClick={(event) => event.stopPropagation()}>
             {/* Category Filter */}
             <div>
               <label className="a-label">دسته‌بندی</label>
               <AnimatedDropdown
                 value={String(selectedCategory)}
+                disabled={catalogScope === 'baskets'}
                 onChange={(val) => setSelectedCategory(val === 'all' ? 'all' : Number(val))}
                 options={[
-                  { value: 'all', label: 'همه دسته‌بندی‌ها' },
-                  ...categories.map((cat: CategoryDTO) => ({
+                  { value: 'all', label: catalogScope === 'baskets' ? 'سبدها (خودکار)' : 'همه دسته‌بندی‌ها' },
+                  ...categories.filter((cat: CategoryDTO) => catalogScope !== 'festival_singles' || (cat.name !== 'Bondle' && cat.faName !== 'سبد ها')).map((cat: CategoryDTO) => ({
                     value: String(cat.id),
                     label: cat.faName || cat.name,
                   })),
@@ -161,6 +212,7 @@ export function CatalogExportPage() {
               عدد ({formatNumber(totalPages)} صفحه A4)
             </div>
             <button
+              type="button"
               className="a-btn a-btn--primary px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all"
               onClick={handleGeneratePdf}
               disabled={isGenerating || isLoadingProducts || products.length === 0}
@@ -175,7 +227,7 @@ export function CatalogExportPage() {
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                   </svg>
-                  <span>دانلود کاتالوگ PDF (اصلاح‌شده)</span>
+                  <span>دانلود کاتالوگ PDF</span>
                 </>
               )}
             </button>
@@ -240,7 +292,7 @@ export function CatalogExportPage() {
                     }}>
                       <div>
                         <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 'bold', letterSpacing: '-0.3px' }}>
-                          کاتالوگ محصولات تماس مارکت
+                          {catalogTitle}
                         </h2>
                         <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>
                           تعداد کالاها: {formatNumber(products.length)} عدد
@@ -262,17 +314,18 @@ export function CatalogExportPage() {
                     }}>
                       {pageProducts.map((p) => {
                         const brandLabel = (p as any).brandFaName || (p as any).brandName || '';
+                        const availableStock = catalogProductStock(p);
                         return (
                           <div
                             key={p.id}
+                            data-catalog-product-id={p.productId}
                             style={{
                               backgroundColor: '#f8fafc',
                               border: '1px solid #e2e8f0',
                               borderRadius: '8px',
                               padding: '6px 8px',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              justifyContent: 'space-between',
+                              display: 'grid',
+                              gridTemplateRows: '74px minmax(0, 1fr) 35px',
                               boxSizing: 'border-box',
                               overflow: 'hidden',
                             }}
@@ -289,10 +342,13 @@ export function CatalogExportPage() {
                               padding: '2px',
                             }}>
                               <img
-                                src={p.imageUrl || '/logo.png'}
+                                src={catalogProductImage(p)}
                                 alt={p.title}
-                                style={{ maxHeight: '66px', maxWidth: '100%', objectFit: 'contain' }}
+                                style={{ display: 'block', width: '100%', height: '66px', objectFit: 'contain' }}
                                 crossOrigin="anonymous"
+                                loading="eager"
+                                decoding="async"
+                                onError={useImageFallback}
                               />
                             </div>
 
@@ -323,8 +379,8 @@ export function CatalogExportPage() {
                             </div>
 
                             {/* Divider & Price */}
-                            <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '4px', marginTop: '2px', textAlign: 'center' }}>
-                              <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#0284c7', direction: 'rtl' }}>
+                            <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '4px', marginTop: '2px', textAlign: 'center', overflow: 'hidden' }}>
+                              <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#0284c7', direction: 'rtl', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                                 {p.price > 0 ? `${formatNumber(p.price)} تومان` : 'تماس بگیرید'}
                               </div>
                               <div
@@ -332,10 +388,10 @@ export function CatalogExportPage() {
                                   fontSize: '8.5px',
                                   fontWeight: 'bold',
                                   marginTop: '1px',
-                                  color: p.stock > 0 || p.kermanStock > 0 || p.tehranStock > 0 ? '#16a34a' : '#dc2626',
+                                  color: availableStock > 0 ? '#16a34a' : '#dc2626',
                                 }}
                               >
-                                {p.stock > 0 || p.kermanStock > 0 || p.tehranStock > 0 ? 'موجود' : 'ناموجود'}
+                                {availableStock > 0 ? `موجود (${formatNumber(availableStock)})` : 'ناموجود'}
                               </div>
                             </div>
                           </div>

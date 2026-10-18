@@ -24,6 +24,7 @@ interface AuthState {
   ready: boolean;
   isAdmin: boolean;
   isOperator: boolean;
+  isInvestor: boolean;
   hasPermission: (permission: string) => boolean;
   restore: () => Promise<void>;
   applyLogin: (data: AuthResponse) => void;
@@ -39,12 +40,13 @@ export const useAuth = create<AuthState>((set) => ({
   ready: false,
   isAdmin: false,
   isOperator: false,
+  isInvestor: false,
   hasPermission: () => false,
 
   /** Called once on boot; a dead token is discarded rather than surfaced. */
   async restore() {
     if (!readToken()) {
-      set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, hasPermission: () => false, ready: true });
+      set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, isInvestor: false, hasPermission: () => false, ready: true });
       return;
     }
 
@@ -55,6 +57,7 @@ export const useAuth = create<AuthState>((set) => ({
         missing: data.missing,
         isAdmin: data.user.role === 'admin',
         isOperator: data.user.role === 'operator',
+        isInvestor: data.user.role === 'investor',
         hasPermission: (p: string) =>
           data.user.role === 'admin' || (data.user.role === 'operator' && !!(data.user.permissions?.includes(p) || data.user.permissions?.includes('*'))),
         ready: true,
@@ -62,7 +65,7 @@ export const useAuth = create<AuthState>((set) => ({
     };
     const reject = (err: unknown) => {
       if (err instanceof ApiRequestError && err.isExpired) writeToken(null);
-      set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, hasPermission: () => false, ready: true });
+      set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, isInvestor: false, hasPermission: () => false, ready: true });
     };
 
     // A transient backend hiccup (500 through the proxy / a dev-server
@@ -96,6 +99,7 @@ export const useAuth = create<AuthState>((set) => ({
       missing: data.missing,
       isAdmin: data.user.role === 'admin',
       isOperator: data.user.role === 'operator',
+      isInvestor: data.user.role === 'investor',
       hasPermission: (p: string) => 
         data.user.role === 'admin' || (data.user.role === 'operator' && !!(data.user.permissions?.includes(p) || data.user.permissions?.includes('*'))),
       ready: true,
@@ -109,6 +113,7 @@ export const useAuth = create<AuthState>((set) => ({
       missing: data.missing,
       isAdmin: data.user.role === 'admin',
       isOperator: data.user.role === 'operator',
+      isInvestor: data.user.role === 'investor',
       hasPermission: (p: string) => 
         data.user.role === 'admin' || (data.user.role === 'operator' && !!(data.user.permissions?.includes(p) || data.user.permissions?.includes('*'))),
     });
@@ -121,11 +126,11 @@ export const useAuth = create<AuthState>((set) => ({
       /* the local session is cleared either way */
     }
     writeToken(null);
-    set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, hasPermission: () => false });
+    set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, isInvestor: false, hasPermission: () => false });
   },
 
   clear() {
     writeToken(null);
-    set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, hasPermission: () => false });
+    set({ user: null, complete: false, missing: [], isAdmin: false, isOperator: false, isInvestor: false, hasPermission: () => false });
   },
 }));

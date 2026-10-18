@@ -36,6 +36,12 @@ const routes: FastifyPluginAsync = async (app) => {
     if (!user) throw notFound('کاربر پیدا نشد.');
     const entry = await db.transaction((tx) => applyWalletTransaction(tx, { userId, direction: body.direction, type: 'adjustment', amount: body.amount, description: body.description, reference: body.reference, createdBy: req.currentUser!.id, idempotencyKey: `admin:${req.currentUser!.id}:${userId}:${crypto.randomUUID()}` }));
     await logAction(req.currentUser!.id, `wallet:${body.direction}`, 'wallet', String(userId), { amount: body.amount, description: body.description });
+    void import('../../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
+      userId,
+      'wallet.changed',
+      body.direction === 'credit' ? '💳 افزایش موجودی کیف پول' : '💳 کاهش موجودی کیف پول',
+      `${body.amount.toLocaleString('fa-IR')} تومان ${body.direction === 'credit' ? 'به' : 'از'} کیف پول شما ${body.direction === 'credit' ? 'افزوده' : 'کسر'} شد. موجودی جدید: ${entry.balanceAfter.toLocaleString('fa-IR')} تومان.\n${body.description}`,
+    )).catch((err) => req.log.error({ err }, 'failed to send customer Telegram wallet notification'));
     return { ok: true, transaction: entry };
   });
 

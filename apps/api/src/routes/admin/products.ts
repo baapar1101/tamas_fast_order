@@ -3,13 +3,15 @@ import type { FastifyPluginAsync } from 'fastify';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { z } from 'zod';
-import { productPatchSchema, productWriteSchema } from '@tamas/shared';
+import { formatProductTitle, productPatchSchema, productWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { brands, categories, products, productTrackingLinks, trackingSites } from '../../db/schema.js';
 import { badRequest, conflict, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
-import { buildSearchText, invalidateCatalog, toProductDTO } from '../../services/catalog.js';
+import { buildSearchText, findProductByPublicId, invalidateCatalog, toProductDTO } from '../../services/catalog.js';
+import { catalogExportScopeFilter, catalogExportScopeSchema } from '../../services/catalog-export-scope.js';
 import { logAction } from '../../services/audit.js';
+import { enqueueCrmProductSync } from '../../services/crm-product-sync.js';
 import { duplicateProductMessage, findProductDuplicate } from '../../services/product-duplicates.js';
 
 type TrackingLinkInput = { siteId: number; url: string };
@@ -66,6 +68,7 @@ const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
   status: z.enum(['active', 'inactive', 'all']).default('all'),
   stock: z.enum(['in', 'out', 'all']).default('all'),
+  investorFinanced: z.enum(['yes', 'no', 'all']).default('all'),
   categoryId: z.coerce.number().int().positive().optional(),
   brandId: z.coerce.number().int().positive().optional(),
   includeDeleted: z.coerce.boolean().default(false),
@@ -75,11 +78,12 @@ const listQuery = z.object({
   parentProductId: z.string().max(80).optional(),
   parentOnly: z.coerce.boolean().default(false),
   type: z.string().max(50).optional(),
+  catalogScope: catalogExportScopeSchema.default('all'),
 });
 
 const bulkSchema = z.object({
   ids: z.array(z.coerce.number().int().positive()).min(1).max(500),
-  action: z.enum(['activate', 'deactivate', 'delete', 'restore', 'promote', 'demote', 'setStock', 'adjustPrice']),
+  action: z.enum(['activate', 'deactivate', 'delete', 'restore', 'promote', 'demote', 'finance', 'unfinance', 'setStock', 'adjustPrice']),
   stock: z.coerce.number().int().min(0).max(1_000_000).optional(),
   /** Percentage change, e.g. -10 to cut every selected price by a tenth. */
   percent: z.coerce.number().min(-90).max(900).optional(),
@@ -102,8 +106,29 @@ async function resolveTaxonomy(
   return created?.id ?? null;
 }
 
+/** Bundle products belong in the storefront's basket category even when the editor omits it. */
+async function resolveProductCategory(name: string | null | undefined, type: string): Promise<number | null> {
+  if (name?.trim()) return resolveTaxonomy(categories, name);
+  if (type !== 'bundle') return null;
+  const [basket] = await db
+    .select({ id: categories.id })
+    .from(categories)
+    .where(or(eq(categories.name, 'Bondle'), eq(categories.faName, 'سبد ها')))
+    .limit(1);
+  if (!basket) throw badRequest('دسته‌بندی «سبد ها» برای باندل تعریف نشده است.');
+  return basket.id;
+}
+
 const routes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requirePermission('manage_products'));
+
+  app.get('/admin/products/preview/:productId', async (req, reply) => {
+    const { productId } = req.params as { productId: string };
+    const result = await findProductByPublicId(productId, { adminPreview: true });
+    if (!result) throw notFound('محصول پیدا نشد.');
+    reply.header('cache-control', 'private, no-store');
+    return { ok: true, ...result };
+  });
 
   app.get('/admin/products', async (req) => {
     const q = listQuery.parse(req.query);
@@ -111,6 +136,7 @@ const routes: FastifyPluginAsync = async (app) => {
     if (!q.includeDeleted) filters.push(isNull(products.deletedAt));
 
     if (q.status !== 'all') filters.push(eq(products.status, q.status));
+    if (q.investorFinanced !== 'all') filters.push(eq(products.investorFinanced, q.investorFinanced === 'yes'));
     if (q.categoryId) filters.push(eq(products.categoryId, q.categoryId));
     if (q.brandId) filters.push(eq(products.brandId, q.brandId));
     if (q.parentProductId !== undefined) {
@@ -136,6 +162,8 @@ const routes: FastifyPluginAsync = async (app) => {
     if (q.type) {
       filters.push(eq(products.type, q.type));
     }
+    const scopeFilter = catalogExportScopeFilter(q.catalogScope);
+    if (scopeFilter) filters.push(scopeFilter);
 
     const where = filters.length > 0 ? and(...filters) : undefined;
 
@@ -164,7 +192,7 @@ const routes: FastifyPluginAsync = async (app) => {
         .orderBy(order)
         .limit(q.perPage)
         .offset(offsetOf(q)),
-      db.select({ n: count() }).from(products).where(where),
+      db.select({ n: count() }).from(products).leftJoin(categories, eq(categories.id, products.categoryId)).where(where),
     ]);
 
     const trackingLinkMap = await loadTrackingLinks(rows.map((row) => row.product.id));
@@ -197,10 +225,11 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.post('/admin/products', async (req) => {
     const body = productWriteSchema.parse(req.body);
+    body.title = formatProductTitle(body.title);
     const duplicate = await findProductDuplicate(body);
     if (duplicate) throw conflict(duplicateProductMessage(duplicate));
 
-    const categoryId = await resolveTaxonomy(categories, body.categoryName);
+    const categoryId = await resolveProductCategory(body.categoryName, body.type);
     const brandId = await resolveTaxonomy(brands, body.brandName);
     const trackingLinks = await validateTrackingLinks(body.trackingLinks);
     const { categoryName: _c, brandName: _b, trackingLinks: _links, ...rest } = body;
@@ -230,6 +259,7 @@ const routes: FastifyPluginAsync = async (app) => {
       .returning();
     if (!created) throw badRequest('ثبت محصول ناموفق بود.');
     await replaceTrackingLinks(created.id, trackingLinks);
+    await enqueueCrmProductSync(created.productId, 'create');
 
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'create', 'product', created.productId, { title: created.title });
@@ -240,6 +270,7 @@ const routes: FastifyPluginAsync = async (app) => {
   app.patch('/admin/products/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
     const body = productPatchSchema.parse(req.body);
+    if (body.title !== undefined) body.title = formatProductTitle(body.title);
 
     const [existing] = await db.select().from(products).where(eq(products.id, id)).limit(1);
     if (!existing) throw notFound('محصول پیدا نشد.');
@@ -256,7 +287,9 @@ const routes: FastifyPluginAsync = async (app) => {
     if (body.kermanStock === null) patch.kermanStock = 0;
     if (body.tehranStock === null) patch.tehranStock = 0;
 
-    if (body.categoryName !== undefined) patch.categoryId = await resolveTaxonomy(categories, body.categoryName);
+    if (body.categoryName !== undefined || body.type === 'bundle' || (existing.type === 'bundle' && !existing.categoryId)) {
+      patch.categoryId = await resolveProductCategory(body.categoryName, body.type ?? existing.type);
+    }
     if (body.brandName !== undefined) patch.brandId = await resolveTaxonomy(brands, body.brandName);
 
     const brandLabel =
@@ -273,18 +306,24 @@ const routes: FastifyPluginAsync = async (app) => {
       body.color ?? existing.color,
       body.colorEn ?? existing.colorEn,
       body.sku ?? existing.sku,
-      existing.productId,
+      body.productId ?? existing.productId,
     ]);
 
     const [updated] = await db.update(products).set(patch).where(eq(products.id, id)).returning();
     if (trackingLinks !== undefined) await replaceTrackingLinks(id, trackingLinks);
+    if (updated) {
+      if (updated.productId !== existing.productId) {
+        await enqueueCrmProductSync(existing.productId, 'delete', { replacedBy: updated.productId });
+      }
+      await enqueueCrmProductSync(updated.productId, 'update');
+    }
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'update', 'product', existing.productId, body as Record<string, unknown>);
     const trackingLinkMap = await loadTrackingLinks([id]);
     return { ok: true, product: { ...toProductDTO(updated!, null, null, { includeAdminSource: true }), trackingLinks: trackingLinkMap.get(id) ?? [] } };
   });
 
-  /** Soft delete: the row stays so the sheet and past orders keep their reference. */
+  /** Soft delete preserves local order history; mirrors remove the catalogue row. */
   app.delete('/admin/products/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
     const [updated] = await db
@@ -293,6 +332,7 @@ const routes: FastifyPluginAsync = async (app) => {
       .where(eq(products.id, id))
       .returning();
     if (!updated) throw notFound('محصول پیدا نشد.');
+    await enqueueCrmProductSync(updated.productId, 'delete');
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'delete', 'product', updated.productId);
     return { ok: true, message: 'محصول حذف شد.' };
@@ -302,6 +342,13 @@ const routes: FastifyPluginAsync = async (app) => {
     const body = bulkSchema.parse(req.body);
     const now = new Date();
     const where = inArray(products.id, body.ids);
+    const affectedProducts = await db.select({ productId: products.productId }).from(products).where(where);
+    if (body.action === 'restore') {
+      const invalidCode = affectedProducts.find((product) => !/^0\d+$/.test(product.productId));
+      if (invalidCode) {
+        throw badRequest(`محصول با کد ${invalidCode.productId} قابل بازیابی نیست؛ کد باید با صفر شروع شود.`);
+      }
+    }
     let changed = 0;
 
     switch (body.action) {
@@ -322,6 +369,12 @@ const routes: FastifyPluginAsync = async (app) => {
         break;
       case 'demote':
         changed = (await db.update(products).set({ promotion: false, updatedAt: now }).where(where).returning({ id: products.id })).length;
+        break;
+      case 'finance':
+        changed = (await db.update(products).set({ investorFinanced: true, updatedAt: now }).where(where).returning({ id: products.id })).length;
+        break;
+      case 'unfinance':
+        changed = (await db.update(products).set({ investorFinanced: false, updatedAt: now }).where(where).returning({ id: products.id })).length;
         break;
       case 'setStock': {
         if (body.stock == null) throw badRequest('مقدار موجودی را وارد کنید.');
@@ -346,6 +399,11 @@ const routes: FastifyPluginAsync = async (app) => {
         ).length;
         break;
       }
+    }
+
+    const crmAction = body.action === 'delete' ? 'delete' : body.action === 'restore' ? 'create' : 'update';
+    for (const product of affectedProducts) {
+      await enqueueCrmProductSync(product.productId, crmAction);
     }
 
     invalidateCatalog();

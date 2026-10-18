@@ -1960,3 +1960,19 @@ svg.w-full, .w-full { width: 100%; }
   .taxonomy-item { padding: 0.7rem; }
   .admin-page-grid { gap: 1rem; padding-inline: 0; }
 }
+
+.catalog-scope-grid,
+.catalog-filter-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.catalog-filter-grid { gap: 1.5rem; }
+
+@media (min-width: 1100px) {
+  .catalog-scope-grid,
+  .catalog-filter-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -16,10 +16,31 @@ function generateVersionJsonPlugin(): Plugin {
         }
         fs.writeFileSync(
           path.resolve(outDir, 'version.json'),
-          JSON.stringify({ buildTime })
+          JSON.stringify({ buildTime, builtAt: new Date(buildTime).toISOString() })
         );
       } catch (e) {
         console.error('Failed to write version.json:', e);
+      }
+    },
+  };
+}
+
+const GENERATED_CHUNK_FILE = /^(?:index|admin|vendor|react|router|query|pdf)-[A-Za-z0-9_-]{8,}\.(?:js(?:\.map)?|css)$/;
+
+function pruneStaleGeneratedChunksPlugin(): Plugin {
+  return {
+    name: 'prune-stale-generated-chunks',
+    apply: 'build',
+    writeBundle(_options, bundle) {
+      const outDir = path.resolve(__dirname, 'dist');
+      const assetsDir = path.join(outDir, 'assets');
+      if (!fs.existsSync(assetsDir)) return;
+
+      const currentFiles = new Set(Object.keys(bundle).map((file) => path.resolve(outDir, file)));
+      for (const entry of fs.readdirSync(assetsDir, { withFileTypes: true })) {
+        if (!entry.isFile() || !GENERATED_CHUNK_FILE.test(entry.name)) continue;
+        const filePath = path.resolve(assetsDir, entry.name);
+        if (!currentFiles.has(filePath)) fs.unlinkSync(filePath);
       }
     },
   };
@@ -29,7 +50,7 @@ export default defineConfig({
   define: {
     __BUILD_TIME__: JSON.stringify(buildTime),
   },
-  plugins: [react(), generateVersionJsonPlugin()],
+  plugins: [react(), generateVersionJsonPlugin(), pruneStaleGeneratedChunksPlugin()],
   server: {
     host: '0.0.0.0',
     port: 5173,
@@ -48,14 +69,20 @@ export default defineConfig({
     target: 'es2022',
     sourcemap: true,
     // The server places a .user.ini file inside dist/ which causes Vite's
-    // emptyOutDir (rmSync) to crash with ENOTDIR. Disabling it is safe
-    // because built files overwrite their previous versions on every build.
+    // emptyOutDir (rmSync) to crash with ENOTDIR. Keep that file while
+    // pruning obsolete generated chunks after each successful build.
     emptyOutDir: false,
     rollupOptions: {
       output: {
         // The admin panel is a separate chunk: a shopper never downloads it.
         manualChunks(id) {
           if (id.includes('node_modules')) {
+            if (
+              id.includes('html2pdf.js') ||
+              id.includes('html2canvas') ||
+              id.includes('jspdf') ||
+              id.includes('dompurify')
+            ) return 'pdf';
             if (id.includes('react-router')) return 'router';
             // `scheduler` belongs with react-dom: splitting them makes the two
             // chunks import each other in a cycle.

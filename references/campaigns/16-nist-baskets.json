@@ -1,0 +1,392 @@
+[
+  {
+    "sourceSheet": "adapter basket",
+    "sku": "02030200151",
+    "title": "سبد ویژه آداپتور",
+    "totalPriceToman": 80260000,
+    "stock": 5,
+    "totalItems": 50,
+    "imageUrl": "/assets/baskets/02030200151.webp",
+    "items": [
+      {
+        "name": "آداپتور 40 وات اورجینال اپل",
+        "quantity": 3
+      },
+      {
+        "name": "آداپتور 20 وات اورجینال اپل",
+        "quantity": 7
+      },
+      {
+        "name": "آداپتور 60 وات سامسونگ ویتنام ( سلوم , NFC فعال)",
+        "quantity": 1
+      },
+      {
+        "name": "آداپتور 45 وات سامسونگ با کابل ویتنام ( سلوم , NFC فعال)",
+        "quantity": 3
+      },
+      {
+        "name": "آداپتور 45 وات سامسونگ ویتنام ( سلوم , NFC فعال)",
+        "quantity": 3
+      },
+      {
+        "name": "آداپتور 25 وات سامسونگ ویتنام ( سلوم , NFC فعال)",
+        "quantity": 5
+      },
+      {
+        "name": "آداپتور 15 وات سامسونگ",
+        "quantity": 3
+      },
+      {
+        "name": "آداپتور سامسونگ  S10 برد RFT با کابل و پک دار",
+        "quantity": 10
+      },
+      {
+        "name": "آداپتور 120 وات شیائومی",
+        "quantity": 1
+      },
+      {
+        "name": "آداپتور 67 وات شیائومی",
+        "quantity": 2
+      },
+      {
+        "name": "آداپتور 33 وات شیائومی",
+        "quantity": 2
+      },
+      {
+        "name": "کابل S23 اورجینال سامسونگ ویتنام",
+        "quantity": 10
+      }
+    ]
+  },
+  {
+    "sourceSheet": "Cover 1 Basket",
+    "sku": "02010104586",
+    "title": "سبد گارد عروسکی دو تیکه",
+    "totalPriceToman": 18497000,
+    "stock": 5,
+    "totalItems": 53,
+    "imageUrl": "/assets/baskets/02010104586.webp",
+    "items": [
+      {
+        "name": "گارد عروسکی دو تیکه مدل A06",
+        "quantity": 2
+      },
+      {
+        "name": "گارد عروسکی دو تیکه مدل A07",
+        "quantity": 7
+      },
+      {
+        "name": "گارد عروسکی دو تیکه مدل A17",
+        "quantity": 8
+      },
+      {
+        "name": "گارد عروسکی دو تیکه مدل A37",
+        "quantity": 4
+      },
+      {
+        "name": "گارد عروسکی دو تیکه مدل A57",
+        "quantity": 4
+      },
+      {
+        "name": "گارد عروسکی دو تیکه مدل S25 FE",
+        "quantity": 2
+      },
+      {
+        "name": "گارد عروسکی دو تیکه مدل S26 ULTRA",
+        "quantity": 2
+      },
+      {
+        "name": "گارد عروسکی دو تیکه مدل REDMI 15",
+        "quantity": 4
+      },
+      {
+        "name": "گارد عروسکی دو تیکه مدل REDMI 15C",
+        "quantity": 4
+      },
+      {
+        "name": "گارد عروسکی دو تیکه مدل NOTE 15 4G",
+        "quantity": 8
+      },
+      {
+        "name": "گارد عروسکی دو تیکه مدل NOTE 15 PRO 4G",
+        "quantity": 8
+      }
+    ]
+  },
+  {
+    "sourceSheet": "Cover 2 Basket",
+    "sku": "02010104585",
+    "title": "سبد گارد شفاف مگ سیف",
+    "totalPriceToman": 7410000,
+    "stock": 5,
+    "totalItems": 26,
+    "imageUrl": "/assets/baskets/02010104585.webp",
+    "items": [
+      {
+        "name": "گارد شفاف مگ سیف مدل A07",
+        "quantity": 8
+      },
+      {
+        "name": "گارد شفاف مگ سیف مدل A17",
+        "quantity": 8
+      },
+      {
+        "name": "گارد شفاف مگ سیف مدل A37",
+        "quantity": 4
+      },
+      {
+        "name": "گارد شفاف مگ سیف مدل A57",
+        "quantity": 5
+      },
+      {
+        "name": "گارد شفاف مگ سیف مدل S26 ULTRA",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "sourceSheet": "Cover 3 Basket",
+    "sku": "02010104587",
+    "title": "سبد گارد هولوگرامی SO COOL",
+    "totalPriceToman": 13140000,
+    "stock": 5,
+    "totalItems": 60,
+    "imageUrl": "/assets/baskets/02010104587.webp",
+    "items": [
+      {
+        "name": "گارد هولوگرامی SO COOL مدل A12",
+        "quantity": 2
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل A06",
+        "quantity": 2
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل A07",
+        "quantity": 9
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل A17",
+        "quantity": 6
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل A37",
+        "quantity": 4
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل A57",
+        "quantity": 4
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل S25 FE",
+        "quantity": 2
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل S26 ULTRA",
+        "quantity": 2
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل REDMI A5 / POCO C71",
+        "quantity": 3
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل REDMI 15",
+        "quantity": 4
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل REDMI 15C",
+        "quantity": 5
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل NOTE 15 4G",
+        "quantity": 10
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل NOTE 15 PRO 4G",
+        "quantity": 4
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل NOTE 15 PRO 5G",
+        "quantity": 2
+      },
+      {
+        "name": "گارد هولوگرامی SO COOL مدل NOTE 15 PRO PLUS 5G",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "sourceSheet": "Cover 4 Basket",
+    "sku": "02010104588",
+    "title": "سبد گارد پاستیلی طرح مگ سیف",
+    "totalPriceToman": 38164000,
+    "stock": 5,
+    "totalItems": 116,
+    "imageUrl": "/assets/baskets/02010104588.webp",
+    "items": [
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل A06",
+        "quantity": 4
+      },
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل A07",
+        "quantity": 16
+      },
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل A17",
+        "quantity": 16
+      },
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل A37",
+        "quantity": 8
+      },
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل A57",
+        "quantity": 8
+      },
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل S25 FE",
+        "quantity": 2
+      },
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل S26 ULTRA",
+        "quantity": 4
+      },
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل REDMI A5 / POCO C71",
+        "quantity": 4
+      },
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل REDMI 15C",
+        "quantity": 8
+      },
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل REDMI 15",
+        "quantity": 8
+      },
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل NOTE 15",
+        "quantity": 16
+      },
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل NOTE 15 PRO 4G",
+        "quantity": 16
+      },
+      {
+        "name": "گارد پاستیلی طرح مگ سیف مدل NOTE 15 PRO 5G",
+        "quantity": 6
+      }
+    ]
+  },
+  {
+    "sourceSheet": "Cover 5 Basket",
+    "sku": "02010104584",
+    "title": "سبد گارد ساده طرح BMW",
+    "totalPriceToman": 26460000,
+    "stock": 5,
+    "totalItems": 140,
+    "imageUrl": "/assets/baskets/02010104584.webp",
+    "items": [
+      {
+        "name": "گارد ساده طرح BMW مدل A06",
+        "quantity": 5
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل A16",
+        "quantity": 5
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل A26",
+        "quantity": 4
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل A36",
+        "quantity": 4
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل A56",
+        "quantity": 4
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل A07",
+        "quantity": 10
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل A17",
+        "quantity": 10
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل S25 FE",
+        "quantity": 7
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل S25 ULTRA",
+        "quantity": 4
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل NOTE 14",
+        "quantity": 5
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل NOTE 14S",
+        "quantity": 5
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل NOTE 14 PRO 4G",
+        "quantity": 3
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل NOTE 15",
+        "quantity": 7
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل NOTE 15 PRO",
+        "quantity": 5
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل REDMI 14C / POCO C75",
+        "quantity": 6
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل REDMI 15C / POCO C85",
+        "quantity": 6
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل REDMI 15",
+        "quantity": 6
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل REDMI A5 / POCO C71",
+        "quantity": 7
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل POCO M7 4G",
+        "quantity": 5
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل iPhone 13 / 14",
+        "quantity": 4
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل iPhone 16",
+        "quantity": 5
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل iPhone 16 Pro Max",
+        "quantity": 5
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل iPhone 17",
+        "quantity": 7
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل iPhone 17 / 18 Pro",
+        "quantity": 4
+      },
+      {
+        "name": "گارد ساده طرح BMW مدل iPhone 17 / 18  Pro Max",
+        "quantity": 7
+      }
+    ]
+  }
+]

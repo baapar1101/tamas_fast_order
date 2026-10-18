@@ -1,4 +1,5 @@
 import type { ChequeStatus, CreditStatus, OrderStatus, UploadKind, Warehouse } from './schemas.js';
+import type { PaymentPlanQuote } from './payment-terms.js';
 
 export interface ApiError {
   ok: false;
@@ -54,6 +55,12 @@ export interface BundleItem {
   qty: number;
 }
 
+/** Public bundle detail: names, quantities and product images, never component prices. */
+export interface BundleContentDTO extends BundleItem {
+  title: string;
+  imageUrl: string | null;
+}
+
 export interface ProductDTO {
   id: number;
   productId: string;
@@ -69,6 +76,10 @@ export interface ProductDTO {
   colorEn: string | null;
   colorCode: string | null;
   price: number;
+  /** Admin-only latest unit acquisition cost; omitted from public catalogue responses. */
+  costPrice?: number;
+  /** Admin-only current inventory valuation based on costPrice. */
+  inventoryValue?: number;
   oldPrice: number | null;
   discount: number;
   stock: number;
@@ -79,6 +90,8 @@ export interface ProductDTO {
   sellType: string | null;
   seller: string | null;
   promotion: boolean;
+  /** Admin-only flag deciding whether this product is included in investor reports. */
+  investorFinanced?: boolean;
   status: 'active' | 'inactive';
   subTitle: string | null;
   description: string | null;
@@ -161,7 +174,7 @@ export interface UserDTO {
   fatherName?: string;
   isVerifiedIdentity?: boolean;
   isActive: boolean;
-  role: 'customer' | 'admin' | 'operator';
+  role: 'customer' | 'admin' | 'operator' | 'investor';
   accessGroupId?: number | null;
   permissions?: string[];
   createdAt: string;
@@ -183,8 +196,27 @@ export interface OrderItemDTO {
   title: string;
   color: string | null;
   price: number;
+  /** Admin-only acquisition-cost snapshot frozen when the order item was created. */
+  costPrice?: number;
+  /** Admin-only financing-scope snapshot frozen when the order item was created. */
+  investorFinanced?: boolean;
   qty: number;
   warehouse: Warehouse;
+}
+
+export interface AdminOrderInvestmentDTO {
+  financedSales: number;
+  financedUnits: number;
+  costOfGoodsSold: number;
+  grossProfit: number;
+  grossMarginPercent: number;
+  distributableProfit: number;
+  investorShare: number;
+  executorShare: number;
+  investorSharePercent: number;
+  executorSharePercent: number;
+  costCoveragePercent: number;
+  realized: boolean;
 }
 
 export interface OrderDTO {
@@ -196,15 +228,28 @@ export interface OrderDTO {
   storeName: string | null;
   address: string;
   total: number;
+  subtotal: number;
   quantity: number;
   status: OrderStatus;
   paymentStatus: 'paid' | 'unpaid' | 'pending';
   paymentMethod: string | null;
+  paymentPlan: PaymentPlanQuote | null;
+  discountCode: string | null;
+  discountAmount: number;
+  freeShipping: boolean;
+  paymentInstructions?: {
+    status: 'pending' | 'sent';
+    instructions: string | null;
+    sentAt: string | null;
+    channels: string[];
+  } | null;
   note: string | null;
   acquisitionSource?: string | null;
   acquisitionMedium?: string | null;
   acquisitionCampaign?: string | null;
   items: OrderItemDTO[];
+  /** Admin-only investment and profitability view; omitted from customer responses. */
+  investment?: AdminOrderInvestmentDTO;
   createdAt: string;
   updatedAt: string;
 }
@@ -294,6 +339,119 @@ export interface PaymentDTO {
   updatedAt: string;
 }
 
+export type InvestmentEntryType =
+  | 'capital_injection'
+  | 'capital_withdrawal'
+  | 'purchase'
+  | 'expense'
+  | 'profit_distribution'
+  | 'adjustment';
+
+export type InvestmentEntryStatus = 'paid' | 'pending' | 'cancelled';
+
+export interface InvestmentEntryDTO {
+  id: number;
+  type: InvestmentEntryType;
+  status: InvestmentEntryStatus;
+  amount: number;
+  title: string;
+  category: string | null;
+  reference: string | null;
+  notes: string | null;
+  transactionDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InvestorSettingsDTO {
+  initialCapital: number;
+  investorSharePercent: number;
+  executorSharePercent: number;
+  companyLabel: string;
+}
+
+export interface WarehouseInvestmentBucketDTO {
+  warehouse: 'kerman' | 'tehran' | 'site';
+  label: string;
+  units: number;
+  valuedUnits: number;
+  inventoryValue: number;
+  investorValue: number;
+  executorValue: number;
+  costCoveragePercent: number;
+}
+
+export interface WarehouseInvestmentSummaryDTO {
+  settings: InvestorSettingsDTO;
+  totals: {
+    units: number;
+    valuedUnits: number;
+    inventoryValue: number;
+    investorValue: number;
+    executorValue: number;
+    productsWithoutCost: number;
+    costCoveragePercent: number;
+  };
+  warehouses: WarehouseInvestmentBucketDTO[];
+}
+
+export interface InvestorDashboardDTO {
+  period: { range: '7d' | '30d' | '90d' | '365d'; from: string; to: string };
+  settings: InvestorSettingsDTO;
+  metrics: {
+    inventoryUnits: number;
+    inventoryValue: number;
+    valuedInventoryUnits: number;
+    unvaluedInventoryUnits: number;
+    netSales: number;
+    netPurchases: number;
+    operatingExpenses: number;
+    costOfGoodsSold: number;
+    grossProfit: number;
+    netProfit: number;
+    distributableProfit: number;
+    investorShare: number;
+    executorShare: number;
+    orderCount: number;
+    averageOrderValue: number;
+    grossMarginPercent: number;
+    availableWorkingCapital: number;
+  };
+  dataQuality: {
+    inventoryCostCoveragePercent: number;
+    salesCostCoveragePercent: number;
+    productsWithoutCost: number;
+  };
+  cheques: {
+    pendingAmount: number;
+    pendingCount: number;
+    passedAmount: number;
+    bouncedAmount: number;
+    bouncedCount: number;
+  };
+  trend: Array<{ date: string; sales: number; purchases: number; expenses: number; profit: number }>;
+  topInventory: Array<{
+    productId: string;
+    sku: string | null;
+    title: string;
+    units: number;
+    costPrice: number;
+    value: number;
+  }>;
+  recentEntries: InvestmentEntryDTO[];
+}
+
+export interface InventoryCostDTO {
+  id: number;
+  productId: string;
+  sku: string | null;
+  title: string;
+  stock: number;
+  costPrice: number;
+  salePrice: number;
+  inventoryValue: number;
+}
+
 export interface CommentDTO {
   id: number;
   productId: number;
@@ -359,12 +517,32 @@ export interface ChequeNotificationDTO {
   severity: 'info' | 'warning' | 'danger';
 }
 
+export interface CreditChequeInstallmentDTO {
+  index: number;
+  amount: number;
+  dueDate: string;
+  dueLabel: string;
+  registered: boolean;
+}
+
+export interface CreditChequeOrderDTO {
+  orderId: number;
+  orderCode: string;
+  createdAt: string;
+  submissionDeadline: string;
+  canSubmitNextCheque: boolean;
+  blockedReason: string | null;
+  schedule: CreditChequeInstallmentDTO[];
+  nextInstallment: CreditChequeInstallmentDTO | null;
+}
+
 export interface CreditDashboardDTO {
   application: CreditApplicationDTO | null;
   totalCreditLimit: number;
   usedCredit: number;
   remainingCredit: number;
   cheques: CreditChequeDTO[];
+  chequeOrders: CreditChequeOrderDTO[];
   notifications: ChequeNotificationDTO[];
 }
 

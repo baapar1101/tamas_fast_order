@@ -106,6 +106,12 @@ export const adminCreditRoutes: FastifyPluginAsync = async (app) => {
           { label: 'سقف اعتبار', value: Number(updated.assignedCreditLimit).toLocaleString('fa-IR') },
         ],
       }).catch((err) => req.log.error({ err }, 'failed to send Telegram credit status notification'));
+      void import('../../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
+        updated.userId,
+        'credit.application_status_changed',
+        '💳 وضعیت پرونده اعتباری تغییر کرد',
+        `وضعیت پرونده اعتباری شما از «${existing.status}» به «${updated.status}» تغییر کرد.${updated.rejectionReason ? ` توضیحات: ${updated.rejectionReason}` : ''}`,
+      )).catch((err) => req.log.error({ err }, 'failed to send customer Telegram credit status notification'));
 
       // Send SMS to user
       const [user] = await db
@@ -247,6 +253,12 @@ export const adminCreditRoutes: FastifyPluginAsync = async (app) => {
           { label: 'مبلغ', value: `${Number(updated.amount).toLocaleString('fa-IR')} تومان` },
         ],
       }).catch((err) => req.log.error({ err }, 'failed to send Telegram cheque status notification'));
+      void import('../../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
+        updated.userId,
+        'credit.cheque_status_changed',
+        '🧾 وضعیت چک تغییر کرد',
+        `وضعیت چک ${updated.chequeNumber} به «${updated.status}» تغییر کرد. مبلغ: ${Number(updated.amount).toLocaleString('fa-IR')} تومان.`,
+      )).catch((err) => req.log.error({ err }, 'failed to send customer Telegram cheque status notification'));
     }
 
     return reply.send({

@@ -95,6 +95,7 @@ async function crmRequest<T = unknown>(
       try {
         const res = await fetch(url, {
           ...rest,
+          signal: rest.signal ?? AbortSignal.timeout(20_000),
           headers: {
             'Content-Type': 'application/json',
             ...(config.apiKey ? { Authorization: `ApiKey ${config.apiKey}` } : {}),
@@ -231,7 +232,11 @@ export const crmClient = {
   },
 
   /** Push a product to the CRM (creates or updates the CRM product). */
-  async pushProduct(product: CrmProduct, config: CrmConfig): Promise<CrmSyncResult> {
+  async pushProduct(
+    product: CrmProduct,
+    config: CrmConfig,
+    requestOptions: { retries?: number } = {},
+  ): Promise<CrmSyncResult> {
     try {
       const payload = {
         item_type: 'کالا',
@@ -254,7 +259,7 @@ export const crmClient = {
       }>(
         `/api/v1/products/business/${config.businessId}`,
         config,
-        { method: 'POST', body: JSON.stringify(payload) },
+        { method: 'POST', body: JSON.stringify(payload), retries: requestOptions.retries },
       )) as { success?: boolean; data?: { id?: number }; error?: { code?: string; message?: string } };
       if (data?.success === false || data?.error) {
         return { ok: false, entity: 'product', error: data.error?.message || 'CRM rejected product' };
@@ -311,7 +316,8 @@ export const crmClient = {
     try {
       // Hesabix API: POST /api/v1/products/business/{businessId}/search
       const payload = {
-        take: 1,
+        query: query.productId,
+        take: 50,
         skip: 0,
         sort_desc: false,
         include_inventory: true,
@@ -333,15 +339,49 @@ export const crmClient = {
       if (data?.success === false || data?.error) {
         return { ok: false, entity: 'product', error: data.error?.message || 'CRM product search failed' };
       }
-      const first = data?.data?.items?.[0];
-      if (!first) {
+      const match = data?.data?.items?.find((item) =>
+        item.code === query.productId || item.general_barcodes === query.productId,
+      );
+      if (!match) {
         return { ok: true, entity: 'product', remoteId: undefined };
       }
-      // Hesabix uses 'code' for product ID and 'general_barcodes' for SKU
-      if (first.code === query.productId || first.general_barcodes === query.productId) {
-        return { ok: true, entity: 'product', remoteId: first.id };
+      return { ok: true, entity: 'product', remoteId: match.id };
+    } catch (err: any) {
+      return { ok: false, entity: 'product', error: err?.message ?? String(err) };
+    }
+  },
+
+  /** Delete a product from CRM by its remote id (or resolve that id by code). */
+  async deleteProduct(
+    productId: string,
+    config: CrmConfig,
+    knownRemoteId?: string | number,
+  ): Promise<CrmSyncResult> {
+    try {
+      let remoteId = knownRemoteId;
+      if (!remoteId) {
+        const found = await this.searchProduct({ productId }, config);
+        if (!found.ok) return found;
+        remoteId = found.remoteId;
       }
-      return { ok: true, entity: 'product', remoteId: undefined };
+      if (!remoteId) {
+        return { ok: true, entity: 'product', deduped: true };
+      }
+
+      const data = await crmRequest<{
+        success?: boolean;
+        result?: number;
+        message?: string;
+        error?: { message?: string } | string;
+      }>(`/api/v1/products/business/${config.businessId}/${remoteId}`, config, {
+        method: 'DELETE',
+        retries: 0,
+      });
+      const error = typeof data?.error === 'string' ? data.error : data?.error?.message;
+      if (data?.success === false || error || data?.result === 2) {
+        return { ok: false, entity: 'product', remoteId, error: error || data.message || 'CRM rejected product deletion' };
+      }
+      return { ok: true, entity: 'product', remoteId };
     } catch (err: any) {
       return { ok: false, entity: 'product', error: err?.message ?? String(err) };
     }

@@ -1,19 +1,33 @@
-import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
-import type { OrderCreate, OrderDTO, Warehouse } from '@tamas/shared';
-import { WAREHOUSE_LABELS } from '@tamas/shared';
+import { and, desc, eq, gte, inArray, isNull, lt, ne, sql } from 'drizzle-orm';
+import type { OrderCreate, OrderDTO, OrderItemsReplace, PaymentPlanQuote, Warehouse } from '@tamas/shared';
+import {
+  WAREHOUSE_LABELS,
+  chequeDueDate,
+  formatPersianDueDate,
+  nextThursdayDueDate,
+  paymentAudienceForCategory,
+  repricePaymentPlan,
+  requiresManualPaymentInstructions,
+  tehranWeekWindow,
+} from '@tamas/shared';
 import { db } from '../db/client.js';
-import { orderItems, orders, products } from '../db/schema.js';
-import { badRequest, conflict, profileIncomplete } from '../lib/errors.js';
+import { discountCodes, discountRedemptions, inventoryReservations, orderItems, orderPaymentInstructions, orders, products, users } from '../db/schema.js';
+import { badRequest, conflict, notFound, profileIncomplete } from '../lib/errors.js';
 import { invalidateCatalog } from './catalog.js';
 import { missingProfileFields, type UserRow } from './auth.js';
 import { upsertOrderPayment } from './payments.js';
 import { applyWalletTransaction } from './wallet.js';
 import { getSetting } from './settings.js';
+import { allocateInventory, type InventoryQuantities } from './inventory-policy.js';
+import { getPaymentTermsConfig, quotePaymentTerms, selectPaymentPlan } from './payment-terms.js';
+import { validateCustomerDiscount } from './discounts.js';
+import { getPaymentRoutingConfig, securePaymentPlan } from './payment-routing.js';
 
 type OrderRow = typeof orders.$inferSelect;
 type OrderItemRow = typeof orderItems.$inferSelect;
+type PaymentInstructionRow = typeof orderPaymentInstructions.$inferSelect;
 
-export function toOrderDTO(row: OrderRow, items: OrderItemRow[]): OrderDTO {
+export function toOrderDTO(row: OrderRow, items: OrderItemRow[], instruction?: PaymentInstructionRow | null): OrderDTO {
   return {
     id: row.id,
     orderCode: row.orderCode,
@@ -23,10 +37,21 @@ export function toOrderDTO(row: OrderRow, items: OrderItemRow[]): OrderDTO {
     storeName: row.storeName,
     address: row.address,
     total: row.total,
+    subtotal: row.subtotal,
     quantity: row.quantity,
     status: row.status,
     paymentStatus: row.paymentStatus,
     paymentMethod: row.paymentMethod,
+    paymentPlan: row.paymentPlan ?? null,
+    discountCode: row.discountCode ?? null,
+    discountAmount: row.discountAmount ?? 0,
+    freeShipping: row.freeShipping ?? false,
+    paymentInstructions: instruction ? {
+      status: instruction.status,
+      instructions: instruction.instructions,
+      sentAt: instruction.sentAt?.toISOString() ?? null,
+      channels: instruction.channels,
+    } : null,
     note: row.note,
     acquisitionSource: row.acquisitionSource,
     acquisitionMedium: row.acquisitionMedium,
@@ -94,6 +119,9 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
   const productIds = [...new Set(lines.map((l) => l.productId))];
 
   const walletPayment = input.paymentMethod?.trim() === 'wallet';
+  if (walletPayment && input.paymentPlanId) {
+    throw badRequest('پرداخت با کیف پول و شرایط مدت‌دار را نمی‌توان هم‌زمان انتخاب کرد.');
+  }
   if (walletPayment) {
     const [walletEnabled, orderPaymentEnabled] = await Promise.all([
       getSetting('WALLET_ENABLED'),
@@ -104,7 +132,8 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     }
   }
 
-  return db.transaction(async (tx) => {
+  const [paymentRouting, paymentTermsConfig] = await Promise.all([getPaymentRoutingConfig(), getPaymentTermsConfig()]);
+  const created = await db.transaction(async (tx) => {
     let rows = await tx
       .select()
       .from(products)
@@ -133,7 +162,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       }
     }
 
-    let total = 0;
+    let subtotal = 0;
     const toInsert: Array<typeof orderItems.$inferInsert> = [];
     const stockUpdates: Array<{ id: number; warehouse: Warehouse; qty: number }> = [];
 
@@ -158,7 +187,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           stockUpdates.push({ id: part.id, warehouse: line.warehouse, qty: requiredQty });
         }
         // Add bundle itself to order line items (but stockUpdates only has parts)
-        total += product.price * line.qty;
+        subtotal += product.price * line.qty;
         toInsert.push({
           orderId: 0,
           productId: product.productId,
@@ -166,6 +195,8 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           title: product.title,
           color: product.color,
           price: product.price,
+          costPrice: product.costPrice,
+          investorFinanced: product.investorFinanced,
           qty: line.qty,
           warehouse: line.warehouse,
         });
@@ -179,7 +210,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           );
         }
 
-        total += product.price * line.qty;
+        subtotal += product.price * line.qty;
         toInsert.push({
           orderId: 0,
           productId: product.productId,
@@ -187,11 +218,88 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           title: product.title,
           color: product.color,
           price: product.price,
+          costPrice: product.costPrice,
+          investorFinanced: product.investorFinanced,
           qty: line.qty,
           warehouse: line.warehouse,
         });
         stockUpdates.push({ id: product.id, warehouse: line.warehouse, qty: line.qty });
       }
+    }
+
+    const appliedDiscount = input.discountCode
+      ? await validateCustomerDiscount(tx, user.id, input.discountCode, subtotal)
+      : null;
+    const discountedSubtotal = Math.max(0, subtotal - (appliedDiscount?.amount ?? 0));
+    let paymentPlan: PaymentPlanQuote | null = null;
+    let total = discountedSubtotal;
+    let paymentInstructionsPending = false;
+    const paymentQuote = quotePaymentTerms(lines.map((line) => {
+      const product = byId.get(line.productId)!;
+      return { categoryId: product.categoryId, price: product.price, qty: line.qty, sellType: product.sellType };
+    }), paymentTermsConfig);
+    if (paymentQuote.enforcedSettlement && !input.paymentPlanId) {
+      throw badRequest(paymentQuote.message ?? 'روش تسویه این فاکتور باید مطابق محدودیت کالاها انتخاب شود.');
+    }
+    if (input.paymentPlanId) {
+      if (paymentQuote.audience === 'mixed') throw badRequest(paymentQuote.message ?? 'شرایط پرداخت برای سبد ترکیبی قابل اعمال نیست.');
+      paymentPlan = selectPaymentPlan(paymentQuote, input.paymentPlanId);
+      if (!paymentPlan) throw badRequest('شرایط پرداخت انتخاب‌شده معتبر یا فعال نیست.');
+      paymentPlan = repricePaymentPlan(paymentPlan, discountedSubtotal);
+      const secured = securePaymentPlan(paymentPlan, paymentRouting);
+      paymentPlan = secured.plan;
+      paymentInstructionsPending = secured.pending;
+      total = paymentPlan.finalAmount;
+    }
+    if (!paymentPlan && input.paymentMethod?.trim() === 'credit_weekly') {
+      const audiences = new Set(lines.map((line) => paymentAudienceForCategory(byId.get(line.productId)!.categoryId, paymentTermsConfig)));
+      if (audiences.size !== 1 || !audiences.has('accessory')) throw badRequest('اعتبار هفتگی فقط برای کالاهای جانبی قابل استفاده است.');
+      await tx.select({ id: users.id }).from(users).where(eq(users.id, user.id)).for('update').limit(1);
+      const week = tehranWeekWindow(new Date());
+      const [weeklyUsage] = await tx
+        .select({ amount: sql<number>`COALESCE(SUM(${orders.subtotal}), 0)::bigint` })
+        .from(orders)
+        .where(and(
+          eq(orders.userId, user.id),
+          eq(orders.paymentMethod, 'credit_weekly'),
+          ne(orders.status, 'cancelled'),
+          isNull(orders.deletedAt),
+          gte(orders.createdAt, week.start),
+          lt(orders.createdAt, week.end),
+        ));
+      const usedThisWeek = Number(weeklyUsage?.amount ?? 0);
+      if (usedThisWeek + subtotal > paymentTermsConfig.accessory.weeklyCreditLimit) {
+        const remaining = Math.max(0, paymentTermsConfig.accessory.weeklyCreditLimit - usedThisWeek);
+        throw badRequest(`سقف خرید اعتباری هفتگی کالاهای جانبی ${paymentTermsConfig.accessory.weeklyCreditLimit.toLocaleString('fa-IR')} تومان است؛ اعتبار باقی‌مانده این هفته ${remaining.toLocaleString('fa-IR')} تومان است.`);
+      }
+      const dueDate = nextThursdayDueDate(new Date());
+      paymentPlan = {
+        id: 'credit_weekly', label: 'اعتباری هفتگی', description: `تسویه کامل در پنجشنبه ${formatPersianDueDate(dueDate)}`,
+        audience: 'accessory', kind: 'daily', baseAmount: discountedSubtotal, finalAmount: discountedSubtotal,
+        adjustmentAmount: 0, discountPercent: 0, serviceFeePercent: 0, upfrontPercent: null, upfrontAmount: null,
+        schedule: [{ dueLabel: formatPersianDueDate(dueDate), dueDate, percent: 100, amount: discountedSubtotal, optional: false }],
+        instructions: paymentTermsConfig.accessory.accountInstructions, requiresPaymentInfo: false,
+        termMonths: null, installmentIntervalMonths: null, settlementDays: null,
+      };
+      const secured = securePaymentPlan(paymentPlan, paymentRouting);
+      paymentPlan = secured.plan;
+      paymentInstructionsPending = secured.pending;
+      total = paymentPlan.finalAmount;
+    }
+    if (paymentPlan?.kind === 'cheque') {
+      const interval = paymentPlan.installmentIntervalMonths ?? 1;
+      const termMonths = paymentPlan.termMonths;
+      const anchor = new Date();
+      paymentPlan = {
+        ...paymentPlan,
+        schedule: paymentPlan.schedule.map((item, index) => {
+          const dueDate = chequeDueDate(anchor, index, interval, termMonths);
+          return { ...item, dueDate, dueLabel: formatPersianDueDate(dueDate) };
+        }),
+      };
+    }
+    if (!paymentPlan && !walletPayment && requiresManualPaymentInstructions(total, paymentRouting)) {
+      paymentInstructionsPending = true;
     }
 
     const customerName = [user.name, user.lastName].filter(Boolean).join(' ').trim() || user.phone;
@@ -205,11 +313,16 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
         phone: user.phone,
         storeName: user.storeName || null,
         address: (input.address || user.address).trim(),
+        subtotal,
         total,
         quantity: lines.reduce((acc, l) => acc + l.qty, 0),
         status: walletPayment ? 'confirmed' : 'new',
         paymentStatus: walletPayment ? 'paid' : 'unpaid',
-        paymentMethod: input.paymentMethod?.trim() || null,
+        paymentMethod: paymentPlan?.id ?? (input.paymentMethod?.trim() || null),
+        paymentPlan,
+        discountCode: appliedDiscount?.code ?? null,
+        discountAmount: appliedDiscount?.amount ?? 0,
+        freeShipping: appliedDiscount?.freeShipping ?? false,
         note: input.note?.trim() || null,
         acquisitionSource: input.attribution?.source?.trim().toLowerCase() || null,
         acquisitionMedium: input.attribution?.medium?.trim().toLowerCase() || null,
@@ -219,6 +332,28 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       })
       .returning();
     if (!order) throw new Error('order insert failed');
+
+    if (appliedDiscount) {
+      await tx.update(discountCodes).set({ usedCount: sql`${discountCodes.usedCount} + 1`, updatedAt: new Date() })
+        .where(eq(discountCodes.id, appliedDiscount.id));
+      await tx.insert(discountRedemptions).values({
+        discountCodeId: appliedDiscount.id,
+        userId: user.id,
+        orderId: order.id,
+        discountAmount: appliedDiscount.amount,
+        freeShipping: appliedDiscount.freeShipping,
+      });
+    }
+
+    let instructionDto: OrderDTO['paymentInstructions'] = null;
+    if (paymentInstructionsPending) {
+      const [instruction] = await tx.insert(orderPaymentInstructions).values({
+        orderId: order.id,
+        status: 'pending',
+        instructions: paymentRouting.pendingMessage,
+      }).returning();
+      instructionDto = instruction ? { status: 'pending', instructions: instruction.instructions, sentAt: null, channels: [] } : null;
+    }
 
     const items = await tx
       .insert(orderItems)
@@ -238,24 +373,67 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     }
     await upsertOrderPayment(tx, order.id, user.id, total, order.paymentStatus, walletPayment ? 'wallet' : undefined);
 
-    for (const update of stockUpdates) {
-      const now = new Date();
-      if (update.warehouse === 'kerman') {
-        await tx
-          .update(products)
-          .set({ kermanStock: sql`greatest(0, ${products.kermanStock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
-      } else if (update.warehouse === 'tehran') {
-        await tx
-          .update(products)
-          .set({ tehranStock: sql`greatest(0, ${products.tehranStock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
-      } else {
-        await tx
-          .update(products)
-          .set({ stock: sql`greatest(0, ${products.stock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
+    if (stockUpdates.length > 0) {
+      const deductions = new Map<
+        number,
+        { product: typeof products.$inferSelect; kerman: number; tehran: number; default: number }
+      >();
+
+      const productsByDbId = new Map([...byId.values()].map((product) => [product.id, product]));
+      for (const update of stockUpdates) {
+        const product = productsByDbId.get(update.id);
+        if (!product) throw new Error(`product ${update.id} disappeared while creating the order`);
+
+        const deduction = deductions.get(update.id) ?? { product, kerman: 0, tehran: 0, default: 0 };
+        if (update.warehouse === 'kerman') deduction.kerman += update.qty;
+        else if (update.warehouse === 'tehran') deduction.tehran += update.qty;
+        else deduction.default += update.qty;
+        deductions.set(update.id, deduction);
       }
+
+      const reservationStatus = order.status === 'new' ? 'reserved' as const : 'committed' as const;
+      const reservationRows: Array<typeof inventoryReservations.$inferInsert> = [];
+      const now = new Date();
+      for (const [productId, { product, kerman, tehran, default: defaultQty }] of deductions) {
+        const requested: InventoryQuantities = { kerman, tehran, site: defaultQty };
+        const { allocation } = allocateInventory(product, requested);
+        const splitStock = product.kermanStock + product.tehranStock > 0;
+        const physicalAvailable: InventoryQuantities = {
+          kerman: product.kermanStock,
+          tehran: product.tehranStock,
+          site: product.stock,
+        };
+        for (const warehouse of ['kerman', 'tehran', 'site'] as const) {
+          if (allocation[warehouse] > physicalAvailable[warehouse]) {
+            throw conflict(
+              `موجودی «${product.title}» در ${WAREHOUSE_LABELS[warehouse]} فقط ${physicalAvailable[warehouse]} عدد است.`,
+              { productId: product.productId, available: physicalAvailable[warehouse] },
+            );
+          }
+        }
+
+        const nextKerman = product.kermanStock - allocation.kerman;
+        const nextTehran = product.tehranStock - allocation.tehran;
+        await tx.update(products).set({
+          kermanStock: nextKerman,
+          tehranStock: nextTehran,
+          stock: splitStock ? nextKerman + nextTehran : product.stock - allocation.site,
+          updatedAt: now,
+        }).where(eq(products.id, productId));
+
+        for (const warehouse of ['kerman', 'tehran', 'site'] as const) {
+          if (allocation[warehouse] <= 0) continue;
+          reservationRows.push({
+            orderId: order.id,
+            productId,
+            warehouse,
+            quantity: allocation[warehouse],
+            status: reservationStatus,
+            committedAt: reservationStatus === 'committed' ? now : null,
+          });
+        }
+      }
+      if (reservationRows.length > 0) await tx.insert(inventoryReservations).values(reservationRows);
     }
 
     invalidateCatalog();
@@ -279,7 +457,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       });
     }
 
-    import('./telegram.js').then(({ sendTelegramNotification }) => {
+    Promise.all([import('./telegram.js'), import('./telegram-operations.js')]).then(([{ sendTelegramNotification }, { telegramActionButtons }]) => {
       void sendTelegramNotification('order.created', {
         title: '🛒 سفارش جدید',
         fields: [
@@ -289,15 +467,278 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           { label: 'تلفن', value: order.phone },
           { label: 'مبلغ', value: `${order.total.toLocaleString('fa-IR')} تومان` },
           { label: 'تعداد', value: order.quantity },
-          { label: 'روش پرداخت', value: order.paymentMethod },
+          { label: 'روش پرداخت', value: paymentPlan?.label ?? order.paymentMethod },
         ],
+        keyboard: telegramActionButtons.order(order.id),
       }).then((result) => {
         if (result.errors.length) console.error('[Telegram] order.created:', result.errors.join('; '));
       }).catch((err) => console.error('[Telegram] order.created failed:', err));
     });
 
-    return toOrderDTO(order, items);
+    return { ...toOrderDTO(order, items), paymentInstructions: instructionDto };
   });
+  void import('./customer-messaging.js').then(({ sendCustomerNotification }) => {
+    void sendCustomerNotification(
+      user.id,
+      'order.created',
+      '🛒 سفارش شما ثبت شد',
+      `سفارش ${created.orderCode} به مبلغ ${created.total.toLocaleString('fa-IR')} تومان ثبت شد و از همین ربات می‌توانید وضعیت آن را پیگیری کنید.`,
+      ).catch((err) => console.error('[Customer messaging] order.created failed:', err));
+    if (walletPayment) {
+      void sendCustomerNotification(
+        user.id,
+        'wallet.changed',
+        '💳 پرداخت از کیف پول',
+        `${created.total.toLocaleString('fa-IR')} تومان بابت سفارش ${created.orderCode} از کیف پول شما کسر شد.`,
+      ).catch((err) => console.error('[Customer messaging] wallet.changed failed:', err));
+    }
+  });
+  return created;
+}
+
+export async function replaceOrderItems(orderId: number, input: OrderItemsReplace): Promise<{
+  order: OrderDTO;
+  previousTotal: number;
+  previousItems: OrderItemRow[];
+}> {
+  const result = await db.transaction(async (tx) => {
+    const [order] = await tx
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, orderId), isNull(orders.deletedAt)))
+      .for('update')
+      .limit(1);
+    if (!order) throw notFound('سفارش پیدا نشد.');
+    if (!['new', 'confirmed'].includes(order.status)) {
+      throw conflict('فقط اقلام سفارش جدید یا تأییدشده قابل ویرایش است.');
+    }
+    if (order.paymentStatus === 'paid') {
+      throw conflict('اقلام سفارش پرداخت‌شده قابل ویرایش نیست. ابتدا وضعیت پرداخت را اصلاح کنید.');
+    }
+
+    const previousItems = await tx
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, orderId))
+      .for('update');
+    const previousReservations = await tx
+      .select()
+      .from(inventoryReservations)
+      .where(and(
+        eq(inventoryReservations.orderId, orderId),
+        inArray(inventoryReservations.status, ['reserved', 'committed']),
+      ))
+      .for('update');
+
+    const desired = new Map<string, { productId: string; warehouse: Warehouse; qty: number }>();
+    for (const item of input.items) {
+      const key = `${item.productId}::${item.warehouse}`;
+      const current = desired.get(key);
+      if (current) current.qty += item.qty;
+      else desired.set(key, { productId: item.productId, warehouse: item.warehouse, qty: item.qty });
+    }
+
+    const requestedProductIds = [...new Set([
+      ...previousItems.map((item) => item.productId),
+      ...[...desired.values()].map((item) => item.productId),
+    ])];
+    const productRows = await tx
+      .select()
+      .from(products)
+      .where(inArray(products.productId, requestedProductIds))
+      .for('update');
+    const productById = new Map(productRows.map((product) => [product.productId, product]));
+
+    const componentIds = new Set<string>();
+    for (const product of productRows) {
+      if (product.type !== 'bundle') continue;
+      for (const item of product.bundleItems ?? []) componentIds.add(item.productId);
+    }
+    const missingComponentIds = [...componentIds].filter((id) => !productById.has(id));
+    if (missingComponentIds.length > 0) {
+      const components = await tx
+        .select()
+        .from(products)
+        .where(inArray(products.productId, missingComponentIds))
+        .for('update');
+      for (const product of components) productById.set(product.productId, product);
+    }
+    const knownProductDbIds = new Set([...productById.values()].map((product) => product.id));
+    const missingReservedProductDbIds = [...new Set(previousReservations.map((row) => row.productId))]
+      .filter((id) => !knownProductDbIds.has(id));
+    if (missingReservedProductDbIds.length > 0) {
+      const reservedProducts = await tx.select().from(products)
+        .where(inArray(products.id, missingReservedProductDbIds))
+        .for('update');
+      for (const product of reservedProducts) productById.set(product.productId, product);
+    }
+
+    const previousByKey = new Map<string, OrderItemRow>();
+    const previousQtyByKey = new Map<string, number>();
+    for (const item of previousItems) {
+      const key = `${item.productId}::${item.warehouse}`;
+      if (!previousByKey.has(key)) previousByKey.set(key, item);
+      previousQtyByKey.set(key, (previousQtyByKey.get(key) ?? 0) + item.qty);
+    }
+
+    const replacementRows: Array<typeof orderItems.$inferInsert> = [];
+    for (const [key, item] of desired) {
+      const product = productById.get(item.productId);
+      if (!product) throw badRequest(`محصول «${item.productId}» پیدا نشد.`);
+      const previous = previousByKey.get(key);
+      const addsUnits = item.qty > (previousQtyByKey.get(key) ?? 0);
+      if ((!previous || addsUnits) && (product.deletedAt || product.status !== 'active')) {
+        throw conflict(`محصول «${product.title}» در حال حاضر قابل افزودن به سفارش نیست.`);
+      }
+      replacementRows.push({
+        orderId,
+        productId: product.productId,
+        sku: previous?.sku ?? product.sku,
+        title: previous?.title ?? product.title,
+        color: previous?.color ?? product.color,
+        price: previous?.price ?? product.price,
+        costPrice: previous?.costPrice ?? product.costPrice,
+        investorFinanced: previous?.investorFinanced ?? product.investorFinanced,
+        qty: item.qty,
+        warehouse: item.warehouse,
+      });
+    }
+
+    type Need = { product: typeof products.$inferSelect; kerman: number; tehran: number; site: number };
+    const inventoryNeeds = (lines: Array<{ productId: string; warehouse: Warehouse; qty: number }>) => {
+      const needs = new Map<number, Need>();
+      const add = (product: typeof products.$inferSelect, warehouse: Warehouse, qty: number) => {
+        const need = needs.get(product.id) ?? { product, kerman: 0, tehran: 0, site: 0 };
+        need[warehouse] += qty;
+        needs.set(product.id, need);
+      };
+      for (const line of lines) {
+        const product = productById.get(line.productId);
+        if (!product) throw badRequest(`محصول «${line.productId}» پیدا نشد.`);
+        if (product.type === 'bundle' && (product.bundleItems?.length ?? 0) > 0) {
+          for (const bundleItem of product.bundleItems) {
+            const component = productById.get(bundleItem.productId);
+            if (!component) throw badRequest(`جزء «${bundleItem.productId}» از سبد پیدا نشد.`);
+            add(component, line.warehouse, line.qty * bundleItem.qty);
+          }
+        } else {
+          add(product, line.warehouse, line.qty);
+        }
+      }
+      return needs;
+    };
+
+    const beforeNeeds = inventoryNeeds(previousItems);
+    const afterNeeds = inventoryNeeds([...desired.values()]);
+    const beforePhysical = new Map<number, InventoryQuantities>();
+    for (const reservation of previousReservations) {
+      const quantities = beforePhysical.get(reservation.productId) ?? { kerman: 0, tehran: 0, site: 0 };
+      quantities[reservation.warehouse] += reservation.quantity;
+      beforePhysical.set(reservation.productId, quantities);
+    }
+    // Compatibility for an order created before the reservation ledger existed.
+    if (previousReservations.length === 0) {
+      for (const [productId, need] of beforeNeeds) {
+        const splitStock = need.product.kermanStock + need.product.tehranStock > 0;
+        beforePhysical.set(productId, splitStock
+          ? { kerman: need.kerman, tehran: need.tehran, site: need.site }
+          : { kerman: 0, tehran: 0, site: need.kerman + need.tehran + need.site });
+      }
+    }
+
+    const affectedProductIds = new Set([...beforePhysical.keys(), ...afterNeeds.keys()]);
+    const nextReservations: Array<typeof inventoryReservations.$inferInsert> = [];
+    const reservationStatus = order.status === 'new' ? 'reserved' as const : 'committed' as const;
+    const now = new Date();
+    for (const productDbId of affectedProductIds) {
+      const before = beforePhysical.get(productDbId) ?? { kerman: 0, tehran: 0, site: 0 };
+      const after = afterNeeds.get(productDbId);
+      const product = after?.product ?? [...productById.values()].find((row) => row.id === productDbId);
+      if (!product) throw conflict('یکی از کالاهای رزروشده دیگر در انبار پیدا نشد.');
+      const restoredLevels = {
+        kermanStock: product.kermanStock + before.kerman,
+        tehranStock: product.tehranStock + before.tehran,
+        stock: product.stock + before.site,
+      };
+      const requested: InventoryQuantities = {
+        kerman: after?.kerman ?? 0,
+        tehran: after?.tehran ?? 0,
+        site: after?.site ?? 0,
+      };
+      const { allocation } = allocateInventory(restoredLevels, requested);
+      const available: InventoryQuantities = {
+        kerman: restoredLevels.kermanStock,
+        tehran: restoredLevels.tehranStock,
+        site: restoredLevels.stock,
+      };
+      for (const warehouse of ['kerman', 'tehran', 'site'] as const) {
+        if (allocation[warehouse] > available[warehouse]) {
+          throw conflict(
+            `موجودی «${product.title}» در ${WAREHOUSE_LABELS[warehouse]} فقط ${available[warehouse]} عدد است.`,
+            { productId: product.productId, available: available[warehouse] },
+          );
+        }
+      }
+      const nextKerman = restoredLevels.kermanStock - allocation.kerman;
+      const nextTehran = restoredLevels.tehranStock - allocation.tehran;
+      const usesSplitStock = restoredLevels.kermanStock + restoredLevels.tehranStock > 0;
+      await tx
+        .update(products)
+        .set({
+          kermanStock: nextKerman,
+          tehranStock: nextTehran,
+          stock: usesSplitStock ? nextKerman + nextTehran : restoredLevels.stock - allocation.site,
+          updatedAt: now,
+        })
+        .where(eq(products.id, productDbId));
+
+      for (const warehouse of ['kerman', 'tehran', 'site'] as const) {
+        if (allocation[warehouse] <= 0) continue;
+        nextReservations.push({
+          orderId,
+          productId: productDbId,
+          warehouse,
+          quantity: allocation[warehouse],
+          status: reservationStatus,
+          committedAt: reservationStatus === 'committed' ? now : null,
+        });
+      }
+    }
+
+    await tx.delete(inventoryReservations).where(eq(inventoryReservations.orderId, orderId));
+    if (nextReservations.length > 0) await tx.insert(inventoryReservations).values(nextReservations);
+
+    const subtotal = replacementRows.reduce((sum, item) => sum + Number(item.price) * Number(item.qty), 0);
+    const discountedSubtotal = Math.max(0, subtotal - order.discountAmount);
+    const paymentPlan = order.paymentPlan ? repricePaymentPlan(order.paymentPlan, discountedSubtotal) : null;
+    const total = paymentPlan?.finalAmount ?? discountedSubtotal;
+    const quantity = replacementRows.reduce((sum, item) => sum + Number(item.qty), 0);
+    if (!Number.isSafeInteger(total) || total < 0) throw badRequest('مبلغ نهایی سفارش معتبر نیست.');
+
+    await tx.delete(orderItems).where(eq(orderItems.orderId, orderId));
+    const inserted = await tx.insert(orderItems).values(replacementRows).returning();
+    const [updated] = await tx
+      .update(orders)
+      .set({ subtotal, total, paymentPlan, quantity, updatedAt: new Date() })
+      .where(eq(orders.id, orderId))
+      .returning();
+    if (!updated) throw notFound('سفارش پیدا نشد.');
+    await upsertOrderPayment(tx, updated.id, updated.userId ?? null, total, updated.paymentStatus);
+
+    return {
+      order: toOrderDTO(updated, inserted),
+      previousTotal: order.total,
+      previousItems,
+    };
+  });
+  invalidateCatalog();
+  void import('./customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
+    result.order.userId,
+    'order.items_changed',
+    '✏️ اقلام سفارش تغییر کرد',
+    `اقلام سفارش ${result.order.orderCode} به‌روزرسانی شد. مبلغ جدید: ${result.order.total.toLocaleString('fa-IR')} تومان.`,
+  )).catch((err) => console.error('[Customer Telegram] order.items_changed failed:', err));
+  return result;
 }
 
 export async function listOrdersForUser(userId: number, limit = 50): Promise<OrderDTO[]> {
@@ -309,15 +750,10 @@ export async function listOrdersForUser(userId: number, limit = 50): Promise<Ord
     .limit(limit);
   if (rows.length === 0) return [];
 
-  const items = await db
-    .select()
-    .from(orderItems)
-    .where(
-      inArray(
-        orderItems.orderId,
-        rows.map((r) => r.id),
-      ),
-    );
+  const [items, instructions] = await Promise.all([
+    db.select().from(orderItems).where(inArray(orderItems.orderId, rows.map((r) => r.id))),
+    db.select().from(orderPaymentInstructions).where(inArray(orderPaymentInstructions.orderId, rows.map((r) => r.id))),
+  ]);
 
   const byOrder = new Map<number, OrderItemRow[]>();
   for (const it of items) {
@@ -325,7 +761,8 @@ export async function listOrdersForUser(userId: number, limit = 50): Promise<Ord
     list.push(it);
     byOrder.set(it.orderId, list);
   }
-  return rows.map((r) => toOrderDTO(r, byOrder.get(r.id) ?? []));
+  const instructionByOrder = new Map(instructions.map((item) => [item.orderId, item]));
+  return rows.map((r) => toOrderDTO(r, byOrder.get(r.id) ?? [], instructionByOrder.get(r.id)));
 }
 
 /** Fetch an order by its orderCode (used for CRM manual sync). */
@@ -337,10 +774,10 @@ export async function getOrderByCode(orderCode: string): Promise<OrderDTO | null
     .limit(1);
   if (!row) return null;
 
-  const items = await db
-    .select()
-    .from(orderItems)
-    .where(eq(orderItems.orderId, row.id));
+  const [items, [instruction]] = await Promise.all([
+    db.select().from(orderItems).where(eq(orderItems.orderId, row.id)),
+    db.select().from(orderPaymentInstructions).where(eq(orderPaymentInstructions.orderId, row.id)).limit(1),
+  ]);
 
-  return toOrderDTO(row, items);
+  return toOrderDTO(row, items, instruction);
 }

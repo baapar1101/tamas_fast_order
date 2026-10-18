@@ -11,16 +11,35 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   /** Set while a save is in flight so a stray click cannot close the dialog. */
   busy?: boolean;
+  /** Render as a normal page section instead of a focus-trapping overlay. */
+  inline?: boolean;
 }
 
-export function Modal({ open, title, onClose, children, footer, wide, size, busy }: ModalProps) {
+export function Modal({ open, title, onClose, children, footer, wide, size, busy, inline = false }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || inline) return undefined;
     previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    // Keep the focus lifecycle tied to opening/closing the modal. Callbacks and
+    // busy state can change while a user types (or a parent timer rerenders).
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const focusTimer = window.setTimeout(() => {
+      const preferred = panelRef.current?.querySelector<HTMLElement>('[autofocus], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])');
+      preferred?.focus();
+    }, 0);
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.body.style.overflow = previous;
+      previousFocusRef.current?.focus();
+    };
+  }, [open, inline]);
+
+  useEffect(() => {
+    if (!open || inline) return undefined;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !busy) onClose();
       if (e.key === 'Tab' && panelRef.current) {
@@ -33,21 +52,36 @@ export function Modal({ open, title, onClose, children, footer, wide, size, busy
       }
     };
     document.addEventListener('keydown', onKey);
-    // Stop the page behind the dialog from scrolling with it.
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    window.setTimeout(() => {
-      const preferred = panelRef.current?.querySelector<HTMLElement>('[autofocus], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])');
-      preferred?.focus();
-    }, 0);
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previous;
-      previousFocusRef.current?.focus();
     };
-  }, [open, onClose, busy]);
+  }, [open, onClose, busy, inline]);
 
   if (!open) return null;
+
+  const panel = (
+    <div
+      ref={panelRef}
+      className={`modal-panel modal-panel--${size ?? (wide ? 'lg' : 'md')}${wide ? ' wide' : ''}${inline ? ' modal-panel--inline' : ''}`}
+      role={inline ? undefined : 'dialog'}
+      aria-modal={inline ? undefined : true}
+      aria-labelledby={title !== undefined ? titleId : undefined}
+      tabIndex={inline ? undefined : -1}
+    >
+      {title !== undefined && (
+        <div className="modal-head">
+          <h3 id={titleId}>{title}</h3>
+          {!inline && <button type="button" className="modal-close" onClick={onClose} disabled={busy} aria-label="بستن پنجره">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>}
+        </div>
+      )}
+      <div className="modal-body">{children}</div>
+      {footer && <div className="modal-foot">{footer}</div>}
+    </div>
+  );
+
+  if (inline) return panel;
 
   return createPortal(
     <div
@@ -56,25 +90,7 @@ export function Modal({ open, title, onClose, children, footer, wide, size, busy
         if (e.target === e.currentTarget && !busy) onClose();
       }}
     >
-      <div
-        ref={panelRef}
-        className={`modal-panel modal-panel--${size ?? (wide ? 'lg' : 'md')}${wide ? ' wide' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={title !== undefined ? titleId : undefined}
-        tabIndex={-1}
-      >
-        {title !== undefined && (
-          <div className="modal-head">
-            <h3 id={titleId}>{title}</h3>
-            <button type="button" className="modal-close" onClick={onClose} disabled={busy} aria-label="بستن پنجره">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" /></svg>
-            </button>
-          </div>
-        )}
-        <div className="modal-body">{children}</div>
-        {footer && <div className="modal-foot">{footer}</div>}
-      </div>
+      {panel}
     </div>,
     document.body,
   );

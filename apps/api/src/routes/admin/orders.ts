@@ -2,15 +2,19 @@ import { and, count, desc, eq, gte, ilike, inArray, isNull, lte, or, sql, type S
 import type { FastifyPluginAsync } from 'fastify';
 import * as xlsx from '@e965/xlsx';
 import { z } from 'zod';
-import { ORDER_STATUSES, ORDER_STATUS_LABELS, orderPatchSchema } from '@tamas/shared';
+import type { InvestorSettingsDTO, OrderDTO } from '@tamas/shared';
+import { ORDER_STATUSES, ORDER_STATUS_LABELS, orderItemsReplaceSchema, orderPatchSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
-import { orderItems, orders, users } from '../../db/schema.js';
+import { orderItems, orderPaymentInstructions, orders, products, users } from '../../db/schema.js';
 import { badRequest, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
-import { toOrderDTO } from '../../services/orders.js';
+import { replaceOrderItems, toOrderDTO } from '../../services/orders.js';
+import { transitionOrderStatus, transitionOrdersStatus } from '../../services/order-inventory.js';
 import { upsertOrderPayment } from '../../services/payments.js';
 import { logAction } from '../../services/audit.js';
-import { refundWalletOrder } from '../../services/wallet.js';
+import { getInvestorSettings } from '../../services/investor-finance.js';
+import { calculateOrderInvestment } from '../../services/investor-model.js';
+import { formatPaymentAccount, getPaymentRoutingConfig, selectPaymentAccount } from '../../services/payment-routing.js';
 
 const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
@@ -21,11 +25,91 @@ const listQuery = z.object({
   perPage: z.coerce.number().int().min(1).max(200).default(50),
 });
 
+const productOptionsQuery = z.object({
+  q: z.string().trim().min(1).max(200),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+
+function toAdminOrderDTO(
+  row: typeof orders.$inferSelect,
+  items: Array<typeof orderItems.$inferSelect>,
+  settings: InvestorSettingsDTO,
+  instruction?: typeof orderPaymentInstructions.$inferSelect | null,
+): OrderDTO {
+  const dto = toOrderDTO(row, items, instruction);
+  dto.items = dto.items.map((item, index) => ({
+    ...item,
+    costPrice: items[index]?.costPrice ?? 0,
+    investorFinanced: items[index]?.investorFinanced ?? false,
+  }));
+  dto.investment = calculateOrderInvestment({
+    total: row.total,
+    subtotal: row.subtotal,
+    paymentStatus: row.paymentStatus,
+    status: row.status,
+    items,
+  }, settings);
+  return dto;
+}
+
+async function deliverPaymentInstructions(
+  order: typeof orders.$inferSelect,
+  instructions: string,
+  sentBy: number,
+  options: { sendSms: boolean; sendTelegram: boolean; sendBale: boolean; accountId?: string | null },
+) {
+  const channels: string[] = ['site'];
+  const message = `اطلاعات پرداخت سفارش ${order.orderCode}:\n${instructions}`;
+  if (options.sendSms && order.phone) {
+    const { sendSms } = await import('../../services/sms.js');
+    const result = await sendSms(order.phone, message);
+    if (result.ok) channels.push('sms');
+  }
+  const { sendCustomerNotification } = await import('../../services/customer-messaging.js');
+  const delivery = await sendCustomerNotification(order.userId, 'payment.instructions_ready', '💳 اطلاعات پرداخت سفارش', message, {
+    telegram: options.sendTelegram,
+    bale: options.sendBale,
+  });
+  if (delivery.telegram) channels.push('telegram');
+  if (delivery.bale) channels.push('bale');
+  const now = new Date();
+  const [saved] = await db.insert(orderPaymentInstructions).values({
+    orderId: order.id,
+    status: 'sent',
+    accountId: options.accountId ?? null,
+    instructions,
+    channels,
+    sentBy,
+    sentAt: now,
+  }).onConflictDoUpdate({
+    target: orderPaymentInstructions.orderId,
+    set: {
+      status: 'sent',
+      accountId: options.accountId ?? null,
+      instructions,
+      channels,
+      sentBy,
+      sentAt: now,
+      updatedAt: now,
+    },
+  }).returning();
+  return {
+    paymentInstructions: saved ? {
+      status: saved.status,
+      instructions: saved.instructions,
+      sentAt: saved.sentAt?.toISOString() ?? null,
+      channels: saved.channels,
+    } : null,
+    channels,
+  };
+}
+
 const routes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requirePermission('manage_orders'));
 
   app.get('/admin/orders', async (req) => {
     const q = listQuery.parse(req.query);
+    const settingsPromise = getInvestorSettings();
     const filters: SQL[] = [isNull(orders.deletedAt)];
 
     if (q.status !== 'all') filters.push(eq(orders.status, q.status));
@@ -49,8 +133,9 @@ const routes: FastifyPluginAsync = async (app) => {
       db.select({ n: count() }).from(orders).where(where),
     ]);
 
-    const items = rows.length
-      ? await db
+    const [items, instructions, investorSettings] = await Promise.all([
+      rows.length
+      ? db
           .select()
           .from(orderItems)
           .where(
@@ -59,7 +144,10 @@ const routes: FastifyPluginAsync = async (app) => {
               rows.map((r) => r.id),
             ),
           )
-      : [];
+      : Promise.resolve([]),
+      rows.length ? db.select().from(orderPaymentInstructions).where(inArray(orderPaymentInstructions.orderId, rows.map((r) => r.id))) : Promise.resolve([]),
+      settingsPromise,
+    ]);
 
     const byOrder = new Map<number, typeof items>();
     for (const it of items) {
@@ -70,22 +158,145 @@ const routes: FastifyPluginAsync = async (app) => {
 
     return {
       ok: true,
-      items: rows.map((r) => toOrderDTO(r, byOrder.get(r.id) ?? [])),
+      items: rows.map((r) => toAdminOrderDTO(r, byOrder.get(r.id) ?? [], investorSettings, instructions.find((item) => item.orderId === r.id))),
       total: Number(total?.n ?? 0),
       page: q.page,
       perPage: q.perPage,
     };
   });
 
+  app.get('/admin/orders/product-options', async (req) => {
+    const q = productOptionsQuery.parse(req.query);
+    const term = `%${q.q.toLowerCase()}%`;
+    const rows = await db
+      .select({
+        productId: products.productId,
+        sku: products.sku,
+        title: products.title,
+        color: products.color,
+        price: products.price,
+        costPrice: products.costPrice,
+        investorFinanced: products.investorFinanced,
+        kermanStock: products.kermanStock,
+        tehranStock: products.tehranStock,
+        stock: products.stock,
+        type: products.type,
+      })
+      .from(products)
+      .where(and(
+        isNull(products.deletedAt),
+        eq(products.status, 'active'),
+        or(
+          ilike(products.searchText, term),
+          ilike(products.productId, term),
+          ilike(products.sku, term),
+        ),
+      ))
+      .orderBy(desc(products.updatedAt))
+      .limit(q.limit);
+    return { ok: true, items: rows };
+  });
+
   app.get('/admin/orders/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
     const [row] = await db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1);
     if (!row) throw notFound('سفارش پیدا نشد.');
-    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
-    const [customer] = row.userId
-      ? await db.select().from(users).where(eq(users.id, row.userId)).limit(1)
-      : [undefined];
-    return { ok: true, order: toOrderDTO(row, items), customer: customer ?? null };
+    const [items, customerRows, investorSettings, instructionRows] = await Promise.all([
+      db.select().from(orderItems).where(eq(orderItems.orderId, id)),
+      row.userId ? db.select().from(users).where(eq(users.id, row.userId)).limit(1) : Promise.resolve([]),
+      getInvestorSettings(),
+      db.select().from(orderPaymentInstructions).where(eq(orderPaymentInstructions.orderId, id)).limit(1),
+    ]);
+    return { ok: true, order: toAdminOrderDTO(row, items, investorSettings, instructionRows[0]), customer: customerRows[0] ?? null };
+  });
+
+  app.post('/admin/orders/:id/payment-instructions', async (req) => {
+    const id = z.coerce.number().int().positive().parse((req.params as { id: string }).id);
+    const body = z.object({
+      instructions: z.string().trim().min(10).max(3000),
+      sendSms: z.boolean().default(true),
+      sendTelegram: z.boolean().default(true),
+      sendBale: z.boolean().default(true),
+    }).parse(req.body);
+    const [order] = await db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1);
+    if (!order) throw notFound('سفارش پیدا نشد.');
+    const result = await deliverPaymentInstructions(order, body.instructions, req.currentUser!.id, body);
+    await logAction(req.currentUser!.id, 'send-payment-instructions', 'order', order.orderCode, { channels: result.channels });
+    return {
+      ok: true,
+      paymentInstructions: result.paymentInstructions,
+      message: `اطلاعات پرداخت ثبت شد و از مسیرهای ${result.channels.join('، ')} ارسال شد.`,
+    };
+  });
+
+  app.post('/admin/orders/:id/payment-instructions/auto', async (req) => {
+    const id = z.coerce.number().int().positive().parse((req.params as { id: string }).id);
+    const [order] = await db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1);
+    if (!order) throw notFound('سفارش پیدا نشد.');
+
+    const config = await getPaymentRoutingConfig();
+    if (!config.enabled || order.total <= config.thresholdAmount) {
+      throw badRequest('این سفارش مشمول مسیریابی مبالغ بالا نیست.');
+    }
+    const account = selectPaymentAccount(order.id, order.total, config);
+    if (!account) {
+      throw badRequest('حساب فعال متناسب با مبلغ سفارش پیدا نشد؛ ابتدا در تنظیمات مالی یک حساب و بازه مبلغ معتبر تعریف کنید.');
+    }
+
+    const instructions = formatPaymentAccount(account);
+    if (instructions.length < 10) throw badRequest('اطلاعات حساب انتخاب‌شده کامل نیست.');
+    const result = await deliverPaymentInstructions(order, instructions, req.currentUser!.id, {
+      sendSms: true,
+      sendTelegram: true,
+      sendBale: true,
+      accountId: account.id,
+    });
+    await logAction(req.currentUser!.id, 'auto-send-payment-instructions', 'order', order.orderCode, {
+      accountId: account.id,
+      channels: result.channels,
+    });
+    return {
+      ok: true,
+      paymentInstructions: result.paymentInstructions,
+      message: `حساب «${account.label}» انتخاب و اطلاعات پرداخت برای مشتری ارسال شد.`,
+    };
+  });
+
+  app.put('/admin/orders/:id/items', async (req) => {
+    const id = z.coerce.number().int().positive().parse((req.params as { id: string }).id);
+    const body = orderItemsReplaceSchema.parse(req.body);
+    const result = await replaceOrderItems(id, body);
+    await logAction(req.currentUser!.id, 'update-items', 'order', result.order.orderCode, {
+      previousTotal: result.previousTotal,
+      total: result.order.total,
+      previousItems: result.previousItems.map((item) => ({
+        productId: item.productId,
+        warehouse: item.warehouse,
+        qty: item.qty,
+      })),
+      items: result.order.items.map((item) => ({
+        productId: item.productId,
+        warehouse: item.warehouse,
+        qty: item.qty,
+      })),
+    });
+    const { sendTelegramNotification } = await import('../../services/telegram.js');
+    void sendTelegramNotification('order.items_changed', {
+      title: '✏️ ویرایش اقلام سفارش',
+      fields: [
+        { label: 'شماره سفارش', value: result.order.orderCode },
+        { label: 'مبلغ قبلی', value: `${result.previousTotal.toLocaleString('fa-IR')} تومان` },
+        { label: 'مبلغ جدید', value: `${result.order.total.toLocaleString('fa-IR')} تومان` },
+        { label: 'تعداد اقلام', value: result.order.quantity },
+      ],
+    }).catch((err) => req.log.error({ err }, 'failed to send Telegram order item notification'));
+    const [[row], items, investorSettings] = await Promise.all([
+      db.select().from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt))).limit(1),
+      db.select().from(orderItems).where(eq(orderItems.orderId, id)),
+      getInvestorSettings(),
+    ]);
+    if (!row) throw notFound('سفارش پیدا نشد.');
+    return { ok: true, order: toAdminOrderDTO(row, items, investorSettings) };
   });
 
   /** Minimal one-column workbook used by Sepidar: customer header, then one SKU per unit. */
@@ -117,7 +328,7 @@ const routes: FastifyPluginAsync = async (app) => {
     // Check old status if we are updating it to avoid duplicate SMS
     let oldStatus: string | undefined;
     let oldPaymentStatus: string | undefined;
-    if (body.status || body.paymentStatus) {
+    if (body.paymentStatus) {
       const [oldRow] = await db.select({ status: orders.status, paymentStatus: orders.paymentStatus }).from(orders).where(and(eq(orders.id, id), isNull(orders.deletedAt)));
       if (oldRow) {
         oldStatus = oldRow.status;
@@ -125,21 +336,19 @@ const routes: FastifyPluginAsync = async (app) => {
       }
     }
 
-    const [updated] = await db
-      .update(orders)
-      .set({
-        ...(body.status ? { status: body.status } : {}),
-        ...(body.paymentStatus ? { paymentStatus: body.paymentStatus } : {}),
-        ...(body.note !== undefined ? { note: body.note } : {}),
-        updatedAt: new Date(),
-      })
-      .where(and(eq(orders.id, id), isNull(orders.deletedAt)))
-      .returning();
-    if (!updated) throw notFound('سفارش پیدا نشد.');
-
-    if (updated.status === 'cancelled') {
-      await db.transaction((tx) => refundWalletOrder(tx, updated));
+    const statusTransition = body.status ? await transitionOrderStatus(id, body.status) : undefined;
+    let updated = statusTransition?.order;
+    if (statusTransition) oldStatus = statusTransition.previousStatus;
+    if (body.paymentStatus || body.note !== undefined || !updated) {
+      [updated] = await db.update(orders).set({
+          ...(body.paymentStatus ? { paymentStatus: body.paymentStatus } : {}),
+          ...(body.note !== undefined ? { note: body.note } : {}),
+          updatedAt: new Date(),
+        })
+        .where(and(eq(orders.id, id), isNull(orders.deletedAt)))
+        .returning();
     }
+    if (!updated) throw notFound('سفارش پیدا نشد.');
 
     if (body.paymentStatus) {
       await upsertOrderPayment(db, id, updated.userId ?? null, updated.total, body.paymentStatus);
@@ -188,11 +397,20 @@ const routes: FastifyPluginAsync = async (app) => {
           { label: 'مبلغ', value: `${updated.total.toLocaleString('fa-IR')} تومان` },
         ],
       }).catch((err) => req.log.error({ err }, 'failed to send Telegram payment notification'));
+      void import('../../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
+        updated.userId,
+        'payment.paid',
+        '✅ پرداخت سفارش تأیید شد',
+        `پرداخت سفارش ${updated.orderCode} به مبلغ ${updated.total.toLocaleString('fa-IR')} تومان تأیید شد.`,
+      )).catch((err) => req.log.error({ err }, 'failed to send customer payment notification'));
     }
 
-    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
+    const [items, investorSettings] = await Promise.all([
+      db.select().from(orderItems).where(eq(orderItems.orderId, id)),
+      getInvestorSettings(),
+    ]);
     await logAction(req.currentUser!.id, 'update', 'order', updated.orderCode, body as Record<string, unknown>);
-    return { ok: true, order: toOrderDTO(updated, items) };
+    return { ok: true, order: toAdminOrderDTO(updated, items, investorSettings) };
   });
 
   app.delete('/admin/orders/:id', async (req) => {
@@ -219,23 +437,9 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.post('/admin/orders/bulk-status', async (req) => {
     const body = bulkStatus.parse(req.body);
-    const oldOrders = await db.select({ id: orders.id, status: orders.status, userId: orders.userId, total: orders.total, orderCode: orders.orderCode, paymentMethod: orders.paymentMethod }).from(orders).where(and(inArray(orders.id, body.ids), isNull(orders.deletedAt)));
-    const changedIds = oldOrders.filter((o) => o.status !== body.status).map((o) => o.id);
-
-    if (changedIds.length === 0) return { ok: true, changed: 0 };
-
-    const changed = await db
-      .update(orders)
-      .set({ status: body.status, updatedAt: new Date() })
-      .where(and(inArray(orders.id, changedIds), isNull(orders.deletedAt)))
-      .returning({ id: orders.id, phone: orders.phone, orderCode: orders.orderCode, customerName: orders.customerName });
-
-    if (body.status === 'cancelled') {
-      const changedSet = new Set(changed.map((item) => item.id));
-      await db.transaction(async (tx) => {
-        for (const order of oldOrders) if (changedSet.has(order.id)) await refundWalletOrder(tx, order);
-      });
-    }
+    const transitions = await transitionOrdersStatus(body.ids, body.status);
+    const changed = transitions.map((result) => result.order);
+    if (changed.length === 0) return { ok: true, changed: 0 };
 
     const { sendTemplatedSms } = await import('../../services/sms.js');
     const templateKey = `sms_template_order_${body.status}`;
@@ -298,6 +502,7 @@ const routes: FastifyPluginAsync = async (app) => {
     if (q.from) filters.push(gte(orders.createdAt, new Date(q.from)));
     if (q.to) filters.push(lte(orders.createdAt, new Date(q.to)));
 
+    const settingsPromise = getInvestorSettings();
     const rows = await db
       .select()
       .from(orders)
@@ -322,12 +527,20 @@ const routes: FastifyPluginAsync = async (app) => {
       list.push(it);
       byOrder.set(it.orderId, list);
     }
+    const investorSettings = await settingsPromise;
 
     const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const header = ['order_code', 'date', 'customer', 'store', 'phone', 'address', 'status', 'total', 'items'];
+    const header = ['order_code', 'date', 'customer', 'store', 'phone', 'address', 'status', 'payment_status', 'total', 'cost_of_goods', 'gross_profit', 'investor_share', 'executor_share', 'cost_coverage_percent', 'items'];
     const lines = [header.join(',')];
     for (const r of rows) {
       const line = (byOrder.get(r.id) ?? []).map((i) => `${i.title} (${i.color ?? '-'}) ×${i.qty}`).join(' | ');
+      const investment = calculateOrderInvestment({
+        total: r.total,
+        subtotal: r.subtotal,
+        paymentStatus: r.paymentStatus,
+        status: r.status,
+        items: byOrder.get(r.id) ?? [],
+      }, investorSettings);
       lines.push(
         [
           esc(r.orderCode),
@@ -337,7 +550,13 @@ const routes: FastifyPluginAsync = async (app) => {
           esc(r.phone),
           esc(r.address),
           esc(r.status),
+          esc(r.paymentStatus),
           esc(r.total),
+          esc(investment.costOfGoodsSold),
+          esc(investment.grossProfit),
+          esc(investment.investorShare),
+          esc(investment.executorShare),
+          esc(investment.costCoveragePercent),
           esc(line),
         ].join(','),
       );

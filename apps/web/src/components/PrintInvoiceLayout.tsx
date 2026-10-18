@@ -15,6 +15,10 @@ interface Props {
   title: string;
   items: PrintInvoiceItem[];
   total: number;
+  subtotal?: number;
+  paymentLabel?: string;
+  paymentSavings?: number;
+  paymentSavingsLabel?: string;
   customerName?: string;
   customerPhone?: string;
   orderId?: string;
@@ -23,7 +27,7 @@ interface Props {
   showStamp?: boolean;
 }
 
-export function PrintInvoiceLayout({ title, items, total, customerName, customerPhone, orderId, date, active = true, showStamp = true }: Props) {
+export function PrintInvoiceLayout({ title, items, total, subtotal, paymentLabel, paymentSavings = 0, paymentSavingsLabel, customerName, customerPhone, orderId, date, active = true, showStamp = true }: Props) {
   return createPortal(
     <div className={`print-invoice-layout${active ? ' is-print-target' : ''}`}>
       <div className="invoice-header">
@@ -72,6 +76,9 @@ export function PrintInvoiceLayout({ title, items, total, customerName, customer
 
       <div className="invoice-footer-calc">
         <div className="invoice-total">
+          {subtotal != null && subtotal !== total && <><span>جمع کالاها:</span><strong><Price amount={subtotal} /></strong></>}
+          {paymentLabel && <><span>شرایط پرداخت:</span><strong>{paymentLabel}</strong></>}
+          {paymentSavings > 0 && <><span>{paymentSavingsLabel || 'سود شما از شرایط پرداخت'}:</span><strong><Price amount={paymentSavings} /></strong></>}
           <span>مبلغ کل فاکتور:</span>
           <strong><Price amount={total} /></strong>
         </div>

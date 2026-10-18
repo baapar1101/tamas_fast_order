@@ -1,25 +1,26 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import type { CreditApplicationDTO, ProductDTO, Warehouse } from '@tamas/shared';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import type { ProductDTO, Warehouse } from '@tamas/shared';
 import { formatNumber } from '@tamas/shared';
 import { useToast } from '../components/Toast';
-import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { cartCount, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
 import { CartPanel } from './CartPanel';
-import { CheckoutDialog } from './CheckoutDialog';
-import { CreditDialog } from './CreditDialog';
 import { InstallBanner } from './InstallBanner';
 import { ProductCard } from './ProductCard';
 import { createColorMap } from './productColor';
 import { useBootstrap, useDebounced, useProducts, type CatalogFilters, type StorefrontSlide } from './hooks';
 import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { useDarkTheme } from '../components/useDarkTheme';
 import { CrmChat } from '../components/CrmChat';
 import { StoreFooter } from './StoreFooter';
 import { IncompleteProfilePopup } from './IncompleteProfilePopup';
 import { GuestPromoPopup } from './GuestPromoPopup';
+import { GoldenCampaignCopy } from './GoldenCampaignCopy';
+import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_IMAGE_URL, GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL, isGoldenCampaignSlide, visibleCampaignSlides } from './goldenCampaign';
+import { HOMEPAGE_FILTER_SETTING_KEY, parseHomepageFilters, type HomepageFilterType } from './homepageFilters';
 import './storefront.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
@@ -69,34 +70,44 @@ function ProductSkeletons({ viewMode }: { viewMode: 'list' | 'grid' }) {
 
 export function StorefrontPage() {
   const toast = useToast();
-  const { user, complete, isAdmin, logout } = useAuth();
+  const isDarkTheme = useDarkTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, complete, logout } = useAuth();
   const addToCart = useCart((s) => s.add);
   const lines = useCart((s) => s.lines);
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const observedUrlRef = useRef(searchParams.toString());
 
-  const [creditOpen, setCreditOpen] = useState(false);
-  const [userCreditApp, setUserCreditApp] = useState<CreditApplicationDTO | null>(null);
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const [category, setCategory] = useState<string | null>(searchParams.get('cat') || null);
   const [brands, setBrands] = useState<string[]>(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
   const [promotion, setPromotion] = useState(searchParams.get('promo') === '1');
-  const [creditOnly, setCreditOnly] = useState(searchParams.get('credit') === '1');
+  const [basketOnly, setBasketOnly] = useState(searchParams.get('basket') === '1' || searchParams.get('credit') === '1');
   const [inStockOnly, setInStockOnly] = useState(searchParams.get('stock') !== '0');
   const [sort, setSort] = useState<CatalogFilters['sort']>((searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc');
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'grid');
   const [mobileTab, setMobileTab] = useState<'home' | 'categories' | 'search' | 'cart' | 'profile'>('home');
 
+  useEffect(() => {
+    if (location.hash === '#cart') setMobileTab('cart');
+  }, [location.hash]);
+
   const brandsStr = brands.join(',');
 
   useEffect(() => {
+    // An external URL change (back/forward or a link) must update local state
+    // before the local-to-URL effect is allowed to write again.
+    if (searchParams.toString() !== observedUrlRef.current) return;
     const params = new URLSearchParams(searchParams);
     if (search) params.set('q', search); else params.delete('q');
     if (category) params.set('cat', category); else params.delete('cat');
     if (brandsStr) params.set('brand', brandsStr); else params.delete('brand');
     if (promotion) params.set('promo', '1'); else params.delete('promo');
-    if (creditOnly) params.set('credit', '1'); else params.delete('credit');
+    if (basketOnly) params.set('basket', '1'); else params.delete('basket');
+    params.delete('credit');
     if (!inStockOnly) params.set('stock', '0'); else params.delete('stock');
     if (sort !== 'price_asc') params.set('sort', sort); else params.delete('sort');
     if (page > 1) params.set('page', String(page)); else params.delete('page');
@@ -105,9 +116,11 @@ export function StorefrontPage() {
     if (params.toString() !== searchParams.toString()) {
       setSearchParams(params, { replace: true });
     }
-  }, [search, category, brandsStr, promotion, creditOnly, inStockOnly, sort, page, viewMode, searchParams, setSearchParams]);
+  }, [search, category, brandsStr, promotion, basketOnly, inStockOnly, sort, page, viewMode, searchParams, setSearchParams]);
 
   useEffect(() => {
+    if (searchParams.toString() === observedUrlRef.current) return;
+    observedUrlRef.current = searchParams.toString();
     const q = searchParams.get('q') || '';
     if (search !== q) setSearch(q);
 
@@ -122,8 +135,8 @@ export function StorefrontPage() {
     const promo = searchParams.get('promo') === '1';
     if (promotion !== promo) setPromotion(promo);
 
-    const credit = searchParams.get('credit') === '1';
-    if (creditOnly !== credit) setCreditOnly(credit);
+    const basket = searchParams.get('basket') === '1' || searchParams.get('credit') === '1';
+    if (basketOnly !== basket) setBasketOnly(basket);
 
     const stock = searchParams.get('stock') !== '0';
     if (inStockOnly !== stock) setInStockOnly(stock);
@@ -139,23 +152,35 @@ export function StorefrontPage() {
   }, [searchParams]);
 
   const [activeSlide, setActiveSlide] = useState(0);
+  const [campaignExpired, setCampaignExpired] = useState(() => Date.now() >= GOLDEN_CAMPAIGN_END_AT);
+
+  useEffect(() => {
+    if (campaignExpired) return undefined;
+    const timer = window.setTimeout(
+      () => setCampaignExpired(true),
+      Math.max(0, GOLDEN_CAMPAIGN_END_AT - Date.now()),
+    );
+    return () => window.clearTimeout(timer);
+  }, [campaignExpired]);
 
   const [authOpen, setAuthOpen] = useState(false);
   const [authStep, setAuthStep] = useState<'phone' | 'profile'>('phone');
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [brandsCollapsed, setBrandsCollapsed] = useState(true);
 
   const debouncedSearch = useDebounced(search);
   const filters: CatalogFilters = useMemo(
-    () => ({ q: debouncedSearch, category, brands, promotion, creditOnly, sort, page }),
-    [debouncedSearch, category, brands, promotion, creditOnly, sort, page],
+    () => ({ q: debouncedSearch, category, brands, promotion, basketOnly, inStockOnly, sort, page }),
+    [debouncedSearch, category, brands, promotion, basketOnly, inStockOnly, sort, page],
   );
 
   const bootstrap = useBootstrap();
   const products = useProducts(filters);
-  const heroSlides = bootstrap.data?.slides ?? FALLBACK_HERO_SLIDES;
+  const heroSlides = useMemo(
+    () => visibleCampaignSlides(bootstrap.data?.slides ?? FALLBACK_HERO_SLIDES, campaignExpired ? GOLDEN_CAMPAIGN_END_AT : Date.now()),
+    [bootstrap.data?.slides, campaignExpired],
+  );
 
   useEffect(() => {
     setActiveSlide((current) => Math.min(current, Math.max(0, heroSlides.length - 1)));
@@ -207,6 +232,14 @@ export function StorefrontPage() {
     [addToCart, toast, user],
   );
 
+  const goToCheckout = useCallback(() => {
+    navigate('/checkout', { state: { returnTo: `${location.pathname}${location.search}#cart` } });
+  }, [navigate, location.pathname, location.search]);
+
+  const goToCredit = useCallback(() => {
+    navigate('/account/credit', { state: { returnTo: `${location.pathname}${location.search}` } });
+  }, [navigate, location.pathname, location.search]);
+
   const openCheckout = useCallback(() => {
     if (lines.length === 0) {
       toast.error('سبد خرید شما خالی است.');
@@ -226,10 +259,25 @@ export function StorefrontPage() {
       setAuthOpen(true);
       return;
     }
-    setCheckoutOpen(true);
-  }, [lines.length, user, complete, toast]);
+    goToCheckout();
+  }, [lines.length, user, complete, toast, goToCheckout]);
 
   const settings = bootstrap.data?.settings ?? {};
+  const homepageFilters = useMemo(
+    () => parseHomepageFilters(settings[HOMEPAGE_FILTER_SETTING_KEY]).filter((filter) => filter.enabled && filter.label.trim()),
+    [settings[HOMEPAGE_FILTER_SETTING_KEY]],
+  );
+  const filterState: Record<HomepageFilterType, boolean> = {
+    in_stock: inStockOnly,
+    promotion,
+    basket: basketOnly,
+  };
+  const toggleHomepageFilter = (type: HomepageFilterType) => {
+    if (type === 'in_stock') setInStockOnly((current) => !current);
+    if (type === 'promotion') setPromotion((current) => !current);
+    if (type === 'basket') setBasketOnly((current) => !current);
+    resetPage();
+  };
   const canViewPrices = Boolean(user?.isActive);
   const [promoOrange, setPromoOrange] = useState(false);
 
@@ -244,20 +292,6 @@ export function StorefrontPage() {
       setPromoOrange(false);
     }
   }, [user]);
-
-  // Fetch user credit application status for header & profile dropdown
-  useEffect(() => {
-    if (!user) {
-      setUserCreditApp(null);
-      return;
-    }
-    api
-      .get<{ ok: true; application: CreditApplicationDTO | null }>('/credit/my-application')
-      .then((res) => {
-        if (res.ok) setUserCreditApp(res.application);
-      })
-      .catch(() => {});
-  }, [user, creditOpen]);
 
   const groups = products.data?.groups ?? [];
   const total = products.data?.total ?? 0;
@@ -286,7 +320,7 @@ export function StorefrontPage() {
               className="promo-cta"
               onClick={() => {
                 if (user) {
-                  setCreditOpen(true);
+                  goToCredit();
                 } else {
                   setAuthStep('phone');
                   setAuthOpen(true);
@@ -339,103 +373,10 @@ export function StorefrontPage() {
               <Icon name="heart" />
             </button>
             {user ? (
-              <div className="profile-dropdown-wrapper" style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  className="btn primary"
-                  onClick={(e) => {
-                    const dropdown = e.currentTarget.nextElementSibling as HTMLElement;
-                    if (dropdown) dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
-                  }}
-                >
-                  <Icon name="user" />
-                  <span>{`${user.name || 'حساب'} ${user.lastName}`.trim()}</span>
-                </button>
-                <div 
-                  className="profile-dropdown-menu" 
-                  style={{ 
-                    display: 'none', position: 'absolute', top: '110%', left: 0, 
-                    backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', 
-                    boxShadow: 'var(--shadow-lg)', minWidth: '180px', padding: '8px', zIndex: 100,
-                    flexDirection: 'column', gap: '4px'
-                  }}
-                >
-                  <Link to="/orders" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--text)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
-                    <Icon name="bag" style={{ marginInlineEnd: 8 }} /> سفارش‌های من
-                  </Link>
-                  <Link to="/wallet" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--tamas-accent)', textDecoration: 'none', fontSize: '14px', fontWeight: 700 }}>
-                    <span style={{ marginInlineEnd: 8 }}>◈</span> کیف پول من
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => setCreditOpen(true)}
-                    style={{
-                      width: '100%',
-                      textAlign: 'right',
-                      padding: '10px 16px',
-                      borderRadius: '8px',
-                      color: 'var(--tamas-accent)',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '8px',
-                    }}
-                  >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                      💳 پرونده اعتباری
-                    </span>
-                    {userCreditApp && (
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 800,
-                          padding: '3px 8px',
-                          borderRadius: '12px',
-                          backgroundColor:
-                            userCreditApp.status === 'active'
-                              ? '#dcfce7'
-                              : userCreditApp.status === 'action_required'
-                              ? '#fee2e2'
-                              : '#fef3c7',
-                          color:
-                            userCreditApp.status === 'active'
-                              ? '#15803d'
-                              : userCreditApp.status === 'action_required'
-                              ? '#dc2626'
-                              : '#d97706',
-                        }}
-                      >
-                        ● {userCreditApp.status === 'active'
-                          ? 'تأیید شده'
-                          : userCreditApp.status === 'action_required'
-                          ? 'رد شده'
-                          : 'در حال بررسی'}
-                      </span>
-                    )}
-                  </button>
-                  {isAdmin && (
-                    <Link to="/admin" style={{ display: 'block', padding: '10px 16px', borderRadius: '8px', color: 'var(--tamas-admin-emerald)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
-                      <Icon name="grid" style={{ marginInlineEnd: 8 }} /> پنل مدیریت
-                    </Link>
-                  )}
-                  <div style={{ height: '1px', backgroundColor: 'var(--border)', margin: '4px 0' }} />
-                  <button 
-                    type="button" 
-                    onClick={async () => {
-                      await logout();
-                      toast.ok('از حساب خود خارج شدید.');
-                    }}
-                    style={{ width: '100%', textAlign: 'right', padding: '10px 16px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'transparent', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    <Icon name="chevron" style={{ marginInlineEnd: 8, transform: 'rotate(180deg)' }} /> خروج از حساب
-                  </button>
-                </div>
-              </div>
+              <Link to="/account" state={{ returnTo: `${location.pathname}${location.search}` }} className="btn primary" aria-label="رفتن به حساب کاربری">
+                <Icon name="user" />
+                <span>{`${user.name || 'حساب'} ${user.lastName || ''}`.trim()}</span>
+              </Link>
             ) : (
               <button
                 type="button"
@@ -454,6 +395,11 @@ export function StorefrontPage() {
       </header>
 
       <main className="container" data-mobile-tab={mobileTab}>
+        {bootstrap.isError && (
+          <div className="card" role="alert" style={{ color: 'var(--danger)', padding: 20, marginBottom: 20 }}>
+            دریافت دسته‌بندی‌ها و تنظیمات فروشگاه ناموفق بود. برای نمایش اطلاعات به‌روز، صفحه را دوباره بارگذاری کنید.
+          </div>
+        )}
         {/* Mobile-only Categories View */}
         <div className="mobile-only-categories">
           <div style={{ padding: '20px 16px', background: 'var(--card)', borderBottom: '1px solid var(--tamas-border)', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -489,11 +435,7 @@ export function StorefrontPage() {
               <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--tamas-accent)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 800, margin: '0 auto 16px' }}>{user.name?.[0] || 'U'}</div>
               <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--tamas-fg)', marginBottom: 4 }}>{user.name} {user.lastName}</h2>
               <p style={{ fontSize: 14, color: 'var(--tamas-muted)', marginBottom: 24 }}>{user.phone}</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <Link to="/orders" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'var(--tamas-info-bg)', borderRadius: 12, color: 'var(--tamas-fg)', textDecoration: 'none', fontWeight: 600 }}><Icon name="bag" /> سفارش‌های من</Link>
-                {isAdmin && <Link to="/admin" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'rgba(5, 150, 105, 0.1)', borderRadius: 12, color: '#10b981', textDecoration: 'none', fontWeight: 600 }}><Icon name="grid" /> پنل مدیریت</Link>}
-                <button type="button" onClick={async () => { await logout(); toast.ok('از حساب خود خارج شدید.'); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'rgba(225, 29, 72, 0.1)', borderRadius: 12, color: 'var(--danger)', border: 'none', fontWeight: 600, cursor: 'pointer' }}><Icon name="chevron" style={{ transform: 'rotate(180deg)' }} /> خروج از حساب</button>
-              </div>
+              <Link to="/account" state={{ returnTo: `${location.pathname}${location.search}` }} className="btn primary w-full">ورود به صفحهٔ حساب کاربری</Link>
             </div>
           ) : (
             <div style={{ background: 'var(--card)', borderRadius: 16, padding: 32, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center', marginTop: 40, border: '1px solid var(--tamas-border)' }}>
@@ -505,15 +447,18 @@ export function StorefrontPage() {
           )}
         </div>
         {/* Hero Carousel Slider */}
-        {heroSlides.length > 0 && <section className="hero-slider" aria-label="بنرهای فروشگاه" aria-roledescription="carousel">
+        {heroSlides.length > 0 && <section className={`hero-slider${heroSlides[activeSlide]?.imageUrl === GOLDEN_CAMPAIGN_IMAGE_URL ? ' hero-slider--golden' : ''}`} aria-label="بنرهای فروشگاه" aria-roledescription="carousel">
           {heroSlides.map((slide, i) => {
+            const isGoldenCampaign = isGoldenCampaignSlide(slide);
+            const imageUrl = isGoldenCampaign && !isDarkTheme ? GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL : slide.imageUrl;
+            const mobileImageUrl = isGoldenCampaign ? imageUrl : slide.mobileImageUrl;
             const picture = (
               <picture>
-                {slide.mobileImageUrl && <source media="(max-width: 768px)" srcSet={slide.mobileImageUrl} />}
+                {mobileImageUrl && <source media="(max-width: 768px)" srcSet={mobileImageUrl} />}
                 <img
                   className="hero-slide-image"
-                  src={slide.imageUrl}
-                  alt={slide.title || `بنر ${i + 1}`}
+                  src={imageUrl}
+                  alt={isGoldenCampaign ? '' : slide.title || `بنر ${i + 1}`}
                   loading={i === 0 ? 'eager' : 'lazy'}
                   fetchPriority={i === 0 ? 'high' : 'auto'}
                 />
@@ -525,8 +470,9 @@ export function StorefrontPage() {
                 : <Link to={slide.linkUrl} tabIndex={i === activeSlide ? 0 : -1} aria-label={slide.title || 'مشاهده بنر'}>{picture}</Link>
               : picture;
             return (
-              <div key={slide.id} className={`hero-slide${i === activeSlide ? ' active' : ''}${slide.mobileImageUrl ? ' has-mobile-art' : ''}`} aria-hidden={i !== activeSlide}>
+              <div key={slide.id} className={`hero-slide${i === activeSlide ? ' active' : ''}${slide.mobileImageUrl ? ' has-mobile-art' : ''}${isGoldenCampaign ? ' hero-slide--golden' : ''}`} aria-hidden={i !== activeSlide}>
                 {linkedPicture}
+                {isGoldenCampaign && <GoldenCampaignCopy />}
               </div>
             );
           })}
@@ -643,51 +589,34 @@ export function StorefrontPage() {
                 </div>
               </div>
 
-              <div className="side-title" style={{ marginTop: 20 }}>فیلترهای سریع</div>
-              <div className="switch-row">
-                <span>فقط کالاهای موجود</span>
-                <button type="button" className={`switch${inStockOnly ? ' on' : ''}`} onClick={() => setInStockOnly(!inStockOnly)}>
-                  <i />
-                </button>
-              </div>
-              <div className="switch-row">
-                <span>پیشنهاد ویژه</span>
-                <button
-                  type="button"
-                  className={`switch${promotion ? ' on' : ''}`}
-                  onClick={() => {
-                    setPromotion(!promotion);
-                    resetPage();
-                  }}
-                >
-                  <i />
-                </button>
-              </div>
-              <div className="switch-row">
-                <span>تسویه چکی و اعتباری</span>
-                <button
-                  type="button"
-                  className={`switch${creditOnly ? ' on' : ''}`}
-                  onClick={() => {
-                    setCreditOnly(!creditOnly);
-                    resetPage();
-                  }}
-                >
-                  <i />
-                </button>
-              </div>
+              {homepageFilters.length > 0 && <div className="side-title" style={{ marginTop: 20 }}>فیلترهای سریع</div>}
+              {homepageFilters.map((filter) => (
+                <div className="switch-row" key={filter.id}>
+                  <span>{filter.label}</span>
+                  <button
+                    type="button"
+                    className={`switch${filterState[filter.type] ? ' on' : ''}`}
+                    role="switch"
+                    aria-label={filter.label}
+                    aria-checked={filterState[filter.type]}
+                    onClick={() => toggleHomepageFilter(filter.type)}
+                  >
+                    <i />
+                  </button>
+                </div>
+              ))}
             </div>
           </aside>
 
           {/* Main Content (Center Column) */}
           <section className="main-content">
-            <div className="toolbar">
+            <div className="toolbar" aria-label="کنترل نمایش محصولات">
               <div className="toolbar-head">
                 <div className="toolbar-result">
                   <strong>{formatNumber(total)}</strong>
                   <span>کالا پیدا شد</span>
                 </div>
-                {(brands.length > 0 || category || promotion || creditOnly || search) && (
+                {(brands.length > 0 || category || promotion || basketOnly || search) && (
                   <button
                     type="button"
                     className="btn sm toolbar-reset"
@@ -696,7 +625,7 @@ export function StorefrontPage() {
                       setCategory(null);
                       setBrands([]);
                       setPromotion(false);
-                      setCreditOnly(false);
+                      setBasketOnly(false);
                       setInStockOnly(false);
                       resetPage();
                     }}
@@ -708,18 +637,20 @@ export function StorefrontPage() {
 
               <div className="toolbar-controls">
                 <div className="view-control">
-                  <span className="toolbar-control-label">نحوه نمایش</span>
-                  <div className="view-btn-group">
+                  <span id="view-mode-label" className="toolbar-control-label">نحوه نمایش</span>
+                  <div className="view-btn-group" role="group" aria-labelledby="view-mode-label">
                     <button
                       type="button"
                       className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
+                      aria-pressed={viewMode === 'list'}
                       onClick={() => setViewMode('list')}
                     >
-                      <Icon name="filter" /> لیستی (عمده)
+                      <Icon name="filter" /> خرید سریع
                     </button>
                     <button
                       type="button"
                       className={`view-btn${viewMode === 'grid' ? ' active' : ''}`}
+                      aria-pressed={viewMode === 'grid'}
                       onClick={() => setViewMode('grid')}
                     >
                       <Icon name="grid" /> شبکه‌ای
@@ -728,7 +659,7 @@ export function StorefrontPage() {
                 </div>
 
                 <div className="sort-control">
-                  <label htmlFor="sort">مرتب‌سازی</label>
+                  <label htmlFor="sort"><Icon name="sort" /> مرتب‌سازی</label>
                   <select
                     id="sort"
                     className="select sort-select"
@@ -812,9 +743,9 @@ export function StorefrontPage() {
         open={authOpen}
         initialStep={authStep}
         onClose={() => setAuthOpen(false)}
-        onOpenCredit={() => setCreditOpen(true)}
+        onOpenCredit={goToCredit}
         onReady={() => {
-          if (lines.length > 0) setCheckoutOpen(true);
+          if (lines.length > 0) goToCheckout();
         }}
       />
 
@@ -830,20 +761,6 @@ export function StorefrontPage() {
       <GuestPromoPopup
         show={!user}
         onAuth={() => { setAuthStep('phone'); setAuthOpen(true); }}
-      />
-
-      <CheckoutDialog
-        open={checkoutOpen}
-        onClose={() => setCheckoutOpen(false)}
-        onNeedsProfile={() => {
-          setAuthStep('profile');
-          setAuthOpen(true);
-        }}
-      />
-
-      <CreditDialog
-        open={creditOpen}
-        onClose={() => setCreditOpen(false)}
       />
 
       {preview && (
@@ -866,9 +783,15 @@ export function StorefrontPage() {
         <button type="button" className={`tabbar-item ${mobileTab === 'cart' ? 'active' : ''}`} onClick={() => setMobileTab('cart')}>
           <span className="tabbar-icon"><Icon name="bag" />{lines.length > 0 && <span className="badge-count">{formatNumber(cartCount(lines))}</span>}</span><span>سبد خرید</span>
         </button>
-        <button type="button" className={`tabbar-item ${mobileTab === 'profile' ? 'active' : ''}`} onClick={() => setMobileTab('profile')}>
-          <span className="tabbar-icon"><Icon name="user" /></span><span>{user ? 'حساب کاربری' : 'ورود / عضویت'}</span>
-        </button>
+        {user ? (
+          <Link to="/account" state={{ returnTo: `${location.pathname}${location.search}` }} className="tabbar-item">
+            <span className="tabbar-icon"><Icon name="user" /></span><span>حساب کاربری</span>
+          </Link>
+        ) : (
+          <button type="button" className={`tabbar-item ${mobileTab === 'profile' ? 'active' : ''}`} onClick={() => setMobileTab('profile')}>
+            <span className="tabbar-icon"><Icon name="user" /></span><span>ورود / عضویت</span>
+          </button>
+        )}
       </nav>
 
       {/* CRM Chat Widget */}
