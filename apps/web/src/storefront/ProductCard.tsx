@@ -58,6 +58,12 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFav, setIsFav] = useState(false);
 
+  const cartLinesMap = useMemo(() => {
+    const map = new Map<string, CartLine>();
+    for (const l of cartLines) map.set(l.key, l);
+    return map;
+  }, [cartLines]);
+
   const selectedVariant = group.variants[selectedIndex] || group.variants[0];
   if (!selectedVariant) return null;
 
@@ -132,7 +138,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                       {whButtonsV.map((wh) => {
                         const n = stockFor(v, wh);
                         const cartKey = `${v.productId}::${wh}`;
-                        const cartLine = cartLines.find((l) => l.key === cartKey);
+                        const cartLine = cartLinesMap.get(cartKey);
                         const qty = cartLine ? cartLine.qty : 0;
                         return (
                           <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
@@ -289,7 +295,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
             {whButtons.map((wh) => {
               const n = stockFor(selectedVariant, wh);
               const cartKey = `${selectedVariant.productId}::${wh}`;
-              const cartLine = cartLines.find((l) => l.key === cartKey);
+              const cartLine = cartLinesMap.get(cartKey);
               const qty = cartLine ? cartLine.qty : 0;
               return (
                 <div key={wh} className={`warehouse-row${n === 1 ? ' urgent-stock' : ''}`}>
@@ -333,5 +339,22 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
-});
+}, propsAreEqual);
 
+function propsAreEqual(prev: Props, next: Props) {
+  for (const key of Object.keys(prev) as (keyof Props)[]) {
+    if (key === 'cartLines') continue;
+    if (prev[key] !== next[key]) return false;
+  }
+
+  for (const v of prev.group.variants) {
+    for (const wh of ['kerman', 'tehran', 'site']) {
+      const cartKey = `${v.productId}::${wh}`;
+      const prevQty = prev.cartLines.find((l) => l.key === cartKey)?.qty ?? 0;
+      const nextQty = next.cartLines.find((l) => l.key === cartKey)?.qty ?? 0;
+      if (prevQty !== nextQty) return false;
+    }
+  }
+
+  return true;
+}

@@ -101,6 +101,12 @@ export function ProductPage() {
 
   const colorMap = useMemo(() => createColorMap(bootstrap.data?.colors), [bootstrap.data?.colors]);
 
+  const linesMap = useMemo(() => {
+    const map = new Map<string, typeof lines[number]>();
+    for (const l of lines) map.set(l.key, l);
+    return map;
+  }, [lines]);
+
   const relatedQuery = useQuery({
     queryKey: ['related', selected?.productId],
     queryFn: async ({ signal }) => {
@@ -387,7 +393,7 @@ export function ProductPage() {
                 {whButtons.map((wh) => {
                   const n = stockFor(selected, wh);
                   const cartKey = `${selected.productId}::${wh}`;
-                  const line = lines.find((l) => l.key === cartKey);
+                  const line = linesMap.get(cartKey);
                   const qty = line?.qty ?? 0;
                   return (
                     <div key={wh} className="warehouse-row pp-wh-row">
