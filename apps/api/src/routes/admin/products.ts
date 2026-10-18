@@ -413,6 +413,7 @@ const routes: FastifyPluginAsync = async (app) => {
     let success = 0;
     let failed = 0;
     const results: Array<{ id: number; title: string; tehranStock: number; statusText: string }> = [];
+    const updates: Array<{ id: number; tehranStock: number; stock: number }> = [];
 
     for (const p of targetProducts) {
       if (!p.targetSiteUrl || !p.targetSiteUrl.trim()) continue;
@@ -420,14 +421,11 @@ const routes: FastifyPluginAsync = async (app) => {
       const newTehranStock = res.inStock ? (res.quantity || 10) : 0;
       const newStock = p.kermanStock + newTehranStock;
 
-      await db
-        .update(products)
-        .set({
-          tehranStock: newTehranStock,
-          stock: newStock,
-          updatedAt: new Date(),
-        })
-        .where(eq(products.id, p.id));
+      updates.push({
+        id: p.id,
+        tehranStock: newTehranStock,
+        stock: newStock,
+      });
 
       if (res.inStock) success++;
       else failed++;
@@ -438,6 +436,26 @@ const routes: FastifyPluginAsync = async (app) => {
         tehranStock: newTehranStock,
         statusText: res.statusText,
       });
+    }
+
+    if (updates.length > 0) {
+      const tehranStockChunks = [];
+      const stockChunks = [];
+      const ids = updates.map(u => u.id);
+
+      for (const u of updates) {
+        tehranStockChunks.push(sql`when ${products.id} = ${u.id} then ${u.tehranStock}`);
+        stockChunks.push(sql`when ${products.id} = ${u.id} then ${u.stock}`);
+      }
+
+      await db
+        .update(products)
+        .set({
+          tehranStock: sql`case ${sql.join(tehranStockChunks, sql` `)} else ${products.tehranStock} end`,
+          stock: sql`case ${sql.join(stockChunks, sql` `)} else ${products.stock} end`,
+          updatedAt: new Date(),
+        })
+        .where(inArray(products.id, ids));
     }
 
     invalidateCatalog();
