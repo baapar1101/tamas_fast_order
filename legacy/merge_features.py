@@ -197,11 +197,11 @@ grid_replacement = """
                 ${p.old_price ? `<span class="card-old-price">${money(p.old_price)}</span>` : ''}
                 <div class="card-price">${money(p.price)}</div>
               </div>
-              <button class="btn primary" onclick='addToCart(${JSON.stringify(p).replace(/'/g,"&#39;")}, "kerman")'>
+              <button class="btn primary" onclick='addToCart(${esc(JSON.stringify(p))}, "kerman")'>
                 + خرید
               </button>
             </div>
-            <button class="btn" style="width:100%;font-size:11.5px;padding:5px;" onclick='openQuickView(${JSON.stringify(p).replace(/'/g,"&#39;")})'>
+            <button class="btn" style="width:100%;font-size:11.5px;padding:5px;" onclick='openQuickView(${esc(JSON.stringify(p))})'>
               👁 مشاهده جزئیات
             </button>
           </div>
@@ -231,7 +231,7 @@ list_replacement = """
         ${items.map(p => {
           const stocks = getWarehouseStocks(p);
           const warehouseBtns = [];
-          const jsonStr = JSON.stringify(p).replace(/'/g,"&#39;");
+          const jsonStr = esc(JSON.stringify(p));
           if (stocks.kerman > 0) warehouseBtns.push(`<div class="warehouse-row ${stocks.kerman===1?'urgent-stock':''}"><div class="wh-details"><span class="wh-badge kerman">انبار کرمان</span>${stocks.kerman===1?'<span class="wh-count"><b class="stock-warn">تنها ۱ عدد</b></span>':''}</div><button class="add-wh-btn" onclick='addToCart(${jsonStr}, "kerman")'>+</button></div>`);
           if (stocks.tehran > 0) warehouseBtns.push(`<div class="warehouse-row ${stocks.tehran===1?'urgent-stock':''}"><div class="wh-details"><span class="wh-badge tehran">انبار تهران</span>${stocks.tehran===1?'<span class="wh-count"><b class="stock-warn">تنها ۱ عدد</b></span>':''}</div><button class="add-wh-btn" onclick='addToCart(${jsonStr}, "tehran")'>+</button></div>`);
           if (!warehouseBtns.length && stocks.total > 0) warehouseBtns.push(`<div class="warehouse-row"><div class="wh-details"><span class="wh-badge kerman">موجودی سایت</span></div><button class="add-wh-btn" onclick='addToCart(${jsonStr}, "kerman")'>+</button></div>`);
