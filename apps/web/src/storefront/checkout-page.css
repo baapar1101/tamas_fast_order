@@ -467,6 +467,28 @@
   line-height: 1.75;
 }
 
+.checkout-plan-card__savings {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, #16a34a 32%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, #16a34a 9%, transparent);
+  color: #15803d;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.checkout-plan-card__savings .icon {
+  flex: 0 0 auto;
+}
+
+:root[data-theme='dark'] .checkout-plan-card__savings {
+  color: #86efac;
+}
+
 .checkout-plan-card__upfront {
   display: flex;
   align-items: center;

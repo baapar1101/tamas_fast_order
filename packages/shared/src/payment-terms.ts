@@ -2,6 +2,7 @@ export const PAYMENT_TERMS_SETTING_KEY = 'PAYMENT_TERMS_CONFIG';
 
 export type PaymentAudience = 'accessory' | 'mobile';
 export type PaymentPlanKind = 'cash' | 'cheque' | 'daily';
+export type ProductSettlementPolicy = 'cash_only' | 'cheque_2' | 'unrestricted';
 
 export interface AccessoryPaymentRule {
   id: string;
@@ -76,6 +77,8 @@ export interface PaymentPlanQuote {
   installmentIntervalMonths: number | null;
   /** Checkout selector metadata for mobile settlement plans. */
   settlementDays: number | null;
+  /** Pricing snapshots used when one invoice combines products with different settlement policies. */
+  components?: PaymentPlanQuote[];
 }
 
 export interface PaymentTermsQuoteResult {
@@ -83,6 +86,15 @@ export interface PaymentTermsQuoteResult {
   baseAmount: number;
   plans: PaymentPlanQuote[];
   message?: string;
+  /** When true, checkout must use one of these plans and may not bypass it with another payment method. */
+  enforcedSettlement?: boolean;
+  settlementPolicy?: ProductSettlementPolicy | 'combined';
+}
+
+export interface PaymentTermsLineQuote {
+  amount: number;
+  audience: PaymentAudience;
+  sellType: string | null | undefined;
 }
 
 const accessoryRules = (
@@ -238,6 +250,27 @@ export function paymentAudienceForCategory(categoryId: number | null, config: Pa
   return categoryId != null && config.mobileCategoryIds.includes(categoryId) ? 'mobile' : 'accessory';
 }
 
+const normalizeSettlementText = (value: string): string => value
+  .toLowerCase()
+  .replace(/[۰-۹]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
+  .replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
+  .replace(/ي/g, 'ی')
+  .replace(/ك/g, 'ک')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+/** Convert the legacy free-text product sell type into an enforceable settlement policy. */
+export function settlementPolicyFromSellType(sellType: string | null | undefined): ProductSettlementPolicy {
+  const value = normalizeSettlementText(sellType ?? '');
+  if (!value) return 'unrestricted';
+  const hasCash = /نقد|cash/.test(value);
+  const hasCredit = /چک|اعتبار|credit/.test(value);
+  const isTwoMonth = hasCredit && /(?:^|\D)(?:2|دو)\s*ماه/.test(value);
+  if (isTwoMonth && !/بدون\s*محدودیت|(?:6|شش)\s*ماه/.test(value)) return 'cheque_2';
+  if (hasCash && !hasCredit) return 'cash_only';
+  return 'unrestricted';
+}
+
 const roundedPercent = (amount: number, percent: number): number => Math.round(amount * percent / 100);
 const roundedChequeAmount = (amount: number): number => Math.max(0, Math.round(amount / 10_000) * 10_000);
 
@@ -359,8 +392,152 @@ export function buildPaymentTermsQuote(
   return { audience, baseAmount, plans };
 }
 
+const chequeMonth = (item: PaymentScheduleItem, index: number, plan: PaymentPlanQuote): number => {
+  const parsed = Number(item.dueLabel.match(/\d+/)?.[0]);
+  if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  return Math.min(plan.termMonths ?? index + 1, (index + 1) * (plan.installmentIntervalMonths ?? 1));
+};
+
+function mergeChequeSchedules(components: PaymentPlanQuote[], finalAmount: number): PaymentScheduleItem[] {
+  const byMonth = new Map<number, number>();
+  for (const component of components) {
+    component.schedule.forEach((item, index) => {
+      if (item.amount == null || item.amount <= 0) return;
+      const month = chequeMonth(item, index, component);
+      byMonth.set(month, (byMonth.get(month) ?? 0) + item.amount);
+    });
+  }
+  return [...byMonth.entries()].sort(([a], [b]) => a - b).map(([month, amount]) => ({
+    dueLabel: `ماه ${month}`,
+    dueDate: null,
+    percent: finalAmount > 0 ? amount * 100 / finalAmount : 0,
+    amount,
+    optional: false,
+  }));
+}
+
+function compositeAccessoryPlan(baseAmount: number, components: PaymentPlanQuote[], instructions: string): PaymentPlanQuote {
+  const finalAmount = components.reduce((sum, plan) => sum + plan.finalAmount, 0);
+  const upfrontAmount = components.reduce((sum, plan) => sum + (plan.kind === 'cash' ? plan.finalAmount : plan.upfrontAmount ?? 0), 0);
+  const termMonths = Math.max(0, ...components.map((plan) => plan.termMonths ?? 0));
+  const schedule = mergeChequeSchedules(components, finalAmount);
+  const savings = Math.max(0, baseAmount - finalAmount);
+  return {
+    id: 'accessory-combined-required',
+    label: 'تسویه ترکیبی طبق شرایط کالاها',
+    description: `پرداخت نقدی و پیش‌پرداخت ${upfrontAmount.toLocaleString('fa-IR')} تومان، سپس ${schedule.length.toLocaleString('fa-IR')} فقره چک تجمیع‌شده${savings > 0 ? `؛ سود شما ${savings.toLocaleString('fa-IR')} تومان` : ''}`,
+    audience: 'accessory',
+    kind: 'cheque',
+    baseAmount,
+    finalAmount,
+    adjustmentAmount: finalAmount - baseAmount,
+    discountPercent: baseAmount > 0 ? savings * 100 / baseAmount : 0,
+    serviceFeePercent: 0,
+    upfrontPercent: finalAmount > 0 ? upfrontAmount * 100 / finalAmount : 0,
+    upfrontAmount,
+    schedule,
+    instructions,
+    requiresPaymentInfo: true,
+    termMonths,
+    installmentIntervalMonths: 2,
+    settlementDays: null,
+    components,
+  };
+}
+
+/** Quote payment terms while enforcing each product's settlement restriction. */
+export function buildRestrictedPaymentTermsQuote(
+  lines: PaymentTermsLineQuote[],
+  config: PaymentTermsConfig,
+): PaymentTermsQuoteResult {
+  const baseAmount = lines.reduce((sum, line) => sum + line.amount, 0);
+  const audiences = lines.map((line) => line.audience);
+  const regular = buildPaymentTermsQuote(baseAmount, audiences, config);
+  if (regular.audience === 'mixed' || regular.audience == null || !config.enabled) return regular;
+
+  const policies = lines.map((line) => settlementPolicyFromSellType(line.sellType));
+  if (policies.every((policy) => policy === 'unrestricted')) return regular;
+
+  if (regular.audience === 'mobile') {
+    if (!policies.some((policy) => policy === 'cash_only')) return regular;
+    return {
+      ...regular,
+      plans: regular.plans.filter((plan) => plan.kind === 'cash'),
+      enforcedSettlement: true,
+      settlementPolicy: 'cash_only',
+      message: 'به‌دلیل وجود کالای فقط نقدی، تسویه این فاکتور فقط به‌صورت نقدی امکان‌پذیر است.',
+    };
+  }
+
+  if (policies.every((policy) => policy === 'cash_only')) {
+    return {
+      ...regular,
+      plans: regular.plans.filter((plan) => plan.kind === 'cash'),
+      enforcedSettlement: true,
+      settlementPolicy: 'cash_only',
+      message: 'تمام کالاهای این فاکتور فقط به‌صورت نقدی تسویه می‌شوند.',
+    };
+  }
+
+  const chooseCheque = (plans: PaymentPlanQuote[], months: number) => plans
+    .filter((plan) => plan.kind === 'cheque' && plan.termMonths === months)
+    .sort((a, b) => (b.installmentIntervalMonths ?? 0) - (a.installmentIntervalMonths ?? 0))[0] ?? null;
+
+  if (policies.every((policy) => policy === 'cheque_2')) {
+    const plan = chooseCheque(regular.plans, 2);
+    return {
+      ...regular,
+      plans: plan ? [plan] : [],
+      enforcedSettlement: true,
+      settlementPolicy: 'cheque_2',
+      message: plan ? 'تسویه این فاکتور طبق محدودیت کالا فقط با برنامه چک دوماهه انجام می‌شود.' : 'برنامه چک دوماهه در تنظیمات پرداخت فعال نیست.',
+    };
+  }
+
+  const amountByPolicy = new Map<ProductSettlementPolicy, number>();
+  lines.forEach((line, index) => amountByPolicy.set(policies[index]!, (amountByPolicy.get(policies[index]!) ?? 0) + line.amount));
+  const components: PaymentPlanQuote[] = [];
+  for (const [policy, amount] of amountByPolicy) {
+    const quote = buildPaymentTermsQuote(amount, ['accessory'], config);
+    const selected = policy === 'cash_only'
+      ? quote.plans.find((plan) => plan.kind === 'cash') ?? null
+      : chooseCheque(quote.plans, policy === 'cheque_2' ? 2 : 6);
+    if (!selected) {
+      return {
+        audience: 'accessory',
+        baseAmount,
+        plans: [],
+        enforcedSettlement: true,
+        settlementPolicy: 'combined',
+        message: policy === 'cash_only' ? 'برنامه پرداخت نقدی فعال نیست.' : `برنامه چک ${policy === 'cheque_2' ? 'دو' : 'شش'}ماهه فعال نیست.`,
+      };
+    }
+    components.push(selected);
+  }
+  return {
+    audience: 'accessory',
+    baseAmount,
+    plans: [compositeAccessoryPlan(baseAmount, components, config.accessory.accountInstructions)],
+    enforcedSettlement: true,
+    settlementPolicy: 'combined',
+    message: 'شرایط تسویه کالاها ترکیب شد؛ مبالغ هم‌سررسید در یک چک واحد تجمیع شده‌اند.',
+  };
+}
+
 /** Reprice an already-snapshotted plan after an admin changes order items. */
 export function repricePaymentPlan(plan: PaymentPlanQuote, baseAmount: number): PaymentPlanQuote {
+  if (plan.components?.length) {
+    let allocated = 0;
+    const components = plan.components.map((component, index) => {
+      const componentBase = index === plan.components!.length - 1
+        ? Math.max(0, baseAmount - allocated)
+        : Math.max(0, Math.round(baseAmount * component.baseAmount / Math.max(1, plan.baseAmount)));
+      allocated += componentBase;
+      return repricePaymentPlan(component, componentBase);
+    });
+    const repriced = compositeAccessoryPlan(baseAmount, components, plan.instructions);
+    return { ...repriced, id: plan.id, label: plan.label };
+  }
   const calculatedFinalAmount = baseAmount
     - roundedPercent(baseAmount, plan.discountPercent)
     + roundedPercent(baseAmount, plan.serviceFeePercent);

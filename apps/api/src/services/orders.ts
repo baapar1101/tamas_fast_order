@@ -234,13 +234,16 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     let paymentPlan: PaymentPlanQuote | null = null;
     let total = discountedSubtotal;
     let paymentInstructionsPending = false;
+    const paymentQuote = quotePaymentTerms(lines.map((line) => {
+      const product = byId.get(line.productId)!;
+      return { categoryId: product.categoryId, price: product.price, qty: line.qty, sellType: product.sellType };
+    }), paymentTermsConfig);
+    if (paymentQuote.enforcedSettlement && !input.paymentPlanId) {
+      throw badRequest(paymentQuote.message ?? 'روش تسویه این فاکتور باید مطابق محدودیت کالاها انتخاب شود.');
+    }
     if (input.paymentPlanId) {
-      const quote = quotePaymentTerms(lines.map((line) => {
-        const product = byId.get(line.productId)!;
-        return { categoryId: product.categoryId, price: product.price, qty: line.qty };
-      }), paymentTermsConfig);
-      if (quote.audience === 'mixed') throw badRequest(quote.message ?? 'شرایط پرداخت برای سبد ترکیبی قابل اعمال نیست.');
-      paymentPlan = selectPaymentPlan(quote, input.paymentPlanId);
+      if (paymentQuote.audience === 'mixed') throw badRequest(paymentQuote.message ?? 'شرایط پرداخت برای سبد ترکیبی قابل اعمال نیست.');
+      paymentPlan = selectPaymentPlan(paymentQuote, input.paymentPlanId);
       if (!paymentPlan) throw badRequest('شرایط پرداخت انتخاب‌شده معتبر یا فعال نیست.');
       paymentPlan = repricePaymentPlan(paymentPlan, discountedSubtotal);
       const secured = securePaymentPlan(paymentPlan, paymentRouting);

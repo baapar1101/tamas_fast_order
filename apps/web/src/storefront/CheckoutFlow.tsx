@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { OrderDTO, PaymentTermsQuoteResult } from "@tamas/shared";
-import { WAREHOUSE_LABELS, formatMoney, formatNumber } from "@tamas/shared";
+import { WAREHOUSE_LABELS, formatMoney, formatNumber, repricePaymentPlan } from "@tamas/shared";
 import { Price } from "../components/Price";
 import { Modal } from "../components/Modal";
 import { useToast } from "../components/Toast";
@@ -199,14 +199,16 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
   });
 
   const configuredMethods = parsePaymentMethods(bootstrap.data?.settings.payment_methods);
-  const quotedBaseAmount = termsQuery.data?.baseAmount ?? total;
-  const paymentPlans = termsQuery.data?.plans ?? [];
+  const productBaseAmount = termsQuery.data?.baseAmount ?? total;
+  const quotedBaseAmount = Math.max(0, productBaseAmount - (discountQuote?.amount ?? 0));
+  const paymentPlans = (termsQuery.data?.plans ?? []).map((plan) =>
+    quotedBaseAmount === productBaseAmount ? plan : repricePaymentPlan(plan, quotedBaseAmount));
   const availableMethods = configuredMethods.filter(
     (m) =>
       m.enabled !== false &&
       (!m.minAmount || quotedBaseAmount >= m.minAmount) &&
       (!m.maxAmount || quotedBaseAmount <= m.maxAmount) &&
-      (paymentPlans.length === 0 || ['wallet', 'aqayepardakht', 'credit_weekly'].includes(m.id))
+      (!termsQuery.data?.enforcedSettlement && (paymentPlans.length === 0 || ['wallet', 'aqayepardakht', 'credit_weekly'].includes(m.id)))
   );
 
   const canUseWallet = Boolean(walletQuery.data?.config.enabled && walletQuery.data.config.orderPaymentEnabled && !walletQuery.data.wallet.isFrozen && walletQuery.data.wallet.balance >= quotedBaseAmount);
@@ -217,7 +219,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
     (selectedConfiguredMethod ? paymentMethod : '')
     || paymentPlans[0]?.id
     || availableMethods.find((m) => m.id !== 'wallet' || canUseWallet)?.id
-    || 'aqayepardakht'
+    || (termsQuery.data?.enforcedSettlement ? '' : 'aqayepardakht')
   );
   const activePaymentPlan = paymentPlans.find((plan) => plan.id === activePaymentMethod) ?? null;
   const activeConfiguredMethod = availableMethods.find((method) => method.id === activePaymentMethod) ?? null;
@@ -235,6 +237,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
     .filter((value): value is number => value != null))].sort((a, b) => a - b);
   const dailyPlans = paymentPlans.filter((plan) => plan.kind === 'daily');
   const payableTotal = activePaymentPlan?.finalAmount ?? quotedBaseAmount;
+  const paymentSavings = activePaymentPlan ? Math.max(0, activePaymentPlan.baseAmount - activePaymentPlan.finalAmount) : 0;
 
   function selectPaymentKind(value: string) {
     if (value.startsWith('method:')) {
@@ -278,6 +281,10 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
       setError(
         "لطفاً جهت ثبت سفارش، شرایط و مفاد فاکتور را مطالعه کرده و تیک تأیید را بزنید.",
       );
+      return;
+    }
+    if (!activePaymentMethod) {
+      setError(termsQuery.data?.message ?? 'هیچ روش تسویه معتبری برای کالاهای این فاکتور فعال نیست.');
       return;
     }
     setError("");
@@ -626,7 +633,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             type="button"
             className="btn primary"
             style={{ flex: 1 }}
-            disabled={busy || !agreeTerms || termsQuery.isPending}
+            disabled={busy || !agreeTerms || termsQuery.isPending || !activePaymentMethod}
             onClick={() => void submit()}
           >
             {busy || termsQuery.isPending ? (
@@ -796,6 +803,15 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
                   <strong className="checkout-plan-card__price"><Price amount={activePaymentPlan.finalAmount} /></strong>
                 </div>
                 <p className="checkout-plan-card__description">{activePaymentPlan.description}</p>
+                {paymentSavings > 0 && (
+                  <div className="checkout-plan-card__savings">
+                    <Icon name="tag" />
+                    <span>
+                      سود شما از این خرید {activePaymentPlan.kind === 'cash' ? 'در صورت پرداخت نقدی' : `با انتخاب ${activePaymentPlan.label}`}:
+                      {' '}<b><Price amount={paymentSavings} /></b>
+                    </span>
+                  </div>
+                )}
                 {activePaymentPlan.upfrontAmount != null && activePaymentPlan.upfrontPercent != null && activePaymentPlan.kind !== 'cash' && (
                   <div className="checkout-plan-card__upfront"><span>پیش‌پرداخت</span><b><Price amount={activePaymentPlan.upfrontAmount} /></b></div>
                 )}
@@ -877,7 +893,12 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
 
         {activePaymentPlan && (
           <div className="checkout-totals">
-            <div className="checkout-totals__row"><span>جمع قیمت کالاها</span><Price amount={activePaymentPlan.baseAmount} /></div>
+            <div className="checkout-totals__row"><span>جمع قیمت کالاها</span><Price amount={productBaseAmount} /></div>
+            {(discountQuote?.amount ?? 0) > 0 && (
+              <div className="checkout-totals__row checkout-totals__row--adjustment">
+                <span>کد تخفیف اختصاصی</span><span>-<Price amount={discountQuote!.amount} /></span>
+              </div>
+            )}
             {activePaymentPlan.adjustmentAmount !== 0 && (
               <div className="checkout-totals__row checkout-totals__row--adjustment">
                 <span>{activePaymentPlan.adjustmentAmount < 0 ? 'تخفیف شرایط پرداخت' : 'هزینه خدمات'}</span>

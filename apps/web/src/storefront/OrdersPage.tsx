@@ -144,6 +144,8 @@ export function OrdersPage() {
                     total={order.total}
                     subtotal={order.subtotal}
                     paymentLabel={order.paymentPlan?.label}
+                    paymentSavings={order.paymentPlan ? Math.max(0, order.paymentPlan.baseAmount - order.paymentPlan.finalAmount) : 0}
+                    paymentSavingsLabel={order.paymentPlan?.kind === 'cash' ? 'سود شما از پرداخت نقدی' : 'سود شما از شرایط پرداخت'}
                     items={items}
                     showStamp={order.status !== 'cancelled'}
                   />

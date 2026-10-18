@@ -103,6 +103,7 @@ export function ProformaDocument({ order }: { order: OrderDTO }) {
         <div className="proforma-total">
           <span>جمع تعداد</span><strong>{formatNumber(order.quantity)} عدد</strong>
           {order.subtotal !== order.total && <><span>جمع کالاها</span><strong>{money(order.subtotal)}</strong></>}
+          {order.paymentPlan && order.paymentPlan.baseAmount > order.paymentPlan.finalAmount && <><span>{order.paymentPlan.kind === 'cash' ? 'سود مشتری از پرداخت نقدی' : 'سود مشتری از شرایط پرداخت'}</span><strong>{money(order.paymentPlan.baseAmount - order.paymentPlan.finalAmount)}</strong></>}
           <span>مبلغ کل</span><strong>{money(order.total)}</strong>
         </div>
       </section>

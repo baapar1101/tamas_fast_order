@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   buildPaymentTermsQuote,
+  buildRestrictedPaymentTermsQuote,
   parsePaymentTermsConfig,
   paymentAudienceForCategory,
   repricePaymentPlan,
+  settlementPolicyFromSellType,
 } from '../src/payment-terms.js';
 
 test('default config reproduces accessory cash discount and cheque prepayment', () => {
@@ -44,4 +46,46 @@ test('mixed mobile and accessory cart does not expose an ambiguous plan', () => 
   assert.equal(quote.audience, 'mixed');
   assert.equal(quote.plans.length, 0);
   assert.match(quote.message ?? '', /دو سفارش جدا/);
+});
+
+test('product sell type is converted to a strict settlement policy', () => {
+  assert.equal(settlementPolicyFromSellType('فقط نقدی'), 'cash_only');
+  assert.equal(settlementPolicyFromSellType('چک فقط ۲ ماهه'), 'cheque_2');
+  assert.equal(settlementPolicyFromSellType('چک فقط دو ماهه'), 'cheque_2');
+  assert.equal(settlementPolicyFromSellType('نقدی، اعتباری، چکی'), 'unrestricted');
+  assert.equal(settlementPolicyFromSellType(null), 'unrestricted');
+});
+
+test('cash-only products expose no non-cash settlement plans', () => {
+  const quote = buildRestrictedPaymentTermsQuote([
+    { amount: 1_000_000, audience: 'accessory', sellType: 'فقط نقدی' },
+  ], parsePaymentTermsConfig(undefined));
+  assert.equal(quote.enforcedSettlement, true);
+  assert.equal(quote.settlementPolicy, 'cash_only');
+  assert.deepEqual(quote.plans.map((plan) => plan.kind), ['cash']);
+  assert.equal(quote.plans[0]?.finalAmount, 900_000);
+});
+
+test('mixed settlement policies merge every month-two amount into one cheque', () => {
+  const config = parsePaymentTermsConfig(undefined);
+  const quote = buildRestrictedPaymentTermsQuote([
+    { amount: 1_000_000, audience: 'accessory', sellType: 'فقط نقدی' },
+    { amount: 1_000_000, audience: 'accessory', sellType: 'چک فقط ۲ ماهه' },
+    { amount: 1_000_000, audience: 'accessory', sellType: 'بدون محدودیت تا ۶ ماه' },
+  ], config);
+  const plan = quote.plans[0]!;
+  assert.equal(quote.enforcedSettlement, true);
+  assert.equal(quote.settlementPolicy, 'combined');
+  assert.equal(plan.finalAmount, 2_900_000);
+  assert.equal(plan.upfrontAmount, 1_600_000);
+  assert.deepEqual(plan.schedule.map((item) => item.dueLabel), ['ماه 2', 'ماه 4', 'ماه 6']);
+  assert.equal(plan.schedule[0]?.amount, 970_000);
+  assert.equal(plan.schedule.reduce((sum, item) => sum + (item.amount ?? 0), 0), 1_300_000);
+  assert.equal(plan.schedule.length, 3);
+
+  const repriced = repricePaymentPlan(plan, 2_700_000);
+  assert.equal(repriced.finalAmount, 2_610_000);
+  assert.equal(repriced.upfrontAmount, 1_440_000);
+  assert.equal(repriced.schedule[0]?.amount, 870_000);
+  assert.equal((repriced.upfrontAmount ?? 0) + repriced.schedule.reduce((sum, item) => sum + (item.amount ?? 0), 0), repriced.finalAmount);
 });

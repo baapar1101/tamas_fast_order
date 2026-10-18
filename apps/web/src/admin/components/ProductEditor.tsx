@@ -792,39 +792,33 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
               <div className="a-field a-span-2">
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {[
-                    { value: 'نقدی', icon: '💵' },
-                    { value: 'اعتباری', icon: '💳' },
-                    { value: 'چکی', icon: '📄' },
-                    { value: 'کارت به کارت', icon: '🏦' },
+                    { value: 'فقط نقدی', icon: '💵', help: 'فقط پرداخت کامل نقدی' },
+                    { value: 'چک فقط ۲ ماهه', icon: '📄', help: 'پیش‌پرداخت و چک ماه دوم' },
+                    { value: 'بدون محدودیت تا ۶ ماه', icon: '💳', help: 'طبق سقف شرایط پرداخت' },
                   ].map((st) => {
-                    const current = form.sellType.split(/[,،]+/).map(s => s.trim()).filter(Boolean);
-                    const isOn = current.includes(st.value);
+                    const isOn = form.sellType.trim() === st.value;
                     return (
                       <button
                         key={st.value}
                         type="button"
                         className={`a-chip-opt ${isOn ? 'a-chip-opt--on' : ''}`}
                         style={{ padding: '0.5rem 0.85rem', cursor: 'pointer' }}
-                        onClick={() => {
-                          const next = isOn
-                            ? current.filter(v => v !== st.value)
-                            : [...current, st.value];
-                          set('sellType', next.join('، '));
-                        }}
+                        aria-pressed={isOn}
+                        onClick={() => set('sellType', isOn ? '' : st.value)}
                       >
                         <span>{st.icon}</span>
-                        <span className="a-chip-opt-copy"><strong>{st.value}</strong></span>
+                        <span className="a-chip-opt-copy"><strong>{st.value}</strong><small>{st.help}</small></span>
                       </button>
                     );
                   })}
                 </div>
               </div>
               <div className="a-field a-span-2">
-                <label className="a-label" htmlFor="pe-sell-type">یا ورود دستی (با کاما جدا کنید)</label>
+                <label className="a-label" htmlFor="pe-sell-type">مقدار ثبت‌شده / ورود دستی</label>
                 <input
                   id="pe-sell-type"
                   className="a-input"
-                  placeholder="مثال: نقدی، اعتباری، چکی"
+                  placeholder="مثال: فقط نقدی، چک فقط ۲ ماهه، بدون محدودیت تا ۶ ماه"
                   value={form.sellType}
                   onChange={(e) => set('sellType', e.target.value)}
                 />

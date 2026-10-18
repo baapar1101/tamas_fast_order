@@ -29,6 +29,7 @@ const routes: FastifyPluginAsync = async (app) => {
       productId: products.productId,
       categoryId: products.categoryId,
       price: products.price,
+      sellType: products.sellType,
       status: products.status,
     }).from(products).where(and(inArray(products.productId, ids), isNull(products.deletedAt)));
     if (rows.length !== ids.length || rows.some((row) => row.status !== 'active')) {
@@ -39,6 +40,7 @@ const routes: FastifyPluginAsync = async (app) => {
       categoryId: row.categoryId,
       price: row.price,
       qty: quantityByProduct.get(row.productId) ?? 0,
+      sellType: row.sellType,
     })), config);
     return { ok: true, ...quote, plans: quote.plans.map((plan) => securePaymentPlan(plan, routing).plan) };
   });
