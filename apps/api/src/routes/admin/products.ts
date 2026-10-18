@@ -1,11 +1,12 @@
 import { and, asc, count, desc, eq, ilike, inArray, isNotNull, isNull, or, sql, type SQL } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
-import { lookup } from 'node:dns/promises';
-import { isIP } from 'node:net';
+
+
 import { z } from 'zod';
 import { productPatchSchema, productWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { brands, categories, products, productTrackingLinks, trackingSites } from '../../db/schema.js';
+import { validatePublicTargetUrl } from '../../lib/url.js';
 import { badRequest, conflict, notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { buildSearchText, invalidateCatalog, toProductDTO } from '../../services/catalog.js';
@@ -461,50 +462,6 @@ const routes: FastifyPluginAsync = async (app) => {
 const MAX_TARGET_RESPONSE_BYTES = 2 * 1024 * 1024;
 const MAX_TARGET_REDIRECTS = 3;
 
-function isPrivateAddress(address: string): boolean {
-  const lower = address.toLowerCase();
-  if (
-    lower === '::1' ||
-    lower === '::' ||
-    lower.startsWith('fc') ||
-    lower.startsWith('fd') ||
-    lower.startsWith('fe8') ||
-    lower.startsWith('fe9') ||
-    lower.startsWith('fea') ||
-    lower.startsWith('feb')
-  ) return true;
-
-  const mappedV4 = lower.startsWith('::ffff:') ? address.slice(7) : address;
-  if (isIP(mappedV4) !== 4) return false;
-  const octets = mappedV4.split('.').map(Number);
-  const a = octets[0] ?? 0;
-  const b = octets[1] ?? 0;
-  return (
-    a === 0 ||
-    a === 10 ||
-    a === 127 ||
-    (a === 100 && b >= 64 && b <= 127) ||
-    (a === 169 && b === 254) ||
-    (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && b === 0) ||
-    (a === 192 && b === 168) ||
-    (a === 198 && (b === 18 || b === 19)) ||
-    a >= 224
-  );
-}
-
-async function validatePublicTargetUrl(value: string): Promise<URL> {
-  const url = new URL(value);
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error('فقط لینک HTTP یا HTTPS مجاز است');
-  if (url.username || url.password) throw new Error('لینک دارای نام کاربری یا رمز عبور مجاز نیست');
-  const hostname = url.hostname.toLowerCase();
-  if (hostname === 'localhost' || hostname.endsWith('.localhost')) throw new Error('آدرس داخلی مجاز نیست');
-  const addresses = await lookup(hostname, { all: true, verbatim: true });
-  if (addresses.length === 0 || addresses.some(({ address }) => isPrivateAddress(address))) {
-    throw new Error('آدرس داخلی یا رزروشده مجاز نیست');
-  }
-  return url;
-}
 
 async function fetchPublicTarget(value: string): Promise<Response> {
   let url = await validatePublicTargetUrl(value);
