@@ -238,23 +238,42 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     }
     await upsertOrderPayment(tx, order.id, user.id, total, order.paymentStatus, walletPayment ? 'wallet' : undefined);
 
+    const updatesByWarehouse = {
+      kerman: new Map<number, number>(),
+      tehran: new Map<number, number>(),
+      default: new Map<number, number>(),
+    };
+
     for (const update of stockUpdates) {
-      const now = new Date();
-      if (update.warehouse === 'kerman') {
+      const target = update.warehouse === 'kerman' ? 'kerman' : update.warehouse === 'tehran' ? 'tehran' : 'default';
+      const map = updatesByWarehouse[target];
+      map.set(update.id, (map.get(update.id) ?? 0) + update.qty);
+    }
+
+    const now = new Date();
+
+    for (const [target, map] of Object.entries(updatesByWarehouse)) {
+      if (map.size === 0) continue;
+
+      const ids = Array.from(map.keys());
+      const caseChunks = Array.from(map.entries()).map(([id, qty]) => sql`when ${products.id} = ${id} then ${qty}::int`);
+      const caseSql = sql`(case ${sql.join(caseChunks, sql` `)} else 0 end)`;
+
+      if (target === 'kerman') {
         await tx
           .update(products)
-          .set({ kermanStock: sql`greatest(0, ${products.kermanStock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
-      } else if (update.warehouse === 'tehran') {
+          .set({ kermanStock: sql`greatest(0, ${products.kermanStock} - ${caseSql})`, updatedAt: now })
+          .where(inArray(products.id, ids));
+      } else if (target === 'tehran') {
         await tx
           .update(products)
-          .set({ tehranStock: sql`greatest(0, ${products.tehranStock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
+          .set({ tehranStock: sql`greatest(0, ${products.tehranStock} - ${caseSql})`, updatedAt: now })
+          .where(inArray(products.id, ids));
       } else {
         await tx
           .update(products)
-          .set({ stock: sql`greatest(0, ${products.stock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
+          .set({ stock: sql`greatest(0, ${products.stock} - ${caseSql})`, updatedAt: now })
+          .where(inArray(products.id, ids));
       }
     }
 
