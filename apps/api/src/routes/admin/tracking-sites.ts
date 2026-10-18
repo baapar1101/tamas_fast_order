@@ -22,10 +22,15 @@ async function syncProduct(productDbId: number) {
 
   const now = new Date();
   const results = [];
+  const updates = [];
   for (const row of links) {
     const snapshot = await fetchTargetSiteSnapshot(row.link.url);
     const price = snapshot.price == null ? null : row.site.priceUnit === 'rial' ? Math.round(snapshot.price / 10) : snapshot.price;
-    await db.update(productTrackingLinks).set({
+    updates.push({
+      id: row.link.id,
+      productDbId: row.link.productDbId,
+      siteId: row.link.siteId,
+      url: row.link.url,
       lastPrice: price,
       inStock: snapshot.inStock,
       quantity: snapshot.quantity,
@@ -33,7 +38,7 @@ async function syncProduct(productDbId: number) {
       lastError: snapshot.error,
       checkedAt: now,
       updatedAt: now,
-    }).where(eq(productTrackingLinks.id, row.link.id));
+    });
     results.push({
       siteId: row.site.id,
       siteName: row.site.name,
@@ -42,6 +47,22 @@ async function syncProduct(productDbId: number) {
       price,
       statusText: snapshot.statusText,
       error: snapshot.error,
+    });
+  }
+
+  if (updates.length > 0) {
+    const { sql } = await import('drizzle-orm');
+    await db.insert(productTrackingLinks).values(updates).onConflictDoUpdate({
+      target: productTrackingLinks.id,
+      set: {
+        lastPrice: sql`excluded.last_price`,
+        inStock: sql`excluded.in_stock`,
+        quantity: sql`excluded.quantity`,
+        statusText: sql`excluded.status_text`,
+        lastError: sql`excluded.last_error`,
+        checkedAt: sql`excluded.checked_at`,
+        updatedAt: sql`excluded.updated_at`,
+      },
     });
   }
 
