@@ -1,0 +1,2 @@
+## 2024-05-18 - Bulk Operations over N+1 Queries
+When inserting or updating related entities (like Brands for a Category), using `inArray()` to fetch all existing entities at once and a single `.values()` call to insert the missing ones is significantly faster and more scalable than querying and inserting one-by-one inside a loop. Remember to deduplicate the inputs (e.g. using `Set`) to prevent conflict issues during the bulk insert, and add an early return before `inArray` if the array is empty.

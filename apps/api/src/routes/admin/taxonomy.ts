@@ -1,4 +1,4 @@
-import { asc, eq, isNull } from 'drizzle-orm';
+import { asc, eq, isNull, inArray } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import { brandWriteSchema, categoryWriteSchema, colorWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
@@ -12,18 +12,24 @@ async function syncCategoryBrands(categoryId: number, brandNames: string[]): Pro
   await db.delete(categoryBrands).where(eq(categoryBrands.categoryId, categoryId));
   if (brandNames.length === 0) return;
 
+  const uniqueNames = [...new Set(brandNames.map((n) => n.trim()).filter(Boolean))];
+  if (uniqueNames.length === 0) return;
+
   const ids: number[] = [];
-  for (const raw of brandNames) {
-    const name = raw.trim();
-    if (!name) continue;
-    const [found] = await db.select({ id: brands.id }).from(brands).where(eq(brands.name, name)).limit(1);
-    if (found) {
-      ids.push(found.id);
-      continue;
-    }
-    const [created] = await db.insert(brands).values({ name, faName: name }).returning({ id: brands.id });
-    if (created) ids.push(created.id);
+  const existingBrands = await db.select({ id: brands.id, name: brands.name }).from(brands).where(inArray(brands.name, uniqueNames));
+
+  const existingIds = existingBrands.map((b) => b.id);
+  const existingNames = new Set(existingBrands.map((b) => b.name));
+  ids.push(...existingIds);
+
+  const missingNames = uniqueNames.filter((name) => !existingNames.has(name));
+
+  if (missingNames.length > 0) {
+    const newBrands = missingNames.map((name) => ({ name, faName: name }));
+    const created = await db.insert(brands).values(newBrands).returning({ id: brands.id });
+    ids.push(...created.map((b) => b.id));
   }
+
   if (ids.length > 0) {
     await db
       .insert(categoryBrands)
