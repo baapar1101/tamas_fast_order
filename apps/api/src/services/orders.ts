@@ -238,24 +238,32 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     }
     await upsertOrderPayment(tx, order.id, user.id, total, order.paymentStatus, walletPayment ? 'wallet' : undefined);
 
+    const aggregatedUpdates = new Map<number, { main: number; tehran: number; kerman: number }>();
     for (const update of stockUpdates) {
-      const now = new Date();
-      if (update.warehouse === 'kerman') {
-        await tx
-          .update(products)
-          .set({ kermanStock: sql`greatest(0, ${products.kermanStock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
-      } else if (update.warehouse === 'tehran') {
-        await tx
-          .update(products)
-          .set({ tehranStock: sql`greatest(0, ${products.tehranStock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
-      } else {
-        await tx
-          .update(products)
-          .set({ stock: sql`greatest(0, ${products.stock} - ${update.qty})`, updatedAt: now })
-          .where(eq(products.id, update.id));
-      }
+      const existing = aggregatedUpdates.get(update.id) || { main: 0, tehran: 0, kerman: 0 };
+      if (update.warehouse === 'kerman') existing.kerman += update.qty;
+      else if (update.warehouse === 'tehran') existing.tehran += update.qty;
+      else existing.main += update.qty;
+      aggregatedUpdates.set(update.id, existing);
+    }
+
+    if (aggregatedUpdates.size > 0) {
+      const valuesSql = Array.from(aggregatedUpdates.entries())
+        .map(([id, qtys]) => sql`(${id}::int, ${qtys.main}::int, ${qtys.tehran}::int, ${qtys.kerman}::int)`)
+        .reduce((acc, curr, idx) => (idx === 0 ? curr : sql`${acc}, ${curr}`));
+
+      await tx.execute(
+        sql`
+          UPDATE products
+          SET
+            stock = greatest(0, products.stock - nv.qty_main),
+            tehran_stock = greatest(0, products.tehran_stock - nv.qty_tehran),
+            kerman_stock = greatest(0, products.kerman_stock - nv.qty_kerman),
+            updated_at = NOW()
+          FROM (VALUES ${valuesSql}) AS nv (id, qty_main, qty_tehran, qty_kerman)
+          WHERE products.id = nv.id
+        `
+      );
     }
 
     invalidateCatalog();

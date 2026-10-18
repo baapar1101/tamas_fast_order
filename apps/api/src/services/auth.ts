@@ -40,6 +40,7 @@ export function missingProfileFields(row: UserRow): string[] {
 }
 
 const inMemoryUsers = new Map<string, UserRow>();
+const inMemoryUsersById = new Map<number, UserRow>();
 const inMemorySessions = new Map<string, { userId: number; expiresAt: Date }>();
 
 /**
@@ -127,6 +128,7 @@ export async function findOrCreateUser(phone: string): Promise<{ row: UserRow; i
         sheetSyncedAt: null,
       };
       inMemoryUsers.set(phone, dummy);
+      inMemoryUsersById.set(dummy.id, dummy);
       return { row: dummy, isNew: true };
     }
     throw err;
@@ -188,9 +190,8 @@ export async function resolveSession(token: string | undefined): Promise<UserSes
     if (err instanceof Error && (err.message.includes('ECONNREFUSED') || (err as any).code === 'ECONNREFUSED')) {
       const sess = inMemorySessions.get(hash);
       if (!sess || sess.expiresAt < new Date()) return null;
-      for (const u of inMemoryUsers.values()) {
-        if (u.id === sess.userId) return u;
-      }
+      const u = inMemoryUsersById.get(sess.userId);
+      if (u) return u;
       return null;
     }
     throw err;
