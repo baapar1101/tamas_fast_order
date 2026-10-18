@@ -1,4 +1,4 @@
-import { asc, eq, isNull } from 'drizzle-orm';
+import { asc, eq, isNull, sql, SQL } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import { brandWriteSchema, categoryWriteSchema, colorWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
@@ -98,14 +98,27 @@ const routes: FastifyPluginAsync = async (app) => {
     const { ids } = req.body as { ids: number[] };
     if (!Array.isArray(ids) || ids.length === 0) return { ok: true };
 
+    const idMap = new Map<number, number>();
     for (let i = 0; i < ids.length; i++) {
       const id = ids[i];
-      if (id !== undefined) {
-        await db
-          .update(categories)
-          .set({ sortOrder: i + 1, updatedAt: new Date() })
-          .where(eq(categories.id, id));
+      if (id !== undefined && !idMap.has(id)) {
+        idMap.set(id, i + 1);
       }
+    }
+
+    if (idMap.size > 0) {
+      const sqlChunks: SQL[] = [];
+      for (const [id, sortOrder] of idMap.entries()) {
+        sqlChunks.push(sql`(CAST(${id} AS INT), CAST(${sortOrder} AS INT))`);
+      }
+      const valuesSql = sql.join(sqlChunks, sql`, `);
+
+      await db.execute(sql`
+        UPDATE categories AS c
+        SET sort_order = v.sort_order, updated_at = NOW()
+        FROM (VALUES ${valuesSql}) AS v(id, sort_order)
+        WHERE c.id = v.id
+      `);
     }
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'update', 'category', 'reorder');
@@ -167,14 +180,27 @@ const routes: FastifyPluginAsync = async (app) => {
     const { ids } = req.body as { ids: number[] };
     if (!Array.isArray(ids) || ids.length === 0) return { ok: true };
 
+    const idMap = new Map<number, number>();
     for (let i = 0; i < ids.length; i++) {
       const id = ids[i];
-      if (id !== undefined) {
-        await db
-          .update(brands)
-          .set({ sortOrder: i + 1, updatedAt: new Date() })
-          .where(eq(brands.id, id));
+      if (id !== undefined && !idMap.has(id)) {
+        idMap.set(id, i + 1);
       }
+    }
+
+    if (idMap.size > 0) {
+      const sqlChunks: SQL[] = [];
+      for (const [id, sortOrder] of idMap.entries()) {
+        sqlChunks.push(sql`(CAST(${id} AS INT), CAST(${sortOrder} AS INT))`);
+      }
+      const valuesSql = sql.join(sqlChunks, sql`, `);
+
+      await db.execute(sql`
+        UPDATE brands AS b
+        SET sort_order = v.sort_order, updated_at = NOW()
+        FROM (VALUES ${valuesSql}) AS v(id, sort_order)
+        WHERE b.id = v.id
+      `);
     }
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'update', 'brand', 'reorder');
