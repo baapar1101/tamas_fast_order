@@ -339,5 +339,40 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
+}, (prev, next) => {
+  // Shallow compare all properties except cartLines
+  const keys = Object.keys(prev) as (keyof typeof prev)[];
+
+  if (keys.length !== Object.keys(next).length) {
+    return false;
+  }
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    if (key !== 'cartLines' && prev[key as keyof typeof prev] !== next[key as keyof typeof next]) {
+      return false;
+    }
+  }
+
+  // Determine relevant product IDs to check in cartLines
+  // Both prev and next 'group' should theoretically have the same variants if group ref is same,
+  // but let's be safe and collect IDs from the next group's variants.
+  const relevantProductIds = new Set(next.group.variants.map((v) => v.productId));
+
+  // Extract only the cart lines that affect this specific product group
+  const prevRelevantLines = prev.cartLines.filter((l) => relevantProductIds.has(l.productId));
+  const nextRelevantLines = next.cartLines.filter((l) => relevantProductIds.has(l.productId));
+
+  if (prevRelevantLines.length !== nextRelevantLines.length) return false;
+
+  // Since relevant lines are usually 0 or very small (1-2), a simple pass is fast enough
+  for (let i = 0; i < prevRelevantLines.length; i++) {
+    const pLine = prevRelevantLines[i];
+    if (!pLine) continue; // TS safety
+    const nLine = nextRelevantLines.find((l) => l.key === pLine.key);
+    if (!nLine || pLine.qty !== nLine.qty) return false;
+  }
+
+  return true;
 });
 
