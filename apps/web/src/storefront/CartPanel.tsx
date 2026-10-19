@@ -64,7 +64,9 @@ export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout }: Props)
 
       {lines.length === 0 ? (
         <div className="cart-empty">
-          سبد خرید شما خالی است
+          <Icon name="bag" />
+          <p className="cart-empty-title">سبد خرید شما خالی است</p>
+          <span className="cart-empty-desc">محصولات مورد نظر خود را به سبد اضافه کنید</span>
         </div>
       ) : (
         <>
