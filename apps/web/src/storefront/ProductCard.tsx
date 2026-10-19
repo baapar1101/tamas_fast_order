@@ -59,6 +59,29 @@ function productTitleClass(title: string): string {
   return '';
 }
 
+function areProductCardPropsEqual(previous: Props, next: Props): boolean {
+  const keys = Object.keys(previous) as Array<keyof Props>;
+  if (keys.length !== Object.keys(next).length) return false;
+  for (const key of keys) {
+    if (key !== 'cartLines' && previous[key] !== next[key]) return false;
+  }
+
+  if (previous.cartLines === next.cartLines) return true;
+
+  // A cart update for another product should not render every card in the list.
+  const productIds = new Set(next.group.variants.map((variant) => variant.productId));
+  const previousQuantities = new Map<string, number>();
+  for (const line of previous.cartLines) {
+    if (productIds.has(line.productId)) previousQuantities.set(line.key, line.qty);
+  }
+  for (const line of next.cartLines) {
+    if (!productIds.has(line.productId)) continue;
+    if (previousQuantities.get(line.key) !== line.qty) return false;
+    previousQuantities.delete(line.key);
+  }
+  return previousQuantities.size === 0;
+}
+
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isFav, setIsFav] = useState(false);
@@ -339,5 +362,5 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
     </article>
   );
-});
+}, areProductCardPropsEqual);
 
