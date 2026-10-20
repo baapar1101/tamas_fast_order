@@ -4,7 +4,7 @@ import { toAsciiDigits } from '@tamas/shared';
 export type SheetColumnKey =
   | 'title' | 'sku' | 'model' | 'categoryName' | 'brandName' | 'color'
   | 'price' | 'costPrice' | 'oldPrice' | 'discount' | 'stock' | 'kermanStock' | 'tehranStock'
-  | 'totalStock' | 'inventoryValue' | 'status' | 'promotion' | 'investorFinanced' | 'warranty' | 'seller'
+  | 'totalStock' | 'inventoryValue' | 'status' | 'promotion' | 'warranty' | 'seller'
   | 'sortOrder' | 'createdAt' | 'updatedAt' | 'imageUrl';
 
 export type SheetEditableKey = Exclude<SheetColumnKey, 'sku' | 'totalStock' | 'inventoryValue' | 'createdAt' | 'updatedAt' | 'imageUrl'>;
@@ -28,17 +28,16 @@ export const SHEET_COLUMNS: SheetColumn[] = [
   { key: 'brandName', label: 'برند', group: 'کالا', kind: 'select', width: 160 },
   { key: 'color', label: 'رنگ', group: 'کالا', kind: 'text', width: 140 },
   { key: 'price', label: 'قیمت (تومان)', group: 'قیمت و موجودی', kind: 'number', width: 155 },
-  { key: 'costPrice', label: 'قیمت خرید', group: 'قیمت و موجودی', kind: 'number', width: 155, hint: 'مبنای ارزش موجودی و محاسبه سود سرمایه‌گذاری.' },
+  { key: 'costPrice', label: 'قیمت خرید', group: 'قیمت و موجودی', kind: 'number', width: 155, hint: 'مبنای محاسبه ارزش موجودی و سود ناخالص.' },
   { key: 'oldPrice', label: 'قیمت قبلی', group: 'قیمت و موجودی', kind: 'number', width: 155 },
   { key: 'discount', label: 'تخفیف ٪', group: 'قیمت و موجودی', kind: 'number', width: 110 },
   { key: 'stock', label: 'موجودی کلی', group: 'قیمت و موجودی', kind: 'number', width: 120, hint: 'اگر موجودی انبارها ثبت شده باشد، فروشگاه جمع آن‌ها را ملاک قرار می‌دهد.' },
   { key: 'kermanStock', label: 'انبار کرمان', group: 'قیمت و موجودی', kind: 'number', width: 120 },
   { key: 'tehranStock', label: 'انبار تهران', group: 'قیمت و موجودی', kind: 'number', width: 120 },
   { key: 'totalStock', label: 'موجودی نمایشی', group: 'قیمت و موجودی', kind: 'read', width: 135 },
-  { key: 'inventoryValue', label: 'ارزش سرمایه موجودی', group: 'قیمت و موجودی', kind: 'read', width: 175 },
+  { key: 'inventoryValue', label: 'ارزش موجودی', group: 'قیمت و موجودی', kind: 'read', width: 175 },
   { key: 'status', label: 'وضعیت', group: 'نمایش', kind: 'select', width: 135 },
   { key: 'promotion', label: 'پیشنهاد ویژه', group: 'نمایش', kind: 'toggle', width: 125 },
-  { key: 'investorFinanced', label: 'تأمین مالی سرمایه‌گذار', group: 'نمایش', kind: 'toggle', width: 165, hint: 'فقط محصولات روشن‌شده در محاسبات پنل سرمایه‌گذار وارد می‌شوند.' },
   { key: 'warranty', label: 'گارانتی', group: 'نمایش', kind: 'text', width: 180 },
   { key: 'seller', label: 'فروشنده', group: 'نمایش', kind: 'text', width: 175 },
   { key: 'sortOrder', label: 'ترتیب نمایش', group: 'نمایش', kind: 'number', width: 125 },
@@ -48,7 +47,7 @@ export const SHEET_COLUMNS: SheetColumn[] = [
 ];
 
 export const DEFAULT_SHEET_COLUMNS: SheetColumnKey[] = [
-  'title', 'sku', 'color', 'price', 'costPrice', 'stock', 'kermanStock', 'tehranStock', 'investorFinanced', 'inventoryValue', 'status', 'updatedAt',
+  'title', 'sku', 'color', 'price', 'costPrice', 'stock', 'kermanStock', 'tehranStock', 'inventoryValue', 'status', 'updatedAt',
 ];
 
 const OPTIONAL_TEXT_LIMITS: Partial<Record<SheetEditableKey, number>> = {
@@ -69,7 +68,7 @@ export function sheetCellValue(product: ProductDTO, key: SheetColumnKey): string
     const date = product[key];
     return date ? new Date(date).toLocaleDateString('fa-IR') : '—';
   }
-  if (key === 'promotion' || key === 'investorFinanced') return Boolean(product[key]);
+  if (key === 'promotion') return Boolean(product[key]);
   if (key === 'imageUrl') return product.imageUrl ?? '';
   return String(product[key] ?? '');
 }
@@ -92,7 +91,7 @@ export function parseSheetPatch(draft: SheetDraft): Record<string, string | numb
     const column = SHEET_COLUMNS.find((item) => item.key === rawKey);
     if (!column || column.kind === 'read') continue;
     const key = column.key as SheetEditableKey;
-    if (key === 'promotion' || key === 'investorFinanced') {
+    if (key === 'promotion') {
       patch[key] = Boolean(rawValue);
     } else if (key === 'status') {
       if (rawValue !== 'active' && rawValue !== 'inactive') throw new Error('وضعیت معتبر نیست.');

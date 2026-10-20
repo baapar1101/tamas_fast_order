@@ -68,7 +68,6 @@ export function toProductDTO(
     const units = availableStock(row);
     dto.costPrice = row.costPrice;
     dto.inventoryValue = units * row.costPrice;
-    dto.investorFinanced = row.investorFinanced;
     dto.digikalaLink = row.digikalaLink ?? null;
     dto.targetSiteUrl = row.targetSiteUrl ?? null;
   }

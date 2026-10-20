@@ -41,7 +41,6 @@ import creditRoutes from './routes/credit.js';
 import adminCreditRoutes from './routes/admin/credit.js';
 import telegramRoutes from './routes/telegram.js';
 import customerTelegramRoutes from './routes/customer-telegram.js';
-import investorRoutes from './routes/investor.js';
 import discountRoutes from './routes/discounts.js';
 import adminDiscountRoutes from './routes/admin/discounts.js';
 import customerBaleRoutes from './routes/customer-bale.js';
@@ -175,7 +174,6 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(crmRoutes); // <-- CRM integration routes
         await api.register(creditRoutes);
         await api.register(adminCreditRoutes);
-        await api.register(investorRoutes);
       },
       { prefix: '/api' },
     );

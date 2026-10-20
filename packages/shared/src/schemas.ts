@@ -81,7 +81,6 @@ export const productWriteSchema = z.object({
   sellType: z.string().trim().max(200).optional().nullable(),
   seller: z.string().trim().max(200).optional().nullable(),
   promotion: sheetBool.default(false),
-  investorFinanced: sheetBool.default(false),
   status: z.enum(['active', 'inactive']).default('active'),
   subTitle: z.string().trim().max(400).optional().nullable(),
   description: z.string().optional().nullable(),
@@ -302,7 +301,7 @@ export const userPatchSchema = z.object({
   activity: z.string().trim().max(120).optional(),
   pageWebsite: z.string().trim().max(255).optional(),
   isActive: z.boolean().optional(),
-  role: z.enum(['customer', 'admin', 'operator', 'investor']).optional(),
+  role: z.enum(['customer', 'admin', 'operator']).optional(),
   accessGroupId: z.number().int().positive().nullable().optional(),
 });
 
