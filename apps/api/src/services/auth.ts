@@ -29,7 +29,7 @@ export function toUserDTO(row: UserRow): UserDTO {
     fatherName: row.fatherName ?? '',
     isVerifiedIdentity: row.isVerifiedIdentity ?? false,
     isActive: row.isActive,
-    role: row.role,
+    role: row.role === 'investor' ? 'customer' : row.role,
     accessGroupId: row.accessGroupId,
     permissions: (row as any).permissions,
     createdAt: row.createdAt.toISOString(),

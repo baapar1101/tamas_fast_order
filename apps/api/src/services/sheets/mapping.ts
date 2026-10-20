@@ -602,7 +602,7 @@ export const userMapping: EntityMapping = {
         activity: r.activity ?? '',
         page_website: r.pageWebsite ?? '',
         actived: boolCell(r.isActive),
-        role: r.role,
+        role: r.role === 'investor' ? 'customer' : r.role,
         [UPDATED_AT_COLUMN]: iso(r.updatedAt),
       },
     }));
@@ -748,7 +748,6 @@ export const orderMapping: EntityMapping = {
             color: i.color ? String(i.color) : null,
             price: Number(i.price) || 0,
             costPrice: Number(i.cost_price) || 0,
-            investorFinanced: Boolean(i.investor_financed),
             qty: Number(i.qty) || 1,
             warehouse: i.warehouse || 'kerman',
           }))

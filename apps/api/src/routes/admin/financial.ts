@@ -2,36 +2,15 @@ import type { FastifyPluginAsync } from 'fastify';
 import { and, count, desc, eq, ilike, isNull, or } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db/client.js';
-import { investmentEntries, payments, products, settings } from '../../db/schema.js';
-import { badRequest, notFound } from '../../lib/errors.js';
+import { payments, products } from '../../db/schema.js';
+import { notFound } from '../../lib/errors.js';
 import { offsetOf } from '../../lib/pagination.js';
 import { logAction } from '../../services/audit.js';
-import {
-  INVESTOR_SETTINGS_KEY,
-  normalizeInvestorSettings,
-  toInvestmentEntryDTO,
-} from '../../services/investor-finance.js';
 
-const entryTypes = ['capital_injection', 'capital_withdrawal', 'purchase', 'expense', 'profit_distribution', 'adjustment'] as const;
-const entryStatuses = ['paid', 'pending', 'cancelled'] as const;
-
-const entryWriteSchema = z.object({
-  type: z.enum(entryTypes),
-  status: z.enum(entryStatuses).default('paid'),
-  amount: z.coerce.number().int().positive('مبلغ باید بیشتر از صفر باشد.'),
-  title: z.string().trim().min(2, 'عنوان را وارد کنید.').max(240),
-  category: z.string().trim().max(120).nullable().optional(),
-  reference: z.string().trim().max(160).nullable().optional(),
-  notes: z.string().trim().max(2000).nullable().optional(),
-  transactionDate: z.coerce.date(),
-});
-
-const entryPatchSchema = entryWriteSchema.partial().refine((body) => Object.keys(body).length > 0, 'حداقل یک فیلد را تغییر دهید.');
 const pageQuery = z.object({
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(200).default(50),
 });
-const entriesQuery = pageQuery.extend({ type: z.enum([...entryTypes, 'all']).default('all') });
 
 const financialRoutes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requirePermission('manage_settings'));
@@ -54,66 +33,6 @@ const financialRoutes: FastifyPluginAsync = async (app) => {
       page: query.page,
       perPage: query.perPage,
     };
-  });
-
-  app.get('/admin/financial/entries', async (req) => {
-    const query = entriesQuery.parse(req.query);
-    const where = query.type === 'all'
-      ? isNull(investmentEntries.deletedAt)
-      : and(isNull(investmentEntries.deletedAt), eq(investmentEntries.type, query.type));
-    const [rows, [total]] = await Promise.all([
-      db.select().from(investmentEntries).where(where)
-        .orderBy(desc(investmentEntries.transactionDate), desc(investmentEntries.id))
-        .limit(query.perPage).offset(offsetOf(query)),
-      db.select({ n: count() }).from(investmentEntries).where(where),
-    ]);
-    return { ok: true, items: rows.map(toInvestmentEntryDTO), total: Number(total?.n ?? 0), page: query.page, perPage: query.perPage };
-  });
-
-  app.post('/admin/financial/entries', async (req) => {
-    const body = entryWriteSchema.parse(req.body);
-    const [created] = await db.insert(investmentEntries).values({
-      ...body,
-      category: body.category || null,
-      reference: body.reference || null,
-      notes: body.notes || null,
-      createdBy: req.currentUser!.id,
-    }).returning();
-    await logAction(req.currentUser!.id, 'create', 'investment_entry', String(created!.id), body as unknown as Record<string, unknown>);
-    return { ok: true, entry: toInvestmentEntryDTO(created!) };
-  });
-
-  app.patch('/admin/financial/entries/:id', async (req) => {
-    const id = z.coerce.number().int().positive().parse((req.params as { id: string }).id);
-    const body = entryPatchSchema.parse(req.body);
-    const [updated] = await db.update(investmentEntries).set({ ...body, updatedAt: new Date() })
-      .where(and(eq(investmentEntries.id, id), isNull(investmentEntries.deletedAt))).returning();
-    if (!updated) throw notFound('رکورد مالی پیدا نشد.');
-    await logAction(req.currentUser!.id, 'update', 'investment_entry', String(id), body as unknown as Record<string, unknown>);
-    return { ok: true, entry: toInvestmentEntryDTO(updated) };
-  });
-
-  app.delete('/admin/financial/entries/:id', async (req) => {
-    const id = z.coerce.number().int().positive().parse((req.params as { id: string }).id);
-    const [deleted] = await db.update(investmentEntries).set({ deletedAt: new Date(), updatedAt: new Date() })
-      .where(and(eq(investmentEntries.id, id), isNull(investmentEntries.deletedAt))).returning({ id: investmentEntries.id });
-    if (!deleted) throw notFound('رکورد مالی پیدا نشد.');
-    await logAction(req.currentUser!.id, 'delete', 'investment_entry', String(id));
-    return { ok: true, message: 'رکورد مالی حذف شد.' };
-  });
-
-  app.put('/admin/financial/investor-settings', async (req) => {
-    const raw = z.object({
-      initialCapital: z.coerce.number().int().min(0),
-      investorSharePercent: z.coerce.number().min(0).max(100),
-      companyLabel: z.string().trim().min(2).max(120),
-    }).parse(req.body);
-    const value = normalizeInvestorSettings(raw);
-    if (value.investorSharePercent + value.executorSharePercent !== 100) throw badRequest('جمع سهم‌ها باید ۱۰۰ درصد باشد.');
-    await db.insert(settings).values({ key: INVESTOR_SETTINGS_KEY, value: JSON.stringify(value) })
-      .onConflictDoUpdate({ target: settings.key, set: { value: JSON.stringify(value), updatedAt: new Date() } });
-    await logAction(req.currentUser!.id, 'update', 'setting', INVESTOR_SETTINGS_KEY, value as unknown as Record<string, unknown>);
-    return { ok: true, settings: value };
   });
 
   app.get('/admin/financial/inventory-costs', async (req) => {

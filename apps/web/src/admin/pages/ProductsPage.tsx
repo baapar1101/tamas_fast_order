@@ -24,7 +24,7 @@ interface ProductsResponse {
   perPage: number;
 }
 
-type BulkAction = 'activate' | 'deactivate' | 'delete' | 'promote' | 'demote' | 'finance' | 'unfinance' | 'setStock' | 'adjustPrice';
+type BulkAction = 'activate' | 'deactivate' | 'delete' | 'promote' | 'demote' | 'setStock' | 'adjustPrice';
 const SHEET_DRAFT_STORAGE_KEY = 'admin-product-sheet-drafts';
 
 function restoreSheetDrafts(): SheetDrafts {
@@ -80,12 +80,6 @@ const STOCK_OPTIONS = [
   { value: 'out', label: 'تمام شده' },
 ];
 
-const INVESTOR_OPTIONS = [
-  { value: 'all', label: 'همه محصولات' },
-  { value: 'yes', label: 'تأمین‌شده توسط سرمایه‌گذار' },
-  { value: 'no', label: 'خارج از سرمایه‌گذاری' },
-];
-
 const SORT_OPTIONS = [
   { value: 'updated', label: 'آخرین تغییرات' },
   { value: 'title', label: 'عنوان کالا' },
@@ -101,7 +95,6 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [stock, setStock] = useState<'all' | 'in' | 'out'>('all');
-  const [investorFinanced, setInvestorFinanced] = useState<'all' | 'yes' | 'no'>('all');
   const [categoryId, setCategoryId] = useState<number | ''>('');
   const [brandId, setBrandId] = useState<number | ''>('');
   const [sort, setSort] = useState('updated');
@@ -145,8 +138,8 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   });
 
   const query = useMemo(
-    () => ({ q: debounced, status, stock, investorFinanced, categoryId: categoryId || undefined, brandId: brandId || undefined, sort, page, perPage, parentOnly: viewMode !== 'sheet', type: typeFilter || undefined }),
-    [debounced, status, stock, investorFinanced, categoryId, brandId, sort, page, perPage, viewMode, typeFilter],
+    () => ({ q: debounced, status, stock, categoryId: categoryId || undefined, brandId: brandId || undefined, sort, page, perPage, parentOnly: viewMode !== 'sheet', type: typeFilter || undefined }),
+    [debounced, status, stock, categoryId, brandId, sort, page, perPage, viewMode, typeFilter],
   );
 
   const products = useQuery({
@@ -158,9 +151,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ['admin', 'products'] });
     void qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
-    void qc.invalidateQueries({ queryKey: ['admin', 'warehouses', 'investment-summary'] });
     void qc.invalidateQueries({ queryKey: ['admin', 'financial', 'costs'] });
-    void qc.invalidateQueries({ queryKey: ['investor', 'dashboard'] });
   };
 
   const save = useMutation({
@@ -211,7 +202,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const taxonomyData: any = taxonomy.data;
   const categoryOptions: CategoryDTO[] = taxonomyData?.categories ?? taxonomyData?.data?.categories ?? [];
   const brandOptions: BrandDTO[] = taxonomyData?.brands ?? taxonomyData?.data?.brands ?? [];
-  const activeFilterCount = (stock !== 'all' ? 1 : 0) + (investorFinanced !== 'all' ? 1 : 0) + (categoryId !== '' ? 1 : 0) + (brandId !== '' ? 1 : 0);
+  const activeFilterCount = (stock !== 'all' ? 1 : 0) + (categoryId !== '' ? 1 : 0) + (brandId !== '' ? 1 : 0);
 
   function toggle(id: number) {
     const next = new Set(selected);
@@ -331,10 +322,6 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
         label: p.status === 'active' ? 'غیرفعال‌سازی' : 'فعال‌سازی',
         run: () => bulk.mutate({ ids: [p.id], action: p.status === 'active' ? 'deactivate' : 'activate' }),
       },
-      {
-        label: p.investorFinanced ? 'حذف از سرمایه‌گذاری' : 'افزودن به سرمایه‌گذاری',
-        run: () => bulk.mutate({ ids: [p.id], action: p.investorFinanced ? 'unfinance' : 'finance' }),
-      },
       { label: 'حذف', danger: true, run: () => setDeleteTarget(p) },
     ];
   }
@@ -421,12 +408,6 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                 </button>
                 <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('demote')}>
                   حذف از پیشنهاد ویژه
-                </button>
-                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('finance')}>
-                  افزودن به سرمایه‌گذاری
-                </button>
-                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('unfinance')}>
-                  حذف از سرمایه‌گذاری
                 </button>
                 <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('setStock')}>
                   تنظیم موجودی…
@@ -517,17 +498,6 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                 { value: '', label: 'همه دسته‌بندی‌ها' },
                 ...categoryOptions.map(c => ({ value: String(c.id), label: c.faName }))
               ]}
-            />
-          </div>
-          <div className="a-field">
-            <label>دامنه سرمایه‌گذاری</label>
-            <AnimatedDropdown
-              value={investorFinanced}
-              onChange={(value) => {
-                setInvestorFinanced(value as typeof investorFinanced);
-                setPage(1);
-              }}
-              options={INVESTOR_OPTIONS}
             />
           </div>
           <div className="a-field">
@@ -640,7 +610,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                   </th>
                   <th className="">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                      <span>خرید / ارزش سرمایه</span>
+                      <span>خرید / ارزش موجودی</span>
                     </div>
                   </th>
                   <th className="">
@@ -685,7 +655,6 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                       <td className=" pp-cell-title">
                         <div className="flex items-center gap-2">
                           {p.promotion && <span className="a-badge a-badge--amber">ویژه</span>}
-                          {p.investorFinanced && <span className="a-badge a-badge--green">سرمایه‌گذار</span>}
                           <span className="text-sm font-semibold text-[var(--a-t1)] line-clamp-1">{p.title}</span>
                         </div>
                       </td>
@@ -772,7 +741,6 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                       aria-label={`انتخاب ${p.title}`}
                     />
                     {p.promotion && <span className="a-badge a-badge--amber pp-gbadge">ویژه</span>}
-                    {p.investorFinanced && <span className="a-badge a-badge--green" style={{ position: 'absolute', right: 12, bottom: 12 }}>سرمایه‌گذار</span>}
                   </div>
                   <div className="admin-product-card__body">
                     <div className="admin-product-card__meta">
@@ -830,7 +798,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                         {totalStock === 0 ? 'ناموجود' : `${formatNumber(totalStock)} عدد`}
                       </span>
                       <span className="a-badge a-badge--neutral">
-                        {p.investorFinanced ? 'سرمایه‌گذاری' : 'ارزش خرید'}: {formatNumber(p.inventoryValue ?? totalStock * (p.costPrice ?? 0))} تومان
+                        ارزش خرید: {formatNumber(p.inventoryValue ?? totalStock * (p.costPrice ?? 0))} تومان
                       </span>
                     </div>
                   </div>

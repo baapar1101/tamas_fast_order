@@ -21,7 +21,6 @@ import { TelegramConnectPrompt } from './storefront/TelegramConnectPrompt';
  * tables, editors and charts that only a manager needs.
  */
 const AdminApp = lazy(() => import('./admin/AdminApp'));
-const InvestorApp = lazy(() => import('./investor/InvestorApp'));
 
 function LegacyAccountRedirect({ target }: { target: string }) {
   const location = useLocation();
@@ -104,14 +103,6 @@ export function App() {
           element={
             <Suspense fallback={<AdminLoadingSpinner />}>
               <AdminApp />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/investor/*"
-          element={
-            <Suspense fallback={<AdminLoadingSpinner />}>
-              <InvestorApp />
             </Suspense>
           }
         />

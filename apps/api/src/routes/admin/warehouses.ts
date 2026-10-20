@@ -1,12 +1,10 @@
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { db } from '../../db/client.js';
-import { products, warehouses } from '../../db/schema.js';
+import { warehouses } from '../../db/schema.js';
 import { notFound, badRequest } from '../../lib/errors.js';
 import { logAction } from '../../services/audit.js';
-import { getInvestorSettings } from '../../services/investor-finance.js';
-import { calculateWarehouseInvestment } from '../../services/investor-model.js';
 
 const warehouseSchema = z.object({
   code: z.string().min(1).max(20),
@@ -21,23 +19,6 @@ const routes: FastifyPluginAsync = async (app) => {
   app.get('/admin/warehouses', async () => {
     const list = await db.select().from(warehouses).orderBy(desc(warehouses.createdAt));
     return list;
-  });
-
-  app.get('/admin/warehouses/investment-summary', async () => {
-    const [settings, productRows] = await Promise.all([
-      getInvestorSettings(),
-      db.select({
-        stock: products.stock,
-        kermanStock: products.kermanStock,
-        tehranStock: products.tehranStock,
-        costPrice: products.costPrice,
-      }).from(products).where(and(
-        isNull(products.deletedAt),
-        eq(products.status, 'active'),
-        eq(products.investorFinanced, true),
-      )),
-    ]);
-    return { ok: true, summary: calculateWarehouseInvestment(productRows, settings) };
   });
 
   app.post('/admin/warehouses', async (req, reply) => {
