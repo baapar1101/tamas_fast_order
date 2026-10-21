@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber } from '@tamas/shared';
 import { Price } from '../components/Price';
 import { PrintInvoiceLayout, type PrintInvoiceItem } from '../components/PrintInvoiceLayout';
@@ -28,14 +28,14 @@ export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout }: Props)
     window.print();
   };
 
-  const printItems: PrintInvoiceItem[] = lines.map(l => ({
+  const printItems: PrintInvoiceItem[] = useMemo(() => lines.map(l => ({
     key: l.key,
     title: l.title,
     color: l.color,
     warehouse: l.warehouse,
     qty: l.qty,
     price: l.price
-  }));
+  })), [lines]);
 
   const handleWhatsApp = () => {
     let text = `سلام، درخواست ثبت سفارش دارم:\n\n`;
