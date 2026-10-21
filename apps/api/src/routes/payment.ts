@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { db } from '../db/client.js';
 import { orders, payments, products } from '../db/schema.js';
 import { badRequest, notFound } from '../lib/errors.js';
-// @ts-ignore
+
 import paymentGateway from '@tamas/payment';
 import { env } from '../env.js';
 import { applyWalletTransaction } from '../services/wallet.js';
