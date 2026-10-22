@@ -1,98 +1,109 @@
-# Tamas Market | Design System 🎨
+# دیزاین سیستم تماس مارکت
 
-> **Category:** Brands
-> **Surface:** Web
-> **Theme:** تماس مارکت | فروشگاه دیجیتال
+این سند قرارداد واحد رابط فروشگاه و پنل مدیریت است. منبع اجرایی توکن‌ها فایل `apps/web/src/styles/design-system.css` است؛ در صورت اختلاف، مقدار همان فایل معتبر است.
 
-Tamas Market is an Iranian wholesale (omdeh) webstore for mobile accessories — phone cases, chargers, cables, glass protectors, earphones — rebuilt on Node.js + PostgreSQL + React. The site is authoritative for products and publishes them to Google Sheets. Fast order, wholesale pricing, and a dark ops dashboard for the admin.
+## اصول ثابت
 
-This document serves as the single source of truth for the Tamas Market design system, layout rules, and responsive contracts.
+- طراحی RTL و فارسی است؛ شماره، SKU، کد سفارش و داده انگلیسی با `direction: ltr` و `unicode-bidi: isolate` نمایش داده می‌شوند.
+- همه رنگ‌ها، فاصله‌ها، شعاع‌ها، سایه‌ها، اندازه کنترل‌ها و حرکت‌ها باید از توکن‌های `--ds-*` مصرف شوند.
+- فروشگاه از accent فیروزه‌ای و پنل مدیریت از accent آبی استفاده می‌کند، ولی هر دو روی یک مقیاس، وضعیت و ساختار کامپوننتی هستند.
+- تم روشن و تیره با توکن معنایی پیاده می‌شود؛ کامپوننت نباید برای تم‌ها رنگ مستقیم تعریف کند.
+- حداقل ارتفاع کنترل لمسی 44px است. فقط کنترل کوچک و غیر اصلی می‌تواند 36px باشد.
+- focus همیشه قابل مشاهده است. حذف عمومی `outline` ممنوع است.
+- استفاده از `transition: all` در کد جدید ممنوع است؛ فقط propertyهای لازم transition می‌گیرند.
 
----
+## لایه‌های توکن
 
-## 🎨 Color Palette
+### ۱. Primitive
 
-| Role | Name | Hex | Usage |
-| :--- | :--- | :--- | :--- |
-| **Background** | Background | `#f5f5f7` | Page canvas (storefront shell) |
-| **Surface** | Surface | `#ffffff` | Cards, modal panels, inputs |
-| **Foreground** | Foreground | `#1d1d1f` | Body text / headings |
-| **Muted** | Muted | `#7a7a7a` | Secondary text, faint labels |
-| **Border** | Border | `#e0e0e0` | Hairlines, dividers, 1px borders |
-| **Accent** | Accent | `#08798f` | Brand teal — logo mark, promo strip, primary CTA |
-| **Accent Secondary** | Accent secondary | `#00596b` | Deep teal — promo CTA text, links, dark footer |
-| **Dark Ops Shell** | Admin Dark | `#070b12` → `#0e1626` | Slate-ink surfaces with emerald/cyan accents |
+مقادیر خام فقط در `design-system.css` تعریف می‌شوند:
 
-**Signature Flourish:** The teal promo strip gradient (`#00596b` → `#00768f` → `#008da8`) across the top bar is the system's ONE decorative gradient.
+- رنگ‌ها: `--ds-slate-*`, `--ds-teal-*`, `--ds-blue-*`, `--ds-green-*`, `--ds-amber-*`, `--ds-red-*`
+- تایپوگرافی: `--ds-text-*`, `--ds-leading-*`, `--ds-weight-*`
+- فاصله: `--ds-space-1` تا `--ds-space-16` روی شبکه 4px
+- شکل: `--ds-radius-xs` تا `--ds-radius-full`
+- سایه: `--ds-shadow-xs` تا `--ds-shadow-lg`
+- حرکت: `--ds-duration-*`, `--ds-ease-*`
+- لایه: `--ds-layer-sticky`, `--ds-layer-dropdown`, `--ds-layer-modal`, `--ds-layer-toast`
 
----
+### ۲. Semantic
 
-## 🔤 Typography
+کامپوننت‌ها باید فقط نقش را مصرف کنند، نه نام رنگ را:
 
-- **Display:** `Vazirmatn FD` — weights `700`, `800` (Fallbacks: Vazirmatn, Tahoma, Segoe UI, sans-serif)
-- **Body:** `Vazirmatn FD` — weights `400`, `700` (Fallbacks: Vazirmatn, Tahoma, Segoe UI, sans-serif)
+| نقش | توکن |
+| --- | --- |
+| بوم صفحه | `--ds-canvas` |
+| سطح عادی / فرعی / برجسته | `--ds-surface`, `--ds-surface-subtle`, `--ds-surface-raised` |
+| متن اصلی / ثانویه / کم‌رنگ / غیرفعال | `--ds-text`, `--ds-text-secondary`, `--ds-text-muted`, `--ds-text-disabled` |
+| خط عادی / قوی | `--ds-border`, `--ds-border-strong` |
+| عمل اصلی | `--ds-interactive`, `--ds-interactive-hover`, `--ds-interactive-soft` |
+| وضعیت‌ها | `--ds-success`, `--ds-warning`, `--ds-danger`, `--ds-info` و نسخه `-soft` |
+| focus | `--ds-focus-ring`, `--ds-danger-ring` |
 
----
+پنل مدیریت معادل همین نقش‌ها را با پیشوند `--ds-admin-*` دارد. کلاس‌های قدیمی `--tamas-*` و `--a-*` فقط adapter هستند و نباید برای قابلیت جدید توکن تازه دریافت کنند.
 
-## 📐 Layout & Spacing
+## تایپوگرافی
 
-- **Radius:** `8px` (base), `10px` (inputs), `18px` (cards and modals), `980px` (pill-shaped primary buttons, chips, search inputs).
-- **Border weight:** `1px`
-- **Spacing:** `8px` baseline grid
-- **Header:** Compact Apple-style header (`44px`) with `12px` backdrop blur.
+- فونت کل محصول: `--ds-font-sans` (Vazirmatn FD با fallback سیستم)
+- متن ریز: 11px؛ متن کمکی: 13px؛ متن عادی: 14px؛ عنوان بخش: 16px؛ عنوان صفحه: 20px تا 26px
+- وزن‌های مجاز: 400 عادی، 550 متوسط، 650 نیمه‌ضخیم، 750 عنوان، 850 تاکید ویژه
+- متن بدنه line-height برابر 1.7 و متن توضیحی 1.9 دارد.
+- اندازه فونت برای جا شدن متن کوچک نمی‌شود؛ متن بلند wrap یا truncate هدفمند می‌شود.
 
-### Shadows
-- **Whisper (Chrome):** `0 1px 3px` / `0 4px 14px` / `0 12px 32px -4px` (rgba black at 0.02 / 0.04 / 0.08)
-- **Heavy (Product Renders):** `0 12px 32px -4px` (rgba black at 0.14) — *Reserved for product renders resting on a surface. Never cards, buttons, or text.*
+## چیدمان و Responsive
 
----
+- عرض فروشگاه حداکثر `--ds-content-max` و پنل `--ds-admin-content-max` است.
+- gutter دسکتاپ 24px، تبلت 20px و موبایل 12px است.
+- فاصله کارت‌های هم‌سطح 16px و فاصله بخش‌های صفحه 20px است.
+- breakpoint محتوایی اصلی 760px است؛ breakpointهای تخصصی شبکه می‌توانند 640، 1024 و 1180 باشند.
+- در عرض 360px هیچ scroll افقی صفحه مجاز نیست. جدول می‌تواند فقط داخل wrapper خودش scroll شود.
+- اکشن‌های موبایل تمام‌عرض یا شبکه دو ستونه می‌شوند؛ هدف لمسی کمتر از 40px مجاز نیست.
 
-## 📱 Responsive Viewports
+ماتریس کنترل: 360×800، 390×844، 430×932، 600×960، 820×1180، 1024×768، 1366×768، 1440×900 و 1920×1080.
 
-Validate the implementation across this viewport matrix (Fluid `clamp()` type/spacing where applicable):
+## قرارداد کامپوننت‌ها
 
-| Device Category | Name | Dimensions | Note |
-| :--- | :--- | :--- | :--- |
-| **Mobile** | Compact | 360 × 800 | Must avoid horizontal scroll |
-| **Mobile** | Standard | 390 × 844 | Must avoid horizontal scroll |
-| **Mobile** | Large | 430 × 932 | Must avoid horizontal scroll |
-| **Tablet** | Foldable / Small | 600 × 960 | Must avoid horizontal scroll |
-| **Tablet** | Portrait | 820 × 1180 | Must avoid horizontal scroll |
-| **Tablet** | Landscape | 1024 × 768 | Must avoid horizontal scroll |
-| **Desktop** | Laptop | 1366 × 768 | Must avoid horizontal scroll |
-| **Desktop** | Standard | 1440 × 900 | Must avoid horizontal scroll |
-| **Desktop** | Wide | 1920 × 1080 | Must avoid horizontal scroll |
+| کامپوننت | API جدید | سازگاری موجود |
+| --- | --- | --- |
+| صفحه / کانتینر | `.ds-page`, `.ds-container` | `.a-page`, `.container` |
+| سطح / کارت | `.ds-surface` | `.a-card`, `.product-card`, `.product-accordion` |
+| دکمه | `.ds-button` با variantهای primary, danger, ghost | `.btn`, `.a-btn` |
+| فیلد | `.ds-field`, `.ds-label`, `.ds-control`, `.ds-hint` | `.field`, `.input`, `.select`, `.textarea`, `.a-input`, `.a-select`, `.a-textarea` |
+| badge | `.ds-badge` با وضعیت‌های معنایی | `.badge`, `.a-badge` |
+| alert | `.ds-alert` با وضعیت‌های معنایی | `.alert` |
+| جدول | `.ds-table-wrap`, `.ds-table` | `.a-table-wrap`, `.a-table` |
+| مودال | کامپوننت React `Modal` | `.modal-*`, `.admin-modal-*` |
+| اعلان | کامپوننت React `ToastProvider` | `.toast-*` |
 
----
+برای قابلیت جدید از API `ds-*` استفاده شود. کلاس قدیمی فقط هنگام تغییر یک صفحه موجود مجاز است و باید از aliasهای همان سیستم تغذیه شود.
 
-## 👆 Interactions & States
+## وضعیت‌های اجباری
 
-- **Animation:** All transitions `0.2s cubic-bezier(0.2, 0.8, 0.2, 1)` (`0.1s` for press feedback).
-- **Scale:** Buttons scale to `0.95` on `:active` (system-wide micro-interaction).
-- **States:** Default + active/pressed only. **Never hover-only**.
-- **Focus Ring:** `2px` solid accent teal on light surfaces and `2px` admin cyan on the dark shell.
-- **Required Component States:** Default, hover, focus, active, disabled, loading, empty, error, success.
+هر کنترل تعاملی باید این حالت‌ها را داشته باشد: default، hover، focus-visible، active، disabled و loading. فرم علاوه بر آن error و success دارد. صفحه داده‌ای باید loading، empty، error و loaded را پوشش دهد.
 
----
+- primary فقط برای مهم‌ترین عمل هر ناحیه است.
+- danger فقط برای عمل مخرب است و نباید ظاهر primary داشته باشد.
+- ghost برای اعمال فرعی و icon-only است.
+- خطای اعتبارسنجی با رنگ، متن و `aria-invalid` اعلام می‌شود؛ رنگ به تنهایی کافی نیست.
+- مودال focus trap، Escape، بازگرداندن focus و عنوان قابل دسترس دارد.
+- انیمیشن تحت `prefers-reduced-motion` عملاً غیرفعال می‌شود.
 
-## 🗣️ Voice & Tone
+## قواعد توسعه
 
-- **Adjectives:** Wholesale, specialist, fast, trusted, transparent.
-- **Tone:** Confident and dependable. Plain, direct, RTL Persian copy that leads with price, speed, and trust. No hype.
-- **Messaging Pillars:**
-  - تماس مارکت | فروشگاه دیجیتال
-  - مرجع تخصصی فروش عمده کالای دیجیتال
-  - سفارش سریع عمده لوازم جانبی موبایل
-  - شفافیت، اعتماد و همکاری پایدار
-- **Vocabulary:** Use: فروش عمده (wholesale), لوازم جانبی موبایل, سفارش سریع (fast order), قیمت عمده, ضمانت و تعویض.
+1. قبل از ساخت کامپوننت جدید، primitive موجود را بررسی کنید.
+2. مقدار hex/rgb جدید در CSS صفحه یا JSX ممنوع است؛ استثنا فقط artwork کمپین، رنگ واقعی محصول و خروجی چاپی است.
+3. inline style برای ظاهر ثابت ممنوع است؛ فقط مقدار واقعاً پویا مثل درصد progress یا مختصات مجاز است.
+4. آیکن باید SVG مشترک و `currentColor` باشد.
+5. متن icon-only باید `aria-label` داشته باشد.
+6. selector فروشگاه نباید وارد `.admin-body-shell` شود و selector پنل باید به shell یا `body.admin-page-active` محدود بماند.
+7. هر تغییر بصری با build، تست و بررسی حداقل یک viewport موبایل و یک viewport دسکتاپ تحویل می‌شود.
 
----
+## چک‌لیست Pull Request
 
-## 🖼️ Imagery & Posture Rules
-
-- **Style:** Bright, minimal, product-first. Clean product shots on near-white, signature teal gradient promo banners, dark teal footer. 
-- **Subjects:** Catalog lines from BOROFONE, HIMI, YESIDO, VENDENS lines.
-- **Treatment:** Full-frame product photos on white. No composite collages. Real banner artwork from the catalog bundle. Avoid busy backgrounds and washed-out cross-sells.
-- **Posture Rules:**
-  - Persian RTL-first. Isolate LTR spans (prices, phone numbers, order codes) with `unicode-bidi: isolate`.
-  - Products, model codes, and prices in previews must come from real catalogs (e.g., BOROFONE PRICE LIST, YESIDO 222). Wholesale price columns (قیمت فروش) are real extractions, not samples.
+- فقط از توکن معنایی استفاده شده است.
+- حالت روشن و تیره خوانا هستند و کنتراست متن حفظ شده است.
+- focus با کیبورد دیده می‌شود و ترتیب tab منطقی است.
+- RTL، متن بلند، عدد LTR و حالت loading/empty/error بررسی شده‌اند.
+- موبایل 360px scroll افقی صفحه ندارد.
+- کامپوننت جدید API تکراری برای button/input/card نساخته است.
+- `npm run build -w @tamas/web` و `npm run test -w @tamas/web` موفق هستند.

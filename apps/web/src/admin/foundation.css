@@ -7,53 +7,53 @@
 
 .admin-body-shell,
 body.admin-page-active {
-  --a-control-h: 44px;
-  --a-radius-sm: 10px;
-  --a-radius-md: 14px;
-  --a-radius-lg: 20px;
-  --a-content-max: 1440px;
+  --a-control-h: var(--ds-control-h-md);
+  --a-radius-sm: var(--ds-radius-sm);
+  --a-radius-md: var(--ds-radius-md);
+  --a-radius-lg: var(--ds-radius-lg);
+  --a-content-max: var(--ds-admin-content-max);
   --a-form-compact-max: 640px;
   --a-form-max: 960px;
   --a-form-wide-max: 1280px;
-  --a-form-gap: 20px;
-  --a-field-gap: 7px;
-  --a-grid-gap: 16px;
-  --a-focus: 0 0 0 3px color-mix(in srgb, var(--a-brand) 24%, transparent);
-  --a-danger-focus: 0 0 0 3px color-mix(in srgb, var(--a-red) 20%, transparent);
+  --a-form-gap: var(--ds-space-5);
+  --a-field-gap: var(--ds-space-2);
+  --a-grid-gap: var(--ds-space-4);
+  --a-focus: var(--ds-admin-focus-ring);
+  --a-danger-focus: var(--ds-danger-ring);
 }
 
 body.admin-page-active.admin-theme-light {
-  --a-surface: rgba(255,255,255,.86);
-  --a-surface-2: rgba(248,250,252,.94);
-  --a-surface-3: #fff;
-  --a-border: #dbe3ec;
-  --a-border-2: #c7d2df;
-  --a-divider: #e3e9f0;
-  --a-t1: #111827;
-  --a-t2: #27364a;
-  --a-t3: #526175;
-  --a-t4: #6b788b;
-  --a-input-bg: rgba(255,255,255,.96);
-  --a-field-bg: #f7f9fc;
-  --a-hover: #eef3f8;
-  --a-shadow: 0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.06);
-  --a-shadow-2: 0 24px 70px rgba(15,23,42,.24);
+  --a-surface: var(--ds-admin-surface);
+  --a-surface-2: var(--ds-admin-surface-subtle);
+  --a-surface-3: var(--ds-admin-surface-raised);
+  --a-border: var(--ds-admin-border);
+  --a-border-2: var(--ds-admin-border-strong);
+  --a-divider: var(--ds-admin-divider);
+  --a-t1: var(--ds-admin-text);
+  --a-t2: var(--ds-admin-text-secondary);
+  --a-t3: var(--ds-admin-text-muted);
+  --a-t4: var(--ds-admin-text-faint);
+  --a-input-bg: var(--ds-admin-field);
+  --a-field-bg: var(--ds-admin-surface-subtle);
+  --a-hover: var(--ds-admin-hover);
+  --a-shadow: var(--ds-admin-shadow);
+  --a-shadow-2: var(--ds-admin-shadow-raised);
 }
 
 body.admin-page-active:not(.admin-theme-light) {
-  --a-surface: rgba(12,22,37,.92);
-  --a-surface-2: rgba(18,31,50,.94);
-  --a-surface-3: #16243a;
-  --a-border: rgba(148,163,184,.18);
-  --a-border-2: rgba(148,163,184,.32);
-  --a-divider: rgba(148,163,184,.14);
-  --a-t1: #f8fafc;
-  --a-t2: #e2e8f0;
-  --a-t3: #b8c4d4;
-  --a-t4: #8fa0b5;
-  --a-input-bg: rgba(7,15,27,.72);
-  --a-field-bg: rgba(24,38,59,.76);
-  --a-hover: rgba(148,163,184,.10);
+  --a-surface: var(--ds-admin-surface);
+  --a-surface-2: var(--ds-admin-surface-subtle);
+  --a-surface-3: var(--ds-admin-surface-raised);
+  --a-border: var(--ds-admin-border);
+  --a-border-2: var(--ds-admin-border-strong);
+  --a-divider: var(--ds-admin-divider);
+  --a-t1: var(--ds-admin-text);
+  --a-t2: var(--ds-admin-text-secondary);
+  --a-t3: var(--ds-admin-text-muted);
+  --a-t4: var(--ds-admin-text-faint);
+  --a-input-bg: var(--ds-admin-field);
+  --a-field-bg: var(--ds-admin-surface-subtle);
+  --a-hover: var(--ds-admin-hover);
 }
 
 /* Page/layout rhythm */

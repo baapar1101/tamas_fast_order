@@ -6,22 +6,22 @@
 
 :root {
   /* ---- Color · core palette (measured) ---- */
-  --tamas-bg: #f5f5f7;            /* page canvas — storefront shell */
-  --tamas-surface: #ffffff;       /* cards, modal panels, inputs */
-  --tamas-fg: #1d1d1f;            /* body text / headings */
-  --tamas-muted: #7a7a7a;         /* secondary text, faint labels */
-  --tamas-border: #e0e0e0;        /* hairlines / 1px borders */
-  --tamas-accent: #08798f;        /* brand teal — logo mark, promo, CTA */
-  --tamas-accent-deep: #00596b;   /* promo CTA text, links, dark footer */
+  --tamas-bg: var(--ds-canvas);
+  --tamas-surface: var(--ds-surface);
+  --tamas-fg: var(--ds-text);
+  --tamas-muted: var(--ds-text-muted);
+  --tamas-border: var(--ds-border);
+  --tamas-accent: var(--ds-interactive);
+  --tamas-accent-deep: var(--ds-interactive-hover);
 
   /* ---- Color · state (measured from the app) ---- */
-  --tamas-success: #34c759;
-  --tamas-success-bg: #e5f8eb;
-  --tamas-warning: #ff9500;
-  --tamas-warning-bg: #fff4e5;
-  --tamas-danger: #ff3b30;
-  --tamas-danger-bg: #ffebeb;
-  --tamas-info-bg: #e5f0ff;
+  --tamas-success: var(--ds-success);
+  --tamas-success-bg: var(--ds-success-soft);
+  --tamas-warning: var(--ds-warning);
+  --tamas-warning-bg: var(--ds-warning-soft);
+  --tamas-danger: var(--ds-danger);
+  --tamas-danger-bg: var(--ds-danger-soft);
+  --tamas-info-bg: var(--ds-info-soft);
 
   /* ---- Color · dark ops admin shell (measured) ---- */
   --tamas-ink-950: #070b12;
@@ -39,30 +39,30 @@
   --tamas-promo-grad-dark: linear-gradient(90deg, #06b6d4, #08798f 60%, #00596b);
 
   /* ---- Typography ---- */
-  --tamas-font: "Vazirmatn FD", Vazirmatn, Tahoma, "Segoe UI", sans-serif;
+  --tamas-font: var(--ds-font-sans);
 
   /* ---- Layout posture ---- */
-  --tamas-radius-sm: 8px;         /* default radius */
-  --tamas-radius-input: 10px;
-  --tamas-radius-card: 18px;
-  --tamas-radius-pill: 980px;
+  --tamas-radius-sm: var(--ds-radius-sm);
+  --tamas-radius-input: var(--ds-radius-sm);
+  --tamas-radius-card: var(--ds-radius-lg);
+  --tamas-radius-pill: var(--ds-radius-full);
   --tamas-border-w: 1px;
-  --tamas-space: 8px;             /* baseline grid */
+  --tamas-space: var(--ds-space-2);
 
   /* ---- Shadows (storefront) ---- */
-  --tamas-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.02);
-  --tamas-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-  --tamas-shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.08);
+  --tamas-shadow-sm: var(--ds-shadow-xs);
+  --tamas-shadow: var(--ds-shadow-sm);
+  --tamas-shadow-lg: var(--ds-shadow-md);
 
   /* ---- Motion (storefront) ---- */
-  --tamas-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --tamas-duration: 0.2s;
-  --tamas-duration-fast: 0.1s;    /* press/active feedback */
+  --tamas-ease: var(--ds-ease-standard);
+  --tamas-duration: var(--ds-duration-normal);
+  --tamas-duration-fast: var(--ds-duration-fast);
 
   /* ---- Interaction & focus (Apple-style: states = default + active, never hover-only) ---- */
   --tamas-press: 0.95;            /* buttons shrink to 0.95 on :active */
-  --tamas-focus-ring: 0 0 0 2px rgba(8, 121, 143, 0.35);   /* light surfaces — accent teal */
-  --tamas-focus-ring-dark: 0 0 0 2px rgba(6, 182, 212, 0.5); /* dark ops shell — admin cyan */
+  --tamas-focus-ring: var(--ds-focus-ring);
+  --tamas-focus-ring-dark: var(--ds-focus-ring);
 
   /* ---- Elevation ---- */
   /* Whisper shadows only on chrome (alphas 0.02/0.04/0.08 measured). The heavy
@@ -83,14 +83,14 @@
   --bg: var(--tamas-bg);
   --card: var(--tamas-surface);
   --surface: var(--tamas-surface);
-  --surface-2: #fafafc;
+  --surface-2: var(--ds-surface-subtle);
   --border: var(--tamas-border);
-  --border-strong: var(--tamas-border);
+  --border-strong: var(--ds-border-strong);
 
   --text: var(--tamas-fg);
   --muted: var(--tamas-muted);
   --text-muted: var(--tamas-muted);
-  --text-faint: #cccccc;
+  --text-faint: var(--ds-text-disabled);
 
   --success: var(--tamas-success);
   --success-bg: var(--tamas-success-bg);
@@ -103,8 +103,8 @@
 
   --radius-sm: var(--tamas-radius-sm);
   --radius: var(--tamas-radius-card);
-  --radius-lg: 24px;
-  --radius-xl: 32px;
+  --radius-lg: var(--ds-radius-xl);
+  --radius-xl: 2rem;
 
   --shadow-sm: var(--tamas-shadow-sm);
   --shadow: var(--tamas-shadow);
@@ -122,41 +122,41 @@
 /* ---- Manual Dark Mode Toggle Support ---- */
 [data-theme="dark"] {
   /* ---- Color · core palette (dark) ---- */
-  --tamas-bg: #0b111d;            /* dark canvas */
-  --tamas-surface: #131c2e;       /* dark cards */
-  --tamas-fg: #eef0f6;            /* light text */
-  --tamas-muted: #9aa4b4;         /* muted text */
-  --tamas-border: #2a3548;        /* dark borders */
-  --tamas-accent: #08798f;        /* brand teal (unchanged) */
-  --tamas-accent-deep: #06b6d4;   /* cyan accent for dark mode */
+  --tamas-bg: var(--ds-canvas);
+  --tamas-surface: var(--ds-surface);
+  --tamas-fg: var(--ds-text);
+  --tamas-muted: var(--ds-text-muted);
+  --tamas-border: var(--ds-border);
+  --tamas-accent: var(--ds-interactive);
+  --tamas-accent-deep: var(--ds-interactive-hover);
 
   /* ---- Color · state (dark) ---- */
-  --tamas-success: #34c759;
-  --tamas-success-bg: rgba(52, 199, 89, 0.2);
-  --tamas-warning: #ff9500;
-  --tamas-warning-bg: rgba(255, 149, 0, 0.2);
-  --tamas-danger: #ff3b30;
-  --tamas-danger-bg: rgba(255, 59, 48, 0.2);
-  --tamas-info-bg: rgba(8, 121, 143, 0.2);
+  --tamas-success: var(--ds-success);
+  --tamas-success-bg: var(--ds-success-soft);
+  --tamas-warning: var(--ds-warning);
+  --tamas-warning-bg: var(--ds-warning-soft);
+  --tamas-danger: var(--ds-danger);
+  --tamas-danger-bg: var(--ds-danger-soft);
+  --tamas-info-bg: var(--ds-info-soft);
 
   /* ---- Color · composite brand moments (dark) ---- */
   --tamas-promo-grad: linear-gradient(90deg, #06b6d4, #08798f 60%, #00596b);
 
   /* ---- Shadows (dark) ---- */
-  --tamas-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --tamas-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
-  --tamas-shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.6);
+  --tamas-shadow-sm: var(--ds-shadow-xs);
+  --tamas-shadow: var(--ds-shadow-sm);
+  --tamas-shadow-lg: var(--ds-shadow-md);
   --tamas-shadow-product: 0 12px 32px -4px rgba(0, 0, 0, 0.7);
 
   /* ---- Focus rings (dark) ---- */
-  --tamas-focus-ring: 0 0 0 2px rgba(6, 182, 212, 0.4);
-  --tamas-focus-ring-dark: 0 0 0 2px rgba(6, 182, 212, 0.5);
+  --tamas-focus-ring: var(--ds-focus-ring);
+  --tamas-focus-ring-dark: var(--ds-focus-ring);
 
   /* ---- Legacy tokens (dark) ---- */
   --primary-light: rgba(8, 121, 143, 0.25);
-  --surface-2: #1a2436;
-  --text-faint: #64748b;
-  --border-strong: #3a4a5f;
+  --surface-2: var(--ds-surface-subtle);
+  --text-faint: var(--ds-text-disabled);
+  --border-strong: var(--ds-border-strong);
 
   color-scheme: dark;
 }
@@ -176,21 +176,21 @@
 }
 
 [data-theme="dark"] .modal-backdrop {
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--ds-overlay);
 }
 
 [data-theme="dark"] .modal-panel {
-  background: #131c2e;
+  background: var(--ds-surface-raised);
   border: 1px solid var(--tamas-border);
 }
 
 [data-theme="dark"] .modal-head {
-  background: #131c2e;
+  background: var(--ds-surface-raised);
   border-bottom-color: var(--tamas-border);
 }
 
 [data-theme="dark"] .modal-foot {
-  background: #1a2436;
+  background: var(--ds-surface-subtle);
   border-top-color: var(--tamas-border);
 }
 
@@ -209,7 +209,6 @@
 
 * {
   box-sizing: border-box;
-  outline: none;
 }
 
 html,
@@ -222,8 +221,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--ds-text-md);
+  line-height: var(--ds-leading-normal);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -237,6 +236,11 @@ textarea {
 
 button {
   cursor: pointer;
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ds-interactive);
+  outline-offset: 2px;
 }
 
 a {
@@ -264,15 +268,16 @@ img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 980px;
-  font-size: 14px;
-  font-weight: 500;
+  min-height: var(--ds-control-h-md);
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-5);
+  border-radius: var(--ds-radius-full);
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-semibold);
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: border-color var(--ds-duration-normal) var(--ds-ease-standard), background-color var(--ds-duration-normal) var(--ds-ease-standard), color var(--ds-duration-normal) var(--ds-ease-standard), box-shadow var(--ds-duration-normal) var(--ds-ease-standard), transform var(--ds-duration-fast) var(--ds-ease-standard);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -292,11 +297,16 @@ img {
   cursor: not-allowed;
 }
 
+.btn:focus-visible {
+  outline: 0;
+  box-shadow: var(--ds-focus-ring);
+}
+
 .btn.primary {
   background: var(--primary);
   color: #ffffff;
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(8, 121, 143, 0.25);
+  box-shadow: var(--ds-shadow-sm);
 }
 
 .btn.primary:hover:not(:disabled) {
@@ -330,9 +340,10 @@ img {
 }
 
 .btn.sm {
-  padding: 6px 14px;
-  font-size: 13px;
-  border-radius: 980px;
+  min-height: var(--ds-control-h-sm);
+  padding: var(--ds-space-1) var(--ds-space-3);
+  font-size: var(--ds-text-sm);
+  border-radius: var(--ds-radius-full);
 }
 
 .btn.ghost {
@@ -374,13 +385,13 @@ img {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: #f1f5f9;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-1) var(--ds-space-2);
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-surface-subtle);
   color: var(--muted);
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
 }
 
 .badge.brand {
@@ -421,13 +432,13 @@ img {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--ds-space-4);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--ds-space-3);
 }
 
 .spacer {
@@ -445,26 +456,27 @@ img {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--ds-space-2);
 }
 
 .field label {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-text-secondary);
 }
 
 .input,
 .textarea,
 .select {
   width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
+  min-height: var(--ds-control-h-md);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border-radius: var(--ds-radius-sm);
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
-  font-size: 13.5px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  font-size: var(--ds-text-md);
+  transition: border-color var(--ds-duration-normal) var(--ds-ease-standard), box-shadow var(--ds-duration-normal) var(--ds-ease-standard), background-color var(--ds-duration-normal) var(--ds-ease-standard);
 }
 
 select.select {
@@ -480,20 +492,21 @@ select.select {
 .textarea:focus,
 .select:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(8, 121, 143, 0.12);
+  outline: 0;
+  box-shadow: var(--ds-focus-ring);
 }
 
 .input.invalid,
 .textarea.invalid {
   border-color: var(--danger);
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+  box-shadow: var(--ds-danger-ring);
 }
 
 .alert {
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.6;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-radius: var(--ds-radius-md);
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-relaxed);
 }
 
 .alert.error {
@@ -634,27 +647,29 @@ select.select {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--ds-overlay);
   backdrop-filter: blur(4px);
-  z-index: 100000;
+  z-index: var(--ds-layer-modal);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  animation: fadeIn 0.15s ease-out;
+  padding: var(--ds-space-4);
+  animation: fadeIn var(--ds-duration-normal) ease-out;
 }
 
 .modal-panel {
-  background: #ffffff;
-  border-radius: var(--radius-lg, 18px);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--ds-border);
+  background: var(--ds-surface-raised);
+  color: var(--ds-text);
+  border-radius: var(--ds-radius-xl);
+  box-shadow: var(--ds-shadow-lg);
   width: 100%;
   max-width: 460px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: modalPop var(--ds-duration-normal) var(--ds-ease-enter);
   direction: rtl;
 }
 
@@ -678,9 +693,9 @@ select.select {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: var(--ds-space-4) var(--ds-space-5);
   border-bottom: 1px solid var(--border);
-  background: #ffffff;
+  background: var(--ds-surface-raised);
 }
 
 .modal-head h3 {
@@ -691,18 +706,18 @@ select.select {
 }
 
 .modal-body {
-  padding: 20px;
+  padding: var(--ds-space-5);
   overflow-y: auto;
 }
 
 .modal-foot {
-  padding: 14px 20px;
+  padding: var(--ds-space-3) var(--ds-space-5);
   border-top: 1px solid var(--border);
   background: var(--surface-2, #f8fafc);
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: var(--ds-space-3);
 }
 
 @keyframes fadeIn {
