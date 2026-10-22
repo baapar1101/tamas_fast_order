@@ -56,6 +56,59 @@ body.admin-page-active:not(.admin-theme-light) {
   --a-hover: var(--ds-admin-hover);
 }
 
+/* Authentication and boot states use the same surface/control contract. */
+.admin-entry-screen {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: var(--ds-space-6);
+}
+.admin-entry-card {
+  position: relative;
+  z-index: 10;
+  width: min(100%, 26rem);
+  padding: var(--ds-space-10) var(--ds-space-8);
+  overflow: hidden;
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-lg);
+  background: var(--a-surface);
+  color: var(--a-t1);
+  box-shadow: var(--a-shadow-2);
+  backdrop-filter: blur(20px) saturate(110%);
+  text-align: center;
+}
+.admin-entry-card--loading { width: min(100%, 24rem); }
+.admin-entry-shimmer { position: absolute; inset-block-start: 0; inset-inline: 0; height: 1px; }
+.admin-entry-loader,
+.admin-entry-icon {
+  display: grid;
+  margin: 0 auto var(--ds-space-6);
+  place-items: center;
+  border: 1px solid var(--a-border);
+  background: var(--a-field-bg);
+}
+.admin-entry-loader { width: 5rem; height: 5rem; border-radius: var(--ds-radius-full); }
+.admin-entry-loader svg { width: 2rem; height: 2rem; color: var(--a-brand); animation: ds-spin 900ms linear infinite; }
+.admin-entry-icon { width: 4rem; height: 4rem; border-radius: var(--a-radius-md); }
+.admin-entry-icon svg { width: 2rem; height: 2rem; }
+.admin-entry-icon--danger { border-color: color-mix(in srgb, var(--a-red) 20%, var(--a-border)); background: var(--a-red-soft); color: var(--a-red); }
+.admin-entry-card h2 { margin: 0 0 var(--ds-space-2); color: var(--a-t1); font-size: var(--ds-text-lg); font-weight: var(--ds-weight-bold); }
+.admin-entry-card p { margin: 0 0 var(--ds-space-6); color: var(--a-t4); font-size: var(--ds-text-sm); line-height: var(--ds-leading-normal); }
+.admin-entry-card--loading p { margin-bottom: 0; }
+.admin-entry-action {
+  width: 100%;
+  min-height: var(--ds-control-h-md);
+  justify-content: center;
+  border-radius: var(--a-radius-sm);
+  background: var(--a-brand) !important;
+  color: var(--a-brand-contrast) !important;
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--a-brand) 20%, transparent);
+}
+.admin-entry-action:hover { background: var(--a-brand-hover) !important; }
+.admin-entry-action:focus-visible { outline: 0; box-shadow: var(--a-focus); }
+.admin-entry-action-icon { width: 1rem; height: 1rem; }
+
 /* Page/layout rhythm */
 .admin-main-content { min-width: 0; overflow-x: clip; }
 .admin-main-content > div { width: 100%; max-width: var(--a-content-max) !important; margin-inline: auto; }

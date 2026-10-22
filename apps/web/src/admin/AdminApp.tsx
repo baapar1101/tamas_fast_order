@@ -509,38 +509,23 @@ export default function AdminApp() {
 
   if (!ready) {
     return (
-      <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', position: 'relative' }}>
+      <div className="admin-body-shell admin-entry-screen">
         {/* Smokey WebGL Background */}
         <SmokeyBackground className="fixed inset-0 z-0" bgColor={theme === 'light' ? '#ffffff' : '#000000'} color={theme === 'light' ? '#000000' : '#030b14'} />
 
-        <div className="glass-card-static" style={{ maxWidth: '24rem', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '1rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
+        <div className="admin-entry-card admin-entry-card--loading" role="status" aria-live="polite">
           {/* Shimmer top line */}
-          <div className="shimmer-line animate-shimmer" style={{ position: 'absolute', insetInline: 0, top: 0, height: '1px' }} />
+          <div className="shimmer-line animate-shimmer admin-entry-shimmer" />
 
-          <div style={{
-            margin: '0 auto 1.5rem',
-            width: '5rem',
-            height: '5rem',
-            display: 'grid',
-            placeItems: 'center',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            position: 'relative'
-          }}>
-            <svg className="h-8 w-8 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+          <div className="admin-entry-loader" aria-hidden="true">
+            <svg fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            <div className="absolute inset-0 rounded-full animate-ping border-2 border-white/20"></div>
           </div>
 
-          <h2 style={{ fontSize: '1.125rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
-            در حال راه‌اندازی پنل ادمین
-          </h2>
-          <p style={{ fontSize: '0.8rem', color: '#94a3b8', lineHeight: '1.75' }}>
-            لطفاً چند لحظه منتظر بمانید...
-          </p>
+          <h2>در حال راه‌اندازی پنل مدیریت</h2>
+          <p>لطفاً چند لحظه منتظر بمانید…</p>
         </div>
       </div>
     );
@@ -548,43 +533,32 @@ export default function AdminApp() {
 
   if (!user || (!isAdmin && !isOperator)) {
     return (
-      <div className="admin-body-shell" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', position: 'relative' }}>
+      <div className="admin-body-shell admin-entry-screen">
         {/* Smokey WebGL Background */}
         <SmokeyBackground className="fixed inset-0 z-0" bgColor={theme === 'light' ? '#ffffff' : '#000000'} color={theme === 'light' ? '#000000' : '#030b14'} />
 
-        <div className="glass-card-static" style={{ maxWidth: '26rem', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '1rem', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
+        <div className="admin-entry-card admin-entry-card--auth">
           {/* Shimmer top line */}
-          <div className="shimmer-line animate-shimmer" style={{ position: 'absolute', insetInline: 0, top: 0, height: '1px' }} />
+          <div className="shimmer-line animate-shimmer admin-entry-shimmer" />
 
           {/* Shield Icon — properly sized */}
-          <div style={{
-            margin: '0 auto 1.5rem',
-            width: '4rem',
-            height: '4rem',
-            display: 'grid',
-            placeItems: 'center',
-            borderRadius: '1rem',
-            background: 'linear-gradient(135deg, rgba(251,113,133,0.15), rgba(251,113,133,0.05))',
-          }}>
-            <svg style={{ width: '2rem', height: '2rem', color: '#fb7185' }} fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+          <div className="admin-entry-icon admin-entry-icon--danger" aria-hidden="true">
+            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
             </svg>
           </div>
 
-          <h2 style={{ fontSize: '1.125rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
-            دسترسی مدیریت لازم است
-          </h2>
-          <p style={{ fontSize: '0.75rem', color: '#94a3b8', lineHeight: '1.75', marginBottom: '1.5rem' }}>
+          <h2>دسترسی مدیریت لازم است</h2>
+          <p>
             {user
               ? 'حساب کاربری شما دسترسی به پنل مدیریت ندارد.'
               : 'برای ورود به پنل مدیریت، ابتدا از فروشگاه وارد حساب کاربری خود شوید.'}
           </p>
           <Link
             to="/"
-            className="huma-btn-primary"
-            style={{ width: '100%', justifyContent: 'center' }}
+            className="huma-btn-primary admin-entry-action"
           >
-            <svg style={{ width: '1rem', height: '1rem' }} fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+            <svg className="admin-entry-action-icon" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
             </svg>
             بازگشت به فروشگاه
