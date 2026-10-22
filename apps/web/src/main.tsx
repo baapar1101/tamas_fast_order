@@ -6,6 +6,7 @@ import { App } from './App';
 import { ToastProvider } from './components/Toast';
 import { ApiRequestError } from './lib/api';
 import { forceReloadLatestApp, installForcedAppUpdates } from './lib/forceAppUpdate';
+import './styles/design-system.css';
 import './styles/global.css';
 
 // Keep long-lived tabs on the currently deployed version. A mismatched build

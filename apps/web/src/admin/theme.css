@@ -8,108 +8,76 @@
    ========================================================================== */
 
 /* ---------------------------------------------------------------------------
-   Fonts — IRANYekanX (same as new_admin), falling back to local fonts
-   -------------------------------------------------------------------------- */
-@font-face {
-  font-family: 'IRANYekanX';
-  src: url('https://static.portal.ir/fonts/IRANYekanX-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRANYekanX';
-  src: url('https://static.portal.ir/fonts/IRANYekanX-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRANYekanX';
-  src: url('https://static.portal.ir/fonts/IRANYekanX-DemiBold.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRANYekanX';
-  src: url('https://static.portal.ir/fonts/IRANYekanX-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* ---------------------------------------------------------------------------
    Theme tokens — DARK is the default (attribute-less), LIGHT is opt-in.
    Tokens are also exposed on `body.admin-page-active` because modals render
    through a portal onto <body> outside the .admin-body-shell scope.
    -------------------------------------------------------------------------- */
 .admin-body-shell,
 body.admin-page-active {
-  font-family: 'IRANYekanX', 'Vazirmatn FD', Peyda, Tahoma, sans-serif;
+  font-family: var(--ds-font-sans);
 
   /* Brand (new_admin blue) */
-  --a-brand: #0580fa;
-  --a-brand-hover: #0470dc;
-  --a-brand-soft: rgba(5, 128, 250, 0.14);
-  --a-brand-soft-strong: rgba(5, 128, 250, 0.22);
-  --a-brand-contrast: #ffffff;
-  --a-brand-ring: rgba(5, 128, 250, 0.45);
+  --a-brand: var(--ds-admin-interactive);
+  --a-brand-hover: var(--ds-admin-interactive-hover);
+  --a-brand-soft: var(--ds-admin-interactive-soft);
+  --a-brand-soft-strong: color-mix(in srgb, var(--ds-admin-interactive) 22%, transparent);
+  --a-brand-contrast: var(--ds-white);
+  --a-brand-ring: color-mix(in srgb, var(--ds-admin-interactive) 45%, transparent);
 
   /* Status colors */
-  --a-green: #10a37f;
-  --a-green-soft: rgba(16, 163, 127, 0.16);
-  --a-red: #d92d20;
-  --a-red-soft: rgba(217, 45, 32, 0.14);
-  --a-amber: #b54708;
-  --a-amber-soft: rgba(245, 158, 11, 0.16);
-  --a-slate: #667085;
-  --a-slate-soft: rgba(128, 138, 157, 0.18);
+  --a-green: var(--ds-admin-success);
+  --a-green-soft: var(--ds-admin-success-soft);
+  --a-red: var(--ds-admin-danger);
+  --a-red-soft: var(--ds-admin-danger-soft);
+  --a-amber: var(--ds-admin-warning);
+  --a-amber-soft: var(--ds-admin-warning-soft);
+  --a-slate: var(--ds-text-muted);
+  --a-slate-soft: color-mix(in srgb, var(--ds-text-muted) 18%, transparent);
 
   border-radius: 0.9rem;
 
   /* Glassmorphism palette */
   --a-bg: transparent;
-  --a-surface: rgba(255, 255, 255, 0.05);
-  --a-surface-2: rgba(255, 255, 255, 0.08);
-  --a-surface-3: rgba(255, 255, 255, 0.12);
-  --a-border: rgba(255, 255, 255, 0.15);
-  --a-border-2: rgba(255, 255, 255, 0.25);
-  --a-divider: rgba(255, 255, 255, 0.1);
-  --a-t1: #ffffff;
-  --a-t2: #e2e8f0;
-  --a-t3: #cbd5e1;
-  --a-t4: #94a3b8;
-  --a-input-bg: rgba(255, 255, 255, 0.03);
-  --a-dropdown-bg: rgba(5, 10, 18, 0.95);
-  --a-field-bg: rgba(255, 255, 255, 0.05);
-  --a-check-bg: rgba(255, 255, 255, 0.1);
-  --a-hover: rgba(255, 255, 255, 0.1);
-  --a-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  --a-shadow-2: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+  --a-surface: var(--ds-admin-surface);
+  --a-surface-2: var(--ds-admin-surface-subtle);
+  --a-surface-3: var(--ds-admin-surface-raised);
+  --a-border: var(--ds-admin-border);
+  --a-border-2: var(--ds-admin-border-strong);
+  --a-divider: var(--ds-admin-divider);
+  --a-t1: var(--ds-admin-text);
+  --a-t2: var(--ds-admin-text-secondary);
+  --a-t3: var(--ds-admin-text-muted);
+  --a-t4: var(--ds-admin-text-faint);
+  --a-input-bg: var(--ds-admin-field);
+  --a-dropdown-bg: color-mix(in srgb, var(--ds-admin-surface-raised) 96%, transparent);
+  --a-field-bg: var(--ds-admin-surface-subtle);
+  --a-check-bg: var(--ds-admin-hover);
+  --a-hover: var(--ds-admin-hover);
+  --a-shadow: var(--ds-admin-shadow);
+  --a-shadow-2: var(--ds-admin-shadow-raised);
 }
 
 body.admin-page-active.admin-theme-light .admin-body-shell,
 body.admin-page-active.admin-theme-light {
-  /* Light Glassmorphism palette */
+  /* Light values are resolved centrally by design-system.css. */
   --a-bg: transparent;
-  --a-surface: rgba(255, 255, 255, 0.4);
-  --a-surface-2: rgba(255, 255, 255, 0.5);
-  --a-surface-3: rgba(255, 255, 255, 0.6);
-  --a-border: rgba(255, 255, 255, 0.6);
-  --a-border-2: rgba(255, 255, 255, 0.8);
-  --a-divider: rgba(255, 255, 255, 0.5);
-  --a-t1: #000000;
-  --a-t2: #111111;
-  --a-t3: #111111;
-  --a-t4: #111111;
-  --a-input-bg: rgba(255, 255, 255, 0.3);
-  --a-dropdown-bg: rgba(235, 240, 245, 0.95);
-  --a-field-bg: rgba(255, 255, 255, 0.4);
-  --a-check-bg: rgba(255, 255, 255, 0.6);
-  --a-hover: rgba(255, 255, 255, 0.5);
-  --a-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
-  --a-shadow-2: 0 8px 24px 0 rgba(0, 0, 0, 0.15);
+  --a-surface: var(--ds-admin-surface);
+  --a-surface-2: var(--ds-admin-surface-subtle);
+  --a-surface-3: var(--ds-admin-surface-raised);
+  --a-border: var(--ds-admin-border);
+  --a-border-2: var(--ds-admin-border-strong);
+  --a-divider: var(--ds-admin-divider);
+  --a-t1: var(--ds-admin-text);
+  --a-t2: var(--ds-admin-text-secondary);
+  --a-t3: var(--ds-admin-text-muted);
+  --a-t4: var(--ds-admin-text-faint);
+  --a-input-bg: var(--ds-admin-field);
+  --a-dropdown-bg: color-mix(in srgb, var(--ds-admin-surface-raised) 96%, transparent);
+  --a-field-bg: var(--ds-admin-surface-subtle);
+  --a-check-bg: var(--ds-admin-hover);
+  --a-hover: var(--ds-admin-hover);
+  --a-shadow: var(--ds-admin-shadow);
+  --a-shadow-2: var(--ds-admin-shadow-raised);
   color: var(--a-t1);
 }
 
