@@ -6,6 +6,7 @@ import { pruneSessions } from './services/auth.js';
 import { pruneOtpCodes } from './services/otp.js';
 import { isProductImageMirrorRunning, mirrorProductImages } from './services/product-image-mirror.js';
 import { isSyncRunning, pruneConflicts, runSync } from './services/sheets/sync.js';
+import { sendDueInstallmentReceiptReminders } from './services/installment-receipts.js';
 
 /**
  * Background work: the periodic Sheets pass plus the small housekeeping jobs.
@@ -73,6 +74,16 @@ export function startScheduler(log: FastifyBaseLogger): () => void {
     timers.push(setInterval(() => void syncCrmProducts(), interval));
     log.info(`CRM product sync scheduled every ${env.CRM_PRODUCT_SYNC_INTERVAL_SECONDS}s`);
   }
+
+  const installmentReminders = async () => {
+    try {
+      await sendDueInstallmentReceiptReminders(log);
+    } catch (err) {
+      log.warn({ err }, 'installment receipt reminder task failed');
+    }
+  };
+  timers.push(setTimeout(() => void installmentReminders(), 20_000));
+  timers.push(setInterval(() => void installmentReminders(), 15 * 60 * 1000));
 
   const housekeeping = async () => {
     try {

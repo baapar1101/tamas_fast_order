@@ -57,7 +57,7 @@
 
 .credit-tabs {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
 .credit-tabs .btn {
@@ -73,6 +73,10 @@
 
 .credit-form-grid > * {
   min-width: 0;
+}
+
+.credit-receipt-row {
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .credit-form-grid input,
@@ -130,6 +134,10 @@
   }
 
   .credit-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .credit-receipt-row {
     grid-template-columns: minmax(0, 1fr);
   }
 

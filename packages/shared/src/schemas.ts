@@ -415,4 +415,23 @@ export const creditChequePatchSchema = z.object({
 });
 export type CreditChequePatch = z.infer<typeof creditChequePatchSchema>;
 
+export const INSTALLMENT_RECEIPT_STATUSES = ['pending', 'approved', 'rejected'] as const;
+export type InstallmentReceiptStatus = (typeof INSTALLMENT_RECEIPT_STATUSES)[number];
+
+export const installmentReceiptWriteSchema = z.object({
+  receiptUrl: z.string().trim().min(1, 'تصویر رسید پرداخت را بارگذاری کنید.').refine(
+    (value) => value.startsWith('/') || /^https:\/\//i.test(value),
+    'نشانی فایل رسید معتبر نیست.',
+  ),
+  trackingCode: z.string().trim().max(120).optional().nullable(),
+  note: z.string().trim().max(1000).optional().nullable(),
+});
+export type InstallmentReceiptWrite = z.infer<typeof installmentReceiptWriteSchema>;
+
+export const installmentReceiptReviewSchema = z.object({
+  status: z.enum(INSTALLMENT_RECEIPT_STATUSES),
+  rejectionReason: z.string().trim().max(1000).optional().nullable(),
+});
+export type InstallmentReceiptReview = z.infer<typeof installmentReceiptReviewSchema>;
+
 

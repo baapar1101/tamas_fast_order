@@ -169,6 +169,13 @@
       "when": 1792230403765,
       "tag": "0023_investor_product_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792762284776,
+      "tag": "0024_certain_malcolm_colcord",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import type { CreditApplicationDTO, CreditStatus } from '@tamas/shared';
+import { useCallback, useEffect, useState } from 'react';
+import type { CreditApplicationDTO, CreditStatus, PaymentHealthDashboardDTO } from '@tamas/shared';
 import { CREDIT_STATUS_LABELS, formatMoney } from '@tamas/shared';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
@@ -9,6 +9,9 @@ export function CreditApplicationsPage() {
   const toast = useToast();
   const [items, setItems] = useState<CreditApplicationDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [section, setSection] = useState<'applications' | 'health' | 'receipts'>('applications');
+  const [health, setHealth] = useState<PaymentHealthDashboardDTO | null>(null);
+  const [reviewingReceiptId, setReviewingReceiptId] = useState<number | null>(null);
 
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [search, setSearch] = useState('');
@@ -22,20 +25,38 @@ export function CreditApplicationsPage() {
   const [editNotes, setEditNotes] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
-  const loadData = () => {
+  const loadData = useCallback(() => {
     setLoading(true);
-    api
-      .get<{ ok: true; items: CreditApplicationDTO[] }>('/admin/credit-applications')
-      .then((res) => {
-        if (res.ok) setItems(res.items);
+    Promise.all([
+      api.get<{ ok: true; items: CreditApplicationDTO[] }>('/admin/credit-applications'),
+      api.get<{ ok: true } & PaymentHealthDashboardDTO>('/admin/credit-payment-health'),
+    ])
+      .then(([applications, paymentHealth]) => {
+        if (applications.ok) setItems(applications.items);
+        if (paymentHealth.ok) setHealth(paymentHealth);
       })
       .catch((err) => toast.error(err.message || 'خطا در دریافت لیست اعتبارسنجی'))
       .finally(() => setLoading(false));
+  }, [toast]);
+
+  const reviewReceipt = async (id: number, status: 'approved' | 'rejected') => {
+    const rejectionReason = status === 'rejected' ? window.prompt('علت رد رسید را برای مشتری بنویسید:') : null;
+    if (status === 'rejected' && !rejectionReason?.trim()) return;
+    setReviewingReceiptId(id);
+    try {
+      await api.patch(`/admin/installment-receipts/${id}`, { status, rejectionReason });
+      toast.ok(status === 'approved' ? 'رسید تأیید شد.' : 'رسید رد شد و مشتری مطلع شد.');
+      loadData();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'بررسی رسید انجام نشد.');
+    } finally {
+      setReviewingReceiptId(null);
+    }
   };
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const openReviewModal = (appItem: CreditApplicationDTO) => {
     setSelectedApp(appItem);
@@ -131,7 +152,14 @@ export function CreditApplicationsPage() {
         </div>
       </header>
 
+      <nav className="a-segmented" aria-label="بخش‌های اعتبارسنجی" style={{ display: 'flex', width: 'fit-content', maxWidth: '100%', overflowX: 'auto' }}>
+        <button type="button" className={`a-seg${section === 'applications' ? ' a-seg--on' : ''}`} onClick={() => setSection('applications')}>پرونده‌های اعتباری</button>
+        <button type="button" className={`a-seg${section === 'health' ? ' a-seg--on' : ''}`} onClick={() => setSection('health')}>خوش‌حسابی مشتریان</button>
+        <button type="button" className={`a-seg${section === 'receipts' ? ' a-seg--on' : ''}`} onClick={() => setSection('receipts')}>رسیدهای اقساط {health?.summary.pendingReceipts ? `(${health.summary.pendingReceipts.toLocaleString('fa-IR')})` : ''}</button>
+      </nav>
+
       {/* Filters Toolbar */}
+      {section === 'applications' && <>
       <section className="a-filterbar" style={{ padding: '16px', borderRadius: '14px', backgroundColor: 'var(--a-surface-2)', border: '1px solid var(--a-border)', backdropFilter: 'blur(16px)', display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
         <input
           type="search"
@@ -231,6 +259,73 @@ export function CreditApplicationsPage() {
                   </td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      </>}
+
+      {section === 'health' && (
+        <>
+          <section className="a-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+            {[
+              ['کل مشتریان قسطی', health?.summary.totalCustomers ?? 0, 'var(--a-brand)'],
+              ['خوش‌حساب', health?.summary.good ?? 0, '#16a34a'],
+              ['نیازمند توجه', health?.summary.attention ?? 0, '#d97706'],
+              ['بدحساب', health?.summary.bad ?? 0, '#dc2626'],
+              ['رسید معوق', health?.summary.overdueWithoutReceipt ?? 0, '#b91c1c'],
+            ].map(([label, value, color]) => (
+              <article key={String(label)} className="a-card" style={{ padding: '16px' }}>
+                <span style={{ color: 'var(--a-t2)', fontSize: '12px' }}>{label}</span>
+                <strong style={{ display: 'block', marginTop: '8px', fontSize: '24px', color: String(color) }}>{Number(value).toLocaleString('fa-IR')}</strong>
+              </article>
+            ))}
+          </section>
+          <div className="a-card" style={{ overflowX: 'auto' }}>
+            <table className="a-table" style={{ width: '100%', minWidth: '960px' }}>
+              <thead><tr><th>مشتری</th><th>وضعیت</th><th>امتیاز</th><th>کل اقساط</th><th>به‌موقع</th><th>دیرکرد</th><th>بدون رسید معوق</th><th>چک برگشتی</th><th>در انتظار بررسی</th></tr></thead>
+              <tbody>
+                {(health?.customers ?? []).map((customer) => (
+                  <tr key={customer.userId}>
+                    <td><strong>{customer.userName}</strong><small style={{ display: 'block', color: 'var(--a-t3)' }}>{customer.userStoreName || customer.userPhone}</small></td>
+                    <td><span className={`a-badge ${customer.classification === 'good' ? 'a-badge--success' : customer.classification === 'bad' ? 'a-badge--danger' : 'a-badge--warning'}`}>{customer.classification === 'good' ? 'خوش‌حساب' : customer.classification === 'bad' ? 'بدحساب' : 'نیازمند توجه'}</span></td>
+                    <td><strong>{customer.score.toLocaleString('fa-IR')} از ۱۰۰</strong></td>
+                    <td>{customer.totalInstallments.toLocaleString('fa-IR')}</td>
+                    <td>{customer.approvedOnTime.toLocaleString('fa-IR')}</td>
+                    <td>{customer.approvedLate.toLocaleString('fa-IR')}</td>
+                    <td style={{ color: customer.overdueWithoutReceipt ? '#dc2626' : undefined, fontWeight: 800 }}>{customer.overdueWithoutReceipt.toLocaleString('fa-IR')}</td>
+                    <td>{customer.bouncedCheques.toLocaleString('fa-IR')}</td>
+                    <td>{customer.pendingReceipts.toLocaleString('fa-IR')}</td>
+                  </tr>
+                ))}
+                {!loading && (health?.customers.length ?? 0) === 0 && <tr><td colSpan={9} style={{ textAlign: 'center', padding: '32px' }}>هنوز سابقه پرداخت قسطی ثبت نشده است.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {section === 'receipts' && (
+        <div className="a-card" style={{ overflowX: 'auto' }}>
+          <table className="a-table" style={{ width: '100%', minWidth: '900px' }}>
+            <thead><tr><th>مشتری</th><th>سفارش / قسط</th><th>مبلغ</th><th>سررسید</th><th>ثبت رسید</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+            <tbody>
+              {(health?.receipts ?? []).map((receipt) => (
+                <tr key={receipt.id}>
+                  <td><strong>{receipt.userName}</strong><small style={{ display: 'block', color: 'var(--a-t3)' }}>{receipt.userPhone}</small></td>
+                  <td>{receipt.orderCode} / قسط {(receipt.installmentIndex + 1).toLocaleString('fa-IR')}</td>
+                  <td>{formatMoney(receipt.amount)}</td>
+                  <td>{new Date(`${receipt.dueDate}T12:00:00+03:30`).toLocaleDateString('fa-IR')}</td>
+                  <td>{new Date(receipt.submittedAt).toLocaleString('fa-IR')}</td>
+                  <td><span className={`a-badge ${receipt.status === 'approved' ? 'a-badge--success' : receipt.status === 'rejected' ? 'a-badge--danger' : 'a-badge--warning'}`}>{receipt.status === 'approved' ? 'تأییدشده' : receipt.status === 'rejected' ? 'ردشده' : 'در انتظار'}</span></td>
+                  <td style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    <a className="a-btn a-btn--secondary" href={receipt.receiptUrl} target="_blank" rel="noreferrer">مشاهده</a>
+                    {receipt.status !== 'approved' && <button type="button" className="a-btn a-btn--primary" disabled={reviewingReceiptId === receipt.id} onClick={() => void reviewReceipt(receipt.id, 'approved')}>تأیید</button>}
+                    {receipt.status !== 'rejected' && <button type="button" className="a-btn a-btn--danger" disabled={reviewingReceiptId === receipt.id} onClick={() => void reviewReceipt(receipt.id, 'rejected')}>رد</button>}
+                  </td>
+                </tr>
+              ))}
+              {!loading && (health?.receipts.length ?? 0) === 0 && <tr><td colSpan={7} style={{ textAlign: 'center', padding: '32px' }}>هنوز رسیدی ثبت نشده است.</td></tr>}
             </tbody>
           </table>
         </div>

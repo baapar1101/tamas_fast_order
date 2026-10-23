@@ -107,6 +107,14 @@ const ENTRIES_EVENTS: SmsEventDef[] = [
     vars: ['code'],
     placeholder: 'کد تایید شما در تماس مارکت: {code}',
   },
+  {
+    key: 'installment_receipt_reminder',
+    templateKey: 'sms_template_installment_receipt_reminder',
+    title: 'یادآوری رسید قسط',
+    desc: 'سه نوبت در روز برای اقساط سررسیدشده‌ای که رسید ندارند',
+    vars: ['name', 'count', 'amount', 'order'],
+    placeholder: 'سلام {name}، رسید {count} قسط سررسیدشده سفارش {order} به مبلغ {amount} تومان ثبت نشده است. لطفاً رسید را در پنل اعتباری بارگذاری کنید.',
+  },
 ];
 
 const ALL_EVENTS = [...NEW_ORDER_EVENTS, ...STATUS_EVENTS, ...ENTRIES_EVENTS];

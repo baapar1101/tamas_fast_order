@@ -67,6 +67,7 @@ export const walletTransactionTypeEnum = pgEnum('wallet_transaction_type', ['dep
 export const commentStatusEnum = pgEnum('comment_status', ['pending', 'approved', 'rejected']);
 export const creditStatusEnum = pgEnum('credit_status', ['pending', 'reviewing', 'active', 'action_required']);
 export const chequeStatusEnum = pgEnum('cheque_status', ['pending', 'passed', 'bounced', 'returned']);
+export const installmentReceiptStatusEnum = pgEnum('installment_receipt_status', ['pending', 'approved', 'rejected']);
 export const crmSyncEntityEnum = pgEnum('crm_sync_entity', ['order', 'product', 'person', 'chat_message']);
 export const crmSyncActionEnum = pgEnum('crm_sync_action', ['create', 'update', 'delete', 'sync']);
 export const crmSyncStatusEnum = pgEnum('crm_sync_status', ['success', 'error', 'pending', 'skipped']);
@@ -151,6 +152,53 @@ export const creditChequesRelations = relations(creditCheques, ({ one }) => ({
   user: one(users, { fields: [creditCheques.userId], references: [users.id] }),
   creditApplication: one(creditApplications, { fields: [creditCheques.creditApplicationId], references: [creditApplications.id] }),
 }));
+
+export const installmentReceipts = pgTable(
+  'installment_receipts',
+  {
+    id: serial('id').primaryKey(),
+    orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    installmentIndex: integer('installment_index').notNull(),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    dueDate: varchar('due_date', { length: 30 }).notNull(),
+    receiptUrl: text('receipt_url').notNull(),
+    trackingCode: varchar('tracking_code', { length: 120 }),
+    note: text('note'),
+    status: installmentReceiptStatusEnum('status').notNull().default('pending'),
+    rejectionReason: text('rejection_reason'),
+    submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull().defaultNow(),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    reviewedBy: integer('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('installment_receipts_order_installment_key').on(t.orderId, t.installmentIndex),
+    index('installment_receipts_user_idx').on(t.userId),
+    index('installment_receipts_status_idx').on(t.status),
+    index('installment_receipts_due_date_idx').on(t.dueDate),
+  ],
+);
+
+export const installmentReminderDeliveries = pgTable(
+  'installment_reminder_deliveries',
+  {
+    id: serial('id').primaryKey(),
+    orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    installmentIndex: integer('installment_index').notNull(),
+    reminderDate: varchar('reminder_date', { length: 10 }).notNull(),
+    reminderSlot: integer('reminder_slot').notNull(),
+    deliveredChannels: jsonb('delivered_channels').$type<{ telegram: boolean; bale: boolean; sms: boolean }>().notNull().default(sql`'{"telegram":false,"bale":false,"sms":false}'::jsonb`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('installment_reminders_daily_slot_key').on(t.userId, t.reminderDate, t.reminderSlot),
+    index('installment_reminders_user_idx').on(t.userId),
+    index('installment_reminders_date_idx').on(t.reminderDate),
+  ],
+);
 
 
 /* ------------------------------------------------------------------ *

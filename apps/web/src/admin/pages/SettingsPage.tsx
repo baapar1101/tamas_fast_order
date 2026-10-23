@@ -133,6 +133,8 @@ type CustomerTelegramEvent =
   | 'payment.failed'
   | 'credit.application_status_changed'
   | 'credit.cheque_status_changed'
+  | 'credit.installment_receipt_reminder'
+  | 'credit.installment_receipt_status_changed'
   | 'wallet.changed'
   | 'payment.instructions_ready'
   | 'discount.created'
@@ -146,6 +148,8 @@ const CUSTOMER_TELEGRAM_EVENT_LABELS: Record<CustomerTelegramEvent, string> = {
   'payment.failed': 'پرداخت ناموفق',
   'credit.application_status_changed': 'وضعیت پرونده اعتباری',
   'credit.cheque_status_changed': 'وضعیت چک',
+  'credit.installment_receipt_reminder': 'یادآوری بارگذاری رسید قسط',
+  'credit.installment_receipt_status_changed': 'نتیجه بررسی رسید قسط',
   'wallet.changed': 'گردش کیف پول',
   'payment.instructions_ready': 'آماده‌شدن اطلاعات پرداخت',
   'discount.created': 'کد تخفیف جدید',
