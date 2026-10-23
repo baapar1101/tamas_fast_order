@@ -205,7 +205,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
 
       <ProductImageGallery key={`${group.key}:${selectedVariant.productId}:grid`} images={images} title={group.title} mode="grid" onPreview={onPreview} />
 
-      <div style={{ minWidth: 0 }}>
+      <div className="product-card-content">
         <div className={`card-title ${titleClass}`}>
           {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
           <Link className="card-title-link" to={`/p/${selectedVariant.productId}`}>{group.title}</Link>
