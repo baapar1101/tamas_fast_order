@@ -602,7 +602,7 @@ export const userMapping: EntityMapping = {
         activity: r.activity ?? '',
         page_website: r.pageWebsite ?? '',
         actived: boolCell(r.isActive),
-        role: r.role === 'investor' ? 'customer' : r.role,
+        role: r.role,
         [UPDATED_AT_COLUMN]: iso(r.updatedAt),
       },
     }));

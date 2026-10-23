@@ -35,7 +35,7 @@ const syncColumns = {
 };
 
 export const productStatusEnum = pgEnum('product_status', ['active', 'inactive']);
-export const userRoleEnum = pgEnum('user_role', ['customer', 'admin', 'operator', 'investor']);
+export const userRoleEnum = pgEnum('user_role', ['customer', 'admin', 'operator']);
 export const orderStatusEnum = pgEnum('order_status', [
   'new',
   'confirmed',
@@ -72,15 +72,6 @@ export const creditReportExtractionStatusEnum = pgEnum('credit_report_extraction
 export const crmSyncEntityEnum = pgEnum('crm_sync_entity', ['order', 'product', 'person', 'chat_message']);
 export const crmSyncActionEnum = pgEnum('crm_sync_action', ['create', 'update', 'delete', 'sync']);
 export const crmSyncStatusEnum = pgEnum('crm_sync_status', ['success', 'error', 'pending', 'skipped']);
-export const investmentEntryTypeEnum = pgEnum('investment_entry_type', [
-  'capital_injection',
-  'capital_withdrawal',
-  'purchase',
-  'expense',
-  'profit_distribution',
-  'adjustment',
-]);
-export const investmentEntryStatusEnum = pgEnum('investment_entry_status', ['paid', 'pending', 'cancelled']);
 export const discountKindEnum = pgEnum('discount_kind', ['percent', 'fixed', 'free_shipping']);
 export const paymentInstructionStatusEnum = pgEnum('payment_instruction_status', ['pending', 'sent']);
 
@@ -361,8 +352,6 @@ export const products = pgTable(
     sellType: varchar('sell_type', { length: 200 }),
     seller: varchar('seller', { length: 200 }),
     promotion: boolean('promotion').notNull().default(false),
-    /** Whether this product's inventory and sales belong to the investor-financed scope. */
-    investorFinanced: boolean('investor_financed').notNull().default(false),
     status: productStatusEnum('status').notNull().default('active'),
     subTitle: varchar('sub_title', { length: 400 }),
     description: text('description'),
@@ -396,7 +385,6 @@ export const products = pgTable(
     index('products_title_idx').on(t.title),
     index('products_status_idx').on(t.status),
     index('products_promotion_idx').on(t.promotion),
-    index('products_investor_financed_idx').on(t.investorFinanced),
     index('products_updated_idx').on(t.updatedAt),
     index('products_search_idx').using('gin', sql`${t.searchText} gin_trgm_ops`),
   ],
@@ -737,8 +725,6 @@ export const orderItems = pgTable(
     price: bigint('price', { mode: 'number' }).notNull().default(0),
     /** Acquisition cost frozen at checkout for auditable historical profit. */
     costPrice: bigint('cost_price', { mode: 'number' }).notNull().default(0),
-    /** Financing scope frozen at checkout so later product edits cannot rewrite history. */
-    investorFinanced: boolean('investor_financed').notNull().default(false),
     qty: integer('qty').notNull().default(1),
     warehouse: warehouseEnum('warehouse').notNull().default('kerman'),
   },
@@ -845,35 +831,6 @@ export const payments = pgTable(
     index('payments_user_idx').on(t.userId),
     index('payments_status_idx').on(t.status),
     index('payments_created_idx').on(t.createdAt),
-  ],
-);
-
-/**
- * Auditable investor ledger. Product stock remains the inventory source of
- * truth; this ledger records the money side of purchases, operating costs,
- * capital movements and profit distributions.
- */
-export const investmentEntries = pgTable(
-  'investment_entries',
-  {
-    id: serial('id').primaryKey(),
-    type: investmentEntryTypeEnum('type').notNull(),
-    status: investmentEntryStatusEnum('status').notNull().default('paid'),
-    amount: bigint('amount', { mode: 'number' }).notNull(),
-    title: varchar('title', { length: 240 }).notNull(),
-    category: varchar('category', { length: 120 }),
-    reference: varchar('reference', { length: 160 }),
-    notes: text('notes'),
-    transactionDate: timestamp('transaction_date', { withTimezone: true }).notNull().defaultNow(),
-    createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp('deleted_at', { withTimezone: true }),
-  },
-  (t) => [
-    index('investment_entries_type_idx').on(t.type),
-    index('investment_entries_status_idx').on(t.status),
-    index('investment_entries_date_idx').on(t.transactionDate),
   ],
 );
 
@@ -1156,10 +1113,6 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 export const paymentsRelations = relations(payments, ({ one }) => ({
   order: one(orders, { fields: [payments.orderId], references: [orders.id] }),
   user: one(users, { fields: [payments.userId], references: [users.id] }),
-}));
-
-export const investmentEntriesRelations = relations(investmentEntries, ({ one }) => ({
-  creator: one(users, { fields: [investmentEntries.createdBy], references: [users.id] }),
 }));
 
 export const commentsRelations = relations(comments, ({ one, many }) => ({
