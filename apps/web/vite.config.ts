@@ -25,7 +25,7 @@ function generateVersionJsonPlugin(): Plugin {
   };
 }
 
-const GENERATED_CHUNK_FILE = /^(?:index|admin|vendor|react|router|query|pdf|xlsx)-[A-Za-z0-9_-]{8,}\.(?:js(?:\.map)?|css)$/;
+const GENERATED_CHUNK_FILE = /^(?:index|admin|vendor|react|router|query|pdf|canvas|xlsx)-[A-Za-z0-9_-]{8,}\.(?:js(?:\.map)?|css)$/;
 
 function pruneStaleGeneratedChunksPlugin(): Plugin {
   return {
@@ -80,9 +80,9 @@ export default defineConfig({
             // Spreadsheet export is requested infrequently. Keep its sizeable
             // parser out of the storefront/admin startup path.
             if (id.includes('@e965/xlsx')) return 'xlsx';
+            if (id.includes('html2canvas')) return 'canvas';
             if (
               id.includes('html2pdf.js') ||
-              id.includes('html2canvas') ||
               id.includes('jspdf') ||
               id.includes('dompurify')
             ) return 'pdf';
