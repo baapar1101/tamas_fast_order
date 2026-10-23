@@ -11,7 +11,7 @@ interface ExportTarget {
 
 const EXCLUDED_TABLE_SELECTOR = '.print-invoice-layout table, .proforma-sheet table, table[data-excel-export="off"]';
 const TABLE_WRAPPER_SELECTOR = '.a-table-wrap, .huma-table-container, .credit-table-wrap, .product-sheet__table-wrap, .table-wrap';
-const ACTION_HEADER_PATTERN = /^(عملیات|اقدامات|کنترل|انتخاب)$/;
+const ACTION_HEADER_PATTERN = /^(عملیات|اقدامات|کنترل|انتخاب|جزئیات|ویرایش|حذف)$/;
 
 function cleanText(value: string | null | undefined): string {
   return String(value ?? '').replace(/[\u200c\u200f]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -45,12 +45,13 @@ function tableTitle(table: HTMLTableElement, fallbackIndex: number): string {
   const heading = container?.querySelector<HTMLElement>('h1, h2, h3, .a-title, .a-card-title');
   const headingText = cleanText(heading?.textContent);
   if (headingText) return headingText;
-  const pageHeading = cleanText(document.querySelector<HTMLElement>('main h1')?.textContent);
+  const pageHeading = cleanText(document.querySelector<HTMLElement>('main h1, main h2')?.textContent);
   return pageHeading || `جدول ${fallbackIndex.toLocaleString('fa-IR')}`;
 }
 
 function extractTable(table: HTMLTableElement): { headers: string[]; rows: string[][] } {
   const headerRow = table.tHead?.rows.item(table.tHead.rows.length - 1) ?? null;
+  const headerCells = headerRow ? Array.from(headerRow.cells) : [];
   const bodyRows = Array.from(table.tBodies).flatMap((body) => Array.from(body.rows));
   const fallbackRows = bodyRows.length > 0 ? bodyRows : Array.from(table.rows).filter((row) => !table.tHead?.contains(row));
   const columnCount = Math.max(headerRow?.cells.length ?? 0, ...fallbackRows.map((row) => row.cells.length), 0);
@@ -61,7 +62,7 @@ function extractTable(table: HTMLTableElement): { headers: string[]; rows: strin
       : Array.from({ length: columnCount }, (_, index) => `ستون ${(index + 1).toLocaleString('fa-IR')}`);
   const includedColumns = rawHeaders
     .map((header, index) => ({ header: header || `ستون ${(index + 1).toLocaleString('fa-IR')}`, index }))
-    .filter(({ header }) => !ACTION_HEADER_PATTERN.test(header));
+    .filter(({ header, index }) => !ACTION_HEADER_PATTERN.test(header) && !headerCells[index]?.querySelector('input[type="checkbox"]'));
   const headers = includedColumns.map(({ header }) => header);
   const rows = fallbackRows
     .filter((row) => row.getAttribute('aria-hidden') !== 'true')
