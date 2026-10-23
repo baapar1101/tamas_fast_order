@@ -1,6 +1,7 @@
 import {
   creditChequeWriteSchema,
   creditApplicationWriteSchema,
+  installmentReceiptWriteSchema,
   chequeDueDate,
   firstChequeSubmissionDeadline,
   formatMoney,
@@ -11,6 +12,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { db, schema } from '../db/client.js';
 import { badRequest, notFound } from '../lib/errors.js';
 import { registerOrderCheque } from '../services/credit-cheques.js';
+import { buildInstallmentOrderDTO, resolveInstallmentDueDate, toInstallmentReceiptDTO } from '../services/installment-receipts.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   // Ensure tables exist safely if migration didn't run
@@ -106,6 +108,12 @@ const routes: FastifyPluginAsync = async (app) => {
       .from(schema.creditCheques)
       .where(eq(schema.creditCheques.userId, user.id))
       .orderBy(desc(schema.creditCheques.createdAt));
+
+    const receiptList = await db
+      .select()
+      .from(schema.installmentReceipts)
+      .where(eq(schema.installmentReceipts.userId, user.id))
+      .orderBy(desc(schema.installmentReceipts.submittedAt));
 
     const customerOrders = await db
       .select({
@@ -279,6 +287,29 @@ const routes: FastifyPluginAsync = async (app) => {
       }];
     });
 
+    const installmentOrders = customerOrders.flatMap((order) => {
+      if (order.status === 'cancelled') return [];
+      const item = buildInstallmentOrderDTO(order, receiptList);
+      return item ? [item] : [];
+    });
+
+    installmentOrders.forEach((order) => {
+      order.schedule.forEach((item) => {
+        if (!item.isDue || (item.receipt && item.receipt.status !== 'rejected')) return;
+        notifications.unshift({
+          id: `receipt-${order.orderId}-${item.index}`,
+          type: 'general',
+          title: item.receipt?.status === 'rejected' ? 'رسید قسط رد شده است' : 'رسید قسط بارگذاری نشده است',
+          message: `رسید قسط سفارش ${order.orderCode} به مبلغ ${formatMoney(item.amount)} را بارگذاری کنید.${item.receipt?.rejectionReason ? ` علت رد: ${item.receipt.rejectionReason}` : ''}`,
+          daysLeft: item.isOverdue ? -1 : 0,
+          chequeNumber: order.orderCode,
+          amount: item.amount,
+          dueDate: item.dueDate,
+          severity: item.isOverdue ? 'danger' : 'warning',
+        });
+      });
+    });
+
     return reply.send({
       ok: true,
       application: applicationDTO,
@@ -287,8 +318,78 @@ const routes: FastifyPluginAsync = async (app) => {
       remainingCredit,
       cheques: chequesDTO,
       chequeOrders,
+      installmentOrders,
       notifications,
     });
+  });
+
+  app.post('/credit/installments/:orderId/:installmentIndex/receipt', { preHandler: [app.requireUser] }, async (req, reply) => {
+    const user = req.currentUser!;
+    const { orderId: orderParam, installmentIndex: indexParam } = req.params as { orderId: string; installmentIndex: string };
+    const orderId = Number(orderParam);
+    const installmentIndex = Number(indexParam);
+    if (!Number.isInteger(orderId) || orderId <= 0 || !Number.isInteger(installmentIndex) || installmentIndex < 0) {
+      throw badRequest('شناسه سفارش یا قسط معتبر نیست.');
+    }
+    const body = installmentReceiptWriteSchema.parse(req.body);
+    const [order] = await db.select().from(schema.orders).where(and(
+      eq(schema.orders.id, orderId),
+      eq(schema.orders.userId, user.id),
+      isNull(schema.orders.deletedAt),
+    )).limit(1);
+    if (!order || order.status === 'cancelled') throw notFound('سفارش قسطی یافت نشد.');
+    const plan = order.paymentPlan;
+    if (!plan || (plan.kind !== 'cheque' && plan.kind !== 'daily')) throw badRequest('این سفارش پرداخت قسطی ندارد.');
+    const installment = plan.schedule[installmentIndex];
+    const dueDate = installment ? resolveInstallmentDueDate(order.createdAt, plan, installmentIndex) : null;
+    if (!installment || !dueDate || installment.amount == null || installment.amount <= 0) throw badRequest('قسط انتخاب‌شده معتبر نیست.');
+
+    const now = new Date();
+    const [saved] = await db.insert(schema.installmentReceipts).values({
+      orderId,
+      userId: user.id,
+      installmentIndex,
+      amount: installment.amount,
+      dueDate,
+      receiptUrl: body.receiptUrl,
+      trackingCode: body.trackingCode || null,
+      note: body.note || null,
+      status: 'pending',
+      rejectionReason: null,
+      submittedAt: now,
+      reviewedAt: null,
+      reviewedBy: null,
+      updatedAt: now,
+    }).onConflictDoUpdate({
+      target: [schema.installmentReceipts.orderId, schema.installmentReceipts.installmentIndex],
+      set: {
+        receiptUrl: body.receiptUrl,
+        trackingCode: body.trackingCode || null,
+        note: body.note || null,
+        status: 'pending',
+        rejectionReason: null,
+        submittedAt: now,
+        reviewedAt: null,
+        reviewedBy: null,
+        updatedAt: now,
+      },
+    }).returning();
+    if (!saved) throw badRequest('ثبت رسید انجام نشد.');
+
+    const { sendTelegramNotification } = await import('../services/telegram.js');
+    void sendTelegramNotification('payment.info_submitted', {
+      title: '🧾 رسید قسط جدید',
+      fields: [
+        { label: 'سفارش', value: order.orderCode },
+        { label: 'مشتری', value: order.customerName },
+        { label: 'قسط', value: installmentIndex + 1 },
+        { label: 'مبلغ', value: formatMoney(installment.amount) },
+        { label: 'سررسید', value: installment.dueLabel },
+        { label: 'شماره پیگیری', value: body.trackingCode || undefined },
+      ],
+    }).catch((err) => req.log.error({ err }, 'failed to notify admin about installment receipt'));
+
+    return reply.send({ ok: true, receipt: toInstallmentReceiptDTO(saved), message: 'رسید قسط برای بررسی ثبت شد.' });
   });
 
   // Buyer submits a new cheque

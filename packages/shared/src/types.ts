@@ -1,4 +1,4 @@
-import type { ChequeStatus, CreditStatus, OrderStatus, UploadKind, Warehouse } from './schemas.js';
+import type { ChequeStatus, CreditStatus, InstallmentReceiptStatus, OrderStatus, UploadKind, Warehouse } from './schemas.js';
 import type { PaymentPlanQuote } from './payment-terms.js';
 
 export interface ApiError {
@@ -402,6 +402,43 @@ export interface CreditChequeInstallmentDTO {
   registered: boolean;
 }
 
+export interface InstallmentReceiptDTO {
+  id: number;
+  orderId: number;
+  userId: number;
+  installmentIndex: number;
+  amount: number;
+  dueDate: string;
+  receiptUrl: string;
+  trackingCode: string | null;
+  note: string | null;
+  status: InstallmentReceiptStatus;
+  rejectionReason: string | null;
+  submittedAt: string;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InstallmentScheduleDTO {
+  index: number;
+  amount: number;
+  dueDate: string;
+  dueLabel: string;
+  isDue: boolean;
+  isOverdue: boolean;
+  receipt: InstallmentReceiptDTO | null;
+}
+
+export interface InstallmentOrderDTO {
+  orderId: number;
+  orderCode: string;
+  planLabel: string;
+  planKind: 'cheque' | 'daily';
+  createdAt: string;
+  schedule: InstallmentScheduleDTO[];
+}
+
 export interface CreditChequeOrderDTO {
   orderId: number;
   orderCode: string;
@@ -420,7 +457,45 @@ export interface CreditDashboardDTO {
   remainingCredit: number;
   cheques: CreditChequeDTO[];
   chequeOrders: CreditChequeOrderDTO[];
+  installmentOrders: InstallmentOrderDTO[];
   notifications: ChequeNotificationDTO[];
+}
+
+export type PaymentHealthClassification = 'good' | 'attention' | 'bad';
+
+export interface CustomerPaymentHealthDTO {
+  userId: number;
+  userName: string;
+  userPhone: string;
+  userStoreName: string;
+  totalInstallments: number;
+  approvedOnTime: number;
+  approvedLate: number;
+  overdueWithoutReceipt: number;
+  pendingReceipts: number;
+  rejectedReceipts: number;
+  bouncedCheques: number;
+  score: number;
+  classification: PaymentHealthClassification;
+  lastDueDate: string | null;
+}
+
+export interface PaymentHealthDashboardDTO {
+  summary: {
+    totalCustomers: number;
+    good: number;
+    attention: number;
+    bad: number;
+    pendingReceipts: number;
+    overdueWithoutReceipt: number;
+  };
+  customers: CustomerPaymentHealthDTO[];
+  receipts: Array<InstallmentReceiptDTO & {
+    orderCode: string;
+    userName: string;
+    userPhone: string;
+    userStoreName: string;
+  }>;
 }
 
 export interface PaymentMethodConfig {

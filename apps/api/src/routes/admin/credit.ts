@@ -1,11 +1,44 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, desc } from 'drizzle-orm';
-import { creditApplicationAdminPatchSchema } from '@tamas/shared';
+import { creditApplicationAdminPatchSchema, installmentReceiptReviewSchema } from '@tamas/shared';
 import { db, schema } from '../../db/client.js';
 import { badRequest, notFound } from '../../lib/errors.js';
+import { getPaymentHealthDashboard, toInstallmentReceiptDTO } from '../../services/installment-receipts.js';
 
 export const adminCreditRoutes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requirePermission('manage_users'));
+
+  app.get('/admin/credit-payment-health', async (_req, reply) => {
+    return reply.send({ ok: true, ...(await getPaymentHealthDashboard()) });
+  });
+
+  app.patch('/admin/installment-receipts/:id', async (req, reply) => {
+    const receiptId = Number((req.params as { id: string }).id);
+    if (!Number.isInteger(receiptId) || receiptId <= 0) throw badRequest('شناسه رسید معتبر نیست.');
+    const body = installmentReceiptReviewSchema.parse(req.body);
+    const [existing] = await db.select().from(schema.installmentReceipts)
+      .where(eq(schema.installmentReceipts.id, receiptId)).limit(1);
+    if (!existing) throw notFound('رسید قسط یافت نشد.');
+    if (body.status === 'rejected' && !body.rejectionReason?.trim()) throw badRequest('علت رد رسید را وارد کنید.');
+    const [updated] = await db.update(schema.installmentReceipts).set({
+      status: body.status,
+      rejectionReason: body.status === 'rejected' ? body.rejectionReason : null,
+      reviewedAt: new Date(),
+      reviewedBy: req.currentUser!.id,
+      updatedAt: new Date(),
+    }).where(eq(schema.installmentReceipts.id, receiptId)).returning();
+    if (!updated) throw notFound('رسید قسط یافت نشد.');
+
+    const statusLabel = body.status === 'approved' ? 'تأیید شد' : body.status === 'rejected' ? 'رد شد' : 'در انتظار بررسی قرار گرفت';
+    void import('../../services/customer-messaging.js').then(({ sendCustomerNotification }) => sendCustomerNotification(
+      updated.userId,
+      'credit.installment_receipt_status_changed',
+      `🧾 رسید قسط ${statusLabel}`,
+      `رسید قسط شماره ${(updated.installmentIndex + 1).toLocaleString('fa-IR')} شما ${statusLabel}.${updated.rejectionReason ? ` علت: ${updated.rejectionReason}` : ''}`,
+    )).catch((err) => req.log.error({ err }, 'failed to notify customer about installment receipt review'));
+
+    return reply.send({ ok: true, receipt: toInstallmentReceiptDTO(updated), message: `رسید ${statusLabel}.` });
+  });
 
   // Get all credit applications for admin review
   app.get('/admin/credit-applications', async (_req, reply) => {

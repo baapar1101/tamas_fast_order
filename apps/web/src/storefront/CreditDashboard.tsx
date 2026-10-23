@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   CreditApplicationDTO,
   CreditDashboardDTO,
@@ -33,7 +33,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [existingApp, setExistingApp] = useState<CreditApplicationDTO | null>(null);
   const [dashboard, setDashboard] = useState<CreditDashboardDTO | null>(null);
-  const [activeTab, setActiveTab] = useState<'summary' | 'notifications' | 'cheques' | 'new_cheque' | 'details'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'notifications' | 'receipts' | 'cheques' | 'new_cheque' | 'details'>('summary');
   const [isEditing, setIsEditing] = useState(false);
 
   // Stepped Form State (1 -> 2 -> 3) for initial application
@@ -62,14 +62,14 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
   const [submittingCheque, setSubmittingCheque] = useState(false);
 
   // Fetch credit dashboard when the dedicated page mounts.
-  const fetchDashboard = async () => {
+  const fetchDashboard = useCallback(async () => {
     setLoading(true);
     setLoadError(false);
     try {
       const res = await api.get<{ ok: true } & CreditDashboardDTO>('/credit/dashboard');
       if (res.ok) {
         const chequeOrders = res.chequeOrders ?? [];
-        setDashboard({ ...res, chequeOrders });
+        setDashboard({ ...res, chequeOrders, installmentOrders: res.installmentOrders ?? [] });
         setSelectedOrderId((current) => {
           const stillAvailable = chequeOrders.some((order) => String(order.orderId) === current && order.canSubmitNextCheque);
           return stillAvailable ? current : String(chequeOrders.find((order) => order.canSubmitNextCheque)?.orderId ?? '');
@@ -90,11 +90,11 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void fetchDashboard();
-  }, []);
+  }, [fetchDashboard]);
 
   const selectedChequeOrder = useMemo(
     () => dashboard?.chequeOrders.find((order) => String(order.orderId) === selectedOrderId) ?? null,
@@ -122,6 +122,26 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'خطا در آپلود فایل');
+    } finally {
+      setUploadingField(null);
+    }
+  };
+
+  const handleInstallmentReceiptUpload = async (orderId: number, installmentIndex: number, file: File) => {
+    const field = `receipt-${orderId}-${installmentIndex}`;
+    try {
+      setUploadingField(field);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('kind', 'certificate');
+      const upload = await api.upload<{ ok: true; url: string }>('/uploads', formData);
+      if (!upload.ok || !upload.url) throw new Error('بارگذاری فایل رسید انجام نشد.');
+      await api.post(`/credit/installments/${orderId}/${installmentIndex}/receipt`, { receiptUrl: upload.url });
+      toast.ok('رسید قسط ثبت شد و در انتظار بررسی مالی است.');
+      await fetchDashboard();
+      setActiveTab('receipts');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'ثبت رسید قسط انجام نشد.');
     } finally {
       setUploadingField(null);
     }
@@ -384,6 +404,14 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
         >
           <button
             type="button"
+            className={`btn ${activeTab === 'receipts' ? 'primary' : 'ghost'}`}
+            onClick={() => setActiveTab('receipts')}
+            style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '10px' }}
+          >
+            🧾 رسید اقساط
+          </button>
+          <button
+            type="button"
             className={`btn ${activeTab === 'summary' ? 'primary' : 'ghost'}`}
             onClick={() => setActiveTab('summary')}
             style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '10px' }}
@@ -455,10 +483,12 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             >
               <div>
                 <strong style={{ fontSize: '14px', color: 'var(--tamas-fg)', display: 'block', marginBottom: '4px' }}>
-                  🎉 پنل اعتباری شما فعال است
+                  {existingApp?.status === 'active' ? '🎉 پنل اعتباری شما فعال است' : '🧾 مدیریت پرداخت‌های قسطی'}
                 </strong>
                 <span style={{ fontSize: '12.5px', color: 'var(--tamas-muted)' }}>
-                  شما می‌توانید برای خرید کالاهای پرگردش بدون پرداخت نقدی از گزینه پرداخت چکی یا اعتبار هفتگی هنگام ثبت سفارش استفاده کنید.
+                  {existingApp?.status === 'active'
+                    ? 'شما می‌توانید برای خرید کالاهای پرگردش بدون پرداخت نقدی از گزینه پرداخت چکی یا اعتبار هفتگی هنگام ثبت سفارش استفاده کنید.'
+                    : 'رسید هر قسط را پس از پرداخت از تب «رسید اقساط» بارگذاری و نتیجه بررسی آن را پیگیری کنید.'}
                 </span>
               </div>
             </div>
@@ -488,7 +518,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             {/* Quick Notifications List */}
             {dashboard?.notifications && dashboard.notifications.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <strong style={{ fontSize: '13.5px' }}>⏰ یادآوری‌های فوری سررسید چک:</strong>
+                <strong style={{ fontSize: '13.5px' }}>⏰ یادآوری‌های فوری پرداخت:</strong>
                 {dashboard.notifications.slice(0, 3).map((notif) => (
                   <div
                     key={notif.id}
@@ -514,7 +544,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '20px', color: 'var(--tamas-muted)', fontSize: '13px' }}>
-                ✓ هیچ چک سررسید شده یا معوقه‌ای در حال حاضر وجود ندارد.
+                ✓ هیچ پرداخت یا چک سررسیدشده‌ای در حال حاضر وجود ندارد.
               </div>
             )}
           </div>
@@ -523,7 +553,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
         {/* Tab 2: Notifications */}
         {activeTab === 'notifications' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <strong style={{ fontSize: '14px' }}>🔔 ناتیفیکیشن‌ها و هشدار‌های سررسید چک:</strong>
+            <strong style={{ fontSize: '14px' }}>🔔 اعلان‌ها و هشدارهای سررسید پرداخت:</strong>
             {dashboard?.notifications && dashboard.notifications.length > 0 ? (
               dashboard.notifications.map((notif) => (
                 <div
@@ -551,8 +581,66 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               ))
             ) : (
               <div style={{ textAlign: 'center', padding: '30px', color: 'var(--tamas-muted)', fontSize: '13px' }}>
-                هیچ سررسید چک یا هشداری ثبت نشده است.
+                هیچ سررسید پرداخت یا هشداری ثبت نشده است.
               </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'receipts' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div role="note" style={{ padding: '12px 14px', border: '1px solid var(--tamas-border)', borderRadius: '12px', background: 'var(--tamas-info-bg)', color: 'var(--tamas-fg)', fontSize: '13px', lineHeight: 1.8 }}>
+              پس از پرداخت هر قسط، تصویر یا فایل رسید همان قسط را اینجا بارگذاری کنید. اگر رسید قسط سررسیدشده ثبت نشود، روزانه سه یادآوری برای شما ارسال می‌شود.
+            </div>
+            {(dashboard?.installmentOrders?.length ?? 0) > 0 ? dashboard!.installmentOrders.map((order) => (
+              <section key={order.orderId} style={{ border: '1px solid var(--tamas-border)', borderRadius: '14px', overflow: 'hidden', background: 'var(--card)' }}>
+                <header style={{ padding: '12px 14px', background: 'var(--tamas-surface)', display: 'flex', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+                  <strong>سفارش {order.orderCode}</strong>
+                  <span style={{ color: 'var(--tamas-muted)', fontSize: '12px' }}>{order.planLabel}</span>
+                </header>
+                <div style={{ display: 'grid', gap: '10px', padding: '12px' }}>
+                  {order.schedule.map((installment) => {
+                    const uploadKey = `receipt-${order.orderId}-${installment.index}`;
+                    const receipt = installment.receipt;
+                    const statusText = receipt?.status === 'approved' ? 'تأیید شده' : receipt?.status === 'pending' ? 'در انتظار بررسی' : receipt?.status === 'rejected' ? 'رد شده' : 'رسید ثبت نشده';
+                    const statusColor = receipt?.status === 'approved' ? '#15803d' : receipt?.status === 'pending' ? '#b45309' : installment.isDue ? '#b91c1c' : 'var(--tamas-muted)';
+                    return (
+                      <div className="credit-receipt-row" key={installment.index} style={{ padding: '12px', border: `1px solid ${installment.isOverdue ? '#fecaca' : 'var(--tamas-border)'}`, borderRadius: '12px', display: 'grid', gap: '12px', alignItems: 'center' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <strong style={{ display: 'block', fontSize: '13.5px' }}>قسط {(installment.index + 1).toLocaleString('fa-IR')} — {formatMoney(installment.amount)}</strong>
+                          <span style={{ display: 'block', marginTop: '4px', fontSize: '12px', color: 'var(--tamas-muted)' }}>سررسید: {formatPersianDueDate(installment.dueDate)}</span>
+                          <span style={{ display: 'block', marginTop: '5px', fontSize: '12px', fontWeight: 800, color: statusColor }}>{statusText}</span>
+                          {receipt?.rejectionReason && <span style={{ display: 'block', marginTop: '4px', color: '#b91c1c', fontSize: '12px' }}>علت رد: {receipt.rejectionReason}</span>}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                          {receipt && <a className="btn ghost sm" href={receipt.receiptUrl} target="_blank" rel="noreferrer">مشاهده رسید</a>}
+                          {receipt?.status !== 'approved' && (
+                            <>
+                              <input
+                                id={uploadKey}
+                                type="file"
+                                accept="image/*,application/pdf"
+                                hidden
+                                disabled={uploadingField === uploadKey}
+                                onChange={(event) => {
+                                  const file = event.target.files?.[0];
+                                  if (file) void handleInstallmentReceiptUpload(order.orderId, installment.index, file);
+                                  event.currentTarget.value = '';
+                                }}
+                              />
+                              <label className="btn primary sm" htmlFor={uploadKey} aria-disabled={uploadingField === uploadKey}>
+                                {uploadingField === uploadKey ? 'در حال ثبت...' : receipt ? 'بارگذاری مجدد' : 'بارگذاری رسید'}
+                              </label>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )) : (
+              <div style={{ textAlign: 'center', padding: '30px', color: 'var(--tamas-muted)' }}>سفارش قسطی فعالی برای ثبت رسید وجود ندارد.</div>
             )}
           </div>
         )}
@@ -813,11 +901,11 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
       );
     }
 
-    if (existingApp && !isEditing) {
-      if (existingApp.status === 'active') {
-        return renderActiveCreditBuyerDashboard();
-      }
+    if (!isEditing && (existingApp?.status === 'active' || (dashboard?.installmentOrders.length ?? 0) > 0)) {
+      return renderActiveCreditBuyerDashboard();
+    }
 
+    if (existingApp && !isEditing) {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div

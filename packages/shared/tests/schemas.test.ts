@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { catalogQuerySchema, idSchema, orderItemsReplaceSchema, productCodeSchema, productPatchSchema, sheetBool } from '../src/schemas.js';
+import { catalogQuerySchema, idSchema, installmentReceiptWriteSchema, orderItemsReplaceSchema, productCodeSchema, productPatchSchema, sheetBool } from '../src/schemas.js';
 
 describe('shared schemas', () => {
   it('coerces positive integer ids and rejects invalid ids', () => {
@@ -41,5 +41,11 @@ describe('shared schemas', () => {
     assert.throws(() => orderItemsReplaceSchema.parse({
       items: [{ productId: '01010113528', warehouse: 'kerman', qty: 0 }],
     }));
+  });
+
+  it('accepts stored receipt files and rejects unsafe receipt links', () => {
+    assert.equal(installmentReceiptWriteSchema.parse({ receiptUrl: '/uploads/receipt.jpg' }).receiptUrl, '/uploads/receipt.jpg');
+    assert.equal(installmentReceiptWriteSchema.parse({ receiptUrl: 'https://cdn.example.com/receipt.pdf' }).receiptUrl, 'https://cdn.example.com/receipt.pdf');
+    assert.throws(() => installmentReceiptWriteSchema.parse({ receiptUrl: 'javascript:alert(1)' }));
   });
 });
