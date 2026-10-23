@@ -942,8 +942,8 @@ export default function AdminApp() {
             <Route path="orders" element={<OrdersPage />} />
             <Route path="proformas" element={<ProformasPage />} />
             <Route path="users" element={<UsersPage />} />
-            <Route path="credit" element={<CreditApplicationsPage />} />
-            <Route path="credit-reports" element={<CreditApplicationsPage initialSection="reports" />} />
+            <Route path="credit" element={<CreditApplicationsPage key="credit-applications" />} />
+            <Route path="credit-reports" element={<CreditApplicationsPage key="credit-reports" initialSection="reports" />} />
             <Route path="catalog-export" element={<CatalogExportPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="messages" element={<MessagesPage />} />
