@@ -39,4 +39,6 @@ test('shared dialog sizes stay bounded and every theme maps shared semantic surf
   assert.match(css, /--ds-surface: var\(--ds-admin-surface\)/);
   assert.match(css, /--modal-size: 28rem/);
   assert.match(css, /max-width: min\(var\(--modal-size/);
+  assert.match(css, /body \.wallet-panel input \{[^}]*background: var\(--ds-surface-subtle\)/);
+  assert.match(css, /Prevent focus-induced zoom on iOS/);
 });

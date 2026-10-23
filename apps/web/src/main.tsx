@@ -13,8 +13,7 @@ import './styles/design-system.css';
 import './styles/global.css';
 import './styles/platform-ui.css';
 
-// Keep long-lived tabs on the currently deployed version. A mismatched build
-// gets a cache-busted navigation, so a normal reload cannot restore stale HTML.
+// Offer long-lived tabs the latest version without discarding an unfinished form.
 if (import.meta.env.PROD) installForcedAppUpdates();
 
 // Missing hashed chunks are another signal that a newer deployment is live.
@@ -24,7 +23,7 @@ const handleChunkError = (errorMsg: string) => {
     errorMsg.includes('Importing a module script failed') ||
     errorMsg.includes('ChunkLoadError')
   ) {
-    console.warn('New app version detected due to missing chunk. Updating...');
+    console.warn('New app version detected due to missing chunk. Update offered to the user.');
     notifyAppUpdate();
   }
 };
