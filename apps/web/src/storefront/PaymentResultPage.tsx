@@ -14,19 +14,19 @@ export function PaymentResultPage() {
   const isSuccess = status === 'success';
 
   return (
-    <div className="storefront-page customer-payment-result" style={{ padding: '40px 20px', minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div className="card customer-payment-card" style={{ maxWidth: 500, width: '100%', padding: '40px 20px', textAlign: 'center', marginTop: '20px' }}>
+    <div className="storefront-page customer-payment-result" style={{ padding: "var(--ds-space-10) var(--ds-space-5)", minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div className="card customer-payment-card" style={{ maxWidth: 500, width: '100%', padding: "var(--ds-space-10) var(--ds-space-5)", textAlign: 'center', marginTop: "var(--ds-space-5)" }}>
         <div style={{
           width: 80, height: 80, borderRadius: '50%',
           background: isSuccess ? 'var(--success-bg)' : 'var(--warn-bg)',
           color: isSuccess ? 'var(--success)' : 'var(--warn)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'
+          display: 'flex', alignItems: 'center', justifyContent: 'center', margin: "0 auto var(--ds-space-5)"
         }}>
           <div style={{ width: 40, height: 40, display: 'flex' }}>
             <Icon name={isSuccess ? 'check' : 'warn'} />
           </div>
         </div>
-        <h2 style={{ marginBottom: 10, fontSize: 22 }}>
+        <h2 style={{ marginBottom: 10, fontSize: "var(--ds-text-title)" }}>
           {isSuccess ? 'پرداخت شما با موفقیت انجام شد' : 'پرداخت ناموفق بود'}
         </h2>
         

@@ -314,7 +314,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
                 config,
               );
 
-              let action: 'update' | 'create' = 'create';
+              let action: 'update' | 'create';
               let resultObj;
               if (searchResult.ok && searchResult.remoteId) {
                 // Product exists - update it

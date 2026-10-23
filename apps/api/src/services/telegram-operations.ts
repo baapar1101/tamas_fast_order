@@ -111,7 +111,7 @@ function orderMenu(id: number): TelegramButton[][] {
 }
 
 function confirmation(action: Exclude<TelegramAction, { stage: 'menu' }>): { text: string; keyboard: TelegramButton[][] } {
-  let label = '';
+  let label: string;
   if (action.entity === 'user') label = action.operation === 'activate' ? 'تأیید و فعال‌کردن مشتری' : 'غیرفعال‌کردن مشتری';
   else if (action.operation === 'status') label = `تغییر وضعیت سفارش به «${ORDER_STATUS_LABELS[action.value]}»`;
   else label = action.value === 'paid' ? 'ثبت پرداخت سفارش' : `تغییر وضعیت پرداخت به ${action.value}`;

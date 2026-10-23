@@ -55,6 +55,8 @@ const envSchema = z.object({
   /* --- Storage (local disk today, S3 adapter can drop in later) --- */
   STORAGE_DRIVER: z.enum(['local']).default('local'),
   STORAGE_ROOT: z.string().default('./storage'),
+  /** Must stay outside every public web root; defaults to a sibling of STORAGE_ROOT. */
+  PRIVATE_STORAGE_ROOT: z.string().optional(),
   /** Public base the browser uses to fetch uploads; the API serves it itself by default. */
   STORAGE_PUBLIC_URL: z.string().default('/uploads'),
   UPLOAD_MAX_BYTES: z.coerce.number().int().min(1024).default(15 * 1024 * 1024),
@@ -99,7 +101,7 @@ const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
   const issues = parsed.error.issues.map((i) => `  • ${i.path.join('.')}: ${i.message}`).join('\n');
-  // eslint-disable-next-line no-console
+
   console.error(`\nInvalid environment configuration:\n${issues}\n\nCopy .env.example to .env and fill it in.\n`);
   process.exit(1);
 }

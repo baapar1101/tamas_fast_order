@@ -31,7 +31,7 @@
   /* Reset hero-slider margin for tab spacing */
   .hero-slider {
     flex-shrink: 0;
-    margin-top: 16px;
+    margin-top: var(--ds-space-4);
   }
 
   /* TABS VISIBILITY LOGIC */
@@ -75,7 +75,7 @@
     min-height: auto !important;
     max-height: none !important;
     overflow-y: visible !important;
-    padding: 16px !important;
+    padding: var(--ds-space-4) !important;
     box-shadow: none !important;
     border: none !important;
     background: transparent !important;

@@ -15,6 +15,7 @@ import {
 import { db } from '../db/client.js';
 import { users } from '../db/schema.js';
 import { env } from '../env.js';
+import { claimPrivateFile } from '../services/private-files.js';
 import { AppError, badRequest } from '../lib/errors.js';
 import { createSession, destroySession, missingProfileFields, findOrCreateUser, toUserDTO } from '../services/auth.js';
 import { resendCooldown, sendOtp, verifyOtp } from '../services/otp.js';
@@ -128,6 +129,9 @@ const routes: FastifyPluginAsync = async (app) => {
   app.put('/auth/profile', { preHandler: [app.requireUser] }, async (req) => {
     const body = profileWriteSchema.parse(req.body);
     const current = req.currentUser!;
+    if (body.certificateFileUrl && (body.certificateFileUrl !== current.certificateFileUrl || body.certificateFileUrl.startsWith('/'))) {
+      body.certificateFileUrl = await claimPrivateFile(body.certificateFileUrl, current.id, 'credit');
+    }
 
     let updatedUser: UserDTO;
     try {

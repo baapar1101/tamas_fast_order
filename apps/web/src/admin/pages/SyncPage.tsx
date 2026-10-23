@@ -276,7 +276,7 @@ export function SyncPage() {
       </section>
 
       {/* === Excel Upload Card === */}
-      <section className="a-card" style={{ borderColor: 'var(--clr-aqua)', borderWidth: 2, marginTop: 16 }}>
+      <section className="a-card" style={{ borderColor: 'var(--clr-aqua)', borderWidth: 2, marginTop: "var(--ds-space-4)" }}>
         <div className="a-card-head a-card-head--split">
           <div>
             <h3 className="a-card-title">آپدیت گروهی قیمت و موجودی با اکسل</h3>

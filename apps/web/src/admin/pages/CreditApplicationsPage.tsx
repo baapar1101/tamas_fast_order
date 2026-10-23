@@ -118,10 +118,10 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
 
   const renderStatusBadge = (status: CreditStatus) => {
     const bgMap: Record<CreditStatus, string> = {
-      pending: '#fef3c7',
-      reviewing: '#e0f2fe',
-      active: '#dcfce7',
-      action_required: '#fee2e2',
+      pending: 'var(--ds-warning-soft)',
+      reviewing: 'var(--ds-info-soft)',
+      active: 'var(--ds-success-soft)',
+      action_required: 'var(--ds-danger-soft)',
     };
     const colorMap: Record<CreditStatus, string> = {
       pending: '#d97706',
@@ -133,9 +133,9 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
     return (
       <span
         style={{
-          padding: '4px 10px',
+          padding: "var(--ds-space-1) 10px",
           borderRadius: '12px',
-          fontSize: '12px',
+          fontSize: "var(--ds-text-caption)",
           fontWeight: 800,
           backgroundColor: bgMap[status],
           color: colorMap[status],
@@ -170,7 +170,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
 
       {/* Filters Toolbar */}
       {section === 'applications' && <>
-      <section className="a-filterbar" style={{ padding: '16px', borderRadius: '14px', backgroundColor: 'var(--a-surface-2)', border: '1px solid var(--a-border)', backdropFilter: 'blur(16px)', display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+      <section className="a-filterbar" style={{ padding: "var(--ds-space-4)", borderRadius: '14px', backgroundColor: 'var(--a-surface-2)', border: '1px solid var(--a-border)', backdropFilter: 'blur(16px)', display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
         <input
           type="search"
           className="a-input"
@@ -202,11 +202,11 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
 
       {/* Applications Table */}
       {loading ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--a-t2)' }}>در حال بارگذاری لیست...</div>
+        <div style={{ padding: "var(--ds-space-10)", textAlign: 'center', color: 'var(--a-t2)' }}>در حال بارگذاری لیست...</div>
       ) : filteredItems.length === 0 ? (
         <div
           style={{
-            padding: '40px',
+            padding: "var(--ds-space-10)",
             textAlign: 'center',
             backgroundColor: 'var(--a-surface-2)',
             backdropFilter: 'blur(16px)',
@@ -227,42 +227,42 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
             overflowX: 'auto',
           }}
         >
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '13px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: "var(--ds-text-sm)" }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--a-border)' }}>
-                <th style={{ padding: '12px 16px', color: 'var(--a-t2)' }}>مشتری</th>
-                <th style={{ padding: '12px 16px', color: 'var(--a-t2)' }}>شماره تماس</th>
-                <th style={{ padding: '12px 16px', color: 'var(--a-t2)' }}>کد ملی</th>
-                <th style={{ padding: '12px 16px', color: 'var(--a-t2)' }}>نوع کسب‌وکار</th>
-                <th style={{ padding: '12px 16px', color: 'var(--a-t2)' }}>وضعیت</th>
-                <th style={{ padding: '12px 16px', color: 'var(--a-t2)' }}>سقف اعتبار</th>
-                <th style={{ padding: '12px 16px', color: 'var(--a-t2)' }}>عملیات</th>
+                <th style={{ padding: "var(--ds-space-3) var(--ds-space-4)", color: 'var(--a-t2)' }}>مشتری</th>
+                <th style={{ padding: "var(--ds-space-3) var(--ds-space-4)", color: 'var(--a-t2)' }}>شماره تماس</th>
+                <th style={{ padding: "var(--ds-space-3) var(--ds-space-4)", color: 'var(--a-t2)' }}>کد ملی</th>
+                <th style={{ padding: "var(--ds-space-3) var(--ds-space-4)", color: 'var(--a-t2)' }}>نوع کسب‌وکار</th>
+                <th style={{ padding: "var(--ds-space-3) var(--ds-space-4)", color: 'var(--a-t2)' }}>وضعیت</th>
+                <th style={{ padding: "var(--ds-space-3) var(--ds-space-4)", color: 'var(--a-t2)' }}>سقف اعتبار</th>
+                <th style={{ padding: "var(--ds-space-3) var(--ds-space-4)", color: 'var(--a-t2)' }}>عملیات</th>
               </tr>
             </thead>
             <tbody>
               {filteredItems.map((item) => (
                 <tr key={item.id} style={{ borderBottom: '1px solid var(--a-border)' }} className="hover:bg-[var(--a-hover)] transition-colors">
-                  <td style={{ padding: '14px 16px', fontWeight: 700, color: 'var(--a-t1)' }}>
+                  <td style={{ padding: "14px var(--ds-space-4)", fontWeight: 700, color: 'var(--a-t1)' }}>
                     {item.userName}
                     {item.userStoreName && (
-                      <div style={{ fontSize: '11px', color: 'var(--a-t3)', fontWeight: 400 }}>
+                      <div style={{ fontSize: "var(--ds-text-xs)", color: 'var(--a-t3)', fontWeight: 400 }}>
                         {item.userStoreName}
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: '14px 16px', color: 'var(--a-t1)' }}>{item.userPhone}</td>
-                  <td style={{ padding: '14px 16px', color: 'var(--a-t2)' }}>{item.nationalId}</td>
-                  <td style={{ padding: '14px 16px', color: 'var(--a-t2)' }}>{item.businessType}</td>
-                  <td style={{ padding: '14px 16px' }}>{renderStatusBadge(item.status)}</td>
-                  <td style={{ padding: '14px 16px', fontWeight: 800, color: 'var(--a-brand)' }}>
+                  <td style={{ padding: "14px var(--ds-space-4)", color: 'var(--a-t1)' }}>{item.userPhone}</td>
+                  <td style={{ padding: "14px var(--ds-space-4)", color: 'var(--a-t2)' }}>{item.nationalId}</td>
+                  <td style={{ padding: "14px var(--ds-space-4)", color: 'var(--a-t2)' }}>{item.businessType}</td>
+                  <td style={{ padding: "14px var(--ds-space-4)" }}>{renderStatusBadge(item.status)}</td>
+                  <td style={{ padding: "14px var(--ds-space-4)", fontWeight: 800, color: 'var(--a-brand)' }}>
                     {item.assignedCreditLimit > 0 ? formatMoney(item.assignedCreditLimit) : 'تعیین نشده'}
                   </td>
-                  <td style={{ padding: '14px 16px' }}>
+                  <td style={{ padding: "14px var(--ds-space-4)" }}>
                     <button
                       type="button"
                       className="a-btn a-btn--secondary"
                       onClick={() => openReviewModal(item)}
-                      style={{ padding: '6px 12px', fontSize: '12px' }}
+                      style={{ padding: "6px var(--ds-space-3)", fontSize: "var(--ds-text-caption)" }}
                     >
                       🔍 بررسی مدارک / تغییر وضعیت
                     </button>
@@ -281,7 +281,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
 
       {section === 'health' && (
         <>
-          <section className="a-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+          <section className="a-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: "var(--ds-space-3)" }}>
             {[
               ['کل مشتریان قسطی', health?.summary.totalCustomers ?? 0, 'var(--a-brand)'],
               ['خوش‌حساب', health?.summary.good ?? 0, '#16a34a'],
@@ -289,9 +289,9 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
               ['بدحساب', health?.summary.bad ?? 0, '#dc2626'],
               ['رسید معوق', health?.summary.overdueWithoutReceipt ?? 0, '#b91c1c'],
             ].map(([label, value, color]) => (
-              <article key={String(label)} className="a-card" style={{ padding: '16px' }}>
-                <span style={{ color: 'var(--a-t2)', fontSize: '12px' }}>{label}</span>
-                <strong style={{ display: 'block', marginTop: '8px', fontSize: '24px', color: String(color) }}>{Number(value).toLocaleString('fa-IR')}</strong>
+              <article key={String(label)} className="a-card" style={{ padding: "var(--ds-space-4)" }}>
+                <span style={{ color: 'var(--a-t2)', fontSize: "var(--ds-text-caption)" }}>{label}</span>
+                <strong style={{ display: 'block', marginTop: "var(--ds-space-2)", fontSize: "var(--ds-text-title)", color: String(color) }}>{Number(value).toLocaleString('fa-IR')}</strong>
               </article>
             ))}
           </section>
@@ -307,12 +307,12 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                     <td>{customer.totalInstallments.toLocaleString('fa-IR')}</td>
                     <td>{customer.approvedOnTime.toLocaleString('fa-IR')}</td>
                     <td>{customer.approvedLate.toLocaleString('fa-IR')}</td>
-                    <td style={{ color: customer.overdueWithoutReceipt ? '#dc2626' : undefined, fontWeight: 800 }}>{customer.overdueWithoutReceipt.toLocaleString('fa-IR')}</td>
+                    <td style={{ color: customer.overdueWithoutReceipt ? "var(--ds-danger)" : undefined, fontWeight: 800 }}>{customer.overdueWithoutReceipt.toLocaleString('fa-IR')}</td>
                     <td>{customer.bouncedCheques.toLocaleString('fa-IR')}</td>
                     <td>{customer.pendingReceipts.toLocaleString('fa-IR')}</td>
                   </tr>
                 ))}
-                {!loading && (health?.customers.length ?? 0) === 0 && <tr><td colSpan={9} style={{ textAlign: 'center', padding: '32px' }}>هنوز سابقه پرداخت قسطی ثبت نشده است.</td></tr>}
+                {!loading && (health?.customers.length ?? 0) === 0 && <tr><td colSpan={9} style={{ textAlign: 'center', padding: "var(--ds-space-8)" }}>هنوز سابقه پرداخت قسطی ثبت نشده است.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -339,7 +339,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                   </td>
                 </tr>
               ))}
-              {!loading && (health?.receipts.length ?? 0) === 0 && <tr><td colSpan={7} style={{ textAlign: 'center', padding: '32px' }}>هنوز رسیدی ثبت نشده است.</td></tr>}
+              {!loading && (health?.receipts.length ?? 0) === 0 && <tr><td colSpan={7} style={{ textAlign: 'center', padding: "var(--ds-space-8)" }}>هنوز رسیدی ثبت نشده است.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -354,18 +354,18 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
       {/* Review & Edit Modal */}
       {selectedApp && (
         <Modal open={true} onClose={() => setSelectedApp(null)} title={`بررسی پرونده اعتباری ${selectedApp.userName}`} wide>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-5)" }}>
             {/* User Info Header */}
             <div
               style={{
-                padding: '14px 16px',
+                padding: "14px var(--ds-space-4)",
                 borderRadius: '12px',
                 backgroundColor: 'var(--a-surface-2)',
                 backdropFilter: 'blur(16px)',
                 border: '1px solid var(--a-border)',
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr 1fr',
-                gap: '12px',
+                gap: "var(--ds-space-3)",
                 fontSize: '12.5px',
               }}
             >
@@ -379,14 +379,14 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
 
             {/* Document Preview Grid */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <strong style={{ fontSize: '14px', color: 'var(--a-t1)' }}>مدارک و تضامین بارگذاری شده:</strong>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px' }}>
+              <strong style={{ fontSize: "var(--ds-text-md)", color: 'var(--a-t1)' }}>مدارک و تضامین بارگذاری شده:</strong>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: "var(--ds-space-3)" }}>
                 <a
                   href={selectedApp.nationalCardUrl}
                   target="_blank"
                   rel="noreferrer"
                   style={{
-                    padding: '12px',
+                    padding: "var(--ds-space-3)",
                     borderRadius: '10px',
                     border: '1px solid var(--a-border)',
                     backgroundColor: 'var(--a-surface-2)',
@@ -396,8 +396,8 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                   }}
                   className="hover:bg-[var(--a-hover)] transition-colors"
                 >
-                  <div style={{ fontSize: '24px', marginBottom: '4px' }}>🖼️</div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--a-t1)' }}>کارت ملی</div>
+                  <div style={{ fontSize: "var(--ds-text-title)", marginBottom: "var(--ds-space-1)" }}>🖼️</div>
+                  <div style={{ fontSize: "var(--ds-text-caption)", fontWeight: 700, color: 'var(--a-t1)' }}>کارت ملی</div>
                   <div style={{ fontSize: '10.5px', color: 'var(--a-brand)' }}>مشاهده / دانلود</div>
                 </a>
 
@@ -406,7 +406,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                   target="_blank"
                   rel="noreferrer"
                   style={{
-                    padding: '12px',
+                    padding: "var(--ds-space-3)",
                     borderRadius: '10px',
                     border: '1px solid var(--a-border)',
                     backgroundColor: 'var(--a-surface-2)',
@@ -416,8 +416,8 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                   }}
                   className="hover:bg-[var(--a-hover)] transition-colors"
                 >
-                  <div style={{ fontSize: '24px', marginBottom: '4px' }}>📜</div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--a-t1)' }}>جواز / اجاره‌نامه</div>
+                  <div style={{ fontSize: "var(--ds-text-title)", marginBottom: "var(--ds-space-1)" }}>📜</div>
+                  <div style={{ fontSize: "var(--ds-text-caption)", fontWeight: 700, color: 'var(--a-t1)' }}>جواز / اجاره‌نامه</div>
                   <div style={{ fontSize: '10.5px', color: 'var(--a-brand)' }}>مشاهده / دانلود</div>
                 </a>
 
@@ -426,7 +426,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                   target="_blank"
                   rel="noreferrer"
                   style={{
-                    padding: '12px',
+                    padding: "var(--ds-space-3)",
                     borderRadius: '10px',
                     border: '1.5px solid var(--a-brand)',
                     backgroundColor: 'var(--a-surface-2)',
@@ -436,8 +436,8 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                   }}
                   className="hover:bg-[var(--a-hover)] transition-colors"
                 >
-                  <div style={{ fontSize: '24px', marginBottom: '4px' }}>💳</div>
-                  <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--a-t1)' }}>برگ چک صیادی</div>
+                  <div style={{ fontSize: "var(--ds-text-title)", marginBottom: "var(--ds-space-1)" }}>💳</div>
+                  <div style={{ fontSize: "var(--ds-text-caption)", fontWeight: 800, color: 'var(--a-t1)' }}>برگ چک صیادی</div>
                   <div style={{ fontSize: '10.5px', color: 'var(--a-brand)' }}>مشاهده / دانلود</div>
                 </a>
 
@@ -447,7 +447,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                     target="_blank"
                     rel="noreferrer"
                     style={{
-                      padding: '12px',
+                      padding: "var(--ds-space-3)",
                       borderRadius: '10px',
                       border: '1px solid var(--a-border)',
                       backgroundColor: 'var(--a-surface-2)',
@@ -457,8 +457,8 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                     }}
                     className="hover:bg-[var(--a-hover)] transition-colors"
                   >
-                    <div style={{ fontSize: '24px', marginBottom: '4px' }}>📊</div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--a-t1)' }}>پرینت حساب</div>
+                    <div style={{ fontSize: "var(--ds-text-title)", marginBottom: "var(--ds-space-1)" }}>📊</div>
+                    <div style={{ fontSize: "var(--ds-text-caption)", fontWeight: 700, color: 'var(--a-t1)' }}>پرینت حساب</div>
                     <div style={{ fontSize: '10.5px', color: 'var(--a-brand)' }}>مشاهده / دانلود</div>
                   </a>
                 )}
@@ -466,8 +466,8 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
             </div>
 
             {/* Admin Controls Form */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderTop: '1px solid var(--a-border)', paddingTop: '16px' }}>
-              <strong style={{ fontSize: '14px', color: 'var(--a-t1)' }}>تعیین وضعیت و سقف اعتبار:</strong>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderTop: '1px solid var(--a-border)', paddingTop: "var(--ds-space-4)" }}>
+              <strong style={{ fontSize: "var(--ds-text-md)", color: 'var(--a-t1)' }}>تعیین وضعیت و سقف اعتبار:</strong>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
                 <div>
@@ -476,7 +476,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                     value={editStatus}
                     onChange={(e) => setEditStatus(e.target.value as CreditStatus)}
                     className="a-input"
-                    style={{ width: '100%', padding: '8px 10px', fontSize: '13px' }}
+                    style={{ width: '100%', padding: "var(--ds-space-2) 10px", fontSize: "var(--ds-text-sm)" }}
                   >
                     <option value="pending">در صف بررسی</option>
                     <option value="reviewing">در حال بررسی</option>
@@ -493,7 +493,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                     value={editLimit}
                     onChange={(e) => setEditLimit(Number(e.target.value))}
                     className="a-input"
-                    style={{ width: '100%', padding: '8px 10px', fontSize: '13px' }}
+                    style={{ width: '100%', padding: "var(--ds-space-2) 10px", fontSize: "var(--ds-text-sm)" }}
                   />
                 </div>
 
@@ -506,7 +506,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                     value={editScore}
                     onChange={(e) => setEditScore(Number(e.target.value))}
                     className="a-input"
-                    style={{ width: '100%', padding: '8px 10px', fontSize: '13px' }}
+                    style={{ width: '100%', padding: "var(--ds-space-2) 10px", fontSize: "var(--ds-text-sm)" }}
                   />
                 </div>
               </div>
@@ -522,7 +522,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                     value={editReason}
                     onChange={(e) => setEditReason(e.target.value)}
                     className="a-input"
-                    style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid var(--a-red)' }}
+                    style={{ width: '100%', padding: "var(--ds-space-2) 10px", fontSize: "var(--ds-text-sm)", border: '1px solid var(--a-red)' }}
                   />
                 </div>
               )}
@@ -536,7 +536,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
                   className="a-input"
-                  style={{ width: '100%', padding: '8px 10px', fontSize: '13px', minHeight: '60px' }}
+                  style={{ width: '100%', padding: "var(--ds-space-2) 10px", fontSize: "var(--ds-text-sm)", minHeight: '60px' }}
                 />
               </div>
 

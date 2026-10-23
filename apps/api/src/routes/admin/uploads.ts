@@ -1,4 +1,4 @@
-import { count, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq, isNull } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import { UPLOAD_KINDS, uploadQuerySchema, type UploadKind } from '@tamas/shared';
 import { db } from '../../db/client.js';
@@ -48,7 +48,8 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.get('/admin/uploads', async (req) => {
     const q = uploadQuerySchema.parse(req.query);
-    const where = q.kind ? eq(uploads.kind, q.kind) : undefined;
+    // The media library must never enumerate financial or identity documents.
+    const where = and(isNull(uploads.privateScope), q.kind ? eq(uploads.kind, q.kind) : undefined);
 
     const [rows, [total]] = await Promise.all([
       db.select().from(uploads).where(where).orderBy(desc(uploads.createdAt)).limit(q.perPage).offset(offsetOf(q)),

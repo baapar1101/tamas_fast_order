@@ -40,7 +40,8 @@ function pruneStaleGeneratedChunksPlugin(): Plugin {
       for (const entry of fs.readdirSync(assetsDir, { withFileTypes: true })) {
         if (!entry.isFile() || !GENERATED_CHUNK_FILE.test(entry.name)) continue;
         const filePath = path.resolve(assetsDir, entry.name);
-        if (!currentFiles.has(filePath)) fs.unlinkSync(filePath);
+        // Existing tabs can still import the previous build's lazy routes.
+        if (!currentFiles.has(filePath) && Date.now() - fs.statSync(filePath).mtimeMs > 7 * 86400_000) fs.unlinkSync(filePath);
       }
     },
   };
@@ -93,7 +94,6 @@ export default defineConfig({
             if (id.includes('@tanstack')) return 'query';
             return 'vendor';
           }
-          if (id.includes('/src/admin/')) return 'admin';
           return undefined;
         },
       },

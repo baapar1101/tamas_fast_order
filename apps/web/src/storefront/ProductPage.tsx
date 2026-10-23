@@ -290,7 +290,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
             <div>
               <div className="skeleton" style={{ height: 26, width: '70%', marginBottom: 14 }} />
               <div className="skeleton" style={{ height: 16, width: '45%', marginBottom: 22 }} />
-              <div className="skeleton" style={{ height: 120, width: '100%', marginBottom: 16 }} />
+              <div className="skeleton" style={{ height: 120, width: '100%', marginBottom: "var(--ds-space-4)" }} />
               <div className="skeleton" style={{ height: 44, width: '100%' }} />
             </div>
           </div>

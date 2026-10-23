@@ -59,7 +59,7 @@
     width: 100%;
     min-height: 38px;
     justify-content: space-between;
-    padding-bottom: 12px;
+    padding-bottom: var(--ds-space-3);
     border-bottom: 1px solid var(--tamas-border);
   }
 
@@ -68,7 +68,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(150px, 0.75fr);
     align-items: stretch;
-    gap: 12px;
+    gap: var(--ds-space-3);
   }
 
   .view-control,
@@ -134,7 +134,7 @@
     position: fixed;
     inset: auto 0 0;
     height: calc(64px + env(safe-area-inset-bottom, 0px));
-    padding: 0 var(--ds-space-2) env(safe-area-inset-bottom, 0px);
+    padding: 0 var(--ds-space-2) env(safe-area-inset-bottom, var(--ds-space-0));
     align-items: stretch;
     background: var(--ds-surface-raised);
     border-top: 1px solid var(--ds-border);
@@ -164,7 +164,7 @@
   .tabbar-item.active { color: var(--ds-interactive); }
   .tabbar-icon { position: relative; display: flex; font-size: var(--ds-text-xl); }
   .tabbar-icon .badge-count { position: absolute; inset: -4px -10px auto auto; }
-  .account-shell { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+  .account-shell { padding-bottom: calc(68px + env(safe-area-inset-bottom, var(--ds-space-0))); }
 
   .product-thumb:hover { transform: none !important; z-index: auto !important; }
 }
@@ -222,17 +222,17 @@
   }
 
   .credit-dashboard {
-    padding-inline: 12px;
+    padding-inline: var(--ds-space-3);
   }
 }
 
 @media (max-width: 640px) {
   .container {
-    padding-inline: 12px;
+    padding-inline: var(--ds-space-3);
   }
 
   .main-content {
-    padding: 14px 12px;
+    padding: 14px var(--ds-space-3);
   }
 
   .toolbar-result {
@@ -256,11 +256,11 @@
 
   .pagination {
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--ds-space-2);
   }
 
   .account-page {
-    padding-inline: 12px;
+    padding-inline: var(--ds-space-3);
   }
 
   .account-sidebar,
@@ -273,7 +273,7 @@
 
   .account-nav,
   .account-sidebar-actions {
-    gap: 8px;
+    gap: var(--ds-space-2);
   }
 
   .account-nav-item {
@@ -312,12 +312,12 @@
   }
 
   .customer-payment-result {
-    padding: 24px 12px !important;
+    padding: var(--ds-space-6) var(--ds-space-3) !important;
   }
 
   .customer-payment-card {
-    padding: 28px 16px !important;
-    margin-top: 8px !important;
+    padding: 28px var(--ds-space-4) !important;
+    margin-top: var(--ds-space-2) !important;
   }
 
   .customer-payment-actions {
@@ -332,22 +332,22 @@
   }
 
   .terms-page {
-    padding-inline: 12px;
+    padding-inline: var(--ds-space-3);
   }
 
   .terms-page > .card {
-    padding-inline: 16px !important;
+    padding-inline: var(--ds-space-4) !important;
   }
 }
 
 @media (max-width: 768px) {
   /* Account routes remain inside the same mobile app shell as the storefront. */
   .account-shell {
-    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, var(--ds-space-0)));
   }
 
   .account-shell .account-page {
-    padding-bottom: 32px;
+    padding-bottom: var(--ds-space-8);
   }
 
   .account-shell .site-footer {

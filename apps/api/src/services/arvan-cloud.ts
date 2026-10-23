@@ -113,8 +113,8 @@ async function request(config: ArvanConfig, path: string, period: ArvanReportPer
       lastMessage = String(payload.message || payload.error || Object.values(errors)[0] || '');
       if (response.status !== 401 && response.status !== 403) break;
     } catch (error) {
-      if ((error as Error).name === 'AbortError') throw new Error('پاسخ اروان کلاد بیش از حد طول کشید.');
-      throw new Error('ارتباط با سرویس CDN اروان برقرار نشد.');
+      if ((error as Error).name === 'AbortError') throw new Error('پاسخ اروان کلاد بیش از حد طول کشید.', { cause: error });
+      throw new Error('ارتباط با سرویس CDN اروان برقرار نشد.', { cause: error });
     } finally {
       clearTimeout(timeout);
     }

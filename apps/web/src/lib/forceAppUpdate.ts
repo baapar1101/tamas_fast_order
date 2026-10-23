@@ -15,6 +15,19 @@ type ReloadState = {
 
 let lastCheckAt = 0;
 let updateInProgress = false;
+let availableBuild: number | null = null;
+const updateListeners = new Set<(build: number) => void>();
+
+export function subscribeAppUpdates(listener: (build: number) => void): () => void {
+  updateListeners.add(listener);
+  if (availableBuild !== null) listener(availableBuild);
+  return () => { updateListeners.delete(listener); };
+}
+
+export function notifyAppUpdate(build = Date.now()): void {
+  availableBuild = build;
+  for (const listener of updateListeners) listener(build);
+}
 
 function readReloadState(): ReloadState | null {
   try {
@@ -42,13 +55,16 @@ async function clearObsoleteBrowserCaches(): Promise<void> {
   if ('serviceWorker' in navigator) {
     tasks.push(
       navigator.serviceWorker.getRegistrations().then((registrations) =>
-        Promise.all(registrations.map((registration) => registration.unregister())),
+        Promise.all(registrations.filter((registration) => {
+          const script = registration.active?.scriptURL ?? registration.waiting?.scriptURL ?? registration.installing?.scriptURL;
+          return script && new URL(script).origin === location.origin && new URL(script).pathname === '/sw.js';
+        }).map((registration) => registration.unregister())),
       ),
     );
   }
 
   if ('caches' in window) {
-    tasks.push(caches.keys().then((names) => Promise.all(names.map((name) => caches.delete(name)))));
+    tasks.push(caches.keys().then((names) => Promise.all(names.filter((name) => name.startsWith('tamas-') || name.startsWith('tamasmarket-')).map((name) => caches.delete(name)))));
   }
 
   await Promise.allSettled(tasks);
@@ -107,7 +123,7 @@ export async function checkForAppUpdate(): Promise<void> {
 
     const manifest = (await response.json()) as VersionManifest;
     if (typeof manifest.buildTime === 'number' && manifest.buildTime !== __BUILD_TIME__) {
-      await forceReloadLatestApp(manifest.buildTime);
+      notifyAppUpdate(manifest.buildTime);
     }
   } catch {
     // Offline or short-lived network failures should not interrupt the app.
@@ -116,7 +132,6 @@ export async function checkForAppUpdate(): Promise<void> {
 
 export function installForcedAppUpdates(): () => void {
   removeCurrentVersionMarker();
-  void clearObsoleteBrowserCaches();
 
   const checkWhenVisible = () => {
     if (document.visibilityState === 'visible') void checkForAppUpdate();

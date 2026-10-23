@@ -4,7 +4,7 @@
   z-index: 1;
   pointer-events: none;
   overflow: hidden;
-  color: #fff;
+  color: var(--ds-on-interactive);
   background: linear-gradient(270deg, rgba(2, 10, 23, .33) 0%, rgba(2, 10, 23, .12) 48%, transparent 78%);
 }
 
@@ -29,7 +29,7 @@
 
 .golden-campaign-copy h2 {
   margin: 0;
-  color: #fff;
+  color: var(--ds-on-interactive);
   font-size: clamp(25px, 3.1vw, 47px);
   font-weight: 900;
   line-height: 1.32;
@@ -49,7 +49,7 @@
   flex-wrap: wrap;
   gap: .4em;
   margin-top: .55em !important;
-  color: #fff;
+  color: var(--ds-on-interactive);
   font-size: clamp(15px, 1.7vw, 23px);
   font-weight: 700;
 }
@@ -67,7 +67,7 @@
 }
 
 .golden-campaign-terms strong {
-  color: #fff;
+  color: var(--ds-on-interactive);
   font-weight: 850;
 }
 
@@ -97,11 +97,11 @@
     width: auto;
     transform: none;
   }
-  .golden-campaign-kicker { font-size: 12px; }
+  .golden-campaign-kicker { font-size: var(--ds-text-caption); }
   .golden-campaign-copy h2 { font-size: clamp(24px, 7vw, 30px); line-height: 1.27; }
   .golden-campaign-range { font-size: clamp(15px, 4.1vw, 18px); }
   .golden-campaign-terms { font-size: clamp(13px, 3.8vw, 16px); }
-  .golden-campaign-deadline { margin-top: .45em; font-size: 12px; }
+  .golden-campaign-deadline { margin-top: .45em; font-size: var(--ds-text-caption); }
 }
 
 .slides-preview-frame--golden .golden-campaign-copy {
@@ -121,9 +121,9 @@
   width: auto;
   transform: none;
 }
-.slides-preview-frame--mobile.slides-preview-frame--golden .golden-campaign-copy h2 { font-size: 18px; }
-.slides-preview-frame--mobile.slides-preview-frame--golden .golden-campaign-range { font-size: 12px; }
-.slides-preview-frame--mobile.slides-preview-frame--golden .golden-campaign-terms { font-size: 11px; }
+.slides-preview-frame--mobile.slides-preview-frame--golden .golden-campaign-copy h2 { font-size: var(--ds-text-lead); }
+.slides-preview-frame--mobile.slides-preview-frame--golden .golden-campaign-range { font-size: var(--ds-text-caption); }
+.slides-preview-frame--mobile.slides-preview-frame--golden .golden-campaign-terms { font-size: var(--ds-text-xs); }
 
 /* The storefront's default theme is light; data-theme="dark" keeps the
    original midnight artwork and typography above. */

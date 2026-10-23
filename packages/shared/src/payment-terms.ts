@@ -194,7 +194,7 @@ const text = (value: unknown, fallback: string): string => typeof value === 'str
 
 /** Parse the admin JSON defensively so an incomplete edit cannot break checkout. */
 export function parsePaymentTermsConfig(raw: string | PaymentTermsConfig | null | undefined): PaymentTermsConfig {
-  let parsed: Partial<PaymentTermsConfig> | null = null;
+  let parsed: Partial<PaymentTermsConfig> | null;
   try {
     parsed = typeof raw === 'string' ? JSON.parse(raw) as Partial<PaymentTermsConfig> : raw ?? null;
   } catch {

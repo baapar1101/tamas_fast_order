@@ -9,6 +9,7 @@ npm-debug.log*
 storage/
 !storage/.gitkeep
 .private/
+private-storage/
 apps/api/drizzle/meta/_journal.json.bak
 coverage/
 .vite/

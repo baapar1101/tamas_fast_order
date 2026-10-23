@@ -16,30 +16,9 @@ import { creditReportExpiresAt, toCreditReportSnapshotDTO } from '../services/cr
 import { parseIcsCreditReport } from '../services/ics-credit-report.js';
 import { buildInstallmentOrderDTO, resolveInstallmentDueDate, toInstallmentReceiptDTO } from '../services/installment-receipts.js';
 import { processUpload } from '../services/uploads.js';
+import { claimPrivateFile } from '../services/private-files.js';
 
 const routes: FastifyPluginAsync = async (app) => {
-  // Ensure tables exist safely if migration didn't run
-  await db.execute(
-    sql`CREATE TABLE IF NOT EXISTS credit_applications (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      national_id VARCHAR(20) NOT NULL,
-      business_type VARCHAR(100) NOT NULL,
-      national_card_url TEXT NOT NULL,
-      business_docs_url TEXT NOT NULL,
-      check_image_url TEXT NOT NULL,
-      bank_statement_url TEXT,
-      referral_info TEXT,
-      status VARCHAR(40) NOT NULL DEFAULT 'pending',
-      rejection_reason TEXT,
-      admin_credit_score INTEGER NOT NULL DEFAULT 0,
-      assigned_credit_limit BIGINT NOT NULL DEFAULT 0,
-      internal_notes TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );`
-  ).catch(() => {});
-
   // Uploading an official ICS24 report always creates a new snapshot. Previous
   // snapshots remain untouched so the customer's credit history is auditable.
   app.post('/credit/reports/upload', { preHandler: [app.requireUser] }, async (req, reply) => {
@@ -124,25 +103,6 @@ const routes: FastifyPluginAsync = async (app) => {
         : 'گزارش ذخیره شد و برای کنترل نهایی مدیر علامت‌گذاری شد.',
     });
   });
-
-  await db.execute(
-    sql`CREATE TABLE IF NOT EXISTS credit_cheques (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      credit_application_id INTEGER REFERENCES credit_applications(id) ON DELETE SET NULL,
-      order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
-      cheque_number VARCHAR(80) NOT NULL,
-      bank_name VARCHAR(120) NOT NULL,
-      account_holder VARCHAR(160) NOT NULL,
-      amount BIGINT NOT NULL,
-      due_date VARCHAR(30) NOT NULL,
-      status VARCHAR(40) NOT NULL DEFAULT 'pending',
-      image_url TEXT,
-      notes TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );`
-  ).catch(() => {});
 
   // Get current user's credit application status
   app.get('/credit/my-application', { preHandler: [app.requireUser] }, async (req, reply) => {
@@ -438,6 +398,7 @@ const routes: FastifyPluginAsync = async (app) => {
       isNull(schema.orders.deletedAt),
     )).limit(1);
     if (!order || order.status === 'cancelled') throw notFound('سفارش قسطی یافت نشد.');
+    body.receiptUrl = await claimPrivateFile(body.receiptUrl, user.id, 'payment');
     const plan = order.paymentPlan;
     if (!plan || (plan.kind !== 'cheque' && plan.kind !== 'daily')) throw badRequest('این سفارش پرداخت قسطی ندارد.');
     const installment = plan.schedule[installmentIndex];
@@ -538,6 +499,9 @@ const routes: FastifyPluginAsync = async (app) => {
   app.post('/credit/apply', { preHandler: [app.requireUser] }, async (req, reply) => {
     const user = req.currentUser!;
     const body = creditApplicationWriteSchema.parse(req.body);
+    for (const field of ['nationalCardUrl', 'businessDocsUrl', 'checkImageUrl', 'bankStatementUrl'] as const) {
+      if (body[field]) body[field] = await claimPrivateFile(body[field], user.id, 'credit');
+    }
 
     const [freshReport] = await db.select()
       .from(schema.creditReportSnapshots)

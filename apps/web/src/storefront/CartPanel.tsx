@@ -68,15 +68,15 @@ export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout }: Props)
         </div>
       ) : (
         <>
-          <div className="wholesale-progress" style={{ margin: '12px 0 14px', padding: '16px', backgroundColor: 'var(--card)', borderRadius: '12px', border: '1px solid var(--tamas-border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px', fontWeight: 700, color: 'var(--tamas-fg)' }}>
+          <div className="wholesale-progress" style={{ margin: "var(--ds-space-3) 0 14px", padding: "var(--ds-space-4)", backgroundColor: 'var(--card)', borderRadius: '12px', border: '1px solid var(--tamas-border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: "var(--ds-space-2)", fontSize: "var(--ds-text-sm)", fontWeight: 700, color: 'var(--tamas-fg)' }}>
               <span>حد نصاب سفارش عمده</span>
               <span>{progressPercent}%</span>
             </div>
-            <div style={{ height: '6px', backgroundColor: 'var(--tamas-border)', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
+            <div style={{ height: '6px', backgroundColor: 'var(--tamas-border)', borderRadius: '3px', overflow: 'hidden', marginBottom: "var(--ds-space-2)" }}>
               <div style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: progressPercent >= 100 ? '#10b981' : '#0ea5e9', transition: 'width 0.3s ease' }} />
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--tamas-muted)', textAlign: 'center' }}>
+            <div style={{ fontSize: "var(--ds-text-xs)", color: 'var(--tamas-muted)', textAlign: 'center' }}>
               حداقل مبلغ سفارش: <Price amount={WHOLESALE_THRESHOLD} />
             </div>
           </div>
@@ -106,25 +106,25 @@ export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout }: Props)
             ))}
           </div>
 
-          <div className="total" style={{ borderTop: '2px dashed var(--tamas-border)', paddingTop: '16px', marginTop: '8px' }}>
-            <span style={{ fontWeight: 800, fontSize: '16px' }}>مجموع فاکتور</span>
-            <span className={canViewPrices ? undefined : 'price-obscured'} style={{ color: 'var(--tamas-accent)', fontWeight: 900, fontSize: '18px' }}><Price amount={total} /></span>
+          <div className="total" style={{ borderTop: '2px dashed var(--tamas-border)', paddingTop: "var(--ds-space-4)", marginTop: "var(--ds-space-2)" }}>
+            <span style={{ fontWeight: 800, fontSize: "var(--ds-text-lg)" }}>مجموع فاکتور</span>
+            <span className={canViewPrices ? undefined : 'price-obscured'} style={{ color: 'var(--tamas-accent)', fontWeight: 900, fontSize: "var(--ds-text-lead)" }}><Price amount={total} /></span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-2)", marginTop: "var(--ds-space-4)" }}>
             <textarea 
               placeholder="توضیحات سفارش (اختیاری)..." 
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: '13px', resize: 'vertical', minHeight: '60px', fontFamily: 'inherit', background: 'var(--tamas-surface)', color: 'var(--tamas-fg)' }}
+              style={{ width: '100%', padding: "var(--ds-space-3)", borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: "var(--ds-text-sm)", resize: 'vertical', minHeight: '60px', fontFamily: 'inherit', background: 'var(--tamas-surface)', color: 'var(--tamas-fg)' }}
             />
-            <button type="button" className="btn primary checkout" onClick={onCheckout} style={{ padding: '12px', fontSize: '14px', borderRadius: '8px' }}>
+            <button type="button" className="btn primary checkout" onClick={onCheckout} style={{ padding: "var(--ds-space-3)", fontSize: "var(--ds-text-md)", borderRadius: '8px' }}>
               ثبت سفارش نهایی
             </button>
-            <button type="button" className="btn" onClick={handleWhatsApp} style={{ backgroundColor: '#10b981', color: 'white', padding: '12px', fontSize: '14px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: 'none' }}>
+            <button type="button" className="btn" onClick={handleWhatsApp} style={{ backgroundColor: '#10b981', color: 'white', padding: "var(--ds-space-3)", fontSize: "var(--ds-text-md)", borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: "var(--ds-space-2)", border: 'none' }}>
               ارسال سفارش در واتساپ
             </button>
-            <button type="button" className="btn ghost" onClick={handlePrint} style={{ padding: '10px', fontSize: '13px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1px solid var(--tamas-border)', color: 'var(--tamas-fg)' }}>
+            <button type="button" className="btn ghost" onClick={handlePrint} style={{ padding: '10px', fontSize: "var(--ds-text-sm)", borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: "var(--ds-space-2)", border: '1px solid var(--tamas-border)', color: 'var(--tamas-fg)' }}>
               پیش‌فاکتور چاپی
             </button>
           </div>

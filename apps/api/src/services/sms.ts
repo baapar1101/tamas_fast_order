@@ -85,7 +85,7 @@ async function sendPrimarySms(
       signal: controller.signal,
     });
     const body = (await res.text()).trim();
-    // eslint-disable-next-line no-console
+
     console.info(`[rastin-sms] ${toPhone} → status ${res.status}, response: ${body}`);
     // Positive number ID or '1' indicates successful SMS delivery
     if (res.ok && (body === '1' || Number(body) > 0)) {
@@ -93,7 +93,7 @@ async function sendPrimarySms(
     }
     return { ok: false, error: `ارسال پیامک ناموفق بود (پاسخ: ${body}).`, fallbackSafe: true };
   } catch (err) {
-    // eslint-disable-next-line no-console
+
     console.error(`[rastin-sms] error sending to ${toPhone}:`, err);
     return { ok: false, error: err instanceof Error ? err.message : 'خطا در ارتباط با سامانه پیامک', fallbackSafe: false };
   } finally {

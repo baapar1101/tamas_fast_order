@@ -1,38 +1,9 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { formatNumber } from '@tamas/shared';
 import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
-import { DashboardPage } from './pages/DashboardPage';
-import { ProductsPage } from './pages/ProductsPage';
-import { CategoriesPage } from './pages/CategoriesPage';
-import { BrandsPage } from './pages/BrandsPage';
-import { OrdersPage } from './pages/OrdersPage';
-import { ProformasPage } from './pages/ProformasPage';
-import { UsersPage } from './pages/UsersPage';
-import { AttributesPage } from './AttributesPage';
-import { WarehousesPage } from './WarehousesPage';
-import { SlidesPage } from './pages/SlidesPage';
-import { UploadsPage } from './pages/UploadsPage';
-import { SyncPage } from './pages/SyncPage';
-import { SettingsPage } from './pages/SettingsPage';
-import { CrmSyncPage } from './pages/CrmSyncPage';
-import { AnalyticsPage } from './pages/AnalyticsPage';
-import { MessagesPage } from './pages/MessagesPage';
-import { MarketingPage } from './pages/MarketingPage';
-import { FinancialPage } from './pages/FinancialPage';
-import { CommentsPage } from './pages/CommentsPage';
-import { GraphifyPage } from './pages/GraphifyPage';
-import { ArchifyPage } from './pages/ArchifyPage';
-import { AccessGroupsPage } from './pages/AccessGroupsPage';
-import { SmsPage } from './pages/SmsPage';
-import { CrmChatPage } from './pages/CrmChatPage';
-import { CreditApplicationsPage } from './pages/CreditApplicationsPage';
-import { CatalogExportPage } from './pages/CatalogExportPage';
-import { TargetSitesPage } from './pages/TargetSitesPage';
-import { WalletsPage } from './pages/WalletsPage';
-import { ProductContentImportPage } from './pages/ProductContentImportPage';
 import { SmokeyBackground } from './components/SmokeyBackground';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
@@ -40,6 +11,36 @@ import './reference.css';
 import './admin.css';
 import './theme.css';
 import './foundation.css';
+
+const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
+const ProductsPage = lazy(() => import('./pages/ProductsPage').then((m) => ({ default: m.ProductsPage })));
+const CategoriesPage = lazy(() => import('./pages/CategoriesPage').then((m) => ({ default: m.CategoriesPage })));
+const BrandsPage = lazy(() => import('./pages/BrandsPage').then((m) => ({ default: m.BrandsPage })));
+const OrdersPage = lazy(() => import('./pages/OrdersPage').then((m) => ({ default: m.OrdersPage })));
+const ProformasPage = lazy(() => import('./pages/ProformasPage').then((m) => ({ default: m.ProformasPage })));
+const UsersPage = lazy(() => import('./pages/UsersPage').then((m) => ({ default: m.UsersPage })));
+const AttributesPage = lazy(() => import('./AttributesPage').then((m) => ({ default: m.AttributesPage })));
+const WarehousesPage = lazy(() => import('./WarehousesPage').then((m) => ({ default: m.WarehousesPage })));
+const SlidesPage = lazy(() => import('./pages/SlidesPage').then((m) => ({ default: m.SlidesPage })));
+const UploadsPage = lazy(() => import('./pages/UploadsPage').then((m) => ({ default: m.UploadsPage })));
+const SyncPage = lazy(() => import('./pages/SyncPage').then((m) => ({ default: m.SyncPage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const CrmSyncPage = lazy(() => import('./pages/CrmSyncPage').then((m) => ({ default: m.CrmSyncPage })));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })));
+const MessagesPage = lazy(() => import('./pages/MessagesPage').then((m) => ({ default: m.MessagesPage })));
+const MarketingPage = lazy(() => import('./pages/MarketingPage').then((m) => ({ default: m.MarketingPage })));
+const FinancialPage = lazy(() => import('./pages/FinancialPage').then((m) => ({ default: m.FinancialPage })));
+const CommentsPage = lazy(() => import('./pages/CommentsPage').then((m) => ({ default: m.CommentsPage })));
+const GraphifyPage = lazy(() => import('./pages/GraphifyPage').then((m) => ({ default: m.GraphifyPage })));
+const ArchifyPage = lazy(() => import('./pages/ArchifyPage').then((m) => ({ default: m.ArchifyPage })));
+const AccessGroupsPage = lazy(() => import('./pages/AccessGroupsPage').then((m) => ({ default: m.AccessGroupsPage })));
+const SmsPage = lazy(() => import('./pages/SmsPage').then((m) => ({ default: m.SmsPage })));
+const CrmChatPage = lazy(() => import('./pages/CrmChatPage').then((m) => ({ default: m.CrmChatPage })));
+const CreditApplicationsPage = lazy(() => import('./pages/CreditApplicationsPage').then((m) => ({ default: m.CreditApplicationsPage })));
+const CatalogExportPage = lazy(() => import('./pages/CatalogExportPage').then((m) => ({ default: m.CatalogExportPage })));
+const TargetSitesPage = lazy(() => import('./pages/TargetSitesPage').then((m) => ({ default: m.TargetSitesPage })));
+const WalletsPage = lazy(() => import('./pages/WalletsPage').then((m) => ({ default: m.WalletsPage })));
+const ProductContentImportPage = lazy(() => import('./pages/ProductContentImportPage').then((m) => ({ default: m.ProductContentImportPage })));
 
 const NAV_MAIN = [
   {
@@ -927,6 +928,7 @@ export default function AdminApp() {
         {/* Main Content Body */}
         <main className="admin-main-content flex-1 p-4 sm:p-6 lg:p-8">
           <div className="max-w-6xl mx-auto w-full">
+            <Suspense fallback={<div className="ds-route-loading" role="status">در حال بارگذاری بخش…</div>}>
             <Routes>
             <Route index element={<DashboardPage />} />
             <Route path="products" element={<ProductsPage key="products" typeFilter="physical" />} />
@@ -962,6 +964,7 @@ export default function AdminApp() {
             <Route path="chat" element={<CrmChatPage />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
             </Routes>
+            </Suspense>
           </div>
         </main>
       </div>
