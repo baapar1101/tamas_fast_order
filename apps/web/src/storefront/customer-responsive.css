@@ -285,11 +285,15 @@
     column-gap: 10px;
   }
 
-  .card-thumb {
-    width: 84px !important;
-    height: 84px !important;
-    max-width: 84px !important;
-    max-height: 84px !important;
+  .catalog-image-gallery--grid,
+  .catalog-image-gallery--grid .catalog-image-gallery__thumbs {
+    width: 84px;
+    max-width: 84px;
+  }
+
+  .catalog-image-gallery--grid .catalog-image-gallery__hero {
+    width: 84px;
+    height: 84px;
   }
 
   .checkout-plan-schedule {

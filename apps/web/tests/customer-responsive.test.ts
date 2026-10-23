@@ -29,3 +29,13 @@ test('account modules and very narrow screens have explicit overflow contracts',
   assert.match(css, /@media \(max-width:\s*380px\)/);
   assert.match(css, /overflow-x:\s*clip/);
 });
+
+test('mobile product imagery owns a dedicated grid area instead of overlapping product copy', () => {
+  const card = read('../src/storefront/ProductCard.tsx');
+  const storefrontCss = read('../src/storefront/storefront.css');
+
+  assert.match(card, /className="product-card-content"/);
+  assert.match(storefrontCss, /\.product-card\s*>\s*div\.catalog-image-gallery--grid\s*\{[^}]*grid-area:\s*thumb/s);
+  assert.match(storefrontCss, /\.product-card\s*>\s*\.product-card-content\s*\{[^}]*grid-area:\s*body/s);
+  assert.doesNotMatch(storefrontCss, /\.product-card\s*>\s*div:not\(\.card-price-box\)/);
+});
