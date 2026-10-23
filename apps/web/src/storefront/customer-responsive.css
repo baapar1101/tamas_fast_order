@@ -117,6 +117,19 @@
   }
 }
 
+@media (max-width: 1024px) {
+  /* On desktop the filter card is its own sticky scroll area. On touch
+   * screens that nested scroll container captures vertical swipes even when
+   * its short content cannot scroll. Let the page own vertical movement. */
+  .layout > .sidebar {
+    position: static;
+    top: auto;
+    max-height: none;
+    overflow-y: visible;
+    overscroll-behavior: auto;
+  }
+}
+
 /* Account modules also live next to a 240px sidebar. Use their actual content
  * width so wallet and financial cards collapse before they can overflow. */
 .account-content {
