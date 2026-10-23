@@ -2136,6 +2136,10 @@ svg.w-full, .w-full { width: 100%; }
 }
 
 /* Customer credit report overview */
+body.admin-page-active .modal-panel:has(.credit-report-overview) {
+  width: min(96vw, 1120px) !important;
+  max-width: 1120px !important;
+}
 .credit-report-overview { display: grid; gap: 1rem; min-width: 0; color: var(--a-t1); }
 .credit-report-hero { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.1rem; border: 1px solid var(--a-border); border-radius: 1rem; background: linear-gradient(135deg, color-mix(in srgb, var(--a-brand) 13%, var(--a-surface)) 0%, var(--a-surface) 68%); }
 .credit-report-identity { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
