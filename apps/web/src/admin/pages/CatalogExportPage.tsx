@@ -7,13 +7,16 @@ import { useImageFallback, waitForImages } from '../../lib/images';
 import { useToast } from '../../components/Toast';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
 import { catalogProductImage, catalogProductStock } from '../components/catalogProduct';
+import { MobileGlassCatalog } from '../components/MobileGlassCatalog';
+import { isMobilePhoneProduct } from '../components/mobileGlassCatalogData';
 
-type CatalogScope = 'all' | 'festival_singles' | 'baskets';
+type CatalogScope = 'all' | 'festival_singles' | 'baskets' | 'mobile_glass';
 
 const catalogScopes: { value: CatalogScope; label: string; hint: string }[] = [
   { value: 'all', label: 'همه محصولات', hint: 'کاتالوگ عمومی فروشگاه' },
   { value: 'festival_singles', label: 'محصولات تکی جشنواره', hint: 'بدون سبدها و باندل‌ها' },
   { value: 'baskets', label: 'سبدها', hint: 'کاتالوگ جداگانه سبدها' },
+  { value: 'mobile_glass', label: 'کاتالوگ شیشه‌ای موبایل', hint: 'تصویر ۱۲۸۰ پیکسلی مدل، رنگ و قیمت' },
 ];
 
 export function CatalogExportPage() {
@@ -28,6 +31,7 @@ export function CatalogExportPage() {
   const [stockStatus, setStockStatus] = useState<'all' | 'in' | 'out'>('all');
 
   const printContainerRef = useRef<HTMLDivElement | null>(null);
+  const mobileGlassRef = useRef<HTMLDivElement | null>(null);
 
   const taxonomy = useQuery({
     queryKey: ['admin', 'taxonomy'],
@@ -47,7 +51,7 @@ export function CatalogExportPage() {
         categoryId: selectedCategory === 'all' ? undefined : selectedCategory,
         brandId: selectedBrand === 'all' ? undefined : selectedBrand,
         stock: stockStatus,
-        catalogScope,
+        catalogScope: catalogScope === 'mobile_glass' ? 'all' : catalogScope,
         status: 'active',
         page: 1,
         perPage: 5000,
@@ -55,7 +59,7 @@ export function CatalogExportPage() {
   });
 
   const responseData: any = productsData;
-  const products: ProductDTO[] = Array.isArray(responseData?.items)
+  const fetchedProducts: ProductDTO[] = Array.isArray(responseData?.items)
     ? responseData.items
     : Array.isArray(responseData?.data?.items)
       ? responseData.data.items
@@ -63,6 +67,10 @@ export function CatalogExportPage() {
         ? responseData
         : [];
 
+  const products = catalogScope === 'mobile_glass'
+    ? fetchedProducts.filter(isMobilePhoneProduct)
+    : fetchedProducts;
+  const isMobileGlass = catalogScope === 'mobile_glass';
   const ITEMS_PER_PAGE = 20; // 4 columns x 5 rows
   const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
   const today = new Date().toLocaleDateString('fa-IR');
@@ -70,7 +78,59 @@ export function CatalogExportPage() {
     ? 'کاتالوگ محصولات تکی جشنواره'
     : catalogScope === 'baskets'
       ? 'کاتالوگ سبدها'
+      : catalogScope === 'mobile_glass'
+        ? 'کاتالوگ شیشه‌ای موبایل'
       : 'کاتالوگ محصولات تماس مارکت';
+
+  const handleDownloadImage = async () => {
+    if (isGenerating) return;
+    if (products.length === 0) {
+      toast.error('هیچ گوشی موبایلی برای تهیه کاتالوگ یافت نشد.');
+      return;
+    }
+    const source = mobileGlassRef.current;
+    if (!source) {
+      toast.error('پیش‌نمایش تصویر هنوز آماده نیست. دوباره تلاش کنید.');
+      return;
+    }
+
+    setIsGenerating(true);
+    setPdfProgress(15);
+    try {
+      await document.fonts?.ready;
+      await waitForImages(source);
+      setPdfProgress(45);
+      const { default: html2canvas } = await import('html2canvas');
+      const canvas = await html2canvas(source, {
+        width: 1280,
+        height: source.scrollHeight,
+        scale: 1,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#f5f6f8',
+        logging: false,
+      });
+      setPdfProgress(85);
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((result) => result ? resolve(result) : reject(new Error('ساخت فایل تصویر ناموفق بود.')), 'image/jpeg', 0.95);
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `mobile-glass-catalog-${new Date().toISOString().slice(0, 10)}.jpg`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+      setPdfProgress(100);
+      toast.ok(`تصویر کاتالوگ با عرض ۱۲۸۰ پیکسل و ${products.length.toLocaleString('fa-IR')} کالا ذخیره شد.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'ساخت تصویر کاتالوگ ناموفق بود.');
+    } finally {
+      setIsGenerating(false);
+      setPdfProgress(0);
+    }
+  };
 
   const handleGeneratePdf = async () => {
     if (isGenerating) return;
@@ -121,9 +181,9 @@ export function CatalogExportPage() {
         <div>
           <h1 className="a-title-mega-sm flex items-center gap-2">
             <span>📄</span>
-            <span>خروجی کاتالوگ PDF</span>
+            <span>مرکز خروجی کاتالوگ</span>
           </h1>
-          <p className="a-subtitle">دریافت لیست محصولات به صورت کاتالوگ چاپی استاندارد A4 با فونت فارسی اصیل</p>
+          <p className="a-subtitle">ساخت کاتالوگ چاپی PDF یا تصویر شیشه‌ای موبایل با داده‌های زنده فروشگاه</p>
         </div>
       </header>
 
@@ -160,10 +220,10 @@ export function CatalogExportPage() {
               <label className="a-label">دسته‌بندی</label>
               <AnimatedDropdown
                 value={String(selectedCategory)}
-                disabled={catalogScope === 'baskets'}
+                disabled={catalogScope === 'baskets' || isMobileGlass}
                 onChange={(val) => setSelectedCategory(val === 'all' ? 'all' : Number(val))}
                 options={[
-                  { value: 'all', label: catalogScope === 'baskets' ? 'سبدها (خودکار)' : 'همه دسته‌بندی‌ها' },
+                  { value: 'all', label: catalogScope === 'baskets' ? 'سبدها (خودکار)' : isMobileGlass ? 'گوشی موبایل (خودکار)' : 'همه دسته‌بندی‌ها' },
                   ...categories.filter((cat: CategoryDTO) => catalogScope !== 'festival_singles' || (cat.name !== 'Bondle' && cat.faName !== 'سبد ها')).map((cat: CategoryDTO) => ({
                     value: String(cat.id),
                     label: cat.faName || cat.name,
@@ -209,25 +269,25 @@ export function CatalogExportPage() {
               <strong className="text-[var(--a-t1)] text-base mx-1">
                 {isLoadingProducts ? '...' : formatNumber(products.length)}
               </strong>{' '}
-              عدد ({formatNumber(totalPages)} صفحه A4)
+              عدد {isMobileGlass ? '(یک تصویر با عرض ۱۲۸۰ پیکسل)' : `(${formatNumber(totalPages)} صفحه A4)`}
             </div>
             <button
               type="button"
               className="a-btn a-btn--primary px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all"
-              onClick={handleGeneratePdf}
+              onClick={isMobileGlass ? handleDownloadImage : handleGeneratePdf}
               disabled={isGenerating || isLoadingProducts || products.length === 0}
             >
               {isGenerating ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>در حال ساخت کاتالوگ ({pdfProgress}٪)</span>
+                  <span>در حال ساخت {isMobileGlass ? 'تصویر' : 'کاتالوگ'} ({pdfProgress}٪)</span>
                 </>
               ) : (
                 <>
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                   </svg>
-                  <span>دانلود کاتالوگ PDF</span>
+                  <span>{isMobileGlass ? 'دانلود تصویر JPG' : 'دانلود کاتالوگ PDF'}</span>
                 </>
               )}
             </button>
@@ -240,9 +300,9 @@ export function CatalogExportPage() {
         <div className="a-card-head flex items-center justify-between">
           <h3 className="a-card-title flex items-center gap-2">
             <span>👁️</span>
-            <span>پیش‌نمایش صفحات کاتالوگ</span>
+            <span>{isMobileGlass ? 'پیش‌نمایش کاتالوگ شیشه‌ای موبایل' : 'پیش‌نمایش صفحات کاتالوگ'}</span>
           </h3>
-          <span className="text-xs text-[var(--a-muted)]">ابعاد استاندارد A4 چاپی</span>
+          <span className="text-xs text-[var(--a-muted)]">{isMobileGlass ? 'عرض خروجی دقیق: ۱۲۸۰ پیکسل' : 'ابعاد استاندارد A4 چاپی'}</span>
         </div>
 
         <div className="p-6 bg-[var(--a-bg)] overflow-x-auto">
@@ -254,6 +314,10 @@ export function CatalogExportPage() {
           ) : products.length === 0 ? (
             <div className="p-12 text-center text-[var(--a-muted)]">
               هیچ محصولی با فیلترهای انتخابی یافت نشد.
+            </div>
+          ) : isMobileGlass ? (
+            <div className="mobile-glass-preview-shell" aria-label="پیش‌نمایش تصویر کاتالوگ شیشه‌ای موبایل">
+              <MobileGlassCatalog ref={mobileGlassRef} products={products} date={today} />
             </div>
           ) : (
             <div ref={printContainerRef} className="flex flex-col gap-10 items-center">
