@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { SvgSprite } from './components/Icon';
+import { TableExcelExportManager } from './components/TableExcelExportManager';
 import { useAuth } from './store/auth';
 import { StorefrontPage } from './storefront/StorefrontPage';
 import { ProductPage } from './storefront/ProductPage';
@@ -57,6 +58,7 @@ export function App() {
   return (
     <>
       <SvgSprite />
+      <TableExcelExportManager />
       <TelegramConnectPrompt />
       <Routes>
         <Route path="/" element={<StorefrontPage />} />

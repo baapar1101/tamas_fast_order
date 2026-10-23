@@ -25,7 +25,7 @@ function generateVersionJsonPlugin(): Plugin {
   };
 }
 
-const GENERATED_CHUNK_FILE = /^(?:index|admin|vendor|react|router|query|pdf)-[A-Za-z0-9_-]{8,}\.(?:js(?:\.map)?|css)$/;
+const GENERATED_CHUNK_FILE = /^(?:index|admin|vendor|react|router|query|pdf|xlsx)-[A-Za-z0-9_-]{8,}\.(?:js(?:\.map)?|css)$/;
 
 function pruneStaleGeneratedChunksPlugin(): Plugin {
   return {
@@ -77,6 +77,9 @@ export default defineConfig({
         // The admin panel is a separate chunk: a shopper never downloads it.
         manualChunks(id) {
           if (id.includes('node_modules')) {
+            // Spreadsheet export is requested infrequently. Keep its sizeable
+            // parser out of the storefront/admin startup path.
+            if (id.includes('@e965/xlsx')) return 'xlsx';
             if (
               id.includes('html2pdf.js') ||
               id.includes('html2canvas') ||

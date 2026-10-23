@@ -2302,3 +2302,79 @@ body.admin-page-active .modal-panel:has(.credit-report-overview) {
   }
   body.admin-page-active:has(.credit-report-overview) .credit-report-card, body.admin-page-active:has(.credit-report-overview) .credit-report-hero, body.admin-page-active:has(.credit-report-overview) .credit-overview-summary, body.admin-page-active:has(.credit-report-overview) .credit-report-kpis article { break-inside: avoid; }
 }
+
+/* Credit analytics typography and spacing consume the shared design-system scale. */
+.credit-insights-intro p,
+.credit-chart-card header p,
+.credit-portfolio-head p,
+.credit-chart-empty span,
+.credit-report-decision > small,
+.credit-report-card > header small,
+.credit-report-alerts header small,
+.credit-report-footer small { font-size: var(--ds-text-sm); }
+
+.credit-eyebrow,
+.credit-data-freshness span,
+.credit-data-freshness small,
+.credit-kpi span:not(.credit-kpi-icon),
+.credit-kpi small,
+.credit-attention-head small,
+.credit-attention-items button span,
+.credit-chart-card header > strong,
+.credit-chart-legend span,
+.credit-score-row > div,
+.credit-trend-score,
+.credit-trend-column strong,
+.credit-trend-column small,
+.credit-portfolio-head > span,
+.credit-portfolio-toolbar label > span,
+.credit-portfolio-toolbar select,
+.credit-search input,
+.credit-portfolio-table th,
+.credit-portfolio-table td,
+.credit-priority-reasons small,
+.credit-row-actions > span,
+.credit-report-identity span,
+.credit-report-identity p,
+.credit-score-gauge__inner span,
+.credit-score-gauge__inner small,
+.credit-confidence-ring span,
+.credit-report-kpis small,
+.credit-report-card > header strong,
+.credit-payer-value span,
+.credit-payer-ticks,
+.credit-inquiry-chart span,
+.credit-report-alerts p,
+.credit-identity-grid span,
+.credit-identity-grid strong,
+.credit-negative-reasons span,
+.credit-negative-reasons p,
+.credit-tax-timeline > div > span,
+.credit-tax-timeline p,
+.credit-report-meta-grid span,
+.credit-report-meta-grid strong,
+.credit-report-warnings p,
+.credit-report-pages summary,
+.credit-report-pages summary span,
+.credit-report-pages pre,
+.credit-report-footer strong { font-size: var(--ds-text-sm); }
+
+.credit-kpi strong,
+.credit-score-gauge__inner strong,
+.credit-confidence-ring strong { font-variant-numeric: tabular-nums; }
+
+.credit-attention-head strong,
+.credit-chart-card h3,
+.credit-portfolio-head h3,
+.credit-report-decision p,
+.credit-report-kpis strong { font-size: var(--ds-text-md); }
+
+@media (max-width: 680px) {
+  .credit-report-overview,
+  .credit-insights { gap: var(--ds-space-4); }
+  .credit-report-card,
+  .credit-chart-card,
+  .credit-portfolio-head,
+  .credit-overview-summary { padding: var(--ds-space-4); }
+  .credit-report-kpis article { min-height: 4.75rem; }
+}
