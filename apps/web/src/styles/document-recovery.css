@@ -15,8 +15,8 @@
 .doc-badge { display: inline-flex; align-items: center; border-radius: var(--ds-radius-sm); padding: var(--ds-space-1) var(--ds-space-2); margin-block: var(--ds-space-1); background: var(--ds-success-soft); color: var(--ds-success); font-size: var(--ds-text-caption); }
 .doc-badge--warning { background: var(--ds-warning-soft); color: var(--ds-warning); }
 .doc-badge--danger { background: var(--ds-danger-soft); color: var(--ds-danger); }
-.doc-check { display: flex; align-items: center; gap: var(--ds-space-3); min-height: var(--ds-control-h-md); }
-.doc-check input { width: auto; }
+body .modal-body label.doc-check { display: flex; align-items: center; gap: var(--ds-space-3); min-height: var(--ds-control-h-md); }
+body .modal-body label.doc-check input[type=checkbox] { flex: 0 0 var(--ds-space-5); width: var(--ds-space-5); height: var(--ds-space-5); min-height: var(--ds-space-5); max-height: var(--ds-space-5); margin: 0; padding: 0; }
 .doc-message { white-space: pre-wrap; overflow-wrap: anywhere; line-height: var(--ds-leading-relaxed); }
 .doc-history h3 { margin: 0; font-size: var(--ds-text-lg); }
 .doc-submission { display: grid; gap: var(--ds-space-2); margin-block: var(--ds-space-3); padding: var(--ds-space-3); border: 1px solid var(--ds-border); border-radius: var(--ds-radius-sm); background: var(--ds-surface-subtle); }
