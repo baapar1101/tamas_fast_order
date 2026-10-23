@@ -14,8 +14,8 @@ export function PaymentResultPage() {
   const isSuccess = status === 'success';
 
   return (
-    <div className="storefront-page" style={{ padding: '40px 20px', minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div className="card" style={{ maxWidth: 500, width: '100%', padding: '40px 20px', textAlign: 'center', marginTop: '20px' }}>
+    <div className="storefront-page customer-payment-result" style={{ padding: '40px 20px', minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div className="card customer-payment-card" style={{ maxWidth: 500, width: '100%', padding: '40px 20px', textAlign: 'center', marginTop: '20px' }}>
         <div style={{
           width: 80, height: 80, borderRadius: '50%',
           background: isSuccess ? 'var(--success-bg)' : 'var(--warn-bg)',
@@ -61,7 +61,7 @@ export function PaymentResultPage() {
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: 15, justifyContent: 'center' }}>
+        <div className="customer-payment-actions" style={{ display: 'flex', gap: 15, justifyContent: 'center' }}>
           <Link to="/account" className="btn primary">پیگیری سفارشات</Link>
           <Link to="/" className="btn outline">بازگشت به فروشگاه</Link>
         </div>
