@@ -18,6 +18,7 @@ import { useToast } from '../components/Toast';
 import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { AnimatedDropdown } from '../admin/components/AnimatedDropdown';
+import { CreditReportPanel } from './CreditReportPanel';
 
 const BANK_OPTIONS = [
   'بانک ملی', 'بانک ملت', 'بانک صادرات', 'بانک تجارت', 'بانک سپه', 'بانک سامان',
@@ -33,7 +34,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [existingApp, setExistingApp] = useState<CreditApplicationDTO | null>(null);
   const [dashboard, setDashboard] = useState<CreditDashboardDTO | null>(null);
-  const [activeTab, setActiveTab] = useState<'summary' | 'notifications' | 'receipts' | 'cheques' | 'new_cheque' | 'details'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'notifications' | 'receipts' | 'cheques' | 'new_cheque' | 'credit_report' | 'details'>('summary');
   const [isEditing, setIsEditing] = useState(false);
 
   // Stepped Form State (1 -> 2 -> 3) for initial application
@@ -69,7 +70,14 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
       const res = await api.get<{ ok: true } & CreditDashboardDTO>('/credit/dashboard');
       if (res.ok) {
         const chequeOrders = res.chequeOrders ?? [];
-        setDashboard({ ...res, chequeOrders, installmentOrders: res.installmentOrders ?? [] });
+        setDashboard({
+          ...res,
+          chequeOrders,
+          installmentOrders: res.installmentOrders ?? [],
+          creditReports: res.creditReports ?? [],
+          currentCreditReport: res.currentCreditReport ?? null,
+          creditReportRequired: res.creditReportRequired ?? true,
+        });
         setSelectedOrderId((current) => {
           const stillAvailable = chequeOrders.some((order) => String(order.orderId) === current && order.canSubmitNextCheque);
           return stillAvailable ? current : String(chequeOrders.find((order) => order.canSubmitNextCheque)?.orderId ?? '');
@@ -158,6 +166,14 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
     }
     if (!businessDocsUrl) {
       toast.error('لطفاً تصویر جواز کسب یا اجاره‌نامه را بارگذاری کنید');
+      return;
+    }
+    if (!dashboard?.currentCreditReport) {
+      toast.error('لطفاً گزارش اعتبارسنجی جدید ICS24 را بارگذاری کنید');
+      return;
+    }
+    if (dashboard.currentCreditReport.extractedNationalId && dashboard.currentCreditReport.extractedNationalId !== nationalId.trim()) {
+      toast.error('کد ملی گزارش ICS24 با کد ملی واردشده مطابقت ندارد');
       return;
     }
     setStep(2);
@@ -393,6 +409,16 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
+        {dashboard?.creditReportRequired ? (
+          <div className="credit-report-renewal-alert" role="alert">
+            <div>
+              <strong>گزارش اعتبارسنجی شما ثبت نشده یا بیش از دو ماه از آن گذشته است.</strong>
+              <span>برای به‌روز ماندن پرونده اعتباری، نسخه جدید ICS24 را بارگذاری کنید.</span>
+            </div>
+            <button type="button" className="btn primary" onClick={() => setActiveTab('credit_report')}>به‌روزرسانی گزارش</button>
+          </div>
+        ) : null}
+
         {/* Dashboard Tabs */}
         <div
           className="credit-tabs"
@@ -456,6 +482,14 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '10px' }}
           >
             ➕ ثبت چک جدید
+          </button>
+          <button
+            type="button"
+            className={`btn ${activeTab === 'credit_report' ? 'primary' : 'ghost'}`}
+            onClick={() => setActiveTab('credit_report')}
+            style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '10px' }}
+          >
+            🛡️ گزارش اعتبارسنجی
           </button>
           <button
             type="button"
@@ -548,6 +582,15 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'credit_report' && (
+          <CreditReportPanel
+            currentReport={dashboard?.currentCreditReport ?? null}
+            reports={dashboard?.creditReports ?? []}
+            onUploaded={fetchDashboard}
+            showHistory
+          />
         )}
 
         {/* Tab 2: Notifications */}
@@ -945,6 +988,13 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             )}
           </div>
 
+          <CreditReportPanel
+            currentReport={dashboard?.currentCreditReport ?? null}
+            reports={dashboard?.creditReports ?? []}
+            onUploaded={fetchDashboard}
+            showHistory
+          />
+
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
             {existingApp.status === 'action_required' && (
               <button
@@ -1201,6 +1251,12 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                 )}
               </div>
             </div>
+
+            <CreditReportPanel
+              currentReport={dashboard?.currentCreditReport ?? null}
+              reports={dashboard?.creditReports ?? []}
+              onUploaded={fetchDashboard}
+            />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
               <button

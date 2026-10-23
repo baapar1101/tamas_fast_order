@@ -4,12 +4,36 @@ import { creditApplicationAdminPatchSchema, installmentReceiptReviewSchema } fro
 import { db, schema } from '../../db/client.js';
 import { badRequest, notFound } from '../../lib/errors.js';
 import { getPaymentHealthDashboard, toInstallmentReceiptDTO } from '../../services/installment-receipts.js';
+import { toCreditReportSnapshotDTO } from '../../services/credit-reports.js';
 
 export const adminCreditRoutes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requirePermission('manage_users'));
 
   app.get('/admin/credit-payment-health', async (_req, reply) => {
     return reply.send({ ok: true, ...(await getPaymentHealthDashboard()) });
+  });
+
+  app.get('/admin/credit-reports', async (_req, reply) => {
+    const rows = await db.select({
+      report: schema.creditReportSnapshots,
+      userName: schema.users.name,
+      userLastName: schema.users.lastName,
+      userPhone: schema.users.phone,
+      userStoreName: schema.users.storeName,
+    })
+      .from(schema.creditReportSnapshots)
+      .innerJoin(schema.users, eq(schema.creditReportSnapshots.userId, schema.users.id))
+      .orderBy(desc(schema.creditReportSnapshots.createdAt));
+
+    return reply.send({
+      ok: true,
+      items: rows.map((row) => ({
+        ...toCreditReportSnapshotDTO(row.report),
+        userName: `${row.userName || ''} ${row.userLastName || ''}`.trim() || 'کاربر',
+        userPhone: row.userPhone,
+        userStoreName: row.userStoreName || '',
+      })),
+    });
   });
 
   app.patch('/admin/installment-receipts/:id', async (req, reply) => {
