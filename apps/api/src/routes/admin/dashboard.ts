@@ -7,6 +7,7 @@ import { orderItems, orders, products, syncState, users } from '../../db/schema.
 import { deleteSetting, getAllSettings, setSetting } from '../../services/settings.js';
 import { recentAudit } from '../../services/audit.js';
 import { configureTelegramWebhook, TELEGRAM_EVENTS, testTelegramGroup } from '../../services/telegram.js';
+import { runTelegramBackup } from '../../services/telegram-backup.js';
 import { badRequest } from '../../lib/errors.js';
 
 const routes: FastifyPluginAsync = async (app) => {
@@ -221,6 +222,20 @@ const routes: FastifyPluginAsync = async (app) => {
     } catch (error) {
       req.log.warn({ err: error }, 'Telegram connection test failed');
       throw badRequest(`تست تلگرام ناموفق بود: ${(error as Error).message}`);
+    }
+  });
+
+  app.post('/admin/telegram/backup/run', { preHandler: app.requirePermission('manage_settings') }, async (req) => {
+    try {
+      const result = await runTelegramBackup({ force: true });
+      return {
+        ok: true,
+        ...result,
+        message: `بکاپ «${result.fileName}» با موفقیت به «${result.groupName}» ارسال شد.`,
+      };
+    } catch (error) {
+      req.log.warn({ err: error }, 'Manual Telegram backup failed');
+      throw badRequest(`ارسال بکاپ تلگرام ناموفق بود: ${(error as Error).message}`);
     }
   });
 

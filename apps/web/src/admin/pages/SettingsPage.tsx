@@ -229,6 +229,7 @@ export function SettingsPage() {
   const [testPhone, setTestPhone] = useState('');
   const [customerTelegramBroadcast, setCustomerTelegramBroadcast] = useState({ title: '', message: '' });
   const [customerTelegramBroadcasting, setCustomerTelegramBroadcasting] = useState(false);
+  const [telegramBackupSending, setTelegramBackupSending] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'storefront-filters' | 'payment' | 'payment-terms' | 'financial-automation' | 'wallet' | 'telegram' | 'customer-telegram' | 'arvan' | 'tools' | 'logs' | 'crm' | 'advanced-sync'>('general');
   const [syncProgress, setSyncProgress] = useState<Record<string, { current: number; total: number; label: string; done: boolean; error: boolean }>>({});
   const syncRaf = useRef<Record<string, number>>({});
@@ -323,6 +324,20 @@ export function SettingsPage() {
     'TELEGRAM_ALLOWED_USER_IDS',
     'TELEGRAM_WEBHOOK_URL',
     'private_TELEGRAM_WEBHOOK_SECRET',
+    'TELEGRAM_BACKUP_ENABLED',
+    'TELEGRAM_BACKUP_TIME',
+    'TELEGRAM_BACKUP_GROUP_ID',
+    'TELEGRAM_BACKUP_RETENTION_DAYS',
+    'TELEGRAM_BACKUP_LAST_STATUS',
+    'TELEGRAM_BACKUP_LAST_ATTEMPT_AT',
+    'TELEGRAM_BACKUP_LAST_SENT_DATE',
+    'TELEGRAM_BACKUP_LAST_SENT_AT',
+    'TELEGRAM_BACKUP_LAST_ERROR',
+    'TELEGRAM_BACKUP_LAST_FILE',
+    'TELEGRAM_BACKUP_LAST_SIZE',
+    'TELEGRAM_BACKUP_LAST_TABLE_COUNT',
+    'TELEGRAM_BACKUP_LAST_ROW_COUNT',
+    'TELEGRAM_BACKUP_LAST_CHECKSUM',
     'CUSTOMER_TELEGRAM_ENABLED',
     'private_CUSTOMER_TELEGRAM_BOT_TOKEN',
     'CUSTOMER_TELEGRAM_BOT_USERNAME',
@@ -791,6 +806,116 @@ export function SettingsPage() {
                 </div>
               ))}
               {telegramGroups.length === 0 && <p className="a-note">هنوز گروهی تعریف نشده است.</p>}
+            </div>
+          </section>
+
+          <section className="a-card">
+            <div className="a-card-head a-card-head--split">
+              <div>
+                <h3 className="a-card-title">بکاپ روزانه در تلگرام</h3>
+                <p className="a-card-desc">هر روز یک خروجی فشرده و کامل از جداول دیتابیس ساخته و به گروه خصوصی انتخاب‌شده ارسال می‌شود.</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-label="فعال‌سازی بکاپ روزانه تلگرام"
+                aria-checked={form.TELEGRAM_BACKUP_ENABLED === 'true'}
+                className="a-switch"
+                onClick={() => setForm({
+                  ...form,
+                  TELEGRAM_BACKUP_ENABLED: form.TELEGRAM_BACKUP_ENABLED === 'true' ? 'false' : 'true',
+                })}
+              />
+            </div>
+
+            <div className="a-form-grid a-cols--2">
+              <div className="a-field">
+                <label className="a-label">گروه مقصد بکاپ</label>
+                <select
+                  className="a-select"
+                  value={form.TELEGRAM_BACKUP_GROUP_ID ?? ''}
+                  onChange={(event) => setForm({ ...form, TELEGRAM_BACKUP_GROUP_ID: event.target.value })}
+                >
+                  <option value="">انتخاب گروه خصوصی</option>
+                  {telegramGroups.filter((group) => group.enabled).map((group) => (
+                    <option value={group.id} key={group.id}>{group.name}</option>
+                  ))}
+                </select>
+                <p className="a-note">فقط گروه‌های فعال فهرست می‌شوند. فایل حاوی اطلاعات حساس است؛ مقصد را گروه خصوصی مدیران انتخاب کنید.</p>
+              </div>
+              <div className="a-field">
+                <label className="a-label">زمان ارسال روزانه</label>
+                <input
+                  className="a-input a-ltr"
+                  dir="ltr"
+                  type="time"
+                  value={form.TELEGRAM_BACKUP_TIME ?? '03:00'}
+                  onChange={(event) => setForm({ ...form, TELEGRAM_BACKUP_TIME: event.target.value })}
+                />
+                <p className="a-note">زمان بر اساس منطقه زمانی تهران محاسبه می‌شود.</p>
+              </div>
+              <div className="a-field">
+                <label className="a-label">نگهداری نسخه محلی (روز)</label>
+                <input
+                  className="a-input a-ltr"
+                  dir="ltr"
+                  type="number"
+                  min={0}
+                  max={30}
+                  value={form.TELEGRAM_BACKUP_RETENTION_DAYS ?? '3'}
+                  onChange={(event) => setForm({ ...form, TELEGRAM_BACKUP_RETENTION_DAYS: event.target.value })}
+                />
+                <p className="a-note">بین صفر تا ۳۰ روز؛ صفر یعنی فایل پس از ارسال از سرور حذف شود.</p>
+              </div>
+              <div className="a-field">
+                <label className="a-label">آخرین وضعیت</label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`a-badge ${
+                    form.TELEGRAM_BACKUP_LAST_STATUS === 'success' ? 'a-badge--success'
+                      : form.TELEGRAM_BACKUP_LAST_STATUS === 'error' ? 'a-badge--danger'
+                        : form.TELEGRAM_BACKUP_LAST_STATUS === 'running' ? 'a-badge--info'
+                          : 'a-badge--neutral'
+                  }`}>
+                    {form.TELEGRAM_BACKUP_LAST_STATUS === 'success' ? 'موفق'
+                      : form.TELEGRAM_BACKUP_LAST_STATUS === 'error' ? 'ناموفق'
+                        : form.TELEGRAM_BACKUP_LAST_STATUS === 'running' ? 'در حال اجرا'
+                          : 'هنوز اجرا نشده'}
+                  </span>
+                  {form.TELEGRAM_BACKUP_LAST_SENT_AT && (
+                    <span className="a-note">{new Date(form.TELEGRAM_BACKUP_LAST_SENT_AT).toLocaleString('fa-IR')}</span>
+                  )}
+                </div>
+                {form.TELEGRAM_BACKUP_LAST_FILE && (
+                  <p className="a-note a-ltr" dir="ltr">
+                    {form.TELEGRAM_BACKUP_LAST_FILE} · {Math.max(1, Math.round(Number(form.TELEGRAM_BACKUP_LAST_SIZE ?? 0) / 1024))} KB
+                  </p>
+                )}
+                {form.TELEGRAM_BACKUP_LAST_ERROR && <p className="a-note" style={{ color: 'var(--a-red)' }}>{form.TELEGRAM_BACKUP_LAST_ERROR}</p>}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mt-4">
+              <button
+                type="button"
+                className="a-btn a-btn--primary"
+                disabled={telegramBackupSending || save.isPending || telegramGroups.every((group) => !group.enabled)}
+                onClick={async () => {
+                  setTelegramBackupSending(true);
+                  try {
+                    await save.mutateAsync(form);
+                    const result = await api.post<{ message: string }>('/admin/telegram/backup/run');
+                    toast.ok(result.message);
+                    await qc.invalidateQueries({ queryKey: ['admin', 'settings'] });
+                  } catch (error) {
+                    toast.error((error as Error).message);
+                    await qc.invalidateQueries({ queryKey: ['admin', 'settings'] });
+                  } finally {
+                    setTelegramBackupSending(false);
+                  }
+                }}
+              >
+                {telegramBackupSending ? 'در حال ساخت و ارسال...' : 'ذخیره و ارسال آزمایشی الآن'}
+              </button>
             </div>
           </section>
 
