@@ -274,7 +274,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
         style={{
           padding: '6px 14px',
           borderRadius: '20px',
-          fontSize: '13px',
+          fontSize: "var(--ds-text-sm)",
           fontWeight: 800,
           backgroundColor: bgMap[status],
           color: colorMap[status],
@@ -300,7 +300,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
     return (
       <span
         style={{
-          padding: '4px 10px',
+          padding: "var(--ds-space-1) 10px",
           borderRadius: '12px',
           fontSize: '11.5px',
           fontWeight: 800,
@@ -325,15 +325,15 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
     const pctUsed = totalLimit > 0 ? Math.min(100, Math.round((used / totalLimit) * 100)) : 0;
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-5)" }}>
         {/* Header Hero Metrics */}
         <div
           className="credit-metrics"
           style={{
             display: 'grid',
-            gap: '12px',
+            gap: "var(--ds-space-3)",
             background: 'linear-gradient(135deg, var(--card), var(--surface))',
-            padding: '16px',
+            padding: "var(--ds-space-4)",
             borderRadius: '16px',
             border: '1px solid var(--tamas-border)',
             boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
@@ -351,9 +351,9 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               gap: '6px',
             }}
           >
-            <span style={{ fontSize: '12px', color: 'var(--tamas-muted)', fontWeight: 700 }}>💳 سقف اعتبار کل</span>
-            <strong style={{ fontSize: '16px', color: 'var(--tamas-fg)' }}>{formatMoney(totalLimit)}</strong>
-            <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700 }}>✓ تخصیص داده شده</span>
+            <span style={{ fontSize: "var(--ds-text-caption)", color: 'var(--tamas-muted)', fontWeight: 700 }}>💳 سقف اعتبار کل</span>
+            <strong style={{ fontSize: "var(--ds-text-lg)", color: 'var(--tamas-fg)' }}>{formatMoney(totalLimit)}</strong>
+            <span style={{ fontSize: "var(--ds-text-xs)", color: "var(--ds-success)", fontWeight: 700 }}>✓ تخصیص داده شده</span>
           </div>
 
           {/* Card 2: Used Credit */}
@@ -368,9 +368,9 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               gap: '6px',
             }}
           >
-            <span style={{ fontSize: '12px', color: 'var(--tamas-muted)', fontWeight: 700 }}>📉 اعتبار مصرف‌شده</span>
-            <strong style={{ fontSize: '16px', color: 'var(--danger)' }}>{formatMoney(used)}</strong>
-            <span style={{ fontSize: '11px', color: 'var(--tamas-muted)' }}>{pctUsed}% از سقف کل</span>
+            <span style={{ fontSize: "var(--ds-text-caption)", color: 'var(--tamas-muted)', fontWeight: 700 }}>📉 اعتبار مصرف‌شده</span>
+            <strong style={{ fontSize: "var(--ds-text-lg)", color: 'var(--danger)' }}>{formatMoney(used)}</strong>
+            <span style={{ fontSize: "var(--ds-text-xs)", color: 'var(--tamas-muted)' }}>{pctUsed}% از سقف کل</span>
           </div>
 
           {/* Card 3: Remaining Credit */}
@@ -385,15 +385,15 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               gap: '6px',
             }}
           >
-            <span style={{ fontSize: '12px', color: 'var(--tamas-muted)', fontWeight: 700 }}>🟢 اعتبار باقیمانده</span>
-            <strong style={{ fontSize: '16px', color: 'var(--tamas-accent)' }}>{formatMoney(remaining)}</strong>
-            <span style={{ fontSize: '11px', color: 'var(--tamas-accent)', fontWeight: 700 }}>آماده برای سفارش اعتباری</span>
+            <span style={{ fontSize: "var(--ds-text-caption)", color: 'var(--tamas-muted)', fontWeight: 700 }}>🟢 اعتبار باقیمانده</span>
+            <strong style={{ fontSize: "var(--ds-text-lg)", color: 'var(--tamas-accent)' }}>{formatMoney(remaining)}</strong>
+            <span style={{ fontSize: "var(--ds-text-xs)", color: 'var(--tamas-accent)', fontWeight: 700 }}>آماده برای سفارش اعتباری</span>
           </div>
         </div>
 
         {/* Visual Progress Bar */}
-        <div style={{ padding: '0 4px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px', color: 'var(--tamas-muted)' }}>
+        <div style={{ padding: "0 var(--ds-space-1)" }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: "var(--ds-text-caption)", marginBottom: '6px', color: 'var(--tamas-muted)' }}>
             <span>میزان استفاده از اعتبار</span>
             <span>{pctUsed}% مصرف شده</span>
           </div>
@@ -423,16 +423,16 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
         <div
           className="credit-tabs"
           style={{
-            gap: '8px',
+            gap: "var(--ds-space-2)",
             borderBottom: '1px solid var(--tamas-border)',
-            paddingBottom: '8px',
+            paddingBottom: "var(--ds-space-2)",
           }}
         >
           <button
             type="button"
             className={`btn ${activeTab === 'receipts' ? 'primary' : 'ghost'}`}
             onClick={() => setActiveTab('receipts')}
-            style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '10px' }}
+            style={{ padding: "var(--ds-space-2) 14px", fontSize: "var(--ds-text-sm)", borderRadius: '10px' }}
           >
             🧾 رسید اقساط
           </button>
@@ -440,7 +440,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             type="button"
             className={`btn ${activeTab === 'summary' ? 'primary' : 'ghost'}`}
             onClick={() => setActiveTab('summary')}
-            style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '10px' }}
+            style={{ padding: "var(--ds-space-2) 14px", fontSize: "var(--ds-text-sm)", borderRadius: '10px' }}
           >
             📊 خلاصه‌وضعیت
           </button>
@@ -448,7 +448,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             type="button"
             className={`btn ${activeTab === 'notifications' ? 'primary' : 'ghost'}`}
             onClick={() => setActiveTab('notifications')}
-            style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '10px', position: 'relative' }}
+            style={{ padding: "var(--ds-space-2) 14px", fontSize: "var(--ds-text-sm)", borderRadius: '10px', position: 'relative' }}
           >
             🔔 سررسیدها و ناتیفیکیشن‌ها
             {notificationsCount > 0 && (
@@ -457,9 +457,9 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                   marginInlineStart: '6px',
                   padding: '2px 6px',
                   borderRadius: '10px',
-                  fontSize: '11px',
+                  fontSize: "var(--ds-text-xs)",
                   backgroundColor: 'var(--danger)',
-                  color: '#fff',
+                  color: "var(--ds-on-interactive)",
                   fontWeight: 800,
                 }}
               >
@@ -471,7 +471,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             type="button"
             className={`btn ${activeTab === 'cheques' ? 'primary' : 'ghost'}`}
             onClick={() => setActiveTab('cheques')}
-            style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '10px' }}
+            style={{ padding: "var(--ds-space-2) 14px", fontSize: "var(--ds-text-sm)", borderRadius: '10px' }}
           >
             📑 مدیریت چک‌ها ({chequesCount})
           </button>
@@ -479,7 +479,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             type="button"
             className={`btn ${activeTab === 'new_cheque' ? 'primary' : 'ghost'}`}
             onClick={() => setActiveTab('new_cheque')}
-            style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '10px' }}
+            style={{ padding: "var(--ds-space-2) 14px", fontSize: "var(--ds-text-sm)", borderRadius: '10px' }}
           >
             ➕ ثبت چک جدید
           </button>
@@ -487,7 +487,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             type="button"
             className={`btn ${activeTab === 'credit_report' ? 'primary' : 'ghost'}`}
             onClick={() => setActiveTab('credit_report')}
-            style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '10px' }}
+            style={{ padding: "var(--ds-space-2) 14px", fontSize: "var(--ds-text-sm)", borderRadius: '10px' }}
           >
             🛡️ گزارش اعتبارسنجی
           </button>
@@ -495,7 +495,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             type="button"
             className={`btn ${activeTab === 'details' ? 'primary' : 'ghost'}`}
             onClick={() => setActiveTab('details')}
-            style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '10px' }}
+            style={{ padding: "var(--ds-space-2) 14px", fontSize: "var(--ds-text-sm)", borderRadius: '10px' }}
           >
             📄 مدارک و پرونده
           </button>
@@ -503,10 +503,10 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
 
         {/* Tab 1: Summary */}
         {activeTab === 'summary' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-4)" }}>
             <div
               style={{
-                padding: '16px',
+                padding: "var(--ds-space-4)",
                 borderRadius: '12px',
                 backgroundColor: 'var(--tamas-info-bg)',
                 border: '1px solid var(--tamas-border)',
@@ -516,7 +516,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               }}
             >
               <div>
-                <strong style={{ fontSize: '14px', color: 'var(--tamas-fg)', display: 'block', marginBottom: '4px' }}>
+                <strong style={{ fontSize: "var(--ds-text-md)", color: 'var(--tamas-fg)', display: 'block', marginBottom: "var(--ds-space-1)" }}>
                   {existingApp?.status === 'active' ? '🎉 پنل اعتباری شما فعال است' : '🧾 مدیریت پرداخت‌های قسطی'}
                 </strong>
                 <span style={{ fontSize: '12.5px', color: 'var(--tamas-muted)' }}>
@@ -529,18 +529,18 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
 
             <div
               style={{
-                padding: '14px 16px',
+                padding: "14px var(--ds-space-4)",
                 borderRadius: '12px',
                 backgroundColor: 'var(--card)',
                 border: '1px solid var(--tamas-border)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                gap: "var(--ds-space-3)",
               }}
             >
-              <span style={{ fontSize: '20px' }}>📈</span>
+              <span style={{ fontSize: "var(--ds-text-xl)" }}>📈</span>
               <div>
-                <strong style={{ fontSize: '13.5px', color: 'var(--tamas-fg)', display: 'block', marginBottom: '4px' }}>
+                <strong style={{ fontSize: '13.5px', color: 'var(--tamas-fg)', display: 'block', marginBottom: "var(--ds-space-1)" }}>
                   نحوه ارتقاء سقف اعتبار
                 </strong>
                 <span style={{ fontSize: '12.5px', color: 'var(--tamas-muted)', lineHeight: 1.6, display: 'block' }}>
@@ -557,12 +557,12 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                   <div
                     key={notif.id}
                     style={{
-                      padding: '12px 16px',
+                      padding: "var(--ds-space-3) var(--ds-space-4)",
                       borderRadius: '10px',
                       border: `1px solid ${notif.severity === 'danger' ? '#fecaca' : notif.severity === 'warning' ? '#fef08a' : '#bfdbfe'}`,
-                      backgroundColor: notif.severity === 'danger' ? '#fef2f2' : notif.severity === 'warning' ? '#fffbeb' : '#eff6ff',
+                      backgroundColor: notif.severity === 'danger' ? "var(--ds-danger-soft)" : notif.severity === 'warning' ? "var(--ds-warning-soft)" : "var(--ds-info-soft)",
                       color: notif.severity === 'danger' ? '#991b1b' : notif.severity === 'warning' ? '#92400e' : '#1e40af',
-                      fontSize: '13px',
+                      fontSize: "var(--ds-text-sm)",
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
@@ -572,12 +572,12 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                       <strong>{notif.title}: </strong>
                       <span>{notif.message}</span>
                     </div>
-                    <span style={{ fontSize: '12px', fontWeight: 800 }}>{formatPersianDueDate(notif.dueDate)}</span>
+                    <span style={{ fontSize: "var(--ds-text-caption)", fontWeight: 800 }}>{formatPersianDueDate(notif.dueDate)}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '20px', color: 'var(--tamas-muted)', fontSize: '13px' }}>
+              <div style={{ textAlign: 'center', padding: "var(--ds-space-5)", color: 'var(--tamas-muted)', fontSize: "var(--ds-text-sm)" }}>
                 ✓ هیچ پرداخت یا چک سررسیدشده‌ای در حال حاضر وجود ندارد.
               </div>
             )}
@@ -595,27 +595,27 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
 
         {/* Tab 2: Notifications */}
         {activeTab === 'notifications' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <strong style={{ fontSize: '14px' }}>🔔 اعلان‌ها و هشدارهای سررسید پرداخت:</strong>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-3)" }}>
+            <strong style={{ fontSize: "var(--ds-text-md)" }}>🔔 اعلان‌ها و هشدارهای سررسید پرداخت:</strong>
             {dashboard?.notifications && dashboard.notifications.length > 0 ? (
               dashboard.notifications.map((notif) => (
                 <div
                   key={notif.id}
                   style={{
-                    padding: '14px 16px',
+                    padding: "14px var(--ds-space-4)",
                     borderRadius: '12px',
                     border: `1px solid ${notif.severity === 'danger' ? '#fecaca' : notif.severity === 'warning' ? '#fef08a' : '#bfdbfe'}`,
-                    backgroundColor: notif.severity === 'danger' ? '#fef2f2' : notif.severity === 'warning' ? '#fffbeb' : '#eff6ff',
+                    backgroundColor: notif.severity === 'danger' ? "var(--ds-danger-soft)" : notif.severity === 'warning' ? "var(--ds-warning-soft)" : "var(--ds-info-soft)",
                     color: notif.severity === 'danger' ? '#991b1b' : notif.severity === 'warning' ? '#92400e' : '#1e40af',
-                    fontSize: '13px',
+                    fontSize: "var(--ds-text-sm)",
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '6px',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <strong style={{ fontSize: '14px' }}>{notif.title}</strong>
-                    <span style={{ fontSize: '12px', fontWeight: 800, padding: '2px 8px', borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.6)' }}>
+                    <strong style={{ fontSize: "var(--ds-text-md)" }}>{notif.title}</strong>
+                    <span style={{ fontSize: "var(--ds-text-caption)", fontWeight: 800, padding: "2px var(--ds-space-2)", borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.6)' }}>
                       سررسید: {formatPersianDueDate(notif.dueDate)}
                     </span>
                   </div>
@@ -623,7 +623,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                 </div>
               ))
             ) : (
-              <div style={{ textAlign: 'center', padding: '30px', color: 'var(--tamas-muted)', fontSize: '13px' }}>
+              <div style={{ textAlign: 'center', padding: '30px', color: 'var(--tamas-muted)', fontSize: "var(--ds-text-sm)" }}>
                 هیچ سررسید پرداخت یا هشداری ثبت نشده است.
               </div>
             )}
@@ -632,30 +632,30 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
 
         {activeTab === 'receipts' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div role="note" style={{ padding: '12px 14px', border: '1px solid var(--tamas-border)', borderRadius: '12px', background: 'var(--tamas-info-bg)', color: 'var(--tamas-fg)', fontSize: '13px', lineHeight: 1.8 }}>
+            <div role="note" style={{ padding: "var(--ds-space-3) 14px", border: '1px solid var(--tamas-border)', borderRadius: '12px', background: 'var(--tamas-info-bg)', color: 'var(--tamas-fg)', fontSize: "var(--ds-text-sm)", lineHeight: 1.8 }}>
               پس از پرداخت هر قسط، تصویر یا فایل رسید همان قسط را اینجا بارگذاری کنید. اگر رسید قسط سررسیدشده ثبت نشود، روزانه سه یادآوری برای شما ارسال می‌شود.
             </div>
             {(dashboard?.installmentOrders?.length ?? 0) > 0 ? dashboard!.installmentOrders.map((order) => (
               <section key={order.orderId} style={{ border: '1px solid var(--tamas-border)', borderRadius: '14px', overflow: 'hidden', background: 'var(--card)' }}>
-                <header style={{ padding: '12px 14px', background: 'var(--tamas-surface)', display: 'flex', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+                <header style={{ padding: "var(--ds-space-3) 14px", background: 'var(--tamas-surface)', display: 'flex', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
                   <strong>سفارش {order.orderCode}</strong>
-                  <span style={{ color: 'var(--tamas-muted)', fontSize: '12px' }}>{order.planLabel}</span>
+                  <span style={{ color: 'var(--tamas-muted)', fontSize: "var(--ds-text-caption)" }}>{order.planLabel}</span>
                 </header>
-                <div style={{ display: 'grid', gap: '10px', padding: '12px' }}>
+                <div style={{ display: 'grid', gap: '10px', padding: "var(--ds-space-3)" }}>
                   {order.schedule.map((installment) => {
                     const uploadKey = `receipt-${order.orderId}-${installment.index}`;
                     const receipt = installment.receipt;
                     const statusText = receipt?.status === 'approved' ? 'تأیید شده' : receipt?.status === 'pending' ? 'در انتظار بررسی' : receipt?.status === 'rejected' ? 'رد شده' : 'رسید ثبت نشده';
                     const statusColor = receipt?.status === 'approved' ? '#15803d' : receipt?.status === 'pending' ? '#b45309' : installment.isDue ? '#b91c1c' : 'var(--tamas-muted)';
                     return (
-                      <div className="credit-receipt-row" key={installment.index} style={{ padding: '12px', border: `1px solid ${installment.isOverdue ? '#fecaca' : 'var(--tamas-border)'}`, borderRadius: '12px', display: 'grid', gap: '12px', alignItems: 'center' }}>
+                      <div className="credit-receipt-row" key={installment.index} style={{ padding: "var(--ds-space-3)", border: `1px solid ${installment.isOverdue ? '#fecaca' : 'var(--tamas-border)'}`, borderRadius: '12px', display: 'grid', gap: "var(--ds-space-3)", alignItems: 'center' }}>
                         <div style={{ minWidth: 0 }}>
                           <strong style={{ display: 'block', fontSize: '13.5px' }}>قسط {(installment.index + 1).toLocaleString('fa-IR')} — {formatMoney(installment.amount)}</strong>
-                          <span style={{ display: 'block', marginTop: '4px', fontSize: '12px', color: 'var(--tamas-muted)' }}>سررسید: {formatPersianDueDate(installment.dueDate)}</span>
-                          <span style={{ display: 'block', marginTop: '5px', fontSize: '12px', fontWeight: 800, color: statusColor }}>{statusText}</span>
-                          {receipt?.rejectionReason && <span style={{ display: 'block', marginTop: '4px', color: '#b91c1c', fontSize: '12px' }}>علت رد: {receipt.rejectionReason}</span>}
+                          <span style={{ display: 'block', marginTop: "var(--ds-space-1)", fontSize: "var(--ds-text-caption)", color: 'var(--tamas-muted)' }}>سررسید: {formatPersianDueDate(installment.dueDate)}</span>
+                          <span style={{ display: 'block', marginTop: '5px', fontSize: "var(--ds-text-caption)", fontWeight: 800, color: statusColor }}>{statusText}</span>
+                          {receipt?.rejectionReason && <span style={{ display: 'block', marginTop: "var(--ds-space-1)", color: "var(--ds-danger)", fontSize: "var(--ds-text-caption)" }}>علت رد: {receipt.rejectionReason}</span>}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: "var(--ds-space-2)", flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                           {receipt && <a className="btn ghost sm" href={receipt.receiptUrl} target="_blank" rel="noreferrer">مشاهده رسید</a>}
                           {receipt?.status !== 'approved' && (
                             <>
@@ -690,14 +690,14 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
 
         {/* Tab 3: Cheques Ledger */}
         {activeTab === 'cheques' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-3)" }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <strong style={{ fontSize: '14px' }}>📑 دفترچه ثبت چک‌ها</strong>
+              <strong style={{ fontSize: "var(--ds-text-md)" }}>📑 دفترچه ثبت چک‌ها</strong>
               <button
                 type="button"
                 className="btn primary sm"
                 onClick={() => setActiveTab('new_cheque')}
-                style={{ padding: '6px 12px', fontSize: '12.5px' }}
+                style={{ padding: "6px var(--ds-space-3)", fontSize: '12.5px' }}
               >
                 + ثبت چک جدید
               </button>
@@ -707,26 +707,26 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               <>
               <p className="credit-table-hint">برای دیدن همهٔ ستون‌ها، جدول را به چپ و راست بکشید.</p>
               <div className="credit-table-wrap" role="region" aria-label="جدول چک‌ها" tabIndex={0} style={{ overflowX: 'auto', border: '1px solid var(--tamas-border)', borderRadius: '12px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '13px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: "var(--ds-text-sm)" }}>
                   <thead>
                     <tr style={{ backgroundColor: 'var(--tamas-surface)', borderBottom: '1px solid var(--tamas-border)' }}>
-                      <th style={{ padding: '10px 12px' }}>شماره صیادی / چک</th>
-                      <th style={{ padding: '10px 12px' }}>بانک صادرکننده</th>
-                      <th style={{ padding: '10px 12px' }}>صاحب حساب</th>
-                      <th style={{ padding: '10px 12px' }}>مبلغ (تومان)</th>
-                      <th style={{ padding: '10px 12px' }}>تاریخ سررسید</th>
-                      <th style={{ padding: '10px 12px' }}>وضعیت</th>
+                      <th style={{ padding: "10px var(--ds-space-3)" }}>شماره صیادی / چک</th>
+                      <th style={{ padding: "10px var(--ds-space-3)" }}>بانک صادرکننده</th>
+                      <th style={{ padding: "10px var(--ds-space-3)" }}>صاحب حساب</th>
+                      <th style={{ padding: "10px var(--ds-space-3)" }}>مبلغ (تومان)</th>
+                      <th style={{ padding: "10px var(--ds-space-3)" }}>تاریخ سررسید</th>
+                      <th style={{ padding: "10px var(--ds-space-3)" }}>وضعیت</th>
                     </tr>
                   </thead>
                   <tbody>
                     {dashboard.cheques.map((c) => (
                       <tr key={c.id} style={{ borderBottom: '1px solid var(--tamas-border)' }}>
-                        <td style={{ padding: '10px 12px', fontWeight: 700, fontFamily: 'monospace' }}>{c.chequeNumber}</td>
-                        <td style={{ padding: '10px 12px' }}>{c.bankName}</td>
-                        <td style={{ padding: '10px 12px' }}>{c.accountHolder}</td>
-                        <td style={{ padding: '10px 12px', fontWeight: 700 }}>{formatMoney(c.amount)}</td>
-                        <td style={{ padding: '10px 12px' }}>{formatPersianDueDate(c.dueDate)}</td>
-                        <td style={{ padding: '10px 12px' }}>{renderChequeStatusBadge(c.status)}</td>
+                        <td style={{ padding: "10px var(--ds-space-3)", fontWeight: 700, fontFamily: 'monospace' }}>{c.chequeNumber}</td>
+                        <td style={{ padding: "10px var(--ds-space-3)" }}>{c.bankName}</td>
+                        <td style={{ padding: "10px var(--ds-space-3)" }}>{c.accountHolder}</td>
+                        <td style={{ padding: "10px var(--ds-space-3)", fontWeight: 700 }}>{formatMoney(c.amount)}</td>
+                        <td style={{ padding: "10px var(--ds-space-3)" }}>{formatPersianDueDate(c.dueDate)}</td>
+                        <td style={{ padding: "10px var(--ds-space-3)" }}>{renderChequeStatusBadge(c.status)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -734,7 +734,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               </div>
               </>
             ) : (
-              <div style={{ textAlign: 'center', padding: '30px', color: 'var(--tamas-muted)', fontSize: '13px' }}>
+              <div style={{ textAlign: 'center', padding: '30px', color: 'var(--tamas-muted)', fontSize: "var(--ds-text-sm)" }}>
                 هنوز هیچ چکی ثبت نکرده‌اید. با کلیک بر روی «ثبت چک جدید» اطلاعات چک‌های خود را وارد کنید.
               </div>
             )}
@@ -743,12 +743,12 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
 
         {/* Tab 4: Register New Cheque */}
         {activeTab === 'new_cheque' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', backgroundColor: 'var(--card)', padding: '16px', borderRadius: '12px', border: '1px solid var(--tamas-border)' }}>
-            <strong style={{ fontSize: '14px', color: 'var(--tamas-fg)' }}>➕ ثبت اطلاعات چک جدید</strong>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', backgroundColor: 'var(--card)', padding: "var(--ds-space-4)", borderRadius: '12px', border: '1px solid var(--tamas-border)' }}>
+            <strong style={{ fontSize: "var(--ds-text-md)", color: 'var(--tamas-fg)' }}>➕ ثبت اطلاعات چک جدید</strong>
 
             {dashboard?.chequeOrders.some((order) => order.canSubmitNextCheque) ? (
               <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: "var(--ds-space-1)" }}>
                   سفارش چکی <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <AnimatedDropdown
@@ -765,7 +765,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                   buttonClassName="credit-bank-select"
                 />
                 {selectedChequeOrder?.nextInstallment && (
-                  <div style={{ marginTop: '8px', padding: '10px 12px', borderRadius: '10px', background: 'var(--tamas-surface)', fontSize: '12.5px', lineHeight: 1.8 }}>
+                  <div style={{ marginTop: "var(--ds-space-2)", padding: "10px var(--ds-space-3)", borderRadius: '10px', background: 'var(--tamas-surface)', fontSize: '12.5px', lineHeight: 1.8 }}>
                     مبلغ و سررسید توسط سامانه تعیین شده است: <strong>{formatMoney(selectedChequeOrder.nextInstallment.amount)}</strong>
                     {' — '}سررسید <strong>{selectedChequeOrder.nextInstallment.dueLabel}</strong>
                     {selectedChequeOrder.schedule.every((item) => !item.registered) && (
@@ -775,7 +775,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                 )}
               </div>
             ) : (
-              <div role="alert" style={{ padding: '12px', borderRadius: '10px', background: '#fff7ed', color: '#9a3412', fontSize: '13px' }}>
+              <div role="alert" style={{ padding: "var(--ds-space-3)", borderRadius: '10px', background: "var(--ds-warning-soft)", color: '#9a3412', fontSize: "var(--ds-text-sm)" }}>
                 سفارش چکی فعالی برای ثبت قسط بعدی وجود ندارد.
                 {dashboard?.chequeOrders.find((order) => order.blockedReason)?.blockedReason
                   ? ` ${dashboard.chequeOrders.find((order) => order.blockedReason)?.blockedReason}`
@@ -783,9 +783,9 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               </div>
             )}
 
-            <div className="credit-form-grid" style={{ display: 'grid', gap: '12px' }}>
+            <div className="credit-form-grid" style={{ display: 'grid', gap: "var(--ds-space-3)" }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: "var(--ds-space-1)" }}>
                   شماره صیادی / شماره چک <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <input
@@ -793,12 +793,12 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                   placeholder="مثال: ۱۲۳۴۵۶۷۸۹۰۱۲"
                   value={chequeNum}
                   onChange={(e) => setChequeNum(e.target.value)}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: '13px' }}
+                  style={{ width: '100%', padding: "9px var(--ds-space-3)", borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: "var(--ds-text-sm)" }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: "var(--ds-space-1)" }}>
                   بانک صادرکننده <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <AnimatedDropdown
@@ -812,43 +812,43 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: "var(--ds-space-1)" }}>
                   نام صاحب حساب <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <input
                   type="text"
                   value={accountHolder}
                   onChange={(e) => setAccountHolder(e.target.value)}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: '13px' }}
+                  style={{ width: '100%', padding: "9px var(--ds-space-3)", borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: "var(--ds-text-sm)" }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: "var(--ds-space-1)" }}>
                   مبلغ چک
                 </label>
                 <input
                   type="text"
                   readOnly
                   value={selectedChequeOrder?.nextInstallment ? formatMoney(selectedChequeOrder.nextInstallment.amount) : ''}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: '13px' }}
+                  style={{ width: '100%', padding: "9px var(--ds-space-3)", borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: "var(--ds-text-sm)" }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: "var(--ds-space-1)" }}>
                   تاریخ سررسید
                 </label>
                 <input
                   type="text"
                   readOnly
                   value={selectedChequeOrder?.nextInstallment?.dueLabel ?? ''}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: '13px' }}
+                  style={{ width: '100%', padding: "9px var(--ds-space-3)", borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: "var(--ds-text-sm)" }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: "var(--ds-space-1)" }}>
                   تصویر برگ چک (اختیاری)
                 </label>
                 <input
@@ -864,16 +864,16 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                 <label
                   htmlFor="cheque-img-upload"
                   className="btn ghost sm"
-                  style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--tamas-border)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  style={{ padding: "var(--ds-space-2) var(--ds-space-3)", borderRadius: '8px', border: '1px solid var(--tamas-border)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
                   📁 {uploadingField === 'chequeImageUrl' ? 'در حال آپلود...' : 'انتخاب تصویر چک'}
                 </label>
-                {chequeImageUrl && <span style={{ color: '#10b981', fontSize: '12px', fontWeight: 800, marginInlineStart: '8px' }}>✓ بارگذاری شد</span>}
+                {chequeImageUrl && <span style={{ color: "var(--ds-success)", fontSize: "var(--ds-text-caption)", fontWeight: 800, marginInlineStart: "var(--ds-space-2)" }}>✓ بارگذاری شد</span>}
               </div>
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: "var(--ds-space-1)" }}>
                 توضیحات یا بابت سفارش (اختیاری)
               </label>
               <input
@@ -881,17 +881,17 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                 placeholder="توضیحات بابت شماره فاکتور یا تسویه..."
                 value={chequeNotes}
                 onChange={(e) => setChequeNotes(e.target.value)}
-                style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: '13px' }}
+                style={{ width: '100%', padding: "9px var(--ds-space-3)", borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: "var(--ds-text-sm)" }}
               />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: "var(--ds-space-2)" }}>
               <button
                 type="button"
                 className="btn primary"
                 disabled={submittingCheque || !selectedChequeOrder?.canSubmitNextCheque}
                 onClick={handleCreateCheque}
-                style={{ padding: '10px 20px', borderRadius: '10px', fontSize: '13.5px' }}
+                style={{ padding: "10px var(--ds-space-5)", borderRadius: '10px', fontSize: '13.5px' }}
               >
                 {submittingCheque ? 'در حال ثبت...' : 'ثبت چک در حساب اعتباری'}
               </button>
@@ -901,9 +901,9 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
 
         {/* Tab 5: Account Details */}
         {activeTab === 'details' && existingApp && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', backgroundColor: 'var(--card)', padding: '16px', borderRadius: '12px', border: '1px solid var(--tamas-border)' }}>
-            <strong style={{ fontSize: '14px' }}>📄 اطلاعات پرونده اعتباری و تضامین</strong>
-            <div className="credit-form-grid" style={{ display: 'grid', gap: '10px', fontSize: '13px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', backgroundColor: 'var(--card)', padding: "var(--ds-space-4)", borderRadius: '12px', border: '1px solid var(--tamas-border)' }}>
+            <strong style={{ fontSize: "var(--ds-text-md)" }}>📄 اطلاعات پرونده اعتباری و تضامین</strong>
+            <div className="credit-form-grid" style={{ display: 'grid', gap: '10px', fontSize: "var(--ds-text-sm)" }}>
               <div>• کد ملی: <b>{existingApp.nationalId}</b></div>
               <div>• نوع کسب‌وکار: <b>{existingApp.businessType}</b></div>
               <div>• امتیاز اعتباری سنجش‌شده: <b style={{ color: 'var(--tamas-accent)' }}>{existingApp.adminCreditScore} از ۱۰۰</b></div>
@@ -912,12 +912,12 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: "var(--ds-space-3)" }}>
           <button
             type="button"
             className="btn ghost"
             onClick={onBack}
-            style={{ padding: '10px 20px', borderRadius: '10px' }}
+            style={{ padding: "10px var(--ds-space-5)", borderRadius: '10px' }}
           >
             بازگشت به فروشگاه
           </button>
@@ -929,7 +929,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
   const renderBody = () => {
     if (loading) {
       return (
-        <div style={{ textAlign: 'center', padding: '40px 10px', color: 'var(--tamas-muted)' }}>
+        <div style={{ textAlign: 'center', padding: "var(--ds-space-10) 10px", color: 'var(--tamas-muted)' }}>
           در حال دریافت اطلاعات...
         </div>
       );
@@ -950,10 +950,10 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
 
     if (existingApp && !isEditing) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-5)" }}>
           <div
             style={{
-              padding: '20px',
+              padding: "var(--ds-space-5)",
               borderRadius: '16px',
               border: '1px solid var(--tamas-border)',
               backgroundColor: 'var(--card)',
@@ -963,20 +963,20 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '15px', fontWeight: 800 }}>وضعیت پرونده اعتباری شما</span>
+              <span style={{ fontSize: "var(--ds-text-md)", fontWeight: 800 }}>وضعیت پرونده اعتباری شما</span>
               {renderStatusBadge(existingApp.status)}
             </div>
 
-            <p style={{ fontSize: '14px', color: 'var(--tamas-fg)', margin: 0, lineHeight: 1.6 }}>
+            <p style={{ fontSize: "var(--ds-text-md)", color: 'var(--tamas-fg)', margin: "var(--ds-space-0)", lineHeight: 1.6 }}>
               {CREDIT_STATUS_DESCRIPTIONS[existingApp.status]}
             </p>
 
             {existingApp.status === 'action_required' && (
               <div
                 style={{
-                  padding: '16px',
+                  padding: "var(--ds-space-4)",
                   borderRadius: '12px',
-                  backgroundColor: '#fef2f2',
+                  backgroundColor: "var(--ds-danger-soft)",
                   border: '1px solid #fecaca',
                   color: '#991b1b',
                   fontSize: '13.5px',
@@ -995,13 +995,13 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             showHistory
           />
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: "var(--ds-space-3)" }}>
             {existingApp.status === 'action_required' && (
               <button
                 type="button"
                 className="btn primary"
                 onClick={() => setIsEditing(true)}
-                style={{ padding: '10px 20px', borderRadius: '10px' }}
+                style={{ padding: "10px var(--ds-space-5)", borderRadius: '10px' }}
               >
                 اصلاح و ارسال مجدد مدارک
               </button>
@@ -1010,7 +1010,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               type="button"
               className="btn ghost"
               onClick={onBack}
-              style={{ padding: '10px 20px', borderRadius: '10px' }}
+              style={{ padding: "10px var(--ds-space-5)", borderRadius: '10px' }}
             >
               بازگشت به فروشگاه
             </button>
@@ -1020,8 +1020,8 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
     }
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div className="credit-steps" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-5)" }}>
+        <div className="credit-steps" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', marginBottom: "var(--ds-space-2)" }}>
           <div
             style={{
               position: 'absolute',
@@ -1051,7 +1051,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                   alignItems: 'center',
                   gap: '6px',
                   backgroundColor: 'var(--card)',
-                  paddingInline: '8px',
+                  paddingInline: "var(--ds-space-2)",
                 }}
               >
                 <div
@@ -1060,12 +1060,12 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                     height: '36px',
                     borderRadius: '50%',
                     backgroundColor: active ? 'var(--tamas-accent)' : '#e2e8f0',
-                    color: active ? '#ffffff' : '#64748b',
+                    color: active ? "var(--ds-on-interactive)" : "var(--ds-text-muted)",
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 800,
-                    fontSize: '14px',
+                    fontSize: "var(--ds-text-md)",
                     boxShadow: current ? '0 0 0 4px var(--tamas-info-bg)' : undefined,
                     transition: 'all 0.25s ease',
                   }}
@@ -1082,7 +1082,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
 
         <div
           style={{
-            padding: '14px 16px',
+            padding: "14px var(--ds-space-4)",
             borderRadius: '12px',
             backgroundColor: 'var(--tamas-info-bg)',
             border: '1px solid var(--tamas-border)',
@@ -1094,7 +1094,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             lineHeight: 1.5,
           }}
         >
-          <span style={{ fontSize: '18px', color: 'var(--tamas-accent)' }}>🔒</span>
+          <span style={{ fontSize: "var(--ds-text-lead)", color: 'var(--tamas-accent)' }}>🔒</span>
           <div>
             <strong>چرا مدارک می‌گیریم؟</strong>
             <div>
@@ -1104,10 +1104,10 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
         </div>
 
         {step === 1 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-4)" }}>
             <div className="credit-form-grid" style={{ display: 'grid', gap: '14px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: "var(--ds-text-sm)", fontWeight: 700, marginBottom: '6px' }}>
                   نام و نام خانوادگی
                 </label>
                 <input
@@ -1116,17 +1116,17 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                   disabled
                   style={{
                     width: '100%',
-                    padding: '10px 12px',
+                    padding: "10px var(--ds-space-3)",
                     borderRadius: '8px',
                     border: '1px solid var(--tamas-border)',
                     backgroundColor: 'var(--tamas-surface)',
-                    fontSize: '13px',
+                    fontSize: "var(--ds-text-sm)",
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: "var(--ds-text-sm)", fontWeight: 700, marginBottom: '6px' }}>
                   کد ملی (۱۰ رقم) <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <input
@@ -1137,10 +1137,10 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                   onChange={(e) => setNationalId(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '10px 12px',
+                    padding: "10px var(--ds-space-3)",
                     borderRadius: '8px',
                     border: '1px solid var(--tamas-border)',
-                    fontSize: '13px',
+                    fontSize: "var(--ds-text-sm)",
                     fontFamily: 'inherit',
                   }}
                 />
@@ -1148,7 +1148,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: "var(--ds-text-sm)", fontWeight: 700, marginBottom: '6px' }}>
                 نوع کسب‌وکار <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <select
@@ -1156,10 +1156,10 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                 onChange={(e) => setBusinessType(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '10px 12px',
+                  padding: "10px var(--ds-space-3)",
                   borderRadius: '8px',
                   border: '1px solid var(--tamas-border)',
-                  fontSize: '13px',
+                  fontSize: "var(--ds-text-sm)",
                   backgroundColor: 'var(--card)',
                 }}
               >
@@ -1172,7 +1172,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: "var(--ds-text-sm)", fontWeight: 700, marginBottom: '6px' }}>
                 تصویر کارت ملی <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1190,20 +1190,20 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                   htmlFor="national-card-input"
                   className="btn ghost"
                   style={{
-                    padding: '10px 16px',
+                    padding: "10px var(--ds-space-4)",
                     borderRadius: '8px',
                     cursor: 'pointer',
-                    fontSize: '13px',
+                    fontSize: "var(--ds-text-sm)",
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '8px',
+                    gap: "var(--ds-space-2)",
                     border: '1px solid var(--tamas-border)',
                   }}
                 >
                   📁 {uploadingField === 'nationalCardUrl' ? 'در حال بارگذاری...' : 'انتخاب تصویر کارت ملی'}
                 </label>
                 {nationalCardUrl && (
-                  <span style={{ color: '#10b981', fontWeight: 800, fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ color: "var(--ds-success)", fontWeight: 800, fontSize: "var(--ds-text-sm)", display: 'inline-flex', alignItems: 'center', gap: "var(--ds-space-1)" }}>
                     ✓ بارگذاری شد
                   </span>
                 )}
@@ -1211,10 +1211,10 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: "var(--ds-text-sm)", fontWeight: 700, marginBottom: '6px' }}>
                 تصویر جواز کسب یا اجاره‌نامه <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
-              <div style={{ fontSize: '11.5px', color: 'var(--tamas-muted)', marginBottom: '8px' }}>
+              <div style={{ fontSize: '11.5px', color: 'var(--tamas-muted)', marginBottom: "var(--ds-space-2)" }}>
                 راهنما: لطفاً فایل تصویر کامل و خوانا باشد.
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1232,20 +1232,20 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                   htmlFor="business-docs-input"
                   className="btn ghost"
                   style={{
-                    padding: '10px 16px',
+                    padding: "10px var(--ds-space-4)",
                     borderRadius: '8px',
                     cursor: 'pointer',
-                    fontSize: '13px',
+                    fontSize: "var(--ds-text-sm)",
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '8px',
+                    gap: "var(--ds-space-2)",
                     border: '1px solid var(--tamas-border)',
                   }}
                 >
                   📁 {uploadingField === 'businessDocsUrl' ? 'در حال بارگذاری...' : 'انتخاب تصویر جواز / اجاره‌نامه'}
                 </label>
                 {businessDocsUrl && (
-                  <span style={{ color: '#10b981', fontWeight: 800, fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ color: "var(--ds-success)", fontWeight: 800, fontSize: "var(--ds-text-sm)", display: 'inline-flex', alignItems: 'center', gap: "var(--ds-space-1)" }}>
                     ✓ بارگذاری شد
                   </span>
                 )}
@@ -1258,12 +1258,12 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               onUploaded={fetchDashboard}
             />
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: "var(--ds-space-3)" }}>
               <button
                 type="button"
                 className="btn primary"
                 onClick={handleNextStep1}
-                style={{ padding: '12px 24px', borderRadius: '10px', fontSize: '14px' }}
+                style={{ padding: "var(--ds-space-3) var(--ds-space-6)", borderRadius: '10px', fontSize: "var(--ds-text-md)" }}
               >
                 ادامه (مرحله ۲)
               </button>
@@ -1272,10 +1272,10 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
         )}
 
         {step === 2 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-4)" }}>
             <div
               style={{
-                padding: '16px',
+                padding: "var(--ds-space-4)",
                 borderRadius: '12px',
                 border: '1.5px dashed var(--tamas-accent)',
                 backgroundColor: 'var(--tamas-info-bg)',
@@ -1284,13 +1284,13 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                 gap: '10px',
               }}
             >
-              <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--tamas-fg)' }}>
+              <div style={{ fontWeight: 800, fontSize: "var(--ds-text-md)", color: 'var(--tamas-fg)' }}>
                 تصویر برگ چک صیادی <span style={{ color: 'var(--danger)' }}>* (الزامی)</span>
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--tamas-muted)' }}>
+              <div style={{ fontSize: "var(--ds-text-caption)", color: 'var(--tamas-muted)' }}>
                 لطفاً تصویر کامل چک به همراه سریال صیادی خوانا را بارگذاری کنید.
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: "var(--ds-space-3)", marginTop: "var(--ds-space-1)" }}>
                 <input
                   type="file"
                   accept="image/*"
@@ -1308,16 +1308,16 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                     padding: '10px 18px',
                     borderRadius: '8px',
                     cursor: 'pointer',
-                    fontSize: '13px',
+                    fontSize: "var(--ds-text-sm)",
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '8px',
+                    gap: "var(--ds-space-2)",
                   }}
                 >
                   💳 {uploadingField === 'checkImageUrl' ? 'در حال بارگذاری...' : 'آپلود تصویر چک صیادی'}
                 </label>
                 {checkImageUrl && (
-                  <span style={{ color: '#10b981', fontWeight: 800, fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ color: "var(--ds-success)", fontWeight: 800, fontSize: "var(--ds-text-sm)", display: 'inline-flex', alignItems: 'center', gap: "var(--ds-space-1)" }}>
                     ✓ چک با موفقیت بارگذاری شد
                   </span>
                 )}
@@ -1325,10 +1325,10 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: "var(--ds-text-sm)", fontWeight: 700, marginBottom: "var(--ds-space-1)" }}>
                 پرینت ۳ ماهه حساب اصلی <span style={{ color: 'var(--tamas-muted)' }}>(اختیاری)</span>
               </label>
-              <div style={{ fontSize: '11.5px', color: 'var(--tamas-muted)', marginBottom: '8px' }}>
+              <div style={{ fontSize: '11.5px', color: 'var(--tamas-muted)', marginBottom: "var(--ds-space-2)" }}>
                 آپلود این مدرک به افزایش سقف اعتبار اولیه شما کمک می‌کند.
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1346,20 +1346,20 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                   htmlFor="bank-statement-input"
                   className="btn ghost"
                   style={{
-                    padding: '10px 16px',
+                    padding: "10px var(--ds-space-4)",
                     borderRadius: '8px',
                     cursor: 'pointer',
-                    fontSize: '13px',
+                    fontSize: "var(--ds-text-sm)",
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '8px',
+                    gap: "var(--ds-space-2)",
                     border: '1px solid var(--tamas-border)',
                   }}
                 >
                   📊 {uploadingField === 'bankStatementUrl' ? 'در حال بارگذاری...' : 'انتخاب فایل پرینت حساب'}
                 </label>
                 {bankStatementUrl && (
-                  <span style={{ color: '#10b981', fontWeight: 800, fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ color: "var(--ds-success)", fontWeight: 800, fontSize: "var(--ds-text-sm)", display: 'inline-flex', alignItems: 'center', gap: "var(--ds-space-1)" }}>
                     ✓ بارگذاری شد
                   </span>
                 )}
@@ -1367,7 +1367,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: "var(--ds-text-sm)", fontWeight: 700, marginBottom: "var(--ds-space-1)" }}>
                 نام معرف / همکار <span style={{ color: 'var(--tamas-muted)' }}>(اختیاری)</span>
               </label>
               <div style={{ fontSize: '11.5px', color: 'var(--tamas-muted)', marginBottom: '6px' }}>
@@ -1380,20 +1380,20 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                 onChange={(e) => setReferralInfo(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '10px 12px',
+                  padding: "10px var(--ds-space-3)",
                   borderRadius: '8px',
                   border: '1px solid var(--tamas-border)',
-                  fontSize: '13px',
+                  fontSize: "var(--ds-text-sm)",
                 }}
               />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: "var(--ds-space-3)" }}>
               <button
                 type="button"
                 className="btn ghost"
                 onClick={() => setStep(1)}
-                style={{ padding: '10px 20px', borderRadius: '10px' }}
+                style={{ padding: "10px var(--ds-space-5)", borderRadius: '10px' }}
               >
                 مرحله قبل
               </button>
@@ -1401,7 +1401,7 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                 type="button"
                 className="btn primary"
                 onClick={handleNextStep2}
-                style={{ padding: '12px 24px', borderRadius: '10px', fontSize: '14px' }}
+                style={{ padding: "var(--ds-space-3) var(--ds-space-6)", borderRadius: '10px', fontSize: "var(--ds-text-md)" }}
               >
                 ادامه (تأیید نهایی)
               </button>
@@ -1410,20 +1410,20 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
         )}
 
         {step === 3 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-4)" }}>
             <div
               style={{
-                padding: '16px',
+                padding: "var(--ds-space-4)",
                 borderRadius: '12px',
                 backgroundColor: 'var(--tamas-surface)',
                 border: '1px solid var(--tamas-border)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '10px',
-                fontSize: '13px',
+                fontSize: "var(--ds-text-sm)",
               }}
             >
-              <strong style={{ fontSize: '14px' }}>خلاصه مدارک آماده ارسال:</strong>
+              <strong style={{ fontSize: "var(--ds-text-md)" }}>خلاصه مدارک آماده ارسال:</strong>
               <div>• کد ملی: {nationalId}</div>
               <div>• نوع کسب‌وکار: {businessType}</div>
               <div>• کارت ملی: {nationalCardUrl ? '✓ بارگذاری شده' : '❌ بارگذاری نشده'}</div>
@@ -1445,12 +1445,12 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
               </span>
             </label>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: "var(--ds-space-3)" }}>
               <button
                 type="button"
                 className="btn ghost"
                 onClick={() => setStep(2)}
-                style={{ padding: '10px 20px', borderRadius: '10px' }}
+                style={{ padding: "10px var(--ds-space-5)", borderRadius: '10px' }}
               >
                 مرحله قبل
               </button>
@@ -1460,9 +1460,9 @@ export function CreditDashboard({ onBack }: { onBack: () => void }) {
                 disabled={submitting || !agreed}
                 onClick={handleSubmitApplication}
                 style={{
-                  padding: '12px 28px',
+                  padding: "var(--ds-space-3) 28px",
                   borderRadius: '10px',
-                  fontSize: '14px',
+                  fontSize: "var(--ds-text-md)",
                   fontWeight: 800,
                   backgroundColor: 'var(--tamas-accent)',
                 }}

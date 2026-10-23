@@ -2,6 +2,7 @@ import { relations, sql } from 'drizzle-orm';
 import {
   bigint,
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -933,9 +934,15 @@ export const uploads = pgTable(
     height: integer('height'),
     checksum: varchar('checksum', { length: 64 }),
     uploadedBy: integer('uploaded_by').references(() => users.id, { onDelete: 'set null' }),
+    privateScope: varchar('private_scope', { length: 20 }).$type<'credit' | 'payment'>(),
+    privateOwnerId: integer('private_owner_id').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('uploads_kind_idx').on(t.kind), index('uploads_checksum_idx').on(t.checksum)],
+  (t) => [
+    index('uploads_kind_idx').on(t.kind), index('uploads_checksum_idx').on(t.checksum),
+    index('uploads_private_owner_idx').on(t.privateOwnerId),
+    check('uploads_private_scope_check', sql`${t.privateScope} IS NULL OR ${t.privateScope} IN ('credit', 'payment')`),
+  ],
 );
 
 /* ------------------------------------------------------------------ *

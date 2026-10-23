@@ -113,13 +113,13 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
               return (
                 <div key={v.productId} className="variant">
                   <div className="variant-info">
-                    <div className="color-title" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px' }}>
+                    <div className="color-title" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: "var(--ds-space-1) var(--ds-space-2)" }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span className="color-dot" style={{ background: resolveProductColor(v, colorMap) }} aria-hidden />
                         <span>{v.color || v.colorEn || 'مشکی'}</span>
                       </div>
                       {v.sku && (
-                        <span className="variant-sku" style={{ fontSize: '11px', color: 'var(--tamas-muted, #737373)', background: 'var(--tamas-surface-alt, #f5f5f5)', padding: '2px 6px', borderRadius: '4px' }}>
+                        <span className="variant-sku" style={{ fontSize: "var(--ds-text-xs)", color: 'var(--tamas-muted, #737373)', background: 'var(--tamas-surface-alt, #f5f5f5)', padding: '2px 6px', borderRadius: '4px' }}>
                           کد: {v.sku}
                         </span>
                       )}
@@ -154,10 +154,10 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                               <span className={`wh-badge ${wh}`}>{WAREHOUSE_LABELS[wh]}</span>
                             </div>
                             {qty > 0 ? (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: '2px 4px' }}>
-                                <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 24, height: 24, fontSize: 16 }} onClick={() => onUpdateQty(cartKey, qty - 1)}>-</button>
-                                <span style={{ fontSize: 12, fontWeight: 700, minWidth: 16, textAlign: 'center', color: 'var(--tamas-fg)' }}>{qty}</span>
-                                <button type="button" className="add-wh-btn" style={{ width: 24, height: 24, fontSize: 16 }} onClick={() => onAdd(v, wh)}>+</button>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: "2px var(--ds-space-1)" }}>
+                                <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 24, height: 24, fontSize: "var(--ds-text-lg)" }} onClick={() => onUpdateQty(cartKey, qty - 1)}>-</button>
+                                <span style={{ fontSize: "var(--ds-text-caption)", fontWeight: 700, minWidth: 16, textAlign: 'center', color: 'var(--tamas-fg)' }}>{qty}</span>
+                                <button type="button" className="add-wh-btn" style={{ width: 24, height: 24, fontSize: "var(--ds-text-lg)" }} onClick={() => onAdd(v, wh)}>+</button>
                               </div>
                             ) : (
                               <button
@@ -282,7 +282,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </div>
 
       <div className="card-price-box">
-        {!selectedUnavailable && <div className={canViewPrices ? undefined : 'price-obscured'} style={{ marginBottom: 8 }} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
+        {!selectedUnavailable && <div className={canViewPrices ? undefined : 'price-obscured'} style={{ marginBottom: "var(--ds-space-2)" }} aria-label={canViewPrices ? undefined : 'قیمت پس از تأیید حساب نمایش داده می‌شود'}>
           {hasRealDiscount(selectedVariant.price, selectedVariant.oldPrice) && (
             <span className="card-old-price"><Price amount={selectedVariant.oldPrice!} /></span>
           )}
@@ -290,7 +290,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
         </div>}
 
         {whButtons.length > 0 && (
-          <div className="warehouse-section" style={{ marginBottom: 8 }}>
+          <div className="warehouse-section" style={{ marginBottom: "var(--ds-space-2)" }}>
             {whButtons.map((wh) => {
               const n = stockFor(selectedVariant, wh);
               const cartKey = `${selectedVariant.productId}::${wh}`;
@@ -307,10 +307,10 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                     )}
                   </div>
                   {qty > 0 ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: '2px 4px' }}>
-                      <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 26, height: 26, fontSize: 18 }} onClick={() => onUpdateQty(cartKey, qty - 1)} title="کاهش">-</button>
-                      <span style={{ fontSize: 13, fontWeight: 700, minWidth: 20, textAlign: 'center', color: 'var(--tamas-fg)' }}>{qty}</span>
-                      <button type="button" className="add-wh-btn" style={{ width: 26, height: 26, fontSize: 16 }} onClick={() => onAdd(selectedVariant, wh)} title="افزایش">+</button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: "2px var(--ds-space-1)" }}>
+                      <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 26, height: 26, fontSize: "var(--ds-text-lead)" }} onClick={() => onUpdateQty(cartKey, qty - 1)} title="کاهش">-</button>
+                      <span style={{ fontSize: "var(--ds-text-sm)", fontWeight: 700, minWidth: 20, textAlign: 'center', color: 'var(--tamas-fg)' }}>{qty}</span>
+                      <button type="button" className="add-wh-btn" style={{ width: 26, height: 26, fontSize: "var(--ds-text-lg)" }} onClick={() => onAdd(selectedVariant, wh)} title="افزایش">+</button>
                     </div>
                   ) : (
                     <button

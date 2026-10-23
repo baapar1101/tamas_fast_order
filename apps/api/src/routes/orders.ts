@@ -8,6 +8,7 @@ import { db } from '../db/client.js';
 import { orders } from '../db/schema.js';
 import { badRequest } from '../lib/errors.js';
 import { registerOrderCheque } from '../services/credit-cheques.js';
+import { claimPrivateFile } from '../services/private-files.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   app.post(
@@ -52,6 +53,7 @@ const routes: FastifyPluginAsync = async (app) => {
       if (!order) {
         return { ok: false, message: 'سفارش یافت نشد.' };
       }
+      if (body.receiptImageUrl) body.receiptImageUrl = await claimPrivateFile(body.receiptImageUrl, req.currentUser!.id, 'payment');
 
       let registeredCheque: Awaited<ReturnType<typeof registerOrderCheque>>['cheque'] | null = null;
       if (order.paymentPlan?.kind === 'cheque') {
@@ -114,6 +116,7 @@ const routes: FastifyPluginAsync = async (app) => {
             mimeType: part.mimetype,
             kind: 'other',
             uploadedBy: req.currentUser!.id,
+            privateScope: 'payment',
           });
           uploadedUrl = result.url;
           break; // only one receipt

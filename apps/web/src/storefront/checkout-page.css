@@ -41,8 +41,8 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 32px;
-  margin-bottom: 24px;
+  gap: var(--ds-space-8);
+  margin-bottom: var(--ds-space-6);
 }
 
 .checkout-page-heading__copy {
@@ -55,7 +55,7 @@
   gap: 6px;
   margin-bottom: 7px;
   color: var(--tamas-accent-deep);
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
   font-weight: 800;
 }
 
@@ -94,7 +94,7 @@
   gap: 6px;
   min-width: 98px;
   color: var(--tamas-muted);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
 }
 
 .checkout-progress li:not(:last-child)::after {
@@ -136,7 +136,7 @@
 }
 
 .checkout-progress li.is-complete > span {
-  color: #fff;
+  color: var(--ds-on-interactive);
   border-color: var(--tamas-accent);
   background: var(--tamas-accent);
 }
@@ -173,8 +173,8 @@
   bottom: 0;
   z-index: 5;
   flex-wrap: wrap;
-  gap: 12px;
-  padding: 15px 20px;
+  gap: var(--ds-space-3);
+  padding: 15px var(--ds-space-5);
   border-top: 1px solid var(--tamas-border);
   border-radius: 0 0 24px 24px;
   background: color-mix(in srgb, var(--tamas-surface) 92%, transparent);
@@ -186,14 +186,14 @@
   border: 0;
   border-radius: 15px;
   background: linear-gradient(110deg, var(--tamas-accent-deep), var(--tamas-accent));
-  color: #fff;
+  color: var(--ds-on-interactive);
   box-shadow: 0 10px 24px color-mix(in srgb, var(--tamas-accent) 24%, transparent);
-  font-size: 15px;
+  font-size: var(--ds-text-md);
   transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
 }
 
 .checkout-page .modal-foot .btn.primary:not(:disabled):hover {
-  color: #fff;
+  color: var(--ds-on-interactive);
   transform: translateY(-1px);
   box-shadow: 0 13px 28px color-mix(in srgb, var(--tamas-accent) 30%, transparent);
 }
@@ -228,7 +228,7 @@
 .checkout-flow-summary {
   display: grid;
   align-content: start;
-  gap: 16px;
+  gap: var(--ds-space-4);
   min-width: 0;
 }
 
@@ -264,13 +264,13 @@
 .checkout-section-heading p {
   margin: 3px 0 0;
   color: var(--tamas-muted);
-  font-size: 12px;
+  font-size: var(--ds-text-caption);
   line-height: 1.5;
 }
 
 .checkout-card {
   min-width: 0;
-  padding: 20px;
+  padding: var(--ds-space-5);
   border: 1px solid var(--tamas-border);
   border-radius: 18px;
   background: var(--tamas-surface);
@@ -286,7 +286,7 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: var(--ds-space-3);
   padding: 13px 14px;
   border: 1px solid color-mix(in srgb, var(--tamas-accent) 18%, var(--tamas-border));
   border-radius: 14px;
@@ -317,12 +317,12 @@
 
 .checkout-customer-card__item > span {
   color: var(--tamas-muted);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
 }
 
 .checkout-customer-card__item > b {
   overflow-wrap: anywhere;
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
 }
 
 .checkout-customer-card__phone {
@@ -345,7 +345,7 @@
   align-items: center;
   gap: 7px;
   margin-bottom: 7px;
-  font-size: 12px;
+  font-size: var(--ds-text-caption);
   font-weight: 750;
 }
 
@@ -367,7 +367,7 @@
 
 .checkout-payment-card {
   display: grid;
-  gap: 16px;
+  gap: var(--ds-space-4);
 }
 
 .checkout-section-heading--compact {
@@ -395,9 +395,9 @@
   place-items: center;
   flex: 0 0 auto;
   border-radius: 50%;
-  color: #fff;
+  color: var(--ds-on-interactive);
   background: var(--tamas-accent-deep);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
 }
 
 .checkout-payment-step .input {
@@ -427,7 +427,7 @@
   height: 40px;
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--ds-on-interactive);
   border-radius: 12px;
   background: var(--tamas-accent-deep);
 }
@@ -444,15 +444,15 @@
 
 .checkout-plan-card__head > div > span {
   color: var(--tamas-muted);
-  font-size: 10px;
+  font-size: var(--ds-text-2xs);
 }
 
 .checkout-plan-card__head > div > strong {
-  font-size: 14px;
+  font-size: var(--ds-text-md);
 }
 
 .checkout-plan-card__price {
-  padding: 8px 10px;
+  padding: var(--ds-space-2) 10px;
   border: 1px solid color-mix(in srgb, var(--tamas-accent) 20%, var(--tamas-border));
   border-radius: 11px;
   background: var(--tamas-surface);
@@ -461,23 +461,23 @@
 }
 
 .checkout-plan-card__description {
-  margin: 12px 0 0;
+  margin: var(--ds-space-3) 0 0;
   color: var(--tamas-muted);
-  font-size: 12px;
+  font-size: var(--ds-text-caption);
   line-height: 1.75;
 }
 
 .checkout-plan-card__savings {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 10px 12px;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-3);
+  padding: 10px var(--ds-space-3);
   border: 1px solid color-mix(in srgb, #16a34a 32%, transparent);
   border-radius: 12px;
   background: color-mix(in srgb, #16a34a 9%, transparent);
-  color: #15803d;
-  font-size: 12px;
+  color: var(--ds-success);
+  font-size: var(--ds-text-caption);
   line-height: 1.8;
 }
 
@@ -497,7 +497,7 @@
   margin-top: 11px;
   padding-top: 11px;
   border-top: 1px dashed color-mix(in srgb, var(--tamas-accent) 28%, var(--tamas-border));
-  font-size: 12px;
+  font-size: var(--ds-text-caption);
 }
 
 .checkout-plan-card__upfront span {
@@ -508,13 +508,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
   gap: 7px;
-  margin-top: 12px;
+  margin-top: var(--ds-space-3);
 }
 
 .checkout-plan-schedule > span {
   display: grid;
   gap: 3px;
-  padding: 8px 9px;
+  padding: var(--ds-space-2) 9px;
   border-radius: 10px;
   background: color-mix(in srgb, var(--tamas-surface) 84%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tamas-border) 75%, transparent);
@@ -526,15 +526,15 @@
 }
 
 .checkout-plan-schedule b {
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
 }
 
 .checkout-plan-card__instructions {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 11px 12px;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-3);
+  padding: 11px var(--ds-space-3);
   border-radius: 11px;
   background: color-mix(in srgb, var(--tamas-accent-deep) 7%, var(--tamas-surface));
 }
@@ -549,7 +549,7 @@
 .checkout-plan-card__instructions p {
   margin: 0;
   white-space: pre-line;
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   line-height: 1.75;
 }
 
@@ -561,7 +561,7 @@
   position: sticky;
   top: 20px;
   display: grid;
-  gap: 16px;
+  gap: var(--ds-space-4);
 }
 
 .checkout-flow-summary .table-wrap {
@@ -577,7 +577,7 @@
 .checkout-flow-summary .data {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: var(--ds-text-caption);
 }
 
 .checkout-flow-summary .data th,
@@ -591,7 +591,7 @@
 .checkout-flow-summary .data th {
   color: var(--tamas-muted);
   background: color-mix(in srgb, var(--tamas-bg) 58%, var(--tamas-surface));
-  font-size: 10px;
+  font-size: var(--ds-text-2xs);
   font-weight: 750;
 }
 
@@ -618,16 +618,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--ds-space-4);
 }
 
 .checkout-totals__row {
   color: var(--tamas-muted);
-  font-size: 12px;
+  font-size: var(--ds-text-caption);
 }
 
 .checkout-totals__row + .checkout-totals__row {
-  margin-top: 8px;
+  margin-top: var(--ds-space-2);
 }
 
 .checkout-totals__row--adjustment > span:last-child {
@@ -636,10 +636,10 @@
 }
 
 .checkout-totals__final {
-  margin-top: 12px;
+  margin-top: var(--ds-space-3);
   padding-top: 13px;
   border-top: 1px dashed color-mix(in srgb, var(--tamas-accent) 30%, var(--tamas-border));
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
   font-weight: 800;
 }
 
@@ -677,7 +677,7 @@
 
 .checkout-consent > span {
   color: var(--tamas-fg);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
   line-height: 1.85;
 }
 
@@ -685,8 +685,8 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-bottom: 4px;
-  font-size: 12px;
+  margin-bottom: var(--ds-space-1);
+  font-size: var(--ds-text-caption);
 }
 
 .checkout-consent > span > b .ic {
@@ -701,7 +701,7 @@
   gap: 6px;
   margin: 0;
   color: var(--tamas-muted);
-  font-size: 10px;
+  font-size: var(--ds-text-2xs);
   line-height: 1.75;
 }
 
@@ -715,13 +715,13 @@
 .checkout-page-state {
   display: grid;
   justify-items: start;
-  gap: 12px;
-  padding: 32px;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-8);
   max-width: 660px;
 }
 
 .checkout-page-state > .ic {
-  font-size: 28px;
+  font-size: var(--ds-text-2xl);
   color: var(--tamas-accent-deep);
 }
 
@@ -756,7 +756,7 @@
 @media (max-width: 700px) {
   .checkout-shell .checkout-topbar-inner {
     gap: 10px;
-    padding: 10px 16px;
+    padding: 10px var(--ds-space-4);
   }
 
   .checkout-topbar-inner .logo img {
@@ -770,7 +770,7 @@
 
   .checkout-page {
     width: 100%;
-    padding: 21px 13px 40px;
+    padding: 21px 13px var(--ds-space-10);
   }
 
   .checkout-page-heading {
@@ -780,7 +780,7 @@
   }
 
   .checkout-page-heading p {
-    font-size: 12px;
+    font-size: var(--ds-text-caption);
   }
 
   .checkout-progress {
@@ -805,14 +805,14 @@
   }
 
   .checkout-page .modal-panel--inline .modal-body {
-    padding: 18px 12px;
+    padding: 18px var(--ds-space-3);
   }
 
   .checkout-page .modal-panel--inline .modal-foot {
-    padding: 11px 12px calc(11px + env(safe-area-inset-bottom));
+    padding: 11px var(--ds-space-3) calc(11px + env(safe-area-inset-bottom));
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: var(--ds-space-2);
     border-radius: 0 0 19px 19px;
   }
 
@@ -823,7 +823,7 @@
   }
 
   .checkout-flow-grid {
-    gap: 24px;
+    gap: var(--ds-space-6);
   }
 
   .checkout-flow-fields,
@@ -842,7 +842,7 @@
 
   .checkout-customer-card__phone {
     grid-column: 2;
-    padding: 8px 0 0;
+    padding: var(--ds-space-2) 0 0;
     border-top: 1px solid var(--tamas-border);
     border-right: 0;
   }
@@ -871,7 +871,7 @@
   .checkout-flow-summary .data tr {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    padding: 8px 0;
+    padding: var(--ds-space-2) 0;
     border-bottom: 1px solid var(--tamas-border);
   }
 
@@ -881,7 +881,7 @@
 
   .checkout-flow-summary .data td {
     border: 0;
-    padding: 4px 8px;
+    padding: var(--ds-space-1) var(--ds-space-2);
   }
 
   .checkout-flow-summary .data td:first-child {
@@ -890,7 +890,7 @@
   }
 
   .checkout-page-state {
-    padding: 24px 18px;
+    padding: var(--ds-space-6) 18px;
   }
 }
 

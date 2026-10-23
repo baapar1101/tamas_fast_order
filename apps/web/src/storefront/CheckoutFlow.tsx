@@ -451,12 +451,12 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
           <div
             className="card"
             style={{
-              padding: 12,
+              padding: "var(--ds-space-3)",
               background: "var(--primary-light)",
               borderColor: "var(--primary)",
             }}
           >
-            <div className="stack" style={{ gap: 4, fontSize: 13 }}>
+            <div className="stack" style={{ gap: "var(--ds-space-1)", fontSize: "var(--ds-text-sm)" }}>
               <div className="row">
                 <span className="muted">شماره سفارش</span>
                 <span className="spacer" />
@@ -473,14 +473,14 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
           </div>
 
           {/* Instructions */}
-          <div className="card" style={{ padding: 12 }}>
+          <div className="card" style={{ padding: "var(--ds-space-3)" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {info.instructions.map((line, i) => (
                 <p
                   key={i}
                   style={{
-                    margin: 0,
-                    fontSize: 13,
+                    margin: "var(--ds-space-0)",
+                    fontSize: "var(--ds-text-sm)",
                     lineHeight: 1.8,
                     color: i === 0 ? "var(--text)" : "var(--muted)",
                   }}
@@ -497,8 +497,8 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
                 <div key={f.key} className="field">
                   <label htmlFor={`sf-${f.key}`}>{f.label}</label>
                   {secondaryData[f.key] ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-2)', padding: 8, borderRadius: 8 }}>
-                      <a href={secondaryData[f.key]} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', flex: 1, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontSize: 13, direction: 'ltr', textAlign: 'right' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: "var(--ds-space-2)", background: 'var(--surface-2)', padding: "var(--ds-space-2)", borderRadius: 8 }}>
+                      <a href={secondaryData[f.key]} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', flex: 1, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontSize: "var(--ds-text-sm)", direction: 'ltr', textAlign: 'right' }}>
                         {secondaryData[f.key]}
                       </a>
                       <button type="button" onClick={() => setSecondaryData({ ...secondaryData, [f.key]: '' })} style={{ background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer' }}>×</button>
@@ -556,7 +556,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             );
           })}
 
-          <p className="faint" style={{ margin: 0, fontSize: 12 }}>
+          <p className="faint" style={{ margin: "var(--ds-space-0)", fontSize: "var(--ds-text-caption)" }}>
             در صورت عدم تکمیل فرم، می‌توانید اطلاعات را بعداً از بخش «سفارش‌های
             من» ارسال کنید.
           </p>
@@ -585,12 +585,12 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             <div
               className="card"
               style={{
-                padding: 12,
+                padding: "var(--ds-space-3)",
                 background: "var(--primary-light)",
                 borderColor: "var(--primary)",
               }}
             >
-              <div className="stack" style={{ gap: 4, fontSize: 13 }}>
+              <div className="stack" style={{ gap: "var(--ds-space-1)", fontSize: "var(--ds-text-sm)" }}>
                 <div className="row">
                   <span className="muted">شماره سفارش</span>
                   <span className="spacer" />
@@ -608,8 +608,8 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
 
             {customMethodObj.instructions && (
               <div className="card" style={{ padding: 14 }}>
-                <h4 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 700 }}>دستورالعمل و راهنمای پرداخت:</h4>
-                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.8, whiteSpace: 'pre-line', color: 'var(--text)' }}>
+                <h4 style={{ margin: "0 0 var(--ds-space-2)", fontSize: "var(--ds-text-md)", fontWeight: 700 }}>دستورالعمل و راهنمای پرداخت:</h4>
+                <p style={{ margin: "var(--ds-space-0)", fontSize: "var(--ds-text-sm)", lineHeight: 1.8, whiteSpace: 'pre-line', color: 'var(--text)' }}>
                   {customMethodObj.instructions}
                 </p>
               </div>
@@ -697,7 +697,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             onChange={(e) => setAddress(e.target.value)}
           />
           {!address.trim() && user?.address && (
-            <span className="faint" style={{ fontSize: 12 }}>
+            <span className="faint" style={{ fontSize: "var(--ds-text-caption)" }}>
               خالی بماند، آدرس حساب استفاده می‌شود.
             </span>
           )}
@@ -705,10 +705,10 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             <span
               className="alert warn"
               style={{
-                fontSize: 12,
+                fontSize: "var(--ds-text-caption)",
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 4,
+                gap: "var(--ds-space-1)",
               }}
             >
               <Icon name="warn" /> آدرسی ثبت نشده است.
@@ -736,7 +736,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
               <p>شرایط دلخواه را مرحله‌به‌مرحله انتخاب کنید.</p>
             </div>
           </div>
-          <div style={{ display: "grid", gap: "8px", marginTop: "4px" }}>
+          <div style={{ display: "grid", gap: "var(--ds-space-2)", marginTop: "var(--ds-space-1)" }}>
             {termsQuery.isPending && <div className="alert">در حال محاسبه شرایط پرداخت…</div>}
             {termsQuery.isError && <div className="alert warn">محاسبه شرایط پرداخت انجام نشد؛ روش‌های عادی همچنان در دسترس هستند.</div>}
             {termsQuery.data?.message && <div className="alert warn">{termsQuery.data.message}</div>}
@@ -831,12 +831,12 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             {activeConfiguredMethod && (
               <div className="checkout-plan-card checkout-plan-card--simple">
                 <strong>{activeConfiguredMethod.label}</strong>
-                <p className="muted" style={{ fontSize: 12, margin: '6px 0 0' }}>
+                <p className="muted" style={{ fontSize: "var(--ds-text-caption)", margin: '6px 0 0' }}>
                   {activeConfiguredMethod.id === 'wallet' && walletQuery.data
                     ? `موجودی: ${walletQuery.data.wallet.balance.toLocaleString('fa-IR')} تومان`
                     : activeConfiguredMethod.desc}
                 </p>
-                {activeConfiguredMethod.instructions && <p style={{ fontSize: 12, margin: '8px 0 0', whiteSpace: 'pre-line', lineHeight: 1.7 }}>{activeConfiguredMethod.instructions}</p>}
+                {activeConfiguredMethod.instructions && <p style={{ fontSize: "var(--ds-text-caption)", margin: "var(--ds-space-2) 0 0", whiteSpace: 'pre-line', lineHeight: 1.7 }}>{activeConfiguredMethod.instructions}</p>}
               </div>
             )}
           </div>
@@ -854,14 +854,14 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
           </div>
 
         <div className="checkout-card checkout-summary-card">
-        <div className="field" style={{ marginBottom: 16 }}>
+        <div className="field" style={{ marginBottom: "var(--ds-space-4)" }}>
           <label htmlFor="discount-code">کد تخفیف اختصاصی</label>
-          <div className="row" style={{ gap: 8 }}>
+          <div className="row" style={{ gap: "var(--ds-space-2)" }}>
             <input id="discount-code" className="input" dir="ltr" value={discountCode} onChange={(event) => { setDiscountCode(event.target.value.toUpperCase()); setDiscountQuote(null); }} placeholder="مثال: TAMAS-..." />
             <button type="button" className="btn" disabled={discountBusy || !discountCode.trim()} onClick={() => void applyDiscount()}>{discountBusy ? 'در حال بررسی…' : 'اعمال'}</button>
           </div>
-          {discountQuote && <span className="alert" style={{ marginTop: 8 }}>{discountQuote.freeShipping ? 'ارسال رایگان فعال است.' : `${discountQuote.amount.toLocaleString('fa-IR')} تومان تخفیف اعمال می‌شود.`}</span>}
-          {!discountCode && discountsQuery.data?.items[0] && <button type="button" className="btn ghost" style={{ marginTop: 8 }} onClick={() => setDiscountCode(discountsQuery.data!.items[0]!.code)}>استفاده از کد اختصاصی من: <b dir="ltr">{discountsQuery.data.items[0].code}</b></button>}
+          {discountQuote && <span className="alert" style={{ marginTop: "var(--ds-space-2)" }}>{discountQuote.freeShipping ? 'ارسال رایگان فعال است.' : `${discountQuote.amount.toLocaleString('fa-IR')} تومان تخفیف اعمال می‌شود.`}</span>}
+          {!discountCode && discountsQuery.data?.items[0] && <button type="button" className="btn ghost" style={{ marginTop: "var(--ds-space-2)" }} onClick={() => setDiscountCode(discountsQuery.data!.items[0]!.code)}>استفاده از کد اختصاصی من: <b dir="ltr">{discountsQuery.data.items[0].code}</b></button>}
         </div>
         <div className="table-wrap checkout-order-table-wrap">
           <table className="data checkout-order-table">

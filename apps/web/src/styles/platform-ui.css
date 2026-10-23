@@ -1,0 +1,57 @@
+/* Cross-route contracts. Page layouts keep their own grids; primitives share one scale. */
+body.admin-page-active {
+  --ds-canvas: var(--ds-admin-canvas);
+  --ds-surface: var(--ds-admin-surface);
+  --ds-surface-subtle: var(--ds-admin-surface-subtle);
+  --ds-surface-raised: var(--ds-admin-surface-raised);
+  --ds-text: var(--ds-admin-text);
+  --ds-text-secondary: var(--ds-admin-text-secondary);
+  --ds-text-muted: var(--ds-admin-text-muted);
+  --ds-border: var(--ds-admin-border);
+  --ds-border-strong: var(--ds-admin-border-strong);
+  --ds-interactive: var(--ds-admin-interactive);
+  --ds-interactive-hover: var(--ds-admin-interactive-hover);
+  --ds-interactive-soft: var(--ds-admin-interactive-soft);
+  --ds-success: var(--ds-admin-success);
+  --ds-success-soft: var(--ds-admin-success-soft);
+  --ds-warning: var(--ds-admin-warning);
+  --ds-warning-soft: var(--ds-admin-warning-soft);
+  --ds-danger: var(--ds-admin-danger);
+  --ds-danger-soft: var(--ds-admin-danger-soft);
+  --ds-focus-ring: var(--ds-admin-focus-ring);
+}
+
+@media screen {
+  body :where(button, input, select, textarea) { font-family: var(--ds-font-sans); }
+  body :where(button, a, input, select, textarea):focus-visible { outline: 2px solid var(--ds-interactive); outline-offset: 3px; }
+  body :where(input, select, textarea) { scroll-margin-block: 6rem; }
+  body :where(button, input, select, textarea):disabled { cursor: not-allowed; }
+  body :where(table) { font-variant-numeric: tabular-nums; }
+  body :where(th, td) { line-height: var(--ds-leading-normal); }
+  body .modal-panel--sm { --modal-size: 28rem; }
+  body .modal-panel--md { --modal-size: 36rem; }
+  body .modal-panel--lg { --modal-size: 52rem; }
+  body .modal-panel--xl { --modal-size: 72rem; }
+  body .modal-panel { max-width: min(var(--modal-size, 72rem), calc(100vw - 2rem)); }
+  body .modal-head { flex-shrink: 0; gap: var(--ds-space-3); }
+  body .modal-body { min-height: 0; overscroll-behavior: contain; }
+  body .modal-close { flex-shrink: 0; min-width: var(--ds-control-h-md); min-height: var(--ds-control-h-md); }
+  .private-upload-field { margin-block: var(--ds-space-4); }
+  .private-upload-field input { height: auto; padding: var(--ds-space-3); }
+  .private-upload-field input::file-selector-button { margin-inline-end: var(--ds-space-3); padding: var(--ds-space-2) var(--ds-space-3); border: 1px solid var(--ds-border); border-radius: var(--ds-radius-sm); background: var(--ds-interactive-soft); color: var(--ds-interactive); font: inherit; }
+  .ds-route-loading { display: grid; min-height: 18rem; place-items: center; border: 1px solid var(--ds-border); border-radius: var(--ds-radius-lg); background: var(--ds-surface); color: var(--ds-text-muted); }
+  .ds-update-prompt { position: fixed; inset-inline: var(--ds-space-4); bottom: calc(5rem + env(safe-area-inset-bottom)); z-index: var(--ds-layer-toast); display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-4); width: min(44rem, calc(100vw - 2rem)); margin-inline: auto; padding: var(--ds-space-4); border: 1px solid var(--ds-border); border-radius: var(--ds-radius-lg); background: var(--ds-surface-raised); color: var(--ds-text); box-shadow: var(--ds-shadow-lg); }
+  .ds-update-prompt p { margin: var(--ds-space-1) 0 0; font-size: var(--ds-text-sm); color: var(--ds-text-secondary); }
+  .ds-update-prompt__actions { display: flex; flex-shrink: 0; gap: var(--ds-space-2); }
+  .account-content :where(.wallet-panel, .credit-dashboard, .order-card) { border-radius: var(--ds-radius-lg); border-color: var(--ds-border); background: var(--ds-surface); }
+  .admin-main-content :where(.a-title) { font-size: var(--ds-text-title); line-height: var(--ds-leading-tight); }
+  .admin-main-content :where(.a-page-head) { display: flex; flex-wrap: wrap; gap: var(--ds-space-4); }
+}
+@media screen and (max-width: 640px) {
+  body .modal-backdrop { padding: var(--ds-space-2); }
+  body .modal-panel { width: 100%; max-width: calc(100vw - 1rem); max-height: calc(100dvh - 2rem); }
+  body .modal-head, body .modal-body, body .modal-foot { padding: var(--ds-space-4); }
+  .ds-update-prompt { align-items: stretch; flex-direction: column; }
+  .ds-update-prompt__actions > * { flex: 1; }
+  .admin-main-content :where(.a-page-actions) { flex-wrap: wrap; }
+}

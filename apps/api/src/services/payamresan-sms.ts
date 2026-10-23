@@ -54,7 +54,7 @@ export async function sendPayamresanSms(
   }
 
   let endpoint: URL;
-  let v4 = false;
+  let v4: boolean;
   try {
     const baseUrl = new URL(input.baseUrl);
     v4 = isV4Endpoint(baseUrl);

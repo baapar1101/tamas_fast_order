@@ -105,9 +105,9 @@ export function StoreFooter() {
 
       <div className="footer-bottom">
         <nav className="footer-legal" aria-label="پیوندهای مهم">
-          <Link to="/terms"><Icon name="book" style={{ marginInlineEnd: 4 }} /> شرایط و قوانین همکاری</Link>
-          <Link to="/terms#faq"><Icon name="help" style={{ marginInlineEnd: 4 }} /> سؤالات متداول</Link>
-          <Link to="/terms#sales-terms"><Icon name="receipt" style={{ marginInlineEnd: 4 }} /> روش‌های پرداخت و تسویه‌حساب</Link>
+          <Link to="/terms"><Icon name="book" style={{ marginInlineEnd: "var(--ds-space-1)" }} /> شرایط و قوانین همکاری</Link>
+          <Link to="/terms#faq"><Icon name="help" style={{ marginInlineEnd: "var(--ds-space-1)" }} /> سؤالات متداول</Link>
+          <Link to="/terms#sales-terms"><Icon name="receipt" style={{ marginInlineEnd: "var(--ds-space-1)" }} /> روش‌های پرداخت و تسویه‌حساب</Link>
         </nav>
         <p className="footer-copy">© تمامی حقوق برای تماس مارکت محفوظ است.</p>
       </div>

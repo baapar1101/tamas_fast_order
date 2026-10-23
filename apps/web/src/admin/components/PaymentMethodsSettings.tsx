@@ -117,14 +117,14 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
 
   return (
     <div className="a-card a-fade">
-      <div className="a-card-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+      <div className="a-card-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: "var(--ds-space-3)" }}>
         <div>
           <h3 className="a-card-title">💳 پیکربندی روش‌های پرداخت</h3>
-          <p className="a-subtitle" style={{ margin: '4px 0 0' }}>
+          <p className="a-subtitle" style={{ margin: "var(--ds-space-1) 0 0" }}>
             مدیریت، فعال/غیرفعال‌سازی و تعاریف روش‌های پرداخت هنگام ثبت سفارش توسط خریدار
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: "var(--ds-space-2)" }}>
           <button type="button" className="a-btn a-btn--secondary" onClick={openCreateModal}>
             ➕ افزودن روش پرداخت جدید
           </button>
@@ -136,8 +136,8 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
         </div>
       </div>
 
-      <div className="a-card-body" style={{ padding: 16 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="a-card-body" style={{ padding: "var(--ds-space-4)" }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-3)" }}>
           {methods.map((m, index) => {
             const typeInfo = TYPE_LABELS[m.type] ?? TYPE_LABELS.custom;
             return (
@@ -147,14 +147,14 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '14px 16px',
+                  padding: "14px var(--ds-space-4)",
                   background: m.enabled ? 'var(--card, #fff)' : 'var(--tamas-surface-subtle, #f8fafc)',
                   border: m.enabled ? '1px solid var(--tamas-border, #e2e8f0)' : '1px dashed var(--tamas-border, #cbd5e1)',
                   borderRadius: 12,
                   opacity: m.enabled ? 1 : 0.65,
                   transition: 'all 0.2s ease',
                   flexWrap: 'wrap',
-                  gap: 12,
+                  gap: "var(--ds-space-3)",
                 }}
               >
                 {/* Left side info */}
@@ -204,26 +204,26 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
                   </label>
 
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 16 }}>{typeInfo.icon}</span>
-                      <strong style={{ fontSize: 14, color: 'var(--tamas-fg, #0f172a)' }}>{m.label}</strong>
-                      <span className={`a-badge ${typeInfo.badgeClass}`} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: "var(--ds-space-2)", flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: "var(--ds-text-lg)" }}>{typeInfo.icon}</span>
+                      <strong style={{ fontSize: "var(--ds-text-md)", color: 'var(--tamas-fg, #0f172a)' }}>{m.label}</strong>
+                      <span className={`a-badge ${typeInfo.badgeClass}`} style={{ fontSize: "var(--ds-text-xs)", padding: "2px var(--ds-space-2)", borderRadius: 12 }}>
                         {typeInfo.label}
                       </span>
                       {!m.enabled && (
-                        <span className="a-badge a-badge--neutral" style={{ fontSize: 10, color: '#64748b' }}>
+                        <span className="a-badge a-badge--neutral" style={{ fontSize: "var(--ds-text-2xs)", color: "var(--ds-text-muted)" }}>
                           غیرفعال
                         </span>
                       )}
                     </div>
-                    {m.desc && <p style={{ fontSize: 12, color: 'var(--tamas-muted, #64748b)', margin: '4px 0 0' }}>{m.desc}</p>}
+                    {m.desc && <p style={{ fontSize: "var(--ds-text-caption)", color: 'var(--tamas-muted, #64748b)', margin: "var(--ds-space-1) 0 0" }}>{m.desc}</p>}
                     {m.instructions && (
-                      <div style={{ fontSize: 11, color: 'var(--tamas-accent, #0ea5e9)', marginTop: 4, whiteSpace: 'pre-line' }}>
+                      <div style={{ fontSize: "var(--ds-text-xs)", color: 'var(--tamas-accent, #0ea5e9)', marginTop: "var(--ds-space-1)", whiteSpace: 'pre-line' }}>
                         ℹ️ {m.instructions.split('\n')[0]}
                       </div>
                     )}
                     {(m.minAmount || m.maxAmount) && (
-                      <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+                      <div style={{ fontSize: "var(--ds-text-xs)", color: "var(--ds-text-muted)", marginTop: "var(--ds-space-1)" }}>
                         {m.minAmount && <span>حداقل: {formatNumber(m.minAmount)} تومان </span>}
                         {m.maxAmount && <span> | حداکثر: {formatNumber(m.maxAmount)} تومان</span>}
                       </div>
@@ -277,7 +277,7 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
           title={editingMethod ? 'ویرایش روش پرداخت' : 'افزودن روش پرداخت جدید'}
           onClose={() => setModalOpen(false)}
           footer={
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: "var(--ds-space-2)", justifyContent: 'flex-end' }}>
               <button type="button" className="a-btn a-btn--ghost" onClick={() => setModalOpen(false)}>
                 انصراف
               </button>
@@ -324,7 +324,7 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
             </div>
 
             <div className="a-field">
-              <label className="a-label" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <label className="a-label" style={{ display: 'flex', alignItems: 'center', gap: "var(--ds-space-2)", cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={formEnabled}
@@ -346,7 +346,7 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: "var(--ds-space-3)" }}>
               <div className="a-field">
                 <label className="a-label">حداقل مبلغ سفارش (تومان)</label>
                 <input

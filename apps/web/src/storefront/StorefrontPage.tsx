@@ -51,9 +51,9 @@ function ProductSkeletons({ viewMode }: { viewMode: 'list' | 'grid' }) {
       <div className="products-grid">
         {Array.from({ length: 6 }, (_, i) => (
           <div key={i} className="product-card">
-            <div className="skeleton" style={{ width: '100%', height: 160, marginBottom: 12 }} />
+            <div className="skeleton" style={{ width: '100%', height: 160, marginBottom: "var(--ds-space-3)" }} />
             <div className="skeleton" style={{ height: 18, width: '75%', marginBottom: 10 }} />
-            <div className="skeleton" style={{ height: 14, width: '40%', marginBottom: 16 }} />
+            <div className="skeleton" style={{ height: 14, width: '40%', marginBottom: "var(--ds-space-4)" }} />
             <div className="skeleton" style={{ height: 38, width: '100%' }} />
           </div>
         ))}
@@ -67,8 +67,8 @@ function ProductSkeletons({ viewMode }: { viewMode: 'list' | 'grid' }) {
         <div key={i} className="product" style={{ display: 'flex', gap: 14 }}>
           <div className="skeleton" style={{ width: 200, height: 200, flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
-            <div className="skeleton" style={{ height: 18, width: '70%', marginBottom: 12 }} />
-            <div className="skeleton" style={{ height: 14, width: '40%', marginBottom: 16 }} />
+            <div className="skeleton" style={{ height: 18, width: '70%', marginBottom: "var(--ds-space-3)" }} />
+            <div className="skeleton" style={{ height: 14, width: '40%', marginBottom: "var(--ds-space-4)" }} />
             <div className="skeleton" style={{ height: 40, width: '100%' }} />
           </div>
         </div>
@@ -420,27 +420,27 @@ export function StorefrontPage() {
 
       <main className="container" data-mobile-tab={mobileTab}>
         {bootstrap.isError && (
-          <div className="card" role="alert" style={{ color: 'var(--danger)', padding: 20, marginBottom: 20 }}>
+          <div className="card" role="alert" style={{ color: 'var(--danger)', padding: "var(--ds-space-5)", marginBottom: "var(--ds-space-5)" }}>
             دریافت دسته‌بندی‌ها و تنظیمات فروشگاه ناموفق بود. برای نمایش اطلاعات به‌روز، صفحه را دوباره بارگذاری کنید.
           </div>
         )}
         {/* Mobile-only Categories View */}
         <div className="mobile-only-categories">
-          <div style={{ padding: '20px 16px', background: 'var(--card)', borderBottom: '1px solid var(--tamas-border)', position: 'sticky', top: 0, zIndex: 10 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--tamas-fg)' }}>دسته‌بندی محصولات</h2>
+          <div style={{ padding: "var(--ds-space-5) var(--ds-space-4)", background: 'var(--card)', borderBottom: '1px solid var(--tamas-border)', position: 'sticky', top: 0, zIndex: 10 }}>
+            <h2 style={{ fontSize: "var(--ds-text-lead)", fontWeight: 800, color: 'var(--tamas-fg)' }}>دسته‌بندی محصولات</h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, padding: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: "var(--ds-space-3)", padding: "var(--ds-space-4)" }}>
             {(bootstrap.data?.categories ?? []).map((c) => {
               const iconSrc = c.iconUrl ? c.iconUrl.startsWith('http') || c.iconUrl.startsWith('/') ? c.iconUrl : c.iconUrl.startsWith('img_') ? `/uploads/${c.iconUrl}` : `/assets/category/${c.iconUrl}` : null;
               return (
                 <button
                   key={c.id}
                   type="button"
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '24px 12px', background: 'var(--card)', borderRadius: 16, border: '1px solid var(--tamas-border)', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: "var(--ds-space-3)", padding: "var(--ds-space-6) var(--ds-space-3)", background: 'var(--card)', borderRadius: 16, border: '1px solid var(--tamas-border)', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}
                   onClick={() => { setCategory(c.name); setBrands([]); resetPage(); selectMobileTab('home'); }}
                 >
-                  {iconSrc ? <img src={iconSrc} alt="" loading="lazy" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span style={{ fontSize: 32, color: 'var(--tamas-accent)' }}><Icon name="box" /></span>}
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--tamas-fg)' }}>{c.faName}</span>
+                  {iconSrc ? <img src={iconSrc} alt="" loading="lazy" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span style={{ fontSize: "var(--ds-text-3xl)", color: 'var(--tamas-accent)' }}><Icon name="box" /></span>}
+                  <span style={{ fontSize: "var(--ds-text-sm)", fontWeight: 700, color: 'var(--tamas-fg)' }}>{c.faName}</span>
                 </button>
               );
             })}
@@ -453,19 +453,19 @@ export function StorefrontPage() {
         </div>
 
         {/* Mobile-only Profile View */}
-        <div className="mobile-only-profile" style={{ padding: 16, paddingBottom: 100 }}>
+        <div className="mobile-only-profile" style={{ padding: "var(--ds-space-4)", paddingBottom: 100 }}>
           {user ? (
-            <div style={{ background: 'var(--card)', borderRadius: 16, padding: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center', border: '1px solid var(--tamas-border)' }}>
-              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--tamas-accent)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 800, margin: '0 auto 16px' }}>{user.name?.[0] || 'U'}</div>
-              <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--tamas-fg)', marginBottom: 4 }}>{user.name} {user.lastName}</h2>
-              <p style={{ fontSize: 14, color: 'var(--tamas-muted)', marginBottom: 24 }}>{user.phone}</p>
+            <div style={{ background: 'var(--card)', borderRadius: 16, padding: "var(--ds-space-5)", boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center', border: '1px solid var(--tamas-border)' }}>
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--tamas-accent)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: "var(--ds-text-3xl)", fontWeight: 800, margin: "0 auto var(--ds-space-4)" }}>{user.name?.[0] || 'U'}</div>
+              <h2 style={{ fontSize: "var(--ds-text-xl)", fontWeight: 800, color: 'var(--tamas-fg)', marginBottom: "var(--ds-space-1)" }}>{user.name} {user.lastName}</h2>
+              <p style={{ fontSize: "var(--ds-text-md)", color: 'var(--tamas-muted)', marginBottom: "var(--ds-space-6)" }}>{user.phone}</p>
               <Link to="/account" state={{ returnTo: `${location.pathname}${location.search}` }} className="btn primary w-full">ورود به صفحهٔ حساب کاربری</Link>
             </div>
           ) : (
-            <div style={{ background: 'var(--card)', borderRadius: 16, padding: 32, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center', marginTop: 40, border: '1px solid var(--tamas-border)' }}>
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--tamas-info-bg)', color: 'var(--tamas-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, margin: '0 auto 16px' }}><Icon name="user" /></div>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--tamas-fg)', marginBottom: 12 }}>وارد حساب کاربری شوید</h2>
-              <p style={{ fontSize: 13, color: 'var(--tamas-muted)', marginBottom: 24, lineHeight: 1.6 }}>برای مشاهده قیمت‌های همکاری و ثبت سفارش، لطفاً وارد شوید.</p>
+            <div style={{ background: 'var(--card)', borderRadius: 16, padding: "var(--ds-space-8)", boxShadow: '0 2px 10px rgba(0,0,0,0.02)', textAlign: 'center', marginTop: "var(--ds-space-10)", border: '1px solid var(--tamas-border)' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--tamas-info-bg)', color: 'var(--tamas-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: "var(--ds-text-2xl)", margin: "0 auto var(--ds-space-4)" }}><Icon name="user" /></div>
+              <h2 style={{ fontSize: "var(--ds-text-lead)", fontWeight: 800, color: 'var(--tamas-fg)', marginBottom: "var(--ds-space-3)" }}>وارد حساب کاربری شوید</h2>
+              <p style={{ fontSize: "var(--ds-text-sm)", color: 'var(--tamas-muted)', marginBottom: "var(--ds-space-6)", lineHeight: 1.6 }}>برای مشاهده قیمت‌های همکاری و ثبت سفارش، لطفاً وارد شوید.</p>
               <button type="button" className="btn primary w-full" onClick={() => { setAuthStep('phone'); setAuthOpen(true); }}>ورود / ثبت‌نام</button>
             </div>
           )}
@@ -576,10 +576,10 @@ export function StorefrontPage() {
               <div className="side-title accordion-title">
                 <button type="button" className="brand-toggle" aria-expanded={!brandsCollapsed} aria-controls="storefront-brands" onClick={() => setBrandsCollapsed((collapsed) => !collapsed)}>
                   برندها
-                  <Icon name="chevron" className="accordion-chevron" style={{ transform: brandsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.25s ease', fontSize: 14 }} />
+                  <Icon name="chevron" className="accordion-chevron" style={{ transform: brandsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.25s ease', fontSize: "var(--ds-text-md)" }} />
                 </button>
                 {brands.length > 0 && (
-                  <button type="button" onClick={(e) => { e.stopPropagation(); setBrands([]); }} style={{ fontSize: 12, color: 'var(--tamas-accent)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                  <button type="button" onClick={(e) => { e.stopPropagation(); setBrands([]); }} style={{ fontSize: "var(--ds-text-caption)", color: 'var(--tamas-accent)', background: 'none', border: 'none', padding: "var(--ds-space-0)", cursor: 'pointer' }}>
                     همه (پاک‌سازی)
                   </button>
                 )}
@@ -605,7 +605,7 @@ export function StorefrontPage() {
                           resetPage();
                         }}
                       >
-                        {iconSrc ? <img src={iconSrc} alt={b.faName} loading="lazy" /> : <Icon name="mobile" style={{ fontSize: 16 }} />}
+                        {iconSrc ? <img src={iconSrc} alt={b.faName} loading="lazy" /> : <Icon name="mobile" style={{ fontSize: "var(--ds-text-lg)" }} />}
                         <span className="brand-name">{b.name}</span>
                       </button>
                     );
@@ -613,7 +613,7 @@ export function StorefrontPage() {
                 </div>
               </div>
 
-              {homepageFilters.length > 0 && <div className="side-title" style={{ marginTop: 20 }}>فیلترهای سریع</div>}
+              {homepageFilters.length > 0 && <div className="side-title" style={{ marginTop: "var(--ds-space-5)" }}>فیلترهای سریع</div>}
               {homepageFilters.map((filter) => (
                 <div className="switch-row" key={filter.id}>
                   <span>{filter.label}</span>
@@ -724,11 +724,11 @@ export function StorefrontPage() {
             {products.isLoading ? (
               <ProductSkeletons viewMode={viewMode} />
             ) : products.isError ? (
-              <div className="card" style={{ textAlign: 'center', color: 'var(--danger)', padding: 32 }}>
+              <div className="card" style={{ textAlign: 'center', color: 'var(--danger)', padding: "var(--ds-space-8)" }}>
                 دریافت کالاها ناموفق بود. صفحه را دوباره بارگذاری کنید.
               </div>
             ) : groups.length === 0 ? (
-              <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 48 }}>
+              <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: "var(--ds-space-12)" }}>
                 محصولی با این مشخصات پیدا نشد.
               </div>
             ) : (
@@ -740,11 +740,11 @@ export function StorefrontPage() {
                 </div>
 
                 {pageCount > 1 && (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: 24 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: "var(--ds-space-6)" }}>
                     <button type="button" className="btn" disabled={page <= 1} onClick={() => setPage(page - 1)}>
                       قبلی
                     </button>
-                    <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
+                    <span style={{ fontSize: "var(--ds-text-sm)", color: 'var(--text-muted)', fontWeight: 600 }}>
                       صفحه {formatNumber(page)} از {formatNumber(pageCount)}
                     </span>
                     <button type="button" className="btn" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>

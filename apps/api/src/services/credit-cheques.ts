@@ -8,6 +8,7 @@ import {
 } from '@tamas/shared';
 import { db, schema } from '../db/client.js';
 import { badRequest, notFound } from '../lib/errors.js';
+import { claimPrivateFile } from './private-files.js';
 
 type RegisterChequeInput = Pick<CreditChequeWrite, 'chequeNumber' | 'bankName' | 'accountHolder' | 'imageUrl' | 'notes'> & {
   orderId: number;
@@ -23,6 +24,7 @@ function scheduledInstallment(plan: PaymentPlanQuote, orderDate: Date, index: nu
 
 /** Register only the next server-calculated cheque for a customer's order. */
 export async function registerOrderCheque(userId: number, input: RegisterChequeInput) {
+  const imageUrl = input.imageUrl ? await claimPrivateFile(input.imageUrl, userId, 'credit') : null;
   return db.transaction(async (tx) => {
     const [order] = await tx
       .select()
@@ -72,7 +74,7 @@ export async function registerOrderCheque(userId: number, input: RegisterChequeI
         accountHolder: input.accountHolder,
         amount: next.amount,
         dueDate: next.dueDate,
-        imageUrl: input.imageUrl || null,
+        imageUrl,
         notes: input.notes || null,
         status: 'pending',
       })

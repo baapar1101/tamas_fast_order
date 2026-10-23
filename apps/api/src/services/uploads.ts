@@ -8,6 +8,8 @@ import { env } from '../env.js';
 import { badRequest } from '../lib/errors.js';
 import { storage } from './storage/index.js';
 import { isPdfDocument } from '../lib/upload-document.js';
+import { privateFileUrl, type PrivateFileScope } from '../lib/private-files.js';
+import { putPrivateFile } from './private-storage.js';
 
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
 const DOC_TYPES = new Set(['application/pdf']);
@@ -28,8 +30,8 @@ export function toUploadDTO(row: typeof uploads.$inferSelect): UploadDTO {
   return {
     id: row.id,
     kind: row.kind,
-    url: storage.publicUrl(row.storageKey),
-    thumbUrl: row.thumbKey ? storage.publicUrl(row.thumbKey) : null,
+    url: row.privateScope ? privateFileUrl(row.id) : storage.publicUrl(row.storageKey),
+    thumbUrl: row.thumbKey ? (row.privateScope ? privateFileUrl(row.id, true) : storage.publicUrl(row.thumbKey)) : null,
     originalName: row.originalName,
     mimeType: row.mimeType,
     size: row.size,
@@ -45,6 +47,7 @@ interface ProcessInput {
   mimeType: string;
   kind: UploadKind;
   uploadedBy: number | null;
+  privateScope?: PrivateFileScope;
 }
 
 /**
@@ -55,6 +58,8 @@ interface ProcessInput {
  */
 export async function processUpload(input: ProcessInput): Promise<UploadDTO> {
   const { buffer, filename, mimeType, kind, uploadedBy } = input;
+  const privateScope = input.privateScope ?? (kind === 'certificate' ? 'credit' : null);
+  const put = (key: string, content: Buffer, type: string) => privateScope ? putPrivateFile(key, content) : storage.put(key, content, type);
 
   if (buffer.byteLength > env.UPLOAD_MAX_BYTES) {
     throw badRequest(`حجم فایل بیشتر از حد مجاز است (حداکثر ${Math.floor(env.UPLOAD_MAX_BYTES / 1024 / 1024)} مگابایت).`);
@@ -70,7 +75,7 @@ export async function processUpload(input: ProcessInput): Promise<UploadDTO> {
     if (!isPdfDocument(buffer)) throw badRequest('ساختار فایل PDF معتبر نیست.');
     // Never trust a user-controlled extension on a document served publicly.
     const key = `${folder}/${id}.pdf`;
-    const stored = await storage.put(key, buffer, mimeType);
+    const stored = await put(key, buffer, mimeType);
     const [row] = await db
       .insert(uploads)
       .values({
@@ -81,6 +86,8 @@ export async function processUpload(input: ProcessInput): Promise<UploadDTO> {
         size: stored.size,
         checksum: stored.checksum,
         uploadedBy,
+        privateScope,
+        privateOwnerId: privateScope ? uploadedBy : null,
       })
       .returning();
     if (!row) throw new Error('upload insert failed');
@@ -112,8 +119,8 @@ export async function processUpload(input: ProcessInput): Promise<UploadDTO> {
 
   const key = `${folder}/${id}.webp`;
   const thumbKey = `${folder}/${id}_thumb.webp`;
-  const stored = await storage.put(key, main, 'image/webp');
-  await storage.put(thumbKey, thumb, 'image/webp');
+  const stored = await put(key, main, 'image/webp');
+  await put(thumbKey, thumb, 'image/webp');
 
   const [row] = await db
     .insert(uploads)
@@ -128,6 +135,8 @@ export async function processUpload(input: ProcessInput): Promise<UploadDTO> {
       height: meta.height ?? null,
       checksum: stored.checksum,
       uploadedBy,
+      privateScope,
+      privateOwnerId: privateScope ? uploadedBy : null,
     })
     .returning();
   if (!row) throw new Error('upload insert failed');
@@ -137,6 +146,7 @@ export async function processUpload(input: ProcessInput): Promise<UploadDTO> {
 export async function deleteUpload(id: number): Promise<boolean> {
   const [row] = await db.select().from(uploads).where(eq(uploads.id, id)).limit(1);
   if (!row) return false;
+  if (row.privateScope) throw badRequest('مدارک خصوصی از کتابخانهٔ رسانه حذف نمی‌شوند.');
   await storage.delete(row.storageKey).catch(() => {});
   if (row.thumbKey) await storage.delete(row.thumbKey).catch(() => {});
   await db.delete(uploads).where(eq(uploads.id, id));

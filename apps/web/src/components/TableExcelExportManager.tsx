@@ -23,7 +23,7 @@ function readCell(cell: HTMLTableCellElement): string {
   const clonedControls = Array.from(clone.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea'));
   clonedControls.forEach((control, index) => {
     const original = originalControls[index];
-    let value = '';
+    let value: string;
     if (original instanceof HTMLInputElement && original.type === 'checkbox') value = original.checked ? 'بله' : 'خیر';
     else if (original instanceof HTMLSelectElement) value = original.selectedOptions[0]?.text ?? '';
     else value = original?.value ?? '';

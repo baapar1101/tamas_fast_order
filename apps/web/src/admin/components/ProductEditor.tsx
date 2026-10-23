@@ -44,12 +44,12 @@ function BundleItemSelect({ value, onChange }: { value: string; onChange: (val: 
         autoComplete="off"
       />
       {open && data?.items && data.items.length > 0 && (
-        <div style={{ position: 'absolute', zIndex: 50, width: '100%', top: '100%', left: 0, marginTop: 4, background: 'var(--card)', border: '1px solid var(--tamas-border)', borderRadius: 8, maxHeight: 250, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+        <div style={{ position: 'absolute', zIndex: 50, width: '100%', top: '100%', left: 0, marginTop: "var(--ds-space-1)", background: 'var(--card)', border: '1px solid var(--tamas-border)', borderRadius: 8, maxHeight: 250, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
           {data.items.map((p) => (
             <button
               key={p.productId}
               type="button"
-              style={{ width: '100%', textAlign: 'right', padding: '10px 12px', borderBottom: '1px solid var(--tamas-border)', background: 'transparent' }}
+              style={{ width: '100%', textAlign: 'right', padding: "10px var(--ds-space-3)", borderBottom: '1px solid var(--tamas-border)', background: 'transparent' }}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
                 setTerm(p.productId);
@@ -57,8 +57,8 @@ function BundleItemSelect({ value, onChange }: { value: string; onChange: (val: 
                 setOpen(false);
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--tamas-fg)', marginBottom: 4 }}>{p.title}</div>
-              <div style={{ fontSize: 11, color: 'var(--tamas-muted)', fontFamily: 'monospace' }}>{p.productId}</div>
+              <div style={{ fontSize: "var(--ds-text-sm)", fontWeight: 700, color: 'var(--tamas-fg)', marginBottom: "var(--ds-space-1)" }}>{p.title}</div>
+              <div style={{ fontSize: "var(--ds-text-xs)", color: 'var(--tamas-muted)', fontFamily: 'monospace' }}>{p.productId}</div>
             </button>
           ))}
         </div>
@@ -524,7 +524,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                     type="color"
                     value={form.colorCode && /^#[0-9a-f]{6}$/i.test(form.colorCode.trim()) ? form.colorCode.trim() : '#000000'}
                     onChange={(e) => set('colorCode', e.target.value)}
-                    style={{ width: '2.2rem', height: '2.2rem', padding: 0, border: 'none', cursor: 'pointer', background: 'transparent' }}
+                    style={{ width: '2.2rem', height: '2.2rem', padding: "var(--ds-space-0)", border: 'none', cursor: 'pointer', background: 'transparent' }}
                     title="انتخاب رنگ"
                   />
                 </div>

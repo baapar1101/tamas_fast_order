@@ -12,6 +12,8 @@ import { AppError } from './lib/errors.js';
 import { clientErrorResponse } from './lib/client-error.js';
 import authPlugin from './plugins/auth.js';
 import { storage } from './services/storage/index.js';
+import privateFileRoutes, { guardLegacyUpload } from './routes/private-files.js';
+import { ensurePrivateStorage } from './services/private-storage.js';
 
 import adminDashboard from './routes/admin/dashboard.js';
 import adminOrders from './routes/admin/orders.js';
@@ -85,6 +87,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   await app.register(authPlugin);
+  await ensurePrivateStorage();
+  app.addHook('onRequest', guardLegacyUpload);
 
   // Serve uploads directly when the local driver is in use; behind nginx you
   // would normally let it serve this path instead.
@@ -148,6 +152,7 @@ export async function buildApp(): Promise<FastifyInstance> {
    */
   await app.register(
       async (api) => {
+        await api.register(privateFileRoutes);
         await api.register(catalogRoutes);
         await api.register(authRoutes);
         await api.register(telegramRoutes);

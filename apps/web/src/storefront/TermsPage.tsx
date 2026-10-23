@@ -141,12 +141,12 @@ export function TermsPage() {
       </header>
 
       <main className="container terms-page" style={{ maxWidth: 900 }}>
-        <div className="card" style={{ padding: '26px 24px', marginBottom: 18 }}>
+        <div className="card" style={{ padding: "26px var(--ds-space-6)", marginBottom: 18 }}>
           <span className="badge brand">شفافیت، اعتماد و همکاری پایدار</span>
-          <h1 style={{ fontSize: 21, margin: '12px 0 10px', lineHeight: 1.7 }}>
+          <h1 style={{ fontSize: 21, margin: "var(--ds-space-3) 0 10px", lineHeight: 1.7 }}>
             شرایط و قوانین همکاری: مرزهای مسئولیت و خدمات پس از فروش
           </h1>
-          <p className="muted" style={{ margin: 0 }}>
+          <p className="muted" style={{ margin: "var(--ds-space-0)" }}>
             ما در تماس مارکت بر پایه شفافیت و اعتماد، مسیر همکاری با شما را هموار کرده‌ایم. جهت حفظ نظم در فرآیند خرید و
             فروش، رعایت قوانین زیر الزامی است.
           </p>
@@ -155,15 +155,15 @@ export function TermsPage() {
         <div
           style={{
             display: 'grid',
-            gap: 12,
+            gap: "var(--ds-space-3)",
             gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
             marginBottom: 18,
           }}
         >
           {HIGHLIGHTS.map((h) => (
-            <div className="card" key={h.title} style={{ padding: 16, textAlign: 'center' }}>
-              <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--brand)' }}>{h.value}</div>
-              <div style={{ fontWeight: 600, marginTop: 4 }}>{h.title}</div>
+            <div className="card" key={h.title} style={{ padding: "var(--ds-space-4)", textAlign: 'center' }}>
+              <div style={{ fontSize: "var(--ds-text-2xl)", fontWeight: 800, color: 'var(--brand)' }}>{h.value}</div>
+              <div style={{ fontWeight: 600, marginTop: "var(--ds-space-1)" }}>{h.title}</div>
               <div className="muted" style={{ fontSize: 12.5 }}>
                 {h.note}
               </div>
@@ -173,15 +173,15 @@ export function TermsPage() {
 
         <div className="stack">
           {SECTIONS.map((section) => (
-            <section className="card" key={section.n} id={section.id} style={{ padding: 20 }}>
-              <div className="row" style={{ marginBottom: 12 }}>
+            <section className="card" key={section.n} id={section.id} style={{ padding: "var(--ds-space-5)" }}>
+              <div className="row" style={{ marginBottom: "var(--ds-space-3)" }}>
                 <span
                   style={{
                     width: 30,
                     height: 30,
                     borderRadius: '50%',
                     background: 'var(--brand)',
-                    color: '#fff',
+                    color: "var(--ds-on-interactive)",
                     display: 'grid',
                     placeItems: 'center',
                     fontWeight: 700,
@@ -190,11 +190,11 @@ export function TermsPage() {
                 >
                   {section.n}
                 </span>
-                <h2 style={{ fontSize: 16, margin: 0 }}>{section.title}</h2>
+                <h2 style={{ fontSize: "var(--ds-text-lg)", margin: "var(--ds-space-0)" }}>{section.title}</h2>
               </div>
               <div className="stack" style={{ gap: 10 }}>
                 {section.items.map((item) => (
-                  <p key={item.lead} style={{ margin: 0, lineHeight: 1.9 }}>
+                  <p key={item.lead} style={{ margin: "var(--ds-space-0)", lineHeight: 1.9 }}>
                     <b style={{ color: 'var(--brand-600)' }}>{item.lead}</b> {item.body}
                   </p>
                 ))}
@@ -203,15 +203,15 @@ export function TermsPage() {
           ))}
         </div>
 
-        <div className="card" style={{ padding: 20, marginTop: 18 }}>
-          <h2 style={{ fontSize: 16, marginTop: 0 }}>تماس با ما</h2>
+        <div className="card" style={{ padding: "var(--ds-space-5)", marginTop: 18 }}>
+          <h2 style={{ fontSize: "var(--ds-text-lg)", marginTop: "var(--ds-space-0)" }}>تماس با ما</h2>
           <p style={{ margin: '0 0 6px' }}>
             پیش از ارسال کالای مرجوعی با واحد پشتیبانی هماهنگ کنید.
           </p>
-          <p style={{ margin: '0 0 4px' }}>
+          <p style={{ margin: "0 0 var(--ds-space-1)" }}>
             شماره تماس: <b className="ltr-inline">{phone}</b>
           </p>
-          <p className="muted" style={{ margin: 0 }}>
+          <p className="muted" style={{ margin: "var(--ds-space-0)" }}>
             آدرس: {address}
           </p>
         </div>

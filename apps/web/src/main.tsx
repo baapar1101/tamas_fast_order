@@ -7,9 +7,11 @@ import { ToastProvider } from './components/Toast';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { ApiRequestError } from './lib/api';
 import { useAuth } from './store/auth';
-import { forceReloadLatestApp, installForcedAppUpdates } from './lib/forceAppUpdate';
+import { notifyAppUpdate, installForcedAppUpdates } from './lib/forceAppUpdate';
+import { AppUpdatePrompt } from './components/AppUpdatePrompt';
 import './styles/design-system.css';
 import './styles/global.css';
+import './styles/platform-ui.css';
 
 // Keep long-lived tabs on the currently deployed version. A mismatched build
 // gets a cache-busted navigation, so a normal reload cannot restore stale HTML.
@@ -23,7 +25,7 @@ const handleChunkError = (errorMsg: string) => {
     errorMsg.includes('ChunkLoadError')
   ) {
     console.warn('New app version detected due to missing chunk. Updating...');
-    void forceReloadLatestApp();
+    notifyAppUpdate();
   }
 };
 
@@ -68,6 +70,7 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <ToastProvider>
           <App />
+          <AppUpdatePrompt />
         </ToastProvider>
       </BrowserRouter>
     </QueryClientProvider>

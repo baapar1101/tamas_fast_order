@@ -47,10 +47,17 @@
   --ds-font-sans: "Vazirmatn FD", Vazirmatn, Tahoma, "Segoe UI", sans-serif;
   --ds-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --ds-text-xs: 0.6875rem;
+  --ds-text-2xs: 0.625rem;
+  --ds-text-caption: 0.75rem;
   --ds-text-sm: 0.8125rem;
   --ds-text-md: 0.875rem;
   --ds-text-lg: 1rem;
   --ds-text-xl: 1.25rem;
+  --ds-text-lead: 1.125rem;
+  --ds-text-title: 1.5rem;
+  --ds-text-3xl: 2rem;
+  --ds-text-display: 2.5rem;
+  --ds-media-surface: #ffffff;
   --ds-text-2xl: 1.625rem;
   --ds-leading-tight: 1.45;
   --ds-leading-normal: 1.7;

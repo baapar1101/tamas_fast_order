@@ -8,7 +8,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((key) => key.startsWith('tamas-') || key.startsWith('tamasmarket-')).map((key) => caches.delete(key))))
       .then(() => self.registration.unregister())
       .then(() => self.clients.claim()),
   );

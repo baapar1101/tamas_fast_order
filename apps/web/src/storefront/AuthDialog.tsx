@@ -13,6 +13,7 @@ import {
   toAsciiDigits,
 } from '@tamas/shared';
 import { Modal } from '../components/Modal';
+import { PrivateUploadField } from '../components/PrivateUploadField';
 import { useToast } from '../components/Toast';
 import { ApiRequestError, api } from '../lib/api';
 import { useAuth } from '../store/auth';
@@ -56,7 +57,6 @@ const PROFILE_FIELDS = [
   { key: 'landline', label: 'تلفن ثابت', ltr: true },
   { key: 'postalCode', label: 'کد پستی', ltr: true },
   { key: 'address', label: 'آدرس', required: true, full: true, textarea: true },
-  { key: 'certificateFileUrl', label: 'لینک جواز کسب', full: true },
 ] as const;
 
 type ProfileForm = Record<string, string>;
@@ -177,6 +177,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
   const [oldPassword, setOldPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [documentBusy, setDocumentBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [form, setForm] = useState<ProfileForm>(emptyProfile(null));
   const [invalid, setInvalid] = useState<string[]>([]);
@@ -427,7 +428,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
 
       {step === 'phone' && (
         <div className="stack">
-          <p className="muted" style={{ margin: 0 }}>
+          <p className="muted" style={{ margin: "var(--ds-space-0)" }}>
             شماره موبایل خود را وارد کنید. کد تایید پیامک می‌شود.
           </p>
           <div className="field">
@@ -465,7 +466,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
 
       {step === 'password-login' && (
         <div className="stack">
-          <p className="muted" style={{ margin: 0 }}>
+          <p className="muted" style={{ margin: "var(--ds-space-0)" }}>
             رمز عبور حساب کاربری خود را وارد کنید.
             <button type="button" className="btn ghost sm" onClick={() => setStep('phone')}>
               بازگشت
@@ -496,7 +497,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
 
       {step === 'code' && (
         <div className="stack">
-          <p className="muted" style={{ margin: 0 }}>
+          <p className="muted" style={{ margin: "var(--ds-space-0)" }}>
             کد پیامک‌شده به <b className="ltr-inline">{phone}</b> را وارد کنید.
             <button type="button" className="btn ghost sm" onClick={() => setStep('phone')}>
               تغییر شماره
@@ -536,18 +537,18 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
 
           {/* Advanced Validation: National Identity Inquiry */}
           <div className="card" style={{ padding: 14, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--primary)' }}>
+            <div style={{ fontWeight: 700, fontSize: "var(--ds-text-sm)", marginBottom: "var(--ds-space-2)", display: 'flex', alignItems: 'center', gap: 6, color: 'var(--primary)' }}>
               <Icon name="shield" /> <span>استعلام و تایید اطلاعات هویتی (ثبت احوال)</span>
               {!inquirySuccess && <span className="badge" style={{ marginInlineStart: 'auto' }}>اختیاری</span>}
               {inquirySuccess && <span className="badge success" style={{ marginInlineStart: 'auto' }}>✓ هویتی تاییدشده</span>}
             </div>
             {inquirySuccess && verifiedInfo ? (
-              <div className="alert success" style={{ fontSize: 12.5, margin: 0 }}>
+              <div className="alert success" style={{ fontSize: 12.5, margin: "var(--ds-space-0)" }}>
                 اطلاعات هویتی تایید شد: <b>{verifiedInfo.firstName} {verifiedInfo.lastName}</b> {verifiedInfo.fatherName ? `(فرزند ${verifiedInfo.fatherName})` : ''}
               </div>
             ) : (
-              <div className="stack" style={{ gap: 8 }}>
-                <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+              <div className="stack" style={{ gap: "var(--ds-space-2)" }}>
+                <p className="muted" style={{ margin: "var(--ds-space-0)", fontSize: "var(--ds-text-caption)" }}>
                   این مرحله اختیاری است و می‌توانید بدون انجام آن ثبت‌نام را کامل کنید. اعداد فارسی و انگلیسی هر دو پذیرفته می‌شوند.
                 </p>
                 <div className="identity-inquiry-fields">
@@ -577,7 +578,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
             )}
           </div>
 
-          <p className="muted" style={{ margin: 0 }}>
+          <p className="muted" style={{ margin: "var(--ds-space-0)" }}>
             {complete
               ? 'می‌توانید اطلاعات حساب خود را به‌روزرسانی کنید.'
               : 'برای ثبت سفارش، فیلدهای ستاره‌دار را کامل کنید.'}
@@ -616,7 +617,9 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
             ))}
           </div>
 
-          <button type="button" className="btn primary block" disabled={busy} onClick={() => void saveProfile()}>
+          <PrivateUploadField label="جواز کسب (اختیاری)" value={form.certificateFileUrl ?? ''}
+            onChange={(url) => setForm((previous) => ({ ...previous, certificateFileUrl: url }))} onBusyChange={setDocumentBusy} />
+          <button type="button" className="btn primary block" disabled={busy || documentBusy} onClick={() => void saveProfile()}>
             {busy ? 'در حال ذخیره…' : 'ذخیره اطلاعات'}
           </button>
           <button type="button" className="btn block" onClick={onClose} disabled={busy}>
@@ -659,22 +662,22 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
                 {creditApp ? (
                   <span
                     style={{
-                      padding: '4px 10px',
+                      padding: "var(--ds-space-1) 10px",
                       borderRadius: '12px',
-                      fontSize: '12px',
+                      fontSize: "var(--ds-text-caption)",
                       fontWeight: 800,
                       backgroundColor:
                         creditApp.status === 'active'
-                          ? '#dcfce7'
+                          ? "var(--ds-success-soft)"
                           : creditApp.status === 'action_required'
-                          ? '#fee2e2'
-                          : '#fef3c7',
+                          ? "var(--ds-danger-soft)"
+                          : "var(--ds-warning-soft)",
                       color:
                         creditApp.status === 'active'
-                          ? '#15803d'
+                          ? "var(--ds-success)"
                           : creditApp.status === 'action_required'
-                          ? '#dc2626'
-                          : '#d97706',
+                          ? "var(--ds-danger)"
+                          : "var(--ds-warning)",
                     }}
                   >
                     ● {creditApp.status === 'active'
@@ -684,7 +687,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
                         : 'در حال بررسی'}
                   </span>
                 ) : (
-                  <span className="muted" style={{ fontSize: '12px' }}>ثبت نشده</span>
+                  <span className="muted" style={{ fontSize: "var(--ds-text-caption)" }}>ثبت نشده</span>
                 )}
               </div>
               {creditApp?.status === 'active' && creditApp.assignedCreditLimit > 0 && (
@@ -729,7 +732,7 @@ export function AuthDialog({ open, initialStep = 'phone', onClose, onOpenCredit,
 
       {step === 'password-set' && user && (
         <div className="stack">
-          <p className="muted" style={{ margin: 0 }}>
+          <p className="muted" style={{ margin: "var(--ds-space-0)" }}>
             با تعیین رمز عبور می‌توانید در مراجعات بعدی سریع‌تر وارد حساب شوید.
           </p>
           <div className="field">

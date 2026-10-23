@@ -24,7 +24,7 @@ export function GuestPromoPopup({ show, onAuth }: Props) {
 
   return (
     <div className="ipp-overlay" onClick={() => setVisible(false)} style={{ zIndex: 10000 }}>
-      <div className="ipp-dialog" onClick={(e) => e.stopPropagation()} style={{ padding: '32px 24px', textAlign: 'center' }}>
+      <div className="ipp-dialog" onClick={(e) => e.stopPropagation()} style={{ padding: "var(--ds-space-8) var(--ds-space-6)", textAlign: 'center' }}>
         <button
           type="button"
           className="ipp-close"
@@ -34,15 +34,15 @@ export function GuestPromoPopup({ show, onAuth }: Props) {
           &times;
         </button>
         
-        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--tamas-promo-grad)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, margin: '0 auto 20px' }}>
+        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--tamas-promo-grad)', color: "var(--ds-on-interactive)", display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: "var(--ds-text-3xl)", margin: "0 auto var(--ds-space-5)" }}>
           <Icon name="shield" />
         </div>
         
-        <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 12, color: 'var(--tamas-fg)' }}>
+        <h2 style={{ fontSize: "var(--ds-text-lead)", fontWeight: 800, marginBottom: "var(--ds-space-3)", color: 'var(--tamas-fg)' }}>
           برای مشاهده قیمت‌های همکاری ثبت‌نام کنید
         </h2>
         
-        <p style={{ fontSize: 13, color: 'var(--tamas-muted)', marginBottom: 24, lineHeight: 1.7 }}>
+        <p style={{ fontSize: "var(--ds-text-sm)", color: 'var(--tamas-muted)', marginBottom: "var(--ds-space-6)", lineHeight: 1.7 }}>
           تماس مارکت قیمت‌های ویژه و عمده را تنها برای همکاران و کاربران ثبت‌نام شده نمایش می‌دهد. برای دسترسی به قیمت‌ها هم‌اکنون وارد شوید.
         </p>
         

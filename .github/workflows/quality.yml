@@ -19,6 +19,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      - run: npm run lint
+      - run: node scripts/normalize-ui-tokens.mjs --check
       - run: npm test
       - run: npm run build
       - run: npm audit --omit=dev --audit-level=high
