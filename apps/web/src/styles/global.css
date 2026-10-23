@@ -710,6 +710,64 @@ select.select {
   overflow-y: auto;
 }
 
+/* Universal table export action */
+.table-excel-export-slot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 2.75rem;
+  margin-block: 0.625rem;
+}
+
+.table-excel-export-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--a-brand, var(--ds-interactive)) 38%, var(--a-border, var(--ds-border)));
+  border-radius: var(--ds-radius-md);
+  background: color-mix(in srgb, var(--a-brand, var(--ds-interactive)) 9%, var(--a-surface, var(--ds-surface-raised)));
+  color: var(--a-brand, var(--ds-interactive));
+  font: inherit;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-bold);
+  line-height: 1.4;
+  cursor: pointer;
+  box-shadow: var(--ds-shadow-sm);
+  transition: border-color var(--ds-duration-fast), background-color var(--ds-duration-fast), transform var(--ds-duration-fast);
+}
+
+.table-excel-export-button:hover:not(:disabled) {
+  border-color: var(--a-brand, var(--ds-interactive));
+  background: color-mix(in srgb, var(--a-brand, var(--ds-interactive)) 15%, var(--a-surface, var(--ds-surface-raised)));
+  transform: translateY(-1px);
+}
+
+.table-excel-export-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--a-brand, var(--ds-interactive)) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.table-excel-export-button:disabled { cursor: wait; opacity: 0.68; }
+.table-excel-export-spinner { animation: table-excel-spin 800ms linear infinite; }
+@keyframes table-excel-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 640px) {
+  .table-excel-export-slot { margin-block: 0.5rem; }
+  .table-excel-export-button { width: 100%; min-height: var(--ds-control-h-md); font-size: var(--ds-text-md); }
+}
+
+@media print {
+  .table-excel-export-slot { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table-excel-export-button { transition: none; }
+  .table-excel-export-spinner { animation-duration: 1.8s; }
+}
+
 .modal-foot {
   padding: var(--ds-space-3) var(--ds-space-5);
   border-top: 1px solid var(--border);
