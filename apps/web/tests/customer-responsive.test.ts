@@ -21,6 +21,14 @@ test('storefront toolbar follows its own column width', () => {
   assert.match(css, /\.toolbar-controls\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s);
 });
 
+test('mobile filter card delegates vertical swipes to the page', () => {
+  const css = read('../src/storefront/customer-responsive.css');
+
+  assert.match(css, /@media \(max-width:\s*1024px\)[\s\S]*?\.layout\s*>\s*\.sidebar\s*\{[^}]*max-height:\s*none/s);
+  assert.match(css, /\.layout\s*>\s*\.sidebar\s*\{[^}]*overflow-y:\s*visible/s);
+  assert.match(css, /\.layout\s*>\s*\.sidebar\s*\{[^}]*overscroll-behavior:\s*auto/s);
+});
+
 test('account modules and very narrow screens have explicit overflow contracts', () => {
   const css = read('../src/storefront/customer-responsive.css');
 
