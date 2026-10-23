@@ -53,4 +53,5 @@ test('document recovery is reachable in admin and customer navigation without ex
   assert.match(admin, /useState\(false\)/);
   assert.match(read('../src/storefront/DocumentRequestsPage.tsx'), /<PrivateUploadField/);
   assert.match(read('../src/styles/document-recovery.css'), /overflow-x: auto/);
+  assert.match(read('../src/styles/document-recovery.css'), /body \.modal-body label\.doc-check \{ display: flex/);
 });
