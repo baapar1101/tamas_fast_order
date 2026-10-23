@@ -1,5 +1,7 @@
 import https from 'node:https';
 import { timingSafeEqual } from 'node:crypto';
+import { createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { generateSecret, getAllSettings, setSetting } from './settings.js';
 
@@ -122,6 +124,96 @@ interface TelegramApiResponse {
   ok?: boolean;
   description?: string;
   result?: unknown;
+}
+
+const TELEGRAM_DOCUMENT_MAX_BYTES = 45 * 1024 * 1024;
+
+function multipartField(boundary: string, name: string, value: string): Buffer {
+  return Buffer.from(
+    `--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`,
+    'utf8',
+  );
+}
+
+/** Upload a sensitive document to one configured operator group without buffering it in memory. */
+export async function sendTelegramDocumentToGroup(
+  groupId: string,
+  filePath: string,
+  fileName: string,
+  caption: string,
+): Promise<{ groupName: string; size: number }> {
+  const config = await getTelegramConfig();
+  if (!config.enabled || !config.botToken) throw new Error('ربات تلگرام مدیران فعال و تنظیم نشده است.');
+  if (!/^\d+:[A-Za-z0-9_-]+$/.test(config.botToken)) throw new Error('فرمت توکن ربات معتبر نیست.');
+  const group = config.groups.find((item) => item.id === groupId && item.enabled);
+  if (!group) throw new Error('گروه فعال انتخاب‌شده برای بکاپ پیدا نشد.');
+
+  const file = await stat(filePath);
+  if (!file.isFile() || file.size === 0) throw new Error('فایل بکاپ ساخته نشد یا خالی است.');
+  if (file.size > TELEGRAM_DOCUMENT_MAX_BYTES) {
+    throw new Error(`حجم بکاپ از سقف امن ارسال تلگرام (${Math.floor(TELEGRAM_DOCUMENT_MAX_BYTES / 1024 / 1024)} مگابایت) بیشتر است.`);
+  }
+
+  const boundary = `----tamas-${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
+  const safeName = fileName.replace(/["\r\n]/g, '_');
+  const fields = [
+    multipartField(boundary, 'chat_id', group.chatId),
+    ...(group.messageThreadId ? [multipartField(boundary, 'message_thread_id', String(group.messageThreadId))] : []),
+    multipartField(boundary, 'caption', caption.slice(0, 1024)),
+  ];
+  const fileHeader = Buffer.from(
+    `--${boundary}\r\nContent-Disposition: form-data; name="document"; filename="${safeName}"\r\nContent-Type: application/gzip\r\n\r\n`,
+    'utf8',
+  );
+  const suffix = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf8');
+  const contentLength = fields.reduce((sum, field) => sum + field.length, 0) + fileHeader.length + file.size + suffix.length;
+
+  await new Promise<void>((resolve, reject) => {
+    let agent: https.Agent | undefined;
+    try {
+      agent = config.proxyUrl ? (new SocksProxyAgent(config.proxyUrl) as unknown as https.Agent) : undefined;
+    } catch (error) {
+      reject(new Error(`Invalid Telegram SOCKS proxy: ${(error as Error).message}`));
+      return;
+    }
+
+    const request = https.request({
+      hostname: 'api.telegram.org',
+      port: 443,
+      path: `/bot${config.botToken}/sendDocument`,
+      method: 'POST',
+      agent,
+      headers: {
+        'content-type': `multipart/form-data; boundary=${boundary}`,
+        'content-length': contentLength,
+      },
+      timeout: 180_000,
+    }, (response) => {
+      const chunks: Buffer[] = [];
+      response.on('data', (chunk: Buffer) => chunks.push(chunk));
+      response.on('end', () => {
+        let parsed: TelegramApiResponse;
+        try {
+          parsed = JSON.parse(Buffer.concat(chunks).toString('utf8')) as TelegramApiResponse;
+        } catch {
+          reject(new Error(`Telegram returned HTTP ${response.statusCode ?? 0}`));
+          return;
+        }
+        if (!parsed.ok) reject(new Error(parsed.description || `Telegram returned HTTP ${response.statusCode ?? 0}`));
+        else resolve();
+      });
+    });
+    request.on('timeout', () => request.destroy(new Error('Telegram document upload timed out')));
+    request.on('error', reject);
+    for (const field of fields) request.write(field);
+    request.write(fileHeader);
+    const input = createReadStream(filePath);
+    input.on('error', (error) => request.destroy(error));
+    input.on('end', () => request.end(suffix));
+    input.pipe(request, { end: false });
+  });
+
+  return { groupName: group.name, size: file.size };
 }
 
 export function callTelegramApi(

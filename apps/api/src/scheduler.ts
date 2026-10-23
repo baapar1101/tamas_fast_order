@@ -7,6 +7,7 @@ import { pruneOtpCodes } from './services/otp.js';
 import { isProductImageMirrorRunning, mirrorProductImages } from './services/product-image-mirror.js';
 import { isSyncRunning, pruneConflicts, runSync } from './services/sheets/sync.js';
 import { sendDueInstallmentReceiptReminders } from './services/installment-receipts.js';
+import { runScheduledTelegramBackup } from './services/telegram-backup.js';
 
 /**
  * Background work: the periodic Sheets pass plus the small housekeeping jobs.
@@ -84,6 +85,25 @@ export function startScheduler(log: FastifyBaseLogger): () => void {
   };
   timers.push(setTimeout(() => void installmentReminders(), 20_000));
   timers.push(setInterval(() => void installmentReminders(), 15 * 60 * 1000));
+
+  const telegramBackup = async () => {
+    try {
+      const result = await runScheduledTelegramBackup();
+      if (result) {
+        log.info({
+          fileName: result.fileName,
+          size: result.size,
+          tables: result.tableCount,
+          rows: result.rowCount,
+          group: result.groupName,
+        }, 'daily Telegram backup sent');
+      }
+    } catch (err) {
+      log.error({ err }, 'daily Telegram backup failed');
+    }
+  };
+  timers.push(setTimeout(() => void telegramBackup(), 30_000));
+  timers.push(setInterval(() => void telegramBackup(), 60_000));
 
   const housekeeping = async () => {
     try {
