@@ -72,13 +72,13 @@ export function CreditReportOverview({ report, onClose }: CreditReportOverviewPr
             <p>{[report.userStoreName, report.userPhone].filter(Boolean).join(' · ') || 'اطلاعات تماس ثبت نشده'}</p>
           </div>
         </div>
-        <div className="credit-report-actions">
+        <div className="credit-overview-actions">
           <button type="button" onClick={() => window.print()}><Printer size={16} /> چاپ / ذخیره PDF</button>
           <a href={report.fileUrl} target="_blank" rel="noreferrer"><ExternalLink size={16} /> فایل اصلی ICS24</a>
         </div>
       </header>
 
-      <section className="credit-report-summary">
+      <section className="credit-overview-summary">
         <div className={`credit-score-gauge credit-score-gauge--${risk}`} role="img" aria-label={`امتیاز اعتباری ${score ?? 'نامشخص'} از ۹۰۰`} style={{ '--credit-score-progress': `${scoreProgress}%` } as CSSProperties}>
           <div className="credit-score-gauge__inner">
             <span>امتیاز اعتباری</span>
