@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { CreditApplicationDTO, CreditReportSnapshotDTO, CreditStatus, PaymentHealthDashboardDTO } from '@tamas/shared';
+import type { CreditApplicationDTO, CreditStatus, PaymentHealthDashboardDTO } from '@tamas/shared';
 import { CREDIT_STATUS_LABELS, formatMoney } from '@tamas/shared';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
+import { CreditReportsDashboard } from '../components/CreditReportsDashboard';
+import type { AdminCreditReport } from '../components/creditReportAnalytics';
 
 type CreditSection = 'applications' | 'reports' | 'health' | 'receipts';
 
@@ -13,8 +15,8 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
   const [loading, setLoading] = useState(true);
   const [section, setSection] = useState<CreditSection>(initialSection);
   const [health, setHealth] = useState<PaymentHealthDashboardDTO | null>(null);
-  const [reports, setReports] = useState<Array<CreditReportSnapshotDTO & { userName: string; userPhone: string; userStoreName: string }>>([]);
-  const [selectedReport, setSelectedReport] = useState<CreditReportSnapshotDTO & { userName: string; userPhone: string; userStoreName: string } | null>(null);
+  const [reports, setReports] = useState<AdminCreditReport[]>([]);
+  const [selectedReport, setSelectedReport] = useState<AdminCreditReport | null>(null);
   const [reviewingReceiptId, setReviewingReceiptId] = useState<number | null>(null);
 
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -34,7 +36,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
     Promise.all([
       api.get<{ ok: true; items: CreditApplicationDTO[] }>('/admin/credit-applications'),
       api.get<{ ok: true } & PaymentHealthDashboardDTO>('/admin/credit-payment-health'),
-      api.get<{ ok: true; items: Array<CreditReportSnapshotDTO & { userName: string; userPhone: string; userStoreName: string }> }>('/admin/credit-reports'),
+      api.get<{ ok: true; items: AdminCreditReport[] }>('/admin/credit-reports'),
     ])
       .then(([applications, paymentHealth, creditReports]) => {
         if (applications.ok) setItems(applications.items);
@@ -273,29 +275,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
       </>}
 
       {section === 'reports' && (
-        <div className="a-card" style={{ overflowX: 'auto' }}>
-          <table className="a-table" style={{ width: '100%', minWidth: '980px' }}>
-            <thead><tr><th>مشتری</th><th>تاریخ ثبت</th><th>امتیاز</th><th>ریسک</th><th>چک برگشتی</th><th>اعتبار</th><th>وضعیت استخراج</th><th>عملیات</th></tr></thead>
-            <tbody>
-              {reports.map((report) => (
-                <tr key={report.id}>
-                  <td><strong>{report.userName}</strong><small style={{ display: 'block', color: 'var(--a-t3)' }}>{report.userStoreName || report.userPhone}</small></td>
-                  <td>{new Date(report.createdAt).toLocaleString('fa-IR')}</td>
-                  <td><strong>{report.score?.toLocaleString('fa-IR') ?? '—'}</strong></td>
-                  <td>{[report.riskGrade, report.riskLevel].filter(Boolean).join(' · ') || '—'}</td>
-                  <td>{report.bouncedChequeCount?.toLocaleString('fa-IR') ?? '—'}</td>
-                  <td><span className={`a-badge ${report.isExpired ? 'a-badge--danger' : 'a-badge--success'}`}>{report.isExpired ? 'منقضی' : `تا ${new Date(report.expiresAt).toLocaleDateString('fa-IR')}`}</span></td>
-                  <td><span className={`a-badge ${report.extractionStatus === 'parsed' ? 'a-badge--success' : 'a-badge--warning'}`}>{report.extractionStatus === 'parsed' ? `استخراج شد (${report.confidence.toLocaleString('fa-IR')}٪)` : 'نیازمند بررسی'}</span></td>
-                  <td style={{ display: 'flex', gap: '6px' }}>
-                    <button type="button" className="a-btn a-btn--secondary" onClick={() => setSelectedReport(report)}>جزئیات کامل</button>
-                    <a className="a-btn a-btn--secondary" href={report.fileUrl} target="_blank" rel="noreferrer">PDF</a>
-                  </td>
-                </tr>
-              ))}
-              {!loading && reports.length === 0 && <tr><td colSpan={8} style={{ textAlign: 'center', padding: '32px' }}>هنوز گزارش ICS24 ثبت نشده است.</td></tr>}
-            </tbody>
-          </table>
-        </div>
+        <CreditReportsDashboard reports={reports} applicants={items} loading={loading} onSelectReport={setSelectedReport} />
       )}
 
       {section === 'health' && (
