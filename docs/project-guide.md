@@ -205,7 +205,7 @@ npx tsx apps/api/scripts/sync-cli.ts both --only=products,brands
 
 ## آپلود فایل
 
-آپلود روی دیسک سرور (`STORAGE_ROOT`، پیش‌فرض `apps/api/storage`) انجام می‌شود.
+رسانهٔ عمومی روی دیسک سرور (`STORAGE_ROOT`، پیش‌فرض `apps/api/storage`) و مدارک مشتری در فضای جداگانهٔ `PRIVATE_STORAGE_ROOT`، پیش‌فرض `apps/api/private-storage`، نگهداری می‌شوند. مدارک فقط از `/api/files/:id` با نشست و مجوز مالک/مدیریت خوانده می‌شوند؛ در کتابخانهٔ عمومی رسانه نیستند.
 تصاویر خودکار با `sharp` به WebP تبدیل و یک نسخهٔ بندانگشتی هم ساخته می‌شود —
 همین تفاوت اصلی سرعت با نسخهٔ قبلی است که JPEGهای تمام‌اندازه را مستقیم از شیت لینک می‌داد.
 
@@ -223,15 +223,18 @@ npm run images:mirror
 بنویسید که `StorageAdapter` را پیاده کند و `STORAGE_DRIVER` را عوض کنید. هیچ
 route یا کامپوننتی تغییر نمی‌کند.
 
-**در production:** بهتر است مسیر `/uploads` را مستقیم با nginx سرو کنید:
+**در production:** مسیر `/uploads` باید از API عبور کند تا کنترل دسترسی نشانی‌های قدیمی مدارک دور زده نشود. از alias مستقیم استفاده نکنید:
 
 ```nginx
-location /uploads/ {
-    alias /var/www/tamas/storage/;
-    expires 30d;
-    add_header Cache-Control "public, immutable";
+location ^~ /uploads/ {
+    proxy_pass http://127.0.0.1:3102;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_cache off;
 }
 ```
+
+جزئیات مهاجرت، مجوزها و بازیابی در [راهنمای مدارک خصوصی](operations/private-documents.md) ثبت شده است. تغییر StorageAdapter رسانهٔ عمومی، به‌تنهایی جایگزین طراحی ذخیره‌سازی و مجوز مدارک خصوصی نیست.
 
 ---
 

@@ -3,6 +3,8 @@ dist/
 build/
 .env
 .env.local
+.env.bak*
+.env.*.bak
 *.local
 .DS_Store
 npm-debug.log*
@@ -16,6 +18,7 @@ coverage/
 *.tsbuildinfo
 sync_config.json
 service-account.json
+google-service-account.json
 google.json
 **/google.json
 .claude-flow/sessions/current.json

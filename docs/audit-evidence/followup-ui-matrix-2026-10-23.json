@@ -1,0 +1,1712 @@
+{
+  "date": "2026-10-23",
+  "scope": "Read-only render, horizontal overflow, theme and computed form font checks; existing administrator session; not a full customer-role transaction suite",
+  "admin": [
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/products",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/bundles",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/categories",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/brands",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/attributes",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/warehouses",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/target-sites",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/slides",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/orders",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/proformas",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/users",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/credit",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/credit-reports",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/catalog-export",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/analytics",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/messages",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/sms",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/marketing",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/uploads",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/sync",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/crm-sync",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/settings",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/financial",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/wallets",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/comments",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/graphify",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/archify",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/access-groups",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/chat",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/product-content-import",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/products",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/bundles",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/categories",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/brands",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/attributes",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/warehouses",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/target-sites",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/slides",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/orders",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/proformas",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/users",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/credit",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/credit-reports",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/catalog-export",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/analytics",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/messages",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/sms",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/marketing",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/uploads",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/sync",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/crm-sync",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/settings",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/financial",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/wallets",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/comments",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/graphify",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/archify",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/access-groups",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/chat",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/product-content-import",
+      "scroll": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/products",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/bundles",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/categories",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/brands",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/attributes",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/warehouses",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/target-sites",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/slides",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/orders",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/proformas",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/users",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/credit",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/credit-reports",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/catalog-export",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/analytics",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/messages",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/sms",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/marketing",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/uploads",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/sync",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/crm-sync",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/settings",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/financial",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/wallets",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/comments",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/graphify",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/archify",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/access-groups",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/chat",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/product-content-import",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/products",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/bundles",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/categories",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/brands",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/attributes",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/warehouses",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/target-sites",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/slides",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/orders",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/proformas",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/users",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/credit",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/credit-reports",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/catalog-export",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/analytics",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/messages",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/sms",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/marketing",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/uploads",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/sync",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/crm-sync",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/settings",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/financial",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/wallets",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/comments",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/graphify",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/archify",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/access-groups",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "main": true,
+      "path": "/admin/chat",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "main": true,
+      "path": "/admin/product-content-import",
+      "scroll": 375,
+      "theme": "dark",
+      "width": 390
+    }
+  ],
+  "customer": [
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": true,
+      "path": "/account",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": true,
+      "path": "/account/wallet",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": true,
+      "path": "/account/credit",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": true,
+      "path": "/account/telegram",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "navigation": false,
+      "path": "/terms",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "navigation": false,
+      "path": "/payment/result",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/checkout",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/p/02040100049",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": true,
+      "path": "/",
+      "scroll": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/account",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/account/wallet",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/account/credit",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/account/telegram",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "navigation": false,
+      "path": "/terms",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "navigation": false,
+      "path": "/payment/result",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/checkout",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/p/02040100049",
+      "scroll": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/",
+      "scroll": 1425,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/account",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/account/wallet",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/account/credit",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/account/telegram",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "navigation": false,
+      "path": "/terms",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "navigation": false,
+      "path": "/payment/result",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/checkout",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/p/02040100049",
+      "scroll": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/",
+      "scroll": 1425,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": true,
+      "path": "/account",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": true,
+      "path": "/account/wallet",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": true,
+      "path": "/account/credit",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": true,
+      "path": "/account/telegram",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "navigation": false,
+      "path": "/terms",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [],
+      "navigation": false,
+      "path": "/payment/result",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/checkout",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": false,
+      "path": "/p/02040100049",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "crash": false,
+      "fonts": [
+        "\"Vazirmatn FD\", Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+      ],
+      "navigation": true,
+      "path": "/",
+      "scroll": 390,
+      "theme": "dark",
+      "width": 390
+    }
+  ]
+}
