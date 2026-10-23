@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { CreditApplicationDTO, CreditStatus, PaymentHealthDashboardDTO } from '@tamas/shared';
+import type { CreditApplicationDTO, CreditReportSnapshotDTO, CreditStatus, PaymentHealthDashboardDTO } from '@tamas/shared';
 import { CREDIT_STATUS_LABELS, formatMoney } from '@tamas/shared';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
@@ -9,8 +9,10 @@ export function CreditApplicationsPage() {
   const toast = useToast();
   const [items, setItems] = useState<CreditApplicationDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  const [section, setSection] = useState<'applications' | 'health' | 'receipts'>('applications');
+  const [section, setSection] = useState<'applications' | 'reports' | 'health' | 'receipts'>('applications');
   const [health, setHealth] = useState<PaymentHealthDashboardDTO | null>(null);
+  const [reports, setReports] = useState<Array<CreditReportSnapshotDTO & { userName: string; userPhone: string; userStoreName: string }>>([]);
+  const [selectedReport, setSelectedReport] = useState<CreditReportSnapshotDTO & { userName: string; userPhone: string; userStoreName: string } | null>(null);
   const [reviewingReceiptId, setReviewingReceiptId] = useState<number | null>(null);
 
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -30,10 +32,12 @@ export function CreditApplicationsPage() {
     Promise.all([
       api.get<{ ok: true; items: CreditApplicationDTO[] }>('/admin/credit-applications'),
       api.get<{ ok: true } & PaymentHealthDashboardDTO>('/admin/credit-payment-health'),
+      api.get<{ ok: true; items: Array<CreditReportSnapshotDTO & { userName: string; userPhone: string; userStoreName: string }> }>('/admin/credit-reports'),
     ])
-      .then(([applications, paymentHealth]) => {
+      .then(([applications, paymentHealth, creditReports]) => {
         if (applications.ok) setItems(applications.items);
         if (paymentHealth.ok) setHealth(paymentHealth);
+        if (creditReports.ok) setReports(creditReports.items);
       })
       .catch((err) => toast.error(err.message || 'خطا در دریافت لیست اعتبارسنجی'))
       .finally(() => setLoading(false));
@@ -154,6 +158,7 @@ export function CreditApplicationsPage() {
 
       <nav className="a-segmented" aria-label="بخش‌های اعتبارسنجی" style={{ display: 'flex', width: 'fit-content', maxWidth: '100%', overflowX: 'auto' }}>
         <button type="button" className={`a-seg${section === 'applications' ? ' a-seg--on' : ''}`} onClick={() => setSection('applications')}>پرونده‌های اعتباری</button>
+        <button type="button" className={`a-seg${section === 'reports' ? ' a-seg--on' : ''}`} onClick={() => setSection('reports')}>گزارش‌های ICS24</button>
         <button type="button" className={`a-seg${section === 'health' ? ' a-seg--on' : ''}`} onClick={() => setSection('health')}>خوش‌حسابی مشتریان</button>
         <button type="button" className={`a-seg${section === 'receipts' ? ' a-seg--on' : ''}`} onClick={() => setSection('receipts')}>رسیدهای اقساط {health?.summary.pendingReceipts ? `(${health.summary.pendingReceipts.toLocaleString('fa-IR')})` : ''}</button>
       </nav>
@@ -265,6 +270,32 @@ export function CreditApplicationsPage() {
       )}
       </>}
 
+      {section === 'reports' && (
+        <div className="a-card" style={{ overflowX: 'auto' }}>
+          <table className="a-table" style={{ width: '100%', minWidth: '980px' }}>
+            <thead><tr><th>مشتری</th><th>تاریخ ثبت</th><th>امتیاز</th><th>ریسک</th><th>چک برگشتی</th><th>اعتبار</th><th>وضعیت استخراج</th><th>عملیات</th></tr></thead>
+            <tbody>
+              {reports.map((report) => (
+                <tr key={report.id}>
+                  <td><strong>{report.userName}</strong><small style={{ display: 'block', color: 'var(--a-t3)' }}>{report.userStoreName || report.userPhone}</small></td>
+                  <td>{new Date(report.createdAt).toLocaleString('fa-IR')}</td>
+                  <td><strong>{report.score?.toLocaleString('fa-IR') ?? '—'}</strong></td>
+                  <td>{[report.riskGrade, report.riskLevel].filter(Boolean).join(' · ') || '—'}</td>
+                  <td>{report.bouncedChequeCount?.toLocaleString('fa-IR') ?? '—'}</td>
+                  <td><span className={`a-badge ${report.isExpired ? 'a-badge--danger' : 'a-badge--success'}`}>{report.isExpired ? 'منقضی' : `تا ${new Date(report.expiresAt).toLocaleDateString('fa-IR')}`}</span></td>
+                  <td><span className={`a-badge ${report.extractionStatus === 'parsed' ? 'a-badge--success' : 'a-badge--warning'}`}>{report.extractionStatus === 'parsed' ? `استخراج شد (${report.confidence.toLocaleString('fa-IR')}٪)` : 'نیازمند بررسی'}</span></td>
+                  <td style={{ display: 'flex', gap: '6px' }}>
+                    <button type="button" className="a-btn a-btn--secondary" onClick={() => setSelectedReport(report)}>جزئیات کامل</button>
+                    <a className="a-btn a-btn--secondary" href={report.fileUrl} target="_blank" rel="noreferrer">PDF</a>
+                  </td>
+                </tr>
+              ))}
+              {!loading && reports.length === 0 && <tr><td colSpan={8} style={{ textAlign: 'center', padding: '32px' }}>هنوز گزارش ICS24 ثبت نشده است.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {section === 'health' && (
         <>
           <section className="a-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
@@ -329,6 +360,54 @@ export function CreditApplicationsPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {selectedReport && (
+        <Modal open={true} onClose={() => setSelectedReport(null)} title={`گزارش اعتبارسنجی ${selectedReport.userName}`} wide>
+          <div style={{ display: 'grid', gap: '18px' }}>
+            <section className="a-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
+              {[
+                ['امتیاز اعتباری', selectedReport.score?.toLocaleString('fa-IR') ?? '—'],
+                ['رتبه ریسک', selectedReport.riskGrade ?? '—'],
+                ['سطح ریسک', selectedReport.riskLevel ?? '—'],
+                ['احتمال خوش‌حسابی', selectedReport.goodPayerMinPercent === null ? '—' : `${selectedReport.goodPayerMinPercent.toLocaleString('fa-IR')} تا ${selectedReport.goodPayerMaxPercent?.toLocaleString('fa-IR')}٪`],
+                ['چک برگشتی', selectedReport.bouncedChequeCount?.toLocaleString('fa-IR') ?? '—'],
+                ['دقت استخراج', `${selectedReport.confidence.toLocaleString('fa-IR')}٪`],
+              ].map(([label, value]) => <article key={label} className="a-card" style={{ padding: '14px' }}><span style={{ color: 'var(--a-t3)', fontSize: '11px' }}>{label}</span><strong style={{ display: 'block', marginTop: '6px' }}>{value}</strong></article>)}
+            </section>
+
+            <section className="a-card" style={{ padding: '16px' }}>
+              <h3 style={{ marginTop: 0 }}>اطلاعات هویتی استخراج‌شده</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', fontSize: '13px' }}>
+                <div><strong>نام:</strong> {selectedReport.data.identity.fullName ?? '—'}</div>
+                <div><strong>کد ملی:</strong> {selectedReport.data.identity.nationalId ?? '—'}</div>
+                <div><strong>نام پدر:</strong> {selectedReport.data.identity.fatherName ?? '—'}</div>
+                <div><strong>تاریخ تولد:</strong> {selectedReport.data.identity.birthDate ?? '—'}</div>
+                <div><strong>موبایل:</strong> {selectedReport.data.identity.mobile ?? '—'}</div>
+                <div><strong>شماره گزارش:</strong> {selectedReport.reportNumber ?? '—'}</div>
+              </div>
+            </section>
+
+            {selectedReport.data.negativeReasons.length > 0 && <section className="a-card" style={{ padding: '16px' }}><h3 style={{ marginTop: 0 }}>دلایل کاهش امتیاز</h3><ul>{selectedReport.data.negativeReasons.map((reason) => <li key={reason.code} style={{ marginBottom: '8px' }}><strong>{reason.code}:</strong> {reason.description}</li>)}</ul></section>}
+            {selectedReport.data.taxStatuses.length > 0 && <section className="a-card" style={{ padding: '16px' }}><h3 style={{ marginTop: 0 }}>سوابق مالیاتی</h3>{selectedReport.data.taxStatuses.map((item) => <div key={`${item.year}-${item.status}`} style={{ padding: '8px 0', borderBottom: '1px solid var(--a-border)' }}><strong>{item.year}:</strong> {item.status}</div>)}</section>}
+
+            <section className="a-card" style={{ padding: '16px' }}>
+              <h3 style={{ marginTop: 0 }}>تمام اطلاعات استخراج‌شده از صفحات</h3>
+              <p style={{ color: 'var(--a-t3)', fontSize: '12px' }}>برای کنترل دقیق، متن همه صفحات PDF بدون حذف در نسخه تاریخی ذخیره شده است.</p>
+              {selectedReport.data.pages.map((page) => (
+                <details key={page.page} style={{ borderTop: '1px solid var(--a-border)', padding: '10px 0' }}>
+                  <summary style={{ cursor: 'pointer', fontWeight: 800 }}>صفحه {page.page.toLocaleString('fa-IR')}</summary>
+                  <div style={{ marginTop: '10px', whiteSpace: 'pre-wrap', lineHeight: 1.9, fontSize: '12px', color: 'var(--a-t2)' }}>{page.rows.join('\n')}</div>
+                </details>
+              ))}
+            </section>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <a className="a-btn a-btn--primary" href={selectedReport.fileUrl} target="_blank" rel="noreferrer">مشاهده فایل اصلی</a>
+              <button type="button" className="a-btn a-btn--secondary" onClick={() => setSelectedReport(null)}>بستن</button>
+            </div>
+          </div>
+        </Modal>
       )}
 
       {/* Review & Edit Modal */}

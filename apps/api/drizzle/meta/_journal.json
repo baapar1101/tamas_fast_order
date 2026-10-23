@@ -176,6 +176,13 @@
       "when": 1792762284776,
       "tag": "0024_certain_malcolm_colcord",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792763428263,
+      "tag": "0025_rainy_lady_deathstrike",
+      "breakpoints": true
     }
   ]
 }

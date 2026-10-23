@@ -68,6 +68,7 @@ export const commentStatusEnum = pgEnum('comment_status', ['pending', 'approved'
 export const creditStatusEnum = pgEnum('credit_status', ['pending', 'reviewing', 'active', 'action_required']);
 export const chequeStatusEnum = pgEnum('cheque_status', ['pending', 'passed', 'bounced', 'returned']);
 export const installmentReceiptStatusEnum = pgEnum('installment_receipt_status', ['pending', 'approved', 'rejected']);
+export const creditReportExtractionStatusEnum = pgEnum('credit_report_extraction_status', ['parsed', 'needs_review', 'failed']);
 export const crmSyncEntityEnum = pgEnum('crm_sync_entity', ['order', 'product', 'person', 'chat_message']);
 export const crmSyncActionEnum = pgEnum('crm_sync_action', ['create', 'update', 'delete', 'sync']);
 export const crmSyncStatusEnum = pgEnum('crm_sync_status', ['success', 'error', 'pending', 'skipped']);
@@ -117,6 +118,46 @@ export const creditApplications = pgTable(
 
 export const creditApplicationsRelations = relations(creditApplications, ({ one }) => ({
   user: one(users, { fields: [creditApplications.userId], references: [users.id] }),
+}));
+
+export const creditReportSnapshots = pgTable(
+  'credit_report_snapshots',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    creditApplicationId: integer('credit_application_id').references(() => creditApplications.id, { onDelete: 'set null' }),
+    fileUrl: text('file_url').notNull(),
+    originalName: varchar('original_name', { length: 400 }).notNull().default(''),
+    reportNumber: varchar('report_number', { length: 80 }),
+    reportDate: varchar('report_date', { length: 40 }),
+    extractedNationalId: varchar('extracted_national_id', { length: 20 }),
+    extractedFullName: varchar('extracted_full_name', { length: 240 }),
+    extractedMobile: varchar('extracted_mobile', { length: 20 }),
+    score: integer('score'),
+    riskGrade: varchar('risk_grade', { length: 20 }),
+    riskLevel: varchar('risk_level', { length: 80 }),
+    goodPayerMinBasisPoints: integer('good_payer_min_basis_points'),
+    goodPayerMaxBasisPoints: integer('good_payer_max_basis_points'),
+    bouncedChequeCount: integer('bounced_cheque_count'),
+    extractionStatus: creditReportExtractionStatusEnum('extraction_status').notNull().default('parsed'),
+    extractionVersion: integer('extraction_version').notNull().default(1),
+    confidence: integer('confidence').notNull().default(0),
+    warnings: jsonb('warnings').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    data: jsonb('data').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('credit_report_snapshots_user_idx').on(t.userId),
+    index('credit_report_snapshots_application_idx').on(t.creditApplicationId),
+    index('credit_report_snapshots_expires_idx').on(t.expiresAt),
+    index('credit_report_snapshots_report_user_idx').on(t.userId, t.reportNumber),
+  ],
+);
+
+export const creditReportSnapshotsRelations = relations(creditReportSnapshots, ({ one }) => ({
+  user: one(users, { fields: [creditReportSnapshots.userId], references: [users.id] }),
+  creditApplication: one(creditApplications, { fields: [creditReportSnapshots.creditApplicationId], references: [creditApplications.id] }),
 }));
 
 export const creditCheques = pgTable(

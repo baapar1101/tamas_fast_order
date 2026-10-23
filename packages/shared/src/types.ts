@@ -450,6 +450,65 @@ export interface CreditChequeOrderDTO {
   nextInstallment: CreditChequeInstallmentDTO | null;
 }
 
+export interface CreditReportPageDTO {
+  page: number;
+  rows: string[];
+  tokens: Array<{ text: string; x: number; y: number; width: number; height: number }>;
+}
+
+export interface CreditReportDataDTO {
+  provider: 'ics24';
+  reportNumber: string | null;
+  reportDate: string | null;
+  identity: {
+    nationalId: string | null;
+    fullName: string | null;
+    fatherName: string | null;
+    birthDate: string | null;
+    gender: string | null;
+    maritalStatus: string | null;
+    birthPlace: string | null;
+    mobile: string | null;
+  };
+  score: number | null;
+  riskGrade: string | null;
+  riskLevel: string | null;
+  goodPayerProbability: { min: number; max: number } | null;
+  inquiryCounts: { oneMonth: number | null; oneYear: number | null };
+  bouncedChequeCount: number | null;
+  negativeReasons: Array<{ code: string; description: string }>;
+  taxStatuses: Array<{ year: string; status: string }>;
+  pages: CreditReportPageDTO[];
+  warnings: string[];
+  confidence: number;
+}
+
+export interface CreditReportSnapshotDTO {
+  id: number;
+  userId: number;
+  creditApplicationId: number | null;
+  fileUrl: string;
+  originalName: string;
+  reportNumber: string | null;
+  reportDate: string | null;
+  extractedNationalId: string | null;
+  extractedFullName: string | null;
+  extractedMobile: string | null;
+  score: number | null;
+  riskGrade: string | null;
+  riskLevel: string | null;
+  goodPayerMinPercent: number | null;
+  goodPayerMaxPercent: number | null;
+  bouncedChequeCount: number | null;
+  extractionStatus: 'parsed' | 'needs_review' | 'failed';
+  confidence: number;
+  warnings: string[];
+  data: CreditReportDataDTO;
+  expiresAt: string;
+  isExpired: boolean;
+  createdAt: string;
+}
+
 export interface CreditDashboardDTO {
   application: CreditApplicationDTO | null;
   totalCreditLimit: number;
@@ -459,6 +518,9 @@ export interface CreditDashboardDTO {
   chequeOrders: CreditChequeOrderDTO[];
   installmentOrders: InstallmentOrderDTO[];
   notifications: ChequeNotificationDTO[];
+  creditReports: CreditReportSnapshotDTO[];
+  currentCreditReport: CreditReportSnapshotDTO | null;
+  creditReportRequired: boolean;
 }
 
 export type PaymentHealthClassification = 'good' | 'attention' | 'bad';
