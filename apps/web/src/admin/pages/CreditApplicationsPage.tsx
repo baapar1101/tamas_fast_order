@@ -5,11 +5,13 @@ import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 
-export function CreditApplicationsPage() {
+type CreditSection = 'applications' | 'reports' | 'health' | 'receipts';
+
+export function CreditApplicationsPage({ initialSection = 'applications' }: { initialSection?: CreditSection }) {
   const toast = useToast();
   const [items, setItems] = useState<CreditApplicationDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  const [section, setSection] = useState<'applications' | 'reports' | 'health' | 'receipts'>('applications');
+  const [section, setSection] = useState<CreditSection>(initialSection);
   const [health, setHealth] = useState<PaymentHealthDashboardDTO | null>(null);
   const [reports, setReports] = useState<Array<CreditReportSnapshotDTO & { userName: string; userPhone: string; userStoreName: string }>>([]);
   const [selectedReport, setSelectedReport] = useState<CreditReportSnapshotDTO & { userName: string; userPhone: string; userStoreName: string } | null>(null);

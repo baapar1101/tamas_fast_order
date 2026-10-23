@@ -127,6 +127,16 @@ const NAV_MAIN = [
     requiredPermission: 'manage_users',
   },
   {
+    to: '/admin/credit-reports',
+    label: 'اطلاعات اعتبارسنجی کاربران',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75l2.25 2.25L15 9.75m4.5-3.75v13.5A2.25 2.25 0 0117.25 21H6.75a2.25 2.25 0 01-2.25-2.25V5.25A2.25 2.25 0 016.75 3h7.5L19.5 8.25M14.25 3v5.25h5.25" />
+      </svg>
+    ),
+    requiredPermission: 'manage_users',
+  },
+  {
     to: '/admin/analytics',
     label: 'تحلیل‌ها',
     icon: (
@@ -372,7 +382,7 @@ const NAV_GROUPS = [
     id: 'sales',
     label: 'فروش و سفارش‌ها',
     description: 'سفارش، اعتبار و امور مالی',
-    paths: ['/admin/orders', '/admin/proformas', '/admin/credit', '/admin/financial', '/admin/wallets'],
+    paths: ['/admin/orders', '/admin/proformas', '/admin/credit', '/admin/credit-reports', '/admin/financial', '/admin/wallets'],
     iconPath: 'M3.75 7.5h16.5l-1.5 12H5.25l-1.5-12zm4.5 0V6a3.75 3.75 0 117.5 0v1.5',
   },
   {
@@ -933,6 +943,7 @@ export default function AdminApp() {
             <Route path="proformas" element={<ProformasPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="credit" element={<CreditApplicationsPage />} />
+            <Route path="credit-reports" element={<CreditApplicationsPage initialSection="reports" />} />
             <Route path="catalog-export" element={<CatalogExportPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="messages" element={<MessagesPage />} />
