@@ -9,6 +9,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 import { corsOrigins, env, isProd } from './env.js';
 import { AppError } from './lib/errors.js';
+import { clientErrorResponse } from './lib/client-error.js';
 import authPlugin from './plugins/auth.js';
 import { storage } from './services/storage/index.js';
 
@@ -123,6 +124,10 @@ export async function buildApp(): Promise<FastifyInstance> {
         .status(429)
         .send({ ok: false, code: 'too_many_requests', error: 'تعداد درخواست‌ها بیش از حد مجاز است. کمی بعد تلاش کنید.' });
     }
+
+    const status = (err as { statusCode?: number }).statusCode;
+    const clientError = typeof status === 'number' ? clientErrorResponse(status) : null;
+    if (clientError && status) return reply.status(status).send(clientError);
 
     req.log.error({ err }, 'unhandled error');
     return reply.status(500).send({

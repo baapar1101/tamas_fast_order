@@ -29,7 +29,7 @@ export function Modal({ open, title, onClose, children, footer, wide, size, busy
     document.body.style.overflow = 'hidden';
     const focusTimer = window.setTimeout(() => {
       const preferred = panelRef.current?.querySelector<HTMLElement>('[autofocus], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])');
-      preferred?.focus();
+      (preferred ?? panelRef.current)?.focus();
     }, 0);
     return () => {
       window.clearTimeout(focusTimer);
@@ -43,12 +43,14 @@ export function Modal({ open, title, onClose, children, footer, wide, size, busy
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !busy) onClose();
       if (e.key === 'Tab' && panelRef.current) {
-        const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'));
-        if (!focusable.length) return;
+        const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+          .filter((element) => element.getClientRects().length > 0 && !element.closest('[inert], [aria-hidden="true"]'));
+        if (!focusable.length) { e.preventDefault(); panelRef.current.focus(); return; }
         const first = focusable[0]!;
         const last = focusable[focusable.length - 1]!;
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        const focusOutside = !panelRef.current.contains(document.activeElement) || document.activeElement === panelRef.current;
+        if (e.shiftKey && (document.activeElement === first || focusOutside)) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && (document.activeElement === last || focusOutside)) { e.preventDefault(); first.focus(); }
       }
     };
     document.addEventListener('keydown', onKey);

@@ -8,7 +8,7 @@ import { useAuth } from '../../store/auth';
 export function DashboardPage() {
   const { user } = useAuth();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin', 'dashboard-stats'],
     queryFn: async () => {
       const [statsResult, ordersResult] = await Promise.all([
@@ -26,9 +26,11 @@ export function DashboardPage() {
   const totalRevenue = stats?.revenueTotal ?? 0;
   const recentOrders = data?.recentOrders ?? [];
   const dailySeries = stats?.dailySeries ?? [];
+  const activeProductPercent = productsCount > 0 ? Math.round((stats?.activeProductCount ?? 0) * 100 / productsCount) : 0;
 
   return (
     <div className="a-page a-fade">
+      {isError && <div className="ds-alert ds-alert--danger" role="alert">دریافت اطلاعات داشبورد ناموفق بود. <button type="button" className="a-btn a-btn--secondary" onClick={() => void refetch()}>تلاش دوباره</button></div>}
       {/* Welcome Hero Banner */}
       <section className="a-card admin-hero overflow-hidden p-6 sm:p-8">
         <div className="absolute -left-20 -top-24 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
@@ -37,7 +39,7 @@ export function DashboardPage() {
           <div className="admin-hero-copy max-w-xl">
             <div className="chip chip-brand mb-4">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              عملکرد امروز فروشگاه عالی است
+              نمای کلی اطلاعات فروشگاه
             </div>
             <h2 className="a-title-fallback a-title-mega xl:text-3xl">
               سلام {user?.name || 'مدیر گرامی'}، خوش برگشتی{' '}
@@ -46,8 +48,8 @@ export function DashboardPage() {
               </span>
             </h2>
             <p className="mt-3 text-sm leading-7 a-muted">
-              امروز <span className="font-bold text-emerald-400">{formatNumber(ordersCount)} سفارش فعال</span> با ارزش کل{' '}
-              <span className="font-bold text-emerald-400"><Price amount={totalRevenue} /></span> در سیستم ثبت شده است.
+              تاکنون <span className="font-bold text-emerald-400">{formatNumber(ordersCount)} سفارش</span> ثبت شده است. ارزش سفارش‌های لغونشده:{' '}
+              <span className="font-bold text-emerald-400"><Price amount={totalRevenue} /></span>.
             </p>
             <div className="admin-hero-actions mt-6 flex flex-wrap gap-3">
               <Link to="/admin/orders" className="a-btn a-btn--primary">
@@ -59,7 +61,7 @@ export function DashboardPage() {
             </div>
           </div>
 
-          {/* Goal Progress Ring */}
+          {/* Actual active-product coverage, derived from API totals. */}
           <div className="admin-goal-ring relative mx-auto grid place-items-center shrink-0 sm:mx-0" style={{ width: '8.5rem', height: '8.5rem' }}>
             <svg className="block h-full w-full -rotate-90" style={{ width: '100%', height: '100%' }} viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
               <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(0, 0, 0, 0.12)" strokeWidth="10" />
@@ -72,7 +74,7 @@ export function DashboardPage() {
                 strokeWidth="10"
                 strokeLinecap="round"
                 strokeDasharray="326.7"
-                strokeDashoffset="71.8"
+                strokeDashoffset={326.7 * (1 - activeProductPercent / 100)}
                 style={{ transition: 'stroke-dashoffset 1.8s cubic-bezier(0.22, 1, 0.36, 1)' }}
               />
               <defs>
@@ -83,8 +85,8 @@ export function DashboardPage() {
               </defs>
             </svg>
             <div className="absolute text-center">
-              <p className="a-title-fallback a-title-mega-sm">۷۸٪</p>
-              <p className="mt-0.5 text-[10px] a-muted">هدف فروش ماهانه</p>
+              <p className="a-title-fallback a-title-mega-sm">{isLoading || isError ? '—' : `${formatNumber(activeProductPercent)}٪`}</p>
+              <p className="mt-0.5 text-[10px] a-muted">سهم کالاهای فعال</p>
             </div>
           </div>
         </div>
@@ -102,7 +104,7 @@ export function DashboardPage() {
             </div>
             <TrendBadge values={dailySeries.map((item) => item.revenue)} />
           </div>
-          <p className="mt-5 text-sm a-muted">درآمد کل فروشگاه</p>
+          <p className="mt-5 text-sm a-muted">ارزش سفارش‌های لغونشده</p>
           <p className="mt-1 a-stat-value">
             {isLoading ? '...' : formatNumber(totalRevenue)}{' '}
             <span className="text-xs font-normal a-muted"><img src="/toman.svg" alt="تومان" style={{ width: '1em', height: '1em', display: 'inline' }} /></span>
@@ -171,7 +173,7 @@ export function DashboardPage() {
         <div className="a-card xl:col-span-2">
           <div className="a-card-head a-card-head--split mb-2">
             <div>
-              <h3 className="a-card-title">روند درآمد فروشگاه</h3>
+              <h3 className="a-card-title">روند ارزش سفارش‌ها</h3>
               <p className="a-card-desc">مقایسه عملکرد فروش ماه‌های اخیر</p>
             </div>
             <div className="a-card-actions">

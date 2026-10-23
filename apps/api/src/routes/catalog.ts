@@ -65,7 +65,8 @@ const routes: FastifyPluginAsync = async (app) => {
         linkUrl: slides.linkUrl,
       }).from(slides).where(eq(slides.isActive, true)).orderBy(desc(slides.sortOrder), desc(slides.id)),
     ]);
-    reply.header('cache-control', 'public, max-age=30, s-maxage=120');
+    // Store configuration changes must not leave an old public projection in caches.
+    reply.header('cache-control', 'no-store');
     const visibleSlides = Date.now() >= GOLDEN_CAMPAIGN_END_AT
       ? activeSlides.filter((slide) => slide.imageUrl !== GOLDEN_CAMPAIGN_IMAGE_URL)
       : activeSlides;

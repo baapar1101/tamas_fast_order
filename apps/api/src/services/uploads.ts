@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { extname } from 'node:path';
 import sharp from 'sharp';
 import { eq } from 'drizzle-orm';
 import type { UploadDTO, UploadKind } from '@tamas/shared';
@@ -8,6 +7,7 @@ import { uploads } from '../db/schema.js';
 import { env } from '../env.js';
 import { badRequest } from '../lib/errors.js';
 import { storage } from './storage/index.js';
+import { isPdfDocument } from '../lib/upload-document.js';
 
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
 const DOC_TYPES = new Set(['application/pdf']);
@@ -67,7 +67,9 @@ export async function processUpload(input: ProcessInput): Promise<UploadDTO> {
   const folder = `${kind}/${new Date().toISOString().slice(0, 7)}`;
 
   if (DOC_TYPES.has(mimeType)) {
-    const key = `${folder}/${id}${extname(filename) || '.pdf'}`;
+    if (!isPdfDocument(buffer)) throw badRequest('ساختار فایل PDF معتبر نیست.');
+    // Never trust a user-controlled extension on a document served publicly.
+    const key = `${folder}/${id}.pdf`;
     const stored = await storage.put(key, buffer, mimeType);
     const [row] = await db
       .insert(uploads)

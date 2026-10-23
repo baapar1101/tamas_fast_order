@@ -5,7 +5,8 @@ export function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    const theme = localStorage.getItem('tamas_theme');
+    let theme: string | null = document.documentElement.getAttribute('data-theme');
+    try { theme = localStorage.getItem('tamas_theme'); } catch { /* The in-page theme still works without storage. */ }
     if (theme === 'dark') {
       setIsDark(true);
       document.documentElement.setAttribute('data-theme', 'dark');
@@ -18,11 +19,11 @@ export function ThemeToggle() {
   const toggleTheme = () => {
     if (isDark) {
       document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem('tamas_theme', 'light');
+      try { localStorage.setItem('tamas_theme', 'light'); } catch { /* Storage may be blocked. */ }
       setIsDark(false);
     } else {
       document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('tamas_theme', 'dark');
+      try { localStorage.setItem('tamas_theme', 'dark'); } catch { /* Storage may be blocked. */ }
       setIsDark(true);
     }
   };
@@ -33,6 +34,8 @@ export function ThemeToggle() {
       className="btn ghost icon-only theme-toggle"
       onClick={toggleTheme}
       title={isDark ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
+      aria-label={isDark ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
+      aria-pressed={isDark}
     >
       <Icon name={isDark ? 'sun' : 'moon'} />
     </button>

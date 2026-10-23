@@ -31,7 +31,7 @@ export function OrdersPage() {
   };
 
   const orders = useQuery({
-    queryKey: ['my-orders'],
+    queryKey: ['my-orders', user?.id ?? null],
     queryFn: () => api.get<{ orders: OrderDTO[] }>('/orders'),
     enabled: Boolean(user),
   });

@@ -8,6 +8,7 @@ import { payments } from '../db/schema.js';
 import { badRequest } from '../lib/errors.js';
 import { getAllSettings } from '../services/settings.js';
 import { walletSnapshot } from '../services/wallet.js';
+import { env } from '../env.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requireUser);
@@ -43,7 +44,7 @@ const routes: FastifyPluginAsync = async (app) => {
     try {
       const response = await paymentGateway.Create({
         amount,
-        callback: `${req.headers.origin || 'https://tamasmarket.com'}/payment/result`,
+        callback: `${env.PUBLIC_SITE_URL.replace(/\/$/, '')}/api/payment/callback`,
         invoice_id: `wallet-${req.currentUser!.id}-${Date.now()}`,
         mobile: req.currentUser!.phone,
         description: 'شارژ کیف پول تماس مارکت',

@@ -181,7 +181,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
   const bootstrap = useBootstrap();
   const total = cartTotal(lines);
   const walletQuery = useQuery({
-    queryKey: ['wallet', 'checkout'],
+    queryKey: ['wallet', 'checkout', user?.id ?? null],
     queryFn: () => api.get<{ wallet: { balance: number; isFrozen: boolean }; config: { enabled: boolean; orderPaymentEnabled: boolean } }>('/wallet'),
     enabled: Boolean(user),
   });

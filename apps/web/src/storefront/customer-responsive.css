@@ -128,6 +128,60 @@
     overflow-y: visible;
     overscroll-behavior: auto;
   }
+
+  .tabbar {
+    display: flex;
+    position: fixed;
+    inset: auto 0 0;
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding: 0 var(--ds-space-2) env(safe-area-inset-bottom, 0px);
+    align-items: stretch;
+    background: var(--ds-surface-raised);
+    border-top: 1px solid var(--ds-border);
+    box-shadow: var(--ds-shadow-md);
+    z-index: var(--ds-layer-sticky) !important;
+  }
+
+  .tabbar-item {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ds-space-1);
+    position: relative;
+    padding: var(--ds-space-2) 0;
+    border: 0;
+    background: transparent;
+    color: var(--ds-text-muted);
+    font: inherit;
+    font-size: var(--ds-text-xs);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .tabbar-item.active { color: var(--ds-interactive); }
+  .tabbar-icon { position: relative; display: flex; font-size: var(--ds-text-xl); }
+  .tabbar-icon .badge-count { position: absolute; inset: -4px -10px auto auto; }
+  .account-shell { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+
+  .product-thumb:hover { transform: none !important; z-index: auto !important; }
+}
+
+.brand-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  min-height: var(--ds-control-h-md);
+  flex: 1;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
 }
 
 /* Account modules also live next to a 240px sidebar. Use their actual content

@@ -572,18 +572,18 @@ export function StorefrontPage() {
           {/* Sidebar (Right Column in RTL) */}
           <aside className={`sidebar${filtersOpen ? ' open' : ''}`}>
             <div className="sidebar-body">
-              <div className="side-title accordion-title" onClick={() => setBrandsCollapsed(!brandsCollapsed)} style={{ cursor: 'pointer', userSelect: 'none' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div className="side-title accordion-title">
+                <button type="button" className="brand-toggle" aria-expanded={!brandsCollapsed} aria-controls="storefront-brands" onClick={() => setBrandsCollapsed((collapsed) => !collapsed)}>
                   برندها
                   <Icon name="chevron" className="accordion-chevron" style={{ transform: brandsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.25s ease', fontSize: 14 }} />
-                </span>
+                </button>
                 {brands.length > 0 && (
                   <button type="button" onClick={(e) => { e.stopPropagation(); setBrands([]); }} style={{ fontSize: 12, color: 'var(--tamas-accent)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                     همه (پاک‌سازی)
                   </button>
                 )}
               </div>
-              <div className={`brand-icons-wrapper${brandsCollapsed ? ' collapsed' : ''}`}>
+              <div id="storefront-brands" inert={brandsCollapsed} className={`brand-icons-wrapper${brandsCollapsed ? ' collapsed' : ''}`}>
                 <div className="brand-icons">
                   {visibleBrands.map((b) => {
                     const on = brands.includes(b.name);

@@ -98,8 +98,12 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     try {
       data = JSON.parse(text) as Record<string, unknown>;
     } catch {
-      data = {};
+      throw new ApiRequestError('پاسخ معتبری از سرور دریافت نشد. دوباره تلاش کنید.', res.status, 'invalid_response');
     }
+  }
+
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new ApiRequestError('پاسخ معتبری از سرور دریافت نشد. دوباره تلاش کنید.', res.status, 'invalid_response');
   }
 
   if (!res.ok || data.ok === false) {
