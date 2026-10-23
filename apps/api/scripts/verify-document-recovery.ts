@@ -15,6 +15,13 @@ if (!process.argv.includes('--isolated-run')) {
   const admin = postgres(process.env.DATABASE_URL!, { max: 1 });
   const name = `tamas_doc_test_${randomUUID().replaceAll('-', '')}`;
   const root = await mkdtemp(join(tmpdir(), 'tamas-doc-test-'));
+  async function cleanup() {
+    // Validate the exact generated targets; never clean a production schema/root.
+    if (!/^tamas_doc_test_[a-f0-9]{32}$/.test(name)) throw new Error('Unsafe test schema target');
+    await admin`drop schema if exists ${admin(name)} cascade`; await admin.end();
+    if (dirname(root) !== resolve(tmpdir()) || !root.startsWith(join(tmpdir(), 'tamas-doc-test-'))) throw new Error('Unsafe test storage target');
+    await rm(root, { recursive: true, force: true });
+  }
   try {
     await admin`create schema ${admin(name)}`;
     const tables = ['users', 'uploads', 'credit_applications', 'credit_cheques', 'installment_receipts', 'credit_report_snapshots', 'orders', 'audit_log'];
@@ -43,11 +50,7 @@ if (!process.argv.includes('--isolated-run')) {
     });
     if (code !== 0) throw new Error('Isolated document recovery verification failed');
   } finally {
-    // The exact generated target is bounded; no production schema is removed.
-    if (!/^tamas_doc_test_[a-f0-9]{32}$/.test(name)) throw new Error('Unsafe test schema target');
-    await admin`drop schema if exists ${admin(name)} cascade`; await admin.end();
-    if (dirname(root) !== resolve(tmpdir()) || !root.startsWith(join(tmpdir(), 'tamas-doc-test-'))) throw new Error('Unsafe test storage target');
-    await rm(root, { recursive: true, force: true });
+    await cleanup();
   }
 } else {
   const { db, sql, schema, closeDb } = await import('../src/db/client.js');
