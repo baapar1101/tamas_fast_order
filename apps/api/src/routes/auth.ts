@@ -16,6 +16,7 @@ import { db } from '../db/client.js';
 import { users } from '../db/schema.js';
 import { env } from '../env.js';
 import { claimPrivateFile } from '../services/private-files.js';
+import { setBrowserSession } from '../plugins/auth.js';
 import { AppError, badRequest } from '../lib/errors.js';
 import { createSession, destroySession, missingProfileFields, findOrCreateUser, toUserDTO } from '../services/auth.js';
 import { resendCooldown, sendOtp, verifyOtp } from '../services/otp.js';
@@ -51,13 +52,14 @@ const routes: FastifyPluginAsync = async (app) => {
   app.post(
     '/auth/otp/verify',
     { config: { rateLimit: { max: 20, timeWindow: '10 minutes' } } },
-    async (req) => {
+    async (req, reply) => {
       const { phone, code } = otpVerifySchema.parse(req.body);
       const verified = await verifyOtp(phone, code);
       if (!verified) throw badRequest('کد وارد شده صحیح نیست یا منقضی شده است.');
 
       const { row, isNew } = await findOrCreateUser(phone);
       const token = await createSession(row.id, { ip: req.ip, userAgent: req.headers['user-agent'] });
+      setBrowserSession(reply, token);
       const missing = missingProfileFields(row);
 
       return {
@@ -74,7 +76,7 @@ const routes: FastifyPluginAsync = async (app) => {
   app.post(
     '/auth/password/login',
     { config: { rateLimit: { max: 20, timeWindow: '10 minutes' } } },
-    async (req) => {
+    async (req, reply) => {
       const { phone, password } = passwordLoginSchema.parse(req.body);
       const user = await db.query.users.findFirst({
         where: eq(users.phone, phone),
@@ -87,6 +89,7 @@ const routes: FastifyPluginAsync = async (app) => {
       if (!isValid) throw badRequest('رمز عبور اشتباه است.');
 
       const token = await createSession(user.id, { ip: req.ip, userAgent: req.headers['user-agent'] });
+      setBrowserSession(reply, token);
       const missing = missingProfileFields(user);
 
       return {
