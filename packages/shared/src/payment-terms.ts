@@ -12,6 +12,7 @@ export interface AccessoryPaymentRule {
   termMonths: number;
   upfrontPercent: number;
   discountPercent: number;
+  installmentProfitPercent: number;
 }
 
 export interface MobileInstallmentRule {
@@ -38,6 +39,8 @@ export interface PaymentTermsConfig {
     enabled: boolean;
     accountInstructions: string;
     weeklyCreditLimit: number;
+    /** Cash discount for every category that is not configured as mobile. */
+    cashDiscountPercent: number;
     rules: AccessoryPaymentRule[];
   };
   mobile: {
@@ -114,6 +117,7 @@ const accessoryRules = (
       termMonths,
       upfrontPercent,
       discountPercent: discount[index] ?? 0,
+      installmentProfitPercent: 0,
     };
   });
 };
@@ -125,6 +129,7 @@ export const DEFAULT_PAYMENT_TERMS_CONFIG: PaymentTermsConfig = {
   accessory: {
     enabled: true,
     weeklyCreditLimit: 300_000_000,
+    cashDiscountPercent: 10,
     accountInstructions: 'بانک ملت - به نام حمید قاسم زاده\nشماره کارت: 6104-3311-4877-4871\nشماره شبا: IR980120010000007697585463',
     rules: [
       ...accessoryRules('monthly', [100, 0, 0, 20, 30, 35, 40], [10, 5, 3, 0, 0, 0, 0]),
@@ -213,6 +218,7 @@ export function parsePaymentTermsConfig(raw: string | PaymentTermsConfig | null 
       enabled: accessory.enabled !== false,
       accountInstructions: text(accessory.accountInstructions, defaults.accessory.accountInstructions),
       weeklyCreditLimit: numberInRange(accessory.weeklyCreditLimit, defaults.accessory.weeklyCreditLimit, 0, 10_000_000_000),
+      cashDiscountPercent: numberInRange(accessory.cashDiscountPercent, defaults.accessory.cashDiscountPercent),
       rules: parsedAccessoryRules.map((rule, index) => ({
         id: text(rule?.id, `accessory-rule-${index}`),
         label: text(rule?.label, `شرایط پرداخت ${index + 1}`),
@@ -221,6 +227,7 @@ export function parsePaymentTermsConfig(raw: string | PaymentTermsConfig | null 
         termMonths: Math.round(numberInRange(rule?.termMonths, 0, 0, 36)),
         upfrontPercent: numberInRange(rule?.upfrontPercent, 0),
         discountPercent: numberInRange(rule?.discountPercent, 0),
+        installmentProfitPercent: numberInRange(rule?.installmentProfitPercent, 0),
       })),
     },
     mobile: {
@@ -298,12 +305,18 @@ export function buildPaymentTermsQuote(
     const plans = config.accessory.rules.filter((rule) => {
       if (!rule.enabled) return false;
       if (rule.termMonths !== 0) return true;
-      const signature = `${rule.upfrontPercent}:${rule.discountPercent}`;
+      const signature = `${rule.upfrontPercent}:${config.accessory.cashDiscountPercent}`;
       if (seenCash.has(signature)) return false;
       seenCash.add(signature);
       return true;
     }).map<PaymentPlanQuote>((rule) => {
-      const calculatedFinalAmount = Math.max(0, baseAmount - roundedPercent(baseAmount, rule.discountPercent));
+      const isCash = rule.termMonths === 0;
+      const discountPercent = isCash ? config.accessory.cashDiscountPercent : rule.discountPercent;
+      const serviceFeePercent = isCash ? 0 : rule.installmentProfitPercent;
+      const calculatedFinalAmount = Math.max(
+        0,
+        baseAmount - roundedPercent(baseAmount, discountPercent) + roundedPercent(baseAmount, serviceFeePercent),
+      );
       const finalAmount = rule.termMonths > 0 ? roundedChequeAmount(calculatedFinalAmount) : calculatedFinalAmount;
       const upfrontAmount = rule.termMonths > 0
         ? roundedChequeAmount(roundedPercent(finalAmount, rule.upfrontPercent))
@@ -333,16 +346,16 @@ export function buildPaymentTermsQuote(
       return {
         id: rule.id,
         label: rule.label,
-        description: rule.termMonths === 0
-          ? `پرداخت نقدی با ${rule.discountPercent}٪ تخفیف`
-          : `${groupLabel}، پیش‌پرداخت ${upfrontAmount.toLocaleString('fa-IR')} تومان${rule.discountPercent ? ' با تخفیف شرایط پرداخت' : ''}`,
+        description: isCash
+          ? `پرداخت نقدی با ${discountPercent}٪ تخفیف`
+          : `${groupLabel}، پیش‌پرداخت ${upfrontAmount.toLocaleString('fa-IR')} تومان${discountPercent ? `، ${discountPercent}٪ تخفیف شرایط` : ''}${serviceFeePercent ? `، ${serviceFeePercent}٪ سود اقساط` : ''}`,
         audience,
-        kind: rule.termMonths === 0 ? 'cash' : 'cheque',
+        kind: isCash ? 'cash' : 'cheque',
         baseAmount,
         finalAmount,
         adjustmentAmount: finalAmount - baseAmount,
-        discountPercent: rule.discountPercent,
-        serviceFeePercent: 0,
+        discountPercent,
+        serviceFeePercent,
         upfrontPercent: rule.upfrontPercent,
         upfrontAmount,
         schedule,

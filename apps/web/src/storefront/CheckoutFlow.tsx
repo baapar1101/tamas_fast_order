@@ -901,7 +901,9 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             )}
             {activePaymentPlan.adjustmentAmount !== 0 && (
               <div className="checkout-totals__row checkout-totals__row--adjustment">
-                <span>{activePaymentPlan.adjustmentAmount < 0 ? 'تخفیف شرایط پرداخت' : 'هزینه خدمات'}</span>
+                <span>{activePaymentPlan.adjustmentAmount < 0
+                  ? activePaymentPlan.kind === 'cash' ? 'تخفیف خرید نقدی' : 'تخفیف شرایط پرداخت'
+                  : activePaymentPlan.kind === 'cheque' ? 'سود اقساط' : 'هزینه خدمات'}</span>
                 <span>{activePaymentPlan.adjustmentAmount < 0 ? '-' : '+'}<Price amount={Math.abs(activePaymentPlan.adjustmentAmount)} /></span>
               </div>
             )}
