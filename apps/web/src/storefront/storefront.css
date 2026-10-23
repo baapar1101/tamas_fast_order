@@ -2217,6 +2217,16 @@
 }
 
 /* Lightbox Modal */
+.catalog-preview-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 70dvh;
+  object-fit: contain;
+  border-radius: var(--ds-radius-md, 12px);
+  background: #fff;
+}
+
 .lightbox {
   position: fixed;
   inset: 0;

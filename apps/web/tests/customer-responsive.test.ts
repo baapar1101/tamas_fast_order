@@ -60,3 +60,15 @@ test('account routes keep the shared mobile app navigation', () => {
   assert.match(navigation, /aria-label="ناوبری اصلی فروشگاه"/);
   assert.match(css, /\.account-shell\s*\{[^}]*padding-bottom:\s*calc\(68px\s*\+\s*env\(safe-area-inset-bottom/s);
 });
+
+test('catalog previews reuse the accessible shared dialog rather than a click-only overlay', () => {
+  const preview = read('../src/storefront/ProductImagePreview.tsx');
+  const storefront = read('../src/storefront/StorefrontPage.tsx');
+  const product = read('../src/storefront/ProductPage.tsx');
+
+  assert.match(preview, /import \{ Modal \} from/);
+  assert.match(preview, /<Modal open=\{Boolean\(src\)\} title=/);
+  assert.match(preview, /alt="تصویر بزرگ محصول"/);
+  assert.match(storefront, /<ProductImagePreview src=\{preview\}/);
+  assert.match(product, /<ProductImagePreview src=\{relatedPreview\}/);
+});
