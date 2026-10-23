@@ -237,7 +237,7 @@ export function OrdersPage() {
                 .catch((err: Error) => toast.error(err.message))
             }
           >
-            خروجی اکسل / CSV
+            خروجی CSV
           </button>
         </div>
       </section>
