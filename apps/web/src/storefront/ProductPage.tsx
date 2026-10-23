@@ -13,6 +13,7 @@ import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { ProductCard } from './ProductCard';
+import { ProductImagePreview } from './ProductImagePreview';
 import { createColorMap, resolveProductColor } from './productColor';
 import { isPhoneMediaOnlyProduct, isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneModelImages } from './productVariants';
 import { StoreFooter } from './StoreFooter';
@@ -780,11 +781,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
           </div>
         </div>
       )}
-      {relatedPreview && (
-        <div className="lightbox" onClick={() => setRelatedPreview(null)} role="presentation">
-          <img src={relatedPreview} alt="" />
-        </div>
-      )}
+      <ProductImagePreview src={relatedPreview} onClose={() => setRelatedPreview(null)} />
 
       <AuthDialog
         open={authOpen}

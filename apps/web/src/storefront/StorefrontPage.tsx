@@ -9,6 +9,7 @@ import { AuthDialog } from './AuthDialog';
 import { CartPanel } from './CartPanel';
 import { InstallBanner } from './InstallBanner';
 import { ProductCard } from './ProductCard';
+import { ProductImagePreview } from './ProductImagePreview';
 import { createColorMap } from './productColor';
 import { useBootstrap, useDebounced, useProducts, type CatalogFilters, type StorefrontSlide } from './hooks';
 import { Icon } from '../components/Icon';
@@ -787,11 +788,7 @@ export function StorefrontPage() {
         onAuth={() => { setAuthStep('phone'); setAuthOpen(true); }}
       />
 
-      {preview && (
-        <div className="lightbox" onClick={() => setPreview(null)} role="presentation">
-          <img src={preview} alt="" />
-        </div>
-      )}
+      <ProductImagePreview src={preview} onClose={() => setPreview(null)} />
 
       <MobileAppNavigation
         activeTab={mobileTab}
