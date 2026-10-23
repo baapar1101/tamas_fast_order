@@ -14,6 +14,7 @@ import authPlugin from './plugins/auth.js';
 import { storage } from './services/storage/index.js';
 import privateFileRoutes, { guardLegacyUpload } from './routes/private-files.js';
 import { ensurePrivateStorage } from './services/private-storage.js';
+import documentRecoveryRoutes from './routes/document-recovery.js';
 
 import adminDashboard from './routes/admin/dashboard.js';
 import adminOrders from './routes/admin/orders.js';
@@ -153,6 +154,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(
       async (api) => {
         await api.register(privateFileRoutes);
+        await api.register(documentRecoveryRoutes);
         await api.register(catalogRoutes);
         await api.register(authRoutes);
         await api.register(telegramRoutes);

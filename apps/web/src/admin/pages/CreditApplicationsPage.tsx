@@ -7,11 +7,15 @@ import { api } from '../../lib/api';
 import { CreditReportOverview } from '../components/CreditReportOverview';
 import { CreditReportsDashboard } from '../components/CreditReportsDashboard';
 import type { AdminCreditReport } from '../components/creditReportAnalytics';
+import { DocumentRecoveryPanel } from '../components/DocumentRecoveryPanel';
+import { documentHasIssue, useDocumentHealth } from '../../lib/document-requests';
 
-type CreditSection = 'applications' | 'reports' | 'health' | 'receipts';
+type CreditSection = 'applications' | 'reports' | 'health' | 'receipts' | 'documents';
 
 export function CreditApplicationsPage({ initialSection = 'applications' }: { initialSection?: CreditSection }) {
   const toast = useToast();
+  const documentHealth = useDocumentHealth();
+  const missingDocuments = documentHealth.data?.items.filter(documentHasIssue) ?? [];
   const [items, setItems] = useState<CreditApplicationDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [section, setSection] = useState<CreditSection>(initialSection);
@@ -162,11 +166,15 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
       </header>
 
       <nav className="a-segmented" aria-label="بخش‌های اعتبارسنجی" style={{ display: 'flex', width: 'fit-content', maxWidth: '100%', overflowX: 'auto' }}>
+        <button type="button" className={`a-seg${section === 'documents' ? ' a-seg--on' : ''}`} onClick={() => setSection('documents')}>مدارک مفقود و تکمیل پرونده {missingDocuments.length ? `(${missingDocuments.length.toLocaleString('fa-IR')})` : ''}</button>
         <button type="button" className={`a-seg${section === 'applications' ? ' a-seg--on' : ''}`} onClick={() => setSection('applications')}>پرونده‌های اعتباری</button>
         <button type="button" className={`a-seg${section === 'reports' ? ' a-seg--on' : ''}`} onClick={() => setSection('reports')}>گزارش‌های ICS24</button>
         <button type="button" className={`a-seg${section === 'health' ? ' a-seg--on' : ''}`} onClick={() => setSection('health')}>خوش‌حسابی مشتریان</button>
         <button type="button" className={`a-seg${section === 'receipts' ? ' a-seg--on' : ''}`} onClick={() => setSection('receipts')}>رسیدهای اقساط {health?.summary.pendingReceipts ? `(${health.summary.pendingReceipts.toLocaleString('fa-IR')})` : ''}</button>
       </nav>
+
+      {section !== 'documents' && missingDocuments.length > 0 && <aside className="ds-alert ds-alert--warning doc-request-notice"><span>{missingDocuments.length.toLocaleString('fa-IR')} فایل خصوصی نیازمند بررسی یا آپلود مجدد است.</span><button className="a-btn a-btn--secondary" type="button" onClick={() => setSection('documents')}>مشاهدهٔ حساب‌ها و مدارک</button></aside>}
+      {section === 'documents' && <DocumentRecoveryPanel />}
 
       {/* Filters Toolbar */}
       {section === 'applications' && <>
@@ -244,6 +252,7 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
                 <tr key={item.id} style={{ borderBottom: '1px solid var(--a-border)' }} className="hover:bg-[var(--a-hover)] transition-colors">
                   <td style={{ padding: "14px var(--ds-space-4)", fontWeight: 700, color: 'var(--a-t1)' }}>
                     {item.userName}
+                    {missingDocuments.some((document) => document.userId === item.userId && document.references.some((reference) => reference.source === 'application' && reference.recordId === item.id)) && <button type="button" className="doc-badge doc-badge--danger" onClick={() => setSection('documents')}>مدرک مفقود؛ بررسی و درخواست مجدد</button>}
                     {item.userStoreName && (
                       <div style={{ fontSize: "var(--ds-text-xs)", color: 'var(--a-t3)', fontWeight: 400 }}>
                         {item.userStoreName}

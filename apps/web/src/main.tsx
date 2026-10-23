@@ -12,6 +12,7 @@ import { AppUpdatePrompt } from './components/AppUpdatePrompt';
 import './styles/design-system.css';
 import './styles/global.css';
 import './styles/platform-ui.css';
+import './styles/document-recovery.css';
 
 // Offer long-lived tabs the latest version without discarding an unfinished form.
 if (import.meta.env.PROD) installForcedAppUpdates();

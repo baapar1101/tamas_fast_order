@@ -8,6 +8,7 @@ import { cartCount, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
 import { MobileAppNavigation, type MobileAppTab } from './MobileAppNavigation';
 import { StoreFooter } from './StoreFooter';
+import { DocumentRequestsNotice } from './DocumentRequestsPage';
 import './storefront.css';
 import './account-page.css';
 
@@ -107,6 +108,9 @@ export function AccountLayout() {
                     <Icon name="grid" /> <span>پنل مدیریت</span>
                   </Link>
                 )}
+                <NavLink to="/account/documents" state={{ returnTo }} className={({ isActive }) => `account-nav-item${isActive ? ' active' : ''}`}>
+                  <span className="account-nav-glyph" aria-hidden="true">▤</span> <span>مدارک و درخواست‌های تکمیل</span>
+                </NavLink>
               </nav>
 
               <div className="account-sidebar-actions">
@@ -118,6 +122,7 @@ export function AccountLayout() {
             </aside>
 
             <div className="account-content">
+              <DocumentRequestsNotice />
               <Outlet context={{ returnTo } satisfies AccountOutletContext} />
             </div>
           </div>

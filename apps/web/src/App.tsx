@@ -12,6 +12,7 @@ import { CheckoutPage } from './storefront/CheckoutPage';
 import { CreditPage } from './storefront/CreditPage';
 import { AccountLayout } from './storefront/AccountLayout';
 import { TelegramPage } from './storefront/TelegramPage';
+import { DocumentRequestsPage } from './storefront/DocumentRequestsPage';
 
 import { PaymentResultPage } from './storefront/PaymentResultPage';
 import { captureAttribution } from './lib/attribution';
@@ -70,6 +71,7 @@ export function App() {
           <Route path="wallet" element={<WalletPage />} />
           <Route path="credit" element={<CreditPage />} />
           <Route path="telegram" element={<TelegramPage />} />
+          <Route path="documents" element={<DocumentRequestsPage />} />
         </Route>
         <Route path="/orders" element={<LegacyAccountRedirect target="/account" />} />
         <Route path="/profile/orders" element={<LegacyAccountRedirect target="/account" />} />

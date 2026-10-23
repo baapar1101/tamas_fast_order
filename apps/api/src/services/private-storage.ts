@@ -36,3 +36,16 @@ export async function openPrivateFile(key: string) {
   if (!metadata.isFile()) throw new Error('Not a document');
   return { stream: createReadStream(path), size: metadata.size };
 }
+
+/** No streams or file contents are opened by the document-health inventory. */
+export async function inspectPrivateFile(key: string): Promise<'available' | 'missing' | 'unavailable'> {
+  try {
+    const root = await realpath(privateStorageRoot);
+    const path = await realpath(confinedFilePath(privateStorageRoot, key));
+    const suffix = relative(root, path);
+    if (!suffix || isAbsolute(suffix) || suffix === '..' || suffix.startsWith(`..${sep}`)) return 'unavailable';
+    return (await stat(path)).isFile() ? 'available' : 'unavailable';
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === 'ENOENT' ? 'missing' : 'unavailable';
+  }
+}

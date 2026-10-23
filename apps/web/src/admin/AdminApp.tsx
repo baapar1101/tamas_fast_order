@@ -138,6 +138,12 @@ const NAV_MAIN = [
     requiredPermission: 'manage_users',
   },
   {
+    to: '/admin/document-recovery',
+    label: 'مدارک مفقود و تکمیل پرونده',
+    icon: <span aria-hidden="true">▤</span>,
+    requiredPermission: 'manage_users',
+  },
+  {
     to: '/admin/analytics',
     label: 'تحلیل‌ها',
     icon: (
@@ -383,7 +389,7 @@ const NAV_GROUPS = [
     id: 'sales',
     label: 'فروش و سفارش‌ها',
     description: 'سفارش، اعتبار و امور مالی',
-    paths: ['/admin/orders', '/admin/proformas', '/admin/credit', '/admin/credit-reports', '/admin/financial', '/admin/wallets'],
+    paths: ['/admin/orders', '/admin/proformas', '/admin/credit', '/admin/credit-reports', '/admin/document-recovery', '/admin/financial', '/admin/wallets'],
     iconPath: 'M3.75 7.5h16.5l-1.5 12H5.25l-1.5-12zm4.5 0V6a3.75 3.75 0 117.5 0v1.5',
   },
   {
@@ -946,6 +952,7 @@ export default function AdminApp() {
             <Route path="users" element={<UsersPage />} />
             <Route path="credit" element={<CreditApplicationsPage key="credit-applications" />} />
             <Route path="credit-reports" element={<CreditApplicationsPage key="credit-reports" initialSection="reports" />} />
+            <Route path="document-recovery" element={<CreditApplicationsPage key="document-recovery" initialSection="documents" />} />
             <Route path="catalog-export" element={<CatalogExportPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="messages" element={<MessagesPage />} />
