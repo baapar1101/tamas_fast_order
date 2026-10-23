@@ -4,6 +4,7 @@ import { CREDIT_STATUS_LABELS, formatMoney } from '@tamas/shared';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
+import { CreditReportOverview } from '../components/CreditReportOverview';
 import { CreditReportsDashboard } from '../components/CreditReportsDashboard';
 import type { AdminCreditReport } from '../components/creditReportAnalytics';
 
@@ -345,50 +346,8 @@ export function CreditApplicationsPage({ initialSection = 'applications' }: { in
       )}
 
       {selectedReport && (
-        <Modal open={true} onClose={() => setSelectedReport(null)} title={`گزارش اعتبارسنجی ${selectedReport.userName}`} wide>
-          <div style={{ display: 'grid', gap: '18px' }}>
-            <section className="a-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
-              {[
-                ['امتیاز اعتباری', selectedReport.score?.toLocaleString('fa-IR') ?? '—'],
-                ['رتبه ریسک', selectedReport.riskGrade ?? '—'],
-                ['سطح ریسک', selectedReport.riskLevel ?? '—'],
-                ['احتمال خوش‌حسابی', selectedReport.goodPayerMinPercent === null ? '—' : `${selectedReport.goodPayerMinPercent.toLocaleString('fa-IR')} تا ${selectedReport.goodPayerMaxPercent?.toLocaleString('fa-IR')}٪`],
-                ['چک برگشتی', selectedReport.bouncedChequeCount?.toLocaleString('fa-IR') ?? '—'],
-                ['دقت استخراج', `${selectedReport.confidence.toLocaleString('fa-IR')}٪`],
-              ].map(([label, value]) => <article key={label} className="a-card" style={{ padding: '14px' }}><span style={{ color: 'var(--a-t3)', fontSize: '11px' }}>{label}</span><strong style={{ display: 'block', marginTop: '6px' }}>{value}</strong></article>)}
-            </section>
-
-            <section className="a-card" style={{ padding: '16px' }}>
-              <h3 style={{ marginTop: 0 }}>اطلاعات هویتی استخراج‌شده</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', fontSize: '13px' }}>
-                <div><strong>نام:</strong> {selectedReport.data.identity.fullName ?? '—'}</div>
-                <div><strong>کد ملی:</strong> {selectedReport.data.identity.nationalId ?? '—'}</div>
-                <div><strong>نام پدر:</strong> {selectedReport.data.identity.fatherName ?? '—'}</div>
-                <div><strong>تاریخ تولد:</strong> {selectedReport.data.identity.birthDate ?? '—'}</div>
-                <div><strong>موبایل:</strong> {selectedReport.data.identity.mobile ?? '—'}</div>
-                <div><strong>شماره گزارش:</strong> {selectedReport.reportNumber ?? '—'}</div>
-              </div>
-            </section>
-
-            {selectedReport.data.negativeReasons.length > 0 && <section className="a-card" style={{ padding: '16px' }}><h3 style={{ marginTop: 0 }}>دلایل کاهش امتیاز</h3><ul>{selectedReport.data.negativeReasons.map((reason) => <li key={reason.code} style={{ marginBottom: '8px' }}><strong>{reason.code}:</strong> {reason.description}</li>)}</ul></section>}
-            {selectedReport.data.taxStatuses.length > 0 && <section className="a-card" style={{ padding: '16px' }}><h3 style={{ marginTop: 0 }}>سوابق مالیاتی</h3>{selectedReport.data.taxStatuses.map((item) => <div key={`${item.year}-${item.status}`} style={{ padding: '8px 0', borderBottom: '1px solid var(--a-border)' }}><strong>{item.year}:</strong> {item.status}</div>)}</section>}
-
-            <section className="a-card" style={{ padding: '16px' }}>
-              <h3 style={{ marginTop: 0 }}>تمام اطلاعات استخراج‌شده از صفحات</h3>
-              <p style={{ color: 'var(--a-t3)', fontSize: '12px' }}>برای کنترل دقیق، متن همه صفحات PDF بدون حذف در نسخه تاریخی ذخیره شده است.</p>
-              {selectedReport.data.pages.map((page) => (
-                <details key={page.page} style={{ borderTop: '1px solid var(--a-border)', padding: '10px 0' }}>
-                  <summary style={{ cursor: 'pointer', fontWeight: 800 }}>صفحه {page.page.toLocaleString('fa-IR')}</summary>
-                  <div style={{ marginTop: '10px', whiteSpace: 'pre-wrap', lineHeight: 1.9, fontSize: '12px', color: 'var(--a-t2)' }}>{page.rows.join('\n')}</div>
-                </details>
-              ))}
-            </section>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <a className="a-btn a-btn--primary" href={selectedReport.fileUrl} target="_blank" rel="noreferrer">مشاهده فایل اصلی</a>
-              <button type="button" className="a-btn a-btn--secondary" onClick={() => setSelectedReport(null)}>بستن</button>
-            </div>
-          </div>
+        <Modal open={true} onClose={() => setSelectedReport(null)} title="نمای جامع اعتبارسنجی مشتری" size="xl">
+          <CreditReportOverview report={selectedReport} onClose={() => setSelectedReport(null)} />
         </Modal>
       )}
 
