@@ -16,6 +16,7 @@ import { TelegramPage } from './storefront/TelegramPage';
 import { PaymentResultPage } from './storefront/PaymentResultPage';
 import { captureAttribution } from './lib/attribution';
 import { TelegramConnectPrompt } from './storefront/TelegramConnectPrompt';
+import './storefront/customer-responsive.css';
 
 /*
  * The admin panel is a lazy chunk. A shopper on a phone never downloads the

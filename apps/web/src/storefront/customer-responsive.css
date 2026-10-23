@@ -1,0 +1,306 @@
+/*
+ * Customer-facing responsive guardrails
+ *
+ * Page-specific styles still own their visual language. This layer only
+ * establishes shared sizing/overflow contracts and reacts to the width of the
+ * component itself when a sidebar makes it narrower than the viewport.
+ */
+
+:where(.shell, .storefront-page) {
+  width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+:where(.shell, .storefront-page) :where(main, section, article, aside, nav, header, footer, div, form, fieldset) {
+  min-width: 0;
+}
+
+:where(.shell, .storefront-page) :where(input, select, textarea, button) {
+  max-width: 100%;
+  font-family: inherit;
+}
+
+:where(.shell, .storefront-page) :where(p, li, dd, td, th, label, strong, small) {
+  overflow-wrap: anywhere;
+}
+
+:where(.shell, .storefront-page) :where(img, video, iframe) {
+  max-width: 100%;
+}
+
+/* The result column can be narrow even on desktop because the storefront has
+ * filter and cart sidebars. Its controls therefore follow the column width,
+ * not only the viewport width. */
+.main-content {
+  container: product-results / inline-size;
+}
+
+.toolbar,
+.toolbar-head,
+.toolbar-controls,
+.view-control,
+.view-btn-group,
+.sort-control {
+  max-width: 100%;
+  min-width: 0;
+}
+
+@container product-results (max-width: 700px) {
+  .toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .toolbar-head {
+    width: 100%;
+    min-height: 38px;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--tamas-border);
+  }
+
+  .toolbar-controls {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(150px, 0.75fr);
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .view-control,
+  .sort-control {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .view-btn-group {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .view-btn {
+    min-width: 0;
+    min-height: 40px;
+    padding-inline: 9px;
+    white-space: normal;
+  }
+
+  .sort-select {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@container product-results (max-width: 500px) {
+  .toolbar-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Avoid creating a very narrow middle column immediately before the existing
+ * tablet layout takes over. */
+@media (min-width: 769px) and (max-width: 1280px) {
+  .layout {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+
+  .layout > .cart {
+    grid-column: 1 / -1;
+    position: static;
+  }
+}
+
+/* Account modules also live next to a 240px sidebar. Use their actual content
+ * width so wallet and financial cards collapse before they can overflow. */
+.account-content {
+  container: customer-account / inline-size;
+  overflow: clip;
+}
+
+.account-content .wallet-page {
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+}
+
+@container customer-account (max-width: 760px) {
+  .wallet-hero {
+    padding: 22px;
+    flex-direction: column;
+  }
+
+  .wallet-hero strong {
+    font-size: clamp(24px, 7cqi, 30px);
+  }
+
+  .wallet-stats,
+  .wallet-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wallet-panel {
+    padding: 18px;
+  }
+
+  .wallet-presets > button {
+    flex: 1 1 110px;
+  }
+
+  .credit-dashboard {
+    padding-inline: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-inline: 12px;
+  }
+
+  .main-content {
+    padding: 14px 12px;
+  }
+
+  .toolbar-result {
+    white-space: normal;
+  }
+
+  .toolbar-reset {
+    flex: 0 1 auto;
+    white-space: normal;
+  }
+
+  .products-grid,
+  .products-list,
+  .product-card,
+  .product-accordion,
+  .card-price-box,
+  .warehouse-section {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .account-page {
+    padding-inline: 12px;
+  }
+
+  .account-sidebar,
+  .ord-card,
+  .credit-dashboard,
+  .credit-report-panel,
+  .wallet-panel {
+    border-radius: 14px;
+  }
+
+  .account-nav,
+  .account-sidebar-actions {
+    gap: 8px;
+  }
+
+  .account-nav-item {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  .ord-head-main,
+  .ord-head-side,
+  .ord-address,
+  .ord-item,
+  .credit-report-history-status {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .checkout-card,
+  .checkout-plan-card,
+  .checkout-summary-card,
+  .pp-card,
+  .pp-tabs-container {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .pp-tabs-header {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  .pp-tab-btn {
+    flex: 1 0 auto;
+    min-height: 44px;
+  }
+
+  .customer-payment-result {
+    padding: 24px 12px !important;
+  }
+
+  .customer-payment-card {
+    padding: 28px 16px !important;
+    margin-top: 8px !important;
+  }
+
+  .customer-payment-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px !important;
+  }
+
+  .customer-payment-actions .btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .terms-page {
+    padding-inline: 12px;
+  }
+
+  .terms-page > .card {
+    padding-inline: 16px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .account-nav,
+  .account-sidebar-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .product-card,
+  .product-card.is-promotion {
+    grid-template-columns: 84px minmax(0, 1fr);
+    column-gap: 10px;
+  }
+
+  .card-thumb {
+    width: 84px !important;
+    height: 84px !important;
+    max-width: 84px !important;
+    max-height: 84px !important;
+  }
+
+  .checkout-plan-schedule {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.shell, .storefront-page) *,
+  :where(.shell, .storefront-page) *::before,
+  :where(.shell, .storefront-page) *::after {
+    scroll-behavior: auto !important;
+  }
+}

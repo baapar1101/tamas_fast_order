@@ -140,7 +140,7 @@ export function TermsPage() {
         </div>
       </header>
 
-      <main className="container" style={{ maxWidth: 900 }}>
+      <main className="container terms-page" style={{ maxWidth: 900 }}>
         <div className="card" style={{ padding: '26px 24px', marginBottom: 18 }}>
           <span className="badge brand">شفافیت، اعتماد و همکاری پایدار</span>
           <h1 style={{ fontSize: 21, margin: '12px 0 10px', lineHeight: 1.7 }}>
