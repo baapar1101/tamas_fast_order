@@ -98,8 +98,8 @@ export function PaymentTermsSettings({ value, categories, onChange, onSave, isSa
       <section className="a-card">
         <div className="a-card-head a-card-head--split">
           <div>
-            <h3 className="a-card-title">کالاهای جانبی - شرایط چک</h3>
-            <p className="a-card-desc">عدد صفر در پیش‌پرداخت یا تخفیف، معادل خط تیره در فایل مبنا است.</p>
+            <h3 className="a-card-title">کالاهای غیرموبایل - شرایط نقدی و چک</h3>
+            <p className="a-card-desc">تخفیف نقدی برای همهٔ دسته‌های غیرموبایل و سود اقساط برای هر برنامهٔ چکی از این بخش کنترل می‌شود.</p>
           </div>
           <button
             type="button"
@@ -117,6 +117,14 @@ export function PaymentTermsSettings({ value, categories, onChange, onSave, isSa
           })} />
         </div>
         <div className="a-field mb-4">
+          <label className="a-label">تخفیف خرید نقدی کالاهای غیرموبایل (درصد)</label>
+          <input className="a-input a-ltr" type="number" min="0" max="100" step="0.01" value={config.accessory.cashDiscountPercent} onChange={(event) => update({
+            ...config,
+            accessory: { ...config.accessory, cashDiscountPercent: numeric(event.target.value) },
+          })} />
+          <p className="a-note">این درصد روی پرداخت نقدی تمام دسته‌ها به‌جز دسته‌های موبایل انتخاب‌شده در بالا اعمال می‌شود.</p>
+        </div>
+        <div className="a-field mb-4">
           <label className="a-label">سقف خرید اعتباری هفتگی جانبی (تومان)</label>
           <input className="a-input a-ltr" type="number" min="0" value={config.accessory.weeklyCreditLimit} onChange={(event) => update({
             ...config,
@@ -127,7 +135,7 @@ export function PaymentTermsSettings({ value, categories, onChange, onSave, isSa
         {(['monthly', 'bimonthly'] as const).map((group) => (
           <div className="a-table-wrap mb-5" key={group}>
             <table className="a-table">
-              <thead><tr><th colSpan={6}>{group === 'monthly' ? 'چک‌های ماه‌به‌ماه' : 'چک‌های دوماه‌به‌دوماه'}</th></tr><tr><th>فعال</th><th>عنوان</th><th>مدت (ماه)</th><th>پیش‌پرداخت ٪</th><th>تخفیف ٪</th><th /></tr></thead>
+              <thead><tr><th colSpan={7}>{group === 'monthly' ? 'چک‌های ماه‌به‌ماه' : 'چک‌های دوماه‌به‌دوماه'}</th></tr><tr><th>فعال</th><th>عنوان</th><th>مدت (ماه)</th><th>پیش‌پرداخت ٪</th><th>تخفیف شرایط ٪</th><th>سود اقساط ٪</th><th /></tr></thead>
               <tbody>
                 {config.accessory.rules.filter((rule) => rule.group === group).map((rule) => (
                   <tr key={rule.id}>
@@ -135,7 +143,8 @@ export function PaymentTermsSettings({ value, categories, onChange, onSave, isSa
                     <td><input className="a-input" value={rule.label} onChange={(event) => updateAccessoryRule(rule.id, { label: event.target.value })} /></td>
                     <td><input className="a-input a-ltr" type="number" min="0" value={rule.termMonths} onChange={(event) => updateAccessoryRule(rule.id, { termMonths: numeric(event.target.value) })} /></td>
                     <td><input className="a-input a-ltr" type="number" min="0" max="100" step="0.01" value={rule.upfrontPercent} onChange={(event) => updateAccessoryRule(rule.id, { upfrontPercent: numeric(event.target.value) })} /></td>
-                    <td><input className="a-input a-ltr" type="number" min="0" max="100" step="0.01" value={rule.discountPercent} onChange={(event) => updateAccessoryRule(rule.id, { discountPercent: numeric(event.target.value) })} /></td>
+                    <td>{rule.termMonths === 0 ? <span className="a-note">از تنظیم تخفیف نقدی</span> : <input className="a-input a-ltr" type="number" min="0" max="100" step="0.01" value={rule.discountPercent} onChange={(event) => updateAccessoryRule(rule.id, { discountPercent: numeric(event.target.value) })} />}</td>
+                    <td>{rule.termMonths === 0 ? <span className="a-note">—</span> : <input className="a-input a-ltr" type="number" min="0" max="100" step="0.01" value={rule.installmentProfitPercent} onChange={(event) => updateAccessoryRule(rule.id, { installmentProfitPercent: numeric(event.target.value) })} />}</td>
                     <td><button type="button" className="a-btn a-btn--danger a-btn--xs" onClick={() => update({ ...config, accessory: { ...config.accessory, rules: config.accessory.rules.filter((item) => item.id !== rule.id) } })}>حذف</button></td>
                   </tr>
                 ))}
@@ -147,7 +156,7 @@ export function PaymentTermsSettings({ value, categories, onChange, onSave, isSa
                 ...config.accessory,
                 rules: [...config.accessory.rules, {
                   id: `accessory-${group}-${Date.now()}`, label: 'شرایط جدید', enabled: true, group,
-                  termMonths: 1, upfrontPercent: 0, discountPercent: 0,
+                  termMonths: 1, upfrontPercent: 0, discountPercent: 0, installmentProfitPercent: 0,
                 }],
               },
             })}>+ افزودن ردیف</button>

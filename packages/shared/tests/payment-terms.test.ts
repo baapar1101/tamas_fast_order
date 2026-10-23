@@ -30,6 +30,41 @@ test('default config reproduces accessory cash discount and cheque prepayment', 
   assert.equal(repricePaymentPlan(oneMonth!, 2_000_000).finalAmount, 1_900_000);
 });
 
+test('cash discount applies only to non-mobile categories and is configurable', () => {
+  const config = parsePaymentTermsConfig({
+    ...parsePaymentTermsConfig(undefined),
+    accessory: {
+      ...parsePaymentTermsConfig(undefined).accessory,
+      cashDiscountPercent: 12.5,
+    },
+  });
+  const accessoryCash = buildPaymentTermsQuote(1_000_000, ['accessory'], config).plans.find((plan) => plan.kind === 'cash');
+  const mobileCash = buildPaymentTermsQuote(1_000_000, ['mobile'], config).plans.find((plan) => plan.kind === 'cash');
+
+  assert.equal(accessoryCash?.discountPercent, 12.5);
+  assert.equal(accessoryCash?.finalAmount, 875_000);
+  assert.equal(mobileCash?.discountPercent, 0);
+  assert.equal(mobileCash?.finalAmount, 1_000_000);
+});
+
+test('accessory installment profit is configurable per cheque plan', () => {
+  const defaults = parsePaymentTermsConfig(undefined);
+  const config = parsePaymentTermsConfig({
+    ...defaults,
+    accessory: {
+      ...defaults.accessory,
+      rules: defaults.accessory.rules.map((rule) => rule.id === 'accessory-monthly-4'
+        ? { ...rule, discountPercent: 0, installmentProfitPercent: 6 }
+        : rule),
+    },
+  });
+  const plan = buildPaymentTermsQuote(1_000_000, ['accessory'], config).plans.find((item) => item.id === 'accessory-monthly-4');
+
+  assert.equal(plan?.serviceFeePercent, 6);
+  assert.equal(plan?.finalAmount, 1_060_000);
+  assert.equal(repricePaymentPlan(plan!, 2_000_000).finalAmount, 2_120_000);
+});
+
 test('default config reproduces mobile service fees and daily schedule', () => {
   const config = parsePaymentTermsConfig(undefined);
   assert.equal(paymentAudienceForCategory(2, config), 'mobile');
