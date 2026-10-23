@@ -11,7 +11,8 @@
 | بک‌اند | پروژهٔ Node.js با نام `tamas_fast_order_production` در aaPanel، دامنهٔ `api.tamasmarket.com` و دستور سفارشی `npm run start:prod` |
 | درگاه بک‌اند | Nginx درخواست‌های `api.tamasmarket.com` را به `127.0.0.1:3102` می‌فرستد. اسکریپت `start:prod` در `apps/api/package.json` همین پورت و `NODE_ENV=production` را تعیین می‌کند. |
 | API روی دامنهٔ اصلی | Nginx مسیر `/api/` از `tamasmarket.com` را به همان سرویس روی پورت ۳۱۰۲ می‌فرستد؛ فرانت نیز به همین مسیر هم‌دامنه درخواست می‌زند. |
-| آپلودها | مسیر عمومی `/uploads/` در دامنهٔ اصلی از `/www/wwwroot/tamas_fast_order/apps/api/storage/` سرو می‌شود. |
+| آپلودها | `/uploads/` روی دامنهٔ اصلی به API پورت ۳۱۰۲ پروکسی می‌شود؛ API تصاویر عمومی را از `apps/api/storage/` و مدارک را فقط با کنترل مجوز سرو می‌کند. alias مستقیم ممنوع است. |
+| مدارک خصوصی | فضای جداگانهٔ `apps/api/private-storage/`؛ دسترسی فقط از `/api/files/:id` با نشست و مجوز معتبر. جزئیات در [راهنمای مدارک خصوصی](private-documents.md). |
 
 فایل‌های Nginx که aaPanel مدیریت می‌کند: `/www/server/panel/vhost/nginx/node_tamas_fast_order_production.conf` و `/www/server/panel/vhost/nginx/tamasmarket.com.conf`. فایل `.env` بک‌اند در `apps/api/.env` سرور است و نباید وارد Git یا مستندات شود. در محیط بررسی‌شده `TRUST_PROXY=true` بود.
 
@@ -25,7 +26,7 @@
 
 ### کش صفحهٔ اصلی فرانت
 
-مسیر SPA در فایل aaPanel یعنی `/www/server/panel/vhost/nginx/tamasmarket.com.conf` باید برای `location /` هدر `Cache-Control: no-cache, no-store, must-revalidate` داشته باشد و `version.json` نیز صریحاً بدون کش سرو شود. فایل‌های هش‌دار JS/CSS می‌توانند طبق بلوک جداگانهٔ خود کش شوند. کلاینت `version.json` را هر ۳۰ ثانیه و هنگام بازگشت به تب، focus و آنلاین‌شدن بررسی می‌کند و در صورت اختلاف نسخه با URL نسخه‌دار و پاک‌سازی CacheStorage بروزرسانی اجباری انجام می‌دهد. پس از هر تغییر تنظیم، `nginx -t` و بارگذاری مجدد Nginx را انجام دهید.
+مسیر SPA در فایل aaPanel یعنی `/www/server/panel/vhost/nginx/tamasmarket.com.conf` باید برای `location /` هدر `Cache-Control: no-cache, no-store, must-revalidate` داشته باشد و `version.json` نیز صریحاً بدون کش سرو شود. فایل‌های هش‌دار JS/CSS می‌توانند طبق بلوک جداگانهٔ خود کش شوند. کلاینت `version.json` را هر ۳۰ ثانیه و هنگام بازگشت به تب، focus و آنلاین‌شدن بررسی می‌کند و در صورت اختلاف نسخه، اعلان «نسخهٔ جدید آماده است» نشان می‌دهد؛ فرم ناتمام خودکار reload نمی‌شود. فقط با انتخاب کاربر، کش‌های متعلق به تماس مارکت پاک و صفحه با URL نسخه‌دار بارگذاری می‌شود. build فایل‌های هش‌دار قبلی را هفت روز نگه می‌دارد تا تب قدیمی در بارگذاری تنبل نشکند. پس از هر تغییر تنظیم، `nginx -t` و بارگذاری مجدد Nginx را انجام دهید.
 
 ```nginx
 location = /version.json {
