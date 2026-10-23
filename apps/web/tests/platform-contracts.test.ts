@@ -42,3 +42,15 @@ test('shared dialog sizes stay bounded and every theme maps shared semantic surf
   assert.match(css, /body \.wallet-panel input \{[^}]*background: var\(--ds-surface-subtle\)/);
   assert.match(css, /Prevent focus-induced zoom on iOS/);
 });
+
+test('document recovery is reachable in admin and customer navigation without exposing public files', () => {
+  assert.match(read('../src/admin/AdminApp.tsx'), /path="document-recovery"/);
+  assert.match(read('../src/storefront/AccountLayout.tsx'), /to="\/account\/documents"/);
+  assert.match(read('../src/App.tsx'), /path="documents"/);
+  const admin = read('../src/admin/components/DocumentRecoveryPanel.tsx');
+  assert.match(admin, /بدون ارجاع فعال/);
+  assert.match(admin, /حساب مدیریتی/);
+  assert.match(admin, /useState\(false\)/);
+  assert.match(read('../src/storefront/DocumentRequestsPage.tsx'), /<PrivateUploadField/);
+  assert.match(read('../src/styles/document-recovery.css'), /overflow-x: auto/);
+});

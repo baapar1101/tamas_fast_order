@@ -949,6 +949,38 @@ export const uploads = pgTable(
  * Sync bookkeeping
  * ------------------------------------------------------------------ */
 
+export const documentReuploadRequests = pgTable('document_reupload_requests', {
+  id: serial('id').primaryKey(),
+  originalUploadId: integer('original_upload_id').notNull().references(() => uploads.id, { onDelete: 'restrict' }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  requestedBy: integer('requested_by').references(() => users.id, { onDelete: 'set null' }),
+  documentLabel: varchar('document_label', { length: 400 }).notNull(),
+  message: text('message').notNull(),
+  status: varchar('status', { length: 20 }).$type<'pending' | 'submitted' | 'completed' | 'cancelled'>().notNull().default('pending'),
+  notificationDelivery: jsonb('notification_delivery').$type<Record<string, string>>().notNull().default(sql`'{}'::jsonb`),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('document_reupload_user_idx').on(t.userId),
+  uniqueIndex('document_reupload_open_idx').on(t.originalUploadId).where(sql`${t.status} IN ('pending', 'submitted')`),
+  check('document_reupload_status_check', sql`${t.status} IN ('pending', 'submitted', 'completed', 'cancelled')`),
+]);
+
+export const documentReuploadSubmissions = pgTable('document_reupload_submissions', {
+  id: serial('id').primaryKey(),
+  requestId: integer('request_id').notNull().references(() => documentReuploadRequests.id, { onDelete: 'restrict' }),
+  uploadId: integer('upload_id').notNull().references(() => uploads.id, { onDelete: 'restrict' }),
+  status: varchar('status', { length: 20 }).$type<'pending' | 'approved' | 'rejected'>().notNull().default('pending'),
+  submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull().defaultNow(),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  reviewedBy: integer('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
+  reviewNote: text('review_note'),
+}, (t) => [
+  index('document_reupload_submission_request_idx').on(t.requestId),
+  uniqueIndex('document_reupload_pending_submission_idx').on(t.requestId).where(sql`${t.status} = 'pending'`),
+  check('document_reupload_submission_status_check', sql`${t.status} IN ('pending', 'approved', 'rejected')`),
+]);
+
 export const syncState = pgTable(
   'sync_state',
   {

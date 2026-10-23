@@ -135,6 +135,7 @@ type CustomerTelegramEvent =
   | 'credit.cheque_status_changed'
   | 'credit.installment_receipt_reminder'
   | 'credit.installment_receipt_status_changed'
+  | 'credit.document_reupload_requested'
   | 'wallet.changed'
   | 'payment.instructions_ready'
   | 'discount.created'
@@ -150,6 +151,7 @@ const CUSTOMER_TELEGRAM_EVENT_LABELS: Record<CustomerTelegramEvent, string> = {
   'credit.cheque_status_changed': 'وضعیت چک',
   'credit.installment_receipt_reminder': 'یادآوری بارگذاری رسید قسط',
   'credit.installment_receipt_status_changed': 'نتیجه بررسی رسید قسط',
+  'credit.document_reupload_requested': 'درخواست آپلود مجدد مدرک',
   'wallet.changed': 'گردش کیف پول',
   'payment.instructions_ready': 'آماده‌شدن اطلاعات پرداخت',
   'discount.created': 'کد تخفیف جدید',
