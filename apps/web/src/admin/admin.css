@@ -2134,3 +2134,167 @@ svg.w-full, .w-full { width: 100%; }
   .credit-score-track i { transition: none; }
   .credit-dashboard-spinner { animation-duration: 1.8s; }
 }
+
+/* Customer credit report overview */
+.credit-report-overview { display: grid; gap: 1rem; min-width: 0; color: var(--a-t1); }
+.credit-report-hero { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.1rem; border: 1px solid var(--a-border); border-radius: 1rem; background: linear-gradient(135deg, color-mix(in srgb, var(--a-brand) 13%, var(--a-surface)) 0%, var(--a-surface) 68%); }
+.credit-report-identity { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+.credit-report-avatar { display: grid; place-items: center; flex: 0 0 3.2rem; width: 3.2rem; height: 3.2rem; border-radius: 1rem; background: var(--a-brand-soft); color: var(--a-brand); }
+.credit-report-identity > div { min-width: 0; }
+.credit-report-identity span { color: var(--a-brand); font-size: 0.65rem; font-weight: 800; }
+.credit-report-identity h2 { margin: 0.2rem 0 0.1rem; overflow: hidden; color: var(--a-t1); font-size: 1.1rem; text-overflow: ellipsis; white-space: nowrap; }
+.credit-report-identity p { margin: 0; color: var(--a-t3); font-size: 0.67rem; }
+.credit-report-actions { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+.credit-report-actions button, .credit-report-actions a, .credit-report-footer button, .credit-report-footer a { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; min-height: 2.5rem; padding: 0.45rem 0.75rem; border: 1px solid var(--a-border); border-radius: 0.7rem; background: var(--a-surface-2); color: var(--a-t2); font: inherit; font-size: 0.65rem; font-weight: 800; text-decoration: none; cursor: pointer; }
+.credit-report-actions a, .credit-report-footer a { border-color: color-mix(in srgb, var(--a-brand) 45%, var(--a-border)); background: var(--a-brand); color: #fff; }
+.credit-report-actions button:hover, .credit-report-footer button:hover { border-color: var(--a-brand); color: var(--a-brand); }
+
+.credit-report-summary { display: grid; grid-template-columns: minmax(10rem, 0.72fr) minmax(17rem, 1.7fr) minmax(8rem, 0.62fr); align-items: center; gap: 1rem; padding: 1.1rem; border: 1px solid var(--a-border); border-radius: 1rem; background: var(--a-surface); }
+.credit-score-gauge { --credit-gauge-color: var(--a-brand); display: grid; place-items: center; width: min(10.5rem, 100%); aspect-ratio: 1; margin: auto; padding: 0.72rem; border-radius: 50%; background: conic-gradient(var(--credit-gauge-color) 0 var(--credit-score-progress), var(--a-surface-3) var(--credit-score-progress) 100%); transform: rotate(-90deg); }
+.credit-score-gauge--medium { --credit-gauge-color: #f59e0b; }
+.credit-score-gauge--high { --credit-gauge-color: #ef4444; }
+.credit-score-gauge--unknown { --credit-gauge-color: #64748b; }
+.credit-score-gauge__inner { display: grid; place-items: center; width: 100%; height: 100%; border: 1px solid var(--a-border); border-radius: 50%; background: var(--a-surface); transform: rotate(90deg); }
+.credit-score-gauge__inner span, .credit-score-gauge__inner small { color: var(--a-t3); font-size: 0.6rem; }
+.credit-score-gauge__inner strong { margin: 0.15rem 0 -0.25rem; color: var(--credit-gauge-color); font-size: 2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.credit-report-decision { display: grid; align-content: center; min-height: 9.2rem; padding-inline: 0.25rem; }
+.credit-report-section-label { display: flex; align-items: center; gap: 0.4rem; color: var(--a-t2); font-size: 0.68rem; font-weight: 800; }
+.credit-report-risk-line { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; margin: 0.7rem 0 0.55rem; }
+.credit-report-risk-badge, .credit-report-validity { display: inline-flex; width: fit-content; padding: 0.3rem 0.55rem; border-radius: 999px; font-size: 0.62rem; font-weight: 800; }
+.credit-report-risk-badge--low { background: color-mix(in srgb, #22c55e 13%, transparent); color: #22c55e; }
+.credit-report-risk-badge--medium { background: color-mix(in srgb, #f59e0b 13%, transparent); color: #f59e0b; }
+.credit-report-risk-badge--high { background: color-mix(in srgb, #ef4444 13%, transparent); color: #ef4444; }
+.credit-report-risk-badge--unknown { background: color-mix(in srgb, #64748b 16%, transparent); color: var(--a-t2); }
+.credit-report-validity { background: color-mix(in srgb, #22c55e 10%, transparent); color: #22c55e; }
+.credit-report-validity.is-expired { background: color-mix(in srgb, #ef4444 11%, transparent); color: #ef4444; }
+.credit-report-decision p { margin: 0 0 0.25rem; color: var(--a-t1); font-size: 0.72rem; font-weight: 700; line-height: 1.8; }
+.credit-report-decision > small { color: var(--a-t3); font-size: 0.56rem; line-height: 1.7; }
+.credit-confidence-ring { display: grid; place-items: center; width: min(7.8rem, 100%); aspect-ratio: 1; margin: auto; padding: 0.5rem; border-radius: 50%; background: conic-gradient(#06b6d4 0 var(--credit-confidence), var(--a-surface-3) var(--credit-confidence) 100%); }
+.credit-confidence-ring > div { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: var(--a-surface); }
+.credit-confidence-ring strong { color: #06b6d4; font-size: 1.25rem; }
+.credit-confidence-ring span { margin-top: -0.65rem; color: var(--a-t3); font-size: 0.55rem; }
+
+.credit-report-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.7rem; }
+.credit-report-kpis article { display: flex; align-items: center; gap: 0.65rem; min-height: 5rem; padding: 0.8rem; border: 1px solid var(--a-border); border-radius: 0.85rem; background: var(--a-surface); }
+.credit-report-kpis article > span { display: grid; place-items: center; flex: 0 0 2.2rem; width: 2.2rem; height: 2.2rem; border-radius: 0.65rem; }
+.credit-report-kpis .tone-blue { background: color-mix(in srgb, #0ea5e9 12%, transparent); color: #0ea5e9; }
+.credit-report-kpis .tone-red { background: color-mix(in srgb, #ef4444 12%, transparent); color: #ef4444; }
+.credit-report-kpis .tone-green { background: color-mix(in srgb, #22c55e 12%, transparent); color: #22c55e; }
+.credit-report-kpis .tone-amber { background: color-mix(in srgb, #f59e0b 12%, transparent); color: #f59e0b; }
+.credit-report-kpis .tone-violet { background: color-mix(in srgb, #8b5cf6 12%, transparent); color: #8b5cf6; }
+.credit-report-kpis article div { min-width: 0; }
+.credit-report-kpis small { display: block; color: var(--a-t3); font-size: 0.58rem; }
+.credit-report-kpis strong { display: block; margin-top: 0.25rem; overflow: hidden; color: var(--a-t1); font-size: 0.72rem; text-overflow: ellipsis; white-space: nowrap; }
+
+.credit-report-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; }
+.credit-report-card { min-width: 0; padding: 1rem; border: 1px solid var(--a-border); border-radius: 1rem; background: var(--a-surface); }
+.credit-report-card > header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--a-border); }
+.credit-report-card > header > div { display: flex; align-items: center; gap: 0.55rem; color: var(--a-brand); }
+.credit-report-card > header span { display: grid; gap: 0.1rem; }
+.credit-report-card > header strong { color: var(--a-t1); font-size: 0.73rem; }
+.credit-report-card > header small { color: var(--a-t3); font-size: 0.56rem; }
+.credit-report-card--chart { min-height: 12.5rem; }
+.credit-overview-empty { display: grid; place-items: center; min-height: 7rem; padding: 1rem; color: var(--a-t3); font-size: 0.65rem; text-align: center; }
+
+.credit-payer-chart { display: grid; align-content: center; min-height: 8.5rem; padding: 1rem 0.4rem 0; }
+.credit-payer-value { display: grid; grid-template-columns: auto 1fr auto 1fr; align-items: baseline; gap: 0.35rem; margin-bottom: 0.75rem; }
+.credit-payer-value strong { color: var(--a-t1); font-size: 1rem; }
+.credit-payer-value span { color: var(--a-t3); font-size: 0.55rem; }
+.credit-payer-scale { position: relative; height: 0.7rem; border-radius: 999px; background: linear-gradient(90deg, #ef4444, #f59e0b 48%, #22c55e); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--a-border) 55%, transparent); }
+.credit-payer-scale i { position: absolute; top: -0.25rem; height: 1.2rem; border: 0.16rem solid var(--a-t1); border-radius: 999px; background: transparent; box-shadow: 0 0 0 0.16rem color-mix(in srgb, var(--a-surface) 80%, transparent); }
+.credit-payer-ticks { display: flex; justify-content: space-between; margin-top: 0.45rem; color: var(--a-t3); font-size: 0.52rem; direction: ltr; }
+.credit-inquiry-chart { display: grid; align-content: center; gap: 1rem; min-height: 8.5rem; padding: 1rem 0.4rem 0; }
+.credit-inquiry-chart > div { display: grid; grid-template-columns: 5rem 1fr 2rem; align-items: center; gap: 0.55rem; }
+.credit-inquiry-chart span { color: var(--a-t2); font-size: 0.62rem; }
+.credit-inquiry-chart > div > div { height: 0.65rem; overflow: hidden; border-radius: 999px; background: var(--a-surface-3); }
+.credit-inquiry-chart i { display: block; height: 100%; border-radius: inherit; }
+.credit-inquiry-chart strong { color: var(--a-t1); font-size: 0.72rem; text-align: center; }
+
+.credit-report-alerts { padding: 0.95rem 1rem; border: 1px solid color-mix(in srgb, #f59e0b 38%, var(--a-border)); border-radius: 1rem; background: color-mix(in srgb, #f59e0b 6%, var(--a-surface)); }
+.credit-report-alerts > header { display: flex; align-items: center; gap: 0.55rem; color: #f59e0b; }
+.credit-report-alerts header div { display: grid; gap: 0.1rem; }
+.credit-report-alerts header strong { color: var(--a-t1); font-size: 0.72rem; }
+.credit-report-alerts header small { color: var(--a-t3); font-size: 0.56rem; }
+.credit-report-alerts > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; margin-top: 0.75rem; }
+.credit-report-alerts p { display: flex; align-items: flex-start; gap: 0.4rem; margin: 0; padding: 0.5rem 0.6rem; border: 1px solid color-mix(in srgb, #f59e0b 24%, var(--a-border)); border-radius: 0.6rem; color: var(--a-t2); font-size: 0.62rem; line-height: 1.75; }
+.credit-report-alerts p i { flex: 0 0 0.38rem; width: 0.38rem; height: 0.38rem; margin-top: 0.35rem; border-radius: 50%; background: #f59e0b; }
+
+.credit-identity-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.55rem; padding-top: 0.8rem; }
+.credit-identity-grid > div { min-width: 0; padding: 0.65rem 0.7rem; border: 1px solid var(--a-border); border-radius: 0.65rem; background: var(--a-surface-2); }
+.credit-identity-grid span { display: block; color: var(--a-t3); font-size: 0.55rem; }
+.credit-identity-grid strong { display: block; margin-top: 0.25rem; overflow-wrap: anywhere; color: var(--a-t1); font-size: 0.66rem; }
+.credit-report-grid--content { align-items: start; }
+.credit-negative-reasons { display: grid; gap: 0.55rem; padding-top: 0.8rem !important; }
+.credit-negative-reasons li { display: grid; grid-template-columns: auto 1fr; align-items: flex-start; gap: 0.55rem; padding-bottom: 0.55rem; border-bottom: 1px dashed var(--a-border); }
+.credit-negative-reasons li:last-child { padding-bottom: 0; border-bottom: 0; }
+.credit-negative-reasons span { padding: 0.18rem 0.35rem; border-radius: 0.35rem; background: color-mix(in srgb, #ef4444 11%, transparent); color: #ef4444; font-size: 0.58rem; font-weight: 800; direction: ltr; }
+.credit-negative-reasons p { margin: 0; color: var(--a-t2); font-size: 0.63rem; line-height: 1.85; }
+.credit-tax-timeline { display: grid; padding-top: 0.8rem; }
+.credit-tax-timeline > div { display: grid; grid-template-columns: 3rem 0.7rem 1fr; gap: 0.4rem; align-items: stretch; min-height: 3.2rem; }
+.credit-tax-timeline > div > span { color: var(--a-t1); font-size: 0.65rem; font-weight: 800; }
+.credit-tax-timeline i { position: relative; width: 0.12rem; margin-inline: auto; background: var(--a-border); }
+.credit-tax-timeline i::before { position: absolute; top: 0.1rem; right: 50%; width: 0.55rem; height: 0.55rem; border: 0.12rem solid var(--a-surface); border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 1px #22c55e; content: ''; transform: translateX(50%); }
+.credit-tax-timeline p { margin: 0; color: var(--a-t2); font-size: 0.62rem; line-height: 1.75; }
+
+.credit-report-meta-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.55rem; padding-top: 0.8rem; }
+.credit-report-meta-grid > div { display: grid; grid-template-columns: auto 1fr; gap: 0.15rem 0.45rem; align-items: center; min-width: 0; padding: 0.65rem; border-radius: 0.65rem; background: var(--a-surface-2); color: var(--a-brand); }
+.credit-report-meta-grid span { color: var(--a-t3); font-size: 0.54rem; }
+.credit-report-meta-grid strong { grid-column: 2; overflow-wrap: anywhere; color: var(--a-t1); font-size: 0.62rem; }
+.credit-report-warnings { display: grid; gap: 0.35rem; margin-top: 0.75rem; }
+.credit-report-warnings p { display: flex; align-items: center; gap: 0.35rem; margin: 0; padding: 0.45rem; border-radius: 0.5rem; background: color-mix(in srgb, #f59e0b 8%, transparent); color: #f59e0b; font-size: 0.6rem; }
+.credit-report-pages > div { display: grid; padding-top: 0.65rem; }
+.credit-report-pages details { border-bottom: 1px solid var(--a-border); }
+.credit-report-pages summary { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.7rem 0.2rem; color: var(--a-t2); font-size: 0.66rem; font-weight: 800; cursor: pointer; }
+.credit-report-pages summary span { color: var(--a-t3); font-size: 0.55rem; font-weight: 500; }
+.credit-report-pages pre { max-height: 22rem; margin: 0 0 0.75rem; padding: 0.8rem; overflow: auto; border: 1px solid var(--a-border); border-radius: 0.65rem; background: var(--a-surface-2); color: var(--a-t2); font: inherit; font-size: 0.58rem; line-height: 1.9; white-space: pre-wrap; }
+.credit-report-footer { position: sticky; bottom: -1.25rem; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 1rem; border: 1px solid var(--a-border); border-radius: 0.85rem; background: color-mix(in srgb, var(--a-surface) 94%, transparent); box-shadow: 0 -0.7rem 1.6rem color-mix(in srgb, #000 12%, transparent); backdrop-filter: blur(14px); }
+.credit-report-footer > div { display: flex; align-items: center; gap: 0.55rem; }
+.credit-report-footer > div:first-child { color: var(--a-brand); }
+.credit-report-footer span { display: grid; }
+.credit-report-footer strong { color: var(--a-t1); font-size: 0.65rem; }
+.credit-report-footer small { color: var(--a-t3); font-size: 0.54rem; }
+
+@media (max-width: 900px) {
+  .credit-report-summary { grid-template-columns: minmax(9rem, 0.7fr) minmax(14rem, 1.3fr); }
+  .credit-confidence-ring { display: none; }
+  .credit-report-kpis, .credit-identity-grid, .credit-report-meta-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 680px) {
+  .credit-report-hero, .credit-report-footer { align-items: stretch; flex-direction: column; }
+  .credit-report-actions, .credit-report-footer > div:last-child { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .credit-report-summary, .credit-report-grid { grid-template-columns: minmax(0, 1fr); }
+  .credit-score-gauge { width: 8.8rem; }
+  .credit-report-decision { min-height: 0; text-align: center; }
+  .credit-report-section-label, .credit-report-risk-line { justify-content: center; }
+  .credit-report-alerts > div { grid-template-columns: minmax(0, 1fr); }
+  .credit-report-footer { position: static; }
+}
+
+@media (max-width: 440px) {
+  .credit-report-kpis, .credit-identity-grid, .credit-report-meta-grid { grid-template-columns: minmax(0, 1fr); }
+  .credit-report-actions, .credit-report-footer > div:last-child { grid-template-columns: minmax(0, 1fr); }
+  .credit-report-identity h2 { white-space: normal; }
+  .credit-payer-value { grid-template-columns: auto 1fr; }
+}
+
+@media print {
+  body.admin-page-active:has(.credit-report-overview) > * { display: none !important; }
+  body.admin-page-active:has(.credit-report-overview) > .modal-backdrop { position: static !important; display: block !important; padding: 0 !important; background: #fff !important; }
+  body.admin-page-active:has(.credit-report-overview) .modal-panel { width: 100% !important; max-width: none !important; max-height: none !important; border: 0 !important; box-shadow: none !important; }
+  body.admin-page-active:has(.credit-report-overview) .modal-head, body.admin-page-active:has(.credit-report-overview) .credit-report-actions, body.admin-page-active:has(.credit-report-overview) .credit-report-footer { display: none !important; }
+  body.admin-page-active:has(.credit-report-overview) .modal-body { padding: 0 !important; overflow: visible !important; background: #fff !important; }
+  body.admin-page-active:has(.credit-report-overview) .credit-report-overview {
+    --a-surface: #fff;
+    --a-surface-2: #f8fafc;
+    --a-surface-3: #eef2f7;
+    --a-border: #d9e0e8;
+    --a-t1: #101828;
+    --a-t2: #475467;
+    --a-t3: #667085;
+    --a-brand: #087f5b;
+    --a-brand-soft: #e8f8f1;
+    color-scheme: light;
+  }
+  body.admin-page-active:has(.credit-report-overview) .credit-report-card, body.admin-page-active:has(.credit-report-overview) .credit-report-hero, body.admin-page-active:has(.credit-report-overview) .credit-report-summary, body.admin-page-active:has(.credit-report-overview) .credit-report-kpis article { break-inside: avoid; }
+}
