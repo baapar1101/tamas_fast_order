@@ -44,10 +44,16 @@ body.admin-page-active {
   .ds-update-prompt p { margin: var(--ds-space-1) 0 0; font-size: var(--ds-text-sm); color: var(--ds-text-secondary); }
   .ds-update-prompt__actions { display: flex; flex-shrink: 0; gap: var(--ds-space-2); }
   .account-content :where(.wallet-panel, .credit-dashboard, .order-card) { border-radius: var(--ds-radius-lg); border-color: var(--ds-border); background: var(--ds-surface); }
+  body .wallet-panel input { border-color: var(--ds-border-strong); background: var(--ds-surface-subtle); color: var(--ds-text); border-radius: var(--ds-radius-sm); }
+  body .wallet-presets button { min-height: var(--ds-control-h-md); border-color: var(--ds-border); border-radius: var(--ds-radius-sm); background: var(--ds-interactive-soft); color: var(--ds-interactive); }
+  body .wallet-primary { min-height: var(--ds-control-h-md); border-radius: var(--ds-radius-sm); background: var(--ds-interactive); color: var(--ds-on-interactive); font-weight: var(--ds-weight-bold); }
+  body .wallet-primary:hover:not(:disabled) { background: var(--ds-interactive-hover); }
   .admin-main-content :where(.a-title) { font-size: var(--ds-text-title); line-height: var(--ds-leading-tight); }
   .admin-main-content :where(.a-page-head) { display: flex; flex-wrap: wrap; gap: var(--ds-space-4); }
 }
 @media screen and (max-width: 640px) {
+  /* Prevent focus-induced zoom on iOS without disabling user zoom. */
+  body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]), select, textarea) { font-size: var(--ds-text-lg); }
   body .modal-backdrop { padding: var(--ds-space-2); }
   body .modal-panel { width: 100%; max-width: calc(100vw - 1rem); max-height: calc(100dvh - 2rem); }
   body .modal-head, body .modal-body, body .modal-foot { padding: var(--ds-space-4); }
