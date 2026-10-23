@@ -273,6 +273,21 @@
   }
 }
 
+@media (max-width: 768px) {
+  /* Account routes remain inside the same mobile app shell as the storefront. */
+  .account-shell {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .account-shell .account-page {
+    padding-bottom: 32px;
+  }
+
+  .account-shell .site-footer {
+    display: none !important;
+  }
+}
+
 @media (max-width: 380px) {
   .account-nav,
   .account-sidebar-actions {

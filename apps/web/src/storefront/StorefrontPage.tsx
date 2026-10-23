@@ -21,6 +21,7 @@ import { GuestPromoPopup } from './GuestPromoPopup';
 import { GoldenCampaignCopy } from './GoldenCampaignCopy';
 import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_IMAGE_URL, GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL, isGoldenCampaignSlide, visibleCampaignSlides } from './goldenCampaign';
 import { HOMEPAGE_FILTER_SETTING_KEY, parseHomepageFilters, type HomepageFilterType } from './homepageFilters';
+import { MobileAppNavigation, type MobileAppTab } from './MobileAppNavigation';
 import './storefront.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
@@ -35,6 +36,13 @@ const FALLBACK_HERO_SLIDES: StorefrontSlide[] = [
   { id: -2, title: 'گوشی‌های شیائومی', imageUrl: '/assets/slides/slide-02.jpg', mobileImageUrl: null, linkUrl: '/?brand=Xiaomi' },
   { id: -3, title: 'گوشی‌های سامسونگ', imageUrl: '/assets/slides/slide-03.jpg', mobileImageUrl: null, linkUrl: '/?brand=Samsung' },
 ];
+
+const MOBILE_APP_TABS = new Set<MobileAppTab>(['home', 'categories', 'search', 'cart', 'profile']);
+const ACCOUNT_TAB_LINKS = { profile: '/account' } satisfies Partial<Record<MobileAppTab, string>>;
+
+function parseMobileTab(value: string | null): MobileAppTab {
+  return value && MOBILE_APP_TABS.has(value as MobileAppTab) ? value as MobileAppTab : 'home';
+}
 
 function ProductSkeletons({ viewMode }: { viewMode: 'list' | 'grid' }) {
   if (viewMode === 'grid') {
@@ -89,7 +97,19 @@ export function StorefrontPage() {
   const [sort, setSort] = useState<CatalogFilters['sort']>((searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc');
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'grid');
-  const [mobileTab, setMobileTab] = useState<'home' | 'categories' | 'search' | 'cart' | 'profile'>('home');
+  const [mobileTab, setMobileTab] = useState<MobileAppTab>(() => (
+    location.hash === '#cart' ? 'cart' : parseMobileTab(searchParams.get('tab'))
+  ));
+
+  const selectMobileTab = useCallback((tab: MobileAppTab) => {
+    setMobileTab(tab);
+    setSearchParams((current) => {
+      const params = new URLSearchParams(current);
+      if (tab === 'home') params.delete('tab');
+      else params.set('tab', tab);
+      return params;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   useEffect(() => {
     if (location.hash === '#cart') setMobileTab('cart');
@@ -149,6 +169,9 @@ export function StorefrontPage() {
 
     const v = (searchParams.get('view') as 'list' | 'grid') || 'grid';
     if (viewMode !== v) setViewMode(v);
+
+    const requestedTab = location.hash === '#cart' ? 'cart' : parseMobileTab(searchParams.get('tab'));
+    if (mobileTab !== requestedTab) setMobileTab(requestedTab);
   }, [searchParams]);
 
   const [activeSlide, setActiveSlide] = useState(0);
@@ -413,7 +436,7 @@ export function StorefrontPage() {
                   key={c.id}
                   type="button"
                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '24px 12px', background: 'var(--card)', borderRadius: 16, border: '1px solid var(--tamas-border)', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}
-                  onClick={() => { setCategory(c.name); setBrands([]); resetPage(); setMobileTab('home'); }}
+                  onClick={() => { setCategory(c.name); setBrands([]); resetPage(); selectMobileTab('home'); }}
                 >
                   {iconSrc ? <img src={iconSrc} alt="" loading="lazy" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span style={{ fontSize: 32, color: 'var(--tamas-accent)' }}><Icon name="box" /></span>}
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--tamas-fg)' }}>{c.faName}</span>
@@ -769,30 +792,25 @@ export function StorefrontPage() {
         </div>
       )}
 
-      {/* Mobile Bottom Navigation Bar */}
-      <nav className="tabbar" aria-label="ناوبری موبایل">
-        <button type="button" className={`tabbar-item ${mobileTab === 'home' ? 'active' : ''}`} onClick={() => { setSearch(''); setCategory(null); setBrands([]); setPromotion(false); setInStockOnly(false); resetPage(); setMobileTab('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-          <span className="tabbar-icon"><Icon name="home" /></span><span>صفحه اصلی</span>
-        </button>
-        <button type="button" className={`tabbar-item ${mobileTab === 'categories' ? 'active' : ''}`} onClick={() => setMobileTab('categories')}>
-          <span className="tabbar-icon"><Icon name="grid" /></span><span>دسته‌بندی‌ها</span>
-        </button>
-        <button type="button" className={`tabbar-item ${mobileTab === 'search' ? 'active' : ''}`} onClick={() => setMobileTab('search')}>
-          <span className="tabbar-icon"><Icon name="search" /></span><span>جستجو</span>
-        </button>
-        <button type="button" className={`tabbar-item ${mobileTab === 'cart' ? 'active' : ''}`} onClick={() => setMobileTab('cart')}>
-          <span className="tabbar-icon"><Icon name="bag" />{lines.length > 0 && <span className="badge-count">{formatNumber(cartCount(lines))}</span>}</span><span>سبد خرید</span>
-        </button>
-        {user ? (
-          <Link to="/account" state={{ returnTo: `${location.pathname}${location.search}` }} className="tabbar-item">
-            <span className="tabbar-icon"><Icon name="user" /></span><span>حساب کاربری</span>
-          </Link>
-        ) : (
-          <button type="button" className={`tabbar-item ${mobileTab === 'profile' ? 'active' : ''}`} onClick={() => setMobileTab('profile')}>
-            <span className="tabbar-icon"><Icon name="user" /></span><span>ورود / عضویت</span>
-          </button>
-        )}
-      </nav>
+      <MobileAppNavigation
+        activeTab={mobileTab}
+        cartItemCount={cartCount(lines)}
+        links={user ? ACCOUNT_TAB_LINKS : undefined}
+        accountReturnTo={`${location.pathname}${location.search}${location.hash}`}
+        profileLabel={user ? undefined : 'ورود / عضویت'}
+        onSelect={(tab) => {
+          if (tab === 'home') {
+            setSearch('');
+            setCategory(null);
+            setBrands([]);
+            setPromotion(false);
+            setInStockOnly(false);
+            resetPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+          selectMobileTab(tab);
+        }}
+      />
 
       {/* CRM Chat Widget */}
       <CrmChat user={user || undefined} />

@@ -4,7 +4,9 @@ import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../store/auth';
+import { cartCount, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
+import { MobileAppNavigation, type MobileAppTab } from './MobileAppNavigation';
 import { StoreFooter } from './StoreFooter';
 import './storefront.css';
 import './account-page.css';
@@ -13,11 +15,20 @@ export interface AccountOutletContext {
   returnTo: string;
 }
 
+const ACCOUNT_APP_LINKS = {
+  home: '/',
+  categories: '/?tab=categories',
+  search: '/?tab=search',
+  cart: '/?tab=cart',
+  profile: '/account',
+} satisfies Record<MobileAppTab, string>;
+
 export function AccountLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const toast = useToast();
   const { user, ready, isAdmin, logout } = useAuth();
+  const lines = useCart((state) => state.lines);
   const [authOpen, setAuthOpen] = useState(false);
   const savedReturn = (location.state as { returnTo?: unknown } | null)?.returnTo;
   const returnTo = typeof savedReturn === 'string' && savedReturn.startsWith('/') && !savedReturn.startsWith('//')
@@ -114,6 +125,7 @@ export function AccountLayout() {
       </main>
 
       <StoreFooter />
+      <MobileAppNavigation activeTab="profile" cartItemCount={cartCount(lines)} links={ACCOUNT_APP_LINKS} />
       <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} onReady={() => setAuthOpen(false)} />
     </div>
   );

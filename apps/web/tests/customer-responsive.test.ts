@@ -39,3 +39,16 @@ test('mobile product imagery owns a dedicated grid area instead of overlapping p
   assert.match(storefrontCss, /\.product-card\s*>\s*\.product-card-content\s*\{[^}]*grid-area:\s*body/s);
   assert.doesNotMatch(storefrontCss, /\.product-card\s*>\s*div:not\(\.card-price-box\)/);
 });
+
+test('account routes keep the shared mobile app navigation', () => {
+  const accountLayout = read('../src/storefront/AccountLayout.tsx');
+  const storefront = read('../src/storefront/StorefrontPage.tsx');
+  const navigation = read('../src/storefront/MobileAppNavigation.tsx');
+  const css = read('../src/storefront/customer-responsive.css');
+
+  assert.match(accountLayout, /<MobileAppNavigation\s+activeTab="profile"/);
+  assert.match(accountLayout, /categories:\s*'\/\?tab=categories'/);
+  assert.match(storefront, /parseMobileTab\(searchParams\.get\('tab'\)\)/);
+  assert.match(navigation, /aria-label="ناوبری اصلی فروشگاه"/);
+  assert.match(css, /\.account-shell\s*\{[^}]*padding-bottom:\s*calc\(68px\s*\+\s*env\(safe-area-inset-bottom/s);
+});
