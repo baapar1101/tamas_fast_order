@@ -13,6 +13,8 @@ type Reference = { table_name: string; column_name: string; id: number; owner: n
 const hash = (content: Buffer) => createHash('sha256').update(content).digest('hex');
 const urlPattern = /(?:https?:\/\/[^\s"'<>\\]+)?\/uploads\/[A-Za-z0-9_./%-]+/g;
 const write = process.argv.includes('--write');
+// Explicitly acknowledge only files independently confirmed missing before deployment.
+const allowMissing = new Set((process.argv.find((item) => item.startsWith('--allow-missing='))?.split('=')[1] ?? '').split(',').map(Number).filter((id) => Number.isInteger(id) && id > 0));
 const publicRoot = resolve(env.STORAGE_ROOT);
 
 async function main() {
@@ -74,7 +76,8 @@ async function main() {
     if (publicKeys.has(row.storage_key) || (row.thumb_key && publicKeys.has(row.thumb_key))) throw new Error(`Private/public reference conflict for upload ${row.id}; migration stopped`);
   }
   // Plan every source before changing anything; missing referenced files must not be hidden.
-  const files = new Map<string, { source: string | null; destination: string; checksum: string; size: number }>();
+  const files = new Map<string, { source: string | null; destination: string; checksum: string; size: number; missing?: boolean }>();
+  const unavailable = new Set<number>();
   for (const row of candidates) {
     for (const key of [row.storage_key, row.thumb_key].filter((item): item is string => Boolean(item))) {
       const destination = confinedFilePath(privateStorageRoot, key);
@@ -83,11 +86,17 @@ async function main() {
         const path = confinedFilePath(root, key);
         if (await stat(path).then((info) => info.isFile()).catch(() => false)) { source = path; break; }
       }
-      const content = await readFile(source ?? destination).catch(() => { throw new Error(`Missing file for upload ${row.id}; no changes applied`); });
+      const content = await readFile(source ?? destination).catch(() => null);
+      if (!content) {
+        if (!allowMissing.has(row.id)) throw new Error(`Missing file for upload ${row.id}; no changes applied`);
+        unavailable.add(row.id);
+        files.set(key, { source: null, destination, checksum: '', size: 0, missing: true });
+        continue;
+      }
       files.set(key, { source, destination, checksum: hash(content), size: content.length });
     }
   }
-  console.log(JSON.stringify({ mode: write ? 'write' : 'dry-run', uploads: candidates.length, files: files.size, references: references.length, externalReferences: external }));
+  console.log(JSON.stringify({ mode: write ? 'write' : 'dry-run', uploads: candidates.length, files: files.size, references: references.length, externalReferences: external, preexistingMissingUploads: [...unavailable] }));
   if (!write) return;
   await ensurePrivateStorage();
   const backupRoot = resolve('.private/document-migrations');
@@ -95,6 +104,7 @@ async function main() {
   const manifest = resolve(backupRoot, `before-${Date.now()}.json`);
   await writeFile(manifest, JSON.stringify({ references, uploads: candidates, files: [...files] }), { mode: 0o600, flag: 'wx' });
   for (const item of files.values()) {
+    if (item.missing) continue;
     await mkdir(dirname(item.destination), { recursive: true, mode: 0o700 });
     if (item.source) {
       const exists = await stat(item.destination).then(() => true).catch(() => false);
@@ -136,7 +146,7 @@ async function main() {
       await unlink(original); moved += 1;
     }
   }
-  console.log(JSON.stringify({ migrated: candidates.length, moved, manifest, privateStorageRoot }));
+  console.log(JSON.stringify({ migrated: candidates.length, moved, preexistingMissingUploads: [...unavailable], manifest, privateStorageRoot }));
 }
 
 main().then(closeDb).catch(async (error) => { console.error(error.message); await closeDb(); process.exitCode = 1; });

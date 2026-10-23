@@ -7,11 +7,15 @@ import { confinedFilePath, privateFileUrl } from '../src/lib/private-files.js';
 import { privateStorageRoot } from '../src/services/private-storage.js';
 
 async function main() {
+  const allowedMissing = new Set((process.argv.find((item) => item.startsWith('--allow-missing='))?.split('=')[1] ?? '').split(',').map(Number));
+  const unavailable = new Set<number>();
   const files = await sql`select id,storage_key,thumb_key from uploads where private_scope is not null`;
   let verified = 0;
   for (const file of files) {
     for (const key of [file.storage_key, file.thumb_key].filter(Boolean) as string[]) {
-      assert.equal((await stat(confinedFilePath(privateStorageRoot, key))).isFile(), true);
+      const exists = await stat(confinedFilePath(privateStorageRoot, key)).then((item) => item.isFile()).catch(() => false);
+      if (!exists && allowedMissing.has(Number(file.id))) unavailable.add(Number(file.id));
+      else assert.equal(exists, true, 'A migrated private file is missing');
       assert.equal(await stat(confinedFilePath(resolve(env.STORAGE_ROOT), key)).then(() => true).catch(() => false), false, 'Private original still exists in public storage');
       const oldUrl = `${env.PUBLIC_SITE_URL}${env.STORAGE_PUBLIC_URL}/${key}`;
       const legacy = await fetch(oldUrl, { redirect: 'manual' });
@@ -31,6 +35,6 @@ async function main() {
     assert.equal(response.status, 200, 'Public product photo regression');
     await response.body?.cancel();
   }
-  console.log(JSON.stringify({ documents: files.length, legacyFilesBlocked: verified, publicPhotos: photos.length, ok: true }));
+  console.log(JSON.stringify({ documents: files.length, legacyFilesBlocked: verified, preexistingMissingUploads: [...unavailable], publicPhotos: photos.length, ok: true }));
 }
 main().then(closeDb).catch(async (error) => { console.error(error.message); await closeDb(); process.exitCode = 1; });
