@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { DashboardStats } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { orderItems, orders, products, syncState, users } from '../../db/schema.js';
-import { deleteSetting, getAllSettings, setSetting } from '../../services/settings.js';
+import { deleteSetting, getAllSettings, setSetting, setSettings } from '../../services/settings.js';
 import { recentAudit } from '../../services/audit.js';
 import { configureTelegramWebhook, TELEGRAM_EVENTS, testTelegramGroup } from '../../services/telegram.js';
 import { runTelegramBackup } from '../../services/telegram-backup.js';
@@ -68,10 +68,10 @@ const routes: FastifyPluginAsync = async (app) => {
         .select({
           day: sql<string>`to_char(${orders.createdAt}, 'YYYY-MM-DD')`,
           n: count(),
-          total: sql<string>`coalesce(sum(${orders.total}), 0)`,
+          total: sql<string>`coalesce(sum(case when ${orders.status} <> 'cancelled' then ${orders.total} else 0 end), 0)`,
         })
         .from(orders)
-        .where(and(isNull(orders.deletedAt), gte(orders.createdAt, thirtyDaysAgo)))
+        .where(and(isNull(orders.deletedAt), sql`${orders.status} <> 'cancelled'`, gte(orders.createdAt, thirtyDaysAgo)))
         .groupBy(sql`to_char(${orders.createdAt}, 'YYYY-MM-DD')`)
         .orderBy(sql`to_char(${orders.createdAt}, 'YYYY-MM-DD')`),
       db
@@ -82,7 +82,7 @@ const routes: FastifyPluginAsync = async (app) => {
         })
         .from(orderItems)
         .innerJoin(orders, eq(orders.id, orderItems.orderId))
-        .where(and(isNull(orders.deletedAt), gte(orders.createdAt, thirtyDaysAgo)))
+        .where(and(isNull(orders.deletedAt), sql`${orders.status} <> 'cancelled'`, gte(orders.createdAt, thirtyDaysAgo)))
         .groupBy(orderItems.title)
         .orderBy(sql`sum(${orderItems.qty}) desc`)
         .limit(10),
@@ -205,7 +205,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.put('/admin/settings', { preHandler: app.requirePermission('manage_settings') }, async (req) => {
     const body = z.record(z.string().max(120), z.string().max(20_000)).parse(req.body);
-    for (const [key, value] of Object.entries(body)) await setSetting(key, value);
+    await setSettings(body);
     return { ok: true, settings: await getAllSettings(), message: 'تنظیمات ذخیره شد.' };
   });
 

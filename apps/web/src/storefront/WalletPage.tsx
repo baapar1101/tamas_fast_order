@@ -17,7 +17,7 @@ export function WalletPage() {
   const [params] = useSearchParams();
   const [amount, setAmount] = useState(500_000);
   const [busy, setBusy] = useState(false);
-  const query = useQuery({ queryKey: ['wallet'], queryFn: () => api.get<WalletData>('/wallet'), enabled: Boolean(user) });
+  const query = useQuery({ queryKey: ['wallet', user?.id ?? null], queryFn: () => api.get<WalletData>('/wallet'), enabled: Boolean(user) });
 
   useEffect(() => { if (params.get('status') === 'success') toast.ok('کیف پول با موفقیت شارژ شد.'); else if (params.get('status') === 'failed') toast.error('پرداخت شارژ کیف پول ناموفق بود.'); }, [params, toast]);
   if (!ready) return <div className="wallet-loading">در حال بارگذاری…</div>;

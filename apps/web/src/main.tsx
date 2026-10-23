@@ -4,7 +4,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { ToastProvider } from './components/Toast';
+import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { ApiRequestError } from './lib/api';
+import { useAuth } from './store/auth';
 import { forceReloadLatestApp, installForcedAppUpdates } from './lib/forceAppUpdate';
 import './styles/design-system.css';
 import './styles/global.css';
@@ -50,8 +52,18 @@ const queryClient = new QueryClient({
   },
 });
 
+// A shared browser may log into several accounts. Discard both cached private
+// data and in-flight requests before subscribers render the new identity.
+useAuth.subscribe((state, previous) => {
+  if (state.user?.id !== previous.user?.id || state.user?.role !== previous.user?.role) {
+    void queryClient.cancelQueries();
+    queryClient.clear();
+  }
+});
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <AppErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <ToastProvider>
@@ -59,5 +71,6 @@ createRoot(document.getElementById('root')!).render(
         </ToastProvider>
       </BrowserRouter>
     </QueryClientProvider>
+    </AppErrorBoundary>
   </StrictMode>,
 );

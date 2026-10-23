@@ -423,6 +423,12 @@ body.admin-page-active.admin-theme-light {
 .admin-loading-card p { margin: 0; color: var(--loading-muted); font-size: var(--ds-text-sm); line-height: var(--ds-leading-normal); }
 
 @keyframes ds-spin { to { transform: rotate(360deg); } }
+
+.ds-recovery { display: grid; min-height: 100dvh; place-items: center; padding: var(--ds-space-6); background: var(--ds-canvas); color: var(--ds-text); }
+.ds-recovery > section { width: min(100%, 32rem); padding: var(--ds-space-8); }
+.ds-recovery h1 { margin: 0 0 var(--ds-space-3); font-size: var(--ds-text-xl); }
+.ds-recovery p { color: var(--ds-text-secondary); }
+.ds-recovery__actions { display: flex; flex-wrap: wrap; gap: var(--ds-space-3); margin-top: var(--ds-space-6); }
 @keyframes ds-toast-in { from { opacity: 0; transform: translateY(-0.5rem) scale(0.98); } }
 
 @media (max-width: 760px) {

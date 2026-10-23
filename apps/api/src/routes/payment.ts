@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { and, eq, inArray, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull, ne } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../db/client.js';
 import { orders, payments, products } from '../db/schema.js';
@@ -13,6 +13,9 @@ import { getPaymentTermsConfig, quotePaymentTerms } from '../services/payment-te
 import { getPaymentRoutingConfig, securePaymentPlan } from '../services/payment-routing.js';
 
 const routes: FastifyPluginAsync = async (app) => {
+  app.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, (_req, body, done) => {
+    done(null, Object.fromEntries(new URLSearchParams(String(body))));
+  });
   app.post('/payment/terms/quote', async (req) => {
     const body = z.object({
       items: z.array(z.object({
@@ -50,7 +53,7 @@ const routes: FastifyPluginAsync = async (app) => {
     '/payment/create',
     { preHandler: [app.requireUser], config: { rateLimit: { max: 10, timeWindow: '1 minute' } } },
     async (req) => {
-      const { orderId } = z.object({ orderId: z.coerce.number().int() }).parse(req.body);
+      const { orderId } = z.object({ orderId: z.coerce.number().int().positive() }).parse(req.body);
       
       const [order] = await db
         .select()
@@ -60,11 +63,11 @@ const routes: FastifyPluginAsync = async (app) => {
 
       if (!order) throw notFound('سفارش پیدا نشد.');
       if (order.paymentStatus === 'paid') throw badRequest('این سفارش قبلاً پرداخت شده است.');
+      if (order.status === 'cancelled') throw badRequest('امکان پرداخت سفارش لغوشده وجود ندارد.');
 
       const amount = order.total;
       
-      // Calculate frontend redirect URL for callback
-      const callbackUrl = `${req.headers.origin || 'https://tamasmarket.com'}/payment/result`;
+      const callbackUrl = `${env.PUBLIC_SITE_URL.replace(/\/$/, '')}/api/payment/callback`;
 
       try {
         const response = await paymentGateway.Create({
@@ -103,8 +106,8 @@ const routes: FastifyPluginAsync = async (app) => {
   // Callback from payment gateway (usually GET or POST)
   app.all('/payment/callback', async (req, reply) => {
     // Both GET query params and POST body could contain transid and status depending on bank
-    const query = (req.method === 'POST' ? req.body : req.query) as any;
-    
+    const query = z.object({ transid: z.union([z.string(), z.number()]).transform(String).pipe(z.string().min(1).max(200)).optional() })
+      .parse((req.method === 'POST' ? req.body : req.query) ?? {});
     const transid = query.transid;
     
     if (!transid) {
@@ -140,10 +143,12 @@ const routes: FastifyPluginAsync = async (app) => {
       if (verifyData && verifyData.status === 'success') {
         const trackingCode = verifyData.tracking_number || verifyData.code || transid;
 
-        await db.transaction(async (tx) => {
-           await tx.update(payments)
+        const newlySettled = await db.transaction(async (tx) => {
+           const claimed = await tx.update(payments)
              .set({ status: 'success', trackingCode, updatedAt: new Date() })
-             .where(eq(payments.id, paymentRecord.id));
+             .where(and(eq(payments.id, paymentRecord.id), ne(payments.status, 'success')))
+             .returning({ id: payments.id });
+           if (claimed.length === 0) return false;
              
            if (paymentRecord.orderId) {
              await transitionOrderStatusInTransaction(tx, paymentRecord.orderId, 'confirmed');
@@ -162,7 +167,10 @@ const routes: FastifyPluginAsync = async (app) => {
                idempotencyKey: `payment:${paymentRecord.id}`,
              });
            }
+           return true;
         });
+
+        if (!newlySettled) return reply.redirect(`${resultPath}?status=success&orderId=${paymentRecord.orderId ?? ''}`);
 
         if (paymentRecord.orderId) {
           const [paidOrder] = await db.select().from(orders).where(eq(orders.id, paymentRecord.orderId)).limit(1);
@@ -198,7 +206,7 @@ const routes: FastifyPluginAsync = async (app) => {
       } else {
         await db.update(payments)
            .set({ status: 'failed', updatedAt: new Date() })
-           .where(eq(payments.id, paymentRecord.id));
+             .where(and(eq(payments.id, paymentRecord.id), ne(payments.status, 'success')));
 
         const { sendTelegramNotification } = await import('../services/telegram.js');
         void sendTelegramNotification('payment.failed', {
@@ -223,7 +231,7 @@ const routes: FastifyPluginAsync = async (app) => {
       
       await db.update(payments)
          .set({ status: 'failed', updatedAt: new Date() })
-         .where(eq(payments.id, paymentRecord.id));
+         .where(and(eq(payments.id, paymentRecord.id), ne(payments.status, 'success')));
 
       const { sendTelegramNotification } = await import('../services/telegram.js');
       void sendTelegramNotification('payment.failed', {

@@ -6,6 +6,7 @@ import { catalogCache } from '../lib/cache.js';
 import { sanitizeExternalText } from '../lib/external-content.js';
 import { resolveBundleContents } from './bundle-contents.js';
 import { offsetOf } from '../lib/pagination.js';
+import { jsonArray, productAttributes, productGallery } from '../lib/catalog-json.js';
 
 type ProductRow = typeof products.$inferSelect;
 
@@ -26,7 +27,7 @@ export function toProductDTO(
     brandName: brand?.name ?? null,
     brandFaName: brand?.faName ?? null,
     parentProductId: row.parentProductId ?? null,
-    otherStocks: row.otherStocks ?? {},
+    otherStocks: row.otherStocks && typeof row.otherStocks === 'object' && !Array.isArray(row.otherStocks) ? row.otherStocks : {},
     color: row.color ? sanitizeExternalText(row.color) : null,
     colorEn: row.colorEn ? sanitizeExternalText(row.colorEn) : null,
     colorCode: row.colorCode,
@@ -51,15 +52,15 @@ export function toProductDTO(
     dimensions: row.dimensions ? sanitizeExternalText(row.dimensions) : null,
     tracking: row.tracking,
     imageUrl: row.imageUrl,
-    gallery: row.gallery ?? [],
-    attributes: (row.attributes ?? []).map((attribute) => ({
+    gallery: productGallery(row.gallery),
+    attributes: productAttributes(row.attributes).map((attribute) => ({
       key: sanitizeExternalText(attribute.key),
       value: sanitizeExternalText(attribute.value),
     })),
     rating: row.rating,
     ratingCount: row.ratingCount,
     externalDataUpdatedAt: row.externalDataUpdatedAt?.toISOString() ?? null,
-    bundleItems: row.bundleItems ?? [],
+    bundleItems: jsonArray(row.bundleItems) as ProductDTO['bundleItems'],
     sortOrder: row.sortOrder,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -143,13 +144,21 @@ export async function queryProducts(q: CatalogQuery): Promise<{
    */
   const groupKeyExpr = sql<string>`COALESCE(NULLIF(${products.parentProductId}, ''), ${products.title})`;
 
+  // Order the complete model set before slicing pages. Sorting only the rows
+  // on the current alphabetical page makes price/newest filters misleading.
+  const modelPrice = sql`coalesce(min(nullif(${products.price}, 0)), 0)`;
+  const ordering = q.sort === 'price_asc' ? asc(modelPrice)
+    : q.sort === 'price_desc' ? desc(modelPrice)
+    : q.sort === 'newest' ? desc(sql`max(${products.createdAt})`)
+    : asc(groupKeyExpr);
   const titleRows = await db
-    .selectDistinct({ title: groupKeyExpr })
+    .select({ title: groupKeyExpr })
     .from(products)
     .leftJoin(categories, eq(categories.id, products.categoryId))
     .leftJoin(brands, eq(brands.id, products.brandId))
     .where(where)
-    .orderBy(q.sort === 'title' ? asc(groupKeyExpr) : asc(groupKeyExpr))
+    .groupBy(groupKeyExpr)
+    .orderBy(ordering, asc(groupKeyExpr))
     .limit(q.perPage)
     .offset(offsetOf(q));
 
@@ -197,16 +206,12 @@ export async function queryProducts(q: CatalogQuery): Promise<{
     }
     group.variants.push(dto);
     group.promotion ||= dto.promotion;
-    group.minPrice = Math.min(group.minPrice, dto.price);
+    if (dto.price > 0) group.minPrice = Math.min(group.minPrice, dto.price);
     group.imageUrl ||= dto.imageUrl;
   }
 
   const groups = titles.map((t) => byTitle.get(t)).filter((g): g is ProductGroupDTO => Boolean(g));
   for (const g of groups) if (g.minPrice === Number.MAX_SAFE_INTEGER) g.minPrice = 0;
-
-  if (q.sort === 'price_asc') groups.sort((a, b) => a.minPrice - b.minPrice);
-  else if (q.sort === 'price_desc') groups.sort((a, b) => b.minPrice - a.minPrice);
-  else if (q.sort === 'title') groups.sort((a, b) => a.title.localeCompare(b.title, 'fa'));
 
   const result = { groups, total: totalRow?.n ?? groups.length, page: q.page, perPage: q.perPage };
   catalogCache.set(cacheKey, result);

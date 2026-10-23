@@ -1,16 +1,17 @@
-import AqayePardakht from "../lib/aqayepardakht.js";
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import AqayePardakht from '../lib/aqayepardakht.js';
 
-const pin = "2FBA8CE536FAFF26B3D2";
-const aqayepardakht = AqayePardakht(pin);
-
-aqayepardakht
-  .Create({ amount: 10000, callback: "https://test.com/callback" })
-  .then((response) => {
-    console.log("Create Response:", response.data);
-    if (response.data && response.data.status === "success") {
-      console.log("StartPay URL:", aqayepardakht.StartPay(response.data.transid));
-    }
-  })
-  .catch((err) => {
-    console.error("Create Error:", err.response ? err.response.data : err.message);
-  });
+test('payment requests use configured credentials and a bounded timeout without a real transaction', async () => {
+  const gateway = AqayePardakht('test-pin');
+  const requests = [];
+  gateway.client.defaults.adapter = async (config) => {
+    requests.push(config);
+    return { data: { status: 'success' }, status: 200, statusText: 'OK', headers: {}, config };
+  };
+  await gateway.Create({ amount: 10000, callback: 'https://example.test/callback' });
+  await gateway.Verify({ amount: 10000, transid: 'test-transaction' });
+  assert.equal(requests.length, 2);
+  assert.equal(JSON.parse(requests[0].data).pin, 'test-pin');
+  assert.equal(requests[0].timeout, 15000);
+});

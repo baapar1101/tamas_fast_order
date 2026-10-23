@@ -12,7 +12,7 @@ function AqayePardakht(pin) {
     throw new Error("pin is invalid");
   }
   this.pin = pin;
-  this.client = axios.create({ baseURL });
+  this.client = axios.create({ baseURL, timeout: 15_000 });
 }
 
 AqayePardakht.prototype.Create = function (params) {

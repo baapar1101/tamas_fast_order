@@ -1,7 +1,8 @@
-import { eq, isNull } from 'drizzle-orm';
+import { eq, isNull, sql } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { settings } from '../db/schema.js';
 import { TtlCache } from '../lib/cache.js';
+import { publicSettings } from '../lib/public-settings.js';
 
 const cache = new TtlCache<Record<string, string>>(30_000, 4);
 
@@ -81,7 +82,7 @@ export async function getPublicConfig(): Promise<CrmPublicConfig> {
 
 export async function getPublicSettings(): Promise<Record<string, string>> {
   const all = await getAllSettings();
-  return Object.fromEntries(Object.entries(all).filter(([k]) => !k.startsWith(privatePrefix())));
+  return publicSettings(all);
 }
 
 export async function hasSetting(key: string): Promise<boolean> {
@@ -101,7 +102,7 @@ export async function setSettings(values: Record<string, string>): Promise<void>
   if (rows.length > 0) {
     await db.insert(settings).values(rows).onConflictDoUpdate({
       target: settings.key,
-      set: { value: rows[0]!.value, updatedAt: new Date(), deletedAt: null },
+      set: { value: sql`excluded.value`, updatedAt: new Date(), deletedAt: null },
     });
   }
   cache.clear();

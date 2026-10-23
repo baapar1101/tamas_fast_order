@@ -65,6 +65,21 @@ test('accessory installment profit is configurable per cheque plan', () => {
   assert.equal(repricePaymentPlan(plan!, 2_000_000).finalAmount, 2_120_000);
 });
 
+test('rounded cheque totals stay exact for small and uneven invoices', () => {
+  const config = parsePaymentTermsConfig(undefined);
+  for (const base of [10_000, 40_000, 60_000, 90_000, 123_456, 1_003_333]) {
+    const plans = buildPaymentTermsQuote(base, ['accessory'], config).plans.filter((plan) => plan.kind === 'cheque');
+    for (const original of plans) {
+      for (const plan of [original, repricePaymentPlan(original, base + 10_000)]) {
+        const payments = plan.schedule.map((item) => item.amount ?? 0);
+        assert.ok(payments.every((amount) => amount >= 0));
+        assert.equal((plan.upfrontAmount ?? 0) + payments.reduce((sum, amount) => sum + amount, 0), plan.finalAmount);
+        if (payments.length > 0) assert.ok(Math.max(...payments) - Math.min(...payments) <= 10_000);
+      }
+    }
+  }
+});
+
 test('default config reproduces mobile service fees and daily schedule', () => {
   const config = parsePaymentTermsConfig(undefined);
   assert.equal(paymentAudienceForCategory(2, config), 'mobile');

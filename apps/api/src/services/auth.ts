@@ -1,8 +1,8 @@
-import { and, eq, gt, lt } from 'drizzle-orm';
+import { and, eq, gt, isNull, lt } from 'drizzle-orm';
 import { REQUIRED_PROFILE_FIELDS, type UserDTO } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { accessGroups, sessions, users } from '../db/schema.js';
-import { adminPhones, env } from '../env.js';
+import { adminPhones, env, isProd } from '../env.js';
 import { isConnectionRefused } from '../lib/errors.js';
 import { randomToken, sha256 } from '../lib/hash.js';
 import { crmClient } from '../lib/crm.js';
@@ -99,7 +99,7 @@ export async function findOrCreateUser(phone: string): Promise<{ row: UserRow; i
 
     return { row: created, isNew: true };
   } catch (err) {
-    if (isConnectionRefused(err)) {
+    if (!isProd && isConnectionRefused(err)) {
       const existing = inMemoryUsers.get(phone);
       if (existing) return { row: existing, isNew: false };
       const isAdmin = adminPhones.includes(phone);
@@ -155,7 +155,7 @@ export async function createSession(
     });
     await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, userId));
   } catch (err) {
-    if (isConnectionRefused(err)) {
+    if (!isProd && isConnectionRefused(err)) {
       inMemorySessions.set(hash, { userId, expiresAt });
     } else {
       throw err;
@@ -176,7 +176,7 @@ export async function resolveSession(token: string | undefined): Promise<UserSes
       .from(sessions)
       .innerJoin(users, eq(users.id, sessions.userId))
       .leftJoin(accessGroups, eq(users.accessGroupId, accessGroups.id))
-      .where(and(eq(sessions.tokenHash, hash), gt(sessions.expiresAt, new Date())))
+      .where(and(eq(sessions.tokenHash, hash), gt(sessions.expiresAt, new Date()), isNull(users.deletedAt)))
       .limit(1);
     if (!row) return null;
 
@@ -189,7 +189,7 @@ export async function resolveSession(token: string | undefined): Promise<UserSes
     const permissions = row.user.role === 'admin' ? ['*'] : (row.accessGroup?.permissions || []);
     return { ...row.user, permissions };
   } catch (err) {
-    if (isConnectionRefused(err)) {
+    if (!isProd && isConnectionRefused(err)) {
       const sess = inMemorySessions.get(hash);
       if (!sess || sess.expiresAt < new Date()) return null;
       for (const u of inMemoryUsers.values()) {

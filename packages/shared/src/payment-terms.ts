@@ -281,6 +281,19 @@ export function settlementPolicyFromSellType(sellType: string | null | undefined
 const roundedPercent = (amount: number, percent: number): number => Math.round(amount * percent / 100);
 const roundedChequeAmount = (amount: number): number => Math.max(0, Math.round(amount / 10_000) * 10_000);
 
+/** Distribute rounded currency units without ever creating money by rounding
+ * each cheque independently. The final cheque also owns any small remainder. */
+function chequeAmounts(total: number, count: number): number[] {
+  if (count <= 0) return [];
+  const units = Math.floor(Math.max(0, total) / 10_000);
+  const regularUnits = Math.floor(units / count);
+  const extraUnits = units % count;
+  return Array.from({ length: count }, (_, index) => (
+    (regularUnits + (index < extraUnits ? 1 : 0)) * 10_000
+    + (index === count - 1 ? Math.max(0, total) % 10_000 : 0)
+  ));
+}
+
 export function buildPaymentTermsQuote(
   baseAmount: number,
   audiences: PaymentAudience[],
@@ -330,16 +343,14 @@ export function buildPaymentTermsQuote(
         if (dueMonths.length === 0 || dueMonths.at(-1) !== rule.termMonths) dueMonths.push(rule.termMonths);
       }
       const remainingAmount = finalAmount - upfrontAmount;
-      const regularAmount = dueMonths.length ? roundedChequeAmount(remainingAmount / dueMonths.length) : 0;
+      const amounts = chequeAmounts(remainingAmount, dueMonths.length);
       const schedule = dueMonths.map((month, index) => {
-        const isLast = index === dueMonths.length - 1;
         const percent = remainingPercent / dueMonths.length;
-        const previousAmount = regularAmount * index;
         return {
           dueLabel: `ماه ${month}`,
           dueDate: null,
           percent,
-          amount: isLast ? Math.max(0, remainingAmount - previousAmount) : regularAmount,
+          amount: amounts[index]!,
           optional: false,
         };
       });
@@ -562,7 +573,7 @@ export function repricePaymentPlan(plan: PaymentPlanQuote, baseAmount: number): 
       : roundedPercent(finalAmount, plan.upfrontPercent);
   const payableBySchedule = Math.max(0, finalAmount - (upfrontAmount ?? 0));
   const payableItems = plan.schedule.filter((item) => item.percent != null);
-  const regularAmount = payableItems.length ? roundedChequeAmount(payableBySchedule / payableItems.length) : 0;
+  const amounts = chequeAmounts(payableBySchedule, payableItems.length);
   let pricedItems = 0;
   return {
     ...plan,
@@ -573,9 +584,7 @@ export function repricePaymentPlan(plan: PaymentPlanQuote, baseAmount: number): 
     schedule: plan.schedule.map((item) => ({
       ...item,
       amount: item.percent == null ? null : plan.kind === 'cheque'
-        ? (++pricedItems === payableItems.length
-            ? Math.max(0, payableBySchedule - regularAmount * (payableItems.length - 1))
-            : regularAmount)
+        ? amounts[pricedItems++]!
         : roundedPercent(finalAmount, item.percent),
     })),
   };
