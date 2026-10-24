@@ -53,6 +53,8 @@ FCM HTTP v1 uses a dedicated Cloud Messaging account. Store its key under the AP
 
 Push registration requires an authenticated customer session. Each registration is bound to that session's hash, so logout/expiry stops delivery. New account login rebinds the installation. Push payloads contain only a generic notification, never customer identities, debt amounts, bank details or attachments. Existing SMS/Telegram/Bale delivery is independent of FCM failures. Customers opt in through Settings.
 
+Native attachments use `/native/uploads` with explicit credit/payment scope before storage; replacement-request scope is resolved from the authenticated owner's original document. The existing website upload endpoint is unchanged.
+
 ```bash
 npm run db:migrate -w @tamas/api
 # From apps/api, with protected FCM configuration:

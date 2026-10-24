@@ -645,7 +645,8 @@ export function OrderScreen({ route, navigation }: ScreenProps<"Order">) {
               onPress={() =>
                 void a.run(async () => {
                   const f = await uploadFile();
-                  if (f) setReceipt(f.url);
+                  if (!f) return false;
+                  setReceipt(f.url);
                 }, "رسید بارگذاری شد؛ برای ارسال نهایی دکمه ثبت را بزنید.")
               }
             />

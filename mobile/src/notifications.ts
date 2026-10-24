@@ -13,8 +13,11 @@ Notifications.setNotificationHandler({
 });
 export async function pushStatus() {
   const p = await Notifications.getPermissionsAsync();
+  const registered = await SecureStore.getItemAsync("tamas.push.enabled");
   return p.granted
-    ? "اجازه اعلان از طرف اندروید داده شده است."
+    ? registered === "true"
+      ? "اعلان‌های این دستگاه فعال شده‌اند."
+      : "اجازهٔ اندروید داده شده؛ برای اتصال به سرور، فعال‌سازی را بزنید."
     : "اجازه نمایش اعلان هنوز داده نشده است.";
 }
 export async function enablePush() {

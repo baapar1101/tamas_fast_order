@@ -304,8 +304,9 @@ export function ProfileScreen({ navigation }: ScreenProps<"Profile">) {
           busy={a.busy}
           onPress={() =>
             void a.run(async () => {
-              const f = await uploadFile();
-              if (f) setForm((s) => ({ ...s, certificateFileUrl: f.url }));
+              const f = await uploadFile(false, "credit");
+              if (!f) return false;
+              setForm((s) => ({ ...s, certificateFileUrl: f.url }));
             }, "فایل آمادهٔ ذخیره شد.")
           }
         />
@@ -500,7 +501,7 @@ export function ConnectionsScreen() {
             </Txt>
             <Button
               label={b.account.linked ? "قطع اتصال" : "اتصال امن به ربات"}
-              disabled={!b.enabled}
+              disabled={!b.enabled && !b.account.linked}
               busy={a.busy}
               onPress={() => {
                 if (b.account.linked)

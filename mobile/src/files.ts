@@ -62,6 +62,8 @@ async function selectAttachment(report: boolean) {
 }
 export async function uploadFile(
   report = false,
+  scope: "credit" | "payment" = "payment",
+  documentRequestId?: number,
 ): Promise<{ url: string; name: string } | null> {
   const asset = await selectAttachment(report);
   if (!asset) return null;
@@ -69,6 +71,11 @@ export async function uploadFile(
     if (asset.size && asset.size > 20 * 1024 * 1024)
       throw new Error("حجم فایل نباید بیشتر از ۲۰ مگابایت باشد.");
     const form = new FormData();
+    if (!report) {
+      form.append("scope", scope);
+      if (documentRequestId)
+        form.append("documentRequestId", String(documentRequestId));
+    }
     // React Native's multipart implementation accepts a local URI descriptor.
     form.append("file", {
       uri: asset.uri,
@@ -79,7 +86,7 @@ export async function uploadFile(
       await api.upload("/credit/reports/upload", form);
       return { url: "", name: asset.name };
     }
-    const res = await api.upload<{ url: string }>("/uploads", form);
+    const res = await api.upload<{ url: string }>("/native/uploads", form);
     return { url: res.url, name: asset.name };
   } finally {
     if (asset.uri.startsWith(FileSystem.cacheDirectory || "__none__"))

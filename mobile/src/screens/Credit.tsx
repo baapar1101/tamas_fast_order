@@ -126,7 +126,7 @@ export function CreditScreen({ navigation }: ScreenProps<"Credit">) {
                 busy={a.busy}
                 onPress={() =>
                   void a.run(async () => {
-                    await uploadFile(true);
+                    if (!(await uploadFile(true))) return false;
                     await q.refetch();
                   }, "گزارش دریافت شد؛ نتیجهٔ استخراج در پرونده نمایش داده می‌شود.")
                 }
@@ -260,7 +260,7 @@ export function CreditScreen({ navigation }: ScreenProps<"Credit">) {
                       onPress={() =>
                         void a.run(async () => {
                           const f = await uploadFile();
-                          if (!f) return;
+                          if (!f) return false;
                           await api.post(
                             `/credit/installments/${o.orderId}/${s.index}/receipt`,
                             { receiptUrl: f.url },
@@ -313,8 +313,9 @@ export function CreditScreen({ navigation }: ScreenProps<"Credit">) {
                   busy={a.busy}
                   onPress={() =>
                     void a.run(async () => {
-                      const f = await uploadFile();
-                      if (f) setImage(f.url);
+                      const f = await uploadFile(false, "credit");
+                      if (!f) return false;
+                      setImage(f.url);
                     }, "تصویر آماده ثبت شد.")
                   }
                 />
@@ -422,8 +423,9 @@ export function CreditApplyScreen({ navigation }: ScreenProps<"CreditApply">) {
               busy={a.busy}
               onPress={() =>
                 void a.run(async () => {
-                  const f = await uploadFile();
-                  if (f) setFiles((v) => ({ ...v, [key]: f.url }));
+                  const f = await uploadFile(false, "credit");
+                  if (!f) return false;
+                  setFiles((v) => ({ ...v, [key]: f.url }));
                 }, "فایل آمادهٔ ثبت پرونده شد.")
               }
             />
@@ -513,8 +515,8 @@ export function DocumentsScreen() {
                 busy={a.busy}
                 onPress={() =>
                   void a.run(async () => {
-                    const f = await uploadFile();
-                    if (!f) return;
+                    const f = await uploadFile(false, "credit", r.id);
+                    if (!f) return false;
                     await api.post(`/document-requests/${r.id}/submit`, {
                       fileUrl: f.url,
                     });

@@ -172,17 +172,18 @@ export function StateProvider({ children }: { children: React.ReactNode }) {
       void AsyncStorage.setItem(
         `tamas.cart.${scope.current}`,
         JSON.stringify(lines),
-      );
+      ).catch(() => {});
   }, [lines, storageReady, user?.id]);
   useEffect(() => {
     if (storageReady)
       void AsyncStorage.setItem(
         `tamas.favs.${scope.current}`,
         JSON.stringify(favorites),
-      );
+      ).catch(() => {});
   }, [favorites, storageReady, user?.id]);
   useEffect(() => {
-    if (storageReady) void AsyncStorage.setItem("tamas.theme", theme);
+    if (storageReady)
+      void AsyncStorage.setItem("tamas.theme", theme).catch(() => {});
   }, [theme, storageReady]);
   const login = async (a: AuthStateDTO) => {
     await queryClient.cancelQueries();
