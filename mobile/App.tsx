@@ -40,7 +40,7 @@ import {
   WalletScreen,
 } from "./src/screens/Services";
 import { CatalogScreen, TermsScreen } from "./src/screens/Catalog";
-import { refreshPush, watchPushToken } from "./src/notifications";
+import { refreshPush, watchPushToken, acknowledgeNotification } from "./src/notifications";
 import { notificationDestination } from "./src/domain";
 import type { RootRoutes } from "./src/navigation";
 import { api } from "./src/api";
@@ -119,15 +119,23 @@ function Navigation() {
   const prompted = useRef(0);
   const handleNotification = (response: Notifications.NotificationResponse) => {
     if (!nav.isReady() || !store.user) return;
-    const event = response.notification.request.content.data?.event;
+    const data = response.notification.request.content.data;
+    const event = data?.event;
+    void acknowledgeNotification(data, 'opened').catch(() => {});
     void queryClient.invalidateQueries();
-    const destination = notificationDestination(event);
+    const destination = notificationDestination(event, data?.destination);
     if (destination === "orders")
       nav.navigate("Main", { screen: "Orders" });
     else if (destination === "wallet") nav.navigate("Wallet");
     else if (destination === "documents") nav.navigate("Documents");
     else if (destination === "credit")
       nav.navigate("Credit");
+    else if (destination === "store") nav.navigate("Main", { screen: "Store" });
+    else if (destination === "favorites") nav.navigate("Main", { screen: "Favorites" });
+    else if (destination === "cart") nav.navigate("Main", { screen: "Cart" });
+    else if (destination === "discounts") nav.navigate("Discounts");
+    else if (destination === "support") nav.navigate("Support");
+    else if (destination === "catalog") nav.navigate("CatalogExport");
     else nav.navigate("Main", { screen: "Account" });
     void Notifications.clearLastNotificationResponseAsync();
   };
@@ -164,8 +172,11 @@ function Navigation() {
   useEffect(() => {
     const received =
       Notifications.addNotificationResponseReceivedListener(handleNotification);
-    const updates = Notifications.addNotificationReceivedListener(() => {
-      if (store.user) void queryClient.invalidateQueries();
+    const updates = Notifications.addNotificationReceivedListener((notification) => {
+      if (store.user) {
+        void queryClient.invalidateQueries();
+        void acknowledgeNotification(notification.request.content.data, 'received').catch(() => {});
+      }
     });
     const onActive = AppState.addEventListener("change", (state) => {
       if (state === "active") {

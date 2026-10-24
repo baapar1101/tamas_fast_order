@@ -9,11 +9,14 @@ import {
   isPhoneProduct,
   phoneDisplayVariants,
   phoneModelImages,
+  NATIVE_DESTINATIONS,
+  type NativeDestination,
 } from "@tamas/shared";
 import { toJalaali } from "jalaali-js";
 import { API_ORIGIN } from "./environment";
 export const ORIGIN = API_ORIGIN;
-export function notificationDestination(event: unknown) {
+export function notificationDestination(event: unknown, requested?: unknown): NativeDestination {
+  if (typeof requested === 'string' && (NATIVE_DESTINATIONS as readonly string[]).includes(requested)) return requested as NativeDestination;
   if (typeof event !== "string") return "account";
   if (event.startsWith("wallet.")) return "wallet";
   if (event.startsWith("order.") || event.startsWith("payment.")) return "orders";

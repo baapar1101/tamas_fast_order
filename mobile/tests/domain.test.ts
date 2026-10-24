@@ -16,6 +16,10 @@ import {
   notificationDestination,
 } from "../src/domain";
 test("notification taps open the matching private area without trusting a payload URL", () => {
+  assert.equal(notificationDestination('store.announcement', 'store'), 'store');
+  assert.equal(notificationDestination('support.announcement', 'support'), 'support');
+  assert.equal(notificationDestination('unknown', 'discounts'), 'discounts');
+  assert.equal(notificationDestination('wallet.changed', 'https://example.invalid'), 'wallet');
   assert.equal(notificationDestination("wallet.changed"), "wallet");
   assert.equal(notificationDestination("payment.paid"), "orders");
   assert.equal(notificationDestination("order.created"), "orders");

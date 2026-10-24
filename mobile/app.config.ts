@@ -5,14 +5,14 @@ const googleServices =
 const config: ExpoConfig = {
   name: process.env.EXPO_PUBLIC_TAMAS_QA === "true" ? "تماس مارکت آزمایشی" : "تماس مارکت",
   slug: "tamas-market",
-  version: "1.0.1",
+  version: "1.0.2",
   scheme: "tamasmarket",
   orientation: "default",
   userInterfaceStyle: "automatic",
   icon: "./assets/icon.png",
   android: {
     package: "com.tamasmarket.customer",
-    versionCode: 2,
+    versionCode: 3,
     ...(fs.existsSync(googleServices)
       ? { googleServicesFile: googleServices }
       : {}),

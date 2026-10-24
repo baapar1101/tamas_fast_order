@@ -49,6 +49,7 @@ import customerTelegramRoutes from './routes/customer-telegram.js';
 import discountRoutes from './routes/discounts.js';
 import adminDiscountRoutes from './routes/admin/discounts.js';
 import customerBaleRoutes from './routes/customer-bale.js';
+import adminNativeCampaignRoutes from './routes/admin/native-campaigns.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
 
@@ -166,6 +167,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(walletRoutes);
         await api.register(discountRoutes);
         await api.register(nativeRoutes);
+        await api.register(adminNativeCampaignRoutes);
         await api.register(adminDashboard);
         await api.register(adminProducts);
         await api.register(adminTaxonomy);

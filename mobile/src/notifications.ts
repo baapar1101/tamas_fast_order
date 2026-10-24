@@ -3,6 +3,14 @@ import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
 import { Platform } from "react-native";
 import { api, session } from "./api";
+export async function acknowledgeNotification(data: Record<string, unknown> | undefined | null, kind: 'received' | 'opened') {
+  const captured = session.token();
+  const deliveryId = Number(data?.deliveryId);
+  if (!captured || !Number.isSafeInteger(deliveryId) || deliveryId <= 0) return;
+  const installationId = await SecureStore.getItemAsync('tamas.installation');
+  if (!installationId || session.token() !== captured) return;
+  await api.post('/native/notification-receipts', { installationId, deliveryId, kind });
+}
 let lastRegistration = "";
 let lastRegisteredAt = 0;
 async function registerToken(token: string, capturedSession: string | null) {

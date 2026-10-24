@@ -8,6 +8,7 @@ import { isProductImageMirrorRunning, mirrorProductImages } from './services/pro
 import { isSyncRunning, pruneConflicts, runSync } from './services/sheets/sync.js';
 import { sendDueInstallmentReceiptReminders } from './services/installment-receipts.js';
 import { runScheduledTelegramBackup } from './services/telegram-backup.js';
+import { processNativeCampaigns } from './services/native-campaigns.js';
 
 /**
  * Background work: the periodic Sheets pass plus the small housekeeping jobs.
@@ -16,6 +17,11 @@ import { runScheduledTelegramBackup } from './services/telegram-backup.js';
  */
 export function startScheduler(log: FastifyBaseLogger): () => void {
   const timers: NodeJS.Timeout[] = [];
+  const nativeCampaigns = async () => {
+    try { await processNativeCampaigns(); } catch (err) { log.error({ err }, 'app notification queue failed'); }
+  };
+  timers.push(setTimeout(() => void nativeCampaigns(), 5_000));
+  timers.push(setInterval(() => void nativeCampaigns(), 3_000));
 
   if (env.SHEETS_ENABLED && env.SHEETS_SYNC_INTERVAL_SECONDS > 0) {
     const interval = env.SHEETS_SYNC_INTERVAL_SECONDS * 1000;

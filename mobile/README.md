@@ -6,6 +6,8 @@ The app uses `https://tamasmarket.com/api`, the existing accounts and the existi
 
 ## Features
 
+Version 1.0.2 adds admin-authored notification destinations and authenticated received/opened acknowledgments. See [operations/app-notifications](../docs/operations/app-notifications.md) for campaign management, compatibility and isolated verification.
+
 - Live catalog, search, category/brand/stock/campaign filters, sorting, infinite pagination, grid and quick purchase, all product photos, model/color variants, warehouse quantities, bundles and technical specifications.
 - Favorites and cart, OTP/password login, secure session restoration, profile, certificate upload, optional identity inquiry and password settings.
 - Server-priced checkout, staged cash/cheque/daily selectors, configurable discounts, exact installment amounts, wallet payment and separate mobile/accessory invoices. Server-authorized account instructions and high-value-payment holds are preserved.
@@ -43,7 +45,7 @@ cd ..
 ./mobile/scripts/build-apk.ps1
 ```
 
-Output: `mobile/artifacts/tamas-market-1.0.1.apk`. ARM64, ARMv7 and x86_64 are included, Android 7+ (API 24). Build tools and local credentials are in `C:/Users/Techn/.tamas-mobile-build`. The signing key and its credential file must be backed up privately and reused for every update; losing them prevents updating existing installations. Release builds without signing credentials fail rather than silently using the debug key.
+Output: `mobile/artifacts/tamas-market-1.0.2.apk`. ARM64, ARMv7 and x86_64 are included, Android 7+ (API 24). Build tools and local credentials are in `C:/Users/Techn/.tamas-mobile-build`. The signing key and its credential file must be backed up privately and reused for every update; losing them prevents updating existing installations. Release builds without signing credentials fail rather than silently using the debug key.
 
 `scripts/google-cdn.init.gradle` uses Google's own HTTPS download CDN when regional `dl.google.com` requests return 404. It does not disable TLS verification or use a third-party mirror. `install-android-sdk.ps1` checks official archive hashes and creates local package metadata from Google's repository manifest; it assumes the downloaded repository4.xml and SDK license approval.
 

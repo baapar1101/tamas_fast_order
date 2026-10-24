@@ -4,6 +4,7 @@ import { nativeDeviceSchema } from '../lib/native-push.js';
 import { badRequest } from '../lib/errors.js';
 import * as service from '../services/native-push.js';
 import { uploadNativeAttachment } from '../services/native-uploads.js';
+import { recordCampaignReceipt } from '../services/native-campaigns.js';
 const defaults={nativePushEnabled:service.nativePushEnabled,registerNativeDevice:service.registerNativeDevice,removeNativeDevice:service.removeNativeDevice,uploadNativeAttachment};
 export function createNativeRoutes(deps = defaults): FastifyPluginAsync {
   return async app => {
@@ -20,6 +21,12 @@ export function createNativeRoutes(deps = defaults): FastifyPluginAsync {
     app.delete('/native/push-devices', { preHandler: [app.requireUser] }, async req => {
       const { installationId } = z.object({ installationId: z.string().uuid() }).strict().parse(req.body);
       await deps.removeNativeDevice(req.currentUser!.id, installationId);
+      return { ok: true };
+    });
+    app.post('/native/notification-receipts', { preHandler: [app.requireUser], config: { rateLimit: { max: 120, timeWindow: '1 minute' } } }, async req => {
+      const body = z.object({ installationId: z.string().uuid(), deliveryId: z.coerce.number().int().positive(), kind: z.enum(['received', 'opened']) }).strict().parse(req.body);
+      if (!req.sessionToken) throw badRequest('نشست ورود معتبر نیست.');
+      await recordCampaignReceipt(req.currentUser!.id, req.sessionToken, body.installationId, body.deliveryId, body.kind);
       return { ok: true };
     });
     app.post('/native/uploads',{preHandler:[app.requireUser],config:{rateLimit:{max:20,timeWindow:'10 minutes'}}},async req=>{

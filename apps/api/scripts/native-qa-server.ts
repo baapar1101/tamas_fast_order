@@ -22,10 +22,14 @@ const { db, sql, schema } = await import('../src/db/client.js');
 const database = (await sql`select current_database() as database`)[0]?.database;
 if (database !== config.QA_DATABASE) throw new Error('QA database mismatch');
 const { hashPassword } = await import('../src/lib/hash.js');
+const { eq } = await import('drizzle-orm');
 if (!(await db.select().from(schema.users).limit(1)).length) {
   await db.insert(schema.users).values([1,2].map(n=>({phone:`0900000000${n}`,name:'مشتری آزمایشی',lastName:String(n),storeName:'فروشگاه تست',landline:'03400000000',address:'نشانی ساختگی محیط آزمایش',postalCode:'0000000000',activity:'تست',certificateFileUrl:'/api/files/qa-placeholder',isActive:true,passwordHash:hashPassword(qaPassword)})));
   await db.insert(schema.products).values([{productId:'QA-ACCESSORY',sku:'00000000001',title:'کابل آزمایشی — غیرقابل فروش',model:'QA Cable',price:100000,kermanStock:20,tehranStock:5,stock:25,searchText:'qa test کابل آزمایشی',status:'active'}]);
   await db.insert(schema.settings).values([{key:'CRM_SYNC_ENABLED',value:'false'},{key:'WALLET_ENABLED',value:'true'},{key:'WALLET_ORDER_PAYMENT_ENABLED',value:'true'}]);
+}
+if (!(await db.select().from(schema.users).where(eq(schema.users.phone, '09000000003')).limit(1)).length) {
+  await db.insert(schema.users).values({ phone:'09000000003', name:'مدیر آزمایشی',lastName:'محیط جدا',storeName:'تست',address:'نشانی ساختگی',isActive:true,role:'admin',passwordHash:hashPassword(qaPassword) });
 }
 // Only the bank transport is simulated. Verification, ledger and stock code stay real.
 // @ts-ignore -- the existing gateway package is JavaScript.
@@ -36,6 +40,11 @@ gateway.Verify = async ({transid}:{transid:string}) => ({data:bank.get(transid)?
 gateway.StartPay = (id:string) => `http://127.0.0.1:3103/qa/bank/${id}`;
 const { buildApp } = await import('../src/app.js');
 const app = await buildApp();
+app.post('/qa/process-notifications',async(req)=>{
+  const { processNativeCampaigns }=await import('../src/services/native-campaigns.js');
+  const live=(req.body as {live?:boolean}|null)?.live===true;
+  return {processed:await processNativeCampaigns(live ? undefined : async()=>({status:'accepted',messageId:`qa/${randomUUID()}`}))};
+});
 app.get('/qa/bank/:id', async (req,reply)=>{
   const {id}=req.params as {id:string}; if(!bank.has(id)) return reply.code(404).send();
   return reply.type('text/html; charset=utf-8').send(`<html dir="rtl"><meta name="viewport" content="width=device-width"><h1>درگاه آزمایشی — بدون برداشت وجه</h1><p>مبلغ: ${bank.get(id)!.amount} تومان</p><p><a href="/qa/settle/${id}/success">پرداخت موفق آزمایشی</a></p><p><a href="/qa/settle/${id}/failed">پرداخت ناموفق آزمایشی</a></p></html>`);

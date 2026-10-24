@@ -1,12 +1,14 @@
 import { readFile, access } from 'node:fs/promises';
 import { createSign } from 'node:crypto';
 import { resolve } from 'node:path';
-import { and, eq, gt } from 'drizzle-orm';
-import { db, schema } from '../db/client.js';
+import { and, eq, gt, desc, isNull, inArray } from 'drizzle-orm';
+import { db, schema, type Db } from '../db/client.js';
 import { sha256 } from '../lib/hash.js';
 import { nativeMessage, type NativeDeviceInput } from '../lib/native-push.js';
 import { badRequest } from '../lib/errors.js';
 type ServiceAccount = { project_id: string; client_email: string; private_key: string };
+export type NativePayload = { notification: { title: string; body: string }; data: Record<string, string>; android: ReturnType<typeof nativeMessage>['android'] };
+export type NativeSendResult = { status: 'accepted' | 'failed' | 'unknown'; code?: string; messageId?: string };
 let cachedToken: { value: string; expires: number; file: string } | null = null;
 const credentialFile = () => process.env.FCM_SERVICE_ACCOUNT_FILE || resolve(process.cwd(), '.private/native-notifications/fcm-service-account.json');
 export async function nativePushEnabled() {
@@ -42,6 +44,36 @@ export async function registerNativeDevice(userId: number, sessionToken: string,
 }
 export async function removeNativeDevice(userId: number, installationId: string) {
   await db.delete(schema.nativePushDevices).where(and(eq(schema.nativePushDevices.userId, userId), eq(schema.nativePushDevices.installationId, installationId)));
+}
+/** The latest binding of a token wins, even if an older installation still has a session. */
+export async function activeNativeDevices(userIds?: number[], reader: Pick<Db, 'select' | 'selectDistinctOn'> = db) {
+  if (userIds?.length === 0) return [];
+  const latest = reader.selectDistinctOn([schema.nativePushDevices.token]).from(schema.nativePushDevices)
+    .orderBy(schema.nativePushDevices.token, desc(schema.nativePushDevices.updatedAt), desc(schema.nativePushDevices.installationId)).as('latest_device');
+  return reader.select({ installationId: latest.installationId, token: latest.token, userId: latest.userId, sessionHash: latest.sessionHash })
+    .from(latest).innerJoin(schema.sessions, and(eq(schema.sessions.tokenHash, latest.sessionHash), eq(schema.sessions.userId, latest.userId), gt(schema.sessions.expiresAt, new Date())))
+    .innerJoin(schema.users, eq(schema.users.id, latest.userId))
+    .where(and(eq(latest.enabled, true), eq(schema.users.role, 'customer'), eq(schema.users.isActive, true), isNull(schema.users.deletedAt), userIds ? inArray(latest.userId, userIds) : undefined));
+}
+export async function sendNativeDevice(device: { installationId: string; token: string }, message: NativePayload): Promise<NativeSendResult> {
+  let account: ServiceAccount; let bearer: string;
+  try {
+    const file = credentialFile();
+    account = JSON.parse(await readFile(file, 'utf8')) as ServiceAccount;
+    if (!/^[a-z][a-z0-9-]+$/.test(account.project_id) || !account.client_email || !account.private_key) throw new Error('Invalid configuration');
+    bearer = await accessToken(account, file);
+  } catch { return { status: 'failed', code: 'FCM_CONFIGURATION_OR_AUTH' }; }
+  try {
+    const response = await fetch(`https://fcm.googleapis.com/v1/projects/${account.project_id}/messages:send`, {
+      method: 'POST', headers: { authorization: `Bearer ${bearer}`, 'content-type': 'application/json' },
+      signal: AbortSignal.timeout(10_000), body: JSON.stringify({ message: { token: device.token, ...message } }),
+    });
+    const payload = await response.json().catch(() => null) as { name?: string; error?: { details?: Array<{ errorCode?: string }> } } | null;
+    if (response.ok) return { status: 'accepted', messageId: payload?.name?.slice(0, 240) };
+    const code = payload?.error?.details?.find(d => /^[A-Z_]{1,80}$/.test(d.errorCode || ''))?.errorCode || `FCM_HTTP_${response.status}`;
+    if (code === 'UNREGISTERED') await db.update(schema.nativePushDevices).set({ enabled: false }).where(and(eq(schema.nativePushDevices.installationId, device.installationId), eq(schema.nativePushDevices.token, device.token)));
+    return { status: 'failed', code };
+  } catch { return { status: 'unknown', code: 'NETWORK_RESULT_UNKNOWN' }; }
 }
 export async function sendNativeNotification(userId: number | null | undefined, event: string): Promise<boolean> {
   if (!userId || !await nativePushEnabled()) return false;

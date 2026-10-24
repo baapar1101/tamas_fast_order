@@ -9,3 +9,4 @@ export * from './payment-dates.js';
 export * from './schemas.js';
 export * from './types.js';
 export * from './document-recovery.js';
+export * from './native-campaigns.js';

@@ -1182,3 +1182,43 @@ export const nativePushDevices = pgTable('native_push_devices', {
   enabled: boolean('enabled').notNull().default(true),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index('native_push_devices_user_idx').on(t.userId)]);
+
+export const nativeCampaigns = pgTable('native_campaigns', {
+  id: serial('id').primaryKey(),
+  title: varchar('title', { length: 80 }).notNull(),
+  body: text('body').notNull(),
+  destination: varchar('destination', { length: 30 }).notNull(),
+  audience: varchar('audience', { length: 12 }).notNull(),
+  userIds: jsonb('user_ids').$type<number[]>().notNull().default(sql`'[]'::jsonb`),
+  status: varchar('status', { length: 20 }).notNull().default('draft'),
+  revision: integer('revision').notNull().default(1),
+  createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  queuedAt: timestamp('queued_at', { withTimezone: true }),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+}, t => [index('native_campaigns_created_idx').on(t.createdAt), index('native_campaigns_status_idx').on(t.status)]);
+
+export const nativeCampaignDeliveries = pgTable('native_campaign_deliveries', {
+  id: serial('id').primaryKey(),
+  campaignId: integer('campaign_id').notNull().references(() => nativeCampaigns.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+  installationId: varchar('installation_id', { length: 36 }),
+  tokenHash: varchar('token_hash', { length: 64 }),
+  sessionHash: varchar('session_hash', { length: 64 }),
+  status: varchar('status', { length: 20 }).notNull().default('queued'),
+  attempts: integer('attempts').notNull().default(0),
+  error: varchar('error', { length: 120 }),
+  providerMessageId: varchar('provider_message_id', { length: 240 }),
+  sentAt: timestamp('sent_at', { withTimezone: true }),
+  receivedAt: timestamp('received_at', { withTimezone: true }),
+  openedAt: timestamp('opened_at', { withTimezone: true }),
+  processingAt: timestamp('processing_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [
+  uniqueIndex('native_campaign_delivery_device_key').on(t.campaignId, t.installationId),
+  index('native_campaign_delivery_queue_idx').on(t.status, t.id),
+  index('native_campaign_delivery_campaign_idx').on(t.campaignId, t.id),
+  index('native_campaign_delivery_user_idx').on(t.userId),
+]);
