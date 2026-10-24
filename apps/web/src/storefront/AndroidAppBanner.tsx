@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Icon } from '../components/Icon';
-import { ANDROID_APP, ANDROID_SUGGESTION_DELAY, ANDROID_SUGGESTION_KEY, isAndroidSuggestionDismissed } from './androidApp';
+import { ANDROID_APP, ANDROID_SUGGESTION_DELAY, ANDROID_SUGGESTION_KEY, isAndroidSuggestionDismissed, isAppleDevice } from './androidApp';
 import './android-app-banner.css';
 
 export function AndroidAppBanner() {
@@ -26,6 +26,8 @@ export function AndroidAppBanner() {
       window.localStorage.removeItem(ANDROID_SUGGESTION_KEY);
     } catch { /* The in-memory preference is enough for this page. */ }
   };
+
+  if (typeof navigator === 'undefined' || isAppleDevice(navigator.userAgent, navigator.platform)) return null;
 
   // The large desktop footer is hidden on mobile; keep a compact, permanent
   // download entry here instead of making the APK inaccessible after dismissal.

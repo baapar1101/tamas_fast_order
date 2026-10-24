@@ -19,3 +19,10 @@ export function isAndroidSuggestionDismissed(value: string | null, now = Date.no
 export function isAndroidBrowser(userAgent: string): boolean {
   return /Android/i.test(userAgent);
 }
+
+export function isAppleDevice(userAgent: string, platform = ''): boolean {
+  // iPad's desktop mode identifies itself as a Mac. AppleWebKit alone is also
+  // used by Android/Windows browsers and must not hide their download links.
+  return /iPhone|iPad|iPod|Macintosh|Mac OS X/i.test(userAgent)
+    || /^(Mac|iPhone|iPad|iPod)/i.test(platform);
+}

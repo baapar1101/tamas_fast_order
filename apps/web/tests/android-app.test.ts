@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { ANDROID_APP, ANDROID_SUGGESTION_DELAY, isAndroidBrowser, isAndroidSuggestionDismissed } from '../src/storefront/androidApp.js';
+import { ANDROID_APP, ANDROID_SUGGESTION_DELAY, isAndroidBrowser, isAndroidSuggestionDismissed, isAppleDevice } from '../src/storefront/androidApp.js';
 
 test('Android release URL and nginx exact download route stay aligned', () => {
   const nginx = readFileSync(new URL('../../../deploy/nginx/android-download.conf', import.meta.url), 'utf8');
@@ -29,6 +29,16 @@ test('only Android browser users skip the duplicate web-app install suggestion',
   assert.equal(isAndroidBrowser('Mozilla/5.0 (Linux; Android 14) Chrome/140'), true);
   assert.equal(isAndroidBrowser('Mozilla/5.0 (iPhone; CPU iPhone OS 18)'), false);
   assert.equal(isAndroidBrowser('Mozilla/5.0 (Windows NT 10.0)'), false);
+});
+
+test('APK promotion excludes Apple devices, including desktop-mode iPad, without hiding Android or Windows', () => {
+  assert.equal(isAppleDevice('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15'), true);
+  assert.equal(isAppleDevice('Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15'), true);
+  assert.equal(isAppleDevice('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15'), true);
+  assert.equal(isAppleDevice('Mozilla/5.0', 'MacIntel'), true);
+  assert.equal(isAppleDevice('Mozilla/5.0 (iPod touch; CPU iPhone OS 15_0 like Mac OS X)'), true);
+  assert.equal(isAppleDevice('Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/140', 'Linux aarch64'), false);
+  assert.equal(isAppleDevice('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140', 'Win32'), false);
 });
 
 const apk = new URL(`../../../mobile/artifacts/${ANDROID_APP.filename}`, import.meta.url);
