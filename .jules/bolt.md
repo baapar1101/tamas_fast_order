@@ -1,0 +1,1 @@
+## 2023-10-25 - Replace O(N^2) find with O(N) Map lookup in API\n**Learning:** Found a classic N+1 frontend-like iteration issue hidden in backend routes where `instructions.find(...)` was used inside a loop rendering DTOs, causing O(N*M) lookup.\n**Action:** Use a `Map` populated before the loop to make relation lookups O(1).
