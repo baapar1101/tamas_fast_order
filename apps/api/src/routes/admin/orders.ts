@@ -143,9 +143,15 @@ const routes: FastifyPluginAsync = async (app) => {
       byOrder.set(it.orderId, list);
     }
 
+    // ⚡ Bolt: Precompute instructions by order ID to avoid O(N*M) lookup in the mapping loop
+    const instructionsByOrder = new Map<number, typeof instructions[0]>();
+    for (const instruction of instructions) {
+      instructionsByOrder.set(instruction.orderId, instruction);
+    }
+
     return {
       ok: true,
-      items: rows.map((r) => toAdminOrderDTO(r, byOrder.get(r.id) ?? [], instructions.find((item) => item.orderId === r.id))),
+      items: rows.map((r) => toAdminOrderDTO(r, byOrder.get(r.id) ?? [], instructionsByOrder.get(r.id))),
       total: Number(total?.n ?? 0),
       page: q.page,
       perPage: q.perPage,
