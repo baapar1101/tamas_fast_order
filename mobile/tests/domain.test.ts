@@ -13,7 +13,19 @@ import {
   date,
   catalogEntries,
   catalogPrice,
+  notificationDestination,
 } from "../src/domain";
+test("notification taps open the matching private area without trusting a payload URL", () => {
+  assert.equal(notificationDestination("wallet.changed"), "wallet");
+  assert.equal(notificationDestination("payment.paid"), "orders");
+  assert.equal(notificationDestination("order.created"), "orders");
+  assert.equal(notificationDestination("installment.reminder"), "credit");
+  assert.equal(notificationDestination("cheque.changed"), "credit");
+  assert.equal(notificationDestination("credit.updated"), "credit");
+  assert.equal(notificationDestination("document.requested"), "documents");
+  assert.equal(notificationDestination("https://example.invalid"), "account");
+  assert.equal(notificationDestination(undefined), "account");
+});
 const product = {
   productId: "01234",
   title: "آزمون",

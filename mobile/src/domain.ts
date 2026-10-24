@@ -11,7 +11,16 @@ import {
   phoneModelImages,
 } from "@tamas/shared";
 import { toJalaali } from "jalaali-js";
-export const ORIGIN = "https://tamasmarket.com";
+import { API_ORIGIN } from "./environment";
+export const ORIGIN = API_ORIGIN;
+export function notificationDestination(event: unknown) {
+  if (typeof event !== "string") return "account";
+  if (event.startsWith("wallet.")) return "wallet";
+  if (event.startsWith("order.") || event.startsWith("payment.")) return "orders";
+  if (["credit.", "cheque.", "installment."].some((prefix) => event.startsWith(prefix))) return "credit";
+  if (event.startsWith("document.")) return "documents";
+  return "account";
+}
 export type CartLine = {
   product: ProductDTO;
   warehouse: Warehouse;

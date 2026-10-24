@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Linking, View } from "react-native";
+import { Alert, AppState, Linking, View } from "react-native";
+import Constants from "expo-constants";
 import { useQuery } from "@tanstack/react-query";
 import * as SecureStore from "expo-secure-store";
 import { request } from "../api";
@@ -297,7 +298,10 @@ export function SettingsScreen() {
     a = useAction();
   const [push, setPush] = useState("در حال بررسی…");
   useEffect(() => {
-    void pushStatus().then(setPush);
+    const check = () => void pushStatus().then(setPush).catch(() => setPush("بررسی وضعیت اعلان ممکن نشد."));
+    check();
+    const sub = AppState.addEventListener("change", (state) => { if (state === "active") check(); });
+    return () => sub.remove();
   }, []);
   return (
     <Page>
@@ -359,7 +363,7 @@ export function SettingsScreen() {
         {a.feedback}
       </Card>
       <Card>
-        <Txt bold>تماس مارکت — نسخه ۱.۰.۰</Txt>
+        <Txt bold>تماس مارکت — نسخه {Constants.expoConfig?.version || "—"}</Txt>
         <Txt muted>اپ نیتیو مشتریان • اتصال مستقیم به بک‌اند تماس مارکت</Txt>
         <Button
           secondary

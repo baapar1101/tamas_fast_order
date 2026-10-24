@@ -3,16 +3,16 @@ import fs from "node:fs";
 const googleServices =
   process.env.GOOGLE_SERVICES_JSON || "./google-services.json";
 const config: ExpoConfig = {
-  name: "تماس مارکت",
+  name: process.env.EXPO_PUBLIC_TAMAS_QA === "true" ? "تماس مارکت آزمایشی" : "تماس مارکت",
   slug: "tamas-market",
-  version: "1.0.0",
+  version: "1.0.1",
   scheme: "tamasmarket",
   orientation: "default",
   userInterfaceStyle: "automatic",
   icon: "./assets/icon.png",
   android: {
     package: "com.tamasmarket.customer",
-    versionCode: 1,
+    versionCode: 2,
     ...(fs.existsSync(googleServices)
       ? { googleServicesFile: googleServices }
       : {}),
@@ -25,6 +25,7 @@ const config: ExpoConfig = {
     predictiveBackGestureEnabled: true,
   },
   plugins: [
+    "./plugins/with-qa-network.cjs",
     "./plugins/with-release-signing.cjs",
     "expo-secure-store",
     "expo-font",

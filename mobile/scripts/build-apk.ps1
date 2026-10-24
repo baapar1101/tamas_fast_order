@@ -1,6 +1,9 @@
-param([string]$BuildRoot='C:/tamas-build',[string]$ToolRoot='C:/Users/Techn/.tamas-mobile-build')
+param([string]$BuildRoot='C:/tamas-build',[string]$ToolRoot='C:/Users/Techn/.tamas-mobile-build',[switch]$Qa)
 $ErrorActionPreference='Stop'
 $sourceRoot=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$env:EXPO_PUBLIC_TAMAS_QA=if($Qa){'true'}else{'false'}
+$version=(Get-Content -LiteralPath (Join-Path $sourceRoot 'package.json') -Raw | ConvertFrom-Json).version
+$artifactName=if($Qa){'tamas-market-qa.apk'}else{"tamas-market-$version.apk"}
 $destination=Join-Path $BuildRoot 'mobile'
 Push-Location $sourceRoot
 try {
@@ -46,8 +49,8 @@ try {
   if($LASTEXITCODE -ne 0){throw 'Android release build failed'}
   $output=Join-Path $sourceRoot 'artifacts'
   New-Item -ItemType Directory -Force $output | Out-Null
-  Copy-Item -LiteralPath './app/build/outputs/apk/release/app-release.apk' -Destination (Join-Path $output 'tamas-market-1.0.0.apk')
-  Write-Output "APK: $output/tamas-market-1.0.0.apk"
+  Copy-Item -LiteralPath './app/build/outputs/apk/release/app-release.apk' -Destination (Join-Path $output $artifactName)
+  Write-Output "APK: $output/$artifactName"
 }finally{
   Pop-Location
   Remove-Item Env:TAMAS_STORE_PASSWORD,Env:TAMAS_KEY_PASSWORD -ErrorAction SilentlyContinue

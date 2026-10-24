@@ -451,9 +451,11 @@ export function statusLabel(status: string) {
   return (
     (
       {
+        new: "در انتظار بررسی",
         pending: "در انتظار بررسی",
         confirmed: "تأیید شده",
         processing: "در حال آماده‌سازی",
+        preparing: "در حال آماده‌سازی",
         shipped: "ارسال شده",
         delivered: "تحویل شده",
         cancelled: "لغو شده",

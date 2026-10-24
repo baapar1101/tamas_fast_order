@@ -40,7 +40,8 @@ import {
   WalletScreen,
 } from "./src/screens/Services";
 import { CatalogScreen, TermsScreen } from "./src/screens/Catalog";
-import { refreshPush } from "./src/notifications";
+import { refreshPush, watchPushToken } from "./src/notifications";
+import { notificationDestination } from "./src/domain";
 import type { RootRoutes } from "./src/navigation";
 import { api } from "./src/api";
 const Stack = createNativeStackNavigator<RootRoutes>();
@@ -120,9 +121,12 @@ function Navigation() {
     if (!nav.isReady() || !store.user) return;
     const event = response.notification.request.content.data?.event;
     void queryClient.invalidateQueries();
-    if (typeof event === "string" && event.startsWith("order."))
+    const destination = notificationDestination(event);
+    if (destination === "orders")
       nav.navigate("Main", { screen: "Orders" });
-    else if (typeof event === "string" && event.startsWith("credit."))
+    else if (destination === "wallet") nav.navigate("Wallet");
+    else if (destination === "documents") nav.navigate("Documents");
+    else if (destination === "credit")
       nav.navigate("Credit");
     else nav.navigate("Main", { screen: "Account" });
     void Notifications.clearLastNotificationResponseAsync();
@@ -160,10 +164,16 @@ function Navigation() {
   useEffect(() => {
     const received =
       Notifications.addNotificationResponseReceivedListener(handleNotification);
+    const updates = Notifications.addNotificationReceivedListener(() => {
+      if (store.user) void queryClient.invalidateQueries();
+    });
     const onActive = AppState.addEventListener("change", (state) => {
       if (state === "active") {
         void queryClient.invalidateQueries();
-        if (store.user) void store.refresh().catch(() => {});
+        if (store.user) {
+          void store.refresh().catch(() => {});
+          void refreshPush().catch(() => {});
+        }
       }
     });
     const links = Linking.addEventListener("url", ({ url }) => {
@@ -171,10 +181,13 @@ function Navigation() {
       void queryClient.invalidateQueries(); /* A deep link is never proof of payment. */
     });
     if (store.user) void refreshPush().catch(() => {});
+    const tokenUpdates = store.user ? watchPushToken() : undefined;
     return () => {
       received.remove();
+      updates.remove();
       onActive.remove();
       links.remove();
+      tokenUpdates?.remove();
     };
   }, [store.user?.id]);
   if (!store.ready) return <Loading />;

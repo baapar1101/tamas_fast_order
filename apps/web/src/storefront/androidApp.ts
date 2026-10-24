@@ -1,10 +1,10 @@
 /** Public release information only. Never include signing keys or FCM credentials. */
 export const ANDROID_APP = {
-  version: '1.0.0',
-  url: '/downloads/tamas-market-1.0.0.apk',
-  filename: 'tamas-market-1.0.0.apk',
-  bytes: 61_958_708,
-  sha256: 'afedefa84410bcca200315110460b5d782eee0f5f9cf5faae4c4c6bd5b19caad',
+  version: '1.0.1',
+  url: '/downloads/tamas-market-1.0.1.apk',
+  filename: 'tamas-market-1.0.1.apk',
+  bytes: 61_963_144,
+  sha256: 'd383ae24b9755cb3e7ade0dd5f96a20fd1718606fc960a431d1d28bef4059da6',
   minimumAndroid: 7,
 } as const;
 

@@ -9,6 +9,15 @@ test('native push payload never includes customer financial or identity text',()
   assert.ok(json.includes('channel_id'));assert.ok(!json.includes('amount'));assert.ok(!json.includes('phone'));
   assert.equal(nativeMessage('order.created').data.screen,'account');
 });
+test('background FCM intents carry bounded Expo-compatible routing data and avoid delegated taps',()=>{
+  const message=nativeMessage('wallet.changed');
+  assert.equal(JSON.parse(message.data.body).event,'wallet.changed');
+  assert.equal(message.data.event,'wallet.changed');
+  assert.equal(message.notification.title,'به‌روزرسانی کیف پول تماس مارکت');
+  assert.equal(message.android.notification.proxy,'DENY');
+  assert.equal(message.android.notification.visibility,'PRIVATE');
+  assert.equal(JSON.parse(nativeMessage('x'.repeat(500)).data.body).event.length,100);
+});
 test('native multipart attachments preserve credit scope before storage and derive owner from auth',async()=>{
   const app=Fastify();await app.register(multipart);
   app.decorate('requireUser',async(req,reply)=>{if(!req.headers.authorization)return reply.code(401).send({ok:false});req.currentUser={id:7} as typeof req.currentUser;});

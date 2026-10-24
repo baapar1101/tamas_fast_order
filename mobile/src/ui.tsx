@@ -20,6 +20,7 @@ import { Image } from "expo-image";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useStore } from "./state";
 import { money, publicUrl } from "./domain";
+import { QA_BUILD } from "./environment";
 export const palette = {
   light: {
     bg: "#f4f7fa",
@@ -167,6 +168,7 @@ export function Page({
           ) : undefined
         }
       >
+        {QA_BUILD && <Txt bold color="#b42332">محیط آزمایشی — داده و پرداخت ساختگی</Txt>}
         {children}
       </ScrollView>
     </KeyboardAvoidingView>

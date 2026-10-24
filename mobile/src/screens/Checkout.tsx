@@ -36,13 +36,15 @@ import {
 } from "../ui";
 import { uploadFile } from "../files";
 import { statusLabel } from "./Account";
+import { QA_BUILD } from "../environment";
 import type { ScreenProps } from "../navigation";
 type Partition = PaymentTermsQuoteResult & { productIds: string[] };
 type Quote = PaymentTermsQuoteResult & { partitions?: Partition[] };
 export async function openBank(url: string) {
   const u = new URL(url);
   // The gateway URL comes from our authenticated backend; reject app/file/http links.
-  if (u.protocol !== "https:" || u.username || u.password)
+  const qaBank = QA_BUILD && u.origin === "http://127.0.0.1:3103" && /^\/qa\/bank\/[a-f0-9-]+$/.test(u.pathname);
+  if ((u.protocol !== "https:" && !qaBank) || u.username || u.password)
     throw new Error("نشانی درگاه معتبر نیست.");
   await Linking.openURL(u.href);
 }
