@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '../components/Icon';
+import { isAndroidBrowser } from './androidApp';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -15,6 +16,8 @@ export function InstallBanner() {
 
     const onPrompt = (event: Event) => {
       event.preventDefault();
+      // Android visitors already have the native APK suggestion, not a second web-app prompt.
+      if (isAndroidBrowser(navigator.userAgent)) return;
       setDeferred(event as BeforeInstallPromptEvent);
     };
     const onInstalled = () => {
@@ -45,11 +48,11 @@ export function InstallBanner() {
         <Icon name="mobile" />
       </div>
       <div className="install-banner-copy">
-        <strong>نصب اپلیکیشن تماس مارکت</strong>
-        <span>دسترسی سریع‌تر از صفحه اصلی گوشی</span>
+        <strong>افزودن نسخهٔ وب تماس مارکت</strong>
+        <span>میان‌بر سایت در صفحهٔ اصلی؛ متفاوت از اپ اندروید</span>
       </div>
       <button type="button" className="install-banner-btn" onClick={() => void install()}>
-        نصب
+        افزودن نسخهٔ وب
       </button>
     </div>
   );

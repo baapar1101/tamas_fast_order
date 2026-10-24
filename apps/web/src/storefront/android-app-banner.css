@@ -1,0 +1,60 @@
+.android-app-banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ds-space-3) var(--ds-space-4);
+  min-width: 0;
+  margin-bottom: var(--ds-space-5);
+  padding: var(--ds-space-5);
+  padding-inline-end: calc(var(--ds-space-5) + 44px);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  box-shadow: var(--ds-shadow-sm);
+}
+.android-app-banner__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-interactive-soft);
+  color: var(--ds-interactive);
+}
+.android-app-banner__icon .ic { width: 26px; height: 26px; }
+.android-app-banner__copy { min-width: 0; }
+.android-app-banner__copy h2 { margin: 0; font-size: var(--ds-text-lg); font-weight: var(--ds-weight-bold); line-height: var(--ds-leading-normal); }
+.android-app-banner__copy p { margin: var(--ds-space-1) 0; color: var(--ds-text-secondary); font-size: var(--ds-text-sm); line-height: var(--ds-leading-relaxed); }
+.android-app-banner__meta { color: var(--ds-text-muted); font-size: var(--ds-text-caption); }
+.android-app-banner .android-app-banner__download { min-height: 44px; white-space: normal; text-align: center; }
+.android-app-banner__help { grid-column: 2 / -1; min-width: 0; font-size: var(--ds-text-sm); }
+.android-app-banner__help summary { width: fit-content; min-height: 32px; padding-block: var(--ds-space-1); color: var(--ds-interactive); cursor: pointer; }
+.android-app-banner__help p { margin: var(--ds-space-2) 0 0; line-height: var(--ds-leading-relaxed); color: var(--ds-text-secondary); }
+.android-app-banner__dismiss {
+  position: absolute;
+  inset-block-start: var(--ds-space-1);
+  inset-inline-end: var(--ds-space-1);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  color: var(--ds-text-secondary);
+  font: inherit;
+  font-size: 24px;
+  cursor: pointer;
+}
+.android-app-banner__dismiss:hover { background: var(--ds-surface-subtle); color: var(--ds-text); }
+@media (max-width: 640px) {
+  .android-app-banner { grid-template-columns: 40px minmax(0, 1fr); gap: var(--ds-space-3); padding: var(--ds-space-4); }
+  .android-app-banner__icon { width: 40px; height: 40px; align-self: start; }
+  .android-app-banner__copy { padding-inline-end: var(--ds-space-5); }
+  .android-app-banner__copy h2 { font-size: var(--ds-text-md); }
+  .android-app-banner .android-app-banner__download { grid-column: 1 / -1; width: 100%; }
+  .android-app-banner__help { grid-column: 1 / -1; }
+}

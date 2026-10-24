@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useBootstrap } from './hooks';
+import { ANDROID_APP } from './androidApp';
 
 export function StoreFooter() {
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -105,6 +106,7 @@ export function StoreFooter() {
 
       <div className="footer-bottom">
         <nav className="footer-legal" aria-label="پیوندهای مهم">
+          <a href={ANDROID_APP.url} download={ANDROID_APP.filename}><Icon name="mobile" style={{ marginInlineEnd: "var(--ds-space-1)" }} /> دانلود اپلیکیشن اندروید</a>
           <Link to="/terms"><Icon name="book" style={{ marginInlineEnd: "var(--ds-space-1)" }} /> شرایط و قوانین همکاری</Link>
           <Link to="/terms#faq"><Icon name="help" style={{ marginInlineEnd: "var(--ds-space-1)" }} /> سؤالات متداول</Link>
           <Link to="/terms#sales-terms"><Icon name="receipt" style={{ marginInlineEnd: "var(--ds-space-1)" }} /> روش‌های پرداخت و تسویه‌حساب</Link>

@@ -8,6 +8,7 @@ import { cartCount, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
 import { CartPanel } from './CartPanel';
 import { InstallBanner } from './InstallBanner';
+import { AndroidAppBanner } from './AndroidAppBanner';
 import { ProductCard } from './ProductCard';
 import { ProductImagePreview } from './ProductImagePreview';
 import { createColorMap } from './productColor';
@@ -419,6 +420,7 @@ export function StorefrontPage() {
       </header>
 
       <main className="container" data-mobile-tab={mobileTab}>
+        {mobileTab === 'home' && <AndroidAppBanner />}
         {bootstrap.isError && (
           <div className="card" role="alert" style={{ color: 'var(--danger)', padding: "var(--ds-space-5)", marginBottom: "var(--ds-space-5)" }}>
             دریافت دسته‌بندی‌ها و تنظیمات فروشگاه ناموفق بود. برای نمایش اطلاعات به‌روز، صفحه را دوباره بارگذاری کنید.
