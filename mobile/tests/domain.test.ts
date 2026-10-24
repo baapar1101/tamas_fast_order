@@ -10,6 +10,9 @@ import {
   publicUrl,
   restoreCart,
   total,
+  date,
+  catalogEntries,
+  catalogPrice,
 } from "../src/domain";
 const product = {
   productId: "01234",
@@ -87,4 +90,48 @@ test("invalid persisted cart cannot introduce arbitrary warehouse or quantity", 
     restoreCart([{ product, warehouse: "kerman", qty: 1 }]).length,
     1,
   );
+});
+
+test("display dates are Jalali and use Tehran day, independent of default device calendar", () => {
+  assert.equal(date("2026-10-24"), "۱۴۰۵/۰۸/۰۲");
+  assert.equal(date("2026-10-23T21:00:00Z"), "۱۴۰۵/۰۸/۰۲");
+  assert.equal(date("2025-03-20"), "۱۴۰۳/۱۲/۳۰");
+  assert.equal(date(null), "—");
+  assert.equal(date("not-a-date"), "—");
+});
+
+test("catalog inherits model images without promoting photo-only phone rows to products", () => {
+  const phone = {
+    ...product,
+    categoryName: "Mobile phones",
+    categoryFaName: "گوشی موبایل",
+    color: "مشکی",
+    sku: "01234",
+    imageUrl: null,
+    gallery: [],
+  };
+  const media = {
+    ...phone,
+    productId: "photo",
+    color: "",
+    sku: null,
+    price: 0,
+    stock: 0,
+    kermanStock: 0,
+    tehranStock: 0,
+    imageUrl: "/uploads/model.png",
+  };
+  const entries = catalogEntries(
+    [{ variants: [phone, media] }],
+    true,
+  );
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0]?.productId, phone.productId);
+  assert.equal(entries[0]?.imageUrl, "/uploads/model.png");
+  assert.equal(phone.imageUrl, null);
+  assert.equal(
+    catalogEntries([{ variants: [product] }], true).length,
+    0,
+  );
+  assert.equal(catalogPrice({ ...product, price: 0 }), "استعلام قیمت");
 });

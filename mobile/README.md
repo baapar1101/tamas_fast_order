@@ -29,6 +29,8 @@ npm start
 
 The app ID is `com.tamasmarket.customer`. Put its Firebase **Android client** configuration in `mobile/google-services.json` (ignored by Git). Never put a service-account key in the app or in Expo public environment variables.
 
+`scripts/install-emulator.ps1` installs official checksum-verified emulator/API 36 images after SDK license approval. Release APK testing uses the real public catalog; do not create customer orders or financial transactions without separate authorization.
+
 ## Signed APK on Windows
 
 The checked-in scripts build locally without an Expo/EAS account. This environment uses Android Studio's Java 21, SDK platform 37.0, build-tools 37/36, NDK 27.1 and CMake 4.1.2. The newer CMake/Ninja prevents Windows long-path failures. The build is copied to `C:/tamas-build/mobile` so native intermediate files do not fill the application workspace.
@@ -41,7 +43,7 @@ cd ..
 ./mobile/scripts/build-apk.ps1
 ```
 
-Output: `mobile/artifacts/tamas-market-1.0.0.apk`. ARM64 and ARMv7 are included, Android 7+ (API 24). Build tools and local credentials are in `C:/Users/Techn/.tamas-mobile-build`. The signing key and its credential file must be backed up privately and reused for every update; losing them prevents updating existing installations. Release builds without signing credentials fail rather than silently using the debug key.
+Output: `mobile/artifacts/tamas-market-1.0.0.apk`. ARM64, ARMv7 and x86_64 are included, Android 7+ (API 24). Build tools and local credentials are in `C:/Users/Techn/.tamas-mobile-build`. The signing key and its credential file must be backed up privately and reused for every update; losing them prevents updating existing installations. Release builds without signing credentials fail rather than silently using the debug key.
 
 `scripts/google-cdn.init.gradle` uses Google's own HTTPS download CDN when regional `dl.google.com` requests return 404. It does not disable TLS verification or use a third-party mirror. `install-android-sdk.ps1` checks official archive hashes and creates local package metadata from Google's repository manifest; it assumes the downloaded repository4.xml and SDK license approval.
 
@@ -69,3 +71,9 @@ npx tsx scripts/smoke-native-isolated.ts    # disposable QA schema; no real cust
 - Mutations are not retried automatically. An ambiguous order-creation network failure requires reviewing Orders before retrying, to avoid duplicate orders.
 - Run root typecheck/lint/tests/build, mobile typecheck/tests/Expo doctor/export, release signature inspection and native-device UI tests before distribution. Financial gateway transactions need separate end-user confirmation and are not exercised against real customer orders by automated QA.
 - npm audit currently reports a transitive development-tool advisory in Expo CLI's node-forge (upstream latest 1.4.0) and its Zod dependency. Do not apply npm's proposed downgrade to Expo 44 or force-upgrade the shared backend's Zod major; assess patched upstream versions separately. These build-time libraries are not application screens or server credentials.
+
+### Verified 2026-10-24
+
+The signed release APK was installed and run on an API 36 x86_64 emulator, without Metro or Expo Go. Verified live catalog data, native filter dialogs, product images/details, warehouse quantity changes and cart persistence, OTP/password form rendering, scrolling, a 320dp-wide display with 150% font scaling, Jalali dates, glass-image generation and Android sharing, PDF generation and Android sharing. Root tests: 154 passed; mobile tests: 9 passed; Expo doctor: 20/20; release signature verified and `debuggable=false`. No real customer orders, payments, SMS or messages were created by UI QA.
+
+The backend's real password/Bearer/device-registration/account-isolation/logout flow passed against temporary PostgreSQL tables; the tables were removed afterwards. FCM credentials passed Google's `validate_only` check on the production server. Actual push receipt on a customer's phone, authenticated customer UI flows and bank settlement were not exercised against a real account; physical ARM-device testing remains recommended before broad distribution.

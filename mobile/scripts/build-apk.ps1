@@ -42,7 +42,7 @@ if(-not(Test-Path -LiteralPath $credentials.path)){
 [System.IO.File]::WriteAllText((Join-Path $destination 'android/local.properties'),'sdk.dir=' + $env:ANDROID_HOME.Replace('\','/') + "`n")
 Push-Location (Join-Path $destination 'android')
 try {
-  & ./gradlew.bat assembleRelease --no-daemon --console=plain --init-script (Join-Path $destination 'scripts/google-cdn.init.gradle') '-Pandroid.cmakeVersion=4.1.2' '-PreactNativeArchitectures=arm64-v8a,armeabi-v7a' '-Dorg.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8'
+  & ./gradlew.bat assembleRelease --no-daemon --console=plain --init-script (Join-Path $destination 'scripts/google-cdn.init.gradle') '-Pandroid.cmakeVersion=4.1.2' '-PreactNativeArchitectures=arm64-v8a,armeabi-v7a,x86_64' '-Dorg.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8'
   if($LASTEXITCODE -ne 0){throw 'Android release build failed'}
   $output=Join-Path $sourceRoot 'artifacts'
   New-Item -ItemType Directory -Force $output | Out-Null

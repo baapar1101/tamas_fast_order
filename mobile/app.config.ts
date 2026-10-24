@@ -20,6 +20,7 @@ const config: ExpoConfig = {
     blockedPermissions: [
       "android.permission.RECORD_AUDIO",
       "android.permission.READ_CONTACTS",
+      "android.permission.SYSTEM_ALERT_WINDOW",
     ],
     predictiveBackGestureEnabled: true,
   },

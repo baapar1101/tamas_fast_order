@@ -3,7 +3,14 @@ import type {
   PaymentPlanQuote,
   PaymentMethodConfig,
   Warehouse,
+  ProductGroupDTO,
 } from "@tamas/shared";
+import {
+  isPhoneProduct,
+  phoneDisplayVariants,
+  phoneModelImages,
+} from "@tamas/shared";
+import { toJalaali } from "jalaali-js";
 export const ORIGIN = "https://tamasmarket.com";
 export type CartLine = {
   product: ProductDTO;
@@ -16,8 +23,46 @@ export const ascii = (s: string) =>
     .replace(/[٠-٩]/g, (c) => String("٠١٢٣٤٥٦٧٨٩".indexOf(c)));
 export const money = (n: number) =>
   `${Math.round(n).toLocaleString("fa-IR")} تومان`;
-export const date = (v: string | null) =>
-  v ? new Date(v).toLocaleDateString("fa-IR") : "—";
+export function date(v: string | null): string {
+  if (!v) return "—";
+  const value = new Date(
+    /^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T12:00:00+03:30` : v,
+  );
+  if (!Number.isFinite(value.getTime())) return "—";
+  // Android's default Intl calendar can remain Gregorian for a Persian locale.
+  // Convert explicitly; the same server due date must not shift with device locale/timezone.
+  const parts = new Intl.DateTimeFormat("en-US-u-nu-latn", {
+    calendar: "gregory",
+    timeZone: "Asia/Tehran",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).formatToParts(value);
+  const get = (kind: string) =>
+    Number(parts.find((p) => p.type === kind)?.value);
+  const j = toJalaali(get("year"), get("month"), get("day"));
+  return [j.jy, j.jm, j.jd]
+    .map((n) => String(n).padStart(2, "0"))
+    .join("/")
+    .replace(/\d/g, (n) => "۰۱۲۳۴۵۶۷۸۹"[Number(n)]!);
+}
+
+export function catalogEntries(
+  groups: Pick<ProductGroupDTO, "variants">[],
+  phonesOnly = false,
+): ProductDTO[] {
+  return groups.flatMap((g) => {
+    const phone = g.variants.some(isPhoneProduct);
+    if (phonesOnly && !phone) return [];
+    const fallback = phoneModelImages(g.variants)[0] || null;
+    return (phone ? phoneDisplayVariants(g.variants) : g.variants).map((p) => ({
+      ...p,
+      imageUrl: p.imageUrl || p.gallery[0] || fallback,
+    }));
+  });
+}
+export const catalogPrice = (p: ProductDTO) =>
+  p.price > 0 ? money(p.price) : "استعلام قیمت";
 export const plain = (v: string | null | undefined) =>
   (v || "")
     .replace(/<[^>]*>/g, " ")

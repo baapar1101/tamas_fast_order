@@ -6,9 +6,8 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system/legacy";
 import type { ProductDTO, ProductGroupDTO } from "@tamas/shared";
-import { isPhoneProduct, isPhoneMediaOnlyProduct } from "@tamas/shared";
 import { api } from "../api";
-import { date, money, plain, publicUrl } from "../domain";
+import { catalogEntries, catalogPrice, date, publicUrl } from "../domain";
 import { useBootstrap } from "../hooks";
 import {
   Button,
@@ -63,18 +62,26 @@ export function CatalogScreen() {
   const [products, setProducts] = useState<ProductDTO[]>([]),
     [page, setPage] = useState("0"),
     [progress, setProgress] = useState(""),
-    [loaded, setLoaded] = useState<Set<string>>(new Set());
+    [loaded, setLoaded] = useState<Set<string>>(new Set()),
+    [failed, setFailed] = useState<Set<string>>(new Set());
   const controller = useRef<AbortController | null>(null),
     shot = useRef<React.ElementRef<typeof ViewShot>>(null);
   useEffect(() => () => controller.current?.abort(), []);
   const invalidate = () => {
     controller.current?.abort();
+    a.reset();
     setProducts([]);
     setLoaded(new Set());
+    setFailed(new Set());
     setPage("0");
+    setProgress("");
   };
-  const pages = Math.max(1, Math.ceil(products.length / 8));
-  const visible = products.slice(Number(page) * 8, Number(page) * 8 + 8);
+  const pageSize = 4;
+  const pages = Math.max(1, Math.ceil(products.length / pageSize));
+  const visible = products.slice(
+    Number(page) * pageSize,
+    (Number(page) + 1) * pageSize,
+  );
   const imagesReady = visible.every(
     (p) => !publicUrl(p.imageUrl) || loaded.has(p.productId),
   );
@@ -104,7 +111,7 @@ export function CatalogScreen() {
           abort.signal,
         );
         total = r.total;
-        all.push(...r.groups.flatMap((g) => g.variants));
+        all.push(...catalogEntries(r.groups, kind === "glass"));
         setProgress(`${all.length.toLocaleString("fa-IR")} کالا دریافت شد`);
         next++;
         if (next > 50)
@@ -112,16 +119,16 @@ export function CatalogScreen() {
             "تعداد کالاها زیاد است؛ دسته‌بندی یا برند را محدود کنید.",
           );
       } while ((next - 1) * 120 < total);
-      if (abort.signal.aborted) return;
-      setProducts(
-        all.filter(
-          (p) =>
-            !isPhoneMediaOnlyProduct(p) &&
-            (kind !== "glass" || isPhoneProduct(p)),
-        ),
-      );
+      if (abort.signal.aborted) return false;
+      const filtered = all;
+      setProducts(filtered);
       setPage("0");
       setLoaded(new Set());
+      setFailed(new Set());
+      if (!filtered.length)
+        throw new Error(
+          "کالایی با این فیلترها پیدا نشد؛ دسته‌بندی، برند یا شرط موجودی را تغییر دهید.",
+        );
     }, "کاتالوگ آماده شد؛ حالا می‌توانید خروجی بگیرید.");
   const share = () =>
     a.run(async () => {
@@ -135,7 +142,7 @@ export function CatalogScreen() {
           const rows = products
             .map(
               (p) =>
-                `<article><img src="${escape(publicUrl(p.imageUrl) || "")}"/><h3>${escape(p.title)}</h3><p>${escape(p.color || "")} • ${escape(p.productId)}</p><strong>${escape(money(p.price))}</strong><p>کرمان: ${p.kermanStock} — تهران: ${p.tehranStock}</p></article>`,
+                `<article>${publicUrl(p.imageUrl) ? `<img src="${escape(publicUrl(p.imageUrl)!)}"/>` : "<p>تصویر موجود نیست</p>"}<h3>${escape(p.title)}</h3><p>${escape(p.color || "")} • ${escape(p.productId)}</p><strong>${escape(catalogPrice(p))}</strong><p>کرمان: ${p.kermanStock} — تهران: ${p.tehranStock}</p></article>`,
             )
             .join("");
           const r = await Print.printToFileAsync({
@@ -166,6 +173,7 @@ export function CatalogScreen() {
         </Txt>
         <Select
           label="نوع کاتالوگ"
+          disabled={a.busy}
           value={kind}
           options={[
             { label: "کاتالوگ PDF موجودی", value: "pdf" },
@@ -178,6 +186,7 @@ export function CatalogScreen() {
         />
         <Select
           label="دسته‌بندی"
+          disabled={a.busy}
           value={category}
           options={[
             { label: "همه دسته‌بندی‌ها", value: "" },
@@ -193,6 +202,7 @@ export function CatalogScreen() {
         />
         <Select
           label="برند"
+          disabled={a.busy}
           value={brand}
           options={[
             { label: "همه برندها", value: "" },
@@ -208,6 +218,7 @@ export function CatalogScreen() {
         />
         <Select
           label="وضعیت موجودی"
+          disabled={a.busy}
           value={stock}
           options={[
             { label: "فقط موجود", value: "true" },
@@ -259,10 +270,10 @@ export function CatalogScreen() {
                   gap: 10,
                 }}
               >
-                <Txt color="#ffffff" bold size={22}>
+                <Txt color="#ffffff" bold size={18} allowFontScaling={false}>
                   تماس مارکت | لیست قیمت موبایل
                 </Txt>
-                <Txt color="#a5c1d8" size={11}>
+                <Txt color="#a5c1d8" size={11} allowFontScaling={false}>
                   {date(new Date().toISOString())} • صفحه {Number(page) + 1}
                 </Txt>
                 <View
@@ -278,42 +289,81 @@ export function CatalogScreen() {
                       key={p.productId}
                       style={{
                         width: "48%",
-                        height: "23%",
+                        height: "47%",
                         padding: 7,
                         borderRadius: 10,
                         backgroundColor: "#233a54",
                         gap: 3,
                       }}
                     >
-                      <Image
-                        source={{ uri: publicUrl(p.imageUrl) }}
-                        contentFit="contain"
-                        style={{
-                          height: "48%",
-                          width: "100%",
-                          backgroundColor: "#ffffff",
-                          borderRadius: 7,
-                        }}
-                        onLoad={() =>
-                          setLoaded((s) => new Set(s).add(p.productId))
-                        }
-                        onError={() =>
-                          setLoaded((s) => new Set(s).add(p.productId))
-                        }
-                      />
-                      <Txt color="#ffffff" bold size={10} numberOfLines={2}>
+                      {publicUrl(p.imageUrl) && !failed.has(p.productId) ? (
+                        <Image
+                          source={{ uri: publicUrl(p.imageUrl) }}
+                          contentFit="contain"
+                          style={{
+                            flex: 1,
+                            minHeight: 25,
+                            width: "100%",
+                            backgroundColor: "#ffffff",
+                            borderRadius: 7,
+                          }}
+                          onLoad={() =>
+                            setLoaded((s) => new Set(s).add(p.productId))
+                          }
+                          onError={() => {
+                            setLoaded((s) => new Set(s).add(p.productId));
+                            setFailed((s) => new Set(s).add(p.productId));
+                          }}
+                        />
+                      ) : (
+                        <View
+                          style={{
+                            flex: 1,
+                            minHeight: 25,
+                            backgroundColor: "#ffffff",
+                            borderRadius: 7,
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Txt
+                            size={10}
+                            color="#64788c"
+                            allowFontScaling={false}
+                          >
+                            تصویر موجود نیست
+                          </Txt>
+                        </View>
+                      )}
+                      <Txt
+                        color="#ffffff"
+                        bold
+                        size={10}
+                        numberOfLines={2}
+                        allowFontScaling={false}
+                      >
                         {p.title}
                       </Txt>
-                      <Txt color="#adc8df" size={9} numberOfLines={1}>
+                      <Txt
+                        color="#adc8df"
+                        size={9}
+                        numberOfLines={1}
+                        allowFontScaling={false}
+                      >
                         {p.color} • {p.productId}
                       </Txt>
-                      <Txt color="#6ee2e1" bold size={12}>
-                        {money(p.price)}
+                      <Txt
+                        color="#6ee2e1"
+                        bold
+                        size={12}
+                        allowFontScaling={false}
+                      >
+                        {catalogPrice(p)}
                       </Txt>
                     </View>
                   ))}
                 </View>
-                <Txt color="#a5c1d8" size={9}>
+                <Txt color="#a5c1d8" size={9} allowFontScaling={false}>
                   قیمت‌ها به تومان • tamasmarket.com • موجودی و قیمت در زمان
                   صدور
                 </Txt>

@@ -436,6 +436,10 @@ export function useAction() {
     error,
     success,
     run,
+    reset: () => {
+      setError("");
+      setSuccess("");
+    },
     feedback: (
       <>
         <Notice text={error} error />
