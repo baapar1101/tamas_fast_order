@@ -50,6 +50,22 @@
   cursor: pointer;
 }
 .android-app-banner__dismiss:hover { background: var(--ds-surface-subtle); color: var(--ds-text); }
+.android-app-shortcut {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-5);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  font-size: var(--ds-text-sm);
+}
+.android-app-shortcut a { display: inline-flex; align-items: center; gap: var(--ds-space-2); min-height: 44px; color: var(--ds-interactive); }
+.android-app-shortcut .btn { min-height: 44px; }
 @media (max-width: 640px) {
   .android-app-banner { grid-template-columns: 40px minmax(0, 1fr); gap: var(--ds-space-3); padding: var(--ds-space-4); }
   .android-app-banner__icon { width: 40px; height: 40px; align-self: start; }

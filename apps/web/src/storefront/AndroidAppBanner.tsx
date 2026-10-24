@@ -20,7 +20,21 @@ export function AndroidAppBanner() {
     } catch { /* Browsing and downloading must still work when browser storage is unavailable. */ }
   };
 
-  if (dismissed) return null;
+  const restore = () => {
+    setDismissed(false);
+    try {
+      window.localStorage.removeItem(ANDROID_SUGGESTION_KEY);
+    } catch { /* The in-memory preference is enough for this page. */ }
+  };
+
+  // The large desktop footer is hidden on mobile; keep a compact, permanent
+  // download entry here instead of making the APK inaccessible after dismissal.
+  if (dismissed) return (
+    <aside className="android-app-shortcut" aria-label="دریافت اپلیکیشن اندروید">
+      <a href={ANDROID_APP.url} download={ANDROID_APP.filename}><Icon name="mobile" /> دانلود اپلیکیشن اندروید</a>
+      <button type="button" className="btn" onClick={restore}>نمایش راهنمای نصب</button>
+    </aside>
+  );
 
   return (
     <section className="android-app-banner" aria-labelledby="android-app-heading">
