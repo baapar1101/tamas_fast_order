@@ -1172,3 +1172,13 @@ export const customerChatMessagesRelations = relations(customerChatMessages, ({ 
     references: [customerChatConversations.id],
   }),
 }));
+
+/** Native notification registrations are tied to a live login session. */
+export const nativePushDevices = pgTable('native_push_devices', {
+  installationId: varchar('installation_id', { length: 36 }).primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  sessionHash: varchar('session_hash', { length: 64 }).notNull(),
+  token: text('token').notNull(),
+  enabled: boolean('enabled').notNull().default(true),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index('native_push_devices_user_idx').on(t.userId)]);

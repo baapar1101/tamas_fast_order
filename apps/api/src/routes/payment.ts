@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { and, eq, inArray, isNull, ne } from 'drizzle-orm';
 import { z } from 'zod';
+import { paymentAudienceForCategory } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { orders, payments, products } from '../db/schema.js';
 import { badRequest, notFound } from '../lib/errors.js';
@@ -45,7 +46,19 @@ const routes: FastifyPluginAsync = async (app) => {
       qty: quantityByProduct.get(row.productId) ?? 0,
       sellType: row.sellType,
     })), config);
-    return { ok: true, ...quote, plans: quote.plans.map((plan) => securePaymentPlan(plan, routing).plan) };
+    // Additive metadata for native checkout: mixed carts become separate invoices.
+    // The server, not a category-name heuristic on the phone, owns this decision.
+    const partitions = (['mobile', 'accessory'] as const).flatMap((audience) => {
+      const partitionRows = rows.filter((row) => paymentAudienceForCategory(row.categoryId, config) === audience);
+      if (partitionRows.length === 0) return [];
+      const partitionQuote = quotePaymentTerms(partitionRows.map((row) => ({
+        categoryId: row.categoryId, price: row.price,
+        qty: quantityByProduct.get(row.productId) ?? 0, sellType: row.sellType,
+      })), config);
+      return [{ ...partitionQuote, productIds: partitionRows.map((row) => row.productId),
+        plans: partitionQuote.plans.map((plan) => securePaymentPlan(plan, routing).plan) }];
+    });
+    return { ok: true, ...quote, plans: quote.plans.map((plan) => securePaymentPlan(plan, routing).plan), partitions };
   });
 
   // Create a payment transaction and return the bank URL

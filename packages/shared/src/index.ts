@@ -2,6 +2,7 @@ export * from './phone.js';
 export * from './jalali-date.js';
 export * from './money.js';
 export * from './product-title.js';
+export * from './product-variants.js';
 export * from './payment-terms.js';
 export * from './financial-automation.js';
 export * from './payment-dates.js';

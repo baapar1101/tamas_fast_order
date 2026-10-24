@@ -28,6 +28,7 @@ import adminWarehouses from './routes/admin/warehouses.js';
 import adminAttributes from './routes/admin/attributes.js';
 import adminFinancial from './routes/admin/financial.js';
 import adminComments from './routes/admin/comments.js';
+import nativeRoutes from './routes/native.js';
 import adminAnalytics from './routes/admin/analytics.js';
 import adminProductContentImport from './routes/admin/product-content-import.js';
 import adminTrackingSites from './routes/admin/tracking-sites.js';
@@ -164,6 +165,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(paymentRoutes);
         await api.register(walletRoutes);
         await api.register(discountRoutes);
+        await api.register(nativeRoutes);
         await api.register(adminDashboard);
         await api.register(adminProducts);
         await api.register(adminTaxonomy);
