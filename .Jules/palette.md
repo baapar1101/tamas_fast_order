@@ -1,0 +1,3 @@
+## 2024-10-24 - Screen Reader Accessible Quantity Steppers
+**Learning:** Found a recurring accessibility pattern in the codebase where quantity adjustment steppers used visual text `+` / `-` without an accessible name (`aria-label`) for screen readers. Since the visual text `-` (hyphen/minus) can sometimes be ignored or read poorly by screen readers and does not describe the action clearly, relying solely on it provides a poor experience.
+**Action:** Always ensure that quantity increment/decrement buttons (`+` and `-`) have explicit and descriptive `aria-label` attributes (e.g., `aria-label="افزایش"` and `aria-label="کاهش"` in Persian) to clearly announce their functions to screen reader users.
