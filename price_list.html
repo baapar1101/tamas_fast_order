@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>Price Image</title>
+
+<link href="https://sigmind.storage.iran.liara.space/vazir.css?family=Vazirmatn:wght@400;700;800&display=swap" rel="stylesheet">
+<script src="https://www.tamasmarket.com/mobile/html2canvas.min.js"></script>
+
+<style>
+*{box-sizing:border-box}
+
+/* ================= ROOT ================= */
+:root{
+  --glass-bg: rgba(255,255,255,.55);
+  --glass-border: rgba(255,255,255,.35);
+  --glass-shadow: 0 20px 40px rgba(0,0,0,.12);
+  --divider: rgba(0,0,0,.08);
+  --accent:#0b7285;
+}
+
+/* ================= BODY ================= */
+body{
+  margin:0;
+  background:
+    radial-gradient(1200px 600px at top right,#eef6ff,transparent 60%),
+    radial-gradient(1000px 500px at bottom left,#fef3f7,transparent 60%),
+    #f5f6f8;
+  font-family:Vazirmatn,sans-serif;
+  direction:ltr;
+}
+
+/* ================= CANVAS ================= */
+#price-image{
+  direction:rtl;
+  width:1280px;
+  padding:16px;
+  overflow:visible;   /* خیلی مهم */
+  height:auto;        /* ❗️ */
+  padding-bottom:160px; /* جا برای footer */
+}
+
+
+/* ================= HEADER ================= */
+
+.header img{
+  height:64px;
+  filter:drop-shadow(0 6px 10px rgba(0,0,0,.15));
+}
+.header-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+
+.header-date{
+  font-size:13px;
+  font-weight:700;
+  opacity:.8;
+}
+
+/* ================= GRID ================= */
+.tables{
+  width:100%;
+  max-width:100%;
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(0, 1fr));
+  gap:20px;
+}
+
+/* ================= BRAND CARD ================= */
+.brand{
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+
+  background:#d2d2d2d9;
+  border-radius:18px;
+  border:1px solid var(--glass-border);
+  box-shadow: 0 60px 140px rgba(0,0,0,0.15);
+}
+
+
+
+
+.brand::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: rgba(255,255,255,.35);
+  backdrop-filter:none;
+  filter:none;
+  z-index:-1;
+}
+
+
+
+/* ================= BRAND TITLE ================= */
+.brand-title{
+  background:
+    linear-gradient(180deg,
+      rgba(255,255,255,.7),
+      rgba(255,255,255,.35)
+    );
+  color:#000000;
+  text-align:center;
+  font-weight:800;
+  padding:6px;
+  font-size:14px;
+  direction:ltr;
+  border-bottom:1px solid var(--glass-border);
+  border-radius:18px 18px 0 0;
+}
+.glass{
+  background: rgba(255,255,255,.55);
+}
+
+@supports (-webkit-backdrop-filter: blur(8px)) {
+  .glass{
+    backdrop-filter: blur(8px);
+  }
+}
+
+	
+/* ================= TABLE AREA ================= */
+.table-wrap{
+  flex:1;
+  overflow:hidden;
+  padding:6px;
+}
+.table-wrap.single{display:block;}
+
+.table-wrap.dual{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  position:relative;
+}
+
+/* divider */
+.table-wrap.dual::before{
+  content:"";
+  position:absolute;
+  top:8px;
+  bottom:8px;
+  left:50%;
+  width:1px;
+  background:linear-gradient(
+    to bottom,
+    transparent,
+    var(--divider),
+    transparent
+  );
+  transform:translateX(-50%);
+}
+
+/* ================= TABLE ================= */
+table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+  font-size:11px;
+  direction:rtl;
+}
+
+thead{
+  background:rgba(11,114,133,.12);
+}
+
+
+}
+
+
+th,td{
+  padding:4px 6px;
+  border-bottom:1px solid rgba(0,0,0,.06);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  line-height:1.25;
+}
+/* ===== SMART GRID STATES ===== */
+.tables.state-all-single{
+  grid-template-columns:1fr 1fr 1fr;
+}
+
+.tables.state-one-dual{
+  grid-template-columns:1.6fr 1fr 1fr;
+}
+
+.tables.state-two-dual{
+  grid-template-columns:1.5fr 1.5fr .7fr;
+}
+
+/* ================= COLUMNS ================= */
+.color{
+  width:18%;
+  text-align:center;
+  white-space:normal;
+  font-weight:600;
+ white-space:normal;        /* ❌ نه nowrap */
+  overflow:visible;          /* ❌ نه hidden */
+}
+
+.model{
+  width:50%;
+  text-align:left;
+  white-space:normal;
+  word-break:break-word;
+}
+
+.price{
+  width:32%;
+  text-align:right;
+  direction:ltr;
+  font-weight:700;
+}
+
+/* zebra (soft) */
+tbody tr:nth-child(even){
+  background:rgba(255,255,255,.25);
+}
+
+/* ================= FOOTER ================= */
+.footer{
+  position:relative;   /* ❗️ نه absolute */
+  margin-top:24px;
+  text-align:center;
+  font-weight:700;
+  font-size:13px;
+}
+.footer-img{
+  margin-top:6px;
+  max-width:100%;
+  height:auto;
+  opacity:0.9;
+}
+</style>
+</head>
+
+<body>
+
+<div id="price-image">
+
+<div class="header">
+  <div class="header-row">
+    <img src="logo.png"crossorigin="anonymous">
+    <div id="date" class="header-date"></div>
+  </div>
+</div>
+
+	
+  <div class="tables">
+
+    <div class="brand">
+      <div class="brand-title">SAMSUNG</div>
+      <div class="table-wrap" id="samsung"></div>
+    </div>
+
+    <div class="brand">
+      <div class="brand-title">XIAOMI</div>
+      <div class="table-wrap" id="xiaomi"></div>
+    </div>
+
+    <div class="brand">
+      <div class="brand-title">iPhone</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="price">قیمت</th>
+              <th class="color">رنگ</th>
+              <th class="model">مدل</th>
+            </tr>
+          </thead>
+          <tbody id="iphone"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer" id="date"></div>
+  <img src="https://www.tamasmarket.com/footer.png" crossorigin="anonymous" class="footer-img">
+
+</div>
+
+<script>
+const API_URL = "https://db.tamaspro.ir/api/v2/tables/ms4ri4ebrlgndn1/records?offset=0&limit=10000&where=&viewId=vwoz1w4er8gsekdv";
+const API_TOKEN = "sdC0AvSVuu4QTus1opgA3YWlPWAweE9B5exMZM68";
+
+let ALL_ROWS = [];
+
+// Fetch data from API
+fetch(API_URL, {
+  method: "GET",
+  headers: {
+    "xc-token": API_TOKEN
+  }
+})
+.then(res => res.json())
+.then(data => {
+  const rows = data.list.map(r => [
+    r.brand || "",            // 0 brand
+    r.model || "",  // 1 model
+    r.color_name || "",       // 2 color
+    r.tamsa_price || 0              // 3 price
+  ]);
+
+  fillSmart("samsung",rows.filter(r=>/samsung|galaxy/i.test(r[0])));
+  fillSmart("xiaomi", rows.filter(r=>/xiaomi|redmi|poco/i.test(r[0])));
+  fillSingle("iphone",rows.filter(r=>/iphone|apple/i.test(r[0])));
+  updateBrandGrid();
+
+  document.getElementById("date").innerText =
+    " تاریخ " + new Intl.DateTimeFormat("fa-IR").format(new Date());
+
+  setTimeout(makeImage,300);
+});
+
+function makeTable(rows){
+  return `
+  <table>
+    <thead>
+      <tr>
+        <th class="price">قیمت</th>
+        <th class="color">رنگ</th>
+        <th class="model">مدل</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map(r=>`
+      <tr>
+        <td class="price">${Number(r[3]).toLocaleString()}</td>
+        <td class="color">${r[2]}</td>
+        <td class="model">${r[1]}</td>
+      </tr>`).join("")}
+    </tbody>
+  </table>`;
+}
+
+function fillSmart(id,data){
+  const box=document.getElementById(id);
+  box.innerHTML="";
+  box.className="table-wrap";
+
+  if(data.length<=30){
+    box.classList.add("single");
+    box.innerHTML=makeTable(data);
+    return;
+  }
+  const mid=Math.ceil(data.length/2);
+  box.classList.add("dual");
+  box.innerHTML=makeTable(data.slice(0,mid))+makeTable(data.slice(mid));
+}
+function updateBrandGrid(){
+  const samsungDual = document.querySelector("#samsung.dual");
+  const xiaomiDual  = document.querySelector("#xiaomi.dual");
+
+  const grid = document.querySelector(".tables");
+
+  grid.classList.remove(
+    "state-all-single",
+    "state-one-dual",
+    "state-two-dual"
+  );
+
+  if(samsungDual && xiaomiDual){
+    grid.classList.add("state-two-dual");
+  }
+  else if(samsungDual || xiaomiDual){
+    grid.classList.add("state-one-dual");
+  }
+  else{
+    grid.classList.add("state-all-single");
+  }
+}
+
+function fillSingle(id,data){
+  document.getElementById(id).innerHTML=data.map(r=>`
+  <tr>
+    <td class="price">${Number(r[3]).toLocaleString()}</td>
+    <td class="color">${r[2]}</td>
+    <td class="model">${r[1]}</td>
+  </tr>`).join("");
+}
+
+	async function waitForAssets(){
+  if (document.fonts) {
+    await document.fonts.ready;
+  }
+
+  const imgs = document.images;
+  await Promise.all([...imgs].map(img=>{
+    if(img.complete) return;
+    return new Promise(res=>{
+      img.onload = img.onerror = res;
+    });
+  }));
+}
+
+
+	
+async function makeImage(){
+  await waitForAssets();
+
+  html2canvas(document.getElementById("price-image"),{
+    scale: Math.min(2, window.devicePixelRatio),
+    backgroundColor:"#fff",
+	allowTaint:true,
+	windowHeight: document.getElementById("price-image").scrollHeight,
+    useCORS:true,
+    onclone: (doc) => {
+      doc.querySelectorAll("table, th, td").forEach(el=>{
+        el.style.direction = "rtl";
+      });
+
+      // ❌ هر تغییری که باعث reflow میشه ممنوع
+      doc.querySelectorAll(".tables").forEach(el=>{
+        el.style.display = "grid";
+      });
+    }
+  }).then(c=>{
+    document.body.innerHTML="";
+    const img=new Image();
+    img.src=c.toDataURL("image/jpeg",0.95);
+    img.style.width="100%";
+    document.body.appendChild(img);
+  });
+}
+
+
+	
+</script>
+
+</body>
+</html>
