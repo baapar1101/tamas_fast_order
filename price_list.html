@@ -195,24 +195,31 @@ th,td{
 }
 
 /* ================= COLUMNS ================= */
+.discount{
+  width:22%;
+  text-align:right;
+  direction:ltr;
+  font-weight:700;
+  color:#1b7a2b;
+}
+
 .color{
-  width:18%;
+  width:14%;
   text-align:center;
   white-space:normal;
   font-weight:600;
- white-space:normal;        /* ❌ نه nowrap */
-  overflow:visible;          /* ❌ نه hidden */
+  overflow:visible;
 }
 
 .model{
-  width:50%;
+  width:38%;
   text-align:left;
   white-space:normal;
   word-break:break-word;
 }
 
 .price{
-  width:32%;
+  width:26%;
   text-align:right;
   direction:ltr;
   font-weight:700;
@@ -270,6 +277,7 @@ tbody tr:nth-child(even){
         <table>
           <thead>
             <tr>
+              <th class="discount">تخفیف شما از خرید نقدی</th>
               <th class="price">قیمت</th>
               <th class="color">رنگ</th>
               <th class="model">مدل</th>
@@ -320,11 +328,17 @@ fetch(API_URL, {
   setTimeout(makeImage,300);
 });
 
+const DISCOUNT_RATE = 0.01; // 1%
+function calcDiscount(price){
+  return Math.round(Number(price) * DISCOUNT_RATE / 1000) * 1000;
+}
+
 function makeTable(rows){
   return `
   <table>
     <thead>
       <tr>
+        <th class="discount">تخفیف شما از خرید نقدی</th>
         <th class="price">قیمت</th>
         <th class="color">رنگ</th>
         <th class="model">مدل</th>
@@ -333,6 +347,7 @@ function makeTable(rows){
     <tbody>
       ${rows.map(r=>`
       <tr>
+        <td class="discount">${calcDiscount(r[3]).toLocaleString()}</td>
         <td class="price">${Number(r[3]).toLocaleString()}</td>
         <td class="color">${r[2]}</td>
         <td class="model">${r[1]}</td>
@@ -381,6 +396,7 @@ function updateBrandGrid(){
 function fillSingle(id,data){
   document.getElementById(id).innerHTML=data.map(r=>`
   <tr>
+    <td class="discount">${calcDiscount(r[3]).toLocaleString()}</td>
     <td class="price">${Number(r[3]).toLocaleString()}</td>
     <td class="color">${r[2]}</td>
     <td class="model">${r[1]}</td>
