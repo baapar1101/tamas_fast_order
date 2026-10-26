@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Linking, View } from "react-native";
+import { Alert, Linking, Pressable, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery } from "@tanstack/react-query";
@@ -21,6 +22,7 @@ import {
   Txt,
   useAction,
   confirm,
+  useColors,
 } from "../ui";
 import { uploadFile } from "../files";
 import type { RootRoutes, ScreenProps } from "../navigation";
@@ -57,7 +59,9 @@ export function LoginScreen({ navigation }: ScreenProps<"Login">) {
           : { phone: ascii(phone), code: ascii(code) },
       );
       await store.login(r);
-      navigation.replace(r.complete ? "Main" : "Profile");
+      navigation.replace(
+        r.complete || r.user.role !== "customer" ? "Main" : "Profile",
+      );
     }, "خوش آمدید.");
   return (
     <Page>
@@ -147,6 +151,7 @@ export function LoginScreen({ navigation }: ScreenProps<"Login">) {
 export function AccountScreen() {
   const store = useStore(),
     nav = useNavigation<Nav>();
+  const c = useColors();
   if (!store.ready) return <Loading />;
   if (!store.user)
     return (
@@ -174,30 +179,71 @@ export function AccountScreen() {
         )}
       </Page>
     );
-  const items: Array<[keyof RootRoutes, string]> = [
-    ["Profile", "اطلاعات حساب و احراز هویت"],
-    ["Wallet", "کیف پول و تراکنش‌ها"],
-    ["Credit", "اعتبار، چک‌ها و اقساط"],
-    ["Documents", "درخواست‌های تکمیل مدارک"],
-    ["Discounts", "کدهای تخفیف من"],
-    ["Connections", "اتصال به تلگرام و بله"],
-    ["Support", "گفت‌وگو با پشتیبانی"],
-    ["Settings", "تنظیمات اپ و اعلان‌ها"],
-    ["Terms", "شرایط و قوانین"],
+  const items: Array<
+    [keyof RootRoutes, string, React.ComponentProps<typeof Ionicons>["name"]]
+  > = [
+    ["Orders", "سفارش‌های من", "bag-outline"],
+    ["Wallet", "کیف پول من", "wallet-outline"],
+    ["Credit", "پرونده اعتباری", "card-outline"],
+    ["Connections", "ربات تلگرام و بله", "paper-plane-outline"],
+    ["Documents", "مدارک و درخواست‌های تکمیل", "documents-outline"],
+    ["Profile", "اطلاعات حساب و احراز هویت", "person-outline"],
+    ["Discounts", "کدهای تخفیف من", "pricetags-outline"],
+    ["Favorites", "علاقه‌مندی‌های من", "heart-outline"],
+    ["Support", "گفت‌وگو با پشتیبانی", "chatbubbles-outline"],
+    ["Settings", "تنظیمات اپ و اعلان‌ها", "settings-outline"],
+    ["Terms", "شرایط و قوانین", "document-text-outline"],
   ];
+  if (store.user.role === "admin" || store.user.role === "operator")
+    items.splice(4, 0, ["Management", "پنل مدیریت", "grid-outline"]);
   return (
     <Page
       refresh={() =>
         void store.refresh().catch((e) => Alert.alert("خطا", e.message))
       }
     >
+      <View style={{ gap: 4 }}>
+        <Txt size={13} color={c.primary}>
+          حساب کاربری تماس مارکت
+        </Txt>
+        <Txt bold size={26}>
+          حساب من
+        </Txt>
+        <Txt muted size={13}>
+          سفارش‌ها و خدمات مالی خود را در یک جا پیگیری کنید.
+        </Txt>
+      </View>
       <Card>
-        <Txt bold size={24}>
-          {store.user.name} {store.user.lastName}
-        </Txt>
-        <Txt muted>
-          {store.user.storeName} • {store.user.phone}
-        </Txt>
+        <Row
+          style={{
+            paddingBottom: 16,
+            borderBottomWidth: 1,
+            borderColor: c.border,
+          }}
+        >
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              backgroundColor: c.primary,
+              borderRadius: 22,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Txt bold size={22} color={c.onPrimary}>
+              {store.user.name?.[0] || "م"}
+            </Txt>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Txt bold>
+              {store.user.name} {store.user.lastName}
+            </Txt>
+            <Txt muted size={12}>
+              {store.user.phone}
+            </Txt>
+          </View>
+        </Row>
         <Notice
           text={
             !store.complete
@@ -207,15 +253,32 @@ export function AccountScreen() {
                 : "حساب همکاری شما فعال است."
           }
         />
-      </Card>
-      <Card>
-        {items.map(([key, label]) => (
-          <Button
+        {items.map(([key, label, icon]) => (
+          <Pressable
             key={key}
-            secondary
-            label={label}
+            accessibilityRole="button"
+            accessibilityLabel={label}
             onPress={() => nav.navigate(key as "Profile")}
-          />
+            style={({ pressed }) => ({
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              minHeight: 44,
+              borderRadius: 10,
+              backgroundColor: pressed ? c.soft : "transparent",
+            })}
+          >
+            <Row>
+              <Ionicons
+                name={icon}
+                color={key === "Management" ? c.success : c.primary}
+                size={20}
+              />
+              <Txt bold size={14} style={{ flex: 1 }}>
+                {label}
+              </Txt>
+              <Ionicons name="chevron-back" size={16} color={c.muted} />
+            </Row>
+          </Pressable>
         ))}
       </Card>
       <Button

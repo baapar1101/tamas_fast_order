@@ -80,11 +80,13 @@ export function StoreFooter() {
         <div className="footer-enamad">
           <h3 className="footer-title">نماد اعتماد</h3>
           <div className="enamad-box">
-            <a referrerPolicy="origin" target="_blank" rel="noopener noreferrer" href="https://trustseal.enamad.ir/?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw">
+            <a referrerPolicy="origin" target="_blank" rel="noopener" href="https://trustseal.enamad.ir/?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw">
               <img
                 referrerPolicy="origin"
                 src="https://trustseal.enamad.ir/logo.aspx?id=553708&Code=Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw"
                 alt="نماد اعتماد الکترونیکی"
+                style={{ cursor: 'pointer' }}
+                {...{ code: 'Xw8AUVHGeMUsBwbqomP1VmI7XdD6Oruw' }}
               />
             </a>
           </div>

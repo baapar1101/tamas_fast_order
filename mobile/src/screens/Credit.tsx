@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Linking, View } from "react-native";
+import { Alert, Linking, Pressable, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import {
   CREDIT_STATUS_LABELS,
@@ -21,6 +21,7 @@ import {
   Notice,
   Page,
   Row,
+  RtlRail,
   Select,
   Txt,
   useAction,
@@ -46,6 +47,7 @@ export function CreditScreen({ navigation }: ScreenProps<"Credit">) {
     [holder, setHolder] = useState(""),
     [image, setImage] = useState("");
   const data = q.data;
+  const [tab, setTab] = useState("summary");
   const chequeOrder =
     data?.chequeOrders.find((o) => String(o.orderId) === orderId) ||
     data?.chequeOrders[0];
@@ -54,6 +56,33 @@ export function CreditScreen({ navigation }: ScreenProps<"Credit">) {
       <Txt bold size={23}>
         اعتبار و تسویه اقساط
       </Txt>
+      <RtlRail>
+        {[
+          ["summary", "خلاصه وضعیت"],
+          ["reports", "گزارش اعتبارسنجی"],
+          ["installments", "اقساط و رسیدها"],
+          ["cheques", "چک‌ها"],
+        ].map(([key, label]) => (
+          <Pressable
+            key={key}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: tab === key }}
+            onPress={() => setTab(key!)}
+            style={{
+              padding: 12,
+              minHeight: 44,
+              borderRadius: 12,
+              backgroundColor: tab === key ? c.soft : c.surface,
+              borderWidth: 1,
+              borderColor: tab === key ? c.primary : c.border,
+            }}
+          >
+            <Txt bold size={12} color={tab === key ? c.primary : c.muted}>
+              {label}
+            </Txt>
+          </Pressable>
+        ))}
+      </RtlRail>
       {q.isPending ? (
         <Loading />
       ) : q.error ? (
@@ -65,215 +94,232 @@ export function CreditScreen({ navigation }: ScreenProps<"Credit">) {
       ) : (
         data && (
           <>
-            <Card>
-              <Txt bold size={19}>
-                {data.application
-                  ? CREDIT_STATUS_LABELS[data.application.status]
-                  : "پرونده اعتباری ندارید"}
-              </Txt>
-              <Txt muted>اعتبار کل</Txt>
-              <Money amount={data.totalCreditLimit} />
-              <Row style={{ justifyContent: "space-between" }}>
-                <Txt>مصرف‌شده</Txt>
-                <Money amount={data.usedCredit} size={15} />
-              </Row>
-              <Row style={{ justifyContent: "space-between" }}>
-                <Txt>اعتبار قابل استفاده</Txt>
-                <Money amount={data.remainingCredit} size={15} />
-              </Row>
+            {tab === "summary" && (
+              <Card>
+                <Txt bold size={19}>
+                  {data.application
+                    ? CREDIT_STATUS_LABELS[data.application.status]
+                    : "پرونده اعتباری ندارید"}
+                </Txt>
+                <Txt muted>اعتبار کل</Txt>
+                <Money amount={data.totalCreditLimit} />
+                <Row style={{ justifyContent: "space-between" }}>
+                  <Txt>مصرف‌شده</Txt>
+                  <Money amount={data.usedCredit} size={15} />
+                </Row>
+                <Row style={{ justifyContent: "space-between" }}>
+                  <Txt>اعتبار قابل استفاده</Txt>
+                  <Money amount={data.remainingCredit} size={15} />
+                </Row>
+                <Notice
+                  error={!!data.application?.rejectionReason}
+                  text={data.application?.rejectionReason || undefined}
+                />
+                <Button
+                  label={
+                    data.application
+                      ? "تکمیل یا ویرایش درخواست"
+                      : "درخواست اعتبار"
+                  }
+                  onPress={() => navigation.navigate("CreditApply")}
+                />
+              </Card>
+            )}
+            {tab === "summary" &&
+              data.notifications.map((n) => (
+                <Notice
+                  key={n.id}
+                  error={n.severity === "danger"}
+                  text={`${n.title}\n${n.message}`}
+                />
+              ))}
+            {tab === "summary" && data.creditReportRequired ? (
               <Notice
-                error={!!data.application?.rejectionReason}
-                text={data.application?.rejectionReason || undefined}
+                error
+                text="گزارش جدید اعتبارسنجی لازم است؛ از بخش گزارش اعتبارسنجی بارگذاری کنید."
               />
-              <Button
-                label={
-                  data.application
-                    ? "تکمیل یا ویرایش درخواست"
-                    : "درخواست اعتبار"
-                }
-                onPress={() => navigation.navigate("CreditApply")}
-              />
-            </Card>
-            {data.notifications.map((n) => (
-              <Notice
-                key={n.id}
-                error={n.severity === "danger"}
-                text={`${n.title}\n${n.message}`}
-              />
-            ))}
-            <Card>
-              <Txt bold size={20}>
-                گزارش اعتبارسنجی ICS24
-              </Txt>
-              <Txt muted>
-                گزارش جدید هر دو ماه یک‌بار لازم است. نسخه‌های قبلی در پرونده
-                شما باقی می‌مانند.
-              </Txt>
-              {data.creditReportRequired && (
-                <Notice error text="گزارش جدید اعتبارسنجی لازم است." />
-              )}
-              <Button
-                secondary
-                label="دریافت گزارش از ICS24"
-                onPress={() =>
-                  void Linking.openURL("https://ics24.ir/").catch((e) =>
-                    Alert.alert("خطا", e.message),
-                  )
-                }
-              />
-              <Button
-                label="بارگذاری PDF گزارش جدید"
-                busy={a.busy}
-                onPress={() =>
-                  void a.run(async () => {
-                    if (!(await uploadFile(true))) return false;
-                    await q.refetch();
-                  }, "گزارش دریافت شد؛ نتیجهٔ استخراج در پرونده نمایش داده می‌شود.")
-                }
-              />
-              {data.creditReports.map((r) => (
-                <View
-                  key={r.id}
-                  style={{
-                    gap: 9,
-                    borderTopWidth: 1,
-                    borderColor: c.border,
-                    paddingTop: 14,
-                  }}
-                >
-                  <Txt bold>
-                    {r.originalName} • {date(r.createdAt)}
-                  </Txt>
-                  <Row style={{ justifyContent: "space-between" }}>
-                    <Txt>امتیاز: {r.score?.toLocaleString("fa-IR") || "—"}</Txt>
-                    <Txt>رتبه: {r.riskGrade || "—"}</Txt>
-                  </Row>
+            ) : null}
+            {tab === "reports" && (
+              <Card>
+                <Txt bold size={20}>
+                  گزارش اعتبارسنجی ICS24
+                </Txt>
+                <Txt muted>
+                  گزارش جدید هر دو ماه یک‌بار لازم است. نسخه‌های قبلی در پرونده
+                  شما باقی می‌مانند.
+                </Txt>
+                {data.creditReportRequired && (
+                  <Notice error text="گزارش جدید اعتبارسنجی لازم است." />
+                )}
+                <Button
+                  secondary
+                  label="دریافت گزارش از ICS24"
+                  onPress={() =>
+                    void Linking.openURL("https://ics24.ir/").catch((e) =>
+                      Alert.alert("خطا", e.message),
+                    )
+                  }
+                />
+                <Button
+                  label="بارگذاری PDF گزارش جدید"
+                  busy={a.busy}
+                  onPress={() =>
+                    void a.run(async () => {
+                      if (!(await uploadFile(true))) return false;
+                      await q.refetch();
+                    }, "گزارش دریافت شد؛ نتیجهٔ استخراج در پرونده نمایش داده می‌شود.")
+                  }
+                />
+                {data.creditReports.map((r) => (
                   <View
+                    key={r.id}
                     style={{
-                      height: 8,
-                      borderRadius: 5,
-                      backgroundColor: c.border,
-                      overflow: "hidden",
+                      gap: 9,
+                      borderTopWidth: 1,
+                      borderColor: c.border,
+                      paddingTop: 14,
                     }}
                   >
+                    <Txt bold>
+                      {r.originalName} • {date(r.createdAt)}
+                    </Txt>
+                    <Row style={{ justifyContent: "space-between" }}>
+                      <Txt>
+                        امتیاز: {r.score?.toLocaleString("fa-IR") || "—"}
+                      </Txt>
+                      <Txt>رتبه: {r.riskGrade || "—"}</Txt>
+                    </Row>
                     <View
                       style={{
                         height: 8,
-                        width: `${Math.max(0, Math.min(100, (r.score || 0) / 9))}%`,
-                        backgroundColor: c.primary,
+                        borderRadius: 5,
+                        backgroundColor: c.border,
+                        overflow: "hidden",
                       }}
-                    />
-                  </View>
-                  <Txt muted>
-                    {r.riskLevel || "سطح ریسک مشخص نشده"} • اعتبار تا{" "}
-                    {date(r.expiresAt)}
-                    {r.isExpired ? " (منقضی شده)" : ""}
-                  </Txt>
-                  <Txt>
-                    احتمال خوش‌حسابی: {r.goodPayerMinPercent ?? "—"} تا{" "}
-                    {r.goodPayerMaxPercent ?? "—"}٪
-                  </Txt>
-                  <Txt>تعداد چک برگشتی: {r.bouncedChequeCount ?? "—"}</Txt>
-                  {r.data.negativeReasons.map((n, i) => (
-                    <Txt key={i} size={12}>
-                      {n.code}: {n.description}
-                    </Txt>
-                  ))}
-                  {r.warnings.map((w, i) => (
-                    <Notice key={i} text={w} />
-                  ))}
-                  <Button
-                    secondary
-                    label="ذخیره / مشاهده اصل گزارش"
-                    busy={a.busy}
-                    onPress={() =>
-                      void a.run(
-                        () => sharePrivate(r.fileUrl, "credit-report.pdf"),
-                        "فایل دریافت شد.",
-                      )
-                    }
-                  />
-                </View>
-              ))}
-            </Card>
-            {data.installmentOrders.map((o) => (
-              <Card key={o.orderId}>
-                <Txt bold size={20}>
-                  اقساط سفارش {o.orderCode}
-                </Txt>
-                <Txt muted>{o.planLabel}</Txt>
-                {o.schedule.map((s) => (
-                  <View
-                    key={s.index}
-                    style={{
-                      gap: 9,
-                      paddingTop: 10,
-                      borderTopWidth: 1,
-                      borderColor: c.border,
-                    }}
-                  >
-                    <Row style={{ justifyContent: "space-between" }}>
-                      <Txt bold>{date(s.dueDate)}</Txt>
-                      <Money amount={s.amount} size={16} />
-                    </Row>
-                    <Txt muted>
-                      {s.receipt
-                        ? s.receipt.status === "approved"
-                          ? "رسید تأیید شده"
-                          : s.receipt.status === "pending"
-                            ? "رسید در انتظار بررسی"
-                            : "رسید رد شده"
-                        : s.isOverdue
-                          ? "سررسید گذشته؛ رسید لازم است"
-                          : s.isDue
-                            ? "موعد پرداخت"
-                            : "در انتظار سررسید"}
-                    </Txt>
-                    {s.receipt?.rejectionReason && (
-                      <Notice error text={s.receipt.rejectionReason} />
-                    )}
-                    {s.receipt?.receiptUrl && (
-                      <Button
-                        secondary
-                        label="دریافت رسید فعلی"
-                        onPress={() =>
-                          void a.run(() =>
-                            sharePrivate(
-                              s.receipt!.receiptUrl,
-                              "installment-receipt.pdf",
-                            ),
-                          )
-                        }
+                    >
+                      <View
+                        style={{
+                          height: 8,
+                          width: `${Math.max(0, Math.min(100, (r.score || 0) / 9))}%`,
+                          backgroundColor: c.primary,
+                        }}
                       />
-                    )}
+                    </View>
+                    <Txt muted>
+                      {r.riskLevel || "سطح ریسک مشخص نشده"} • اعتبار تا{" "}
+                      {date(r.expiresAt)}
+                      {r.isExpired ? " (منقضی شده)" : ""}
+                    </Txt>
+                    <Txt>
+                      احتمال خوش‌حسابی: {r.goodPayerMinPercent ?? "—"} تا{" "}
+                      {r.goodPayerMaxPercent ?? "—"}٪
+                    </Txt>
+                    <Txt>تعداد چک برگشتی: {r.bouncedChequeCount ?? "—"}</Txt>
+                    {r.data.negativeReasons.map((n, i) => (
+                      <Txt key={i} size={12}>
+                        {n.code}: {n.description}
+                      </Txt>
+                    ))}
+                    {r.warnings.map((w, i) => (
+                      <Notice key={i} text={w} />
+                    ))}
                     <Button
-                      label={
-                        s.receipt
-                          ? "ارسال رسید جدید"
-                          : "بارگذاری و ثبت رسید این قسط"
-                      }
-                      disabled={
-                        s.receipt?.status === "approved" ||
-                        s.receipt?.status === "pending"
-                      }
+                      secondary
+                      label="ذخیره / مشاهده اصل گزارش"
                       busy={a.busy}
                       onPress={() =>
-                        void a.run(async () => {
-                          const f = await uploadFile();
-                          if (!f) return false;
-                          await api.post(
-                            `/credit/installments/${o.orderId}/${s.index}/receipt`,
-                            { receiptUrl: f.url },
-                          );
-                          await q.refetch();
-                        }, "رسید قسط ثبت شد و پس از تأیید مدیر، پرداخت نهایی می‌شود.")
+                        void a.run(
+                          () => sharePrivate(r.fileUrl, "credit-report.pdf"),
+                          "فایل دریافت شد.",
+                        )
                       }
                     />
                   </View>
                 ))}
               </Card>
-            ))}
-            {!!data.chequeOrders.length && (
+            )}
+            {tab === "installments" && !data.installmentOrders.length ? (
+              <Empty title="قسطی برای پرداخت ندارید" />
+            ) : null}
+            {tab === "installments" &&
+              data.installmentOrders.map((o) => (
+                <Card key={o.orderId}>
+                  <Txt bold size={20}>
+                    اقساط سفارش {o.orderCode}
+                  </Txt>
+                  <Txt muted>{o.planLabel}</Txt>
+                  {o.schedule.map((s) => (
+                    <View
+                      key={s.index}
+                      style={{
+                        gap: 9,
+                        paddingTop: 10,
+                        borderTopWidth: 1,
+                        borderColor: c.border,
+                      }}
+                    >
+                      <Row style={{ justifyContent: "space-between" }}>
+                        <Txt bold>{date(s.dueDate)}</Txt>
+                        <Money amount={s.amount} size={16} />
+                      </Row>
+                      <Txt muted>
+                        {s.receipt
+                          ? s.receipt.status === "approved"
+                            ? "رسید تأیید شده"
+                            : s.receipt.status === "pending"
+                              ? "رسید در انتظار بررسی"
+                              : "رسید رد شده"
+                          : s.isOverdue
+                            ? "سررسید گذشته؛ رسید لازم است"
+                            : s.isDue
+                              ? "موعد پرداخت"
+                              : "در انتظار سررسید"}
+                      </Txt>
+                      {s.receipt?.rejectionReason && (
+                        <Notice error text={s.receipt.rejectionReason} />
+                      )}
+                      {s.receipt?.receiptUrl && (
+                        <Button
+                          secondary
+                          label="دریافت رسید فعلی"
+                          onPress={() =>
+                            void a.run(() =>
+                              sharePrivate(
+                                s.receipt!.receiptUrl,
+                                "installment-receipt.pdf",
+                              ),
+                            )
+                          }
+                        />
+                      )}
+                      <Button
+                        label={
+                          s.receipt
+                            ? "ارسال رسید جدید"
+                            : "بارگذاری و ثبت رسید این قسط"
+                        }
+                        disabled={
+                          s.receipt?.status === "approved" ||
+                          s.receipt?.status === "pending"
+                        }
+                        busy={a.busy}
+                        onPress={() =>
+                          void a.run(async () => {
+                            const f = await uploadFile();
+                            if (!f) return false;
+                            await api.post(
+                              `/credit/installments/${o.orderId}/${s.index}/receipt`,
+                              { receiptUrl: f.url },
+                            );
+                            await q.refetch();
+                          }, "رسید قسط ثبت شد و پس از تأیید مدیر، پرداخت نهایی می‌شود.")
+                        }
+                      />
+                    </View>
+                  ))}
+                </Card>
+              ))}
+            {tab === "cheques" && !!data.chequeOrders.length && (
               <Card>
                 <Txt bold size={20}>
                   ثبت چک بعدی
@@ -345,7 +391,12 @@ export function CreditScreen({ navigation }: ScreenProps<"Credit">) {
                 />
               </Card>
             )}
-            {!!data.cheques.length && (
+            {tab === "cheques" &&
+            !data.chequeOrders.length &&
+            !data.cheques.length ? (
+              <Empty title="چکی برای نمایش وجود ندارد" />
+            ) : null}
+            {tab === "cheques" && !!data.cheques.length && (
               <Card>
                 <Txt bold size={20}>
                   چک‌های ثبت‌شده

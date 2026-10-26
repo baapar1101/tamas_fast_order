@@ -7,6 +7,8 @@ $artifactName=if($Qa){'tamas-market-qa.apk'}else{"tamas-market-$version.apk"}
 $destination=Join-Path $BuildRoot 'mobile'
 Push-Location $sourceRoot
 try {
+  & node scripts/sync-design-system.mjs
+  if($LASTEXITCODE -ne 0){throw 'Syncing storefront design tokens failed'}
   & npx expo prebuild --platform android --no-install
   if($LASTEXITCODE -ne 0){throw 'Native project generation failed'}
 }finally{Pop-Location}

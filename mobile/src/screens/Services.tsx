@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, AppState, Linking, View } from "react-native";
+import { Alert, AppState, Linking, Pressable, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import Constants from "expo-constants";
 import { useQuery } from "@tanstack/react-query";
 import * as SecureStore from "expo-secure-store";
@@ -20,11 +22,17 @@ import {
   Select,
   Txt,
   useAction,
+  useColors,
 } from "../ui";
 import { openBank } from "./Checkout";
 import { enablePush, disablePush, pushStatus } from "../notifications";
 type Wallet = {
-  wallet: { balance: number; isFrozen: boolean };
+  wallet: {
+    balance: number;
+    isFrozen: boolean;
+    lifetimeCredit: number;
+    lifetimeDebit: number;
+  };
   config: { enabled: boolean; minTopup: number; maxTopup: number };
   transactions: Array<{
     id: number;
@@ -39,7 +47,8 @@ type Wallet = {
 export function WalletScreen() {
   const { user } = useStore(),
     a = useAction();
-  const [amount, setAmount] = useState(""),
+  const c = useColors();
+  const [amount, setAmount] = useState("500000"),
     [page, setPage] = useState(1);
   const q = useQuery({
     queryKey: ["wallet", user?.id, page],
@@ -48,6 +57,14 @@ export function WalletScreen() {
   });
   return (
     <Page refresh={() => void q.refetch()} refreshing={q.isRefetching}>
+      <View style={{ gap: 4 }}>
+        <Txt bold size={24}>
+          کیف پول من
+        </Txt>
+        <Txt muted size={13}>
+          مدیریت موجودی، شارژ و سوابق مالی
+        </Txt>
+      </View>
       {q.isPending ? (
         <Loading />
       ) : q.error ? (
@@ -59,17 +76,85 @@ export function WalletScreen() {
       ) : (
         q.data && (
           <>
+            <LinearGradient
+              colors={["#063b37", "#008f7a"]}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={{ padding: 22, borderRadius: 28, gap: 8 }}
+            >
+              <Txt color="#ffffff" size={14}>
+                موجودی قابل استفاده
+              </Txt>
+              <Txt color="#ffffff" bold size={28}>
+                {money(q.data.wallet.balance)}
+              </Txt>
+              <Txt color="#d5f2f3" size={12}>
+                {q.data.wallet.isFrozen
+                  ? "کیف پول مسدود است"
+                  : "آماده پرداخت سفارش"}
+              </Txt>
+              <View style={{ gap: 12, marginTop: 12 }}>
+                {[
+                  ["مجموع واریز", q.data.wallet.lifetimeCredit],
+                  ["مجموع برداشت", q.data.wallet.lifetimeDebit],
+                ].map(([label, value]) => (
+                  <View
+                    key={label}
+                    style={{
+                      padding: 16,
+                      gap: 6,
+                      borderRadius: 18,
+                      borderWidth: 1,
+                      borderColor: "#ffffff2b",
+                      backgroundColor: "#ffffff12",
+                    }}
+                  >
+                    <Txt color="#d5f2f3" size={12}>
+                      {label}
+                    </Txt>
+                    <Txt color="#ffffff" bold>
+                      {money(Number(value || 0))}
+                    </Txt>
+                  </View>
+                ))}
+              </View>
+            </LinearGradient>
             <Card>
               <Txt bold size={20}>
-                موجودی کیف پول
+                شارژ کیف پول
               </Txt>
-              <Money amount={q.data.wallet.balance} size={28} />
+              <Txt muted size={13}>
+                مبلغ دلخواه را انتخاب کنید و از درگاه بانکی بپردازید.
+              </Txt>
               {q.data.wallet.isFrozen && (
                 <Notice
                   error
                   text="کیف پول موقتاً مسدود است؛ با پشتیبانی تماس بگیرید."
                 />
               )}
+              <Row style={{ flexWrap: "wrap", gap: 8 }}>
+                {[500_000, 1_000_000, 2_000_000, 5_000_000].map((value) => (
+                  <Pressable
+                    key={value}
+                    accessibilityRole="button"
+                    accessibilityLabel={`شارژ ${money(value)}`}
+                    accessibilityState={{ selected: amount === String(value) }}
+                    onPress={() => setAmount(String(value))}
+                    style={{
+                      padding: 10,
+                      borderWidth: 1,
+                      borderColor:
+                        amount === String(value) ? c.primary : c.border,
+                      borderRadius: 10,
+                      backgroundColor: c.soft,
+                    }}
+                  >
+                    <Txt color={c.primary} size={12}>
+                      {value.toLocaleString("fa-IR")}
+                    </Txt>
+                  </Pressable>
+                ))}
+              </Row>
               <Field
                 label="مبلغ شارژ (تومان)"
                 value={amount}
@@ -112,7 +197,28 @@ export function WalletScreen() {
               )}
               {q.data.transactions.map((t) => (
                 <View key={t.id} style={{ gap: 6, paddingVertical: 10 }}>
-                  <Txt bold>{t.description}</Txt>
+                  <Row>
+                    <View
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 12,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor:
+                          t.direction === "credit"
+                            ? c.successSoft
+                            : c.dangerSoft,
+                      }}
+                    >
+                      <Ionicons
+                        name={t.direction === "credit" ? "add" : "remove"}
+                        size={21}
+                        color={t.direction === "credit" ? c.success : c.danger}
+                      />
+                    </View>
+                    <Txt bold>{t.description}</Txt>
+                  </Row>
                   <Row style={{ justifyContent: "space-between" }}>
                     <Txt muted>{date(t.createdAt)}</Txt>
                     <Txt bold>
@@ -124,7 +230,9 @@ export function WalletScreen() {
                   </Txt>
                 </View>
               ))}
-              <Row style={{ justifyContent: "space-between" }}>
+              <Row
+                style={{ justifyContent: "space-between", flexWrap: "wrap" }}
+              >
                 <Button
                   label="صفحه قبل"
                   secondary
@@ -298,9 +406,14 @@ export function SettingsScreen() {
     a = useAction();
   const [push, setPush] = useState("در حال بررسی…");
   useEffect(() => {
-    const check = () => void pushStatus().then(setPush).catch(() => setPush("بررسی وضعیت اعلان ممکن نشد."));
+    const check = () =>
+      void pushStatus()
+        .then(setPush)
+        .catch(() => setPush("بررسی وضعیت اعلان ممکن نشد."));
     check();
-    const sub = AppState.addEventListener("change", (state) => { if (state === "active") check(); });
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") check();
+    });
     return () => sub.remove();
   }, []);
   return (

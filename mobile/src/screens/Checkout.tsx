@@ -43,7 +43,10 @@ type Quote = PaymentTermsQuoteResult & { partitions?: Partition[] };
 export async function openBank(url: string) {
   const u = new URL(url);
   // The gateway URL comes from our authenticated backend; reject app/file/http links.
-  const qaBank = QA_BUILD && u.origin === "http://127.0.0.1:3103" && /^\/qa\/bank\/[a-f0-9-]+$/.test(u.pathname);
+  const qaBank =
+    QA_BUILD &&
+    u.origin === "http://127.0.0.1:3103" &&
+    /^\/qa\/bank\/[a-f0-9-]+$/.test(u.pathname);
   if ((u.protocol !== "https:" && !qaBank) || u.username || u.password)
     throw new Error("نشانی درگاه معتبر نیست.");
   await Linking.openURL(u.href);
@@ -382,7 +385,19 @@ export function CheckoutScreen({ navigation }: ScreenProps<"Checkout">) {
           />
         )}
         {selected && (
-          <>
+          <View
+            style={{
+              gap: 12,
+              backgroundColor: c.soft,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: c.primary,
+              padding: 16,
+            }}
+          >
+            <Txt muted size={11}>
+              طرح انتخاب‌شده
+            </Txt>
             <Txt bold size={18}>
               {selected.label}
             </Txt>
@@ -391,7 +406,7 @@ export function CheckoutScreen({ navigation }: ScreenProps<"Checkout">) {
               <Notice
                 text={`سود شما از این خرید: ${money(-selected.adjustmentAmount)}`}
               />
-            )}{" "}
+            )}
             {selected.adjustmentAmount > 0 && (
               <Txt>هزینه تسویه اقساطی: {money(selected.adjustmentAmount)}</Txt>
             )}
@@ -413,7 +428,7 @@ export function CheckoutScreen({ navigation }: ScreenProps<"Checkout">) {
               </Row>
             ))}
             <Notice text={selected.instructions} />
-          </>
+          </View>
         )}
         <Txt muted size={12}>
           سررسیدها و مبلغ قطعی پس از ثبت، از روی فاکتور سرور نمایش داده می‌شوند.
@@ -492,7 +507,7 @@ export function CheckoutScreen({ navigation }: ScreenProps<"Checkout">) {
         {uncertain ? (
           <Button
             label="بررسی سفارش‌های ثبت‌شده"
-            onPress={() => navigation.navigate("Main", { screen: "Orders" })}
+            onPress={() => navigation.navigate("Orders")}
           />
         ) : (
           <Button

@@ -1,12 +1,14 @@
 {
   "name": "tamas-market-mobile",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.1.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
     "typecheck": "tsc --noEmit",
+    "design:sync": "node scripts/sync-design-system.mjs",
+    "design:check": "node scripts/sync-design-system.mjs --check",
     "test": "tsx --test tests/*.test.ts",
     "export": "expo export --platform android",
     "prebuild": "expo prebuild --platform android --no-install"
@@ -30,6 +32,7 @@
     "expo-font": "~58.0.10",
     "expo-image": "~58.0.17",
     "expo-image-picker": "~58.0.10",
+    "expo-linear-gradient": "~58.0.3",
     "expo-linking": "~58.0.14",
     "expo-localization": "~58.0.5",
     "expo-notifications": "~58.1.6",
@@ -43,7 +46,8 @@
     "react-native": "0.88.0",
     "react-native-safe-area-context": "~5.10.1",
     "react-native-screens": "~4.30.0",
-    "react-native-view-shot": "6.1.1"
+    "react-native-view-shot": "6.1.1",
+    "react-native-webview": "14.0.1"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

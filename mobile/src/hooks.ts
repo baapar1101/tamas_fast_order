@@ -8,6 +8,7 @@ export type Bootstrap = {
   slides: Array<{
     id: number;
     imageUrl: string;
+    mobileImageUrl?: string;
     linkUrl?: string;
     title?: string;
   }>;

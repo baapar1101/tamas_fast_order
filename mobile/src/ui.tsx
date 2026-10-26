@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  FlatList,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -19,32 +20,10 @@ import { Picker } from "@react-native-picker/picker";
 import { Image } from "expo-image";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useStore } from "./state";
-import { money, publicUrl } from "./domain";
+import { publicUrl } from "./domain";
 import { QA_BUILD } from "./environment";
-export const palette = {
-  light: {
-    bg: "#f4f7fa",
-    surface: "#ffffff",
-    text: "#102a43",
-    muted: "#64788c",
-    border: "#dce5ed",
-    primary: "#087f92",
-    soft: "#e7f4f6",
-    danger: "#b42332",
-    success: "#177750",
-  },
-  dark: {
-    bg: "#080f1c",
-    surface: "#121f31",
-    text: "#edf5ff",
-    muted: "#a3b6ca",
-    border: "#2d4056",
-    primary: "#57c6d6",
-    soft: "#173440",
-    danger: "#ff9b9b",
-    success: "#7bdbb2",
-  },
-};
+import { palette, design } from "./theme";
+export { palette, design } from "./theme";
 export function useColors() {
   const system = useColorScheme();
   const { theme } = useStore();
@@ -107,6 +86,21 @@ export function Row({
     </View>
   );
 }
+export function RtlRail({ children }: { children: React.ReactNode }) {
+  return (
+    <FlatList
+      horizontal
+      inverted
+      data={React.Children.toArray(children)}
+      keyExtractor={(item, index) =>
+        React.isValidElement(item) ? String(item.key ?? index) : String(index)
+      }
+      renderItem={({ item }) => <>{item}</>}
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{ flexGrow: 1, gap: 8 }}
+    />
+  );
+}
 export function Card({
   children,
   style,
@@ -122,9 +116,9 @@ export function Card({
           backgroundColor: c.surface,
           borderColor: c.border,
           borderWidth: 1,
-          borderRadius: 20,
-          padding: 18,
-          gap: 14,
+          borderRadius: design.radius.lg,
+          padding: design.space[4],
+          gap: design.space[4],
         },
         style,
       ]}
@@ -151,9 +145,9 @@ export function Page({
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
-          padding: 16,
-          gap: 16,
-          paddingBottom: 36,
+          padding: design.space[3],
+          gap: design.space[4],
+          paddingBottom: design.space[8],
           width: "100%",
           maxWidth: 840,
           alignSelf: "center",
@@ -168,7 +162,11 @@ export function Page({
           ) : undefined
         }
       >
-        {QA_BUILD && <Txt bold color="#b42332">محیط آزمایشی — داده و پرداخت ساختگی</Txt>}
+        {QA_BUILD && (
+          <Txt bold color="#b42332">
+            محیط آزمایشی — داده و پرداخت ساختگی
+          </Txt>
+        )}
         {children}
       </ScrollView>
     </KeyboardAvoidingView>
@@ -198,12 +196,12 @@ export function Button({
       disabled={busy || disabled}
       onPress={onPress}
       style={({ pressed }) => ({
-        minHeight: 48,
+        minHeight: design.control.md,
         paddingHorizontal: 16,
         paddingVertical: 10,
-        borderRadius: 13,
+        borderRadius: 999,
         borderWidth: 1,
-        borderColor: c.primary,
+        borderColor: secondary ? c.border : c.primary,
         backgroundColor: secondary ? c.surface : c.primary,
         opacity: disabled || busy?.valueOf() ? 0.5 : pressed ? 0.8 : 1,
         alignItems: "center",
@@ -213,13 +211,17 @@ export function Button({
       })}
     >
       {busy ? (
-        <ActivityIndicator color={secondary ? c.primary : c.bg} />
+        <ActivityIndicator color={secondary ? c.primary : c.onPrimary} />
       ) : icon ? (
-        <Ionicons name={icon} size={20} color={secondary ? c.primary : c.bg} />
+        <Ionicons
+          name={icon}
+          size={20}
+          color={secondary ? c.primary : c.onPrimary}
+        />
       ) : null}
       <Txt
         bold
-        color={secondary ? c.primary : c.bg}
+        color={secondary ? c.text : c.onPrimary}
         style={{ textAlign: "center" }}
       >
         {label}
@@ -246,9 +248,9 @@ export function Field({ label, ...props }: { label: string } & TextInputProps) {
             textAlign: "right",
             borderWidth: 1,
             borderColor: c.border,
-            borderRadius: 12,
+            borderRadius: design.radius.md,
             paddingHorizontal: 14,
-            minHeight: 50,
+            minHeight: design.control.md,
             backgroundColor: c.surface,
             paddingVertical: 10,
           },
@@ -273,7 +275,7 @@ export function Select({
 }) {
   const c = useColors();
   return (
-    <View style={{ gap: 6, flexGrow: 1, flexBasis: 140 }}>
+    <View style={{ gap: 6, minWidth: 0 }}>
       <Txt bold size={13}>
         {label}
       </Txt>
@@ -281,7 +283,7 @@ export function Select({
         style={{
           borderWidth: 1,
           borderColor: c.border,
-          borderRadius: 12,
+          borderRadius: design.radius.md,
           backgroundColor: c.surface,
           overflow: "hidden",
         }}
@@ -323,7 +325,7 @@ export function Notice({
       style={{
         padding: 12,
         borderRadius: 12,
-        backgroundColor: c.soft,
+        backgroundColor: error ? c.dangerSoft : c.soft,
         borderRightWidth: 3,
         borderRightColor: error ? c.danger : c.primary,
       }}
@@ -341,9 +343,14 @@ export function Money({
 }) {
   const c = useColors();
   return (
-    <Txt bold size={size} color={c.primary}>
-      {money(amount)}
-    </Txt>
+    <Row style={{ gap: 4, flexWrap: "wrap", flexShrink: 1, maxWidth: "100%" }}>
+      <Txt bold size={size}>
+        {Math.round(amount).toLocaleString("fa-IR")}
+      </Txt>
+      <Txt size={10} color={c.campaign}>
+        تومان
+      </Txt>
+    </Row>
   );
 }
 export function Photo({

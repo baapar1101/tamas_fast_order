@@ -2,9 +2,9 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { NavigatorScreenParams } from "@react-navigation/native";
 type MainTabs = {
   Store: undefined;
-  Favorites: undefined;
+  Categories: undefined;
+  Search: undefined;
   Cart: undefined;
-  Orders: undefined;
   Account: undefined;
 };
 export type RootRoutes = {
@@ -24,6 +24,9 @@ export type RootRoutes = {
   Settings: undefined;
   CatalogExport: undefined;
   Terms: undefined;
+  Favorites: undefined;
+  Orders: undefined;
+  Management: undefined;
 };
 export type ScreenProps<K extends keyof RootRoutes> = NativeStackScreenProps<
   RootRoutes,

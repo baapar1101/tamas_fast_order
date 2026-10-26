@@ -1,10 +1,16 @@
 # Tamas Market — native Android customer app
 
-Independent React Native 0.88 / Expo SDK 58 project. All screens are native React Native views and navigation; this is not a WebView wrapper. Bank payments, messaging apps and ICS24 open externally on purpose.
+Independent React Native 0.88 / Expo SDK 58 project. Customer screens use native React Native views and navigation. Only the management panel is embedded as the existing website, available to active admin/operator accounts. Bank payments, messaging apps and ICS24 open externally on purpose.
+
+Version 1.1.0 aligns the native customer shell with the mobile website: the same logo, Persian typography, five navigation tabs, category rail/grid, banners, filters, product gallery, price/warehouse controls, account menu, wallet and checkout plan cards. Customer pages retain native navigation, secure uploads and server pricing. Internal promotional links route to native pages. `src/theme.ts` is generated from the website's `design-system.css`; run `npm run design:sync` after changing its tokens and `npm run design:check` in validation. Management uses a separate web session, no credential injection and no token in URLs. Before each entry, its trusted bootstrap clears Web Storage, revokes the previous web session and resets browser cookies before allowing /admin; failed cleanup blocks entry. Ordinary website visitors are unaffected. Android's incognito flag alone does not clear Web Storage. The existing website still requires its normal management login.
 
 The app uses `https://tamasmarket.com/api`, the existing accounts and the existing database. It never connects directly to PostgreSQL and never contains server credentials. `mobile/` is deliberately outside root npm workspaces: installing or building it does not upgrade the site's React or modify its lockfile.
 
 ## Features
+
+### Verified 2026-10-26 — 1.1.0
+
+Compared with the live mobile storefront at 430px. Tested standalone signed APKs without Metro: public catalog and category assets, five-tab navigation, password login with synthetic customer/admin accounts, gallery thumbnails and full-screen preview, warehouse cart controls, cash quote (100,000 base → 90,000 payable → 10,000 savings), native account/wallet/credit tabs, dark mode and a 320dp display with 150% font scaling. The management WebView loaded the live site and its independent management-login gate; no production administrator credentials were entered there. QA used a separate empty database/role with synthetic records, no imported customer data, and finished with zero orders and zero ledger entries. The QA server, tunnel and database/role were removed before the final production-catalog smoke. The release preserves the signing identity and requires Android 7+.
 
 Version 1.0.2 adds admin-authored notification destinations and authenticated received/opened acknowledgments. See [operations/app-notifications](../docs/operations/app-notifications.md) for campaign management, compatibility and isolated verification.
 
@@ -45,7 +51,7 @@ cd ..
 ./mobile/scripts/build-apk.ps1
 ```
 
-Output: `mobile/artifacts/tamas-market-1.0.2.apk`. ARM64, ARMv7 and x86_64 are included, Android 7+ (API 24). Build tools and local credentials are in `C:/Users/Techn/.tamas-mobile-build`. The signing key and its credential file must be backed up privately and reused for every update; losing them prevents updating existing installations. Release builds without signing credentials fail rather than silently using the debug key.
+Output: `mobile/artifacts/tamas-market-1.1.0.apk`. ARM64, ARMv7 and x86_64 are included, Android 7+ (API 24). Build tools and local credentials are in `C:/Users/Techn/.tamas-mobile-build`. The signing key and its credential file must be backed up privately and reused for every update; losing them prevents updating existing installations. Release builds without signing credentials fail rather than silently using the debug key.
 
 `scripts/google-cdn.init.gradle` uses Google's own HTTPS download CDN when regional `dl.google.com` requests return 404. It does not disable TLS verification or use a third-party mirror. `install-android-sdk.ps1` checks official archive hashes and creates local package metadata from Google's repository manifest; it assumes the downloaded repository4.xml and SDK license approval.
 
