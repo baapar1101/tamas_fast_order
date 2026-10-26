@@ -1,0 +1,3 @@
+## 2026-10-26 - Dynamic aria-label and aria-pressed for Toggle Buttons
+**Learning:** Toggle buttons (like 'Favorite' heart icons) need dynamic `aria-label` attributes that update based on their state to provide clear context for screen readers, as a static label like 'Add to favorites' is misleading when the item is already favorited. Adding `aria-pressed` further clarifies the toggle state.
+**Action:** When creating or modifying icon-only toggle buttons, always ensure the `aria-label` describes the *action* that will occur (e.g., 'Remove from favorites' when active) and include `aria-pressed={boolean}` to convey the current state.
