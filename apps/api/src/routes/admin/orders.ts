@@ -143,9 +143,16 @@ const routes: FastifyPluginAsync = async (app) => {
       byOrder.set(it.orderId, list);
     }
 
+    // ⚡ Bolt: Prevent O(N*M) lookup inside the mapping loop by precomputing an O(1) Map.
+    // Impact: Avoids nested array scans over `instructions.find(...)` which degraded performance as rows increased.
+    const instructionByOrder = new Map<number, typeof instructions[0]>();
+    for (const instruction of instructions) {
+      instructionByOrder.set(instruction.orderId, instruction);
+    }
+
     return {
       ok: true,
-      items: rows.map((r) => toAdminOrderDTO(r, byOrder.get(r.id) ?? [], instructions.find((item) => item.orderId === r.id))),
+      items: rows.map((r) => toAdminOrderDTO(r, byOrder.get(r.id) ?? [], instructionByOrder.get(r.id))),
       total: Number(total?.n ?? 0),
       page: q.page,
       perPage: q.perPage,
