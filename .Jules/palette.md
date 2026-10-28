@@ -1,0 +1,3 @@
+## 2024-06-25 - Icon-Only Quantity Stepper Accessibility
+**Learning:** Icon-only buttons used for quantity steppers (`+` and `-`) and initial "add to cart" actions in product cards and pages often rely solely on visual cues or `title` attributes, omitting necessary `aria-label` attributes for screen readers.
+**Action:** Always ensure descriptive `aria-label` attributes in Persian (e.g., `aria-label="افزایش"`, `aria-label="کاهش"`) are present on these components to provide an accessible experience. When a dynamic `title` exists (like `title={"افزودن از ${WAREHOUSE_LABELS[wh]}"}`), ensure it is duplicated into an `aria-label` to benefit assistive technologies.
