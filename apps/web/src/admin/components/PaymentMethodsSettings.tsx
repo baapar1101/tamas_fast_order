@@ -176,6 +176,7 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
                       checked={m.enabled}
                       onChange={() => handleToggleEnabled(m.id)}
                       style={{ opacity: 0, width: 0, height: 0 }}
+                      aria-label="تغییر وضعیت روش پرداخت"
                     />
                     <span
                       style={{
@@ -239,8 +240,9 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
                     disabled={index === 0}
                     onClick={() => handleMove(index, 'up')}
                     title="انتقال به بالاتر"
+                    aria-label="انتقال به بالاتر"
                   >
-                    ⬆️
+                    <span aria-hidden="true">⬆️</span>
                   </button>
                   <button
                     type="button"
@@ -248,11 +250,12 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
                     disabled={index === methods.length - 1}
                     onClick={() => handleMove(index, 'down')}
                     title="انتقال به پایین‌تر"
+                    aria-label="انتقال به پایین‌تر"
                   >
-                    ⬇️
+                    <span aria-hidden="true">⬇️</span>
                   </button>
                   <button type="button" className="a-btn a-btn--sm a-btn--secondary" onClick={() => openEditModal(m)}>
-                    ✏️ ویرایش
+                    <span aria-hidden="true">✏️</span> ویرایش
                   </button>
                   <button
                     type="button"
@@ -260,8 +263,9 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
                     disabled={methods.length <= 1}
                     onClick={() => handleDelete(m.id)}
                     title="حذف"
+                    aria-label="حذف روش پرداخت"
                   >
-                    🗑️
+                    <span aria-hidden="true">🗑️</span>
                   </button>
                 </div>
               </div>
