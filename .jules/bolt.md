@@ -1,0 +1,3 @@
+## 2024-05-15 - Replace O(N*M) array lookup with O(1) Map lookup
+**Learning:** Found a nested `.find()` array lookup inside a loop (`for (const productDbId of affectedProductIds)`) in `orders.ts` that searches through `productById.values()`. This creates an O(N*M) performance bottleneck for large carts/orders with many distinct products.
+**Action:** Precompute a `Map` keyed by `product.id` before the loop, and use `Map.prototype.get()` for O(1) lookups. To perfectly preserve the original `.find()` behavior (which returns the first match), only set the key if it does not already exist in the map.
