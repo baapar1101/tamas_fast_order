@@ -178,9 +178,9 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                             </div>
                             {qty > 0 ? (
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: "2px var(--ds-space-1)" }}>
-                                <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 24, height: 24, fontSize: "var(--ds-text-lg)" }} onClick={() => onUpdateQty(cartKey, qty - 1)}>-</button>
+                                <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 24, height: 24, fontSize: "var(--ds-text-lg)" }} onClick={() => onUpdateQty(cartKey, qty - 1)} aria-label="کاهش">-</button>
                                 <span style={{ fontSize: "var(--ds-text-caption)", fontWeight: 700, minWidth: 16, textAlign: 'center', color: 'var(--tamas-fg)' }}>{qty}</span>
-                                <button type="button" className="add-wh-btn" style={{ width: 24, height: 24, fontSize: "var(--ds-text-lg)" }} onClick={() => onAdd(v, wh)}>+</button>
+                                <button type="button" className="add-wh-btn" style={{ width: 24, height: 24, fontSize: "var(--ds-text-lg)" }} onClick={() => onAdd(v, wh)} aria-label="افزایش">+</button>
                               </div>
                             ) : (
                               <button
@@ -188,6 +188,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                                 className="add-wh-btn"
                                 onClick={() => onAdd(v, wh)}
                                 title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
+                                aria-label={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
                               >
                                 +
                               </button>
@@ -331,9 +332,9 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                   </div>
                   {qty > 0 ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: "2px var(--ds-space-1)" }}>
-                      <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 26, height: 26, fontSize: "var(--ds-text-lead)" }} onClick={() => onUpdateQty(cartKey, qty - 1)} title="کاهش">-</button>
+                      <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 26, height: 26, fontSize: "var(--ds-text-lead)" }} onClick={() => onUpdateQty(cartKey, qty - 1)} title="کاهش" aria-label="کاهش">-</button>
                       <span style={{ fontSize: "var(--ds-text-sm)", fontWeight: 700, minWidth: 20, textAlign: 'center', color: 'var(--tamas-fg)' }}>{qty}</span>
-                      <button type="button" className="add-wh-btn" style={{ width: 26, height: 26, fontSize: "var(--ds-text-lg)" }} onClick={() => onAdd(selectedVariant, wh)} title="افزایش">+</button>
+                      <button type="button" className="add-wh-btn" style={{ width: 26, height: 26, fontSize: "var(--ds-text-lg)" }} onClick={() => onAdd(selectedVariant, wh)} title="افزایش" aria-label="افزایش">+</button>
                     </div>
                   ) : (
                     <button
@@ -341,6 +342,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                       className="add-wh-btn"
                       onClick={() => onAdd(selectedVariant, wh)}
                       title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
+                      aria-label={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
                     >
                       +
                     </button>
