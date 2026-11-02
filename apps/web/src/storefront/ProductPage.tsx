@@ -502,9 +502,9 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
                       </div>
                       {qty > 0 ? (
                         <div className="pp-qty-stepper">
-                          <button type="button" className="add-wh-btn" onClick={() => handleUpdateQty(cartKey, qty - 1)}>-</button>
+                          <button type="button" aria-label="کاهش تعداد" className="add-wh-btn" onClick={() => handleUpdateQty(cartKey, qty - 1)}>-</button>
                           <span>{formatNumber(qty)}</span>
-                          <button type="button" className="add-wh-btn" onClick={() => handleAdd(selected, wh)}>+</button>
+                          <button type="button" aria-label="افزایش تعداد" className="add-wh-btn" onClick={() => handleAdd(selected, wh)}>+</button>
                         </div>
                       ) : (
                         <button type="button" className="btn primary pp-add-btn" onClick={() => handleAdd(selected, wh)}>
