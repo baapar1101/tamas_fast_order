@@ -37,7 +37,7 @@
     "@fastify/helmet": "^13.0.1",
     "@fastify/multipart": "^9.0.3",
     "@fastify/rate-limit": "^10.2.2",
-    "@fastify/static": "^6.12.0",
+    "@fastify/static": "^7.0.4",
     "@tamas/payment": "*",
     "@tamas/shared": "*",
     "dotenv": "^16.4.7",
