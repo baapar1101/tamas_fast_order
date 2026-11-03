@@ -334,7 +334,7 @@ export function CatalogExportPage() {
                       padding: '12mm',
                       backgroundColor: '#ffffff',
                       boxSizing: 'border-box',
-                      fontFamily: "'Vazirmatn', 'Peyda', sans-serif",
+                      fontFamily: "'IRANYekan', Tahoma, sans-serif",
                       direction: 'rtl',
                       position: 'relative',
                       display: 'flex',
