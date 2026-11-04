@@ -143,9 +143,17 @@ const routes: FastifyPluginAsync = async (app) => {
       byOrder.set(it.orderId, list);
     }
 
+    // ⚡ Bolt: Cache payment instructions to avoid O(N*M) lookup in the loop below
+    const instructionsByOrderId = new Map<number, typeof instructions[0]>();
+    for (const item of instructions) {
+      if (!instructionsByOrderId.has(item.orderId)) {
+        instructionsByOrderId.set(item.orderId, item);
+      }
+    }
+
     return {
       ok: true,
-      items: rows.map((r) => toAdminOrderDTO(r, byOrder.get(r.id) ?? [], instructions.find((item) => item.orderId === r.id))),
+      items: rows.map((r) => toAdminOrderDTO(r, byOrder.get(r.id) ?? [], instructionsByOrderId.get(r.id))),
       total: Number(total?.n ?? 0),
       page: q.page,
       perPage: q.perPage,
