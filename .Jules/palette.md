@@ -1,0 +1,3 @@
+## 2023-11-20 - Ensure icon-only quantity stepper buttons have aria labels
+**Learning:** In this codebase, the standard '+' and '-' quantity stepper buttons (e.g. using the `.add-wh-btn` class) often lack descriptive `aria-label`s, breaking accessibility for screen reader users by forcing the screen reader to read out confusing literal symbol names.
+**Action:** When adding or modifying these stepper buttons, always provide `aria-label="افزایش"` (for increase) and `aria-label="کاهش"` (for decrease) and ensure these are also used as visual `title` attributes when appropriate for non-screen reader users.
