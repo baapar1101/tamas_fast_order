@@ -647,10 +647,14 @@ export async function replaceOrderItems(orderId: number, input: OrderItemsReplac
     const nextReservations: Array<typeof inventoryReservations.$inferInsert> = [];
     const reservationStatus = order.status === 'new' ? 'reserved' as const : 'committed' as const;
     const now = new Date();
+
+    // Create an O(1) lookup map by DB ID to avoid O(N^2) array search inside the loop
+    const productByDbId = new Map([...productById.values()].map(p => [p.id, p]));
+
     for (const productDbId of affectedProductIds) {
       const before = beforePhysical.get(productDbId) ?? { kerman: 0, tehran: 0, site: 0 };
       const after = afterNeeds.get(productDbId);
-      const product = after?.product ?? [...productById.values()].find((row) => row.id === productDbId);
+      const product = after?.product ?? productByDbId.get(productDbId);
       if (!product) throw conflict('یکی از کالاهای رزروشده دیگر در انبار پیدا نشد.');
       const restoredLevels = {
         kermanStock: product.kermanStock + before.kerman,
