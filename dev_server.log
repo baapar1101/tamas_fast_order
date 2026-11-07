@@ -1,0 +1,103 @@
+
+> tamas-fast-order@2.0.0 predev
+> node scripts/fix-perms.js
+
+
+> tamas-fast-order@2.0.0 dev
+> npm-run-all --parallel dev:shared dev:api dev:web
+
+
+> tamas-fast-order@2.0.0 dev:api
+> npm run dev -w @tamas/api
+
+
+> tamas-fast-order@2.0.0 dev:web
+> npm run dev -w @tamas/web
+
+
+> tamas-fast-order@2.0.0 dev:shared
+> npm run dev -w @tamas/shared
+
+
+> @tamas/api@2.0.0 predev
+> node ../../scripts/fix-perms.js
+
+
+> @tamas/web@2.0.0 predev
+> node ../../scripts/fix-perms.js
+
+
+> @tamas/shared@2.0.0 dev
+> tsc -p tsconfig.json --watch
+
+
+> @tamas/api@2.0.0 dev
+> cross-env PORT=3001 NODE_ENV=development tsx watch src/index.ts
+
+
+> @tamas/web@2.0.0 dev
+> vite
+
+[2J[3J[H4:48:56 AM - Starting compilation in watch mode...
+
+
+  VITE v6.4.5  ready in 368 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://192.168.0.2:5173/
+
+Invalid environment configuration:
+  • DATABASE_URL: Required
+  • APP_SECRET: Required
+
+Copy .env.example to .env and fill it in.
+
+
+4:49:02 AM - Found 0 errors. Watching for file changes.
+4:49:02 AM [tsx] change in ./../../packages/shared/dist/index.js Rerunning...
+
+Invalid environment configuration:
+  • DATABASE_URL: Required
+  • APP_SECRET: Required
+
+Copy .env.example to .env and fill it in.
+
+4:49:43 AM [vite] http proxy error: /api/catalog/bootstrap
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+4:49:43 AM [vite] http proxy error: /api/catalog/products?inStock=true&sort=price_asc&page=1&perPage=24
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+4:49:43 AM [vite] http proxy error: /api/catalog/products?inStock=true&sort=price_asc&page=1&perPage=24
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+4:50:15 AM [vite] http proxy error: /api/catalog/bootstrap
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+4:50:15 AM [vite] http proxy error: /api/catalog/products?inStock=true&sort=price_asc&page=1&perPage=24
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+4:50:15 AM [vite] http proxy error: /api/catalog/products?inStock=true&sort=price_asc&page=1&perPage=24
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+4:50:16 AM [vite] http proxy error: /api/catalog/bootstrap
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+4:50:16 AM [vite] http proxy error: /api/catalog/products?inStock=true&sort=price_asc&page=1&perPage=24
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+4:51:22 AM [vite] http proxy error: /api/catalog/bootstrap
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+4:51:22 AM [vite] http proxy error: /api/catalog/products?inStock=true&sort=price_asc&page=1&perPage=24
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+4:51:22 AM [vite] http proxy error: /api/catalog/products?inStock=true&sort=price_asc&page=1&perPage=24
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+4:51:22 AM [vite] http proxy error: /api/catalog/bootstrap
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+4:51:22 AM [vite] http proxy error: /api/catalog/products?inStock=true&sort=price_asc&page=1&perPage=24
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
