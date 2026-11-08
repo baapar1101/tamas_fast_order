@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gt, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray, isNull, not, or, sql } from 'drizzle-orm';
 import type { BrandDTO, BundleContentDTO, CatalogQuery, CategoryDTO, ColorDTO, ProductDTO, ProductGroupDTO } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { brands, categories, categoryBrands, colors, products } from '../db/schema.js';
@@ -7,6 +7,7 @@ import { sanitizeExternalText } from '../lib/external-content.js';
 import { resolveBundleContents } from './bundle-contents.js';
 import { offsetOf } from '../lib/pagination.js';
 import { jsonArray, productAttributes, productGallery } from '../lib/catalog-json.js';
+import { getSetting } from './settings.js';
 
 type ProductRow = typeof products.$inferSelect;
 
@@ -107,17 +108,18 @@ export async function queryProducts(q: CatalogQuery): Promise<{
   page: number;
   perPage: number;
 }> {
-  const cacheKey = `products:${JSON.stringify(q)}`;
+  const campaignActive = (await getSetting('campaign_mode'))?.startsWith('2026-11') ?? false;
+  const cacheKey = `products:${campaignActive}:${JSON.stringify(q)}`;
   const cached = catalogCache.get(cacheKey) as
     | { groups: ProductGroupDTO[]; total: number; page: number; perPage: number }
     | undefined;
   if (cached) return cached;
 
   const filters = [q.inStock ? sellableProduct() : liveProduct()];
-  // Baskets belong in both campaign filters, even when their promotion flag is unset.
+  if (campaignActive && q.inStock) filters.push(eq(products.promotion, true));
   const isBasket = or(eq(categories.name, 'Bondle'), eq(categories.faName, 'سبد ها'))!;
-  if (q.promotion) filters.push(or(eq(products.promotion, true), isBasket)!);
-  if (q.basketOnly) filters.push(isBasket);
+  if (q.promotion && !q.basketOnly) filters.push(and(eq(products.promotion, true), or(isNull(products.categoryId), not(isBasket)))!);
+  if (q.basketOnly) filters.push(and(isBasket, eq(products.promotion, true))!);
   if (q.creditOnly) {
     filters.push(
       or(
@@ -191,6 +193,11 @@ export async function queryProducts(q: CatalogQuery): Promise<{
   const byTitle = new Map<string, ProductGroupDTO>();
   for (const row of variantRows) {
     const dto = toProductDTO(row.product, row.category, row.brand);
+    if (campaignActive && !dto.promotion) {
+      dto.stock = 0;
+      dto.kermanStock = 0;
+      dto.tehranStock = 0;
+    }
     const groupKey = row.product.parentProductId || dto.title;
     let group = byTitle.get(groupKey);
     if (!group) {
@@ -297,6 +304,9 @@ export async function findProductByPublicId(
   // A direct product URL remains useful when stock runs out. Only the private
   // admin preview may include inactive products; deleted products stay hidden.
   const visibleProduct = options.adminPreview ? isNull(products.deletedAt) : liveProduct();
+  const shortCode = /^~([0-9a-z]+)$/i.exec(productId);
+  const shortId = shortCode ? Number.parseInt(shortCode[1]!, 36) : null;
+  if (shortCode && (!Number.isSafeInteger(shortId) || shortId! <= 0)) return null;
   const [row] = await db
     .select({
       product: products,
@@ -306,14 +316,18 @@ export async function findProductByPublicId(
     .from(products)
     .leftJoin(categories, eq(categories.id, products.categoryId))
     .leftJoin(brands, eq(brands.id, products.brandId))
-    .where(and(eq(products.productId, productId), visibleProduct))
+    .where(and(shortId ? eq(products.id, shortId) : eq(products.productId, productId), visibleProduct))
     .limit(1);
 
   if (!row) return null;
 
-  const mainProduct = toProductDTO(row.product, row.category, row.brand);
+  const campaignActive = !options.adminPreview && ((await getSetting('campaign_mode'))?.startsWith('2026-11') ?? false);
+  const maskUnavailable = (product: ProductDTO): ProductDTO => campaignActive && !product.promotion
+    ? { ...product, stock: 0, kermanStock: 0, tehranStock: 0 }
+    : product;
+  const mainProduct = maskUnavailable(toProductDTO(row.product, row.category, row.brand));
   let bundleContents: BundleContentDTO[] = [];
-  if (mainProduct.type === 'bundle' && mainProduct.bundleItems.length > 0) {
+  if (mainProduct.bundleItems.length > 0) {
     const productIds = [...new Set(mainProduct.bundleItems.map((item) => item.productId))];
     const componentRows = await db
       .select({ productId: products.productId, title: products.title, imageUrl: products.imageUrl })
@@ -353,7 +367,7 @@ export async function findProductByPublicId(
       )
     );
 
-  const variants = variantRows.map((r) => toProductDTO(r.product, r.category, r.brand));
+  const variants = variantRows.map((r) => maskUnavailable(toProductDTO(r.product, r.category, r.brand)));
 
   return { product: mainProduct, variants, bundleContents };
 }

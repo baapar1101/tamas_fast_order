@@ -1,17 +1,38 @@
-import { useEffect } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
-import { StoreFooter } from './StoreFooter';
+import { api } from '../lib/api';
+import { useAuth } from '../store/auth';
 
 export function PaymentResultPage() {
   const [params] = useSearchParams();
-  const navigate = useNavigate();
+  const user = useAuth((state) => state.user);
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState('');
   const status = params.get('status');
   const orderId = params.get('orderId');
   const trackingCode = params.get('trackingCode');
   const error = params.get('error');
 
   const isSuccess = status === 'success';
+  const numericOrderId = Number(orderId);
+  const canRetry = !isSuccess && Boolean(user) && Number.isInteger(numericOrderId) && numericOrderId > 0;
+
+  const retryPayment = async () => {
+    setRetrying(true);
+    setRetryError('');
+    try {
+      const res = await api.post<{ ok: boolean; url: string }>('/payment/create', { orderId: numericOrderId });
+      if (res.url) {
+        window.location.href = res.url;
+        return;
+      }
+      setRetryError('آدرس درگاه پرداخت دریافت نشد.');
+    } catch (err) {
+      setRetryError(err instanceof Error ? err.message : 'اتصال به درگاه پرداخت ناموفق بود.');
+    }
+    setRetrying(false);
+  };
 
   return (
     <div className="storefront-page customer-payment-result" style={{ padding: "var(--ds-space-10) var(--ds-space-5)", minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -61,8 +82,15 @@ export function PaymentResultPage() {
           )}
         </div>
 
-        <div className="customer-payment-actions" style={{ display: 'flex', gap: 15, justifyContent: 'center' }}>
-          <Link to="/account" className="btn primary">پیگیری سفارشات</Link>
+        {retryError && <div className="alert error" role="alert" style={{ marginBottom: 'var(--ds-space-4)' }}>{retryError}</div>}
+
+        <div className="customer-payment-actions" style={{ display: 'flex', gap: 15, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {canRetry && (
+            <button type="button" className="btn primary" disabled={retrying} onClick={() => void retryPayment()}>
+              {retrying ? 'در حال اتصال به درگاه…' : 'تلاش دوباره برای پرداخت'}
+            </button>
+          )}
+          <Link to="/account" className={canRetry ? 'btn' : 'btn primary'}>پیگیری سفارشات</Link>
           <Link to="/" className="btn outline">بازگشت به فروشگاه</Link>
         </div>
       </div>

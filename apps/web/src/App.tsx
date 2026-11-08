@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigationType } from 'react-router-dom';
+import { scrollPageToTop } from './lib/scroll';
 import { SvgSprite } from './components/Icon';
 import { TableExcelExportManager } from './components/TableExcelExportManager';
 import { useAuth } from './store/auth';
@@ -28,6 +29,21 @@ const AdminApp = lazy(() => import('./admin/AdminApp'));
 function LegacyAccountRedirect({ target }: { target: string }) {
   const location = useLocation();
   return <Navigate to={`${target}${location.search}${location.hash}`} state={location.state} replace />;
+}
+
+/**
+ * A new page must open at its top. On mobile widths <body> is the scroll
+ * container and keeps its offset across routes, so a product opened from deep
+ * in the catalog (or the checkout opened from the bottom of the cart) used to
+ * load half-way down. Back/forward (POP) keeps the browser's position.
+ */
+function ScrollToTopOnNavigate() {
+  const { pathname } = useLocation();
+  const navigationType = useNavigationType();
+  useEffect(() => {
+    if (navigationType !== 'POP') scrollPageToTop();
+  }, [pathname, navigationType]);
+  return null;
 }
 
 function AdminLoadingSpinner() {
@@ -60,6 +76,7 @@ export function App() {
   return (
     <>
       <SvgSprite />
+      <ScrollToTopOnNavigate />
       <TableExcelExportManager />
       <TelegramConnectPrompt />
       <Routes>

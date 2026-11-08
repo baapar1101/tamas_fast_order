@@ -18,6 +18,9 @@ export interface CartLine {
 
 interface CartState {
   lines: CartLine[];
+  /** Order note typed in the cart; carried into checkout and sent with the order. */
+  note: string;
+  setNote: (note: string) => void;
   add: (product: ProductDTO, warehouse: Warehouse, qty?: number) => { ok: boolean; message?: string };
   setQty: (key: string, qty: number) => void;
   remove: (key: string) => void;
@@ -48,6 +51,11 @@ export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
       lines: [],
+      note: '',
+
+      setNote(note) {
+        set({ note: note.slice(0, 1000) });
+      },
 
       add(product, warehouse, qty = 1) {
         const max = stockFor(product, warehouse);
@@ -96,7 +104,7 @@ export const useCart = create<CartState>()(
       },
 
       clear() {
-        set({ lines: [] });
+        set({ lines: [], note: '' });
       },
     }),
     { name: 'tamas_cart_v2' },

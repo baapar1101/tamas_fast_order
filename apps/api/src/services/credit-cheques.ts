@@ -1,6 +1,6 @@
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import {
-  chequeDueDate,
+  planChequeDueDate,
   firstChequeSubmissionDeadline,
   formatPersianDueDate,
   type CreditChequeWrite,
@@ -18,7 +18,7 @@ function scheduledInstallment(plan: PaymentPlanQuote, orderDate: Date, index: nu
   const item = plan.schedule[index];
   const amount = item?.amount;
   if (!item || amount == null || amount <= 0) return null;
-  const dueDate = item.dueDate ?? chequeDueDate(orderDate, index, plan.installmentIntervalMonths ?? 1, plan.termMonths);
+  const dueDate = item.dueDate ?? planChequeDueDate(orderDate, index, plan);
   return { ...item, amount, dueDate, dueLabel: formatPersianDueDate(dueDate) };
 }
 

@@ -13,9 +13,11 @@ describe('shared schemas', () => {
     for (const value of [false, 0, 'FALSE', 'no', '', null, undefined]) assert.equal(sheetBool.parse(value), false);
   });
 
-  it('requires numeric product codes to start with zero', () => {
+  it('accepts existing and new numeric product codes without requiring a leading zero', () => {
     assert.equal(productCodeSchema.parse(' 01010112982 '), '01010112982');
-    for (const value of ['1010112982', 'ABC-01', '0', '']) {
+    assert.equal(productCodeSchema.parse('1010112982'), '1010112982');
+    assert.equal(productCodeSchema.parse('09190015'), '09190015');
+    for (const value of ['ABC-01', '0', '', '1234567', '1234567890123']) {
       assert.throws(() => productCodeSchema.parse(value));
     }
   });

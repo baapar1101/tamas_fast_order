@@ -5,7 +5,9 @@ import {
   firstChequeSubmissionDeadline,
   formatPersianDueDate,
   nextThursdayDueDate,
+  planChequeDueDate,
   tehranWeekWindow,
+  weeklyChequeDueDate,
 } from '../src/payment-dates.js';
 
 const orderAtMehr20 = new Date('2026-10-12T12:00:00+03:30'); // ۲۰ مهر ۱۴۰۵
@@ -22,6 +24,13 @@ test('bimonthly cheques preserve day 25 every two Persian months', () => {
   const second = chequeDueDate(orderAtMehr20, 1, 2);
   assert.match(formatPersianDueDate(first), /۲۵ آذر ۱۴۰۵/);
   assert.match(formatPersianDueDate(second), /۲۵ بهمن ۱۴۰۵/);
+});
+
+test('weekly cheques fall on consecutive seven-day dates', () => {
+  assert.equal(weeklyChequeDueDate(orderAtMehr20, 0), '2026-10-19');
+  assert.equal(weeklyChequeDueDate(orderAtMehr20, 3), '2026-11-09');
+  assert.equal(planChequeDueDate(orderAtMehr20, 3, { termWeeks: 4, termMonths: null, installmentIntervalMonths: null }), '2026-11-09');
+  assert.equal(planChequeDueDate(orderAtMehr20, 0, { termMonths: 2, installmentIntervalMonths: 2 }), chequeDueDate(orderAtMehr20, 0, 2));
 });
 
 test('weekly credit uses the next Thursday and cheque submission closes after five days', () => {

@@ -2,7 +2,7 @@ import {
   creditChequeWriteSchema,
   creditApplicationWriteSchema,
   installmentReceiptWriteSchema,
-  chequeDueDate,
+  planChequeDueDate,
   firstChequeSubmissionDeadline,
   formatMoney,
   formatPersianDueDate,
@@ -315,7 +315,7 @@ const routes: FastifyPluginAsync = async (app) => {
       const registeredCount = chequesList.filter((cheque) => cheque.orderId === order.id).length;
       const schedule = plan.schedule.flatMap((item, index) => {
         if (item.amount == null || item.amount <= 0) return [];
-        const dueDate = item.dueDate ?? chequeDueDate(order.createdAt, index, plan.installmentIntervalMonths ?? 1, plan.termMonths);
+        const dueDate = item.dueDate ?? planChequeDueDate(order.createdAt, index, plan);
         return [{
           index,
           amount: item.amount,

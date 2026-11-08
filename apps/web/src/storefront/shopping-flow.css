@@ -1,0 +1,198 @@
+/* Cart, checkout and favourites refinements found while walking the purchase flow. */
+
+.cart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: 56px 16px;
+}
+
+.cart-empty > svg {
+  width: 40px;
+  height: 40px;
+  color: var(--tamas-accent);
+  opacity: 0.55;
+}
+
+.cart-empty p {
+  margin: 0;
+  color: var(--tamas-fg);
+  font-weight: 800;
+}
+
+.cart-empty span {
+  font-size: var(--ds-text-caption);
+  line-height: 1.7;
+  max-width: 260px;
+}
+
+.cart-empty .btn {
+  margin-top: var(--ds-space-2);
+}
+
+.cart-item-head {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+}
+
+.cart-item-thumb {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid var(--tamas-border);
+  background: var(--ds-media-surface, #fff);
+}
+
+/* The browser's own clear button duplicated the custom ✕ in the search box. */
+.search-input::-webkit-search-cancel-button,
+.search-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+/* Header favourites badge */
+.fav-header-btn {
+  position: relative;
+}
+
+.fav-header-btn .badge-count {
+  position: absolute;
+  top: -4px;
+  inset-inline-end: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--tamas-accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.fav-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fav-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-2);
+  border: 1px solid var(--tamas-border);
+  border-radius: 12px;
+  background: var(--tamas-surface, var(--card));
+}
+
+.fav-list img {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  object-fit: contain;
+  border-radius: 8px;
+  background: var(--ds-media-surface, #fff);
+}
+
+.fav-list a {
+  flex: 1;
+  min-width: 0;
+  color: var(--tamas-fg);
+  font-size: var(--ds-text-sm);
+  font-weight: 700;
+  line-height: 1.6;
+  text-decoration: none;
+}
+
+.fav-list a:hover {
+  color: var(--tamas-accent);
+}
+
+.fav-empty {
+  text-align: center;
+  color: var(--tamas-muted);
+  padding: var(--ds-space-6) var(--ds-space-3);
+  line-height: 1.8;
+}
+
+/* Checkout: explain a blocked submit right next to the button that was pressed. */
+.checkout-consent.is-invalid {
+  outline: 2px solid var(--danger, #dc2626);
+  outline-offset: 2px;
+}
+
+.checkout-inline-error {
+  margin-top: var(--ds-space-3);
+}
+
+.checkout-payment-recovery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+}
+
+.checkout-payment-recovery .btn {
+  flex: 1 1 180px;
+}
+
+/* Orders: payment state + recovery actions */
+.ord-pay-badge {
+  font-size: var(--ds-text-caption);
+}
+
+.ord-foot {
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+}
+
+/* `danger` tone was referenced (cancelled orders) but never styled. */
+.badge.danger {
+  background: var(--ds-danger-soft, rgba(220, 38, 38, 0.1));
+  color: var(--ds-danger, #dc2626);
+}
+
+/* The custom clear button had no styles, wrapped under the input and pushed
+   the search icon off-centre. Keep it inside the field, opposite the icon. */
+.search-wrapper .search-clear {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: 12px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: var(--tamas-surface-alt, rgba(0, 0, 0, 0.06));
+  color: var(--tamas-muted);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.search-wrapper .search-clear:hover {
+  color: var(--tamas-fg);
+}
+
+.search-wrapper:has(.search-clear) .search-shortcut {
+  display: none;
+}
+
+.search-wrapper:has(.search-clear) .search-input {
+  padding-inline-end: 48px;
+}
