@@ -76,10 +76,17 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(cookie);
 
+  const publicUploadsPrefix = `${env.STORAGE_PUBLIC_URL.replace(/\/$/, '')}/`;
   await app.register(rateLimit, {
     global: true,
-    max: 300,
+    // Mobile carriers put many customers behind one address, and one catalog
+    // page alone pulls dozens of images; sensitive routes keep their own,
+    // much tighter per-route limits (OTP, orders, payment, wallet…).
+    max: 1200,
     timeWindow: '1 minute',
+    // Public product/slide images are plain file reads — counting them against
+    // the API budget made the catalog request fail with 429 after a deploy.
+    allowList: (req) => (req.method === 'GET' || req.method === 'HEAD') && req.url.startsWith(publicUploadsPrefix),
     // Behind a proxy the client IP arrives in a header; `trustProxy` decides
     // whether Fastify believes it.
     keyGenerator: (req) => req.ip,
