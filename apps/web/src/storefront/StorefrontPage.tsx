@@ -12,7 +12,7 @@ import { AndroidAppBanner } from './AndroidAppBanner';
 import { ProductCard } from './ProductCard';
 import { ProductImagePreview } from './ProductImagePreview';
 import { createColorMap } from './productColor';
-import { useBootstrap, useDebounced, useProducts, type CatalogFilters, type StorefrontSlide } from './hooks';
+import { PRODUCTS_PER_PAGE, useBootstrap, useDebounced, useProducts, type CatalogFilters, type StorefrontSlide } from './hooks';
 import { Icon } from '../components/Icon';
 import { useDarkTheme } from '../components/useDarkTheme';
 import { CrmChat } from '../components/CrmChat';
@@ -24,7 +24,7 @@ import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_IMAGE_URL, GOLDEN_CAMPAIGN_LIGH
 import { HOMEPAGE_FILTER_SETTING_KEY, parseHomepageFilters, type HomepageFilterType } from './homepageFilters';
 import { MobileAppNavigation, type MobileAppTab } from './MobileAppNavigation';
 import { SiteHeader } from './SiteHeader';
-import { scrollIntoViewSoft, scrollPageToTop } from '../lib/scroll';
+import { scrollPageToTop } from '../lib/scroll';
 import './storefront.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
@@ -96,9 +96,7 @@ export function StorefrontPage() {
   const [brands, setBrands] = useState<string[]>(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
   const [promotion, setPromotion] = useState(searchParams.get('promo') === '1');
   const [basketOnly, setBasketOnly] = useState(searchParams.get('basket') === '1' || searchParams.get('credit') === '1');
-  const [inStockOnly, setInStockOnly] = useState(searchParams.get('stock') !== '0');
   const [sort, setSort] = useState<CatalogFilters['sort']>((searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc');
-  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'grid');
   const [mobileTab, setMobileTab] = useState<MobileAppTab>(() => (
     location.hash === '#cart' ? 'cart' : parseMobileTab(searchParams.get('tab'))
@@ -129,16 +127,17 @@ export function StorefrontPage() {
     if (promotion) params.set('promo', '1'); else params.delete('promo');
     if (basketOnly) params.set('basket', '1'); else params.delete('basket');
     params.delete('credit');
-    if (!inStockOnly) params.set('stock', '0'); else params.delete('stock');
+    // Legacy links: stock is always enforced and the list loads endlessly.
+    params.delete('stock');
     if (sort !== 'price_asc') params.set('sort', sort); else params.delete('sort');
-    if (page > 1) params.set('page', String(page)); else params.delete('page');
+    params.delete('page');
     if (viewMode !== 'grid') params.set('view', viewMode); else params.delete('view');
     if (mobileTab !== 'home') params.set('tab', mobileTab); else params.delete('tab');
 
     if (params.toString() !== searchParams.toString()) {
       setSearchParams(params, { replace: true });
     }
-  }, [search, category, brandsStr, promotion, basketOnly, inStockOnly, sort, page, viewMode, mobileTab, searchParams, setSearchParams]);
+  }, [search, category, brandsStr, promotion, basketOnly, sort, viewMode, mobileTab, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (searchParams.toString() === observedUrlRef.current) return;
@@ -160,14 +159,8 @@ export function StorefrontPage() {
     const basket = searchParams.get('basket') === '1' || searchParams.get('credit') === '1';
     if (basketOnly !== basket) setBasketOnly(basket);
 
-    const stock = searchParams.get('stock') !== '0';
-    if (inStockOnly !== stock) setInStockOnly(stock);
-
     const s = (searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc';
     if (sort !== s) setSort(s);
-
-    const p = Number(searchParams.get('page')) || 1;
-    if (page !== p) setPage(p);
 
     const v = (searchParams.get('view') as 'list' | 'grid') || 'grid';
     if (viewMode !== v) setViewMode(v);
@@ -193,16 +186,12 @@ export function StorefrontPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const productsTopRef = useRef<HTMLElement>(null);
-  const goToPage = (next: number) => {
-    setPage(next);
-    scrollIntoViewSoft(productsTopRef.current);
-  };
   const [brandsCollapsed, setBrandsCollapsed] = useState(true);
 
   const debouncedSearch = useDebounced(search);
   const filters: CatalogFilters = useMemo(
-    () => ({ q: debouncedSearch, category, brands, promotion, basketOnly, inStockOnly, sort, page }),
-    [debouncedSearch, category, brands, promotion, basketOnly, inStockOnly, sort, page],
+    () => ({ q: debouncedSearch, category, brands, promotion, basketOnly, sort }),
+    [debouncedSearch, category, brands, promotion, basketOnly, sort],
   );
 
   const bootstrap = useBootstrap();
@@ -235,7 +224,6 @@ export function StorefrontPage() {
     return narrowed.length > 0 ? narrowed : all;
   }, [bootstrap.data, category]);
 
-  const resetPage = useCallback(() => setPage(1), []);
 
   const setQty = useCart((s) => s.setQty);
 
@@ -298,22 +286,40 @@ export function StorefrontPage() {
     [settings[HOMEPAGE_FILTER_SETTING_KEY]],
   );
   const filterState: Record<HomepageFilterType, boolean> = {
-    in_stock: inStockOnly,
     promotion,
     basket: basketOnly,
   };
   const toggleHomepageFilter = (type: HomepageFilterType) => {
-    if (type === 'in_stock') setInStockOnly((current) => !current);
     if (type === 'promotion') setPromotion((current) => !current);
     if (type === 'basket') setBasketOnly((current) => !current);
-    resetPage();
   };
   const canViewPrices = Boolean(user?.isActive);
 
-  const groups = products.data?.groups ?? [];
-  const total = products.data?.total ?? 0;
-  const perPage = products.data?.perPage ?? 24;
-  const pageCount = Math.max(1, Math.ceil(total / perPage));
+  const groups = useMemo(() => {
+    const seen = new Set<string>();
+    return (products.data?.pages ?? []).flatMap((page) => page.groups).filter((group) => {
+      if (seen.has(group.key)) return false;
+      seen.add(group.key);
+      return true;
+    });
+  }, [products.data]);
+  const total = products.data?.pages.at(-1)?.total ?? 0;
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = products;
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Load the next page shortly before the shopper reaches the end of the list.
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!sentinel || !hasNextPage) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting) && !isFetchingNextPage) void fetchNextPage();
+      },
+      { rootMargin: '900px 0px' },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, groups.length]);
 
   return (
     <div className="shell">
@@ -321,7 +327,6 @@ export function StorefrontPage() {
         search={search}
         onSearchChange={(value) => {
           setSearch(value);
-          resetPage();
           // Results only render on the home/search tabs; typing from the
           // categories, cart or profile tab used to look like it did nothing.
           if (mobileTab !== 'home' && mobileTab !== 'search') setMobileTab('search');
@@ -352,7 +357,7 @@ export function StorefrontPage() {
                   key={c.id}
                   type="button"
                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: "var(--ds-space-3)", padding: "var(--ds-space-6) var(--ds-space-3)", background: 'var(--card)', borderRadius: 16, border: '1px solid var(--tamas-border)', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}
-                  onClick={() => { setCategory(c.name); setBrands([]); resetPage(); selectMobileTab('home'); }}
+                  onClick={() => { setCategory(c.name); setBrands([]); selectMobileTab('home'); }}
                 >
                   {iconSrc ? <img src={iconSrc} alt="" loading="lazy" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span style={{ fontSize: "var(--ds-text-3xl)", color: 'var(--tamas-accent)' }}><Icon name="box" /></span>}
                   <span style={{ fontSize: "var(--ds-text-sm)", fontWeight: 700, color: 'var(--tamas-fg)' }}>{c.faName}</span>
@@ -442,7 +447,6 @@ export function StorefrontPage() {
               onClick={() => {
                 setCategory(null);
                 setBrands([]);
-                resetPage();
               }}
             >
               <span className="chip-icon">
@@ -466,7 +470,6 @@ export function StorefrontPage() {
                   onClick={() => {
                     setCategory(category === c.name ? null : c.name);
                     setBrands([]);
-                    resetPage();
                   }}
                 >
                   {iconSrc ? (
@@ -517,7 +520,6 @@ export function StorefrontPage() {
                         className={`brand-icon-btn${on ? ' active' : ''}`}
                         onClick={() => {
                           setBrands(on ? brands.filter((x) => x !== b.name) : [...brands, b.name]);
-                          resetPage();
                         }}
                       >
                         {iconSrc ? <img src={iconSrc} alt={b.faName} loading="lazy" /> : <Icon name="mobile" style={{ fontSize: "var(--ds-text-lg)" }} />}
@@ -555,7 +557,7 @@ export function StorefrontPage() {
                   <strong>{formatNumber(total)}</strong>
                   <span>کالا پیدا شد</span>
                 </div>
-                {(brands.length > 0 || category || promotion || basketOnly || search || !inStockOnly) && (
+                {(brands.length > 0 || category || promotion || basketOnly || search) && (
                   <button
                     type="button"
                     className="btn sm toolbar-reset"
@@ -565,8 +567,6 @@ export function StorefrontPage() {
                       setBrands([]);
                       setPromotion(false);
                       setBasketOnly(false);
-                      setInStockOnly(true);
-                      resetPage();
                     }}
                   >
                     پاک‌کردن فیلترها
@@ -605,7 +605,6 @@ export function StorefrontPage() {
                     value={sort}
                     onChange={(e) => {
                       setSort(e.target.value as CatalogFilters['sort']);
-                      resetPage();
                     }}
                   >
                     {Object.entries(SORT_LABELS).map(([value, label]) => (
@@ -648,25 +647,21 @@ export function StorefrontPage() {
               </div>
             ) : (
               <>
-                <div className={viewMode === 'grid' ? 'products-grid' : 'products-list'} style={{ opacity: products.isFetching ? 0.65 : 1, transition: 'opacity .15s' }}>
+                <div className={viewMode === 'grid' ? 'products-grid' : 'products-list'} style={{ opacity: products.isFetching && !isFetchingNextPage ? 0.65 : 1, transition: 'opacity .15s' }}>
                   {groups.map((g) => (
                     <ProductCard key={g.key} group={g} colorMap={colorMap} canViewPrices={canViewPrices} viewMode={viewMode} cartLines={lines} onAdd={handleAdd} onUpdateQty={handleUpdateQty} onPreview={setPreview} />
                   ))}
                 </div>
 
-                {pageCount > 1 && (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: "var(--ds-space-6)" }}>
-                    <button type="button" className="btn" disabled={page <= 1} onClick={() => goToPage(page - 1)}>
-                      قبلی
-                    </button>
-                    <span style={{ fontSize: "var(--ds-text-sm)", color: 'var(--text-muted)', fontWeight: 600 }}>
-                      صفحه {formatNumber(page)} از {formatNumber(pageCount)}
-                    </span>
-                    <button type="button" className="btn" disabled={page >= pageCount} onClick={() => goToPage(page + 1)}>
-                      بعدی
-                    </button>
-                  </div>
-                )}
+                <div ref={loadMoreRef} className="catalog-more" aria-live="polite">
+                  {isFetchingNextPage ? (
+                    <span className="catalog-more-loading"><span className="catalog-more-spinner" aria-hidden="true" /> در حال بارگذاری کالاهای بیشتر…</span>
+                  ) : hasNextPage ? (
+                    <button type="button" className="btn" onClick={() => void fetchNextPage()}>نمایش کالاهای بیشتر</button>
+                  ) : groups.length > PRODUCTS_PER_PAGE ? (
+                    <span className="catalog-more-end">همهٔ {formatNumber(total)} کالا نمایش داده شد.</span>
+                  ) : null}
+                </div>
               </>
             )}
           </section>
@@ -718,8 +713,6 @@ export function StorefrontPage() {
             setBrands([]);
             setPromotion(false);
             setBasketOnly(false);
-            setInStockOnly(true);
-            resetPage();
           }
           selectMobileTab(tab);
           if (tab === 'search') {

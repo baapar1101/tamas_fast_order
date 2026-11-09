@@ -11,11 +11,21 @@ test('homepage filters keep the existing storefront defaults before configuratio
 test('homepage filters preserve labels, order, and disabled state', () => {
   const value = JSON.stringify([
     { id: 'festival', type: 'promotion', label: 'پیشنهاد ویژه', enabled: false },
-    { id: 'stock', type: 'in_stock', label: 'آماده ارسال', enabled: true },
+    { id: 'baskets', type: 'basket', label: 'سبدهای آماده', enabled: true },
   ]);
   assert.deepEqual(parseHomepageFilters(value), [
     { id: 'festival', type: 'promotion', label: 'پیشنهاد ویژه', enabled: false },
-    { id: 'stock', type: 'in_stock', label: 'آماده ارسال', enabled: true },
+    { id: 'baskets', type: 'basket', label: 'سبدهای آماده', enabled: true },
+  ]);
+});
+
+test('saved in-stock switches are dropped: out-of-stock items are never listed', () => {
+  const value = JSON.stringify([
+    { id: 'stock', type: 'in_stock', label: 'موجودها', enabled: true },
+    { id: 'festival', type: 'promotion', label: 'کالاهای جشنواره', enabled: true },
+  ]);
+  assert.deepEqual(parseHomepageFilters(value), [
+    { id: 'festival', type: 'promotion', label: 'کالاهای جشنواره', enabled: true },
   ]);
 });
 

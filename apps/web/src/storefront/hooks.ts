@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import type { BrandDTO, CategoryDTO, ColorDTO, ProductGroupDTO } from '@tamas/shared';
 import { api } from '../lib/api';
 
@@ -33,9 +33,7 @@ export interface CatalogFilters {
   brands: string[];
   promotion: boolean;
   basketOnly: boolean;
-  inStockOnly: boolean;
   sort: 'price_asc' | 'price_desc' | 'newest' | 'title';
-  page: number;
 }
 
 interface ProductsResponse {
@@ -45,8 +43,8 @@ interface ProductsResponse {
   perPage: number;
 }
 
-function sanitizeProducts(response: ProductsResponse, inStockOnly: boolean): ProductsResponse {
-  if (!inStockOnly) return response;
+/** Drops any variant without price or stock that slipped through (e.g. cached rows). */
+function sanitizeProducts(response: ProductsResponse): ProductsResponse {
   const groups = response.groups
     .map((group) => {
       const variants = group.variants.filter(
@@ -68,10 +66,16 @@ function sanitizeProducts(response: ProductsResponse, inStockOnly: boolean): Pro
   return { ...response, groups };
 }
 
+export const PRODUCTS_PER_PAGE = 24;
+
+/** Storefront catalog as an endless list: each page is fetched when the shopper nears the end. */
 export function useProducts(filters: CatalogFilters) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['products', filters],
-    queryFn: async ({ signal }) => {
+    initialPageParam: 1,
+    getNextPageParam: (last: ProductsResponse) =>
+      last.page * last.perPage < last.total ? last.page + 1 : undefined,
+    queryFn: async ({ signal, pageParam }) => {
       try {
         const response = await api.get<ProductsResponse>(
           '/catalog/products',
@@ -81,14 +85,14 @@ export function useProducts(filters: CatalogFilters) {
             brands: filters.brands,
             promotion: filters.promotion || undefined,
             basketOnly: filters.basketOnly || undefined,
-            inStock: filters.inStockOnly,
+            inStock: true,
             sort: filters.sort,
-            page: filters.page,
-            perPage: 24,
+            page: pageParam,
+            perPage: PRODUCTS_PER_PAGE,
           },
           signal,
         );
-        return sanitizeProducts(response, filters.inStockOnly);
+        return sanitizeProducts(response);
       } catch (err) {
         // Inventory must always come from the same API/database used by the
         // admin panel. The legacy snapshot is intentionally not used here:
