@@ -503,9 +503,9 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
                       </div>
                       {qty > 0 ? (
                         <div className="pp-qty-stepper">
-                          <button type="button" className="add-wh-btn" onClick={() => handleUpdateQty(cartKey, qty - 1)}>-</button>
+                          <button type="button" className="add-wh-btn" aria-label={`کاهش تعداد از ${WAREHOUSE_LABELS[wh]}`} title="کاهش" onClick={() => handleUpdateQty(cartKey, qty - 1)}>-</button>
                           <span>{formatNumber(qty)}</span>
-                          <button type="button" className="add-wh-btn" onClick={() => handleAdd(selected, wh)}>+</button>
+                          <button type="button" className="add-wh-btn" aria-label={`افزایش تعداد از ${WAREHOUSE_LABELS[wh]}`} title="افزایش" onClick={() => handleAdd(selected, wh)}>+</button>
                         </div>
                       ) : (
                         <button type="button" className="btn primary pp-add-btn" onClick={() => handleAdd(selected, wh)}>

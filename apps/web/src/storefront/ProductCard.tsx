@@ -199,6 +199,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                                 type="button"
                                 className="add-wh-btn"
                                 onClick={() => onAdd(v, wh)}
+                                aria-label={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
                                 title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
                               >
                                 +
@@ -353,6 +354,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                       type="button"
                       className="add-wh-btn"
                       onClick={() => onAdd(selectedVariant, wh)}
+                      aria-label={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
                       title={`افزودن از ${WAREHOUSE_LABELS[wh]}`}
                     >
                       +
