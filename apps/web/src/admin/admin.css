@@ -1,37 +1,6 @@
 /* ===========================================================================
    Apple Design System - Admin Theme
    ========================================================================== */
-@font-face {
-  font-family: 'Vazirmatn FD';
-  src: url('../fonts/Vazirmatn-FD-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Vazirmatn FD';
-  src: url('../fonts/Vazirmatn-FD-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Vazirmatn FD';
-  src: url('../fonts/Vazirmatn-FD-SemiBold.woff2') format('woff2');
-  font-weight: 600;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Vazirmatn FD';
-  src: url('../fonts/Vazirmatn-FD-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Vazirmatn FD';
-  src: url('../fonts/Vazirmatn-FD-ExtraBold.woff2') format('woff2');
-  font-weight: 800;
-  font-display: swap;
-}
-
 :root {
   /* Huma Dark Theme Colors (from D:\admin\admin) */
   --ink-950: #070b12; /* Background */

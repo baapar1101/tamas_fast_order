@@ -9,7 +9,10 @@ import { PrintInvoiceLayout, type PrintInvoiceItem } from '../components/PrintIn
 import { Icon } from '../components/Icon';
 import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
+import { faText } from '../lib/text';
+import { OrderPaymentActions, PaymentStatusBadge } from './OrderPaymentActions';
 import './storefront.css';
+import './shopping-flow.css';
 import './orders-page.css';
 
 const STATUS_TONE: Record<string, string> = {
@@ -81,6 +84,7 @@ export function OrdersPage() {
                         <b className="ord-track-code ltr-inline">{order.orderCode}</b>
                       </div>
                       <span className={`badge ${STATUS_TONE[order.status] ?? ''}`}>{ORDER_STATUS_LABELS[order.status]}</span>
+                      <PaymentStatusBadge order={order} />
                     </div>
                     <div className="ord-head-side">
                       <div className="ord-stat">
@@ -108,7 +112,7 @@ export function OrdersPage() {
                   <ul className="ord-items">
                     {order.items.map((item) => (
                       <li className="ord-item" key={item.id}>
-                        <span className="ord-item-title wrap">{item.title}</span>
+                        <span className="ord-item-title wrap">{faText(item.title)}</span>
                         <span className="ord-item-specs">
                           {item.color && <span className="ord-spec">{item.color}</span>}
                           <span className="ord-spec">{WAREHOUSE_LABELS[item.warehouse]}</span>
@@ -129,6 +133,7 @@ export function OrdersPage() {
                   )}
 
                   <footer className="ord-foot">
+                    <OrderPaymentActions order={order} />
                     <button type="button" className="btn ghost sm ord-print" onClick={() => printOrder(order.id)}>
                       <Icon name="printer" /> چاپ فاکتور
                     </button>

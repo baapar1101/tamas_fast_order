@@ -85,10 +85,38 @@ test('default config reproduces mobile service fees and daily schedule', () => {
   assert.equal(paymentAudienceForCategory(2, config), 'mobile');
   const quote = buildPaymentTermsQuote(10_000_000, ['mobile'], config);
   const fiveDays = quote.plans.find((plan) => plan.id === 'mobile-5-days');
-  assert.equal(fiveDays?.finalAmount, 10_130_000);
+  assert.equal(fiveDays?.finalAmount, 10_125_000);
   assert.equal(fiveDays?.settlementDays, 5);
   assert.deepEqual(fiveDays?.schedule.map((item) => item.percent), [null, 20, 20, 20, 20]);
-  assert.equal(repricePaymentPlan(fiveDays!, 20_000_000).finalAmount, 20_260_000);
+  assert.equal(repricePaymentPlan(fiveDays!, 20_000_000).finalAmount, 20_250_000);
+});
+
+test('festival accessory terms override discounts and prepayments and add weekly cheques', () => {
+  const config = { ...parsePaymentTermsConfig(undefined), festivalActive: true };
+  const quote = buildPaymentTermsQuote(1_000_000, ['accessory'], config);
+  const byId = (id: string) => quote.plans.find((plan) => plan.id === id);
+  assert.equal(byId('accessory-monthly-0')?.finalAmount, 880_000);
+  assert.equal(byId('accessory-monthly-1')?.discountPercent, 7);
+  assert.equal(byId('accessory-monthly-1')?.upfrontAmount, 0);
+  assert.equal(byId('accessory-monthly-2')?.discountPercent, 0);
+  assert.equal(byId('accessory-monthly-2')?.upfrontAmount, 50_000);
+  assert.equal(byId('accessory-monthly-3')?.upfrontAmount, 100_000);
+  assert.equal(byId('accessory-monthly-3')?.discountPercent, 0);
+  assert.equal(byId('accessory-monthly-8')?.upfrontAmount, 400_000);
+  assert.equal(byId('accessory-bimonthly-2')?.discountPercent, 0);
+  assert.equal(byId('accessory-bimonthly-2')?.upfrontAmount, 30_000);
+  assert.equal(byId('accessory-bimonthly-8')?.upfrontAmount, 500_000);
+  const fourWeeks = byId('accessory-weekly-4');
+  assert.equal(fourWeeks?.finalAmount, 930_000);
+  assert.equal(fourWeeks?.termWeeks, 4);
+  assert.deepEqual(fourWeeks?.schedule.map((item) => item.dueLabel), ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4']);
+  assert.equal(fourWeeks?.schedule.reduce((sum, item) => sum + (item.amount ?? 0), 0), 930_000);
+  assert.equal(byId('accessory-weekly-8')?.discountPercent, 0);
+  assert.equal(byId('accessory-weekly-8')?.upfrontAmount, 50_000);
+  assert.equal(byId('accessory-weekly-10')?.discountPercent, 0);
+  assert.equal(byId('accessory-weekly-10')?.upfrontAmount, 20_000);
+  assert.equal(byId('accessory-weekly-10')?.schedule.length, 10);
+  assert.equal(repricePaymentPlan(fourWeeks!, 2_000_000).schedule.reduce((sum, item) => sum + (item.amount ?? 0), 0), 1_860_000);
 });
 
 test('mixed mobile and accessory cart does not expose an ambiguous plan', () => {

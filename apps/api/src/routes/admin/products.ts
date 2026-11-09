@@ -342,9 +342,9 @@ const routes: FastifyPluginAsync = async (app) => {
     const where = inArray(products.id, body.ids);
     const affectedProducts = await db.select({ productId: products.productId }).from(products).where(where);
     if (body.action === 'restore') {
-      const invalidCode = affectedProducts.find((product) => !/^0\d+$/.test(product.productId));
+      const invalidCode = affectedProducts.find((product) => !/^\d{8,12}$/.test(product.productId));
       if (invalidCode) {
-        throw badRequest(`محصول با کد ${invalidCode.productId} قابل بازیابی نیست؛ کد باید با صفر شروع شود.`);
+        throw badRequest(`محصول با کد ${invalidCode.productId} قابل بازیابی نیست؛ کد باید عددی و بین ۸ تا ۱۲ رقم باشد.`);
       }
     }
     let changed = 0;

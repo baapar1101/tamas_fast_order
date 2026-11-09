@@ -12,6 +12,7 @@ interface AccessGroup {
 }
 
 const AVAILABLE_PERMISSIONS = [
+  { key: 'manage_app_notifications', label: 'اعلان‌های اپ', desc: 'ساخت، ارسال و مدیریت تاریخچه اعلان مشتریان' },
   { key: 'manage_orders', label: 'مدیریت سفارشات', desc: 'سفارش‌ها، تغییر وضعیت و امور مالی' },
   { key: 'manage_products', label: 'مدیریت محصولات', desc: 'محصولات، ویژگی‌ها، برندها و انبارها' },
   { key: 'manage_users', label: 'مدیریت کاربران', desc: 'مشتریان و سطح دسترسی آنها' },

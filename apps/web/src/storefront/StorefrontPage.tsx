@@ -8,6 +8,7 @@ import { cartCount, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
 import { CartPanel } from './CartPanel';
 import { InstallBanner } from './InstallBanner';
+import { AndroidAppBanner } from './AndroidAppBanner';
 import { ProductCard } from './ProductCard';
 import { ProductImagePreview } from './ProductImagePreview';
 import { createColorMap } from './productColor';
@@ -23,6 +24,9 @@ import { GoldenCampaignCopy } from './GoldenCampaignCopy';
 import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_IMAGE_URL, GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL, isGoldenCampaignSlide, visibleCampaignSlides } from './goldenCampaign';
 import { HOMEPAGE_FILTER_SETTING_KEY, parseHomepageFilters, type HomepageFilterType } from './homepageFilters';
 import { MobileAppNavigation, type MobileAppTab } from './MobileAppNavigation';
+import { FavoritesDialog } from './FavoritesDialog';
+import { useFavorites } from '../store/favorites';
+import { scrollIntoViewSoft, scrollPageToTop } from '../lib/scroll';
 import './storefront.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
@@ -102,15 +106,13 @@ export function StorefrontPage() {
     location.hash === '#cart' ? 'cart' : parseMobileTab(searchParams.get('tab'))
   ));
 
+  // The tab is written to the URL by the same effect as every other filter.
+  // A separate setSearchParams call here raced that effect: tapping «صفحه اصلی»
+  // after a filter change was overwritten and the old tab came back.
   const selectMobileTab = useCallback((tab: MobileAppTab) => {
     setMobileTab(tab);
-    setSearchParams((current) => {
-      const params = new URLSearchParams(current);
-      if (tab === 'home') params.delete('tab');
-      else params.set('tab', tab);
-      return params;
-    }, { replace: true });
-  }, [setSearchParams]);
+    scrollPageToTop();
+  }, []);
 
   useEffect(() => {
     if (location.hash === '#cart') setMobileTab('cart');
@@ -133,11 +135,12 @@ export function StorefrontPage() {
     if (sort !== 'price_asc') params.set('sort', sort); else params.delete('sort');
     if (page > 1) params.set('page', String(page)); else params.delete('page');
     if (viewMode !== 'grid') params.set('view', viewMode); else params.delete('view');
+    if (mobileTab !== 'home') params.set('tab', mobileTab); else params.delete('tab');
 
     if (params.toString() !== searchParams.toString()) {
       setSearchParams(params, { replace: true });
     }
-  }, [search, category, brandsStr, promotion, basketOnly, inStockOnly, sort, page, viewMode, searchParams, setSearchParams]);
+  }, [search, category, brandsStr, promotion, basketOnly, inStockOnly, sort, page, viewMode, mobileTab, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (searchParams.toString() === observedUrlRef.current) return;
@@ -191,6 +194,13 @@ export function StorefrontPage() {
   const [authStep, setAuthStep] = useState<'phone' | 'profile'>('phone');
   const [preview, setPreview] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [favoritesOpen, setFavoritesOpen] = useState(false);
+  const favoritesCount = useFavorites((state) => state.items.length);
+  const productsTopRef = useRef<HTMLElement>(null);
+  const goToPage = (next: number) => {
+    setPage(next);
+    scrollIntoViewSoft(productsTopRef.current);
+  };
   const [brandsCollapsed, setBrandsCollapsed] = useState(true);
 
   const debouncedSearch = useDebounced(search);
@@ -375,11 +385,14 @@ export function StorefrontPage() {
               onChange={(e) => {
                 setSearch(e.target.value);
                 resetPage();
+                // Results only render on the home/search tabs; typing from the
+                // categories, cart or profile tab used to look like it did nothing.
+                if (mobileTab !== 'home' && mobileTab !== 'search') setMobileTab('search');
               }}
               aria-label="جستجو"
             />
             {search && (
-              <button type="button" className="search-clear" onClick={() => setSearch('')} aria-label="پاک کردن جستجو">
+              <button type="button" className="search-clear" onClick={() => { setSearch(''); resetPage(); }} aria-label="پاک کردن جستجو">
                 ✕
               </button>
             )}
@@ -396,6 +409,16 @@ export function StorefrontPage() {
               aria-label="رفتن به سبد خرید"
             >
               <Icon name="bag" />
+            </button>
+            <button
+              type="button"
+              className="btn btn-icon-only fav-header-btn"
+              onClick={() => setFavoritesOpen(true)}
+              title="علاقه‌مندی‌ها"
+              aria-label={favoritesCount > 0 ? `علاقه‌مندی‌ها (${formatNumber(favoritesCount)})` : 'علاقه‌مندی‌ها'}
+            >
+              <Icon name={favoritesCount > 0 ? 'heart-fill' : 'heart'} />
+              {favoritesCount > 0 && <span className="badge-count" aria-hidden="true">{formatNumber(favoritesCount)}</span>}
             </button>
             {user ? (
               <Link to="/account" state={{ returnTo: `${location.pathname}${location.search}` }} className="btn primary" aria-label="رفتن به حساب کاربری">
@@ -420,6 +443,7 @@ export function StorefrontPage() {
       </header>
 
       <main className="container" data-mobile-tab={mobileTab}>
+        {mobileTab === 'home' && <AndroidAppBanner />}
         {bootstrap.isError && (
           <div className="card" role="alert" style={{ color: 'var(--danger)', padding: "var(--ds-space-5)", marginBottom: "var(--ds-space-5)" }}>
             دریافت دسته‌بندی‌ها و تنظیمات فروشگاه ناموفق بود. برای نمایش اطلاعات به‌روز، صفحه را دوباره بارگذاری کنید.
@@ -450,7 +474,7 @@ export function StorefrontPage() {
 
         {/* Mobile-only Cart View */}
         <div className="mobile-only-cart" style={{ paddingBottom: 100 }}>
-          <CartPanel onCheckout={openCheckout} canViewPrices={canViewPrices} hidePrintLayout />
+          <CartPanel onCheckout={openCheckout} canViewPrices={canViewPrices} hidePrintLayout onBrowse={() => selectMobileTab('home')} />
         </div>
 
         {/* Mobile-only Profile View */}
@@ -472,7 +496,7 @@ export function StorefrontPage() {
           )}
         </div>
         {/* Hero Carousel Slider */}
-        {heroSlides.length > 0 && <section className={`hero-slider${heroSlides[activeSlide]?.imageUrl === GOLDEN_CAMPAIGN_IMAGE_URL ? ' hero-slider--golden' : ''}`} aria-label="بنرهای فروشگاه" aria-roledescription="carousel">
+        {heroSlides.length > 0 && <section className={`hero-slider${heroSlides[activeSlide]?.imageUrl === GOLDEN_CAMPAIGN_IMAGE_URL ? ' hero-slider--golden' : ''}${/\/2026-11\/(phone-|festival-)/.test(heroSlides[activeSlide]?.imageUrl ?? '') ? ' hero-slider--phone-models' : ''}`} aria-label="بنرهای فروشگاه" aria-roledescription="carousel">
           {heroSlides.map((slide, i) => {
             const isGoldenCampaign = isGoldenCampaignSlide(slide);
             const imageUrl = isGoldenCampaign && !isDarkTheme ? GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL : slide.imageUrl;
@@ -634,14 +658,14 @@ export function StorefrontPage() {
           </aside>
 
           {/* Main Content (Center Column) */}
-          <section className="main-content">
+          <section className="main-content" ref={productsTopRef}>
             <div className="toolbar" aria-label="کنترل نمایش محصولات">
               <div className="toolbar-head">
                 <div className="toolbar-result">
                   <strong>{formatNumber(total)}</strong>
                   <span>کالا پیدا شد</span>
                 </div>
-                {(brands.length > 0 || category || promotion || basketOnly || search) && (
+                {(brands.length > 0 || category || promotion || basketOnly || search || !inStockOnly) && (
                   <button
                     type="button"
                     className="btn sm toolbar-reset"
@@ -651,7 +675,7 @@ export function StorefrontPage() {
                       setBrands([]);
                       setPromotion(false);
                       setBasketOnly(false);
-                      setInStockOnly(false);
+                      setInStockOnly(true);
                       resetPage();
                     }}
                   >
@@ -742,13 +766,13 @@ export function StorefrontPage() {
 
                 {pageCount > 1 && (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: "var(--ds-space-6)" }}>
-                    <button type="button" className="btn" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                    <button type="button" className="btn" disabled={page <= 1} onClick={() => goToPage(page - 1)}>
                       قبلی
                     </button>
                     <span style={{ fontSize: "var(--ds-text-sm)", color: 'var(--text-muted)', fontWeight: 600 }}>
                       صفحه {formatNumber(page)} از {formatNumber(pageCount)}
                     </span>
-                    <button type="button" className="btn" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
+                    <button type="button" className="btn" disabled={page >= pageCount} onClick={() => goToPage(page + 1)}>
                       بعدی
                     </button>
                   </div>
@@ -790,6 +814,8 @@ export function StorefrontPage() {
 
       <ProductImagePreview src={preview} onClose={() => setPreview(null)} />
 
+      <FavoritesDialog open={favoritesOpen} onClose={() => setFavoritesOpen(false)} />
+
       <MobileAppNavigation
         activeTab={mobileTab}
         cartItemCount={cartCount(lines)}
@@ -802,11 +828,14 @@ export function StorefrontPage() {
             setCategory(null);
             setBrands([]);
             setPromotion(false);
-            setInStockOnly(false);
+            setBasketOnly(false);
+            setInStockOnly(true);
             resetPage();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
           }
           selectMobileTab(tab);
+          if (tab === 'search') {
+            window.requestAnimationFrame(() => document.querySelector<HTMLInputElement>('.search-input')?.focus());
+          }
         }}
       />
 

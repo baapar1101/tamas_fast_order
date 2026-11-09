@@ -42,9 +42,7 @@ export const productAttributeSchema = z.object({
 export const productCodeSchema = z
   .string()
   .trim()
-  .min(2)
-  .max(80)
-  .regex(/^0\d+$/, 'کد محصول باید فقط عدد باشد و با صفر شروع شود.');
+  .regex(/^\d{8,12}$/, 'کد محصول باید فقط عدد و بین ۸ تا ۱۲ رقم باشد.');
 
 export const productTrackingLinkSchema = z.object({
   siteId: z.coerce.number().int().positive(),

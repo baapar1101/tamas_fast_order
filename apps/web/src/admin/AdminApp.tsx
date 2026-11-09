@@ -35,6 +35,7 @@ const GraphifyPage = lazy(() => import('./pages/GraphifyPage').then((m) => ({ de
 const ArchifyPage = lazy(() => import('./pages/ArchifyPage').then((m) => ({ default: m.ArchifyPage })));
 const AccessGroupsPage = lazy(() => import('./pages/AccessGroupsPage').then((m) => ({ default: m.AccessGroupsPage })));
 const SmsPage = lazy(() => import('./pages/SmsPage').then((m) => ({ default: m.SmsPage })));
+const AppNotificationsPage = lazy(() => import('./pages/AppNotificationsPage').then((m) => ({ default: m.AppNotificationsPage })));
 const CrmChatPage = lazy(() => import('./pages/CrmChatPage').then((m) => ({ default: m.CrmChatPage })));
 const CreditApplicationsPage = lazy(() => import('./pages/CreditApplicationsPage').then((m) => ({ default: m.CreditApplicationsPage })));
 const CatalogExportPage = lazy(() => import('./pages/CatalogExportPage').then((m) => ({ default: m.CatalogExportPage })));
@@ -286,6 +287,8 @@ const NAV_TOOLS = [
     ),
     requiredPermission: 'manage_settings',
   },
+  { to: '/admin/app-notifications', label: 'اعلان‌های اپ', requiredPermission: 'manage_app_notifications',
+    icon: <svg className="h-5 w-5 icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg> },
   {
     to: '/admin/marketing',
     label: 'بازاریابی',
@@ -403,7 +406,7 @@ const NAV_GROUPS = [
     id: 'customers',
     label: 'مشتریان و ارتباطات',
     description: 'کاربران، گفتگو و پیام‌رسانی',
-    paths: ['/admin/users', '/admin/comments', '/admin/chat', '/admin/messages', '/admin/sms'],
+    paths: ['/admin/users', '/admin/comments', '/admin/chat', '/admin/messages', '/admin/sms', '/admin/app-notifications'],
     iconPath: 'M15 19.128A9.38 9.38 0 0017.625 19.5a9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z',
   },
   {
@@ -957,6 +960,7 @@ export default function AdminApp() {
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="sms" element={<SmsPage />} />
+            <Route path="app-notifications" element={<AppNotificationsPage />} />
             <Route path="marketing" element={<MarketingPage />} />
             <Route path="uploads" element={<UploadsPage />} />
             <Route path="sync" element={<SyncPage />} />

@@ -46,6 +46,23 @@ export function chequeDueDate(orderDate: Date, installmentIndex: number, interva
   throw new Error('محاسبه تاریخ سررسید چک انجام نشد.');
 }
 
+/** Consecutive weekly cheque dates, anchored to the order's Tehran calendar day. */
+export function weeklyChequeDueDate(orderDate: Date, installmentIndex: number): string {
+  const weeks = installmentIndex + 1;
+  if (!Number.isInteger(weeks) || weeks < 1) throw new Error('شماره سررسید هفتگی نامعتبر است.');
+  return isoDate(new Date(orderDate.getTime() + weeks * 7 * 86_400_000));
+}
+
+export function planChequeDueDate(
+  orderDate: Date,
+  installmentIndex: number,
+  plan: { termWeeks?: number | null; termMonths: number | null; installmentIntervalMonths: number | null },
+): string {
+  return plan.termWeeks
+    ? weeklyChequeDueDate(orderDate, installmentIndex)
+    : chequeDueDate(orderDate, installmentIndex, plan.installmentIntervalMonths ?? 1, plan.termMonths);
+}
+
 /** Weekly credit always settles on the first Thursday after the order date. */
 export function nextThursdayDueDate(orderDate: Date): string {
   for (let offset = 1; offset <= 7; offset += 1) {

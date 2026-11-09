@@ -1,17 +1,21 @@
-import { useState } from 'react';
 import { WAREHOUSE_LABELS, formatMoney, formatNumber } from '@tamas/shared';
 import { Price } from '../components/Price';
 import { PrintInvoiceLayout, type PrintInvoiceItem } from '../components/PrintInvoiceLayout';
 import { cartCount, cartTotal, useCart } from '../store/cart';
 import { Icon } from '../components/Icon';
+import { faText } from '../lib/text';
+import { resolveImageUrl } from '../lib/images';
+import './shopping-flow.css';
 
 interface Props {
   onCheckout: () => void;
   canViewPrices: boolean;
   hidePrintLayout?: boolean;
+  /** Shown on the empty cart so the shopper has a way back to the catalog. */
+  onBrowse?: () => void;
 }
 
-export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout }: Props) {
+export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout, onBrowse }: Props) {
   const lines = useCart((s) => s.lines);
   const setQty = useCart((s) => s.setQty);
   const remove = useCart((s) => s.remove);
@@ -19,10 +23,12 @@ export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout }: Props)
 
   const total = cartTotal(lines);
   const count = cartCount(lines);
-  const [notes, setNotes] = useState('');
+  const notes = useCart((s) => s.note);
+  const setNotes = useCart((s) => s.setNote);
 
   const WHOLESALE_THRESHOLD = 5_000_000;
   const progressPercent = Math.min(100, Math.floor((total / WHOLESALE_THRESHOLD) * 100));
+  const remainingToThreshold = Math.max(0, WHOLESALE_THRESHOLD - total);
 
   const handlePrint = () => {
     window.print();
@@ -64,7 +70,14 @@ export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout }: Props)
 
       {lines.length === 0 ? (
         <div className="cart-empty">
-          سبد خرید شما خالی است
+          <Icon name="bag" />
+          <p>سبد خرید شما خالی است</p>
+          <span>کالاهای موردنظر را با دکمهٔ «+» روی هر کالا به سبد اضافه کنید.</span>
+          {onBrowse && (
+            <button type="button" className="btn primary sm" onClick={onBrowse}>
+              مشاهده کالاها
+            </button>
+          )}
         </div>
       ) : (
         <>
@@ -77,14 +90,21 @@ export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout }: Props)
               <div style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: progressPercent >= 100 ? '#10b981' : '#0ea5e9', transition: 'width 0.3s ease' }} />
             </div>
             <div style={{ fontSize: "var(--ds-text-xs)", color: 'var(--tamas-muted)', textAlign: 'center' }}>
-              حداقل مبلغ سفارش: <Price amount={WHOLESALE_THRESHOLD} />
+              {remainingToThreshold === 0
+                ? 'سفارش شما به حد نصاب خرید عمده رسیده است.'
+                : canViewPrices
+                  ? <>تا حد نصاب عمده: <Price amount={remainingToThreshold} /></>
+                  : <>حد نصاب خرید عمده: <Price amount={WHOLESALE_THRESHOLD} /></>}
             </div>
           </div>
 
           <div className="cart-items">
             {lines.map((line) => (
               <div className="cart-item" key={line.key}>
-                <div className="cart-item-title">{line.title}</div>
+                <div className="cart-item-head">
+                  {line.imageUrl && <img className="cart-item-thumb" src={resolveImageUrl(line.imageUrl)} alt="" loading="lazy" />}
+                  <div className="cart-item-title">{faText(line.title)}</div>
+                </div>
                 <div className="cart-item-meta">
                   <span>{line.color || 'بدون رنگ'}</span>
                   <span>{WAREHOUSE_LABELS[line.warehouse]}</span>
@@ -94,7 +114,7 @@ export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout }: Props)
                     +
                   </button>
                   <span>{formatNumber(line.qty)}</span>
-                  <button type="button" onClick={() => setQty(line.key, line.qty - 1)} aria-label="کاهش">
+                  <button type="button" onClick={() => setQty(line.key, line.qty - 1)} aria-label={line.qty <= 1 ? 'حذف از سبد' : 'کاهش'}>
                     −
                   </button>
                   <span className={canViewPrices ? undefined : 'price-obscured'} style={{ marginInlineStart: 'auto', fontWeight: 800, color: 'var(--tamas-accent)' }}><Price amount={line.price * line.qty} /></span>
@@ -112,14 +132,16 @@ export function CartPanel({ onCheckout, canViewPrices, hidePrintLayout }: Props)
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-2)", marginTop: "var(--ds-space-4)" }}>
-            <textarea 
-              placeholder="توضیحات سفارش (اختیاری)..." 
+            <textarea
+              aria-label="توضیحات سفارش"
+              maxLength={1000}
+              placeholder="توضیحات سفارش (اختیاری) — همراه سفارش ثبت می‌شود"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               style={{ width: '100%', padding: "var(--ds-space-3)", borderRadius: '8px', border: '1px solid var(--tamas-border)', fontSize: "var(--ds-text-sm)", resize: 'vertical', minHeight: '60px', fontFamily: 'inherit', background: 'var(--tamas-surface)', color: 'var(--tamas-fg)' }}
             />
             <button type="button" className="btn primary checkout" onClick={onCheckout} style={{ padding: "var(--ds-space-3)", fontSize: "var(--ds-text-md)", borderRadius: '8px' }}>
-              ثبت سفارش نهایی
+              ادامه و تکمیل خرید
             </button>
             <button type="button" className="btn" onClick={handleWhatsApp} style={{ backgroundColor: '#10b981', color: 'white', padding: "var(--ds-space-3)", fontSize: "var(--ds-text-md)", borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: "var(--ds-space-2)", border: 'none' }}>
               ارسال سفارش در واتساپ

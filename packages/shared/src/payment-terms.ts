@@ -8,11 +8,15 @@ export interface AccessoryPaymentRule {
   id: string;
   label: string;
   enabled: boolean;
-  group: 'monthly' | 'bimonthly';
+  group: 'monthly' | 'bimonthly' | 'weekly';
   termMonths: number;
+  termWeeks?: number;
   upfrontPercent: number;
   discountPercent: number;
   installmentProfitPercent: number;
+  festivalEnabled?: boolean;
+  festivalUpfrontPercent?: number;
+  festivalDiscountPercent?: number;
 }
 
 export interface MobileInstallmentRule {
@@ -34,6 +38,8 @@ export interface MobilePaymentRule {
 export interface PaymentTermsConfig {
   version: 1;
   enabled: boolean;
+  /** Runtime campaign mode, derived by the API rather than edited by admins. */
+  festivalActive?: boolean;
   mobileCategoryIds: number[];
   accessory: {
     enabled: boolean;
@@ -41,6 +47,7 @@ export interface PaymentTermsConfig {
     weeklyCreditLimit: number;
     /** Cash discount for every category that is not configured as mobile. */
     cashDiscountPercent: number;
+    festivalCashDiscountPercent?: number;
     rules: AccessoryPaymentRule[];
   };
   mobile: {
@@ -80,6 +87,7 @@ export interface PaymentPlanQuote {
   installmentIntervalMonths: number | null;
   /** Checkout selector metadata for mobile settlement plans. */
   settlementDays: number | null;
+  termWeeks?: number | null;
   /** Pricing snapshots used when one invoice combines products with different settlement policies. */
   components?: PaymentPlanQuote[];
 }
@@ -130,10 +138,37 @@ export const DEFAULT_PAYMENT_TERMS_CONFIG: PaymentTermsConfig = {
     enabled: true,
     weeklyCreditLimit: 300_000_000,
     cashDiscountPercent: 10,
+    festivalCashDiscountPercent: 12,
     accountInstructions: 'بانک ملت - به نام حمید قاسم زاده\nشماره کارت: 6104-3311-4877-4871\nشماره شبا: IR980120010000007697585463',
     rules: [
-      ...accessoryRules('monthly', [100, 0, 0, 20, 30, 35, 40], [10, 5, 3, 0, 0, 0, 0]),
-      ...accessoryRules('bimonthly', [100, 0, 20, 0, 35, 0, 50], [10, 5, 0, 0, 0, 0, 0]),
+      ...accessoryRules('monthly', [100, 0, 0, 20, 30, 35, 40, 0, 0], [10, 5, 3, 0, 0, 0, 0, 0, 0]).map((rule) => ({
+        ...rule,
+        festivalEnabled: true,
+        ...(rule.termMonths === 1 ? { festivalDiscountPercent: 7 } : {}),
+        ...(rule.termMonths >= 2 ? { festivalDiscountPercent: 0, festivalUpfrontPercent: [0, 0, 5, 10, 15, 20, 25, 30, 40][rule.termMonths] } : {}),
+      })),
+      ...accessoryRules('bimonthly', [100, 0, 20, 0, 35, 0, 50, 0, 0], [10, 5, 0, 0, 0, 0, 0, 0, 0]).map((rule) => ({
+        ...rule,
+        festivalEnabled: rule.termMonths !== 1 && rule.termMonths !== 3 && rule.termMonths !== 5 && rule.termMonths !== 7,
+        ...(rule.termMonths === 2 ? { festivalUpfrontPercent: 3, festivalDiscountPercent: 0 } : {}),
+        ...(rule.termMonths === 4 ? { festivalUpfrontPercent: 20 } : {}),
+        ...(rule.termMonths === 6 ? { festivalUpfrontPercent: 35 } : {}),
+        ...(rule.termMonths === 8 ? { festivalUpfrontPercent: 50 } : {}),
+      })),
+      ...([4, 8, 10, 12, 16, 18] as const).map((weeks) => ({
+        id: `accessory-weekly-${weeks}`,
+        label: `سررسید هفتگی ${weeks} هفته‌ای`,
+        enabled: true,
+        group: 'weekly' as const,
+        termMonths: 0,
+        termWeeks: weeks,
+        upfrontPercent: weeks === 12 ? 15 : weeks === 16 ? 35 : weeks === 18 ? 50 : 0,
+        discountPercent: weeks === 4 ? 5 : weeks === 8 ? 2 : 0,
+        installmentProfitPercent: 0,
+        ...(weeks === 4 ? { festivalDiscountPercent: 7 } : {}),
+        ...(weeks === 8 ? { festivalUpfrontPercent: 5, festivalDiscountPercent: 0 } : {}),
+        ...(weeks === 10 ? { festivalUpfrontPercent: 2, festivalDiscountPercent: 0 } : {}),
+      })),
     ],
   },
   mobile: {
@@ -152,7 +187,7 @@ export const DEFAULT_PAYMENT_TERMS_CONFIG: PaymentTermsConfig = {
       },
       {
         id: 'mobile-5-days', label: 'تسویه ۵ روزه', enabled: true, days: 5, receivedLabel: 'اختیاری',
-        dailyServicePercent: 0.25, totalServicePercent: 1.3,
+        dailyServicePercent: 0.25, totalServicePercent: 1.25,
         installments: [
           { day: 1, percent: null }, { day: 2, percent: 20 }, { day: 3, percent: 20 },
           { day: 4, percent: 20 }, { day: 5, percent: 20 },
@@ -160,7 +195,7 @@ export const DEFAULT_PAYMENT_TERMS_CONFIG: PaymentTermsConfig = {
       },
       {
         id: 'mobile-7-days', label: 'تسویه ۷ روزه', enabled: true, days: 7, receivedLabel: 'اختیاری',
-        dailyServicePercent: 0.28, totalServicePercent: 1.96,
+        dailyServicePercent: 0.25, totalServicePercent: 1.75,
         installments: [
           { day: 1, percent: null }, { day: 2, percent: 15 }, { day: 3, percent: null },
           { day: 4, percent: 20 }, { day: 5, percent: null }, { day: 6, percent: 25 },
@@ -169,7 +204,7 @@ export const DEFAULT_PAYMENT_TERMS_CONFIG: PaymentTermsConfig = {
       },
       {
         id: 'mobile-10-days', label: 'تسویه ۱۰ روزه', enabled: true, days: 10, receivedLabel: 'اختیاری',
-        dailyServicePercent: 0.35, totalServicePercent: 3.5,
+        dailyServicePercent: 0.25, totalServicePercent: 2.5,
         installments: [
           { day: 1, percent: null }, { day: 2, percent: 10 }, { day: 3, percent: null },
           { day: 4, percent: 10 }, { day: 5, percent: null }, { day: 6, percent: 20 },
@@ -189,6 +224,8 @@ const numberInRange = (value: unknown, fallback: number, min = 0, max = 100): nu
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : fallback;
 };
+const optionalPercent = (value: unknown): number | undefined =>
+  value === null || value === undefined || value === '' ? undefined : numberInRange(value, 0);
 
 const text = (value: unknown, fallback: string): string => typeof value === 'string' ? value : fallback;
 
@@ -211,6 +248,7 @@ export function parsePaymentTermsConfig(raw: string | PaymentTermsConfig | null 
   return {
     version: 1,
     enabled: parsed.enabled !== false,
+    festivalActive: parsed.festivalActive === true,
     mobileCategoryIds: Array.isArray(parsed.mobileCategoryIds)
       ? [...new Set(parsed.mobileCategoryIds.map(Number).filter((id) => Number.isInteger(id) && id > 0))]
       : [...defaults.mobileCategoryIds],
@@ -219,15 +257,20 @@ export function parsePaymentTermsConfig(raw: string | PaymentTermsConfig | null 
       accountInstructions: text(accessory.accountInstructions, defaults.accessory.accountInstructions),
       weeklyCreditLimit: numberInRange(accessory.weeklyCreditLimit, defaults.accessory.weeklyCreditLimit, 0, 10_000_000_000),
       cashDiscountPercent: numberInRange(accessory.cashDiscountPercent, defaults.accessory.cashDiscountPercent),
+      festivalCashDiscountPercent: optionalPercent(accessory.festivalCashDiscountPercent),
       rules: parsedAccessoryRules.map((rule, index) => ({
         id: text(rule?.id, `accessory-rule-${index}`),
         label: text(rule?.label, `شرایط پرداخت ${index + 1}`),
         enabled: rule?.enabled !== false,
-        group: rule?.group === 'bimonthly' ? 'bimonthly' : 'monthly',
+        group: rule?.group === 'bimonthly' ? 'bimonthly' : rule?.group === 'weekly' ? 'weekly' : 'monthly',
         termMonths: Math.round(numberInRange(rule?.termMonths, 0, 0, 36)),
+        termWeeks: rule?.group === 'weekly' ? Math.round(numberInRange(rule?.termWeeks, 0, 1, 104)) : undefined,
         upfrontPercent: numberInRange(rule?.upfrontPercent, 0),
         discountPercent: numberInRange(rule?.discountPercent, 0),
         installmentProfitPercent: numberInRange(rule?.installmentProfitPercent, 0),
+        festivalEnabled: rule?.festivalEnabled === true ? true : rule?.festivalEnabled === false ? false : undefined,
+        festivalUpfrontPercent: optionalPercent(rule?.festivalUpfrontPercent),
+        festivalDiscountPercent: optionalPercent(rule?.festivalDiscountPercent),
       })),
     },
     mobile: {
@@ -314,40 +357,49 @@ export function buildPaymentTermsQuote(
 
   if (audience === 'accessory') {
     if (!config.accessory.enabled) return { audience, baseAmount, plans: [] };
+    const cashDiscount = config.festivalActive
+      ? config.accessory.festivalCashDiscountPercent ?? config.accessory.cashDiscountPercent
+      : config.accessory.cashDiscountPercent;
     const seenCash = new Set<string>();
     const plans = config.accessory.rules.filter((rule) => {
-      if (!rule.enabled) return false;
-      if (rule.termMonths !== 0) return true;
-      const signature = `${rule.upfrontPercent}:${config.accessory.cashDiscountPercent}`;
+      if (!(config.festivalActive ? rule.festivalEnabled ?? rule.enabled : rule.enabled)) return false;
+      if (rule.group === 'weekly' && (!rule.termWeeks || rule.termWeeks < 1)) return false;
+      if (rule.group === 'weekly' || rule.termMonths !== 0) return true;
+      const signature = `${rule.upfrontPercent}:${cashDiscount}`;
       if (seenCash.has(signature)) return false;
       seenCash.add(signature);
       return true;
     }).map<PaymentPlanQuote>((rule) => {
-      const isCash = rule.termMonths === 0;
-      const discountPercent = isCash ? config.accessory.cashDiscountPercent : rule.discountPercent;
+      const isWeekly = rule.group === 'weekly';
+      const isCash = !isWeekly && rule.termMonths === 0;
+      const upfrontPercent = config.festivalActive ? rule.festivalUpfrontPercent ?? rule.upfrontPercent : rule.upfrontPercent;
+      const discountPercent = isCash ? cashDiscount : config.festivalActive ? rule.festivalDiscountPercent ?? rule.discountPercent : rule.discountPercent;
       const serviceFeePercent = isCash ? 0 : rule.installmentProfitPercent;
       const calculatedFinalAmount = Math.max(
         0,
         baseAmount - roundedPercent(baseAmount, discountPercent) + roundedPercent(baseAmount, serviceFeePercent),
       );
-      const finalAmount = rule.termMonths > 0 ? roundedChequeAmount(calculatedFinalAmount) : calculatedFinalAmount;
-      const upfrontAmount = rule.termMonths > 0
-        ? roundedChequeAmount(roundedPercent(finalAmount, rule.upfrontPercent))
-        : roundedPercent(finalAmount, rule.upfrontPercent);
-      const remainingPercent = Math.max(0, 100 - rule.upfrontPercent);
-      const groupLabel = rule.group === 'monthly' ? 'چک ماه‌به‌ماه' : 'چک دوماه‌به‌دوماه';
+      const finalAmount = isCash ? calculatedFinalAmount : roundedChequeAmount(calculatedFinalAmount);
+      const upfrontAmount = isCash
+        ? roundedPercent(finalAmount, upfrontPercent)
+        : roundedChequeAmount(roundedPercent(finalAmount, upfrontPercent));
+      const remainingPercent = Math.max(0, 100 - upfrontPercent);
+      const groupLabel = rule.group === 'monthly' ? 'چک ماه‌به‌ماه' : rule.group === 'bimonthly' ? 'چک دوماه‌به‌دوماه' : 'سررسید هفتگی';
       const dueMonths: number[] = [];
-      if (rule.termMonths > 0 && remainingPercent > 0) {
+      if (!isWeekly && rule.termMonths > 0 && remainingPercent > 0) {
         const interval = rule.group === 'bimonthly' ? 2 : 1;
         for (let month = interval; month <= rule.termMonths; month += interval) dueMonths.push(month);
         if (dueMonths.length === 0 || dueMonths.at(-1) !== rule.termMonths) dueMonths.push(rule.termMonths);
       }
+      const dueLabels = isWeekly && remainingPercent > 0
+        ? Array.from({ length: rule.termWeeks ?? 0 }, (_, index) => `هفته ${index + 1}`)
+        : dueMonths.map((month) => `ماه ${month}`);
       const remainingAmount = finalAmount - upfrontAmount;
-      const amounts = chequeAmounts(remainingAmount, dueMonths.length);
-      const schedule = dueMonths.map((month, index) => {
-        const percent = remainingPercent / dueMonths.length;
+      const amounts = chequeAmounts(remainingAmount, dueLabels.length);
+      const schedule = dueLabels.map((dueLabel, index) => {
+        const percent = remainingPercent / dueLabels.length;
         return {
-          dueLabel: `ماه ${month}`,
+          dueLabel,
           dueDate: null,
           percent,
           amount: amounts[index]!,
@@ -367,14 +419,15 @@ export function buildPaymentTermsQuote(
         adjustmentAmount: finalAmount - baseAmount,
         discountPercent,
         serviceFeePercent,
-        upfrontPercent: rule.upfrontPercent,
+        upfrontPercent,
         upfrontAmount,
         schedule,
         instructions: config.accessory.accountInstructions,
-        requiresPaymentInfo: rule.termMonths > 0,
-        termMonths: rule.termMonths,
-        installmentIntervalMonths: rule.termMonths > 0 ? (rule.group === 'bimonthly' ? 2 : 1) : null,
+        requiresPaymentInfo: !isCash,
+        termMonths: isWeekly ? null : rule.termMonths,
+        installmentIntervalMonths: !isWeekly && rule.termMonths > 0 ? (rule.group === 'bimonthly' ? 2 : 1) : null,
         settlementDays: null,
+        termWeeks: isWeekly ? rule.termWeeks ?? null : null,
       };
     });
     return { audience, baseAmount, plans };

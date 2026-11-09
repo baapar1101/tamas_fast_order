@@ -17,7 +17,11 @@ export interface PaymentTermsProductLine {
 }
 
 export async function getPaymentTermsConfig(): Promise<PaymentTermsConfig> {
-  return parsePaymentTermsConfig(await getSetting(PAYMENT_TERMS_SETTING_KEY));
+  const [raw, campaignMode] = await Promise.all([
+    getSetting(PAYMENT_TERMS_SETTING_KEY),
+    getSetting('campaign_mode'),
+  ]);
+  return { ...parsePaymentTermsConfig(raw), festivalActive: campaignMode?.startsWith('2026-11') ?? false };
 }
 
 export function quotePaymentTerms(

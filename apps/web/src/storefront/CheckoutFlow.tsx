@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { OrderDTO, PaymentTermsQuoteResult } from "@tamas/shared";
 import { WAREHOUSE_LABELS, formatMoney, formatNumber, repricePaymentPlan } from "@tamas/shared";
@@ -12,6 +12,9 @@ import { Icon } from "../components/Icon";
 import { useBootstrap } from "./hooks";
 import { parsePaymentMethods } from "../lib/payment-methods";
 import { readAttribution } from "../lib/attribution";
+import { scrollIntoViewSoft } from "../lib/scroll";
+import { faText } from "../lib/text";
+import "./shopping-flow.css";
 
 interface Props {
   onCancel: () => void;
@@ -162,8 +165,12 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
   const lines = useCart((s) => s.lines);
   const clear = useCart((s) => s.clear);
 
-  const [address, setAddress] = useState("");
-  const [note, setNote] = useState("");
+  // Prefill the account address as an editable value instead of a grey
+  // placeholder that looked filled in but was not.
+  const [address, setAddress] = useState(() => user?.address ?? "");
+  // The note typed in the cart is the same note: keep one source of truth.
+  const note = useCart((s) => s.note);
+  const setNote = useCart((s) => s.setNote);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -171,6 +178,17 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
   const [discountCode, setDiscountCode] = useState('');
   const [discountQuote, setDiscountQuote] = useState<{ amount: number; freeShipping: boolean } | null>(null);
   const [discountBusy, setDiscountBusy] = useState(false);
+  const [termsInvalid, setTermsInvalid] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
+  const consentRef = useRef<HTMLLabelElement>(null);
+  const addressRef = useRef<HTMLTextAreaElement>(null);
+
+  // An order whose gateway transaction could not be created. The order exists
+  // and the cart is already empty, so the shopper must be told so and offered
+  // a retry instead of being left on an empty checkout.
+  const [gatewayOrder, setGatewayOrder] = useState<OrderDTO | null>(null);
+  const [gatewayError, setGatewayError] = useState("");
+  const [gatewayBusy, setGatewayBusy] = useState(false);
 
   // Secondary form state (post-order)
   const [completedOrder, setCompletedOrder] = useState<OrderDTO | null>(null);
@@ -198,6 +216,9 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
     enabled: lines.length > 0,
   });
 
+  // isPending stays true forever for a disabled query (empty cart after an
+  // order); only treat it as loading while a request is actually running.
+  const termsLoading = termsQuery.isLoading;
   const configuredMethods = parsePaymentMethods(bootstrap.data?.settings.payment_methods);
   const productBaseAmount = termsQuery.data?.baseAmount ?? total;
   const quotedBaseAmount = Math.max(0, productBaseAmount - (discountQuote?.amount ?? 0));
@@ -229,12 +250,6 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
       ? `method:${activeConfiguredMethod.id}`
       : '';
   const chequePlans = paymentPlans.filter((plan) => plan.kind === 'cheque');
-  const chequeTerms = [...new Set(chequePlans.map((plan) => plan.termMonths).filter((value): value is number => value != null))].sort((a, b) => a - b);
-  const activeChequeTerm = activePaymentPlan?.kind === 'cheque' ? activePaymentPlan.termMonths : null;
-  const chequeIntervals = [...new Set(chequePlans
-    .filter((plan) => plan.termMonths === activeChequeTerm)
-    .map((plan) => plan.installmentIntervalMonths)
-    .filter((value): value is number => value != null))].sort((a, b) => a - b);
   const dailyPlans = paymentPlans.filter((plan) => plan.kind === 'daily');
   const payableTotal = activePaymentPlan?.finalAmount ?? quotedBaseAmount;
   const paymentSavings = activePaymentPlan ? Math.max(0, activePaymentPlan.baseAmount - activePaymentPlan.finalAmount) : 0;
@@ -249,21 +264,31 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
     if (plan) setPaymentMethod(plan.id);
   }
 
-  function selectChequeTerm(termMonths: number) {
-    const plan = chequePlans.find((item) =>
-      item.termMonths === termMonths && item.installmentIntervalMonths === activePaymentPlan?.installmentIntervalMonths,
-    ) ?? chequePlans.find((item) => item.termMonths === termMonths);
-    if (plan) setPaymentMethod(plan.id);
-  }
-
-  function selectChequeInterval(intervalMonths: number) {
-    const plan = chequePlans.find((item) =>
-      item.termMonths === activeChequeTerm && item.installmentIntervalMonths === intervalMonths,
-    );
-    if (plan) setPaymentMethod(plan.id);
-  }
-
   const deliveryAddress = address.trim() || user?.address || "";
+
+  function showError(message: string) {
+    setError(message);
+    window.requestAnimationFrame(() => scrollIntoViewSoft(errorRef.current, "center"));
+  }
+
+  async function startGatewayPayment(order: OrderDTO): Promise<boolean> {
+    setGatewayBusy(true);
+    setGatewayError("");
+    try {
+      const paymentRes = await api.post<{ ok: boolean; url: string }>("/payment/create", { orderId: order.id });
+      if (paymentRes.url) {
+        toast.ok("در حال انتقال به درگاه پرداخت…");
+        window.location.href = paymentRes.url;
+        return true;
+      }
+      setGatewayError("آدرس درگاه پرداخت دریافت نشد.");
+    } catch (err) {
+      setGatewayError(err instanceof Error ? err.message : "اتصال به درگاه پرداخت ناموفق بود.");
+    }
+    setGatewayOrder(order);
+    setGatewayBusy(false);
+    return false;
+  }
 
   function handleClose() {
     setCompletedOrder(null);
@@ -277,14 +302,20 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
       setError("سبد خرید شما خالی است.");
       return;
     }
+    if (!deliveryAddress) {
+      showError("لطفاً آدرس تحویل سفارش را وارد کنید.");
+      addressRef.current?.focus();
+      return;
+    }
     if (!agreeTerms) {
-      setError(
-        "لطفاً جهت ثبت سفارش، شرایط و مفاد فاکتور را مطالعه کرده و تیک تأیید را بزنید.",
-      );
+      setError("");
+      setTermsInvalid(true);
+      scrollIntoViewSoft(consentRef.current, "center");
+      consentRef.current?.querySelector("input")?.focus({ preventScroll: true });
       return;
     }
     if (!activePaymentMethod) {
-      setError(termsQuery.data?.message ?? 'هیچ روش تسویه معتبری برای کالاهای این فاکتور فعال نیست.');
+      showError(termsQuery.data?.message ?? 'هیچ روش تسویه معتبری برای کالاهای این فاکتور فعال نیست.');
       return;
     }
     setError("");
@@ -304,24 +335,15 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
         attribution: readAttribution(),
       });
       clear();
-      setAddress("");
-      setNote("");
       setAgreeTerms(false);
       setDiscountCode('');
       setDiscountQuote(null);
 
       if (activePaymentMethod === "aqayepardakht") {
-        toast.ok("سفارش ثبت شد، در حال انتقال به درگاه پرداخت...");
-        const paymentRes = await api.post<{ ok: boolean; url: string }>(
-          "/payment/create",
-          {
-            orderId: res.order.id,
-          },
-        );
-        if (paymentRes.url) {
-          window.location.href = paymentRes.url;
-          return;
-        }
+        // A failed gateway call shows the recovery panel; on success the page
+        // is already navigating away.
+        await startGatewayPayment(res.order);
+        return;
       }
 
       // For non-gateway methods, show secondary form if configured or standard
@@ -341,7 +363,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
         onNeedsProfile();
         return;
       }
-      setError(err instanceof Error ? err.message : "ثبت سفارش ناموفق بود.");
+      showError(err instanceof Error ? err.message : "ثبت سفارش ناموفق بود.");
     } finally {
       setBusy(false);
     }
@@ -380,8 +402,45 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
       toast.ok(quote.freeShipping ? 'ارسال رایگان برای سفارش فعال شد.' : `تخفیف ${quote.amount.toLocaleString('fa-IR')} تومان اعمال شد.`);
     } catch (err) {
       setDiscountQuote(null);
-      setError(err instanceof Error ? err.message : 'کد تخفیف معتبر نیست.');
+      showError(err instanceof Error ? err.message : 'کد تخفیف معتبر نیست.');
     } finally { setDiscountBusy(false); }
+  }
+
+  // ── Gateway could not be reached after the order was created ───
+  if (gatewayOrder) {
+    return (
+      <Modal
+        open
+        inline
+        title="سفارش ثبت شد؛ پرداخت انجام نشد"
+        onClose={handleClose}
+        busy={gatewayBusy}
+        footer={
+          <div className="checkout-payment-recovery">
+            <button type="button" className="btn primary" disabled={gatewayBusy} onClick={() => void startGatewayPayment(gatewayOrder)}>
+              {gatewayBusy ? "در حال اتصال به درگاه…" : "تلاش دوباره برای پرداخت"}
+            </button>
+            <button type="button" className="btn" disabled={gatewayBusy} onClick={handleClose}>
+              مشاهده سفارش‌های من
+            </button>
+          </div>
+        }
+      >
+        <div className="stack">
+          <div className="alert warn">
+            سفارش شما با شماره <b className="ltr-inline">{gatewayOrder.orderCode}</b> ثبت شده است اما انتقال به درگاه بانکی انجام نشد. نیازی به ثبت دوبارهٔ سفارش نیست؛ از همین‌جا یا بعداً از «سفارش‌های من» پرداخت را تکمیل کنید.
+          </div>
+          {gatewayError && <div className="alert error">{gatewayError}</div>}
+          <div className="card" style={{ padding: "var(--ds-space-3)" }}>
+            <div className="row">
+              <span className="muted">مبلغ قابل پرداخت</span>
+              <span className="spacer" />
+              <b><Price amount={gatewayOrder.total} /></b>
+            </div>
+          </div>
+        </div>
+      </Modal>
+    );
   }
 
   // ── Secondary form view (post-order) ────────────────────────────
@@ -501,7 +560,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
                       <a href={secondaryData[f.key]} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', flex: 1, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontSize: "var(--ds-text-sm)", direction: 'ltr', textAlign: 'right' }}>
                         {secondaryData[f.key]}
                       </a>
-                      <button type="button" onClick={() => setSecondaryData({ ...secondaryData, [f.key]: '' })} style={{ background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer' }}>×</button>
+                      <button type="button" aria-label="حذف فایل" onClick={() => setSecondaryData((current) => ({ ...current, [f.key]: '' }))} style={{ background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer' }}>×</button>
                     </div>
                   ) : (
                     <input
@@ -518,7 +577,8 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
                         try {
                           const res = await api.upload<{ok: boolean; url?: string; message?: string}>('/uploads', formData);
                           if (res.ok && res.url) {
-                            setSecondaryData({ ...secondaryData, [f.key]: res.url });
+                            const uploadedUrl = res.url;
+                            setSecondaryData((current) => ({ ...current, [f.key]: uploadedUrl }));
                             toast.ok('فایل با موفقیت آپلود شد.');
                           } else {
                             toast.error(res.message || 'خطا در آپلود فایل');
@@ -545,12 +605,10 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
                   type={f.type || "text"}
                   placeholder={f.placeholder}
                   value={secondaryData[f.key] || ""}
-                  onChange={(e) =>
-                    setSecondaryData({
-                      ...secondaryData,
-                      [f.key]: e.target.value,
-                    })
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSecondaryData((current) => ({ ...current, [f.key]: value }));
+                  }}
                 />
               </div>
             );
@@ -633,11 +691,12 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             type="button"
             className="btn primary"
             style={{ flex: 1 }}
-            disabled={busy || !agreeTerms || termsQuery.isPending || !activePaymentMethod}
+            disabled={busy || gatewayBusy || termsLoading || !activePaymentMethod || lines.length === 0}
+            aria-describedby={!agreeTerms ? "checkout-consent-hint" : undefined}
             onClick={() => void submit()}
           >
-            {busy || termsQuery.isPending ? (
-              termsQuery.isPending ? "در حال محاسبه شرایط…" : "در حال ثبت…"
+            {busy || gatewayBusy || termsLoading ? (
+              termsLoading ? "در حال محاسبه شرایط…" : gatewayBusy ? "در حال انتقال به درگاه…" : "در حال ثبت…"
             ) : (
               <>
                 ثبت سفارش — <Price amount={payableTotal} />
@@ -656,7 +715,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
       }
     >
       <div className="checkout-flow-grid">
-        {error && <div className="alert error">{error}</div>}
+        {error && <div className="alert error" ref={errorRef} role="alert">{error}</div>}
 
         <section className="checkout-flow-fields" aria-labelledby="checkout-details-title">
           <div className="checkout-section-heading">
@@ -690,15 +749,17 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
           <label htmlFor="co-address">آدرس تحویل</label>
           <textarea
             id="co-address"
+            ref={addressRef}
             className="textarea"
             rows={3}
-            placeholder={user?.address || "آدرس کامل تحویل سفارش"}
+            maxLength={1000}
+            placeholder="آدرس کامل تحویل سفارش"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
           />
           {!address.trim() && user?.address && (
             <span className="faint" style={{ fontSize: "var(--ds-text-caption)" }}>
-              خالی بماند، آدرس حساب استفاده می‌شود.
+              خالی بماند، آدرس ثبت‌شده در حساب ({user.address}) استفاده می‌شود.
             </span>
           )}
           {!deliveryAddress && (
@@ -717,10 +778,13 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
         </div>
 
         <div className="field">
-          <label htmlFor="co-note">توضیحات (اختیاری)</label>
-          <input
+          <label htmlFor="co-note">توضیحات سفارش (اختیاری)</label>
+          <textarea
             id="co-note"
-            className="input"
+            className="textarea"
+            rows={2}
+            maxLength={1000}
+            placeholder="مثلاً زمان مناسب تحویل یا توضیح برای انبار"
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
@@ -737,10 +801,10 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             </div>
           </div>
           <div style={{ display: "grid", gap: "var(--ds-space-2)", marginTop: "var(--ds-space-1)" }}>
-            {termsQuery.isPending && <div className="alert">در حال محاسبه شرایط پرداخت…</div>}
+            {termsLoading && <div className="alert">در حال محاسبه شرایط پرداخت…</div>}
             {termsQuery.isError && <div className="alert warn">محاسبه شرایط پرداخت انجام نشد؛ روش‌های عادی همچنان در دسترس هستند.</div>}
             {termsQuery.data?.message && <div className="alert warn">{termsQuery.data.message}</div>}
-            {!termsQuery.isPending && (
+            {!termsLoading && (
               <div className="checkout-payment-steps">
                 <div className="field checkout-payment-step">
                   <label htmlFor="payment-kind-select"><span>۱</span> نوع پرداخت</label>
@@ -763,19 +827,10 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
 
                 {activePaymentPlan?.kind === 'cheque' && (
                   <div className="field checkout-payment-step">
-                    <label htmlFor="payment-term-select"><span>۲</span> مدت بازپرداخت</label>
-                    <select id="payment-term-select" className="input" value={activeChequeTerm ?? ''} onChange={(event) => selectChequeTerm(Number(event.target.value))} style={{ minHeight: 48 }}>
-                      {chequeTerms.map((term) => <option key={term} value={term}>{formatNumber(term)} ماهه</option>)}
-                    </select>
-                  </div>
-                )}
-
-                {activePaymentPlan?.kind === 'cheque' && chequeIntervals.length > 0 && (
-                  <div className="field checkout-payment-step">
-                    <label htmlFor="payment-interval-select"><span>۳</span> فاصله پرداخت چک‌ها</label>
-                    <select id="payment-interval-select" className="input" value={activePaymentPlan.installmentIntervalMonths ?? ''} onChange={(event) => selectChequeInterval(Number(event.target.value))} style={{ minHeight: 48 }}>
-                      {chequeIntervals.map((interval) => (
-                        <option key={interval} value={interval}>{interval === 1 ? 'ماه‌به‌ماه' : `هر ${formatNumber(interval)} ماه`}</option>
+                    <label htmlFor="payment-cheque-plan-select"><span>۲</span> برنامه سررسید چک‌ها</label>
+                    <select id="payment-cheque-plan-select" className="input" value={activePaymentPlan.id} onChange={(event) => setPaymentMethod(event.target.value)} style={{ minHeight: 48 }}>
+                      {chequePlans.map((plan) => (
+                        <option key={plan.id} value={plan.id}>{plan.label}</option>
                       ))}
                     </select>
                   </div>
@@ -877,7 +932,7 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
               {lines.map((l) => (
                 <tr key={l.key}>
                   <td className="wrap">
-                    {l.title}
+                    {faText(l.title)}
                     {l.color ? ` — ${l.color}` : ""}
                   </td>
                   <td>{WAREHOUSE_LABELS[l.warehouse]}</td>
@@ -890,6 +945,18 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             </tbody>
           </table>
         </div>
+
+        {!activePaymentPlan && lines.length > 0 && (
+          <div className="checkout-totals">
+            <div className="checkout-totals__row"><span>جمع قیمت کالاها</span><Price amount={productBaseAmount} /></div>
+            {(discountQuote?.amount ?? 0) > 0 && (
+              <div className="checkout-totals__row checkout-totals__row--adjustment">
+                <span>کد تخفیف اختصاصی</span><span>-<Price amount={discountQuote!.amount} /></span>
+              </div>
+            )}
+            <div className="checkout-totals__final"><span>مبلغ نهایی قابل پرداخت</span><strong><Price amount={payableTotal} /></strong></div>
+          </div>
+        )}
 
         {activePaymentPlan && (
           <div className="checkout-totals">
@@ -911,11 +978,14 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
           </div>
         )}
 
-        <label className="checkout-consent">
+        <label className={`checkout-consent${termsInvalid && !agreeTerms ? " is-invalid" : ""}`} ref={consentRef}>
           <input
             type="checkbox"
             checked={agreeTerms}
-            onChange={(e) => setAgreeTerms(e.target.checked)}
+            onChange={(e) => {
+              setAgreeTerms(e.target.checked);
+              if (e.target.checked) setTermsInvalid(false);
+            }}
           />
           <span>
             <b><Icon name="shield" /> تأیید شرایط سفارش</b>
@@ -937,6 +1007,12 @@ export function CheckoutFlow({ onCancel, onFinished, onNeedsProfile }: Props) {
             </a>
           </span>
         </label>
+
+        {!agreeTerms && (
+          <p id="checkout-consent-hint" className={termsInvalid ? "alert error checkout-inline-error" : "checkout-price-note"} role={termsInvalid ? "alert" : undefined}>
+            {termsInvalid ? "برای ثبت سفارش، ابتدا تیک «تأیید شرایط سفارش» را بزنید." : "پیش از ثبت سفارش، شرایط سفارش را مطالعه و تأیید کنید."}
+          </p>
+        )}
 
         <p className="checkout-price-note">
           <Icon name="help" />

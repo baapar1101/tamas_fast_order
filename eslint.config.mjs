@@ -5,7 +5,7 @@ import globals from 'globals';
 export default [
   { ignores: ['**/node_modules/**', '**/dist/**', '**/drizzle/**', '**/.private/**', 'references/**', '.agents/**', '.codex/**', 'price_list.html', 'payment/lib/**', 'apps/web/public/**'] },
   {
-    files: ['apps/*/src/**/*.{ts,tsx}', 'apps/*/scripts/**/*.ts', 'packages/*/src/**/*.ts', 'scripts/*.mjs'],
+    files: ['apps/*/src/**/*.{ts,tsx}', 'apps/*/scripts/**/*.ts', 'packages/*/src/**/*.ts', 'scripts/*.mjs', 'mobile/*.{ts,tsx}', 'mobile/src/**/*.{ts,tsx}', 'mobile/tests/*.ts', 'mobile/scripts/*.mjs'],
     languageOptions: { parser: tseslint.parser, parserOptions: { ecmaFeatures: { jsx: true } }, globals: { ...globals.browser, ...globals.node, __BUILD_TIME__: 'readonly' } },
     rules: {
       ...js.configs.recommended.rules,

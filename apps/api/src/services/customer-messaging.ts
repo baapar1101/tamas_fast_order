@@ -9,6 +9,8 @@ export async function sendCustomerNotification(
 ): Promise<{ telegram: boolean; bale: boolean }> {
   const jobs: Array<Promise<boolean>> = [];
   const names: Array<'telegram' | 'bale'> = [];
+  // Push is best-effort and isolated: an FCM outage must not change SMS/bot delivery.
+  void import('./native-push.js').then(({ sendNativeNotification }) => sendNativeNotification(userId, event)).catch(() => {});
   if (channels.telegram !== false) {
     names.push('telegram');
     jobs.push(import('./customer-telegram.js').then(({ sendCustomerTelegramNotification }) => sendCustomerTelegramNotification(userId, event, title, text)));

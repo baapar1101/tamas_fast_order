@@ -1,0 +1,14 @@
+// Use Google's own signed HTTPS download CDN when dl.google.com returns regional 404s.
+// No third-party mirror and no certificate/security checks are disabled.
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+def officialCdn = { repository ->
+    if (repository instanceof MavenArtifactRepository && repository.url.host in ['dl.google.com', 'maven.google.com']) {
+        repository.url = new URI('https://redirector.gvt1.com/edgedl/android/maven2/')
+    }
+}
+gradle.beforeSettings { settings -> settings.pluginManagement.repositories.configureEach(officialCdn) }
+gradle.settingsEvaluated { settings -> settings.dependencyResolutionManagement.repositories.configureEach(officialCdn) }
+gradle.beforeProject { project ->
+    project.repositories.configureEach(officialCdn)
+    project.buildscript.repositories.configureEach(officialCdn)
+}

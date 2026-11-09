@@ -5,7 +5,7 @@ import type {
   PaymentHealthDashboardDTO,
   PaymentPlanQuote,
 } from '@tamas/shared';
-import { chequeDueDate, formatPersianDueDate } from '@tamas/shared';
+import { planChequeDueDate, formatPersianDueDate } from '@tamas/shared';
 import { and, asc, desc, eq, isNotNull, isNull, ne } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
 import { db, schema } from '../db/client.js';
@@ -53,7 +53,7 @@ export function resolveInstallmentDueDate(orderDate: Date, plan: PaymentPlanQuot
   if (!item || item.amount == null || item.amount <= 0) return null;
   if (item.dueDate) return item.dueDate;
   if (plan.kind === 'cheque') {
-    return chequeDueDate(orderDate, index, plan.installmentIntervalMonths ?? 1, plan.termMonths);
+    return planChequeDueDate(orderDate, index, plan);
   }
   if (plan.kind === 'daily') {
     const parsedText = latinDigits(item.dueLabel).match(/\d+/)?.[0];

@@ -321,6 +321,11 @@
   box-shadow: var(--shadow);
 }
 
+.hero-slider--phone-models {
+  height: auto;
+  aspect-ratio: 4 / 1;
+}
+
 .hero-slide {
   position: absolute;
   inset: 0;
@@ -3270,6 +3275,10 @@
     aspect-ratio: 16 / 7;
     margin-bottom: var(--ds-space-3);
     border-radius: 16px;
+  }
+
+  .hero-slider--phone-models {
+    aspect-ratio: 2 / 1;
   }
 
   .hero-slide-image { object-position: center; }

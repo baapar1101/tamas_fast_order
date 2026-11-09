@@ -1,64 +1,57 @@
-/* tamasmarket display + body font: Peyda (Persian-first) */
+/* Tamas Market Persian UI font: user-supplied IRANYekan family. */
 @font-face {
-  font-family: "Peyda";
-  src: url("./Peyda/Peyda-Thin.ttf") format("truetype");
+  font-family: "IRANYekan";
+  src: url("./IRANYekan/IRANYekanThin.woff") format("woff");
   font-weight: 100;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: "Peyda";
-  src: url("./Peyda/peyda-extralight.ttf") format("truetype");
-  font-weight: 200;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Peyda";
-  src: url("./Peyda/peyda-light.ttf") format("truetype");
+  font-family: "IRANYekan";
+  src: url("./IRANYekan/IRANYekanLight.woff") format("woff");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: "Peyda";
-  src: url("./Peyda/Peyda-Regular.ttf") format("truetype");
+  font-family: "IRANYekan";
+  src: url("./IRANYekan/IRANYekanRegular.woff") format("woff");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: "Peyda";
-  src: url("./Peyda/Peyda-Medium.ttf") format("truetype");
+  font-family: "IRANYekan";
+  src: url("./IRANYekan/IRANYekanMedium.woff") format("woff");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: "Peyda";
-  src: url("./Peyda/Peyda-SemiBold [v2].ttf") format("truetype");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Peyda";
-  src: url("./Peyda/Peyda-Bold.ttf") format("truetype");
+  font-family: "IRANYekan";
+  src: url("./IRANYekan/IRANYekanBold.woff") format("woff");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: "Peyda";
-  src: url("./Peyda/Peyda-ExtraBold.ttf") format("truetype");
+  font-family: "IRANYekan";
+  src: url("./IRANYekan/IRANYekanExtraBold.woff") format("woff");
   font-weight: 800;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: "Peyda";
-  src: url("./Peyda/Peyda-Black [v2].ttf") format("truetype");
+  font-family: "IRANYekan";
+  src: url("./IRANYekan/IRANYekanBlack.woff") format("woff");
   font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IRANYekan";
+  src: url("./IRANYekan/IRANYekanExtraBlack.woff") format("woff");
+  font-weight: 950;
   font-style: normal;
   font-display: swap;
 }

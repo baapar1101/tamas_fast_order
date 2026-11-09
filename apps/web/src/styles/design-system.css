@@ -44,7 +44,7 @@
   --ds-red-600: #c82d27;
 
   /* Typography */
-  --ds-font-sans: "Vazirmatn FD", Vazirmatn, Tahoma, "Segoe UI", sans-serif;
+  --ds-font-sans: "IRANYekan", Tahoma, "Segoe UI", sans-serif;
   --ds-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --ds-text-xs: 0.6875rem;
   --ds-text-2xs: 0.625rem;
@@ -62,11 +62,14 @@
   --ds-leading-tight: 1.45;
   --ds-leading-normal: 1.7;
   --ds-leading-relaxed: 1.9;
+  --ds-weight-thin: 100;
+  --ds-weight-light: 300;
   --ds-weight-regular: 400;
-  --ds-weight-medium: 550;
-  --ds-weight-semibold: 650;
-  --ds-weight-bold: 750;
-  --ds-weight-black: 850;
+  --ds-weight-medium: 500;
+  --ds-weight-semibold: 700;
+  --ds-weight-bold: 800;
+  --ds-weight-black: 900;
+  --ds-weight-extra-black: 950;
 
   /* 4px spacing grid */
   --ds-space-0: 0;

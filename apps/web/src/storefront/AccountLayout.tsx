@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -35,10 +35,6 @@ export function AccountLayout() {
   const returnTo = typeof savedReturn === 'string' && savedReturn.startsWith('/') && !savedReturn.startsWith('//')
     ? savedReturn
     : '/';
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
 
   const signOut = async () => {
     await logout();

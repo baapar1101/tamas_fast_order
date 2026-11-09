@@ -20,9 +20,6 @@ export function CheckoutPage() {
   const [hasStarted, setHasStarted] = useState(lines.length > 0);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-  useEffect(() => {
     if (lines.length > 0) setHasStarted(true);
   }, [lines.length]);
 

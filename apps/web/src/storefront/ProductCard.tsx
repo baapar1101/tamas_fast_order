@@ -10,6 +10,8 @@ import { isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneMo
 import { AnimatedDropdown } from '../admin/components/AnimatedDropdown';
 import { resolveImageUrl } from '../lib/images';
 import { ProductImageGallery } from './ProductImageGallery';
+import { faText } from '../lib/text';
+import { useFavorites } from '../store/favorites';
 
 import type { CartLine } from '../store/cart';
 
@@ -84,7 +86,9 @@ function areProductCardPropsEqual(previous: Props, next: Props): boolean {
 
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [isFav, setIsFav] = useState(false);
+  const isFav = useFavorites((state) => state.items.some((item) => group.variants.some((variant) => variant.productId === item.productId)));
+  const toggleFavorite = useFavorites((state) => state.toggle);
+  const removeFavorite = useFavorites((state) => state.remove);
 
   const isPhone = Boolean(group.variants[0] && isPhoneProduct(group.variants[0]));
   const displayVariants = useMemo(() => isPhone ? phoneDisplayVariants(group.variants) : group.variants, [group.variants, isPhone]);
@@ -102,6 +106,14 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
   if (!selectedVariant) return null;
 
   const brand = selectedVariant.brandFaName || selectedVariant.brandName || 'متفرقه';
+  const title = faText(group.title);
+  const onToggleFavorite = () => {
+    if (isFav) {
+      group.variants.forEach((variant) => removeFavorite(variant.productId));
+      return;
+    }
+    toggleFavorite({ productId: selectedVariant.productId, title, imageUrl: allImages[0] ?? null });
+  };
   const isPromo = Boolean(group.promotion || selectedVariant.promotion);
   const titleClass = productTitleClass(group.title);
   const whButtons = getWarehouseButtons(selectedVariant);
@@ -112,7 +124,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       <article className={`product-accordion${isPromo ? ' is-promotion' : ''}`}>
         {isPromo && (
           <div className="promo-tag">
-            <span className="star-icon"><Icon name="star-fill" /></span> هرکی میگه ۱۶ نیست،فقط تا ۲۰ام
+            <span className="star-icon"><Icon name="star-fill" /></span> جشنواره این ماه
           </div>
         )}
 
@@ -120,7 +132,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
           <div className="product-head">
             <div className={`product-title ${titleClass}`}>
               {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
-              <Link className="product-title-link" to={`/p/${selectedVariant.productId}`}>{group.title}</Link>
+              <Link className="product-title-link" to={`/p/${selectedVariant.productId}`}>{title}</Link>
             </div>
             {selectedVariant.rating != null && (
               <span className="card-rating"><span aria-hidden="true">★</span> {(selectedVariant.rating / 100).toLocaleString('fa-IR', { maximumFractionDigits: 2 })}</span>
@@ -139,7 +151,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                     <div className="color-title" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: "var(--ds-space-1) var(--ds-space-2)" }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span className="color-dot" style={{ background: resolveProductColor(v, colorMap) }} aria-hidden />
-                        <span>{v.color || v.colorEn || 'مشکی'}</span>
+                        <span>{v.color || v.colorEn || 'تک‌رنگ'}</span>
                       </div>
                       {v.sku && (
                         <span className="variant-sku" style={{ fontSize: "var(--ds-text-xs)", color: 'var(--tamas-muted, #737373)', background: 'var(--tamas-surface-alt, #f5f5f5)', padding: '2px 6px', borderRadius: '4px' }}>
@@ -178,9 +190,9 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                             </div>
                             {qty > 0 ? (
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: "2px var(--ds-space-1)" }}>
-                                <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 24, height: 24, fontSize: "var(--ds-text-lg)" }} onClick={() => onUpdateQty(cartKey, qty - 1)}>-</button>
-                                <span style={{ fontSize: "var(--ds-text-caption)", fontWeight: 700, minWidth: 16, textAlign: 'center', color: 'var(--tamas-fg)' }}>{qty}</span>
-                                <button type="button" className="add-wh-btn" style={{ width: 24, height: 24, fontSize: "var(--ds-text-lg)" }} onClick={() => onAdd(v, wh)}>+</button>
+                                <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 24, height: 24, fontSize: "var(--ds-text-lg)" }} onClick={() => onUpdateQty(cartKey, qty - 1)} aria-label="کاهش تعداد">−</button>
+                                <span style={{ fontSize: "var(--ds-text-caption)", fontWeight: 700, minWidth: 16, textAlign: 'center', color: 'var(--tamas-fg)' }}>{formatNumber(qty)}</span>
+                                <button type="button" className="add-wh-btn" style={{ width: 24, height: 24, fontSize: "var(--ds-text-lg)" }} onClick={() => onAdd(v, wh)} aria-label="افزایش تعداد">+</button>
                               </div>
                             ) : (
                               <button
@@ -213,15 +225,16 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
     <article className={`product-card${isPromo ? ' is-promotion' : ''}`}>
       {isPromo && (
         <div className="promo-tag">
-          <span className="star-icon"><Icon name="star-fill" /></span> هرکی میگه ۱۶ نیست،فقط تا ۲۰ام
+          <span className="star-icon"><Icon name="star-fill" /></span> جشنواره این ماه
         </div>
       )}
 
       <button
         type="button"
         className={`card-fav-btn${isFav ? ' active' : ''}`}
-        onClick={() => setIsFav(!isFav)}
-        aria-label="افزودن به علاقه‌مندی‌ها"
+        onClick={onToggleFavorite}
+        aria-label={isFav ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}
+        aria-pressed={isFav}
       >
         <Icon name={isFav ? 'heart-fill' : 'heart'} />
       </button>
@@ -231,7 +244,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       <div className="product-card-content">
         <div className={`card-title ${titleClass}`}>
           {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
-          <Link className="card-title-link" to={`/p/${selectedVariant.productId}`}>{group.title}</Link>
+          <Link className="card-title-link" to={`/p/${selectedVariant.productId}`}>{title}</Link>
         </div>
 
         <div className="card-meta-row">
@@ -286,11 +299,11 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                   <span className="color-count">{formatNumber(displayVariants.length)} رنگ</span>
                 </span>
               </>
-            ) : (
+            ) : selectedVariant.color ? (
               <span>
-                رنگ: {selectedVariant.color || '-'}
+                رنگ: {selectedVariant.color}
               </span>
-            )}
+            ) : null}
 
             </div>
 
@@ -331,9 +344,9 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                   </div>
                   {qty > 0 ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--tamas-surface)', border: 'var(--tamas-border-w, 1px) solid var(--tamas-border)', borderRadius: 'var(--tamas-radius-pill, 980px)', padding: "2px var(--ds-space-1)" }}>
-                      <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 26, height: 26, fontSize: "var(--ds-text-lead)" }} onClick={() => onUpdateQty(cartKey, qty - 1)} title="کاهش">-</button>
-                      <span style={{ fontSize: "var(--ds-text-sm)", fontWeight: 700, minWidth: 20, textAlign: 'center', color: 'var(--tamas-fg)' }}>{qty}</span>
-                      <button type="button" className="add-wh-btn" style={{ width: 26, height: 26, fontSize: "var(--ds-text-lg)" }} onClick={() => onAdd(selectedVariant, wh)} title="افزایش">+</button>
+                      <button type="button" className="add-wh-btn" style={{ background: 'transparent', border: 'none', color: 'var(--tamas-fg)', width: 26, height: 26, fontSize: "var(--ds-text-lead)" }} onClick={() => onUpdateQty(cartKey, qty - 1)} title="کاهش" aria-label="کاهش تعداد">−</button>
+                      <span style={{ fontSize: "var(--ds-text-sm)", fontWeight: 700, minWidth: 20, textAlign: 'center', color: 'var(--tamas-fg)' }}>{formatNumber(qty)}</span>
+                      <button type="button" className="add-wh-btn" style={{ width: 26, height: 26, fontSize: "var(--ds-text-lg)" }} onClick={() => onAdd(selectedVariant, wh)} title="افزایش" aria-label="افزایش تعداد">+</button>
                     </div>
                   ) : (
                     <button

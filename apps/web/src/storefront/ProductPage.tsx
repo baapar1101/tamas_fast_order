@@ -99,11 +99,12 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
   const selected = isPhone && requested && isPhoneMediaOnlyProduct(requested)
     ? displayVariants[phoneDefaultVariantIndex(displayVariants)] ?? requested
     : requested ?? displayVariants[0] ?? null;
-  const isBundle = selected?.type === 'bundle';
-  const bundleContents = isBundle
+  const hasBasketContents = Boolean(selected?.bundleItems.length);
+  const contentsLabel = selected?.type === 'bundle' ? 'باندل' : 'سبد';
+  const bundleContents = hasBasketContents
     ? (query.data?.bundleContents?.length
       ? query.data.bundleContents
-      : selected.bundleItems.map((item) => ({ ...item, title: `کالا با کد ${item.productId}`, imageUrl: null })))
+    : (selected?.bundleItems ?? []).map((item) => ({ ...item, title: `کالا با کد ${item.productId}`, imageUrl: null })))
     : [];
   const bundleQuantity = bundleContents.reduce((total, item) => total + item.qty, 0);
   const bundleSearchTerm = normalizeBundleSearch(bundleSearch);
@@ -593,7 +594,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
               onClick={() => setActiveTab('specs')}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-              {isBundle ? 'اقلام داخل باندل' : 'مشخصات فنی'}
+              {hasBasketContents ? `اقلام داخل ${contentsLabel}` : 'مشخصات فنی'}
             </button>
           </div>
           <div className="pp-tabs-content">
@@ -608,12 +609,12 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
               )
             )}
             {activeTab === 'specs' && (
-              isBundle ? (
+              hasBasketContents ? (
                 bundleContents.length > 0 ? (
-                  <section className="pp-bundle-contents" aria-label="اقلام داخل باندل">
+                  <section className="pp-bundle-contents" aria-label={`اقلام داخل ${contentsLabel}`}>
                     <div className="pp-bundle-heading">
                       <div>
-                        <h2>اقلام داخل باندل</h2>
+                        <h2>اقلام داخل {contentsLabel}</h2>
                         <p>{formatNumber(bundleContents.length)} قلم کالا · مجموع {formatNumber(bundleQuantity)} عدد</p>
                       </div>
                       {bundleContents.length > 5 && (
@@ -623,7 +624,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
                           value={bundleSearch}
                           onChange={(event) => setBundleSearch(event.target.value)}
                           placeholder="جستجوی نام یا کد کالا"
-                          aria-label="جستجو در اقلام باندل"
+                          aria-label={`جستجو در اقلام ${contentsLabel}`}
                         />
                       )}
                     </div>
@@ -651,7 +652,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
                     {filteredBundleContents.length === 0 && <p className="pp-bundle-no-results">کالایی با این نام یا کد پیدا نشد.</p>}
                   </section>
                 ) : (
-                  <div className="pp-empty-state"><Icon name="box" /><p>هنوز کالایی برای این باندل ثبت نشده است.</p></div>
+                  <div className="pp-empty-state"><Icon name="box" /><p>هنوز کالایی برای این {contentsLabel} ثبت نشده است.</p></div>
                 )
               ) : (selected.attributes ?? []).length > 0 ? (
                 <table className="pp-attrs">

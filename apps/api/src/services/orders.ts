@@ -2,7 +2,7 @@ import { and, desc, eq, gte, inArray, isNull, lt, ne, sql } from 'drizzle-orm';
 import type { OrderCreate, OrderDTO, OrderItemsReplace, PaymentPlanQuote, Warehouse } from '@tamas/shared';
 import {
   WAREHOUSE_LABELS,
-  chequeDueDate,
+  planChequeDueDate,
   formatPersianDueDate,
   nextThursdayDueDate,
   paymentAudienceForCategory,
@@ -133,6 +133,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
   }
 
   const [paymentRouting, paymentTermsConfig] = await Promise.all([getPaymentRoutingConfig(), getPaymentTermsConfig()]);
+  const campaignActive = (await getSetting('campaign_mode'))?.startsWith('2026-11') ?? false;
   const created = await db.transaction(async (tx) => {
     let rows = await tx
       .select()
@@ -170,6 +171,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       const product = byId.get(line.productId);
       if (!product) throw badRequest(`محصول «${line.productId}» دیگر موجود نیست.`);
       if (product.status !== 'active') throw conflict(`«${product.title}» در حال حاضر قابل سفارش نیست.`);
+      if (campaignActive && !product.promotion) throw conflict(`«${product.title}» در فهرست فروش جشنواره نیست.`);
 
       if (product.type === 'bundle' && product.bundleItems && Array.isArray(product.bundleItems)) {
         // Bundle stock validation
@@ -285,13 +287,11 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       total = paymentPlan.finalAmount;
     }
     if (paymentPlan?.kind === 'cheque') {
-      const interval = paymentPlan.installmentIntervalMonths ?? 1;
-      const termMonths = paymentPlan.termMonths;
       const anchor = new Date();
       paymentPlan = {
         ...paymentPlan,
         schedule: paymentPlan.schedule.map((item, index) => {
-          const dueDate = chequeDueDate(anchor, index, interval, termMonths);
+          const dueDate = planChequeDueDate(anchor, index, paymentPlan!);
           return { ...item, dueDate, dueLabel: formatPersianDueDate(dueDate) };
         }),
       };

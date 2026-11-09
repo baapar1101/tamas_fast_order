@@ -372,6 +372,8 @@ export function SettingsPage() {
   const extraKeys = Object.keys(form).filter((k) => !knownKeys.has(k)).sort();
 
   const telegramGroups = parseJsonSetting<TelegramGroup[]>(form.TELEGRAM_GROUPS, []);
+  const selectedBackupGroup = telegramGroups.find((group) => group.id === form.TELEGRAM_BACKUP_GROUP_ID);
+  const backupTargetReady = !!selectedBackupGroup?.enabled && !!selectedBackupGroup.chatId.trim();
   const telegramRoutes = parseJsonSetting<Partial<Record<TelegramEvent, string[]>>>(form.TELEGRAM_ROUTES, {});
   const customerTelegramEvents = parseJsonSetting<Partial<Record<CustomerTelegramEvent, boolean>>>(form.CUSTOMER_TELEGRAM_NOTIFICATION_EVENTS, {});
   const attributionChannels = parseJsonSetting<AttributionChannel[]>(form.ATTRIBUTION_CHANNELS, DEFAULT_ATTRIBUTION_CHANNELS);
@@ -796,6 +798,9 @@ export function SettingsPage() {
                         }}>ذخیره و تست</button>
                         <button type="button" className="a-btn a-btn--danger a-btn--xs" onClick={() => {
                           updateTelegramGroups(telegramGroups.filter((item) => item.id !== group.id));
+                          if (form.TELEGRAM_BACKUP_GROUP_ID === group.id) {
+                            setForm((current) => ({ ...current, TELEGRAM_BACKUP_GROUP_ID: '' }));
+                          }
                           const nextRoutes = { ...telegramRoutes };
                           (Object.keys(nextRoutes) as TelegramEvent[]).forEach((event) => {
                             nextRoutes[event] = nextRoutes[event]?.filter((id) => id !== group.id);
@@ -839,11 +844,32 @@ export function SettingsPage() {
                   onChange={(event) => setForm({ ...form, TELEGRAM_BACKUP_GROUP_ID: event.target.value })}
                 >
                   <option value="">انتخاب گروه خصوصی</option>
-                  {telegramGroups.filter((group) => group.enabled).map((group) => (
-                    <option value={group.id} key={group.id}>{group.name}</option>
+                  {telegramGroups.map((group) => (
+                    <option value={group.id} key={group.id} disabled={!group.enabled || !group.chatId.trim()}>
+                      {group.name}{!group.chatId.trim() ? ' — شناسه گروه وارد نشده' : !group.enabled ? ' — غیرفعال' : ''}
+                    </option>
                   ))}
                 </select>
-                <p className="a-note">فقط گروه‌های فعال فهرست می‌شوند. فایل حاوی اطلاعات حساس است؛ مقصد را گروه خصوصی مدیران انتخاب کنید.</p>
+                <p className="a-note">همه گروه‌ها نمایش داده می‌شوند. برای ارسال بکاپ، گروه باید فعال و دارای Chat ID باشد. فایل حاوی اطلاعات حساس است؛ مقصد را گروه خصوصی مدیران انتخاب کنید.</p>
+                {telegramGroups.filter((group) => !group.enabled && group.chatId.trim()).map((group) => (
+                  <button
+                    key={group.id}
+                    type="button"
+                    className="a-btn a-btn--secondary a-btn--xs mt-2"
+                    onClick={() => setForm((current) => ({
+                      ...current,
+                      TELEGRAM_GROUPS: JSON.stringify(parseJsonSetting<TelegramGroup[]>(current.TELEGRAM_GROUPS, []).map((item) =>
+                        item.id === group.id ? { ...item, enabled: true } : item,
+                      )),
+                      TELEGRAM_BACKUP_GROUP_ID: group.id,
+                    }))}
+                  >
+                    فعال‌سازی و انتخاب «{group.name}» برای بکاپ
+                  </button>
+                ))}
+                {form.TELEGRAM_BACKUP_GROUP_ID && !backupTargetReady && (
+                  <p className="a-note" style={{ color: 'var(--a-red)' }}>گروه انتخاب‌شده آماده ارسال نیست؛ آن را فعال کنید و Chat ID را بررسی کنید.</p>
+                )}
               </div>
               <div className="a-field">
                 <label className="a-label">زمان ارسال روزانه</label>
@@ -900,7 +926,7 @@ export function SettingsPage() {
               <button
                 type="button"
                 className="a-btn a-btn--primary"
-                disabled={telegramBackupSending || save.isPending || telegramGroups.every((group) => !group.enabled)}
+                disabled={telegramBackupSending || save.isPending || !backupTargetReady}
                 onClick={async () => {
                   setTelegramBackupSending(true);
                   try {
