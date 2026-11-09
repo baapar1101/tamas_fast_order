@@ -1,4 +1,5 @@
-export type HomepageFilterType = 'in_stock' | 'promotion' | 'basket';
+/** Out-of-stock items are never listed, so there is no stock filter to toggle. */
+export type HomepageFilterType = 'promotion' | 'basket';
 
 export interface HomepageFilter {
   id: string;
@@ -10,18 +11,16 @@ export interface HomepageFilter {
 export const HOMEPAGE_FILTER_SETTING_KEY = 'storefront_filters';
 
 export const HOMEPAGE_FILTER_TYPE_LABELS: Record<HomepageFilterType, string> = {
-  in_stock: 'موجودی کالا',
   promotion: 'کالاهای جشنواره',
   basket: 'سبدهای جشنواره',
 };
 
 export const DEFAULT_HOMEPAGE_FILTERS: HomepageFilter[] = [
-  { id: 'in-stock', type: 'in_stock', label: 'موجودها', enabled: true },
   { id: 'promotion', type: 'promotion', label: 'کالاهای جشنواره', enabled: false },
   { id: 'basket', type: 'basket', label: 'سبدهای جشنواره', enabled: false },
 ];
 
-const FILTER_TYPES = new Set<HomepageFilterType>(['in_stock', 'promotion', 'basket']);
+const FILTER_TYPES = new Set<HomepageFilterType>(['promotion', 'basket']);
 
 export function parseHomepageFilters(value: string | undefined): HomepageFilter[] {
   if (!value) return DEFAULT_HOMEPAGE_FILTERS;

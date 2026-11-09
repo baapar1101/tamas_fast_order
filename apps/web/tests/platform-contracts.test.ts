@@ -45,7 +45,7 @@ test('shared dialog sizes stay bounded and every theme maps shared semantic surf
 
 test('document recovery is reachable in admin and customer navigation without exposing public files', () => {
   assert.match(read('../src/admin/AdminApp.tsx'), /path="document-recovery"/);
-  assert.match(read('../src/storefront/AccountLayout.tsx'), /to="\/account\/documents"/);
+  assert.match(read('../src/storefront/AccountLayout.tsx'), /to: ?['"]\/account\/documents['"]|to="\/account\/documents"/);
   assert.match(read('../src/App.tsx'), /path="documents"/);
   const admin = read('../src/admin/components/DocumentRecoveryPanel.tsx');
   assert.match(admin, /بدون ارجاع فعال/);

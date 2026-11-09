@@ -271,17 +271,6 @@
     border-radius: 14px;
   }
 
-  .account-nav,
-  .account-sidebar-actions {
-    gap: var(--ds-space-2);
-  }
-
-  .account-nav-item {
-    width: 100%;
-    min-width: 0;
-    justify-content: flex-start;
-  }
-
   .ord-head-main,
   .ord-head-side,
   .ord-address,
@@ -356,11 +345,6 @@
 }
 
 @media (max-width: 380px) {
-  .account-nav,
-  .account-sidebar-actions {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .product-card,
   .product-card.is-promotion {
     grid-template-columns: 84px minmax(0, 1fr);

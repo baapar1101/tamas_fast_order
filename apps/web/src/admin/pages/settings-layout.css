@@ -1,0 +1,113 @@
+/* Settings: grouped side navigation instead of a 13-tab strip. */
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--ds-space-5);
+  min-width: 0;
+}
+
+.settings-nav {
+  position: sticky;
+  top: 88px;
+  display: grid;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-3);
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-lg);
+  background: var(--a-surface);
+  box-shadow: var(--a-shadow);
+}
+
+.settings-nav-select {
+  display: none;
+}
+
+.settings-nav-group {
+  display: grid;
+  gap: 2px;
+}
+
+.settings-nav-title {
+  margin: 0 0 4px;
+  padding: 0 10px;
+  color: var(--a-t3);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.settings-nav-item {
+  position: relative;
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--a-t1);
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.settings-nav-item strong {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.settings-nav-item small {
+  overflow: hidden;
+  color: var(--a-t3);
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-nav-item:hover {
+  background: var(--a-hover);
+}
+
+.settings-nav-item.is-active {
+  background: var(--a-brand-soft);
+  color: var(--a-brand);
+}
+
+.settings-nav-item.is-active::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--a-brand);
+}
+
+.settings-panel {
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ds-space-4);
+  }
+
+  .settings-nav {
+    position: static;
+    padding: var(--ds-space-3);
+  }
+
+  .settings-nav-select {
+    display: grid;
+    gap: 6px;
+  }
+
+  .settings-nav-group {
+    display: none;
+  }
+}

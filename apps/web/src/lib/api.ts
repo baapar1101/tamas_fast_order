@@ -102,8 +102,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     }
   }
 
-  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+  if (!data || typeof data !== 'object') {
     throw new ApiRequestError('پاسخ معتبری از سرور دریافت نشد. دوباره تلاش کنید.', res.status, 'invalid_response');
+  }
+
+  // Some admin endpoints (slides, warehouses, attributes) return a bare list.
+  if (Array.isArray(data)) {
+    if (!res.ok) throw new ApiRequestError('خطای غیرمنتظره‌ای رخ داد.', res.status, 'error');
+    return data as T;
   }
 
   if (!res.ok || data.ok === false) {

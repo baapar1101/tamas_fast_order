@@ -2504,3 +2504,45 @@ body.admin-page-active .modal-panel:has(.credit-report-overview) {
   .credit-overview-summary { padding: var(--ds-space-4); }
   .credit-report-kpis article { min-height: 4.75rem; }
 }
+
+/* Sidebar footer */
+.nav-footer {
+  padding: 0.75rem 1rem 1rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.nav-footer-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 0.75rem;
+  color: var(--slate-300, #cbd5e1);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.nav-footer-link:hover {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.08);
+  color: #fff;
+}
+
+.nav-footer-link svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+body.admin-page-active.admin-theme-light .nav-footer-link {
+  border-color: rgba(16, 24, 40, 0.12);
+  background: rgba(16, 24, 40, 0.03);
+  color: #344054;
+}
+
+body.admin-page-active.admin-theme-light .nav-footer-link:hover {
+  color: #101828;
+}

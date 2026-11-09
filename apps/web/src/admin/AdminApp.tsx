@@ -25,7 +25,6 @@ const SlidesPage = lazy(() => import('./pages/SlidesPage').then((m) => ({ defaul
 const UploadsPage = lazy(() => import('./pages/UploadsPage').then((m) => ({ default: m.UploadsPage })));
 const SyncPage = lazy(() => import('./pages/SyncPage').then((m) => ({ default: m.SyncPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
-const CrmSyncPage = lazy(() => import('./pages/CrmSyncPage').then((m) => ({ default: m.CrmSyncPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })));
 const MessagesPage = lazy(() => import('./pages/MessagesPage').then((m) => ({ default: m.MessagesPage })));
 const MarketingPage = lazy(() => import('./pages/MarketingPage').then((m) => ({ default: m.MarketingPage })));
@@ -141,7 +140,7 @@ const NAV_MAIN = [
   {
     to: '/admin/document-recovery',
     label: 'مدارک مفقود و تکمیل پرونده',
-    icon: <span aria-hidden="true">▤</span>,
+    icon: (<svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>),
     requiredPermission: 'manage_users',
   },
   {
@@ -321,26 +320,6 @@ const NAV_TOOLS = [
     requiredPermission: 'manage_settings',
   },
   {
-    to: '/admin/catalog-export',
-    label: 'کاتالوگ PDF و تصویر',
-    icon: (
-      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-      </svg>
-    ),
-    requiredPermission: 'manage_products',
-  },
-  {
-    to: '/admin/crm-sync',
-    label: 'سینک CRM',
-    icon: (
-      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-      </svg>
-    ),
-    requiredPermission: 'manage_settings',
-  },
-  {
     to: '/admin/settings',
     label: 'تنظیمات',
     icon: (
@@ -390,24 +369,31 @@ const NAV_ITEMS = [...NAV_MAIN, ...NAV_TOOLS].filter(
 const NAV_GROUPS = [
   {
     id: 'sales',
-    label: 'فروش و سفارش‌ها',
-    description: 'سفارش، اعتبار و امور مالی',
-    paths: ['/admin/orders', '/admin/proformas', '/admin/credit', '/admin/credit-reports', '/admin/document-recovery', '/admin/financial', '/admin/wallets'],
+    label: 'فروش و مالی',
+    description: 'سفارش، پیش‌فاکتور و تراکنش‌ها',
+    paths: ['/admin/orders', '/admin/proformas', '/admin/financial', '/admin/wallets'],
     iconPath: 'M3.75 7.5h16.5l-1.5 12H5.25l-1.5-12zm4.5 0V6a3.75 3.75 0 117.5 0v1.5',
   },
   {
+    id: 'customers',
+    label: 'مشتریان و اعتبار',
+    description: 'همکاران، اعتبارسنجی و مدارک',
+    paths: ['/admin/users', '/admin/credit', '/admin/credit-reports', '/admin/document-recovery'],
+    iconPath: 'M15 19.128A9.38 9.38 0 0017.625 19.5a9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z',
+  },
+  {
     id: 'catalog',
-    label: 'کالا و موجودی',
-    description: 'محصول، دسته‌بندی و انبار',
-    paths: ['/admin/products', '/admin/product-content-import', '/admin/bundles', '/admin/categories', '/admin/brands', '/admin/attributes', '/admin/warehouses', '/admin/target-sites', '/admin/catalog-export'],
+    label: 'کالا و کاتالوگ',
+    description: 'محصول، دسته‌بندی، انبار و انتشار',
+    paths: ['/admin/products', '/admin/bundles', '/admin/categories', '/admin/brands', '/admin/attributes', '/admin/warehouses', '/admin/sync', '/admin/product-content-import', '/admin/catalog-export', '/admin/target-sites'],
     iconPath: 'M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m-.375 0h17.25M9 11.25h6m-6 3h6',
   },
   {
-    id: 'customers',
-    label: 'مشتریان و ارتباطات',
-    description: 'کاربران، گفتگو و پیام‌رسانی',
-    paths: ['/admin/users', '/admin/comments', '/admin/chat', '/admin/messages', '/admin/sms', '/admin/app-notifications'],
-    iconPath: 'M15 19.128A9.38 9.38 0 0017.625 19.5a9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z',
+    id: 'messaging',
+    label: 'ارتباط با مشتری',
+    description: 'چت، نظرات، پیام و پیامک',
+    paths: ['/admin/chat', '/admin/comments', '/admin/messages', '/admin/sms', '/admin/app-notifications'],
+    iconPath: 'M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z',
   },
   {
     id: 'content',
@@ -418,16 +404,16 @@ const NAV_GROUPS = [
   },
   {
     id: 'insights',
-    label: 'گزارش‌ها و ابزار هوشمند',
+    label: 'گزارش‌ها',
     description: 'تحلیل، Graphify و Archify',
     paths: ['/admin/analytics', '/admin/graphify', '/admin/archify'],
     iconPath: 'M3 20.25h18M5.25 17.25V12h3v5.25m3 0V6.75h3v10.5m3 0V3.75h3v13.5',
   },
   {
     id: 'system',
-    label: 'سیستم و یکپارچه‌سازی',
-    description: 'تنظیمات، دسترسی و همگام‌سازی',
-    paths: ['/admin/sync', '/admin/crm-sync', '/admin/settings', '/admin/access-groups'],
+    label: 'تنظیمات و دسترسی',
+    description: 'پیکربندی، CRM و نقش‌ها',
+    paths: ['/admin/settings', '/admin/access-groups'],
     iconPath: 'M12 3v3m0 12v3m9-9h-3M6 12H3m15.364-6.364l-2.122 2.122M7.758 16.242l-2.122 2.122m12.728 0l-2.122-2.122M7.758 7.758L5.636 5.636M15.75 12A3.75 3.75 0 1112 8.25 3.75 3.75 0 0115.75 12z',
   },
 ] as const;
@@ -597,7 +583,9 @@ export default function AdminApp() {
   const dashboardItem = NAV_MAIN[0];
   const visibleGroups = NAV_GROUPS.map((group) => ({
     ...group,
-    items: NAV_ITEMS.filter((item) => group.paths.some((path) => path === item.to) && hasPermission(item.requiredPermission)),
+    items: group.paths
+      .map((path) => NAV_ITEMS.find((item) => item.to === path))
+      .filter((item): item is (typeof NAV_ITEMS)[number] => Boolean(item) && hasPermission(item!.requiredPermission)),
   })).filter((group) => group.items.length > 0);
   const currentGroupLabel = NAV_GROUPS.find((group) => group.id === activeNavGroup(location.pathname))?.label ?? 'داشبورد';
 
@@ -703,23 +691,11 @@ export default function AdminApp() {
           </div>
         </nav>
 
-        {/* Pro / Status Card at Sidebar Bottom */}
-        <div className="p-4">
-          <div className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/15 via-[#131c2e] to-[#0e1626] p-4">
-            <div className="absolute -left-6 -top-6 h-24 w-24 rounded-full bg-emerald-400/20 blur-2xl" />
-            <div className="absolute inset-x-0 top-0 h-px shimmer-line animate-shimmer" />
-            <div className="flex items-center gap-2 mb-1">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <h3 className="text-xs font-bold glass-text-t1">نسخه حرفه‌ای تماس مارکت</h3>
-            </div>
-            <p className="text-[11px] leading-5 glass-text-t2">اتصال هوشمند دیتابیس و مدیریت سفارش‌ها</p>
-            <Link
-              to="/admin/settings"
-              className="mt-3 block text-center w-full rounded-xl bg-gradient-to-l from-emerald-500 to-cyan-500 py-2 text-xs font-bold text-slate-950 shadow-glow transition-all duration-300 hover:brightness-110 active:scale-95"
-            >
-              تنظیمات سیستم
-            </Link>
-          </div>
+        <div className="nav-footer">
+          <a href="/" target="_blank" rel="noreferrer" className="nav-footer-link">
+            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+            مشاهده فروشگاه
+          </a>
         </div>
       </aside>
 
@@ -964,7 +940,7 @@ export default function AdminApp() {
             <Route path="marketing" element={<MarketingPage />} />
             <Route path="uploads" element={<UploadsPage />} />
             <Route path="sync" element={<SyncPage />} />
-            <Route path="crm-sync" element={<CrmSyncPage />} />
+            <Route path="crm-sync" element={<Navigate to="/admin/settings?tab=crm" replace />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="financial" element={<FinancialPage />} />
             <Route path="wallets" element={<WalletsPage />} />
