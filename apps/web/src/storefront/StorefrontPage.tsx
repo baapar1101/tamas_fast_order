@@ -14,7 +14,6 @@ import { ProductImagePreview } from './ProductImagePreview';
 import { createColorMap } from './productColor';
 import { useBootstrap, useDebounced, useProducts, type CatalogFilters, type StorefrontSlide } from './hooks';
 import { Icon } from '../components/Icon';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { useDarkTheme } from '../components/useDarkTheme';
 import { CrmChat } from '../components/CrmChat';
 import { StoreFooter } from './StoreFooter';
@@ -24,8 +23,7 @@ import { GoldenCampaignCopy } from './GoldenCampaignCopy';
 import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_IMAGE_URL, GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL, isGoldenCampaignSlide, visibleCampaignSlides } from './goldenCampaign';
 import { HOMEPAGE_FILTER_SETTING_KEY, parseHomepageFilters, type HomepageFilterType } from './homepageFilters';
 import { MobileAppNavigation, type MobileAppTab } from './MobileAppNavigation';
-import { FavoritesDialog } from './FavoritesDialog';
-import { useFavorites } from '../store/favorites';
+import { SiteHeader } from './SiteHeader';
 import { scrollIntoViewSoft, scrollPageToTop } from '../lib/scroll';
 import './storefront.css';
 
@@ -194,8 +192,6 @@ export function StorefrontPage() {
   const [authStep, setAuthStep] = useState<'phone' | 'profile'>('phone');
   const [preview, setPreview] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [favoritesOpen, setFavoritesOpen] = useState(false);
-  const favoritesCount = useFavorites((state) => state.items.length);
   const productsTopRef = useRef<HTMLElement>(null);
   const goToPage = (next: number) => {
     setPage(next);
@@ -313,19 +309,6 @@ export function StorefrontPage() {
     resetPage();
   };
   const canViewPrices = Boolean(user?.isActive);
-  const [promoOrange, setPromoOrange] = useState(false);
-
-  // Switch topbar promo to orange credit banner a few seconds after login
-  useEffect(() => {
-    if (user) {
-      const timer = setTimeout(() => {
-        setPromoOrange(true);
-      }, 3000);
-      return () => clearTimeout(timer);
-    } else {
-      setPromoOrange(false);
-    }
-  }, [user]);
 
   const groups = products.data?.groups ?? [];
   const total = products.data?.total ?? 0;
@@ -334,104 +317,20 @@ export function StorefrontPage() {
 
   return (
     <div className="shell">
-      <header className="topbar">
-        {/* Top promo strip */}
-        <div className={`topbar-promo${promoOrange ? ' promo-orange' : ''}`}>
-          <div className="promo-sheen" aria-hidden="true" />
-          <div className="promo-inner">
-            <div className="promo-copy">
-              <strong className="promo-title">
-                {promoOrange ? 'رشد کسب‌وکار خود را با اعتبار ما تسریع کنید!' : 'با هم، سریع‌تر و بهتر رشد می‌کنیم!'}
-              </strong>
-              <span className="promo-text">
-                {promoOrange
-                  ? 'برای خرید کالاهای پرگردش، نیازی به پرداخت نقدی ندارید، فایل اعتباری خود را بسازید و با خرید چکی یا اعتبار هفتگی، بدون پرداخت نقدی موجودی فروشگاهتان را تأمین کنید.'
-                  : 'همکاری با ما از چیزی که فکرش رو می‌کنید راحت‌تره. با ثبت‌نام در پنل همکاران، بلافاصله به قیمت‌های ویژه، تامین مطمئن و پشتیبانی اختصاصی دسترسی پیدا کنید.'}
-              </span>
-            </div>
-            <button
-              type="button"
-              className="promo-cta"
-              onClick={() => {
-                if (user) {
-                  goToCredit();
-                } else {
-                  setAuthStep('phone');
-                  setAuthOpen(true);
-                }
-              }}
-            >
-              {promoOrange ? 'ایجاد فایل اعتباری' : 'ثبت‌نام در چند ثانیه'}
-            </button>
-          </div>
-        </div>
-
-        {/* Topbar Header */}
-        <div className="topbar-inner">
-          <Link to="/" className="logo">
-            <img src="/logo.png" alt={settings.store_name || 'تماس مارکت'} />
-            <span className="logo-tagline">{settings.store_tagline || 'مرجع تخصصی فروش عمده کالای دیجیتال'}</span>
-          </Link>
-
-          <div className="search-wrapper">
-            <span className="search-icon" aria-hidden>
-              <Icon name="search" />
-            </span>
-            <input
-              type="search"
-              className="search-input"
-              placeholder="جستجو بر اساس نام محصول، مدل، برند..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                resetPage();
-                // Results only render on the home/search tabs; typing from the
-                // categories, cart or profile tab used to look like it did nothing.
-                if (mobileTab !== 'home' && mobileTab !== 'search') setMobileTab('search');
-              }}
-              aria-label="جستجو"
-            />
-            {search && (
-              <button type="button" className="search-clear" onClick={() => { setSearch(''); resetPage(); }} aria-label="پاک کردن جستجو">
-                ✕
-              </button>
-            )}
-            <span className="search-shortcut">Ctrl + /</span>
-          </div>
-
-          <div className="user-actions">
-            <ThemeToggle />
-            <button
-              type="button"
-              className="btn btn-icon-only fav-header-btn"
-              onClick={() => setFavoritesOpen(true)}
-              title="علاقه‌مندی‌ها"
-              aria-label={favoritesCount > 0 ? `علاقه‌مندی‌ها (${formatNumber(favoritesCount)})` : 'علاقه‌مندی‌ها'}
-            >
-              <Icon name={favoritesCount > 0 ? 'heart-fill' : 'heart'} />
-              {favoritesCount > 0 && <span className="badge-count" aria-hidden="true">{formatNumber(favoritesCount)}</span>}
-            </button>
-            {user ? (
-              <Link to="/account" state={{ returnTo: `${location.pathname}${location.search}` }} className="btn primary" aria-label="رفتن به حساب کاربری">
-                <Icon name="user" />
-                <span>{`${user.name || 'حساب'} ${user.lastName || ''}`.trim()}</span>
-              </Link>
-            ) : (
-              <button
-                type="button"
-                className="btn primary"
-                onClick={() => {
-                  setAuthStep('phone');
-                  setAuthOpen(true);
-                }}
-              >
-                <Icon name="user" />
-                <span>ورود / ثبت‌نام همکار</span>
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
+      <SiteHeader
+        search={search}
+        onSearchChange={(value) => {
+          setSearch(value);
+          resetPage();
+          // Results only render on the home/search tabs; typing from the
+          // categories, cart or profile tab used to look like it did nothing.
+          if (mobileTab !== 'home' && mobileTab !== 'search') setMobileTab('search');
+        }}
+        onRequestLogin={() => {
+          setAuthStep('phone');
+          setAuthOpen(true);
+        }}
+      />
 
       <main className="container" data-mobile-tab={mobileTab}>
         {mobileTab === 'home' && <AndroidAppBanner />}
@@ -805,7 +704,6 @@ export function StorefrontPage() {
 
       <ProductImagePreview src={preview} onClose={() => setPreview(null)} />
 
-      <FavoritesDialog open={favoritesOpen} onClose={() => setFavoritesOpen(false)} />
 
       <MobileAppNavigation
         activeTab={mobileTab}
