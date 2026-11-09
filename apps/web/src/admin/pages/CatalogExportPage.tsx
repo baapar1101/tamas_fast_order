@@ -6,7 +6,8 @@ import { api } from '../../lib/api';
 import { useImageFallback, waitForImages } from '../../lib/images';
 import { useToast } from '../../components/Toast';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
-import { catalogProductImage, catalogProductStock } from '../components/catalogProduct';
+import { catalogProductImage } from '../components/catalogProduct';
+import { catalogSecondaryLabel, groupCatalogProducts, paginateCatalog, A4_CATALOG_LAYOUT, type CatalogGroupBy } from '../components/catalogPages';
 import { MobileGlassCatalog } from '../components/MobileGlassCatalog';
 import { isMobilePhoneProduct } from '../components/mobileGlassCatalogData';
 
@@ -28,7 +29,9 @@ export function CatalogExportPage() {
   const [catalogScope, setCatalogScope] = useState<CatalogScope>('all');
   const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [selectedBrand, setSelectedBrand] = useState<number | 'all'>('all');
-  const [stockStatus, setStockStatus] = useState<'all' | 'in' | 'out'>('all');
+  // The storefront only lists in-stock items, so the catalog starts there too.
+  const [stockStatus, setStockStatus] = useState<'all' | 'in' | 'out'>('in');
+  const [groupBy, setGroupBy] = useState<CatalogGroupBy>('category');
 
   const printContainerRef = useRef<HTMLDivElement | null>(null);
   const mobileGlassRef = useRef<HTMLDivElement | null>(null);
@@ -71,8 +74,9 @@ export function CatalogExportPage() {
     ? fetchedProducts.filter(isMobilePhoneProduct)
     : fetchedProducts;
   const isMobileGlass = catalogScope === 'mobile_glass';
-  const ITEMS_PER_PAGE = 20; // 4 columns x 5 rows
-  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+  const catalogGroups = groupCatalogProducts(products, groupBy);
+  const catalogPages = isMobileGlass ? [] : paginateCatalog(catalogGroups);
+  const totalPages = catalogPages.length;
   const today = new Date().toLocaleDateString('fa-IR');
   const catalogTitle = catalogScope === 'festival_singles'
     ? 'کاتالوگ محصولات تکی جشنواره'
@@ -261,6 +265,20 @@ export function CatalogExportPage() {
                 ]}
               />
             </div>
+
+            {/* Grouping */}
+            <div>
+              <label className="a-label">مرتب‌سازی و گروه‌بندی</label>
+              <AnimatedDropdown
+                value={groupBy}
+                disabled={isMobileGlass}
+                onChange={(val) => setGroupBy(val as CatalogGroupBy)}
+                options={[
+                  { value: 'category', label: 'بر اساس دسته‌بندی' },
+                  { value: 'brand', label: 'بر اساس برند' },
+                ]}
+              />
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between border-t border-[var(--a-border)] pt-6 gap-4">
@@ -321,9 +339,7 @@ export function CatalogExportPage() {
             </div>
           ) : (
             <div ref={printContainerRef} className="flex flex-col gap-10 items-center">
-              {Array.from({ length: totalPages }).map((_, pageIdx) => {
-                const pageProducts = products.slice(pageIdx * ITEMS_PER_PAGE, (pageIdx + 1) * ITEMS_PER_PAGE);
-
+              {catalogPages.map((pageRows, pageIdx) => {
                 return (
                   <div
                     key={pageIdx}
@@ -368,17 +384,42 @@ export function CatalogExportPage() {
                       </div>
                     </div>
 
-                    {/* Products Grid 4x5 */}
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(4, 1fr)',
-                      gridTemplateRows: 'repeat(5, 1fr)',
-                      gap: '8px',
-                      flex: 1,
-                    }}>
-                      {pageProducts.map((p) => {
-                        const brandLabel = (p as any).brandFaName || (p as any).brandName || '';
-                        const availableStock = catalogProductStock(p);
+                    {/* Groups: a heading row, then rows of 4 products */}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: `${A4_CATALOG_LAYOUT.gap}mm` }}>
+                      {pageRows.map((row, rowIdx) => row.kind === 'heading' ? (
+                        <div
+                          key={`h-${rowIdx}`}
+                          style={{
+                            height: `${A4_CATALOG_LAYOUT.headingHeight}mm`,
+                            flex: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0 10px',
+                            backgroundColor: '#e0f2fe',
+                            borderRight: '4px solid #0284c7',
+                            borderRadius: '6px',
+                            boxSizing: 'border-box',
+                          }}
+                        >
+                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#0c4a6e' }}>
+                            {row.label}{row.continued ? ' (ادامه)' : ''}
+                          </span>
+                          <span style={{ fontSize: '9px', color: '#0369a1' }}>{formatNumber(row.count)} کالا</span>
+                        </div>
+                      ) : (
+                        <div
+                          key={`r-${rowIdx}`}
+                          style={{
+                            height: `${A4_CATALOG_LAYOUT.rowHeight}mm`,
+                            flex: 'none',
+                            display: 'grid',
+                            gridTemplateColumns: `repeat(${A4_CATALOG_LAYOUT.columns}, 1fr)`,
+                            gap: '8px',
+                          }}
+                        >
+                      {row.items.map((p) => {
+                        const secondaryLabel = catalogSecondaryLabel(p, groupBy);
                         return (
                           <div
                             key={p.id}
@@ -389,7 +430,7 @@ export function CatalogExportPage() {
                               borderRadius: '8px',
                               padding: '6px 8px',
                               display: 'grid',
-                              gridTemplateRows: '74px minmax(0, 1fr) 35px',
+                              gridTemplateRows: '74px minmax(0, 1fr) 24px',
                               boxSizing: 'border-box',
                               overflow: 'hidden',
                             }}
@@ -435,11 +476,9 @@ export function CatalogExportPage() {
                               >
                                 {p.title}
                               </div>
-                              {brandLabel && (
-                                <div style={{ fontSize: '8px', color: '#64748b', marginTop: '2px', textAlign: 'right' }}>
-                                  {brandLabel}
-                                </div>
-                              )}
+                              <div style={{ fontSize: '8px', color: '#64748b', marginTop: '2px', textAlign: 'right' }}>
+                                {secondaryLabel}
+                              </div>
                             </div>
 
                             {/* Divider & Price */}
@@ -447,20 +486,12 @@ export function CatalogExportPage() {
                               <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#0284c7', direction: 'rtl', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                                 {p.price > 0 ? `${formatNumber(p.price)} تومان` : 'تماس بگیرید'}
                               </div>
-                              <div
-                                style={{
-                                  fontSize: '8.5px',
-                                  fontWeight: 'bold',
-                                  marginTop: '1px',
-                                  color: availableStock > 0 ? '#16a34a' : '#dc2626',
-                                }}
-                              >
-                                {availableStock > 0 ? `موجود (${formatNumber(availableStock)})` : 'ناموجود'}
-                              </div>
                             </div>
                           </div>
                         );
                       })}
+                        </div>
+                      ))}
                     </div>
 
                     {/* Footer */}
