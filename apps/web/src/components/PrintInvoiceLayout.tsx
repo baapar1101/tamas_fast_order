@@ -27,7 +27,8 @@ interface Props {
   showStamp?: boolean;
 }
 
-export function PrintInvoiceLayout({ title, items, total, subtotal, paymentLabel, paymentSavings = 0, paymentSavingsLabel, customerName, customerPhone, orderId, date, active = true, showStamp = true }: Props) {
+export function PrintInvoiceLayout(props: Props) {
+  const { title, items, total, subtotal, paymentLabel, paymentSavings = 0, paymentSavingsLabel, customerName, customerPhone, orderId, date, active = true, showStamp = true } = props;
   return createPortal(
     <div className={`print-invoice-layout${active ? ' is-print-target' : ''}`}>
       <div className="invoice-header">
