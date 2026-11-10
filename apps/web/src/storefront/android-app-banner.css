@@ -46,7 +46,7 @@
   background: transparent;
   color: var(--ds-text-secondary);
   font: inherit;
-  font-size: 24px;
+  font-size: var(--ds-text-title);
   cursor: pointer;
 }
 .android-app-banner__dismiss:hover { background: var(--ds-surface-subtle); color: var(--ds-text); }
