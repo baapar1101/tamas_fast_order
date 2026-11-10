@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes, hkdfSync } from 'node:crypto';
 import { env } from '../env.js';
 import { getAllSettings, setSetting } from './settings.js';
 
@@ -50,24 +50,31 @@ export interface SmsConfigUpdate {
 const PREFIX = 'sms_config_';
 const PRIVATE_PREFIX = `private_${PREFIX}`;
 
-function encryptionKey(): Buffer {
+function encryptionKeyV1(): Buffer {
   return createHash('sha256').update(`${env.APP_SECRET}:sms-config:v1`).digest();
+}
+
+function encryptionKeyV2(): Buffer {
+  return Buffer.from(hkdfSync('sha256', env.APP_SECRET, Buffer.alloc(0), 'sms-config:v2', 32));
 }
 
 export function encryptSmsSecret(value: string): string {
   const iv = randomBytes(12);
-  const cipher = createCipheriv('aes-256-gcm', encryptionKey(), iv);
+  const cipher = createCipheriv('aes-256-gcm', encryptionKeyV2(), iv);
   const ciphertext = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
   const tag = cipher.getAuthTag();
-  return `enc:v1:${iv.toString('base64url')}:${tag.toString('base64url')}:${ciphertext.toString('base64url')}`;
+  return `enc:v2:${iv.toString('base64url')}:${tag.toString('base64url')}:${ciphertext.toString('base64url')}`;
 }
 
 export function decryptSmsSecret(value: string): string {
-  if (!value.startsWith('enc:v1:')) return '';
+  const isV1 = value.startsWith('enc:v1:');
+  const isV2 = value.startsWith('enc:v2:');
+  if (!isV1 && !isV2) return '';
   try {
     const [, , ivText, tagText, ciphertextText] = value.split(':');
     if (!ivText || !tagText || ciphertextText == null) return '';
-    const decipher = createDecipheriv('aes-256-gcm', encryptionKey(), Buffer.from(ivText, 'base64url'));
+    const key = isV1 ? encryptionKeyV1() : encryptionKeyV2();
+    const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(ivText, 'base64url'));
     decipher.setAuthTag(Buffer.from(tagText, 'base64url'));
     return Buffer.concat([
       decipher.update(Buffer.from(ciphertextText, 'base64url')),
