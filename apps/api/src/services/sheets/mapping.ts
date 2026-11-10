@@ -444,7 +444,7 @@ export const categoryMapping: EntityMapping = {
       .returning({ id: categories.id });
     if (!upserted) return 'skipped';
     const id = upserted.id;
-    const outcome = 'updated';
+    const outcome: ApplyOutcome = 'updated';
 
     // Rebuild the category↔brand links from the comma list in the sheet.
     const wanted = splitList(cells.Brand ?? '');
