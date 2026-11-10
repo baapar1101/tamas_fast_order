@@ -3,8 +3,17 @@ import { describe, it } from 'node:test';
 import { toZohalBirthDate, unwrapZohalEnvelope, ZohalClient, ZohalError } from '../src/services/zohal.js';
 
 describe('Zohal integration', () => {
-  it('uses the slash-separated Jalali birth date required by Zohal', () => {
+  it('replaces all instances of hyphens with slashes', () => {
     assert.equal(toZohalBirthDate('1377-09-03'), '1377/09/03');
+    assert.equal(toZohalBirthDate('1399-12-30'), '1399/12/30');
+  });
+
+  it('leaves input with no hyphens unchanged', () => {
+    assert.equal(toZohalBirthDate('1399/12/30'), '1399/12/30');
+  });
+
+  it('returns an empty string when given an empty string', () => {
+    assert.equal(toZohalBirthDate(''), '');
   });
 
   it('reads the direct OpenAPI response envelope', () => {
