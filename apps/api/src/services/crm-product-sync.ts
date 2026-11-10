@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNotNull, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, isNotNull, isNull, inArray, sql } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { crmSyncLogs, products } from '../db/schema.js';
 import { crmClient, type CrmSyncResult } from '../lib/crm.js';
@@ -100,6 +100,16 @@ export async function processPendingCrmProductSync(limit = 2): Promise<CrmProduc
       .orderBy(asc(crmSyncLogs.createdAt))
       .limit(Math.max(1, Math.min(limit, 100)));
 
+    const updates: {
+      id: number;
+      status: 'success' | 'error';
+      remoteId: string | null;
+      error: string | null;
+      response: Record<string, unknown>;
+      durationMs: number;
+    }[] = [];
+    const retries: (typeof crmSyncLogs.$inferInsert)[] = [];
+
     for (const job of jobs) {
       const started = Date.now();
       const result = job.action === 'delete'
@@ -109,26 +119,30 @@ export async function processPendingCrmProductSync(limit = 2): Promise<CrmProduc
 
       if (result.ok) {
         report.succeeded += 1;
-        await db.update(crmSyncLogs).set({
+        updates.push({
+          id: job.id,
           status: 'success',
           remoteId: result.remoteId?.toString() ?? job.remoteId,
           error: null,
           response: result as unknown as Record<string, unknown>,
           durationMs: Date.now() - started,
-        }).where(eq(crmSyncLogs.id, job.id));
+        });
         continue;
       }
 
       report.failed += 1;
       const attempt = Number(job.payload?.attempt ?? 0);
-      await db.update(crmSyncLogs).set({
+      updates.push({
+        id: job.id,
         status: 'error',
+        remoteId: job.remoteId ?? null,
         error: result.error ?? 'CRM sync failed',
         response: result as unknown as Record<string, unknown>,
         durationMs: Date.now() - started,
-      }).where(eq(crmSyncLogs.id, job.id));
+      });
+
       if (attempt < 49) {
-        await db.insert(crmSyncLogs).values({
+        retries.push({
           entity: 'product',
           entityKey: job.entityKey,
           action: job.action,
@@ -138,6 +152,39 @@ export async function processPendingCrmProductSync(limit = 2): Promise<CrmProduc
         });
       }
     }
+
+    if (updates.length > 0) {
+      const ids = updates.map((u) => u.id);
+      await db.update(crmSyncLogs)
+        .set({
+          status: sql`case ${sql.join(
+            updates.map((u) => sql`when ${crmSyncLogs.id} = ${u.id} then ${u.status}::varchar`),
+            sql` `
+          )} end`,
+          remoteId: sql`case ${sql.join(
+            updates.map((u) => sql`when ${crmSyncLogs.id} = ${u.id} then ${u.remoteId}`),
+            sql` `
+          )} end`,
+          error: sql`case ${sql.join(
+            updates.map((u) => sql`when ${crmSyncLogs.id} = ${u.id} then ${u.error}`),
+            sql` `
+          )} end`,
+          response: sql`case ${sql.join(
+            updates.map((u) => sql`when ${crmSyncLogs.id} = ${u.id} then ${u.response}::jsonb`),
+            sql` `
+          )} end`,
+          durationMs: sql`case ${sql.join(
+            updates.map((u) => sql`when ${crmSyncLogs.id} = ${u.id} then ${u.durationMs}`),
+            sql` `
+          )} end`,
+        })
+        .where(inArray(crmSyncLogs.id, ids));
+    }
+
+    if (retries.length > 0) {
+      await db.insert(crmSyncLogs).values(retries);
+    }
+
     return report;
   } finally {
     running = false;
