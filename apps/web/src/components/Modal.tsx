@@ -15,7 +15,8 @@ interface ModalProps {
   inline?: boolean;
 }
 
-export function Modal({ open, title, onClose, children, footer, wide, size, busy, inline = false }: ModalProps) {
+export function Modal(props: ModalProps) {
+  const { open, title, onClose, children, footer, wide, size, busy, inline = false } = props;
   const panelRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
