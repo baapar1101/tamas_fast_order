@@ -27,6 +27,6 @@ export function formatProductTitle(title: string): string {
     if (word.length === 2 && word === upper && !SHORT_WORDS.has(upper)) return upper;
     // Preserve intentional branding such as iPhone and MicroUSB.
     if (/[a-z]/.test(word) && /[A-Z]/.test(word) && !/^[A-Z][a-z]*$/.test(word)) return word;
-    return word[0]!.toUpperCase() + word.slice(1).toLowerCase();
+    return (word[0] || '').toUpperCase() + word.slice(1).toLowerCase();
   });
 }

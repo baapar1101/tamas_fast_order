@@ -18,6 +18,22 @@ describe('formatProductTitle', () => {
       'OG Super X LX-24 CH/A Galaxy S25 FE');
   });
 
+  it('formats units correctly', () => {
+    assert.equal(formatProductTitle('100 CM 5000 MAH 60 HZ'), '100 cm 5000 mAh 60 Hz');
+  });
+
+  it('differentiates between 2-letter brands/acronyms and short words', () => {
+    assert.equal(formatProductTitle('LG PLUG IN WALL'), 'LG Plug In Wall');
+  });
+
+  it('preserves 3-letter regional codes', () => {
+    assert.equal(formatProductTitle('IPHONE 13 PRO CHN/A'), 'Iphone 13 Pro CHN/A');
+  });
+
+  it('preserves 2-letter prefixes before a dash but title-cases longer ones', () => {
+    assert.equal(formatProductTitle('AB-12 ABC-12'), 'AB-12 Abc-12');
+  });
+
   it('leaves Persian text unchanged and is idempotent', () => {
     const title = 'گوشی XIAOMI POCO C81 PRO رنگ آبی';
     const formatted = formatProductTitle(title);
