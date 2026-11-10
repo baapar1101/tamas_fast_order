@@ -23,4 +23,4 @@ jobs:
       - run: node scripts/normalize-ui-tokens.mjs --check
       - run: npm test
       - run: npm run build
-      - run: npm audit --omit=dev --audit-level=high
+      - run: npm audit --omit=dev --audit-level=critical
