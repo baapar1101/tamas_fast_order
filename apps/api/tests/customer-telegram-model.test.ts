@@ -14,6 +14,16 @@ test('extracts only valid one-time link tokens from /start', () => {
   assert.equal(parseCustomerTelegramLinkToken('/start link_bad token'), null);
 });
 
+test('rejects empty, undefined, or malformed start payloads', () => {
+  assert.equal(parseCustomerTelegramLinkToken(undefined), null);
+  assert.equal(parseCustomerTelegramLinkToken(''), null);
+  assert.equal(parseCustomerTelegramLinkToken('   '), null);
+  assert.equal(parseCustomerTelegramLinkToken('not_start_command'), null);
+  assert.equal(parseCustomerTelegramLinkToken('/start'), null);
+  assert.equal(parseCustomerTelegramLinkToken('/start '), null);
+  assert.equal(parseCustomerTelegramLinkToken('/start link_'), null);
+});
+
 test('accepts only a Telegram contact owned by the sender', () => {
   assert.equal(telegramContactBelongsToSender(42, 42), true);
   assert.equal(telegramContactBelongsToSender(7, 42), false);
