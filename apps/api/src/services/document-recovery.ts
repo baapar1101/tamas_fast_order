@@ -76,7 +76,7 @@ export async function documentHealth(): Promise<DocumentHealthDTO[]> {
   return result;
 }
 
-async function audit(tx: Transaction, actorId: number, action: string, id: number, detail: Record<string, unknown> = {}) {
+async function audit({ tx, actorId, action, id, detail = {} }: { tx: Transaction, actorId: number, action: string, id: number, detail?: Record<string, unknown> }) {
   await tx.insert(schema.auditLog).values({ actorId, action, entity: 'document_reupload', entityKey: String(id), detail });
 }
 
@@ -102,7 +102,7 @@ export async function requestDocumentReupload(uploadId: number, actorId: number,
       originalUploadId: uploadId, userId: owner.userId!, requestedBy: actorId,
       documentLabel: [...new Set(matched.map((ref) => ref.label))].join(' / ') || 'مدرک پیوست حساب (بدون ارجاع فعال)', message,
     }).returning();
-    await audit(tx, actorId, 'request', request!.id, { uploadId, userId: owner.userId });
+    await audit({ tx, actorId, action: 'request', id: request!.id, detail: { uploadId, userId: owner.userId } });
     return request!;
   });
 }
@@ -168,7 +168,7 @@ export async function submitDocumentReplacement(requestId: number, userId: numbe
     if (locked?.status !== 'pending' || locked.userId !== userId) throw badRequest('وضعیت درخواست تغییر کرده است؛ صفحه را به‌روز کنید.');
     await tx.insert(schema.documentReuploadSubmissions).values({ requestId, uploadId });
     await tx.update(schema.documentReuploadRequests).set({ status: 'submitted', updatedAt: new Date() }).where(eq(schema.documentReuploadRequests.id, requestId));
-    await audit(tx, userId, 'submit', requestId, { uploadId });
+    await audit({ tx, actorId: userId, action: 'submit', id: requestId, detail: { uploadId } });
   });
 }
 
@@ -213,6 +213,6 @@ export async function reviewDocumentReplacement(requestId: number, actorId: numb
       reviewNote: note || (action === 'cancel' ? 'درخواست توسط مدیر لغو شد.' : null),
     }).where(eq(schema.documentReuploadSubmissions.id, submission.id));
     await tx.update(schema.documentReuploadRequests).set({ status: action === 'approve' ? 'completed' : action === 'cancel' ? 'cancelled' : 'pending', updatedAt: new Date() }).where(eq(schema.documentReuploadRequests.id, requestId));
-    await audit(tx, actorId, action, requestId, { originalUploadId: request.originalUploadId, replacementUploadId: submission?.uploadId ?? null });
+    await audit({ tx, actorId, action, id: requestId, detail: { originalUploadId: request.originalUploadId, replacementUploadId: submission?.uploadId ?? null } });
   });
 }
