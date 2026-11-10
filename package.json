@@ -49,5 +49,16 @@
     "tsx": "^4.23.13",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.72.0"
+  },
+  "dependencies": {
+    "gaxios": "^8.3.2",
+    "gcp-metadata": "^9.2.3",
+    "glob": "^14.0.4",
+    "google-auth-library": "^11.3.4",
+    "googleapis": "^189.0.0",
+    "googleapis-common": "^9.3.1",
+    "minimatch": "^11.0.5",
+    "rimraf": "^6.1.4",
+    "zod": "^4.6.7"
   }
 }
