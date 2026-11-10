@@ -602,10 +602,9 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                         value={item.productId}
                         onChange={(val) => {
                           const copy = [...form.bundleItems];
-                          if (copy[idx]) {
-                            copy[idx]!.productId = val;
-                            set('bundleItems', copy);
-                          }
+                          if (!copy[idx]) return;
+                          copy[idx]!.productId = val;
+                          set('bundleItems', copy);
                         }}
                       />
                     </div>
@@ -618,10 +617,9 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                         value={item.qty || 1}
                         onChange={(e) => {
                           const copy = [...form.bundleItems];
-                          if (copy[idx]) {
-                            copy[idx]!.qty = parseInt(e.target.value, 10) || 1;
-                            set('bundleItems', copy);
-                          }
+                          if (!copy[idx]) return;
+                          copy[idx]!.qty = parseInt(e.target.value, 10) || 1;
+                          set('bundleItems', copy);
                         }}
                       />
                     </div>
