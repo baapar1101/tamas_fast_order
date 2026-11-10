@@ -15,6 +15,7 @@ import { registerOrderCheque } from '../services/credit-cheques.js';
 import { creditReportExpiresAt, toCreditReportSnapshotDTO } from '../services/credit-reports.js';
 import { parseIcsCreditReport } from '../services/ics-credit-report.js';
 import { buildInstallmentOrderDTO, resolveInstallmentDueDate, toInstallmentReceiptDTO } from '../services/installment-receipts.js';
+import { buildChequeOrderDTO } from '../services/credit-cheques-count.js';
 import { processUpload } from '../services/uploads.js';
 import { claimPrivateFile } from '../services/private-files.js';
 
@@ -309,36 +310,17 @@ const routes: FastifyPluginAsync = async (app) => {
       updatedAt: c.updatedAt.toISOString(),
     }));
 
+    const chequeCountByOrderId = new Map<number, number>();
+    for (const cheque of chequesList) {
+      if (cheque.orderId != null) {
+        chequeCountByOrderId.set(cheque.orderId, (chequeCountByOrderId.get(cheque.orderId) ?? 0) + 1);
+      }
+    }
+
     const chequeOrders = customerOrders.flatMap((order) => {
-      const plan = order.paymentPlan;
-      if (order.status === 'cancelled' || plan?.kind !== 'cheque') return [];
-      const registeredCount = chequesList.filter((cheque) => cheque.orderId === order.id).length;
-      const schedule = plan.schedule.flatMap((item, index) => {
-        if (item.amount == null || item.amount <= 0) return [];
-        const dueDate = item.dueDate ?? chequeDueDate(order.createdAt, index, plan.installmentIntervalMonths ?? 1, plan.termMonths);
-        return [{
-          index,
-          amount: item.amount,
-          dueDate,
-          dueLabel: formatPersianDueDate(dueDate),
-          registered: index < registeredCount,
-        }];
-      });
-      const nextInstallment = schedule.find((item) => !item.registered) ?? null;
-      const submissionDeadline = firstChequeSubmissionDeadline(order.createdAt);
-      const firstChequeExpired = registeredCount === 0 && Date.now() > submissionDeadline.getTime();
-      return [{
-        orderId: order.id,
-        orderCode: order.orderCode,
-        createdAt: order.createdAt.toISOString(),
-        submissionDeadline: submissionDeadline.toISOString(),
-        canSubmitNextCheque: Boolean(nextInstallment) && !firstChequeExpired,
-        blockedReason: firstChequeExpired
-          ? 'مهلت پنج‌روزه ثبت چک اول این سفارش پایان یافته است.'
-          : nextInstallment ? null : 'همه چک‌های این سفارش ثبت شده‌اند.',
-        schedule,
-        nextInstallment,
-      }];
+      const registeredCount = chequeCountByOrderId.get(order.id) ?? 0;
+      const item = buildChequeOrderDTO(order, registeredCount);
+      return item ? [item] : [];
     });
 
     const installmentOrders = customerOrders.flatMap((order) => {
