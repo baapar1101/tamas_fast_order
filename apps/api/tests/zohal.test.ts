@@ -7,6 +7,14 @@ describe('Zohal integration', () => {
     assert.equal(toZohalBirthDate('1377-09-03'), '1377/09/03');
   });
 
+  it('replaces all hyphens with slashes in Jalali birth date', () => {
+    assert.equal(toZohalBirthDate('1377-09-03-01'), '1377/09/03/01');
+  });
+
+  it('returns the same string if there are no hyphens', () => {
+    assert.equal(toZohalBirthDate('13770903'), '13770903');
+  });
+
   it('reads the direct OpenAPI response envelope', () => {
     const payload = {
       result: 1,
