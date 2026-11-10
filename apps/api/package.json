@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@e965/xlsx": "^0.20.3",
+    "@eslint/js": "9.39.5",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^10.0.2",
     "@fastify/helmet": "^13.0.1",
@@ -41,20 +42,23 @@
     "@tamas/shared": "*",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.45.3",
+    "eslint": "9.39.5",
     "fastify": "^5.12.5",
     "fastify-plugin": "^5.0.1",
     "googleapis": "^170.1.0",
+    "npm-run-all2": "8.0.4",
     "pdfjs-dist": "^4.10.38",
     "pino-pretty": "^13.0.0",
     "postgres": "^3.4.5",
     "sharp": "^0.35.5",
     "socks-proxy-agent": "^10.1.0",
-    "zod": "^3.24.1"
+    "typescript-eslint": "8.36.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
     "cross-env": "^10.1.0",
-    "drizzle-kit": "^0.31.11",
+    "drizzle-kit": "^0.18.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }
