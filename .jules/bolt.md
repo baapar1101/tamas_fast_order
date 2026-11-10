@@ -1,0 +1,3 @@
+## 2024-03-24 - Precomputing Maps for Array values() Lookups (O(1) Optimization)
+**Learning:** Using `[...map.values()].find(x => x.id === target)` inside a loop iterating over another collection creates an O(N*M) performance bottleneck, even if `map` is already a precomputed data structure. The cost comes from recreating the array and scanning it every time.
+**Action:** When needing to join/enrich arrays based on a secondary ID that differs from a Map's key, iterate through the Map values once to construct a secondary Map keyed by the target ID prior to the primary iteration loop. Use this secondary Map to achieve O(1) lookups and O(N+M) overall complexity.
