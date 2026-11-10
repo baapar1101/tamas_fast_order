@@ -64,7 +64,7 @@ export const smsRoutes: FastifyPluginAsync = async (app) => {
     config: smsConfigForAdmin(await getSmsRuntimeConfig()),
   }));
 
-  app.put('/admin/sms/providers', async (req) => {
+  app.put('/admin/sms/providers', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req) => {
     const body = providerConfigSchema.parse(req.body);
     await updateSmsRuntimeConfig(body);
     return {
@@ -74,7 +74,7 @@ export const smsRoutes: FastifyPluginAsync = async (app) => {
     };
   });
 
-  app.post('/admin/sms/providers/test', async (req) => {
+  app.post('/admin/sms/providers/test', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req) => {
     const body = providerTestSchema.parse(req.body);
     const phone = normalizePhone(body.phone);
     if (!isValidPhone(phone)) throw badRequest('شماره همراه معتبر وارد کنید.');
@@ -87,7 +87,7 @@ export const smsRoutes: FastifyPluginAsync = async (app) => {
     return { ok: true, message: 'پیامک تست با موفقیت پذیرفته شد.' };
   });
 
-  app.post('/admin/sms/test', async (req) => {
+  app.post('/admin/sms/test', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req) => {
     const body = testSchema.parse(req.body);
     const phone = normalizePhone(body.phone);
     if (!isValidPhone(phone)) throw badRequest('شماره همراه معتبر وارد کنید.');
