@@ -8,6 +8,21 @@ interface Props {
   onPreview: (url: string) => void;
 }
 
+function areProductImageGalleryPropsEqual(previous: Props, next: Props): boolean {
+  const keys = Object.keys(previous) as Array<keyof Props>;
+  if (keys.length !== Object.keys(next).length) return false;
+  for (const key of keys) {
+    if (key !== 'images' && previous[key] !== next[key]) return false;
+  }
+
+  if (previous.images === next.images) return true;
+  if (previous.images.length !== next.images.length) return false;
+  for (let i = 0; i < previous.images.length; i++) {
+    if (previous.images[i] !== next.images[i]) return false;
+  }
+  return true;
+}
+
 export const ProductImageGallery = memo(function ProductImageGallery({ images, title, mode, onPreview }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const active = images[activeIndex] ?? images[0] ?? '/logo.png';
@@ -27,4 +42,4 @@ export const ProductImageGallery = memo(function ProductImageGallery({ images, t
       ) : null}
     </div>
   );
-});
+}, areProductImageGalleryPropsEqual);
