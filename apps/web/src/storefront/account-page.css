@@ -91,7 +91,7 @@
   border-radius: 20px;
   background: linear-gradient(145deg, var(--tamas-accent), var(--tamas-accent-deep));
   color: var(--ds-on-interactive, #fff);
-  font-size: var(--ds-text-2xl);
+  font-size: 28px;
   font-weight: 900;
   box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--tamas-accent) 70%, transparent);
 }
@@ -100,14 +100,14 @@
   flex: 1;
   min-width: 0;
   display: grid;
-  gap: var(--ds-space-2);
+  gap: 8px;
 }
 
 .account-hero-name {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--ds-space-2) var(--ds-space-3);
+  gap: 8px 12px;
 }
 
 .account-hero-name h1 {
@@ -122,7 +122,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: var(--ds-space-1) 10px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: var(--ds-text-caption);
   font-weight: 800;
@@ -170,7 +170,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: var(--ds-space-2);
+  gap: 8px;
   flex: none;
 }
 
@@ -195,8 +195,8 @@
 
 .account-stat {
   display: grid;
-  gap: var(--ds-space-1);
-  padding: 14px var(--ds-space-4);
+  gap: 4px;
+  padding: 14px 16px;
   border: 1px solid var(--tamas-border);
   border-radius: 14px;
   background: color-mix(in srgb, var(--tamas-surface) 82%, var(--tamas-bg));
@@ -219,7 +219,7 @@
 .account-stat dd {
   margin: 0;
   color: var(--tamas-fg);
-  font-size: var(--ds-text-xl);
+  font-size: 20px;
   font-weight: 900;
   line-height: 1.4;
 }
@@ -264,9 +264,9 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--ds-space-3);
+  gap: 12px;
   min-height: 58px;
-  padding: 9px var(--ds-space-3);
+  padding: 9px 12px;
   border-radius: 12px;
   color: var(--tamas-fg);
   text-decoration: none;
@@ -366,7 +366,7 @@
   align-items: center;
   gap: 10px;
   min-height: 42px;
-  padding: var(--ds-space-2) 14px;
+  padding: 8px 14px;
   border: 0;
   border-radius: 10px;
   background: transparent;
@@ -438,7 +438,7 @@
 .account-guest {
   max-width: 560px;
   margin: var(--ds-space-6) auto;
-  padding: var(--ds-space-10) var(--ds-space-6);
+  padding: 40px var(--ds-space-6);
   border: 1px solid var(--tamas-border);
   border-radius: 22px;
   background: var(--tamas-surface);
@@ -463,7 +463,7 @@
 
 .account-guest h1 {
   margin: var(--ds-space-4) 0 var(--ds-space-2);
-  font-size: var(--ds-text-title);
+  font-size: 22px;
 }
 
 .account-guest p {
@@ -551,7 +551,7 @@
     width: 54px;
     height: 54px;
     border-radius: 16px;
-    font-size: var(--ds-text-title);
+    font-size: 22px;
   }
 
   .account-hero-actions {
@@ -561,11 +561,11 @@
 
   .account-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--ds-space-2);
+    gap: 8px;
   }
 
   .account-stat {
-    padding: 10px var(--ds-space-3);
+    padding: 10px 12px;
   }
 
   .account-stat dd {
@@ -599,8 +599,8 @@
   .account-nav-item {
     flex: 0 0 auto;
     min-height: 44px;
-    gap: var(--ds-space-2);
-    padding: 6px var(--ds-space-3) 6px 14px;
+    gap: 8px;
+    padding: 6px 12px 6px 14px;
     scroll-snap-align: start;
   }
 
@@ -660,10 +660,10 @@
     top: -4px;
     inset-inline-end: -4px;
     min-height: 32px;
-    padding: var(--ds-space-1) 10px;
+    padding: 4px 10px;
   }
 
   .account-hero-id {
-    padding-inline-end: var(--ds-space-16);
+    padding-inline-end: 64px;
   }
 }
