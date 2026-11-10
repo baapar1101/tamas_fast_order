@@ -436,6 +436,13 @@ export function SettingsPage() {
     setForm((current) => ({ ...current, TELEGRAM_ROUTES: JSON.stringify(routes) }));
   };
 
+  const toggleTelegramRoute = (event: TelegramEvent, groupId: string, isCurrentlyChecked: boolean) => {
+    const ids = new Set(telegramRoutes[event] ?? []);
+    if (isCurrentlyChecked) ids.delete(groupId);
+    else ids.add(groupId);
+    updateTelegramRoutes({ ...telegramRoutes, [event]: [...ids] });
+  };
+
   const updateCustomerTelegramEvents = (events: Partial<Record<CustomerTelegramEvent, boolean>>) => {
     setForm((current) => ({ ...current, CUSTOMER_TELEGRAM_NOTIFICATION_EVENTS: JSON.stringify(events) }));
   };
@@ -996,11 +1003,11 @@ export function SettingsPage() {
                       <td>{TELEGRAM_EVENT_LABELS[event]}</td>
                       {telegramGroups.map((group) => {
                         const checked = (telegramRoutes[event] ?? []).includes(group.id);
-                        return <td key={group.id}><input type="checkbox" checked={checked} onChange={() => {
-                          const ids = new Set(telegramRoutes[event] ?? []);
-                          if (checked) ids.delete(group.id); else ids.add(group.id);
-                          updateTelegramRoutes({ ...telegramRoutes, [event]: [...ids] });
-                        }} /></td>;
+                        return (
+                          <td key={group.id}>
+                            <input type="checkbox" checked={checked} onChange={() => toggleTelegramRoute(event, group.id, checked)} />
+                          </td>
+                        );
                       })}
                     </tr>
                   ))}
