@@ -121,9 +121,17 @@ export async function retryCampaign(id: number) {
     const rows = await tx.select().from(deliveries).where(and(eq(deliveries.campaignId, id), eq(deliveries.status, 'failed')));
     if (!rows.length) throw badRequest('ارسال ناموفق قابل تکرار وجود ندارد.');
     const devices = await activeNativeDevices([...new Set(rows.flatMap(r => r.userId ? [r.userId] : []))], tx);
+
+    // O(1) map lookup for devices to avoid O(N^2) nested search performance bottleneck
+    const devicesMap = new Map<string, typeof devices[number]>();
+    for (const d of devices) {
+      const key = `${d.userId}:${d.installationId}`;
+      if (!devicesMap.has(key)) devicesMap.set(key, d);
+    }
+
     let queued = 0;
     for (const row of rows) {
-      const device = devices.find(d => d.userId === row.userId && d.installationId === row.installationId);
+      const device = devicesMap.get(`${row.userId}:${row.installationId}`);
       if (device) {
         queued += 1;
         await tx.update(deliveries).set({ status: 'queued', tokenHash: sha256(device.token), sessionHash: device.sessionHash, error: null, updatedAt: new Date() }).where(eq(deliveries.id, row.id));
