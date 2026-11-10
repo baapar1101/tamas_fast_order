@@ -1,6 +1,6 @@
 # Jules follow-up review — 10 November 2026
 
-The Jules sessions endpoint and the Jules web UI both returned HTTP 403 from this environment. Session states and pending questions could not be read, so no session reply was sent. This is a GitHub PR review, not a complete Jules session audit.
+During the initial review, the Jules sessions endpoint and web UI returned HTTP 403 from this environment. The API became available on a later retry the same day; see the follow-up below.
 
 GitHub showed 33 open Jules PRs, #97–#129. I fetched every PR head and compared its changes with the current `main` branch.
 
@@ -20,4 +20,8 @@ GitHub showed 33 open Jules PRs, #97–#129. I fetched every PR head and compare
 - Web tests: 47 passed, one existing artifact-dependent test skipped.
 - ESLint on changed application files and `git diff --check` passed.
 
-The unreviewed part is Jules session state: access to Jules must be restored before any waiting session can be answered.
+## Follow-up after API access recovered
+
+The API returned 174 sessions on the first successful paginated read, including 19 awaiting user feedback. I read the latest agent message in every waiting session and sent a response to all 19. Repeated stepper and order lookup proposals were directed to finish without duplicate PRs or unrelated dependency upgrades. Three sessions were directed toward distinct, bounded improvements: the native-campaign device lookup, credit cheque counts, and accessible names for SettingsPage switches. A CRM concurrency proposal was declined pending rate-limit and idempotency evidence. The ProductImageGallery comparator was asked to verify all relevant props and state before finalizing.
+
+The session list then grew to 196 as new sessions created around the same time became visible. The latest read showed 119 completed, four failed, 65 in progress, and eight still marked awaiting user feedback after the replies were accepted. One session's activity list confirmed the response as a `userMessaged` event. No new GitHub PR ref above #129 was present at that check, so there was no new diff ready to apply. The newly running sessions require another review when they produce changes.
