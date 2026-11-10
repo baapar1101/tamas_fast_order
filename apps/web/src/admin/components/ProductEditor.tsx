@@ -110,7 +110,7 @@ export interface ProductForm {
   bundleItems: Array<{ productId: string; qty: number }>;
 }
 
-interface Props {
+export interface ProductEditorOptions {
   product: ProductDTO | null;
   template?: ProductDTO;
   categories: CategoryDTO[];
@@ -277,7 +277,12 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   bundleItems: p.bundleItems ?? [],
 });
 
-export function ProductEditor({ product, template, categories, brands, busy, isBundleMode, onClose, onSave, onManageVariants }: Props) {
+interface Props {
+  options: ProductEditorOptions;
+}
+
+export function ProductEditor({ options }: Props) {
+  const { product, template, categories, brands, busy, isBundleMode, onClose, onSave, onManageVariants } = options;
   const [form, setForm] = useState<ProductForm>(() => {
     const initial = product ? fromProduct(product) : template ? fromProduct(template) : blank();
     if (!isBundleMode) return initial;

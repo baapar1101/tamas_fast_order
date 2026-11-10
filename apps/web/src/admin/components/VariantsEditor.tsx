@@ -6,7 +6,7 @@ import { Price } from '../../components/Price';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
-import { ProductEditor, type ProductForm } from './ProductEditor';
+import { ProductEditor, type ProductForm, type ProductEditorOptions } from './ProductEditor';
 
 interface Props {
   product: ProductDTO;
@@ -64,13 +64,15 @@ export function VariantsEditor({ product, categories, brands, onClose }: Props) 
 
     return (
       <ProductEditor
-        product={isNew ? null : template}
-        template={isNew ? template : undefined}
-        categories={categories}
-        brands={brands}
-        busy={save.isPending}
-        onClose={() => setEditingVariant(null)}
-        onSave={(form) => save.mutate({ id: isNew ? null : editingVariant.id, body: { ...form, parentProductId: product.productId } })}
+        options={{
+          product: isNew ? null : template,
+          template: isNew ? template : undefined,
+          categories,
+          brands,
+          busy: save.isPending,
+          onClose: () => setEditingVariant(null),
+          onSave: (form: ProductForm) => save.mutate({ id: isNew ? null : editingVariant.id, body: { ...form, parentProductId: product.productId } }),
+        }}
       />
     );
   }
