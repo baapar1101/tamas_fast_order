@@ -68,6 +68,15 @@ export function OrdersPage() {
   const [productSearch, setProductSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ kind: 'one'; order: OrderDTO } | { kind: 'bulk'; ids: number[] } | null>(null);
 
+  const toggleSelected = (id: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const debounced = useDebounced(search);
   const debouncedProductSearch = useDebounced(productSearch);
   const query = useMemo(() => ({ q: debounced, status, page, perPage: 30 }), [debounced, status, page]);
@@ -401,12 +410,7 @@ export function OrdersPage() {
                       <input
                         type="checkbox"
                         checked={selected.has(o.id)}
-                        onChange={() => {
-                          const next = new Set(selected);
-                          if (next.has(o.id)) next.delete(o.id);
-                          else next.add(o.id);
-                          setSelected(next);
-                        }}
+                        onChange={() => toggleSelected(o.id)}
                       />
                     </td>
                     <td className="a-strong font-mono" dir="ltr">
