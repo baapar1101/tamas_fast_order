@@ -14,6 +14,18 @@ test('extracts only valid one-time link tokens from /start', () => {
   assert.equal(parseCustomerTelegramLinkToken('/start link_bad token'), null);
 });
 
+test('handles edge cases and invalid inputs gracefully', () => {
+  assert.equal(parseCustomerTelegramLinkToken(undefined), null);
+  assert.equal(parseCustomerTelegramLinkToken(''), null);
+  assert.equal(parseCustomerTelegramLinkToken('   '), null);
+  assert.equal(parseCustomerTelegramLinkToken('hello'), null);
+  assert.equal(parseCustomerTelegramLinkToken('/help link_Abc_123456789-xyz'), null);
+  assert.equal(parseCustomerTelegramLinkToken('/start'), null);
+  assert.equal(parseCustomerTelegramLinkToken('/start '), null);
+  assert.equal(parseCustomerTelegramLinkToken('/start other_Abc_123456789-xyz'), null);
+  assert.equal(parseCustomerTelegramLinkToken('/start link_invalid!@#123456789'), null);
+});
+
 test('accepts only a Telegram contact owned by the sender', () => {
   assert.equal(telegramContactBelongsToSender(42, 42), true);
   assert.equal(telegramContactBelongsToSender(7, 42), false);
