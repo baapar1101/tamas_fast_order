@@ -47,6 +47,11 @@ export function VariantsEditor({ product, categories, brands, onClose }: Props) 
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const handleRemove = (id: number) => {
+    if (!confirm('واریانت حذف شود؟')) return;
+    remove.mutate(id);
+  };
+
   if (editingVariant) {
     const isNew = editingVariant === 'new';
     const template: ProductDTO = isNew
@@ -141,9 +146,7 @@ export function VariantsEditor({ product, categories, brands, onClose }: Props) 
                           <button
                             type="button"
                             className="a-btn a-btn--danger a-btn--xs"
-                            onClick={() => {
-                              if (confirm('واریانت حذف شود؟')) remove.mutate(v.id);
-                            }}
+                            onClick={() => handleRemove(v.id)}
                           >
                             حذف
                           </button>
