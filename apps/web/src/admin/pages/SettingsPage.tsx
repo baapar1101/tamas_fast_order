@@ -454,7 +454,7 @@ export function SettingsPage() {
           <section className="a-card">
             <div className="a-card-head a-card-head--split">
               <div><h3 className="a-card-title">کد تخفیف اختصاصی مشتریان</h3><p className="a-card-desc">برای هر مشتری یک کد امن و شخصی ساخته می‌شود؛ محدودیت سفارش اول و بازه زمانی در زمان ثبت سفارش کنترل می‌شود.</p></div>
-              <button type="button" role="switch" className="a-switch" aria-checked={customerDiscount.enabled} onClick={() => updateCustomerDiscount({ ...customerDiscount, enabled: !customerDiscount.enabled })} />
+              <button type="button" role="switch" aria-label="کد تخفیف اختصاصی مشتریان" className="a-switch" aria-checked={customerDiscount.enabled} onClick={() => updateCustomerDiscount({ ...customerDiscount, enabled: !customerDiscount.enabled })} />
             </div>
             <div className="a-form-grid a-cols--3">
               <div className="a-field"><label className="a-label">نوع تخفیف</label><select className="a-select" value={customerDiscount.kind} onChange={(event) => updateCustomerDiscount({ ...customerDiscount, kind: event.target.value as typeof customerDiscount.kind })}><option value="percent">درصدی</option><option value="fixed">مبلغ ثابت</option><option value="free_shipping">ارسال رایگان</option></select></div>
@@ -471,7 +471,7 @@ export function SettingsPage() {
           </section>
 
           <section className="a-card">
-            <div className="a-card-head a-card-head--split"><div><h3 className="a-card-title">مسیریابی هوشمند مبالغ بالا</h3><p className="a-card-desc">همه واریزی‌های بالاتر از سقف، شماره حساب را پنهان می‌کنند و برای ارسال دستی یا انتخاب هوشمند حساب وارد صف اپراتور می‌شوند.</p></div><button type="button" role="switch" className="a-switch" aria-checked={paymentRouting.enabled} onClick={() => updatePaymentRouting({ ...paymentRouting, enabled: !paymentRouting.enabled })} /></div>
+            <div className="a-card-head a-card-head--split"><div><h3 className="a-card-title">مسیریابی هوشمند مبالغ بالا</h3><p className="a-card-desc">همه واریزی‌های بالاتر از سقف، شماره حساب را پنهان می‌کنند و برای ارسال دستی یا انتخاب هوشمند حساب وارد صف اپراتور می‌شوند.</p></div><button type="button" role="switch" aria-label="مسیریابی هوشمند مبالغ بالا" className="a-switch" aria-checked={paymentRouting.enabled} onClick={() => updatePaymentRouting({ ...paymentRouting, enabled: !paymentRouting.enabled })} /></div>
             <div className="a-form-grid a-cols--2"><div className="a-field"><label className="a-label">سقف کنترل (تومان)</label><input className="a-input a-ltr" type="number" value={paymentRouting.thresholdAmount} onChange={(event) => updatePaymentRouting({ ...paymentRouting, thresholdAmount: Number(event.target.value) })} /></div><div className="a-field a-field--full"><label className="a-label">پیام انتظار مشتری</label><textarea className="a-textarea" rows={3} value={paymentRouting.pendingMessage} onChange={(event) => updatePaymentRouting({ ...paymentRouting, pendingMessage: event.target.value })} /></div></div>
             <div className="a-card-head a-card-head--split mt-4"><h4 className="a-card-title">حساب‌های قابل اعلام</h4><button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={() => updatePaymentRouting({ ...paymentRouting, accounts: [...paymentRouting.accounts, { id: `account-${Date.now()}`, label: 'حساب جدید', bankName: '', holder: '', cardNumber: '', iban: '', accountNumber: '', enabled: true, minAmount: paymentRouting.thresholdAmount, maxAmount: null }] })}>+ افزودن حساب</button></div>
             <div className="a-page-stack">{paymentRouting.accounts.map((account, index) => {
@@ -622,6 +622,7 @@ export function SettingsPage() {
               <button
                 type="button"
                 role="switch"
+                aria-label="اتصال ربات تلگرام"
                 aria-checked={form.TELEGRAM_ENABLED === 'true'}
                 className="a-switch"
                 onClick={() => setForm({ ...form, TELEGRAM_ENABLED: form.TELEGRAM_ENABLED === 'true' ? 'false' : 'true' })}
@@ -663,6 +664,7 @@ export function SettingsPage() {
               <button
                 type="button"
                 role="switch"
+                aria-label="عملیات مدیریتی داخل ربات"
                 aria-checked={form.TELEGRAM_OPERATIONS_ENABLED === 'true'}
                 className="a-switch"
                 onClick={() => setForm({
@@ -901,7 +903,7 @@ export function SettingsPage() {
           <section className="a-card">
             <div className="a-card-head a-card-head--split">
               <div><h3 className="a-card-title">ربات داخلی بله</h3><p className="a-card-desc">سرویس داخلی کنار تلگرام؛ اتصال امن حساب، پیگیری سفارش، کیف پول و اعلان‌های مالی.</p></div>
-              <button type="button" role="switch" className="a-switch" aria-checked={form.CUSTOMER_BALE_ENABLED === 'true'} onClick={() => setForm({ ...form, CUSTOMER_BALE_ENABLED: form.CUSTOMER_BALE_ENABLED === 'true' ? 'false' : 'true' })} />
+              <button type="button" role="switch" aria-label="ربات داخلی بله" className="a-switch" aria-checked={form.CUSTOMER_BALE_ENABLED === 'true'} onClick={() => setForm({ ...form, CUSTOMER_BALE_ENABLED: form.CUSTOMER_BALE_ENABLED === 'true' ? 'false' : 'true' })} />
             </div>
             <div className="a-form-grid a-cols--2">
               <div className="a-field"><label className="a-label">توکن ربات بله</label><input className="a-input a-ltr" dir="ltr" type="password" value={form.private_CUSTOMER_BALE_BOT_TOKEN ?? ''} onChange={(event) => setForm({ ...form, private_CUSTOMER_BALE_BOT_TOKEN: event.target.value })} /></div>
@@ -1326,6 +1328,7 @@ export function SettingsPage() {
               <button
                 type="button"
                 role="switch"
+                aria-label="فعال‌سازی همگام‌سازی خودکار (سفارش/مشتری/محصول)"
                 aria-checked={form.CRM_SYNC_ENABLED === 'true'}
                 className="a-switch"
                 onClick={() => setForm({ ...form, CRM_SYNC_ENABLED: form.CRM_SYNC_ENABLED === 'true' ? 'false' : 'true' })}
