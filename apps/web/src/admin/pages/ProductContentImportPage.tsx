@@ -155,7 +155,11 @@ export function ProductContentImportPage() {
                       checked={filtered.length > 0 && filtered.every((item) => selected.has(item.id))}
                       onChange={(event) => {
                         const next = new Set(selected);
-                        for (const item of filtered) event.target.checked ? next.add(item.id) : next.delete(item.id);
+                        if (event.target.checked) {
+                          for (const item of filtered) next.add(item.id);
+                        } else {
+                          for (const item of filtered) next.delete(item.id);
+                        }
                         setSelected(next);
                       }}
                     />
@@ -178,7 +182,11 @@ export function ProductContentImportPage() {
                         checked={selected.has(item.id)}
                         onChange={(event) => {
                           const next = new Set(selected);
-                          event.target.checked ? next.add(item.id) : next.delete(item.id);
+                          if (event.target.checked) {
+                            next.add(item.id);
+                          } else {
+                            next.delete(item.id);
+                          }
                           setSelected(next);
                         }}
                       />
