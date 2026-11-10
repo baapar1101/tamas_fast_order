@@ -24,6 +24,12 @@ interface Message {
   created_at: string;
 }
 
+function getConversationName(c: Conversation): string {
+  const f = c.first_name || c.visitor_first_name;
+  const l = c.last_name || c.visitor_last_name;
+  return (f || l) ? `${f || ''} ${l || ''}`.trim() : 'کاربر ناشناس';
+}
+
 export function CrmChatPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -65,6 +71,9 @@ export function CrmChatPage() {
     onError: () => toast.error('خطا در ارسال پیام'),
   });
 
+  const activeConversation = conversations.find(c => c.id === activeConvId);
+  const activeConversationName = activeConversation ? getConversationName(activeConversation) : '';
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyText.trim() || !activeConvId) return;
@@ -102,8 +111,7 @@ export function CrmChatPage() {
                   }`}
                 >
                   <div className={`font-bold text-sm mb-1 ${activeConvId === c.id ? 'text-[var(--a-brand)]' : 'text-[var(--a-t1)]'}`}>
-                    {c.first_name || c.visitor_first_name} {c.last_name || c.visitor_last_name}
-                    {!(c.first_name || c.visitor_first_name) && 'کاربر ناشناس'}
+                    {getConversationName(c)}
                   </div>
                   <div className="text-xs text-[var(--a-t4)]">
                     {c.phone || c.visitor_phone || c.email || c.visitor_email || 'بدون اطلاعات تماس'}
@@ -128,13 +136,7 @@ export function CrmChatPage() {
               {/* Header */}
               <div className="p-3.5 border-b border-[var(--a-border)] bg-[var(--a-surface)] flex items-center justify-between">
                 <div className="font-bold text-sm text-[var(--a-t1)]">
-                  {(() => {
-                    const c = conversations.find(x => x.id === activeConvId);
-                    if (!c) return '';
-                    const f = c.first_name || c.visitor_first_name;
-                    const l = c.last_name || c.visitor_last_name;
-                    return (f || l) ? `${f || ''} ${l || ''}` : 'کاربر ناشناس';
-                  })()}
+                  {activeConversationName}
                 </div>
                 <div className="text-xs text-[var(--a-t4)]">
                   شناسه مکالمه: {activeConvId}
