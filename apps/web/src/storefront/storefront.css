@@ -2971,7 +2971,8 @@
 
 /* Fix list mode layout bugs globally (desktop & mobile) */
 .product-accordion .thumb-box,
-.product-accordion .product-thumb {
+.product-accordion .product-thumb,
+.product-accordion .catalog-image-gallery__hero {
   width: 132px !important;
   height: 132px !important;
   min-width: 132px !important;
@@ -2979,6 +2980,11 @@
   min-height: 132px !important;
   max-height: 132px !important;
   object-fit: contain !important;
+}
+
+.product-accordion .catalog-image-gallery--list,
+.product-accordion .catalog-image-gallery__thumbs {
+  width: 132px !important;
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
@@ -2990,13 +2996,19 @@
 
 @media (max-width: 1024px) {
   .product-accordion .thumb-box,
-  .product-accordion .product-thumb {
+  .product-accordion .product-thumb,
+  .product-accordion .catalog-image-gallery__hero {
     width: 90px !important;
     height: 90px !important;
     min-width: 90px !important;
     max-width: 90px !important;
     min-height: 90px !important;
     max-height: 90px !important;
+  }
+
+  .product-accordion .catalog-image-gallery--list,
+  .product-accordion .catalog-image-gallery__thumbs {
+    width: 90px !important;
   }
 }
 
