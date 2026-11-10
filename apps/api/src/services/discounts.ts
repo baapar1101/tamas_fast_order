@@ -97,19 +97,29 @@ export async function generateDiscountsForMissingCustomers(createdBy: number): P
   const existing = await db.select({ userId: discountCodes.userId }).from(discountCodes).where(eq(discountCodes.isActive, true));
   const occupied = new Set(existing.map((item) => item.userId));
   let created = 0;
+  const previousAutoGenerate = config.autoGenerate;
+  const inserts: (typeof discountCodes.$inferInsert)[] = [];
+
   for (const customer of customerRows) {
     if (occupied.has(customer.id)) continue;
-    const previousAutoGenerate = config.autoGenerate;
+
     if (!previousAutoGenerate) {
       // Bulk generation is an explicit admin action even when automatic generation is disabled.
-      const [row] = await db.insert(discountCodes).values({
+      inserts.push({
         userId: customer.id, code: `${config.prefix}-${codeSuffix()}`, kind: config.kind, value: config.value,
         firstOrderOnly: config.firstOrderOnly, minOrderAmount: config.minOrderAmount,
         maxDiscountAmount: config.maxDiscountAmount, startsAt: config.startsAt ? new Date(config.startsAt) : null,
         endsAt: config.endsAt ? new Date(config.endsAt) : null, usageLimit: config.usageLimit, createdBy,
-      }).returning({ id: discountCodes.id });
-      if (row) created += 1;
-    } else if (await ensureCustomerDiscount(customer.id, createdBy)) created += 1;
+      });
+    } else if (await ensureCustomerDiscount(customer.id, createdBy)) {
+      created += 1;
+    }
   }
+
+  if (inserts.length > 0) {
+    const rows = await db.insert(discountCodes).values(inserts).returning({ id: discountCodes.id });
+    created += rows.length;
+  }
+
   return created;
 }
