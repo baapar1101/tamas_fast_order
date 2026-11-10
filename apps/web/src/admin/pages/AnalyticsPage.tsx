@@ -4,6 +4,8 @@ import { formatNumber } from '@tamas/shared';
 import { Price } from '../../components/Price';
 import { api } from '../../lib/api';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
+import { FunnelInfographic } from '../components/FunnelInfographic';
+import { useAuth } from '../../store/auth';
 
 interface AnalyticsDTO {
   revenueLast30Days: number;
@@ -44,6 +46,8 @@ const PERIOD_LABELS: Record<ArvanPeriod, string> = {
 
 export function AnalyticsPage() {
   const [period, setPeriod] = useState<ArvanPeriod>('24h');
+  // The funnel endpoint sits with the customer lists, behind the same permission.
+  const canSeeFunnel = useAuth((state) => state.hasPermission('manage_users'));
   const stats = useQuery({
     queryKey: ['admin', 'stats'],
     queryFn: async () => (await api.get<{ stats: AnalyticsDTO }>('/admin/stats')).stats,
@@ -69,6 +73,8 @@ export function AnalyticsPage() {
           <span className="chip chip-brand">گزارش زنده فروشگاه</span>
         </div>
       </section>
+
+      {canSeeFunnel && <FunnelInfographic />}
 
       <section className="a-card arvan-analytics-card">
         <div className="a-card-head a-card-head--split admin-chart-header">
