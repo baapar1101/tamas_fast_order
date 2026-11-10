@@ -3,6 +3,8 @@ import type { FastifyPluginAsync } from 'fastify';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { z } from 'zod';
+import { Agent, fetch as undiciFetch, type Response as UndiciResponse } from 'undici';
+import dns from 'node:dns';
 import { formatProductTitle, productPatchSchema, productWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { brands, categories, products, productTrackingLinks, trackingSites } from '../../db/schema.js';
@@ -556,10 +558,26 @@ async function validatePublicTargetUrl(value: string): Promise<URL> {
   return url;
 }
 
-async function fetchPublicTarget(value: string): Promise<Response> {
+
+const publicTargetDispatcher = new Agent({
+  connect: {
+    lookup: (hostname, options, callback) => {
+      dns.lookup(hostname, { all: true, verbatim: true }, (err, addresses) => {
+        if (err) return callback(err, []);
+        if (addresses.length === 0 || addresses.some(({ address }) => isPrivateAddress(address))) {
+          return callback(new Error('آدرس داخلی یا رزروشده مجاز نیست'), []);
+        }
+        callback(null, addresses);
+      });
+    },
+  },
+});
+
+async function fetchPublicTarget(value: string): Promise<UndiciResponse> {
   let url = await validatePublicTargetUrl(value);
   for (let redirects = 0; redirects <= MAX_TARGET_REDIRECTS; redirects += 1) {
-    const response = await fetch(url, {
+    const response = await undiciFetch(url, {
+      dispatcher: publicTargetDispatcher,
       redirect: 'manual',
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; TamasStockBot/2.0)',
@@ -576,7 +594,7 @@ async function fetchPublicTarget(value: string): Promise<Response> {
   throw new Error('تعداد تغییر مسیرهای سایت هدف بیش از حد مجاز است');
 }
 
-async function readLimitedText(response: Response): Promise<string> {
+async function readLimitedText(response: UndiciResponse): Promise<string> {
   const declaredLength = Number(response.headers.get('content-length') ?? 0);
   if (declaredLength > MAX_TARGET_RESPONSE_BYTES) throw new Error('حجم پاسخ سایت هدف بیش از حد مجاز است');
   if (!response.body) return '';
