@@ -85,6 +85,11 @@ export function AttributesPage() {
     setFormOpen(true);
   };
 
+  const handleDelete = (id: string) => {
+    if (!window.confirm('آیا از حذف این ویژگی مطمئن هستید؟')) return;
+    deleteMutation.mutate(id);
+  };
+
   const setOption = (idx: number, value: string) => {
     const options = [...formData.options];
     options[idx] = value;
@@ -342,11 +347,7 @@ export function AttributesPage() {
                       <div className="flex items-center gap-2">
                         <button onClick={() => handleEdit(a)} className="a-btn a-btn--secondary a-btn--xs">ویرایش</button>
                         <button
-                          onClick={() => {
-                            if (window.confirm('آیا از حذف این ویژگی مطمئن هستید؟')) {
-                              deleteMutation.mutate(a.id);
-                            }
-                          }}
+                          onClick={() => handleDelete(a.id)}
                           className="a-btn a-btn--danger a-btn--xs"
                         >
                           حذف

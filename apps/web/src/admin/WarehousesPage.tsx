@@ -74,6 +74,11 @@ export function WarehousesPage() {
     setFormOpen(true);
   };
 
+  const handleDelete = (id: string) => {
+    if (!window.confirm('آیا از حذف این انبار مطمئن هستید؟ موجودی کالاها در این انبار از بین خواهد رفت.')) return;
+    deleteMutation.mutate(id);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     saveMutation.mutate(formData);
@@ -218,11 +223,7 @@ export function WarehousesPage() {
                           </svg>
                         </button>
                         <button
-                          onClick={() => {
-                            if (window.confirm('آیا از حذف این انبار مطمئن هستید؟ موجودی کالاها در این انبار از بین خواهد رفت.')) {
-                              deleteMutation.mutate(w.id);
-                            }
-                          }}
+                          onClick={() => handleDelete(w.id)}
                           className="a-icon-btn a-icon-btn--danger"
                           title="حذف"
                         >
