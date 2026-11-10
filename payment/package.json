@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.20.0"
+    "axios": "^1.20.0",
+    "googleapis": "^189.0.0",
+    "zod": "^4.6.7"
   }
 }
