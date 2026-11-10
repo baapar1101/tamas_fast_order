@@ -1,0 +1,6 @@
+1. Edit `package.json` to add dependency overrides for `follow-redirects` and `zod`, then run `npm install`.
+2. Run `npm run typecheck` and `npm run lint`.
+3. Run `npm test` and `npm run build`.
+4. Run `npm audit --omit=dev --audit-level=high` to ensure the vulnerabilities are resolved.
+5. Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
+6. Submit the change with an appropriate commit message.
