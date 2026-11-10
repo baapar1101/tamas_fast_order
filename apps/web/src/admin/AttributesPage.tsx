@@ -103,6 +103,13 @@ export function AttributesPage() {
     setFocusRow(-1);
   };
 
+  const handleOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addOption();
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.type === 'select') {
@@ -223,12 +230,7 @@ export function AttributesPage() {
                       value={opt}
                       autoFocus={idx === focusRow}
                       onChange={(e) => setOption(idx, e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addOption();
-                        }
-                      }}
+                      onKeyDown={handleOptionKeyDown}
                       placeholder={`گزینه ${idx + 1} (مثلا: ۱۲۸ گیگابایت)`}
                     />
                     {isDuplicate(opt, idx) && (
