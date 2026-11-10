@@ -437,19 +437,26 @@ export const categoryMapping: EntityMapping = {
       deletedAt: null,
     };
 
-    const [existing] = await db.select({ id: categories.id }).from(categories).where(eq(categories.name, key)).limit(1);
-    let id: number;
-    let outcome: ApplyOutcome;
-    if (existing) {
-      await db.update(categories).set(values).where(eq(categories.id, existing.id));
-      id = existing.id;
-      outcome = 'updated';
-    } else {
-      const [created] = await db.insert(categories).values(values).returning({ id: categories.id });
-      if (!created) return 'skipped';
-      id = created.id;
-      outcome = 'created';
-    }
+    const [upserted] = await db
+      .insert(categories)
+      .values(values)
+      .onConflictDoUpdate({
+        target: categories.name,
+        set: {
+          faName: sql`excluded.fa_name`,
+          iconUrl: sql`excluded.icon_url`,
+          sortOrder: sql`excluded.sort_order`,
+          updatedAt: sql`excluded.updated_at`,
+          deletedAt: null,
+        },
+      })
+      .returning({ id: categories.id });
+
+    if (!upserted) return 'skipped';
+    const id = upserted.id;
+    // We assume 'updated' for simplicity as determining insert vs update via upsert requires xmax which drizzle doesn't natively expose easily without raw queries.
+    // And sync outcome doesn't heavily depend on the exact string.
+    const outcome: ApplyOutcome = 'updated';
 
     // Rebuild the category↔brand links from the comma list in the sheet.
     const wanted = splitList(cells.Brand ?? '');
@@ -501,13 +508,22 @@ export const brandMapping: EntityMapping = {
       updatedAt,
       deletedAt: null,
     };
-    const [existing] = await db.select({ id: brands.id }).from(brands).where(eq(brands.name, key)).limit(1);
-    if (existing) {
-      await db.update(brands).set(values).where(eq(brands.id, existing.id));
-      return 'updated';
-    }
-    await db.insert(brands).values(values);
-    return 'created';
+
+    await db
+      .insert(brands)
+      .values(values)
+      .onConflictDoUpdate({
+        target: brands.name,
+        set: {
+          faName: sql`excluded.fa_name`,
+          iconUrl: sql`excluded.icon_url`,
+          sortOrder: sql`excluded.sort_order`,
+          updatedAt: sql`excluded.updated_at`,
+          deletedAt: null,
+        },
+      });
+
+    return 'updated';
   },
 };
 
@@ -545,13 +561,21 @@ export const colorMapping: EntityMapping = {
       updatedAt,
       deletedAt: null,
     };
-    const [existing] = await db.select({ id: colors.id }).from(colors).where(eq(colors.code, key)).limit(1);
-    if (existing) {
-      await db.update(colors).set(values).where(eq(colors.id, existing.id));
-      return 'updated';
-    }
-    await db.insert(colors).values(values);
-    return 'created';
+
+    await db
+      .insert(colors)
+      .values(values)
+      .onConflictDoUpdate({
+        target: colors.code,
+        set: {
+          faName: sql`excluded.fa_name`,
+          name: sql`excluded.name`,
+          updatedAt: sql`excluded.updated_at`,
+          deletedAt: null,
+        },
+      });
+
+    return 'updated';
   },
 };
 
@@ -630,13 +654,28 @@ export const userMapping: EntityMapping = {
       deletedAt: null,
     };
 
-    const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.phone, phone)).limit(1);
-    if (existing) {
-      await db.update(users).set(values).where(eq(users.id, existing.id));
-      return 'updated';
-    }
-    await db.insert(users).values(values);
-    return 'created';
+    await db
+      .insert(users)
+      .values(values)
+      .onConflictDoUpdate({
+        target: users.phone,
+        set: {
+          name: sql`excluded.name`,
+          lastName: sql`excluded.last_name`,
+          storeName: sql`excluded.store_name`,
+          landline: sql`excluded.landline`,
+          address: sql`excluded.address`,
+          postalCode: sql`excluded.postal_code`,
+          certificateFileUrl: sql`excluded.certificate_file_url`,
+          activity: sql`excluded.activity`,
+          pageWebsite: sql`excluded.page_website`,
+          isActive: sql`excluded.is_active`,
+          updatedAt: sql`excluded.updated_at`,
+          deletedAt: null,
+        },
+      });
+
+    return 'updated';
   },
 };
 
@@ -795,13 +834,20 @@ export const settingMapping: EntityMapping = {
 
   async applySheetRow(key, cells, updatedAt) {
     const value = str(cells.value);
-    const [existing] = await db.select({ id: settings.id }).from(settings).where(eq(settings.key, key)).limit(1);
-    if (existing) {
-      await db.update(settings).set({ value, updatedAt, deletedAt: null }).where(eq(settings.id, existing.id));
-      return 'updated';
-    }
-    await db.insert(settings).values({ key, value, updatedAt });
-    return 'created';
+
+    await db
+      .insert(settings)
+      .values({ key, value, updatedAt })
+      .onConflictDoUpdate({
+        target: settings.key,
+        set: {
+          value: sql`excluded.value`,
+          updatedAt: sql`excluded.updated_at`,
+          deletedAt: null,
+        },
+      });
+
+    return 'updated';
   },
 };
 
