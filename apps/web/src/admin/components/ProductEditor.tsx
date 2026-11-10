@@ -277,7 +277,8 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   bundleItems: p.bundleItems ?? [],
 });
 
-export function ProductEditor({ product, template, categories, brands, busy, isBundleMode, onClose, onSave, onManageVariants }: Props) {
+export function ProductEditor(props: Props) {
+  const { product, template, categories, brands, busy, isBundleMode, onClose, onSave, onManageVariants } = props;
   const [form, setForm] = useState<ProductForm>(() => {
     const initial = product ? fromProduct(product) : template ? fromProduct(template) : blank();
     if (!isBundleMode) return initial;
