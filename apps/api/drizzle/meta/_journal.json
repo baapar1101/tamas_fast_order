@@ -218,6 +218,13 @@
       "when": 1792829614935,
       "tag": "0030_native_campaigns",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794339926869,
+      "tag": "0031_sales_funnel",
+      "breakpoints": true
     }
   ]
 }

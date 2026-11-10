@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { useAuth } from '../store/auth';
+import { trackFunnel } from '../lib/funnel';
 import { useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
 import { CheckoutFlow } from './CheckoutFlow';
@@ -22,6 +23,10 @@ export function CheckoutPage() {
   useEffect(() => {
     if (lines.length > 0) setHasStarted(true);
   }, [lines.length]);
+
+  useEffect(() => {
+    if (hasStarted) trackFunnel('checkout_start');
+  }, [hasStarted]);
 
   const savedReturn = (location.state as { returnTo?: unknown } | null)?.returnTo;
   const returnTo = typeof savedReturn === 'string' && savedReturn.startsWith('/') && !savedReturn.startsWith('//')

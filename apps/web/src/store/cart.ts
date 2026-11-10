@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { ProductDTO, Warehouse } from '@tamas/shared';
+import { trackFunnel } from '../lib/funnel';
 
 export interface CartLine {
   /** productId + warehouse: the same item from two warehouses is two lines. */
@@ -88,6 +89,7 @@ export const useCart = create<CartState>()(
           });
         }
         set({ lines });
+        trackFunnel('add_to_cart', { productId: product.productId });
         return { ok: true };
       },
 

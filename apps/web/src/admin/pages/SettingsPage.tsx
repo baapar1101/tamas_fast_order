@@ -140,6 +140,8 @@ type CustomerTelegramEvent =
   | 'wallet.changed'
   | 'payment.instructions_ready'
   | 'discount.created'
+  | 'cart.reminder'
+  | 'order.payment_reminder'
   | 'promotion';
 
 const CUSTOMER_TELEGRAM_EVENT_LABELS: Record<CustomerTelegramEvent, string> = {
@@ -156,6 +158,8 @@ const CUSTOMER_TELEGRAM_EVENT_LABELS: Record<CustomerTelegramEvent, string> = {
   'wallet.changed': 'گردش کیف پول',
   'payment.instructions_ready': 'آماده‌شدن اطلاعات پرداخت',
   'discount.created': 'کد تخفیف جدید',
+  'cart.reminder': 'یادآوری سبد خرید رهاشده',
+  'order.payment_reminder': 'یادآوری پرداخت سفارش',
   promotion: 'جشنواره و پیشنهادها',
 };
 

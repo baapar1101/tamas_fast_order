@@ -18,6 +18,7 @@ import { DocumentRequestsPage } from './storefront/DocumentRequestsPage';
 import { PaymentResultPage } from './storefront/PaymentResultPage';
 import { captureAttribution } from './lib/attribution';
 import { TelegramConnectPrompt } from './storefront/TelegramConnectPrompt';
+import { FunnelTracker } from './storefront/FunnelTracker';
 import './storefront/customer-responsive.css';
 
 /*
@@ -79,6 +80,7 @@ export function App() {
       <ScrollToTopOnNavigate />
       <TableExcelExportManager />
       <TelegramConnectPrompt />
+      <FunnelTracker />
       <Routes>
         <Route path="/" element={<StorefrontPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />

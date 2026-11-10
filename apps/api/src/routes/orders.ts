@@ -9,6 +9,7 @@ import { orders } from '../db/schema.js';
 import { badRequest } from '../lib/errors.js';
 import { registerOrderCheque } from '../services/credit-cheques.js';
 import { claimPrivateFile } from '../services/private-files.js';
+import { clearUserCart } from '../services/funnel.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   app.post(
@@ -17,6 +18,8 @@ const routes: FastifyPluginAsync = async (app) => {
     async (req) => {
       const body = orderCreateSchema.parse(req.body);
       const order = await createOrder(req.currentUser!, body);
+      // The cart became an order: no abandoned-cart reminder for it.
+      void clearUserCart(req.currentUser!.id).catch((err) => req.log.warn({ err }, 'failed to clear saved cart'));
       return { ok: true, order, message: `سفارش شما با شماره ${order.orderCode} ثبت شد.` };
     },
   );

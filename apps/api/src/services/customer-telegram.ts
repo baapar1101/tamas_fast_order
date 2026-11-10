@@ -29,6 +29,8 @@ export const CUSTOMER_TELEGRAM_EVENTS = [
   'wallet.changed',
   'payment.instructions_ready',
   'discount.created',
+  'cart.reminder',
+  'order.payment_reminder',
   'promotion',
 ] as const;
 
@@ -265,7 +267,7 @@ async function sendProfile(chatId: number, userId: number): Promise<void> {
 
 async function sendNotificationSettings(chatId: number, account: typeof customerTelegramAccounts.$inferSelect): Promise<void> {
   const prefs = account.notificationPreferences ?? {};
-  const labels: Record<CustomerTelegramEvent, string> = { 'order.created': 'ثبت سفارش', 'order.status_changed': 'وضعیت سفارش', 'order.items_changed': 'تغییر اقلام', 'payment.paid': 'پرداخت موفق', 'payment.failed': 'پرداخت ناموفق', 'credit.application_status_changed': 'پرونده اعتبار', 'credit.document_reupload_requested': 'تکمیل مدرک', 'credit.cheque_status_changed': 'وضعیت چک', 'credit.installment_receipt_reminder': 'یادآوری رسید قسط', 'credit.installment_receipt_status_changed': 'بررسی رسید قسط', 'wallet.changed': 'گردش کیف پول', 'payment.instructions_ready': 'اطلاعات پرداخت', 'discount.created': 'کد تخفیف', promotion: 'جشنواره‌ها' };
+  const labels: Record<CustomerTelegramEvent, string> = { 'order.created': 'ثبت سفارش', 'order.status_changed': 'وضعیت سفارش', 'order.items_changed': 'تغییر اقلام', 'payment.paid': 'پرداخت موفق', 'payment.failed': 'پرداخت ناموفق', 'credit.application_status_changed': 'پرونده اعتبار', 'credit.document_reupload_requested': 'تکمیل مدرک', 'credit.cheque_status_changed': 'وضعیت چک', 'credit.installment_receipt_reminder': 'یادآوری رسید قسط', 'credit.installment_receipt_status_changed': 'بررسی رسید قسط', 'wallet.changed': 'گردش کیف پول', 'payment.instructions_ready': 'اطلاعات پرداخت', 'discount.created': 'کد تخفیف', 'cart.reminder': 'یادآوری سبد خرید', 'order.payment_reminder': 'یادآوری پرداخت', promotion: 'جشنواره‌ها' };
   const rows = CUSTOMER_TELEGRAM_EVENTS.map((event) => [{ text: `${prefs[event] !== false ? '✅' : '☑️'} ${labels[event]}`, data: `ctg:toggle:${event}` }]);
   rows.unshift([{ text: account.notificationsEnabled ? '🔕 توقف همه اعلان‌ها' : '🔔 فعال‌کردن همه اعلان‌ها', data: 'ctg:toggle-all' }]);
   rows.push([{ text: '🔙 بازگشت به منو', data: 'ctg:menu' }]);

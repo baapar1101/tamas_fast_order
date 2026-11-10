@@ -6,6 +6,7 @@ import { WAREHOUSE_LABELS, formatNumber, hasRealDiscount } from '@tamas/shared';
 import { api, ApiRequestError } from '../lib/api';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../store/auth';
+import { trackFunnel } from '../lib/funnel';
 import { cartCount, isProductUnavailable, stockFor, useCart } from '../store/cart';
 import { AuthDialog } from './AuthDialog';
 import { CrmChat } from '../components/CrmChat';
@@ -111,6 +112,10 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
   const filteredBundleContents = bundleContents
     .map((item, index) => ({ ...item, position: index + 1 }))
     .filter((item) => !bundleSearchTerm || normalizeBundleSearch(`${item.title} ${item.productId}`).includes(bundleSearchTerm));
+
+  useEffect(() => {
+    if (!adminPreview && selected?.productId) trackFunnel('product_view', { productId: selected.productId });
+  }, [adminPreview, selected?.productId]);
 
   useEffect(() => {
     setActiveTab(main?.type === 'bundle' ? 'specs' : 'desc');

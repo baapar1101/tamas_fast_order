@@ -1222,3 +1222,58 @@ export const nativeCampaignDeliveries = pgTable('native_campaign_deliveries', {
   index('native_campaign_delivery_campaign_idx').on(t.campaignId, t.id),
   index('native_campaign_delivery_user_idx').on(t.userId),
 ]);
+
+/* ------------------------------------------------------------------ *
+ * Sales funnel: storefront behaviour, saved carts, automatic follow-ups
+ * ------------------------------------------------------------------ */
+
+/** One row per storefront step (visit, scroll, product view, add to cart, checkout). */
+export const funnelEvents = pgTable('funnel_events', {
+  id: serial('id').primaryKey(),
+  /** Anonymous browser id, so guests can be counted before they log in. */
+  visitorId: varchar('visitor_id', { length: 40 }).notNull(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+  type: varchar('type', { length: 24 }).notNull(),
+  productId: varchar('product_id', { length: 120 }),
+  path: varchar('path', { length: 300 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('funnel_events_type_created_idx').on(t.type, t.createdAt),
+  index('funnel_events_user_created_idx').on(t.userId, t.createdAt),
+  index('funnel_events_created_idx').on(t.createdAt),
+]);
+
+export interface SavedCartLine {
+  productId: string;
+  title: string;
+  qty: number;
+  price: number;
+  warehouse: string;
+}
+
+/** The latest cart of each logged-in customer; the browser cart itself lives in localStorage. */
+export const userCarts = pgTable('user_carts', {
+  userId: integer('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  items: jsonb('items').$type<SavedCartLine[]>().notNull().default(sql`'[]'::jsonb`),
+  itemCount: integer('item_count').notNull().default(0),
+  total: bigint('total', { mode: 'number' }).notNull().default(0),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  remindersSent: integer('reminders_sent').notNull().default(0),
+  lastRemindedAt: timestamp('last_reminded_at', { withTimezone: true }),
+}, (t) => [index('user_carts_updated_idx').on(t.updatedAt)]);
+
+/** Every automatic follow-up, for de-duplication and for the funnel report. */
+export const funnelMessages = pgTable('funnel_messages', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  kind: varchar('kind', { length: 32 }).notNull(),
+  /** Order id for payment reminders; empty otherwise. */
+  orderId: integer('order_id').references(() => orders.id, { onDelete: 'set null' }),
+  channels: varchar('channels', { length: 60 }).notNull().default(''),
+  delivered: boolean('delivered').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('funnel_messages_user_kind_idx').on(t.userId, t.kind, t.createdAt),
+  index('funnel_messages_created_idx').on(t.createdAt),
+  uniqueIndex('funnel_messages_order_kind_key').on(t.orderId, t.kind),
+]);

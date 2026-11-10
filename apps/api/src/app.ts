@@ -50,6 +50,8 @@ import discountRoutes from './routes/discounts.js';
 import adminDiscountRoutes from './routes/admin/discounts.js';
 import customerBaleRoutes from './routes/customer-bale.js';
 import adminNativeCampaignRoutes from './routes/admin/native-campaigns.js';
+import funnelRoutes from './routes/funnel.js';
+import adminFunnelRoutes from './routes/admin/funnel.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
 
@@ -197,6 +199,8 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(crmRoutes); // <-- CRM integration routes
         await api.register(creditRoutes);
         await api.register(adminCreditRoutes);
+        await api.register(funnelRoutes);
+        await api.register(adminFunnelRoutes);
       },
       { prefix: '/api' },
     );

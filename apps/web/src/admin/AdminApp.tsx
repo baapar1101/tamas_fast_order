@@ -26,6 +26,7 @@ const UploadsPage = lazy(() => import('./pages/UploadsPage').then((m) => ({ defa
 const SyncPage = lazy(() => import('./pages/SyncPage').then((m) => ({ default: m.SyncPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })));
+const FunnelPage = lazy(() => import('./pages/FunnelPage').then((m) => ({ default: m.FunnelPage })));
 const MessagesPage = lazy(() => import('./pages/MessagesPage').then((m) => ({ default: m.MessagesPage })));
 const MarketingPage = lazy(() => import('./pages/MarketingPage').then((m) => ({ default: m.MarketingPage })));
 const FinancialPage = lazy(() => import('./pages/FinancialPage').then((m) => ({ default: m.FinancialPage })));
@@ -141,6 +142,16 @@ const NAV_MAIN = [
     to: '/admin/document-recovery',
     label: 'مدارک مفقود و تکمیل پرونده',
     icon: (<svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>),
+    requiredPermission: 'manage_users',
+  },
+  {
+    to: '/admin/funnel',
+    label: 'قیف فروش',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h18l-6.75 8.25v6l-4.5 1.5v-7.5L3 4.5z" />
+      </svg>
+    ),
     requiredPermission: 'manage_users',
   },
   {
@@ -405,8 +416,8 @@ const NAV_GROUPS = [
   {
     id: 'insights',
     label: 'گزارش‌ها',
-    description: 'تحلیل، Graphify و Archify',
-    paths: ['/admin/analytics', '/admin/graphify', '/admin/archify'],
+    description: 'قیف فروش، تحلیل، Graphify و Archify',
+    paths: ['/admin/funnel', '/admin/analytics', '/admin/graphify', '/admin/archify'],
     iconPath: 'M3 20.25h18M5.25 17.25V12h3v5.25m3 0V6.75h3v10.5m3 0V3.75h3v13.5',
   },
   {
@@ -934,6 +945,7 @@ export default function AdminApp() {
             <Route path="document-recovery" element={<CreditApplicationsPage key="document-recovery" initialSection="documents" />} />
             <Route path="catalog-export" element={<CatalogExportPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="funnel" element={<FunnelPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="sms" element={<SmsPage />} />
             <Route path="app-notifications" element={<AppNotificationsPage />} />

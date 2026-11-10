@@ -9,6 +9,7 @@ import { isSyncRunning, pruneConflicts, runSync } from './services/sheets/sync.j
 import { sendDueInstallmentReceiptReminders } from './services/installment-receipts.js';
 import { runScheduledTelegramBackup } from './services/telegram-backup.js';
 import { processNativeCampaigns } from './services/native-campaigns.js';
+import { pruneFunnelEvents, runFunnelAutomation } from './services/funnel.js';
 
 /**
  * Background work: the periodic Sheets pass plus the small housekeeping jobs.
@@ -108,6 +109,23 @@ export function startScheduler(log: FastifyBaseLogger): () => void {
       log.error({ err }, 'daily Telegram backup failed');
     }
   };
+  // Sales funnel: abandoned carts, unpaid orders and browse nudges (daytime only).
+  let funnelRunning = false;
+  const funnelFollowUps = async () => {
+    if (funnelRunning) return;
+    funnelRunning = true;
+    try {
+      await runFunnelAutomation(log);
+    } catch (err) {
+      log.warn({ err }, 'sales funnel follow-ups failed');
+    } finally {
+      funnelRunning = false;
+    }
+  };
+  timers.push(setTimeout(() => void funnelFollowUps(), 45_000));
+  timers.push(setInterval(() => void funnelFollowUps(), 5 * 60 * 1000));
+  timers.push(setInterval(() => void pruneFunnelEvents().catch((err) => log.warn({ err }, 'funnel event prune failed')), 24 * 60 * 60 * 1000));
+
   timers.push(setTimeout(() => void telegramBackup(), 30_000));
   timers.push(setInterval(() => void telegramBackup(), 60_000));
 
