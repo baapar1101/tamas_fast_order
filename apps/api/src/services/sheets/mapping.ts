@@ -437,19 +437,14 @@ export const categoryMapping: EntityMapping = {
       deletedAt: null,
     };
 
-    const [existing] = await db.select({ id: categories.id }).from(categories).where(eq(categories.name, key)).limit(1);
-    let id: number;
-    let outcome: ApplyOutcome;
-    if (existing) {
-      await db.update(categories).set(values).where(eq(categories.id, existing.id));
-      id = existing.id;
-      outcome = 'updated';
-    } else {
-      const [created] = await db.insert(categories).values(values).returning({ id: categories.id });
-      if (!created) return 'skipped';
-      id = created.id;
-      outcome = 'created';
-    }
+    const [upserted] = await db
+      .insert(categories)
+      .values(values)
+      .onConflictDoUpdate({ target: categories.name, set: values })
+      .returning({ id: categories.id });
+    if (!upserted) return 'skipped';
+    const id = upserted.id;
+    const outcome = 'updated';
 
     // Rebuild the category↔brand links from the comma list in the sheet.
     const wanted = splitList(cells.Brand ?? '');
@@ -501,13 +496,11 @@ export const brandMapping: EntityMapping = {
       updatedAt,
       deletedAt: null,
     };
-    const [existing] = await db.select({ id: brands.id }).from(brands).where(eq(brands.name, key)).limit(1);
-    if (existing) {
-      await db.update(brands).set(values).where(eq(brands.id, existing.id));
-      return 'updated';
-    }
-    await db.insert(brands).values(values);
-    return 'created';
+    await db
+      .insert(brands)
+      .values(values)
+      .onConflictDoUpdate({ target: brands.name, set: values });
+    return 'updated';
   },
 };
 
@@ -545,13 +538,11 @@ export const colorMapping: EntityMapping = {
       updatedAt,
       deletedAt: null,
     };
-    const [existing] = await db.select({ id: colors.id }).from(colors).where(eq(colors.code, key)).limit(1);
-    if (existing) {
-      await db.update(colors).set(values).where(eq(colors.id, existing.id));
-      return 'updated';
-    }
-    await db.insert(colors).values(values);
-    return 'created';
+    await db
+      .insert(colors)
+      .values(values)
+      .onConflictDoUpdate({ target: colors.code, set: values });
+    return 'updated';
   },
 };
 
@@ -630,13 +621,11 @@ export const userMapping: EntityMapping = {
       deletedAt: null,
     };
 
-    const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.phone, phone)).limit(1);
-    if (existing) {
-      await db.update(users).set(values).where(eq(users.id, existing.id));
-      return 'updated';
-    }
-    await db.insert(users).values(values);
-    return 'created';
+    await db
+      .insert(users)
+      .values(values)
+      .onConflictDoUpdate({ target: users.phone, set: values });
+    return 'updated';
   },
 };
 
@@ -795,13 +784,11 @@ export const settingMapping: EntityMapping = {
 
   async applySheetRow(key, cells, updatedAt) {
     const value = str(cells.value);
-    const [existing] = await db.select({ id: settings.id }).from(settings).where(eq(settings.key, key)).limit(1);
-    if (existing) {
-      await db.update(settings).set({ value, updatedAt, deletedAt: null }).where(eq(settings.id, existing.id));
-      return 'updated';
-    }
-    await db.insert(settings).values({ key, value, updatedAt });
-    return 'created';
+    await db
+      .insert(settings)
+      .values({ key, value, updatedAt })
+      .onConflictDoUpdate({ target: settings.key, set: { value, updatedAt, deletedAt: null } });
+    return 'updated';
   },
 };
 
