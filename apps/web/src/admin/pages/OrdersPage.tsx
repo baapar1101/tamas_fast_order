@@ -187,6 +187,23 @@ export function OrdersPage() {
   );
   const draftTotal = itemDrafts.reduce((sum, item) => sum + item.price * item.qty, 0);
 
+
+  const handleSelectAll = (checked: boolean) => {
+    const next = new Set(selected);
+    for (const o of items) {
+      if (checked) next.add(o.id);
+      else next.delete(o.id);
+    }
+    setSelected(next);
+  };
+
+  const toggleSelection = (id: number) => {
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelected(next);
+  };
+
   const beginItemEditing = () => {
     if (!detail || !canEditOrderItems) return;
     setItemDrafts(detail.items.map((item) => ({ ...item })));
@@ -328,14 +345,7 @@ export function OrdersPage() {
                     <input
                       type="checkbox"
                       checked={items.length > 0 && items.every((o) => selected.has(o.id))}
-                      onChange={(e) => {
-                        const next = new Set(selected);
-                        for (const o of items) {
-                          if (e.target.checked) next.add(o.id);
-                          else next.delete(o.id);
-                        }
-                        setSelected(next);
-                      }}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
                     />
                   </th>
                   <th>
@@ -401,12 +411,7 @@ export function OrdersPage() {
                       <input
                         type="checkbox"
                         checked={selected.has(o.id)}
-                        onChange={() => {
-                          const next = new Set(selected);
-                          if (next.has(o.id)) next.delete(o.id);
-                          else next.add(o.id);
-                          setSelected(next);
-                        }}
+                        onChange={() => toggleSelection(o.id)}
                       />
                     </td>
                     <td className="a-strong font-mono" dir="ltr">
