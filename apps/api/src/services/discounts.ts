@@ -97,19 +97,40 @@ export async function generateDiscountsForMissingCustomers(createdBy: number): P
   const existing = await db.select({ userId: discountCodes.userId }).from(discountCodes).where(eq(discountCodes.isActive, true));
   const occupied = new Set(existing.map((item) => item.userId));
   let created = 0;
-  for (const customer of customerRows) {
-    if (occupied.has(customer.id)) continue;
-    const previousAutoGenerate = config.autoGenerate;
-    if (!previousAutoGenerate) {
-      // Bulk generation is an explicit admin action even when automatic generation is disabled.
-      const [row] = await db.insert(discountCodes).values({
-        userId: customer.id, code: `${config.prefix}-${codeSuffix()}`, kind: config.kind, value: config.value,
-        firstOrderOnly: config.firstOrderOnly, minOrderAmount: config.minOrderAmount,
-        maxDiscountAmount: config.maxDiscountAmount, startsAt: config.startsAt ? new Date(config.startsAt) : null,
-        endsAt: config.endsAt ? new Date(config.endsAt) : null, usageLimit: config.usageLimit, createdBy,
-      }).returning({ id: discountCodes.id });
-      if (row) created += 1;
-    } else if (await ensureCustomerDiscount(customer.id, createdBy)) created += 1;
+  const previousAutoGenerate = config.autoGenerate;
+  if (!previousAutoGenerate) {
+    // Bulk generation is an explicit admin action even when automatic generation is disabled.
+    const valuesToInsert: (typeof discountCodes.$inferInsert)[] = [];
+    for (const customer of customerRows) {
+      if (occupied.has(customer.id)) continue;
+      valuesToInsert.push({
+        userId: customer.id,
+        code: `${config.prefix}-${codeSuffix()}`,
+        kind: config.kind,
+        value: config.value,
+        firstOrderOnly: config.firstOrderOnly,
+        minOrderAmount: config.minOrderAmount,
+        maxDiscountAmount: config.maxDiscountAmount,
+        startsAt: config.startsAt ? new Date(config.startsAt) : null,
+        endsAt: config.endsAt ? new Date(config.endsAt) : null,
+        usageLimit: config.usageLimit,
+        createdBy,
+      });
+    }
+
+    if (valuesToInsert.length === 0) return 0;
+
+    const chunkSize = 500;
+    for (let i = 0; i < valuesToInsert.length; i += chunkSize) {
+      const chunk = valuesToInsert.slice(i, i + chunkSize);
+      const rows = await db.insert(discountCodes).values(chunk).onConflictDoNothing({ target: discountCodes.code }).returning({ id: discountCodes.id });
+      created += rows.length;
+    }
+  } else {
+    for (const customer of customerRows) {
+      if (occupied.has(customer.id)) continue;
+      if (await ensureCustomerDiscount(customer.id, createdBy)) created += 1;
+    }
   }
   return created;
 }
