@@ -137,9 +137,8 @@ export function TaxonomyPage() {
                     title="ویرایش دسته"
                     onClick={() => {
                       const newName = prompt('عنوان جدید دسته‌بندی را وارد کنید:', c.faName);
-                      if (newName && newName.trim() !== c.faName) {
-                        editCat.mutate({ id: c.id, faName: newName.trim() });
-                      }
+                      if (!newName || newName.trim() === c.faName) return;
+                      editCat.mutate({ id: c.id, faName: newName.trim() });
                     }}
                   >
                     <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
@@ -151,7 +150,8 @@ export function TaxonomyPage() {
                     className="a-icon-btn a-icon-btn--sm a-icon-btn--danger"
                     title="حذف دسته"
                     onClick={() => {
-                      if (confirm(`آیا دسته‌بندی «${c.faName}» حذف شود؟`)) deleteCat.mutate(c.id);
+                      if (!confirm(`آیا دسته‌بندی «${c.faName}» حذف شود؟`)) return;
+                      deleteCat.mutate(c.id);
                     }}
                   >
                     <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
@@ -212,9 +212,8 @@ export function TaxonomyPage() {
                     title="ویرایش برند"
                     onClick={() => {
                       const newName = prompt('نام جدید برند را وارد کنید:', b.faName);
-                      if (newName && newName.trim() !== b.faName) {
-                        editBrand.mutate({ id: b.id, faName: newName.trim() });
-                      }
+                      if (!newName || newName.trim() === b.faName) return;
+                      editBrand.mutate({ id: b.id, faName: newName.trim() });
                     }}
                   >
                     <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
@@ -226,7 +225,8 @@ export function TaxonomyPage() {
                     className="a-icon-btn a-icon-btn--sm a-icon-btn--danger"
                     title="حذف برند"
                     onClick={() => {
-                      if (confirm(`آیا برند «${b.faName}» حذف شود؟`)) deleteBrand.mutate(b.id);
+                      if (!confirm(`آیا برند «${b.faName}» حذف شود؟`)) return;
+                      deleteBrand.mutate(b.id);
                     }}
                   >
                     <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
