@@ -200,6 +200,23 @@ export function OrdersPage() {
     setItemDrafts(detail?.items.map((item) => ({ ...item })) ?? []);
   };
 
+  const toggleAll = (checked: boolean) => {
+    const next = new Set(selected);
+    if (checked) {
+      for (const o of items) next.add(o.id);
+    } else {
+      for (const o of items) next.delete(o.id);
+    }
+    setSelected(next);
+  };
+
+  const toggleOne = (id: number) => {
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelected(next);
+  };
+
   const addOrderProduct = (product: OrderProductOption, warehouse: Warehouse) => {
     setItemDrafts((current) => {
       const index = current.findIndex((item) => item.productId === product.productId && item.warehouse === warehouse);
@@ -328,14 +345,7 @@ export function OrdersPage() {
                     <input
                       type="checkbox"
                       checked={items.length > 0 && items.every((o) => selected.has(o.id))}
-                      onChange={(e) => {
-                        const next = new Set(selected);
-                        for (const o of items) {
-                          if (e.target.checked) next.add(o.id);
-                          else next.delete(o.id);
-                        }
-                        setSelected(next);
-                      }}
+                      onChange={(e) => toggleAll(e.target.checked)}
                     />
                   </th>
                   <th>
@@ -401,12 +411,7 @@ export function OrdersPage() {
                       <input
                         type="checkbox"
                         checked={selected.has(o.id)}
-                        onChange={() => {
-                          const next = new Set(selected);
-                          if (next.has(o.id)) next.delete(o.id);
-                          else next.add(o.id);
-                          setSelected(next);
-                        }}
+                        onChange={() => toggleOne(o.id)}
                       />
                     </td>
                     <td className="a-strong font-mono" dir="ltr">
