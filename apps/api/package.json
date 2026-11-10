@@ -52,7 +52,7 @@
     "postgres": "^3.4.5",
     "sharp": "^0.35.5",
     "socks-proxy-agent": "^10.1.0",
-    "typescript-eslint": "^7.3.1",
+    "typescript-eslint": "8.36.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
