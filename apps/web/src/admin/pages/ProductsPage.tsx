@@ -329,14 +329,16 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   if (editing) {
     return (
       <ProductEditor
-        product={editing === 'new' ? null : editing}
-        categories={categoryOptions}
-        brands={brandOptions}
-        isBundleMode={typeFilter === 'bundle'}
-        busy={save.isPending}
-        onClose={() => setEditing(null)}
-        onSave={(body) => save.mutate({ id: editing === 'new' ? null : editing.id, body })}
-        onManageVariants={(p) => { setEditing(null); setVariantsProduct(p); }}
+        options={{
+          product: editing === 'new' ? null : editing,
+          categories: categoryOptions,
+          brands: brandOptions,
+          isBundleMode: typeFilter === 'bundle',
+          busy: save.isPending,
+          onClose: () => setEditing(null),
+          onSave: (body: ProductForm) => save.mutate({ id: editing === 'new' ? null : editing.id, body }),
+          onManageVariants: (p: ProductDTO) => { setEditing(null); setVariantsProduct(p); },
+        }}
       />
     );
   }
