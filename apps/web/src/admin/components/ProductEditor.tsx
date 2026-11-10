@@ -362,6 +362,27 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
     set('attributes', cp);
   };
 
+
+  const setBundleItemProductId = (idx: number, productId: string) => {
+    const copy = [...form.bundleItems];
+    if (!copy[idx]) return;
+    copy[idx]!.productId = productId;
+    set('bundleItems', copy);
+  };
+
+  const setBundleItemQty = (idx: number, qty: number) => {
+    const copy = [...form.bundleItems];
+    if (!copy[idx]) return;
+    copy[idx]!.qty = qty;
+    set('bundleItems', copy);
+  };
+
+  const removeBundleItem = (idx: number) => {
+    const copy = [...form.bundleItems];
+    copy.splice(idx, 1);
+    set('bundleItems', copy);
+  };
+
   const quickAddAttr = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const name = e.target.value;
     if (!name) return;
@@ -600,13 +621,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                       <label className="a-label text-xs">شناسه کالا (Product ID) یا جستجو</label>
                       <BundleItemSelect
                         value={item.productId}
-                        onChange={(val) => {
-                          const copy = [...form.bundleItems];
-                          if (copy[idx]) {
-                            copy[idx]!.productId = val;
-                            set('bundleItems', copy);
-                          }
-                        }}
+                        onChange={(val) => setBundleItemProductId(idx, val)}
                       />
                     </div>
                     <div className="pe-bundle-qty">
@@ -616,23 +631,13 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                         min="1"
                         className="a-input text-center"
                         value={item.qty || 1}
-                        onChange={(e) => {
-                          const copy = [...form.bundleItems];
-                          if (copy[idx]) {
-                            copy[idx]!.qty = parseInt(e.target.value, 10) || 1;
-                            set('bundleItems', copy);
-                          }
-                        }}
+                        onChange={(e) => setBundleItemQty(idx, parseInt(e.target.value, 10) || 1)}
                       />
                     </div>
                     <div className="pe-bundle-remove">
                       <button
                         type="button"
-                        onClick={() => {
-                          const copy = [...form.bundleItems];
-                          copy.splice(idx, 1);
-                          set('bundleItems', copy);
-                        }}
+                        onClick={() => removeBundleItem(idx)}
                         className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 flex items-center justify-center transition-colors"
                       >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
