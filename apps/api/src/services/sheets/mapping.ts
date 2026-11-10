@@ -81,8 +81,8 @@ export async function markSynced(
 ): Promise<void> {
   if (rows.length === 0) return;
   // Table and column names come from the constants in this file, never input.
-  const table = sql.raw(`"${mapping.tableName}"`);
-  const keyCol = sql.raw(`"${mapping.keyDbColumn}"`);
+  const table = sql.identifier(mapping.tableName);
+  const keyCol = sql.identifier(mapping.keyDbColumn);
 
   for (const part of chunk(rows, 500)) {
     // Both columns are cast explicitly: without a type, Postgres cannot infer
