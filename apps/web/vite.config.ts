@@ -25,7 +25,9 @@ function generateVersionJsonPlugin(): Plugin {
   };
 }
 
-const GENERATED_CHUNK_FILE = /^(?:index|admin|vendor|react|router|query|pdf|canvas|xlsx)-[A-Za-z0-9_-]{8,}\.(?:js(?:\.map)?|css)$/;
+// Every hashed script/style Vite emits (entry, vendor and lazy route chunks such
+// as `AnalyticsPage-<hash>.js`) plus its source map. Fonts and images are kept.
+const GENERATED_CHUNK_FILE = /^[\w.-]+-[A-Za-z0-9_-]{8}\.(?:js|css)(?:\.map)?$/;
 
 function pruneStaleGeneratedChunksPlugin(): Plugin {
   return {
