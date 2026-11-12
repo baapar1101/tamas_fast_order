@@ -24,6 +24,7 @@ import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_IMAGE_URL, GOLDEN_CAMPAIGN_LIGH
 import { MobileAppNavigation, type MobileAppTab } from './MobileAppNavigation';
 import { SiteHeader } from './SiteHeader';
 import { scrollPageToTop } from '../lib/scroll';
+import { shopHref } from './landing/shopLinks';
 import './storefront.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
@@ -34,9 +35,9 @@ const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
 };
 
 const FALLBACK_HERO_SLIDES: StorefrontSlide[] = [
-  { id: -1, title: 'گوشی‌های اپل', imageUrl: '/assets/slides/slide-01.jpg', mobileImageUrl: null, linkUrl: '/?brand=Apple' },
-  { id: -2, title: 'گوشی‌های شیائومی', imageUrl: '/assets/slides/slide-02.jpg', mobileImageUrl: null, linkUrl: '/?brand=Xiaomi' },
-  { id: -3, title: 'گوشی‌های سامسونگ', imageUrl: '/assets/slides/slide-03.jpg', mobileImageUrl: null, linkUrl: '/?brand=Samsung' },
+  { id: -1, title: 'گوشی‌های اپل', imageUrl: '/assets/slides/slide-01.jpg', mobileImageUrl: null, linkUrl: '/shop?brand=Apple' },
+  { id: -2, title: 'گوشی‌های شیائومی', imageUrl: '/assets/slides/slide-02.jpg', mobileImageUrl: null, linkUrl: '/shop?brand=Xiaomi' },
+  { id: -3, title: 'گوشی‌های سامسونگ', imageUrl: '/assets/slides/slide-03.jpg', mobileImageUrl: null, linkUrl: '/shop?brand=Samsung' },
 ];
 
 const MOBILE_APP_TABS = new Set<MobileAppTab>(['home', 'categories', 'search', 'cart', 'profile']);
@@ -397,7 +398,7 @@ export function StorefrontPage() {
             const linkedPicture = slide.linkUrl
               ? /^https?:\/\//i.test(slide.linkUrl)
                 ? <a href={slide.linkUrl} target="_blank" rel="noreferrer" tabIndex={i === activeSlide ? 0 : -1} aria-label={slide.title || 'مشاهده بنر'}>{picture}</a>
-                : <Link to={slide.linkUrl} tabIndex={i === activeSlide ? 0 : -1} aria-label={slide.title || 'مشاهده بنر'}>{picture}</Link>
+                : <Link to={shopHref(slide.linkUrl)} tabIndex={i === activeSlide ? 0 : -1} aria-label={slide.title || 'مشاهده بنر'}>{picture}</Link>
               : picture;
             return (
               <div key={slide.id} className={`hero-slide${i === activeSlide ? ' active' : ''}${slide.mobileImageUrl ? ' has-mobile-art' : ''}${isGoldenCampaign ? ' hero-slide--golden' : ''}`} aria-hidden={i !== activeSlide}>

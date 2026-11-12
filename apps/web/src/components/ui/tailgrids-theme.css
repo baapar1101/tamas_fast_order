@@ -1,0 +1,383 @@
+/*
+ * Tailgrids token names mapped to the site's palettes, plus the small reset
+ * used inside `.tg-root`. Shared by every Tailwind entry (admin Lab, home page
+ * landing); each entry adds its own @source list.
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme inline {
+  --font-sans: var(--ds-font-sans);
+
+  /* Brand scale, derived from one brand colour so it follows each palette. */
+  --color-primary-50: color-mix(in srgb, var(--tg-brand) 8%, var(--tg-surface));
+  --color-primary-100: color-mix(in srgb, var(--tg-brand) 16%, var(--tg-surface));
+  --color-primary-200: color-mix(in srgb, var(--tg-brand) 28%, var(--tg-surface));
+  --color-primary-300: color-mix(in srgb, var(--tg-brand) 45%, var(--tg-surface));
+  --color-primary-400: color-mix(in srgb, var(--tg-brand) 70%, var(--tg-surface));
+  --color-primary-500: var(--tg-brand);
+  --color-primary-600: var(--tg-brand-hover);
+  --color-primary-700: color-mix(in srgb, var(--tg-brand) 80%, var(--tg-title));
+  --color-primary-800: color-mix(in srgb, var(--tg-brand) 65%, var(--tg-title));
+  --color-primary-900: color-mix(in srgb, var(--tg-brand) 50%, var(--tg-title));
+  --color-primary-950: color-mix(in srgb, var(--tg-brand) 35%, var(--tg-title));
+  --color-primary-text: var(--tg-on-brand);
+  --color-neutral-brand-color: var(--tg-brand);
+
+  /* Text */
+  --color-title-50: var(--tg-title);
+  --color-text-50: var(--tg-text);
+  --color-text-100: var(--tg-muted);
+  --color-text-200: var(--tg-faint);
+  --color-text-300: var(--tg-border);
+  --color-foreground-50: var(--tg-title);
+  --color-foreground-100: var(--tg-title);
+  --color-foreground-soft-50: var(--tg-title);
+  --color-foreground-soft-100: var(--tg-title);
+  --color-foreground-soft-200: var(--tg-title);
+  --color-foreground-soft-300: var(--tg-title);
+  --color-foreground-soft-400: var(--tg-text);
+  --color-foreground-soft-500: var(--tg-text);
+
+  /* Status */
+  --color-error-500: var(--tg-danger);
+  --color-success-500: var(--tg-success);
+  --color-warning-500: var(--tg-warning);
+  --color-info-500: var(--tg-info);
+
+  /* White (Tailgrids uses these for text on filled buttons) */
+  --color-white-100: #ffffff;
+  --color-white-90: #ffffffcc;
+  --color-white-80: #ffffffcc;
+  --color-white-70: #ffffffb3;
+  --color-white-60: #ffffff99;
+
+  /* Borders */
+  --color-base-50: var(--tg-border);
+  --color-base-100: var(--tg-border);
+  --color-base-200: var(--tg-border);
+  --color-base-300: var(--tg-border-strong);
+  --border-color-base-50: var(--tg-border);
+  --border-color-base-100: var(--tg-border);
+  --border-color-base-200: var(--tg-border);
+  --border-color-base-300: var(--tg-border-strong);
+
+  /* Surfaces */
+  --color-background-50: var(--tg-surface);
+  --color-background-100: var(--tg-surface-raised);
+  --color-background-soft-50: var(--tg-surface-soft);
+  --color-background-soft-100: var(--tg-hover);
+  --color-background-soft-200: var(--tg-hover);
+  --color-background-soft-300: var(--tg-hover);
+  --color-background-soft-400: var(--tg-border);
+  --color-background-soft-500: var(--tg-border-strong);
+  --color-background-success-600: var(--tg-success);
+  --color-card-background-50: var(--tg-surface);
+  --color-card-background-100: var(--tg-surface-raised);
+  --color-card-background-200: var(--tg-hover);
+  --color-card-background-300: var(--tg-surface-soft);
+
+  /* Buttons */
+  --color-button-primary-background: var(--tg-brand);
+  --color-button-primary-hover-background: var(--tg-brand-hover);
+  --color-button-primary-text: var(--tg-on-brand);
+  --color-button-primary-focus-ring: color-mix(in srgb, var(--tg-brand) 22%, transparent);
+  --color-button-outline-background: var(--tg-surface);
+  --color-button-outline-hover-background: var(--tg-hover);
+  --color-button-outline-border: var(--tg-border-strong);
+  --color-button-outline-focus-ring: color-mix(in srgb, var(--tg-muted) 18%, transparent);
+  --color-button-outline-text: var(--tg-title);
+  --color-button-outline-hover-text: var(--tg-title);
+  --color-button-outline-disabled-background: var(--tg-surface);
+  --color-button-outline-disabled-text: var(--tg-faint);
+  --color-button-outline-disabled-border: var(--tg-border);
+  --color-button-disabled-background: var(--tg-hover);
+  --color-button-disabled-border: var(--tg-hover);
+  --color-button-disabled-text: var(--tg-faint);
+  --color-button-error-background: var(--tg-danger-strong);
+  --color-button-error-hover-background: color-mix(in srgb, var(--tg-danger-strong) 85%, #000);
+  --color-button-error-border: var(--tg-danger);
+  --color-button-error-text: #ffffff;
+  --color-button-error-focus-ring: color-mix(in srgb, var(--tg-danger) 20%, transparent);
+  --color-button-error-outline-background: var(--tg-danger-soft);
+  --color-button-error-outline-hover-background: color-mix(in srgb, var(--tg-danger) 22%, var(--tg-surface));
+  --color-button-error-outline-border: var(--tg-danger);
+  --color-button-error-outline-focus-border: var(--tg-danger);
+  --color-button-error-outline-focus-ring: color-mix(in srgb, var(--tg-danger) 20%, transparent);
+  --color-button-error-outline-text: var(--tg-danger);
+  --color-button-error-outline-hover-text: var(--tg-danger);
+  --color-button-success-background: var(--tg-success-strong);
+  --color-button-success-hover-background: color-mix(in srgb, var(--tg-success-strong) 85%, #000);
+  --color-button-success-border: var(--tg-success);
+  --color-button-success-text: #ffffff;
+  --color-button-success-focus-ring: color-mix(in srgb, var(--tg-success) 20%, transparent);
+  --color-button-success-outline-background: var(--tg-success-soft);
+  --color-button-success-outline-hover-background: color-mix(in srgb, var(--tg-success) 22%, var(--tg-surface));
+  --color-button-success-outline-border: var(--tg-success);
+  --color-button-success-outline-focus-border: var(--tg-success);
+  --color-button-success-outline-text: var(--tg-success);
+  --color-button-success-outline-hover-text: var(--tg-success);
+  --color-button-success-outline-focus-ring: color-mix(in srgb, var(--tg-success) 20%, transparent);
+  --color-button-ghost-text: var(--tg-muted);
+  --color-button-ghost-hover-text: var(--tg-title);
+  --color-button-ghost-hover-background: var(--tg-hover);
+
+  /* Badges: semantic ones from the palette, extra hues tinted against the surface. */
+  --color-badge-neutral-background: var(--tg-hover);
+  --color-badge-neutral-text: var(--tg-text);
+  --color-badge-neutral-icon-color: var(--tg-muted);
+  --color-badge-primary-background: var(--tg-brand-soft);
+  --color-badge-primary-text: var(--tg-brand);
+  --color-badge-primary-icon-color: var(--tg-brand);
+  --color-badge-error-background: var(--tg-danger-soft);
+  --color-badge-error-text: var(--tg-danger);
+  --color-badge-error-icon-color: var(--tg-danger);
+  --color-badge-warning-background: var(--tg-warning-soft);
+  --color-badge-warning-text: var(--tg-warning);
+  --color-badge-warning-icon-color: var(--tg-warning);
+  --color-badge-success-background: var(--tg-success-soft);
+  --color-badge-success-text: var(--tg-success);
+  --color-badge-success-icon-color: var(--tg-success);
+  --color-badge-cyan-background: color-mix(in srgb, #06b6d4 14%, var(--tg-surface));
+  --color-badge-cyan-text: color-mix(in srgb, #0891b2 75%, var(--tg-title));
+  --color-badge-cyan-icon-color: #06b6d4;
+  --color-badge-sky-background: color-mix(in srgb, #0ea5e9 14%, var(--tg-surface));
+  --color-badge-sky-text: color-mix(in srgb, #0284c7 75%, var(--tg-title));
+  --color-badge-sky-icon-color: #0ea5e9;
+  --color-badge-blue-background: color-mix(in srgb, #3b82f6 14%, var(--tg-surface));
+  --color-badge-blue-text: color-mix(in srgb, #2563eb 75%, var(--tg-title));
+  --color-badge-blue-icon-color: #3b82f6;
+  --color-badge-violet-background: color-mix(in srgb, #8b5cf6 14%, var(--tg-surface));
+  --color-badge-violet-text: color-mix(in srgb, #7c3aed 75%, var(--tg-title));
+  --color-badge-violet-icon-color: #8b5cf6;
+  --color-badge-purple-background: color-mix(in srgb, #a855f7 14%, var(--tg-surface));
+  --color-badge-purple-text: color-mix(in srgb, #9333ea 75%, var(--tg-title));
+  --color-badge-purple-icon-color: #a855f7;
+  --color-badge-pink-background: color-mix(in srgb, #ec4899 14%, var(--tg-surface));
+  --color-badge-pink-text: color-mix(in srgb, #db2777 75%, var(--tg-title));
+  --color-badge-pink-icon-color: #ec4899;
+  --color-badge-rose-background: color-mix(in srgb, #f43f5e 14%, var(--tg-surface));
+  --color-badge-rose-text: color-mix(in srgb, #e11d48 75%, var(--tg-title));
+  --color-badge-rose-icon-color: #f43f5e;
+  --color-badge-orange-background: color-mix(in srgb, #f97316 14%, var(--tg-surface));
+  --color-badge-orange-text: color-mix(in srgb, #ea580c 75%, var(--tg-title));
+  --color-badge-orange-icon-color: #f97316;
+
+  /* Alerts */
+  --color-alert-success-background: var(--tg-success-soft);
+  --color-alert-success-icon-background: var(--tg-success);
+  --color-alert-success-border: color-mix(in srgb, var(--tg-success) 30%, transparent);
+  --color-alert-success-close-icon: var(--tg-success);
+  --color-alert-success-title: var(--tg-success);
+  --color-alert-success-description: var(--tg-text);
+  --color-alert-success-button-background: var(--tg-success-strong);
+  --color-alert-success-button-hover-background: color-mix(in srgb, var(--tg-success-strong) 85%, #000);
+  --color-alert-success-button-text: var(--tg-success);
+  --color-alert-danger-background: var(--tg-danger-soft);
+  --color-alert-danger-icon-background: var(--tg-danger);
+  --color-alert-danger-border: color-mix(in srgb, var(--tg-danger) 30%, transparent);
+  --color-alert-danger-close-icon: var(--tg-danger);
+  --color-alert-danger-title: var(--tg-danger);
+  --color-alert-danger-description: var(--tg-text);
+  --color-alert-danger-button-background: var(--tg-danger-strong);
+  --color-alert-danger-button-hover-background: color-mix(in srgb, var(--tg-danger-strong) 85%, #000);
+  --color-alert-danger-button-text: var(--tg-danger);
+  --color-alert-info-background: var(--tg-info-soft);
+  --color-alert-info-icon-background: var(--tg-info);
+  --color-alert-info-border: color-mix(in srgb, var(--tg-info) 30%, transparent);
+  --color-alert-info-close-icon: var(--tg-info);
+  --color-alert-info-title: var(--tg-info);
+  --color-alert-info-description: var(--tg-text);
+  --color-alert-info-button-background: var(--tg-info);
+  --color-alert-info-button-hover-background: color-mix(in srgb, var(--tg-info) 85%, #000);
+  --color-alert-info-button-text: var(--tg-info);
+  --color-alert-warning-background: var(--tg-warning-soft);
+  --color-alert-warning-icon-background: var(--tg-warning);
+  --color-alert-warning-border: color-mix(in srgb, var(--tg-warning) 30%, transparent);
+  --color-alert-warning-close-icon: var(--tg-warning);
+  --color-alert-warning-title: var(--tg-warning);
+  --color-alert-warning-description: var(--tg-text);
+  --color-alert-warning-button-background: var(--tg-warning);
+  --color-alert-warning-button-hover-background: color-mix(in srgb, var(--tg-warning) 85%, #000);
+  --color-alert-warning-button-text: var(--tg-warning);
+  --color-alert-default-background: var(--tg-surface-soft);
+  --color-alert-default-icon-background: var(--tg-muted);
+  --color-alert-default-border: var(--tg-border);
+  --color-alert-default-close-icon: var(--tg-muted);
+  --color-alert-default-title: var(--tg-title);
+  --color-alert-default-description: var(--tg-text);
+  --color-alert-default-button-background: var(--tg-text);
+  --color-alert-default-button-hover-background: var(--tg-title);
+  --color-alert-default-button-text: var(--tg-text);
+
+  /* Form controls */
+  --color-input-background: var(--tg-field);
+  --color-input-label-text: var(--tg-text);
+  --color-input-disabled-text: var(--tg-faint);
+  --color-input-placeholder-text: var(--tg-faint);
+  --color-input-primary-focus-border: var(--tg-brand);
+  --color-input-error-focus-border: var(--tg-danger);
+  --color-input-success-focus-border: var(--tg-success);
+  --color-input-error: var(--tg-danger);
+  --color-input-success: var(--tg-success);
+  --color-checkbox-background: var(--tg-field);
+  --color-checkbox-checked-border: var(--tg-brand);
+  --color-checkbox-checked-background: var(--tg-brand);
+  --color-checkbox-checked-icon-color: var(--tg-on-brand);
+  --color-toggle-default-background: var(--tg-border-strong);
+  --color-toggle-disabled-foreground: var(--tg-surface);
+  --color-toggle-disabled-background: var(--tg-hover);
+  --color-toggle-active-background: var(--tg-brand);
+  --color-tab-background: var(--tg-hover);
+  --color-tab-active-background: var(--tg-surface-raised);
+  --color-tab-secondary-active-background: var(--tg-brand-soft);
+  --color-dropdown-background: var(--tg-surface-raised);
+  --color-dropdown-hover-background: var(--tg-hover);
+  --color-dropdown-secondary-background: var(--tg-surface-raised);
+  --color-dropdown-divider: var(--tg-border);
+  --color-scrollbar-background: var(--tg-border);
+  --color-tooltip-text: var(--tg-text);
+  --color-tooltip-border: var(--tg-border);
+  --color-popover-title-background: var(--tg-hover);
+  --color-popover-border: var(--tg-border);
+  --color-skeleton-gradient-50: var(--tg-hover);
+  --color-skeleton-gradient-100: var(--tg-surface-soft);
+  --color-skeleton-gradient-200: var(--tg-hover);
+  --color-modal-button-success-background: var(--tg-success-strong);
+  --color-modal-button-info-background: var(--tg-info);
+  --color-modal-button-warning-background: var(--tg-warning);
+  --color-modal-button-error-background: var(--tg-danger-strong);
+  --color-chart-line: var(--tg-border);
+  --color-chart-tick: var(--tg-text);
+  --color-chart-legend: var(--tg-text);
+  --color-chart-grid: var(--tg-border);
+
+  /* Tailgrids shadows (inlined so the site's --shadow-sm/--shadow-lg are not read) */
+  --shadow-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  --shadow-sm: 0px 1px 3px 0px rgba(16, 24, 40, 0.1);
+  --shadow-md: 0px 4px 8px -2px rgba(16, 24, 40, 0.1), 0px 2px 4px -2px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  --shadow-xl: 0px 20px 24px -4px rgba(16, 24, 40, 0.08), 0px 8px 8px -4px rgba(16, 24, 40, 0.03);
+  --shadow-2xl: 0px 24px 48px -12px rgba(16, 24, 40, 0.18);
+}
+
+@layer base {
+  /* Palette: storefront (follows the site's light/dark theme). */
+  .tg-store {
+    --tg-brand: var(--ds-interactive);
+    --tg-brand-hover: var(--ds-interactive-hover);
+    --tg-brand-soft: var(--ds-interactive-soft);
+    --tg-on-brand: var(--ds-on-interactive);
+    --tg-title: var(--ds-text);
+    --tg-text: var(--ds-text-secondary);
+    --tg-muted: var(--ds-text-muted);
+    --tg-faint: var(--ds-text-disabled);
+    --tg-canvas: var(--ds-canvas);
+    --tg-surface: var(--ds-surface);
+    --tg-surface-soft: var(--ds-surface-subtle);
+    --tg-surface-raised: var(--ds-surface-raised);
+    --tg-hover: color-mix(in srgb, var(--ds-text-muted) 12%, var(--ds-surface));
+    --tg-field: var(--ds-surface);
+    --tg-border: var(--ds-border);
+    --tg-border-strong: var(--ds-border-strong);
+    --tg-success: var(--ds-success);
+    --tg-success-strong: var(--ds-green-600);
+    --tg-success-soft: var(--ds-success-soft);
+    --tg-warning: var(--ds-warning);
+    --tg-warning-soft: var(--ds-warning-soft);
+    --tg-danger: var(--ds-danger);
+    --tg-danger-strong: var(--ds-red-600);
+    --tg-danger-soft: var(--ds-danger-soft);
+    --tg-info: var(--ds-info);
+    --tg-info-soft: var(--ds-info-soft);
+  }
+
+  /* Palette: admin panel (follows the admin's own light/dark switch). */
+  .tg-admin {
+    --tg-brand: var(--a-brand);
+    --tg-brand-hover: var(--a-brand-hover);
+    --tg-brand-soft: var(--a-brand-soft);
+    --tg-on-brand: var(--a-brand-contrast);
+    --tg-title: var(--a-t1);
+    --tg-text: var(--a-t2);
+    --tg-muted: var(--a-t3);
+    --tg-faint: var(--a-t4);
+    --tg-canvas: var(--ds-admin-canvas);
+    --tg-surface: var(--a-surface);
+    --tg-surface-soft: var(--a-surface-2);
+    --tg-surface-raised: var(--a-surface-3);
+    --tg-hover: var(--a-hover);
+    --tg-field: var(--a-input-bg);
+    --tg-border: var(--a-border);
+    --tg-border-strong: var(--a-border-2);
+    --tg-success: var(--a-green);
+    --tg-success-strong: var(--ds-green-600);
+    --tg-success-soft: var(--a-green-soft);
+    --tg-warning: var(--a-amber);
+    --tg-warning-soft: var(--a-amber-soft);
+    --tg-danger: var(--a-red);
+    --tg-danger-strong: var(--ds-red-600);
+    --tg-danger-soft: var(--a-red-soft);
+    --tg-info: var(--a-brand);
+    --tg-info-soft: var(--a-brand-soft);
+  }
+
+  /* Raw variables some Tailgrids class strings read directly, e.g. bg-(--border-color-base-300). */
+  .tg-store,
+  .tg-admin {
+    --color-primary-500: var(--tg-brand);
+    --border-color-base-50: var(--tg-border);
+    --border-color-base-100: var(--tg-border);
+    --border-color-base-200: var(--tg-border);
+    --border-color-base-300: var(--tg-border-strong);
+  }
+
+  /* Small preflight, only inside Tailgrids subtrees. */
+  .tg-root,
+  .tg-root *,
+  .tg-root ::before,
+  .tg-root ::after {
+    box-sizing: border-box;
+    border: 0 solid;
+    margin: 0;
+    padding: 0;
+  }
+  .tg-root {
+    font-family: var(--ds-font-sans);
+    color: var(--tg-text);
+    line-height: 1.6;
+    letter-spacing: normal;
+  }
+  .tg-root :where(h1, h2, h3, h4, h5, h6) {
+    font-size: inherit;
+    font-weight: inherit;
+  }
+  .tg-root :where(ol, ul, menu) {
+    list-style: none;
+  }
+  .tg-root :where(img, svg, video) {
+    display: block;
+    vertical-align: middle;
+  }
+  .tg-root :where(button, input, select, textarea) {
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+    background-color: transparent;
+    border-radius: 0;
+  }
+  .tg-root :where(button:not(:disabled), [role="button"]:not(:disabled)) {
+    cursor: pointer;
+  }
+  .tg-root :where(table) {
+    border-collapse: collapse;
+    text-indent: 0;
+    border-color: inherit;
+  }
+  .tg-root :where(a) {
+    color: inherit;
+    text-decoration: inherit;
+  }
+  .tg-root ::placeholder {
+    opacity: 1;
+  }
+}

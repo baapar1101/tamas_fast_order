@@ -1,0 +1,174 @@
+/*
+ * Home page landing: Tailwind utilities for the files in this folder plus the
+ * landing's own effects. Injected only while the landing is mounted (see
+ * useInjectedStyles), so none of it reaches the catalog or other pages.
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme) theme(inline);
+@import "tailwindcss/utilities.css" layer(utilities) important source(none);
+@import "../../components/ui/tailgrids-theme.css";
+
+@source "./";
+
+@theme inline {
+  --color-glow: #22d3ee;
+  --animate-lp-drift: lp-drift 9s ease-in-out infinite alternate;
+  --animate-lp-drift-rev: lp-drift-rev 11s ease-in-out infinite alternate;
+}
+
+@keyframes lp-drift {
+  from { transform: translate3d(-6%, -4%, 0) rotate(-35deg); }
+  to { transform: translate3d(8%, 3%, 0) rotate(-28deg); }
+}
+@keyframes lp-drift-rev {
+  from { transform: translate3d(6%, -2%, 0) rotate(35deg); }
+  to { transform: translate3d(-8%, 4%, 0) rotate(28deg); }
+}
+@keyframes lp-spin { to { transform: rotate(1turn); } }
+@keyframes lp-marquee { to { transform: translate3d(50%, 0, 0); } }
+@keyframes lp-shine { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes lp-pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+
+@layer components {
+  .lp-page {
+    background: var(--tg-canvas);
+    color: var(--tg-text);
+    overflow-x: clip;
+  }
+
+  /* Grid lines that fade towards the edges. */
+  .lp-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in srgb, var(--tg-title) 7%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in srgb, var(--tg-title) 7%, transparent) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 40%, transparent 100%);
+  }
+
+  /* Soft beams of light behind the hero copy. */
+  .lp-beam {
+    position: absolute;
+    width: 46rem;
+    height: 14rem;
+    border-radius: 999px;
+    filter: blur(70px);
+    opacity: .5;
+    pointer-events: none;
+  }
+
+  /* Gradient text with a slow shine. */
+  .lp-gradient-text {
+    background: linear-gradient(90deg, #67e8f9, #22d3ee 30%, #a5f3fc 50%, #22d3ee 70%, #0ea5b7);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: lp-shine 6s linear infinite;
+  }
+
+  /* Button with a light running around its border. */
+  .lp-moving-border {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: 1rem;
+    padding: 2px;
+    display: inline-flex;
+  }
+  .lp-moving-border::before {
+    content: "";
+    position: absolute;
+    inset: -150%;
+    z-index: -1;
+    background: conic-gradient(from 0deg, transparent 0 70%, #22d3ee 80%, #a5f3fc 85%, transparent 92%);
+    animation: lp-spin 3.2s linear infinite;
+  }
+  .lp-moving-border > * {
+    border-radius: calc(1rem - 2px);
+  }
+
+  /* Card whose border lights up towards the pointer. */
+  .lp-glow {
+    position: relative;
+    isolation: isolate;
+    --glow-angle: 0deg;
+    --glow-on: 0;
+  }
+  .lp-glow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: conic-gradient(from calc(var(--glow-angle) - 60deg), transparent 0deg, #22d3ee 40deg, var(--tg-brand) 80deg, transparent 140deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    opacity: var(--glow-on);
+    transition: opacity .25s ease;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Card with a light that follows the pointer inside it. */
+  .lp-spot {
+    position: relative;
+    isolation: isolate;
+    --mx: 50%;
+    --my: 0%;
+  }
+  .lp-spot::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(420px circle at var(--mx) var(--my), color-mix(in srgb, var(--tg-brand) 16%, transparent), transparent 60%);
+    opacity: 0;
+    transition: opacity .3s ease;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .lp-spot:hover::before { opacity: 1; }
+
+  /* Banner frame that tilts towards the pointer. */
+  .lp-tilt {
+    --rx: 0deg;
+    --ry: 0deg;
+    transform: perspective(1400px) rotateX(var(--rx)) rotateY(var(--ry));
+    transition: transform .35s cubic-bezier(.2, .8, .2, 1);
+    transform-style: preserve-3d;
+  }
+
+  /* Endless logo strip. Two identical halves move right by half the width (RTL flow). */
+  .lp-marquee {
+    mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+  }
+  .lp-marquee-track {
+    display: flex;
+    width: max-content;
+    animation: lp-marquee var(--lp-marquee-duration, 40s) linear infinite;
+  }
+  .lp-marquee:hover .lp-marquee-track { animation-play-state: paused; }
+
+  /* Lamp light above the closing call to action. */
+  .lp-lamp {
+    background:
+      conic-gradient(from 140deg at 50% 0%, transparent 0deg, color-mix(in srgb, #22d3ee 55%, transparent) 40deg, transparent 80deg) top center / 100% 100% no-repeat;
+    mask-image: radial-gradient(ellipse 60% 100% at 50% 0%, #000 30%, transparent 75%);
+  }
+  .lp-pulse { animation: lp-pulse 2.6s ease-in-out infinite; }
+
+  .lp-hide-scrollbar { scrollbar-width: none; }
+  .lp-hide-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-page *,
+  .lp-page *::before,
+  .lp-page *::after {
+    animation: none !important;
+    transition-duration: 1ms !important;
+  }
+  .lp-marquee { overflow-x: auto; }
+  .lp-tilt { transform: none !important; }
+}

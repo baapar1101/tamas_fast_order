@@ -1,0 +1,21 @@
+.landing-editor__section.is-off { opacity: .62; }
+.landing-editor__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1 1 260px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--a-t1);
+  text-align: start;
+  cursor: pointer;
+}
+.landing-editor__toggle strong { font-weight: 800; }
+.landing-editor__hint { display: block; margin-top: 2px; }
+.landing-editor__item {
+  align-items: end;
+  padding-block: 10px;
+  border-top: 1px dashed var(--a-divider);
+}

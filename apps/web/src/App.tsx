@@ -5,6 +5,7 @@ import { SvgSprite } from './components/Icon';
 import { TableExcelExportManager } from './components/TableExcelExportManager';
 import { useAuth } from './store/auth';
 import { StorefrontPage } from './storefront/StorefrontPage';
+import { HomeRoute } from './storefront/landing/HomeRoute';
 import { ProductPage } from './storefront/ProductPage';
 import { TermsPage } from './storefront/TermsPage';
 import { OrdersPage } from './storefront/OrdersPage';
@@ -82,7 +83,8 @@ export function App() {
       <TelegramConnectPrompt />
       <FunnelTracker />
       <Routes>
-        <Route path="/" element={<StorefrontPage />} />
+        <Route path="/" element={<HomeRoute />} />
+        <Route path="/shop" element={<StorefrontPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/account" element={<AccountLayout />}>
           <Route index element={<OrdersPage />} />

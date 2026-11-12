@@ -374,3 +374,12 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Home page landing: room for the fixed mobile tab bar under the footer. */
+.landing-tabbar-spacer { display: none; }
+@media (max-width: 768px) {
+  .landing-tabbar-spacer {
+    display: block;
+    height: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+}

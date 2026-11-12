@@ -22,9 +22,9 @@ export interface AccountOutletContext {
 
 const ACCOUNT_APP_LINKS = {
   home: '/',
-  categories: '/?tab=categories',
-  search: '/?tab=search',
-  cart: '/?tab=cart',
+  categories: '/shop?tab=categories',
+  search: '/shop?tab=search',
+  cart: '/shop?tab=cart',
   profile: '/account',
 } satisfies Record<MobileAppTab, string>;
 
@@ -72,7 +72,7 @@ export function AccountLayout() {
   const savedReturn = (location.state as { returnTo?: unknown } | null)?.returnTo;
   const returnTo = typeof savedReturn === 'string' && savedReturn.startsWith('/') && !savedReturn.startsWith('//')
     ? savedReturn
-    : '/';
+    : '/shop';
 
   // Same query keys as the orders and wallet pages, so the summary shares their cache.
   const orders = useQuery({

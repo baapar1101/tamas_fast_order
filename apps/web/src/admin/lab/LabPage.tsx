@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   BadgeCheck,
   Bell,
@@ -44,20 +44,11 @@ import { Toggle } from '../../components/ui/toggle';
 // linger on other pages after navigating away.
 import tailgridsCss from '../../components/ui/tailgrids.css?inline';
 import labCss from './lab.css?inline';
+import { useInjectedStyles } from '../../components/ui/useInjectedStyles';
 
-function useLabStyles(): boolean {
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.dataset.lab = 'tailgrids';
-    style.textContent = `${tailgridsCss}
+const LAB_CSS = `${tailgridsCss}
 ${labCss}`;
-    document.head.appendChild(style);
-    setReady(true);
-    return () => style.remove();
-  }, []);
-  return ready;
-}
+
 
 type Surface = 'store' | 'admin';
 type Mode = 'light' | 'dark';
@@ -476,7 +467,7 @@ export function LabPage() {
   const [surface, setSurface] = useState<Surface>('store');
   const [mode, setMode] = useState<Mode>('light');
   // Avoid one unstyled frame before the sheet is attached.
-  if (!useLabStyles()) return null;
+  if (!useInjectedStyles('lab', LAB_CSS)) return null;
 
   return (
     <div className="tg-root tg-admin flex flex-col gap-5">

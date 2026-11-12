@@ -284,7 +284,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
               <span className="logo-tagline">مرجع تخصصی فروش عمده کالای دیجیتال</span>
             </Link>
             <div className="pp-header-actions">
-              <Link to="/" className="btn">بازگشت به فروشگاه</Link>
+              <Link to="/shop" className="btn">بازگشت به فروشگاه</Link>
               <ThemeToggle />
             </div>
           </div>
@@ -314,7 +314,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
               <span className="logo-tagline">مرجع تخصصی فروش عمده کالای دیجیتال</span>
             </Link>
             <div className="pp-header-actions">
-              <Link to="/" className="btn">بازگشت به فروشگاه</Link>
+              <Link to="/shop" className="btn">بازگشت به فروشگاه</Link>
               <ThemeToggle />
             </div>
           </div>
@@ -349,8 +349,8 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
             <span className="logo-tagline">مرجع تخصصی فروش عمده کالای دیجیتال</span>
           </Link>
           <div className="pp-header-actions">
-            <Link to="/" className="btn pp-back-btn"><Icon name="home" /> <span className="pp-back-text">بازگشت به فروشگاه</span></Link>
-            <Link to="/" className="btn btn-icon-only pp-cart-btn" title="سبد خرید">
+            <Link to="/shop" className="btn pp-back-btn"><Icon name="home" /> <span className="pp-back-text">بازگشت به فروشگاه</span></Link>
+            <Link to="/shop#cart" className="btn btn-icon-only pp-cart-btn" title="سبد خرید">
               <Icon name="bag" />
               {cartTotalQty > 0 && <span className="badge-count">{formatNumber(cartTotalQty)}</span>}
             </Link>
@@ -368,7 +368,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
         )}
         <nav className="pp-crumbs" aria-label="مسیر">
           <Link to="/">خانه</Link>
-          {category && <><span className="pp-crumb-sep">/</span><Link to={`/?cat=${encodeURIComponent(category)}`}>{category}</Link></>}
+          {category && <><span className="pp-crumb-sep">/</span><Link to={`/shop?cat=${encodeURIComponent(category)}`}>{category}</Link></>}
           <span className="pp-crumb-sep">/</span>
           <span className="pp-crumb-current">{selected.title}</span>
         </nav>

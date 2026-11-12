@@ -61,7 +61,7 @@ export function SiteHeader({ search, onSearchChange, onRequestLogin }: SiteHeade
     event.preventDefault();
     if (controlled) return;
     const q = draft.trim();
-    navigate(q ? `/?q=${encodeURIComponent(q)}` : '/');
+    navigate(q ? `/shop?q=${encodeURIComponent(q)}` : '/shop');
   };
 
   const openCredit = () => {

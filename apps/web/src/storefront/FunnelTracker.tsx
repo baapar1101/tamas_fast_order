@@ -13,7 +13,7 @@ function isShopPath(pathname: string): boolean {
 }
 
 function isBrowsePath(pathname: string): boolean {
-  return pathname === '/' || pathname.startsWith('/p/');
+  return pathname === '/' || pathname === '/shop' || pathname.startsWith('/p/');
 }
 
 function toSaved(line: CartLine): SavedCartLineDTO {

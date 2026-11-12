@@ -91,7 +91,7 @@ export function PaymentResultPage() {
             </button>
           )}
           <Link to="/account" className={canRetry ? 'btn' : 'btn primary'}>پیگیری سفارشات</Link>
-          <Link to="/" className="btn outline">بازگشت به فروشگاه</Link>
+          <Link to="/shop" className="btn outline">بازگشت به فروشگاه</Link>
         </div>
       </div>
     </div>

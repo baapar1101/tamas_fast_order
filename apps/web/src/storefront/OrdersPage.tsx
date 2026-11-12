@@ -52,7 +52,7 @@ export function OrdersPage() {
           <div className="card ord-state">
             <Icon name="user" />
             <p>برای دیدن سفارش‌ها ابتدا وارد حساب خود شوید.</p>
-            <Link to="/" className="btn">بازگشت به فروشگاه</Link>
+            <Link to="/shop" className="btn">بازگشت به فروشگاه</Link>
           </div>
         ) : orders.isLoading ? (
           <div className="skeleton" style={{ height: 160 }} />
@@ -62,7 +62,7 @@ export function OrdersPage() {
           <div className="card ord-state">
             <Icon name="box" />
             <p>هنوز سفارشی ثبت نکرده‌اید.</p>
-            <Link to="/" className="btn primary">مشاهده کالاها</Link>
+            <Link to="/shop" className="btn primary">مشاهده کالاها</Link>
           </div>
         ) : (
           <div className="stack ord-list">
