@@ -1,5 +1,6 @@
 import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import fs from 'fs';
 import path from 'path';
 
@@ -53,7 +54,7 @@ export default defineConfig({
   define: {
     __BUILD_TIME__: JSON.stringify(buildTime),
   },
-  plugins: [react(), generateVersionJsonPlugin(), pruneStaleGeneratedChunksPlugin()],
+  plugins: [tailwindcss(), react(), generateVersionJsonPlugin(), pruneStaleGeneratedChunksPlugin()],
   server: {
     host: '0.0.0.0',
     port: 5173,

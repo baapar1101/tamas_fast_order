@@ -1,0 +1,34 @@
+/*
+ * Lab only: preview the storefront palette in light or dark regardless of the
+ * admin's own theme. Dark reuses design-system.css's [data-theme="dark"] rule
+ * on the wrapper; light re-declares the storefront's light semantic tokens.
+ */
+.tg-force-light {
+  --ds-canvas: #f5f6f8;
+  --ds-surface: var(--ds-white);
+  --ds-surface-subtle: var(--ds-slate-50);
+  --ds-surface-raised: var(--ds-white);
+  --ds-text: #1b2431;
+  --ds-text-secondary: #536174;
+  --ds-text-muted: #758296;
+  --ds-text-disabled: #a7b0bd;
+  --ds-border: #dde3e9;
+  --ds-border-strong: #c7d0da;
+  --ds-interactive: var(--ds-teal-600);
+  --ds-interactive-hover: var(--ds-teal-700);
+  --ds-interactive-soft: var(--ds-teal-50);
+  --ds-on-interactive: var(--ds-white);
+  --ds-success: var(--ds-green-600);
+  --ds-success-soft: var(--ds-green-50);
+  --ds-warning: var(--ds-amber-600);
+  --ds-warning-soft: var(--ds-amber-50);
+  --ds-danger: var(--ds-red-600);
+  --ds-danger-soft: var(--ds-red-50);
+  --ds-info: var(--ds-blue-700);
+  --ds-info-soft: var(--ds-blue-50);
+}
+
+.lab-canvas {
+  background: var(--tg-canvas);
+  color: var(--tg-text);
+}

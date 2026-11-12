@@ -14,8 +14,10 @@
   },
   "dependencies": {
     "@e965/xlsx": "^0.20.3",
+    "@tailgrids/icons": "^2.0.1",
     "@tamas/shared": "*",
     "@tanstack/react-query": "^5.62.11",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^13.4.0",
     "html2canvas": "^1.4.1",
@@ -23,15 +25,18 @@
     "jspdf": "^4.2.1",
     "lucide-react": "^1.47.0",
     "react": "^19.0.0",
+    "react-aria-components": "^1.22.1",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1",
     "tailwind-merge": "^3.7.0",
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
     "@types/react": "^19.0.4",
     "@types/react-dom": "^19.0.2",
     "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.3.5",
     "typescript": "^5.7.3",
     "vite": "^6.0.7"
   }
