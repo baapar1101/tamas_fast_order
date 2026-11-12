@@ -11,3 +11,4 @@ export * from './types.js';
 export * from './document-recovery.js';
 export * from './native-campaigns.js';
 export * from './funnel.js';
+export * from './product-import.js';

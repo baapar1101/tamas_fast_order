@@ -17,12 +17,12 @@ export interface ProductDuplicate {
   reason: ProductDuplicateReason;
 }
 
-/** Finds a live logical duplicate without confusing different colour/model variants. */
-export async function findProductDuplicate(
-  input: ProductIdentityInput,
-  excludeId?: number,
-): Promise<ProductDuplicate | null> {
-  const rows = await db
+export type DuplicateCandidate = Pick<typeof products.$inferSelect,
+  'id' | 'productId' | 'sku' | 'title' | 'model' | 'color' | 'colorEn' | 'type' | 'digikalaLink'>;
+
+/** Every live product, in the shape the duplicate check needs (load once for bulk work). */
+export async function loadDuplicateCandidates(): Promise<DuplicateCandidate[]> {
+  return db
     .select({
       id: products.id,
       productId: products.productId,
@@ -36,7 +36,14 @@ export async function findProductDuplicate(
     })
     .from(products)
     .where(isNull(products.deletedAt));
+}
 
+/** Finds a logical duplicate among `rows` without confusing different colour/model variants. */
+export function matchProductDuplicate(
+  rows: DuplicateCandidate[],
+  input: ProductIdentityInput,
+  excludeId?: number,
+): ProductDuplicate | null {
   const productId = normalizeProductIdentity(input.productId);
   const sku = normalizeProductIdentity(input.sku);
   const sourceId = productSourceId(input.digikalaLink);
@@ -58,6 +65,14 @@ export async function findProductDuplicate(
     }
   }
   return null;
+}
+
+/** Finds a live logical duplicate without confusing different colour/model variants. */
+export async function findProductDuplicate(
+  input: ProductIdentityInput,
+  excludeId?: number,
+): Promise<ProductDuplicate | null> {
+  return matchProductDuplicate(await loadDuplicateCandidates(), input, excludeId);
 }
 
 export function duplicateProductMessage(duplicate: ProductDuplicate): string {

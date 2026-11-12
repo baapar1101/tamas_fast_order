@@ -41,6 +41,7 @@ const CreditApplicationsPage = lazy(() => import('./pages/CreditApplicationsPage
 const CatalogExportPage = lazy(() => import('./pages/CatalogExportPage').then((m) => ({ default: m.CatalogExportPage })));
 const TargetSitesPage = lazy(() => import('./pages/TargetSitesPage').then((m) => ({ default: m.TargetSitesPage })));
 const WalletsPage = lazy(() => import('./pages/WalletsPage').then((m) => ({ default: m.WalletsPage })));
+const ProductImportPage = lazy(() => import('./pages/ProductImportPage').then((m) => ({ default: m.ProductImportPage })));
 const ProductContentImportPage = lazy(() => import('./pages/ProductContentImportPage').then((m) => ({ default: m.ProductContentImportPage })));
 
 const NAV_MAIN = [
@@ -83,6 +84,16 @@ const NAV_MAIN = [
     icon: (
       <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
+  },
+  {
+    to: '/admin/product-import',
+    label: 'ایمپورت کالای جدید با اکسل',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125V5.625c0-.621.504-1.125 1.125-1.125h17.25c.621 0 1.125.504 1.125 1.125v12.75c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 15.75V9m0 0l-2.25 2.25M12 9l2.25 2.25" />
       </svg>
     ),
     requiredPermission: 'manage_products',
@@ -396,7 +407,7 @@ const NAV_GROUPS = [
     id: 'catalog',
     label: 'کالا و کاتالوگ',
     description: 'محصول، دسته‌بندی، انبار و انتشار',
-    paths: ['/admin/products', '/admin/bundles', '/admin/categories', '/admin/brands', '/admin/attributes', '/admin/warehouses', '/admin/sync', '/admin/product-content-import', '/admin/catalog-export', '/admin/target-sites'],
+    paths: ['/admin/products', '/admin/bundles', '/admin/categories', '/admin/brands', '/admin/attributes', '/admin/warehouses', '/admin/sync', '/admin/product-import', '/admin/product-content-import', '/admin/catalog-export', '/admin/target-sites'],
     iconPath: 'M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m-.375 0h17.25M9 11.25h6m-6 3h6',
   },
   {
@@ -928,6 +939,7 @@ export default function AdminApp() {
             <Routes>
             <Route index element={<DashboardPage />} />
             <Route path="products" element={<ProductsPage key="products" typeFilter="physical" />} />
+            <Route path="product-import" element={<ProductImportPage />} />
             <Route path="product-content-import" element={<ProductContentImportPage />} />
             <Route path="bundles" element={<ProductsPage key="bundles" typeFilter="bundle" />} />
             <Route path="categories" element={<CategoriesPage />} />

@@ -1,0 +1,157 @@
+.product-import-page .a-page-head { flex-wrap: wrap; gap: 12px; }
+
+.pi-step {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-inline-end: 8px;
+  border-radius: 999px;
+  background: var(--a-brand-soft);
+  color: var(--a-brand);
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.pi-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.pi-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+  padding: 4px 20px 8px;
+}
+
+.pi-group {
+  margin: 0;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-md, 12px);
+  background: var(--a-surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pi-group legend {
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--a-t2);
+}
+
+.pi-field,
+.pi-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.pi-field:hover { background: var(--a-hover); }
+.pi-field.is-required { cursor: default; }
+.pi-field input,
+.pi-option input { margin-top: 3px; width: 16px; height: 16px; flex: none; accent-color: var(--a-brand); }
+
+.pi-field-copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.pi-field-label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--a-t1); }
+.pi-field-hint { display: block; font-size: 11.5px; line-height: 1.6; color: var(--a-t3); }
+.pi-required {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--a-brand-soft);
+  color: var(--a-brand);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.pi-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px 18px;
+  font-size: 12.5px;
+  color: var(--a-t2);
+}
+.pi-footer--flush { padding: 8px 0 0; }
+
+.pi-body { display: flex; flex-direction: column; gap: 14px; padding: 4px 20px 20px; }
+
+.pi-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-md, 12px);
+  background: var(--a-surface-2);
+}
+.pi-preview-line { font-size: 13.5px; color: var(--a-t1); }
+.pi-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pi-chips-title { font-size: 12px; color: var(--a-t3); }
+.pi-option { font-size: 13px; color: var(--a-t1); }
+
+.pi-progress {
+  position: relative;
+  flex: 1 1 260px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--a-surface);
+  border: 1px solid var(--a-border);
+  overflow: hidden;
+}
+.pi-progress > span {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  background: var(--a-brand);
+  transition: width 0.25s ease;
+}
+.pi-progress > em {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--a-t1);
+  mix-blend-mode: normal;
+}
+
+.pi-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 4px 20px 12px;
+}
+.pi-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--a-border);
+  border-radius: 10px;
+  background: var(--a-surface-2);
+  border-inline-start-width: 4px;
+}
+.pi-stat span { font-size: 12px; color: var(--a-t3); }
+.pi-stat strong { font-size: 22px; color: var(--a-t1); font-variant-numeric: tabular-nums; }
+.pi-stat.is-created { border-inline-start-color: var(--a-green, #16a34a); }
+.pi-stat.is-duplicate { border-inline-start-color: #d97706; }
+.pi-stat.is-error { border-inline-start-color: var(--a-red, #dc2626); }
+
+.pi-filter { margin: 0 20px 12px; width: fit-content; max-width: calc(100% - 40px); overflow-x: auto; }
+.pi-table td { vertical-align: top; }
+.pi-message { min-width: 260px; white-space: normal; line-height: 1.7; }
+
+@media (max-width: 720px) {
+  .pi-groups, .pi-body { padding-inline: 14px; }
+  .pi-footer { padding-inline: 14px; }
+  .pi-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-inline: 14px; }
+  .pi-filter { margin-inline: 14px; max-width: calc(100% - 28px); }
+}

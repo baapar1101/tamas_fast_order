@@ -3,7 +3,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { z } from 'zod';
-import { formatProductTitle, productPatchSchema, productWriteSchema } from '@tamas/shared';
+import { formatProductTitle, productImportRequestSchema, productPatchSchema, productWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { brands, categories, products, productTrackingLinks, trackingSites } from '../../db/schema.js';
 import { badRequest, conflict, notFound } from '../../lib/errors.js';
@@ -13,6 +13,8 @@ import { catalogExportScopeFilter, catalogExportScopeSchema } from '../../servic
 import { logAction } from '../../services/audit.js';
 import { enqueueCrmProductSync } from '../../services/crm-product-sync.js';
 import { duplicateProductMessage, findProductDuplicate } from '../../services/product-duplicates.js';
+import { insertProductRecord, resolveProductCategory, resolveTaxonomy } from '../../services/product-create.js';
+import { importProductRows } from '../../services/product-import.js';
 
 type TrackingLinkInput = { siteId: number; url: string };
 
@@ -87,36 +89,6 @@ const bulkSchema = z.object({
   /** Percentage change, e.g. -10 to cut every selected price by a tenth. */
   percent: z.coerce.number().min(-90).max(900).optional(),
 });
-
-/** Resolves a category/brand name to its id, creating the row when new. */
-async function resolveTaxonomy(
-  table: typeof categories | typeof brands,
-  name: string | null | undefined,
-): Promise<number | null> {
-  const clean = String(name ?? '').trim();
-  if (!clean) return null;
-  const [found] = await db
-    .select({ id: table.id })
-    .from(table)
-    .where(or(eq(table.name, clean), eq(table.faName, clean)))
-    .limit(1);
-  if (found) return found.id;
-  const [created] = await db.insert(table).values({ name: clean, faName: clean }).returning({ id: table.id });
-  return created?.id ?? null;
-}
-
-/** Bundle products belong in the storefront's basket category even when the editor omits it. */
-async function resolveProductCategory(name: string | null | undefined, type: string): Promise<number | null> {
-  if (name?.trim()) return resolveTaxonomy(categories, name);
-  if (type !== 'bundle') return null;
-  const [basket] = await db
-    .select({ id: categories.id })
-    .from(categories)
-    .where(or(eq(categories.name, 'Bondle'), eq(categories.faName, 'سبد ها')))
-    .limit(1);
-  if (!basket) throw badRequest('دسته‌بندی «سبد ها» برای باندل تعریف نشده است.');
-  return basket.id;
-}
 
 const routes: FastifyPluginAsync = async (app) => {
   app.addHook('preHandler', app.requirePermission('manage_products'));
@@ -230,39 +202,23 @@ const routes: FastifyPluginAsync = async (app) => {
     const categoryId = await resolveProductCategory(body.categoryName, body.type);
     const brandId = await resolveTaxonomy(brands, body.brandName);
     const trackingLinks = await validateTrackingLinks(body.trackingLinks);
-    const { categoryName: _c, brandName: _b, trackingLinks: _links, ...rest } = body;
-
-    const [created] = await db
-      .insert(products)
-      .values({
-        ...rest,
-        targetSiteUrl: trackingLinks[0]?.url ?? rest.targetSiteUrl ?? null,
-        // The per-warehouse counts are optional in the form but NOT NULL in the
-        // table; a blank field means zero, not "unknown".
-        kermanStock: rest.kermanStock ?? 0,
-        tehranStock: rest.tehranStock ?? 0,
-        categoryId,
-        brandId,
-        searchText: buildSearchText([
-          body.title,
-          body.subTitle,
-          body.model,
-          body.brandName,
-          body.color,
-          body.colorEn,
-          body.sku,
-          body.productId,
-        ]),
-      })
-      .returning();
-    if (!created) throw badRequest('ثبت محصول ناموفق بود.');
+    const created = await insertProductRecord(body, { categoryId, brandId, targetSiteUrl: trackingLinks[0]?.url });
     await replaceTrackingLinks(created.id, trackingLinks);
-    await enqueueCrmProductSync(created.productId, 'create');
 
     invalidateCatalog();
     await logAction(req.currentUser!.id, 'create', 'product', created.productId, { title: created.title });
     const trackingLinkMap = await loadTrackingLinks([created.id]);
     return { ok: true, product: { ...toProductDTO(created, null, null, { includeAdminSource: true }), trackingLinks: trackingLinkMap.get(created.id) ?? [] } };
+  });
+
+  /** Excel import of new products: one result per row, existing products are never changed. */
+  app.post('/admin/products/import', { bodyLimit: 8 * 1024 * 1024 }, async (req) => {
+    const body = productImportRequestSchema.parse(req.body);
+    const results = await importProductRows(body.rows, {
+      createMissingTaxonomy: body.createMissingTaxonomy,
+      actorId: req.currentUser!.id,
+    });
+    return { ok: true, results };
   });
 
   app.patch('/admin/products/:id', async (req) => {
