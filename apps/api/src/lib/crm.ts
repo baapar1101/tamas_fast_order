@@ -260,30 +260,38 @@ export const crmClient = {
   /** Push an order to the CRM. Returns the remote CRM order id on success. */
   async pushOrder(order: CrmOrder, config: CrmConfig): Promise<CrmSyncResult> {
     try {
-      // Find or create person in CRM
-      const personResult = await this.searchPerson({ phone: order.phone }, config);
-      const personId = personResult.personId;
-
-      // Create person if not exists
-      let resolvedPersonId = personId;
-      if (!resolvedPersonId && config.syncEnabled) {
-        const createPersonResult = await this.pushPerson({
-          firstName: order.customerName.split(' ')[0] || '',
-          lastName: order.customerName.split(' ').slice(1).join(' ') || '',
-          phone: order.phone,
-          aliasName: order.customerName,
-        }, config);
-        resolvedPersonId = createPersonResult.personId;
-      }
+      const fail = async (error: string): Promise<CrmSyncResult> => {
+        await this._logSyncResult('order', order.orderCode, 'create', { ok: false, entity: 'order', error }, { orderCode: order.orderCode });
+        return { ok: false, entity: 'order', error };
+      };
 
       // If no items, return error
-      if (!order.items || order.items.length === 0) {
-        const errorMsg = 'سفارش فاقد آیتم است';
-        await this._logSyncResult('order', order.orderCode, 'create', {
-          ok: false, entity: 'order', error: errorMsg
-        }, { orderCode: order.orderCode });
-        return { ok: false, entity: 'order', error: errorMsg };
+      if (!order.items || order.items.length === 0) return await fail('سفارش فاقد آیتم است');
+
+      // The customer: the CRM person with this exact phone, created if missing.
+      // Without one the invoice is not sent, rather than landing on someone else.
+      const personResult = await this.pushPerson({
+        firstName: order.customerName.split(' ')[0] || '',
+        lastName: order.customerName.split(' ').slice(1).join(' ') || '',
+        phone: order.phone,
+        aliasName: order.customerName,
+      }, config);
+      const resolvedPersonId = toCrmId(personResult.personId);
+      if (!resolvedPersonId) {
+        return await fail(`مشتری سفارش در حسابداری پیدا یا ساخته نشد: ${personResult.error ?? 'بدون شناسه'}`);
       }
+
+      // Invoice lines need the CRM's own product ids, not the site's product codes.
+      const productIds = new Map<string, number>();
+      const missing: string[] = [];
+      for (const code of new Set(order.items.map((i) => i.productId))) {
+        const found = await this.searchProduct({ productId: code }, config);
+        if (!found.ok) return await fail(`جستجوی کالای ${code} در حسابداری ناموفق بود: ${found.error}`);
+        const id = toCrmId(found.remoteId);
+        if (id) productIds.set(code, id);
+        else missing.push(code);
+      }
+      if (missing.length) return await fail(`این کالاها در حسابداری نیستند: ${missing.join('، ')}`);
 
       // Build invoice payload - Hesabix uses "invoice_sales" and person_id in extra_info
       const payload = {
@@ -294,7 +302,7 @@ export const crmClient = {
           person_id: resolvedPersonId,
         },
         lines: order.items.map((i) => ({
-          product_id: parseInt(i.productId) || 0,
+          product_id: productIds.get(i.productId),
           quantity: i.qty,
           unit_price: i.price,
           discount_percent: 0,
@@ -373,35 +381,37 @@ export const crmClient = {
     }
   },
 
-  /** Search for a person in CRM by phone or name (for order customer matching). */
+  /**
+   * Find the CRM person for a phone number. The CRM ignores free-text `query`/
+   * `search` fields and just lists its newest people, which used to attach
+   * every order to whoever registered last; filter on the exact phone (then
+   * mobile) instead, and only accept a row whose number really matches.
+   * With several matches (duplicates), the oldest one wins so the choice is stable.
+   */
   async searchPerson(
     query: { phone?: string; name?: string; email?: string },
     config: CrmConfig,
   ): Promise<CrmSyncResult & { personId?: number }> {
+    const phone = query.phone?.trim();
+    if (!phone) return { ok: true, entity: 'person', personId: undefined };
     try {
-      // Hesabix API: POST /api/v1/persons/businesses/{businessId}/persons with search query
-      const payload = {
-        query: query.phone || query.name || '',
-        take: 1,
-        skip: 0,
-      };
-      const data = (await crmRequest<{
-        success?: boolean;
-        data?: { items?: Array<{ id: number }> };
-        error?: string;
-      }>(`/api/v1/persons/businesses/${config.businessId}/persons`, config, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })) as {
-        success?: boolean;
-        data?: { items?: Array<{ id: number }> };
-        error?: string;
-      };
-      if (data?.success === false || data?.error) {
-        return { ok: false, entity: 'person', error: data.error || 'CRM search failed' };
+      for (const property of ['phone', 'mobile'] as const) {
+        const data = await crmRequest<CrmEnvelope & {
+          data?: { items?: Array<{ id: number; phone?: string | null; mobile?: string | null }> };
+        }>(`/api/v1/persons/businesses/${config.businessId}/persons`, config, {
+          method: 'POST',
+          body: JSON.stringify({ take: 20, skip: 0, filters: [{ property, operator: '=', value: phone }] }),
+        });
+        const error = envelopeError(data);
+        if (error) return { ok: false, entity: 'person', error };
+        const ids = (data?.data?.items ?? [])
+          .filter((item) => item[property]?.trim() === phone)
+          .map((item) => toCrmId(item.id))
+          .filter((id): id is number => id !== undefined)
+          .sort((a, b) => a - b);
+        if (ids.length) return { ok: true, entity: 'person', personId: ids[0] };
       }
-      const first = data?.data?.items?.[0];
-      return { ok: true, entity: 'person', personId: first?.id };
+      return { ok: true, entity: 'person', personId: undefined };
     } catch (err: any) {
       return { ok: false, entity: 'person', error: err?.message ?? String(err) };
     }
@@ -531,6 +541,10 @@ export const crmClient = {
   async pushPerson(person: CrmPerson, config: CrmConfig): Promise<CrmSyncResult & { personId?: number }> {
     try {
       if (!config.syncEnabled) return { ok: true, entity: 'person', deduped: true };
+      // Reuse the CRM's existing person for this phone instead of adding a duplicate.
+      const existing = await this.searchPerson({ phone: person.phone }, config);
+      if (!existing.ok) return existing;
+      if (existing.personId) return { ok: true, entity: 'person', personId: existing.personId, remoteId: existing.personId, deduped: true };
       const payload = {
         alias_name: person.aliasName || `${person.firstName}${person.lastName ? ' ' + person.lastName : ''}`,
         first_name: person.firstName,

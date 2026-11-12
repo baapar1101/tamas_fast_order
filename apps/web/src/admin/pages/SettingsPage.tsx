@@ -1881,8 +1881,8 @@ export function SettingsPage() {
                 onClick={() => {
                   const total = crmStats.data?.local.totalOrders ?? 10;
                   startSync('orders-sync', 'همگam‌سازی سفارش‌های جدید', total, async () => {
-                    const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/orders');
-                    if (res.ok) toast.ok(`${res.pushed} سفارش همگam‌سازی شد. خطاها: ${res.errors}`);
+                    const res = await api.post<{ ok: boolean; pushed: number; skipped?: number; errors: number; errorDetails: string[] }>('/crm/sync/orders');
+                    if (res.ok) toast.ok(`${res.pushed} سفارش ارسال شد، ${res.skipped ?? 0} سفارش قبلاً ارسال شده بود. خطاها: ${res.errors}`);
                     else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
                     syncLogs.refetch();
                     crmStats.refetch();

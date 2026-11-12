@@ -490,9 +490,25 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       // Get recent orders (limit to 50)
       const orderRows = await db.select().from(orders).orderBy(desc(orders.createdAt)).limit(50);
       let synced = 0;
+      let skipped = 0;
       const errors: string[] = [];
+      // Orders that already have an invoice in the CRM are not sent again (that made duplicates).
+      const { and: andOp, inArray, isNotNull } = await import('drizzle-orm');
+      const alreadySent = new Set((orderRows.length ? await db
+        .select({ code: crmSyncLogs.entityKey })
+        .from(crmSyncLogs)
+        .where(andOp(
+          eq(crmSyncLogs.entity, 'order'),
+          eq(crmSyncLogs.status, 'success'),
+          isNotNull(crmSyncLogs.remoteId),
+          inArray(crmSyncLogs.entityKey, orderRows.map((o) => o.orderCode)),
+        )) : []).map((row) => row.code));
 
       for (const orderRow of orderRows) {
+        if (alreadySent.has(orderRow.orderCode)) {
+          skipped++;
+          continue;
+        }
         // Fetch order items from database
         const { orderItems } = await import('../db/schema.js');
         const orderItemsRows = await db.select().from(orderItems).where(eq(orderItems.orderId, orderRow.id));
@@ -554,6 +570,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       return {
         ok: errors.length === 0,
         pushed: synced,
+        skipped,
         errors: errors.length,
         errorDetails: errors.slice(0, 20),
       };

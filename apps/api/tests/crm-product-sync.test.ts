@@ -128,3 +128,72 @@ test('only network failures are retried, and only a few times', () => {
   assert.equal(shouldRetryCrmProductSync('fetch failed', 8), false);
   assert.equal(shouldRetryCrmProductSync('کد کالا/خدمت تکراری است', 0), false);
 });
+
+const order = {
+  orderCode: 'KP-TEST-1',
+  customerName: 'Sara Test',
+  phone: '09120000001',
+  storeName: null,
+  address: '',
+  total: 300000,
+  quantity: 3,
+  status: 'pending',
+  paymentStatus: 'unpaid',
+  paymentMethod: null,
+  items: [
+    { productId: '02040100070', sku: null, title: 'A', price: 100000, qty: 1, warehouse: 'kerman' },
+    { productId: '02030200140', sku: null, title: 'B', price: 100000, qty: 2, warehouse: 'kerman' },
+  ],
+};
+
+test('customers are found by their exact phone, oldest duplicate first', async () => {
+  const calls = fakeCrm((call) => (call.body.filters[0].property === 'phone'
+    ? { success: true, data: { items: [{ id: 53999, phone: '09129999999' }, { id: 53848, phone: order.phone }, { id: 53847, phone: order.phone }] } }
+    : { success: true, data: { items: [] } }));
+  const result = await crmClient.searchPerson({ phone: order.phone }, config);
+  assert.equal(result.personId, 53847);
+  assert.deepEqual(calls[0].body.filters, [{ property: 'phone', operator: '=', value: order.phone }]);
+});
+
+test('an unknown phone finds nobody instead of the newest customer', async () => {
+  const calls = fakeCrm(() => ({ success: true, data: { items: [] } }));
+  const result = await crmClient.searchPerson({ phone: '09000000001' }, config);
+  assert.deepEqual([result.ok, result.personId], [true, undefined]);
+  assert.deepEqual(calls.map((c) => c.body.filters[0].property), ['phone', 'mobile']);
+});
+
+test('an existing customer is reused instead of created again', async () => {
+  const calls = fakeCrm(() => ({ success: true, data: { items: [{ id: 41, phone: order.phone }] } }));
+  const result = await crmClient.pushPerson({ firstName: 'Sara', phone: order.phone }, config);
+  assert.equal(result.personId, 41);
+  assert.equal(calls.some((c) => c.url.endsWith('/persons/create')), false);
+});
+
+test('an order invoice carries the right customer and CRM product ids', async () => {
+  const crmIds: Record<string, number> = { '02040100070': 224270, '02030200140': 224082 };
+  const calls = fakeCrm((call) => {
+    if (call.url.endsWith('/persons')) return { success: true, data: { items: call.body.filters[0].property === 'phone' ? [{ id: 53459, phone: order.phone }] : [] } };
+    if (call.url.endsWith('/search')) {
+      const code = call.body.filters[0].value;
+      return { success: true, data: { items: crmIds[code] ? [{ id: crmIds[code], code }] : [] } };
+    }
+    return { success: true, data: { id: 99001 } };
+  });
+  const result = await crmClient.pushOrder(order, config);
+  assert.equal(result.ok, true);
+  const invoice = calls.find((c) => c.url.endsWith('/invoices/business/7'))!;
+  assert.equal(invoice.body.extra_info.person_id, 53459);
+  assert.deepEqual(invoice.body.lines.map((l: any) => l.product_id), [224270, 224082]);
+});
+
+test('an order is not sent when a product is missing from the CRM', async () => {
+  const calls = fakeCrm((call) => {
+    if (call.url.endsWith('/persons')) return { success: true, data: { items: [{ id: 53459, phone: order.phone }] } };
+    if (call.url.endsWith('/search')) return { success: true, data: { items: [] } };
+    return { success: true, data: { id: 1 } };
+  });
+  const result = await crmClient.pushOrder(order, config);
+  assert.equal(result.ok, false);
+  assert.match(result.error ?? '', /02040100070/);
+  assert.equal(calls.some((c) => c.url.includes('/invoices/')), false);
+});
