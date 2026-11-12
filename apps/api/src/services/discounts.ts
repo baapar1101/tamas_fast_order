@@ -20,12 +20,13 @@ export const FIRST_PURCHASE_REWARD = {
 } as const;
 
 /** A paid, non-cancelled first order earns one code for the next purchase. */
-export function isFirstPaidPurchase(paymentStatus: string, status: string, paidOrderCount: number): boolean {
-  return paymentStatus === 'paid' && status !== 'cancelled' && paidOrderCount === 1;
+export function isFirstPaidPurchase(paymentStatus: string, status: string, paidOrderCount: number, historicalBackfill = false): boolean {
+  return paymentStatus === 'paid' && status !== 'cancelled'
+    && (paidOrderCount === 1 || (historicalBackfill && paidOrderCount > 1));
 }
 
 /** Called after a successful payment is committed, including wallet and manual payments. */
-export async function issueFirstPurchaseReward(orderId: number): Promise<void> {
+export async function issueFirstPurchaseReward(orderId: number, options: { historicalBackfill?: boolean } = {}): Promise<boolean> {
   const issued = await db.transaction(async (tx) => {
     const [order] = await tx.select({
       userId: orders.userId,
@@ -53,7 +54,7 @@ export async function issueFirstPurchaseReward(orderId: number): Promise<void> {
       ne(orders.status, 'cancelled'),
       isNull(orders.deletedAt),
     ));
-    if (!isFirstPaidPurchase(order.paymentStatus, order.status, Number(paid?.value ?? 0))) return null;
+    if (!isFirstPaidPurchase(order.paymentStatus, order.status, Number(paid?.value ?? 0), options.historicalBackfill)) return null;
 
     const [code] = await tx.insert(discountCodes).values({
       userId: order.userId,
@@ -66,7 +67,7 @@ export async function issueFirstPurchaseReward(orderId: number): Promise<void> {
     }).returning({ code: discountCodes.code });
     return code ? { ...code, userId: order.userId, phone: order.phone, name: order.name } : null;
   });
-  if (!issued) return;
+  if (!issued) return false;
 
   const message = `از اولین خریدتان متشکریم. کد تخفیف ۱٬۰۰۰٬۰۰۰ تومانی شما برای خرید بعدی با حداقل مبلغ ۵٬۰۰۰٬۰۰۰ تومان: ${issued.code}؛ این کد یک بار قابل استفاده است.`;
   const deliveries = await Promise.allSettled([
@@ -82,6 +83,7 @@ export async function issueFirstPurchaseReward(orderId: number): Promise<void> {
     if (result.status === 'rejected') console.error('[first purchase reward] delivery failed', result.reason);
     else if ('error' in result.value && result.value.error) console.error('[first purchase reward] delivery:', result.value.error);
   }
+  return true;
 }
 
 export interface AppliedDiscount {

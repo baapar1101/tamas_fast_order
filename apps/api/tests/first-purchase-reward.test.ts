@@ -8,6 +8,8 @@ test('only the first successful purchase earns the next-order reward', () => {
   assert.equal(isFirstPaidPurchase('paid', 'cancelled', 1), false);
   assert.equal(isFirstPaidPurchase('paid', 'confirmed', 1), true);
   assert.equal(isFirstPaidPurchase('paid', 'confirmed', 2), false);
+  assert.equal(isFirstPaidPurchase('paid', 'confirmed', 2, true), true);
+  assert.equal(isFirstPaidPurchase('unpaid', 'new', 2, true), false);
 });
 
 test('the reward takes one million toman off a qualifying next order', () => {
