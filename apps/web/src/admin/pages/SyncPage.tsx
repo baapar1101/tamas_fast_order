@@ -4,6 +4,21 @@ import type { SyncEntity, SyncStateDTO } from '@tamas/shared';
 import { SYNC_ENTITIES, SYNC_ENTITY_LABELS, formatNumber } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
+import { buildStockUpdateResultWorkbook, countStockRows, type StockUpdateReport } from '../components/stockUpdateExcel';
+
+const loadXlsx = () => import('@e965/xlsx');
+
+function downloadBytes(bytes: Uint8Array, filename: string): void {
+  const blob = new Blob([bytes as Uint8Array<ArrayBuffer>], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+}
 
 interface PriceStockReport {
   startedAt: string;
@@ -15,12 +30,7 @@ interface PriceStockReport {
   errors: string[];
 }
 
-interface ExcelSyncReport {
-  totalRows: number;
-  updated: number;
-  skipped: number;
-  errors: string[];
-}
+type ExcelSyncReport = StockUpdateReport;
 
 interface ExcelUploadProgress {
   current: number;
@@ -120,6 +130,7 @@ export function SyncPage() {
   const [excelJobId, setExcelJobId] = useState<string | null>(null);
   const [excelError, setExcelError] = useState<string | null>(null);
   const [excelUploading, setExcelUploading] = useState(false);
+  const [excelFileName, setExcelFileName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const excelProgress = useQuery({
@@ -164,10 +175,23 @@ export function SyncPage() {
       : `excel-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     setExcelReport(null);
     setExcelError(null);
+    setExcelFileName(file.name);
     setExcelJobId(jobId);
     setExcelUploading(true);
     excelSync.mutate({ file, jobId });
   };
+
+  const downloadExcelResult = async () => {
+    if (!excelReport) return;
+    try {
+      const XLSX = await loadXlsx();
+      const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
+      downloadBytes(buildStockUpdateResultWorkbook(XLSX, excelReport, excelFileName), `نتیجه-آپدیت-قیمت-موجودی-${stamp}.xlsx`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'ساخت فایل نتیجه ناموفق بود.');
+    }
+  };
+  const excelCounts = countStockRows(excelReport?.rows);
 
   const downloadTemplate = async () => {
     try {
@@ -267,7 +291,7 @@ export function SyncPage() {
         )}
 
         {priceStockReport && priceStockReport.errors.length > 0 && (
-          <div className="a-error-box mt-3 text-xs font-mono" dir="ltr" style={{ maxHeight: 160, overflow: 'auto' }}>
+          <div className="a-error-box mt-3 text-xs" dir="rtl" style={{ maxHeight: 160, overflow: 'auto' }}>
             {priceStockReport.errors.map((e, i) => (
               <div key={i}>{e}</div>
             ))}
@@ -349,8 +373,19 @@ export function SyncPage() {
             role="status"
             style={{ color: 'var(--clr-brand)', borderColor: 'rgba(16, 185, 129, .3)', background: 'rgba(16, 185, 129, .08)' }}
           >
-            عملیات تمام شد: {formatNumber(excelReport.updated)} محصول با موفقیت به‌روزرسانی شد
-            {excelReport.skipped ? ` و ${formatNumber(excelReport.skipped)} ردیف رد شد` : ''}.
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span>
+                عملیات تمام شد: {formatNumber(excelReport.updated)} محصول با موفقیت به‌روزرسانی شد
+                {excelReport.rows
+                  ? `؛ ${formatNumber(excelCounts.unchanged)} ردیف بدون تغییر بود و ${formatNumber(excelCounts.error)} ردیف خطا داشت.`
+                  : excelReport.skipped ? ` و ${formatNumber(excelReport.skipped)} ردیف رد شد.` : '.'}
+              </span>
+              {excelReport.rows && (
+                <button type="button" className="a-btn a-btn--primary a-btn--sm" onClick={() => void downloadExcelResult()}>
+                  دانلود نتیجه به اکسل
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -379,7 +414,7 @@ export function SyncPage() {
         )}
 
         {excelReport && excelReport.errors.length > 0 && (
-          <div className="a-error-box mt-3 text-xs font-mono" dir="ltr" style={{ maxHeight: 160, overflow: 'auto' }}>
+          <div className="a-error-box mt-3 text-xs" dir="rtl" style={{ maxHeight: 160, overflow: 'auto' }}>
             {excelReport.errors.map((e, i) => (
               <div key={i}>{e}</div>
             ))}

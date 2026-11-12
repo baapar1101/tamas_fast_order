@@ -11,11 +11,33 @@ import { enqueueCrmProductSync } from '../crm-product-sync.js';
 import { parseExcelStockRows, normalizeExcelSku } from './excel-stock-parser.js';
 import { runSync } from './sync.js';
 
+export type ExcelSyncRowStatus = 'updated' | 'unchanged' | 'error';
+
+interface StockValues {
+  price: number;
+  kermanStock: number;
+  tehranStock: number;
+  stock: number;
+}
+
+/** One line of the uploaded file and what happened to it, for the results spreadsheet. */
+export interface ExcelSyncRowResult {
+  rowNumber: number;
+  sku: string;
+  status: ExcelSyncRowStatus;
+  message: string;
+  productId?: string;
+  title?: string;
+  old?: StockValues;
+  next?: StockValues;
+}
+
 export interface ExcelSyncReport {
   totalRows: number;
   updated: number;
   skipped: number;
   errors: string[];
+  rows: ExcelSyncRowResult[];
   planHash?: string;
   backupPath?: string;
 }
@@ -28,12 +50,13 @@ interface UploadOptions {
 
 /** Blank cells leave existing values intact; an explicit numeric zero clears them. */
 export async function processExcelUpload(buffer: Buffer, options: UploadOptions = {}): Promise<ExcelSyncReport> {
-  const report: ExcelSyncReport = { totalRows: 0, updated: 0, skipped: 0, errors: [] };
+  const report: ExcelSyncReport = { totalRows: 0, updated: 0, skipped: 0, errors: [], rows: [] };
   const rows = parseExcelStockRows(buffer);
   const activeProducts = await db.select({
     id: products.id,
     productId: products.productId,
     sku: products.sku,
+    title: products.title,
     price: products.price,
     stock: products.stock,
     kermanStock: products.kermanStock,
@@ -58,36 +81,42 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
     product: (typeof activeProducts)[number];
     next: { price: number; kermanStock: number; tehranStock: number; stock: number };
   }> = [];
+  const reject = (row: (typeof rows)[number], message: string, product?: (typeof activeProducts)[number]) => {
+    report.errors.push(`ردیف ${row.rowNumber}: ${message}`);
+    report.skipped += 1;
+    report.rows.push({
+      rowNumber: row.rowNumber,
+      sku: row.displayedSku,
+      status: 'error',
+      message,
+      ...(product ? { productId: product.productId, title: product.title } : {}),
+    });
+  };
   for (const row of rows) {
     if (!row.sku) {
-      report.errors.push(`ردیف ${row.rowNumber}: کد کالا (SKU) خالی است.`);
-      report.skipped += 1;
+      reject(row, 'کد کالا (SKU) خالی است.');
       continue;
     }
     report.totalRows += 1;
     if ((fileSkuCounts.get(row.sku) ?? 0) > 1) {
-      report.errors.push(`ردیف ${row.rowNumber}: کد کالا (SKU) «${row.displayedSku}» در فایل تکراری است.`);
-      report.skipped += 1;
+      reject(row, `کد کالا (SKU) «${row.displayedSku}» در فایل تکراری است.`);
       continue;
     }
     const matches = bySku.get(row.sku) ?? [];
     if (matches.length !== 1) {
-      report.errors.push(`ردیف ${row.rowNumber}: کد کالا (SKU) «${row.displayedSku}» در سایت ${matches.length ? 'تکراری است' : 'یافت نشد'}.`);
-      report.skipped += 1;
+      reject(row, `کد کالا (SKU) «${row.displayedSku}» در سایت ${matches.length ? 'تکراری است' : 'یافت نشد'}.`);
       continue;
     }
+    const product = matches[0]!;
     if (row.priceRial === undefined || row.kermanStock === undefined || row.tehranStock === undefined) {
-      report.errors.push(`ردیف ${row.rowNumber}: قیمت یا موجودی عدد صحیح و نامنفی نیست.`);
-      report.skipped += 1;
+      reject(row, 'قیمت یا موجودی عدد صحیح و نامنفی نیست.', product);
       continue;
     }
     if (row.priceRial === null && row.kermanStock === null && row.tehranStock === null) {
-      report.errors.push(`ردیف ${row.rowNumber}: هیچ مقدار قیمت یا موجودی برای به‌روزرسانی ثبت نشده است.`);
-      report.skipped += 1;
+      reject(row, 'هیچ مقدار قیمت یا موجودی برای به‌روزرسانی ثبت نشده است.', product);
       continue;
     }
 
-    const product = matches[0]!;
     const nextKerman = row.kermanStock ?? product.kermanStock;
     const nextTehran = row.tehranStock ?? product.tehranStock;
     const next = {
@@ -96,11 +125,15 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
       tehranStock: nextTehran,
       stock: row.kermanStock === null && row.tehranStock === null ? product.stock : nextKerman + nextTehran,
     };
+    const old = { price: product.price, kermanStock: product.kermanStock, tehranStock: product.tehranStock, stock: product.stock };
+    const base = { rowNumber: row.rowNumber, sku: row.displayedSku, productId: product.productId, title: product.title, old, next };
     if (next.price === product.price && next.kermanStock === product.kermanStock &&
         next.tehranStock === product.tehranStock && next.stock === product.stock) {
       report.skipped += 1;
+      report.rows.push({ ...base, status: 'unchanged', message: 'قیمت و موجودی همین حالا هم همین است.' });
       continue;
     }
+    report.rows.push({ ...base, status: 'updated', message: 'به‌روز شد.' });
     plan.push({ rowNumber: row.rowNumber, product, next });
   }
 
@@ -111,6 +144,7 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
     next: [next.price, next.kermanStock, next.tehranStock, next.stock],
   })))).digest('hex');
   report.updated = plan.length;
+  report.rows.sort((a, b) => a.rowNumber - b.rowNumber);
   options.onProgress?.(0, plan.length);
   if (options.dryRun || plan.length === 0) return report;
   if (options.expectedPlanHash && options.expectedPlanHash !== report.planHash) {

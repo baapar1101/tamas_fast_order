@@ -86,3 +86,29 @@ test('a sheet without known headers is rejected with a clear message', () => {
   XLSX.utils.book_append_sheet(book, XLSX.utils.aoa_to_sheet([['a', 'b'], [1, 2]]), 'Sheet1');
   assert.throws(() => parseImportWorkbook(XLSX, XLSX.write(book, { bookType: 'xlsx', type: 'array' }) as Uint8Array), /سطر عنوان ستون‌ها/);
 });
+
+test('the template drops down the site categories and brands and flags typos', () => {
+  const file = buildTemplateWorkbook(XLSX, ['price', 'categoryName', 'brandName'], {
+    categories: [{ name: 'case', faName: 'قاب' }, { name: 'glass', faName: 'گلس' }],
+    brands: [{ name: 'samsung', faName: 'سامسونگ' }],
+  });
+  const zip = XLSX.CFB.read(file, { type: 'array' });
+  const text = (path: string) => new TextDecoder().decode(XLSX.CFB.find(zip, path)!.content as Uint8Array);
+  const sheet = text('/xl/worksheets/sheet1.xml');
+  // Columns: A code, B title, C price, D category, E brand.
+  assert.match(sheet, /<dataValidations count="2">/);
+  assert.match(sheet, /sqref="D2:D5001"><formula1>'دسته‌بندی‌ها'!\$A\$2:\$A\$3<\/formula1>/);
+  assert.match(sheet, /sqref="E2:E5001"><formula1>'برندها'!\$A\$2:\$A\$2<\/formula1>/);
+  assert.match(sheet, /<conditionalFormatting sqref="D2:D5001">.*COUNTIF\('دسته‌بندی‌ها'!\$A\$2:\$A\$3,TRIM\(D2\)\)/);
+  assert.ok(sheet.indexOf('<dataValidations') > sheet.indexOf('</sheetData>'));
+  assert.ok(sheet.indexOf('<dataValidations') < sheet.indexOf('<ignoredErrors'));
+  assert.match(sheet, /rightToLeft="1"/);
+  assert.match(text('/xl/styles.xml'), /<dxfs count="1">/);
+  // The file still reads back as a normal template.
+  const book = XLSX.read(file, { type: 'array' });
+  assert.deepEqual(XLSX.utils.sheet_to_json<unknown[]>(book.Sheets[PRODUCTS_SHEET]!, { header: 1 })[0], ['کد محصول *', 'عنوان کالا *', 'قیمت فروش (تومان)', 'دسته‌بندی', 'برند']);
+  assert.deepEqual(XLSX.utils.sheet_to_json<unknown[]>(book.Sheets['دسته‌بندی‌ها']!, { header: 1 })[1], ['قاب', 'case']);
+  // Without those columns the file is left as SheetJS wrote it.
+  const plain = buildTemplateWorkbook(XLSX, ['price'], { categories: [{ name: 'case', faName: 'قاب' }], brands: [] });
+  assert.doesNotMatch(new TextDecoder().decode(XLSX.CFB.find(XLSX.CFB.read(plain, { type: 'array' }), '/xl/worksheets/sheet1.xml')!.content as Uint8Array), /dataValidation/);
+});

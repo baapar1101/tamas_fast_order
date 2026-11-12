@@ -1,4 +1,5 @@
 import { PRODUCT_IMPORT_FIELD_MAP, importHeaderLabel, type ProductImportFieldKey } from '@tamas/shared';
+import { rtlBook } from './productImportExcel';
 
 /** The parts of SheetJS this module uses (loaded lazily by the page, directly by tests). */
 type XLSXModule = typeof import('@e965/xlsx');
@@ -68,7 +69,6 @@ export function groupPhotosByProduct(photos: UploadedPhoto[], origin: string): P
 function rtlSheet(rows: unknown[][], widths: number[], XLSX: XLSXModule): WorkSheet {
   const sheet = XLSX.utils.aoa_to_sheet(rows);
   sheet['!cols'] = widths.map((wch) => ({ wch }));
-  (sheet as WorkSheet & { '!views'?: unknown[] })['!views'] = [{ RTL: true }];
   return sheet;
 }
 
@@ -82,7 +82,7 @@ export const PHOTO_LINKS_SHEET = 'لینک تصاویر';
  * products file next to the matching product code.
  */
 export function buildPhotoLinksWorkbook(XLSX: XLSXModule, photos: UploadedPhoto[], origin: string): Uint8Array {
-  const book = XLSX.utils.book_new();
+  const book = rtlBook(XLSX);
   const grouped = groupPhotosByProduct(photos, origin);
   XLSX.utils.book_append_sheet(
     book,
