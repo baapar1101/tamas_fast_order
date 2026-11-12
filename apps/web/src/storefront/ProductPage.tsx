@@ -218,7 +218,6 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
 
   const relatedGroups = relatedQuery.data ?? [];
 
-  const isPromo = Boolean(selected?.promotion);
   const canViewPrices = adminPreview || Boolean(user?.isActive);
   const cartTotalQty = cartCount(lines);
   const shareUrl = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : '';
@@ -382,11 +381,6 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
               onClick={() => setPreviewIndex(0)}
               aria-label="بزرگ‌نمایی تصویر"
             >
-              {isPromo && (
-                <div className="pp-promo-tag">
-                  <Icon name="star-fill" /> پیشنهاد ویژه
-                </div>
-              )}
               {selected.ribbon && <div className="pp-ribbon">{selected.ribbon}</div>}
               <img
                 src={images[0]}
@@ -415,7 +409,6 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
 
           <div className="pp-info">
             <h1 className="pp-title">
-              {isPromo && <Icon name="star-fill" />}
               {selected.title}
             </h1>
             {selected.subTitle && <p className="pp-subtitle">{selected.subTitle}</p>}

@@ -91,24 +91,16 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
     }
     toggleFavorite({ productId: selectedVariant.productId, title, imageUrl: allImages[0] ?? null });
   };
-  const isPromo = Boolean(group.promotion || selectedVariant.promotion);
   const titleClass = productTitleClass(group.title);
   const whButtons = getWarehouseButtons(selectedVariant);
   const selectedUnavailable = isProductUnavailable(selectedVariant);
 
   if (viewMode === 'list') {
     return (
-      <article className={`product-accordion${isPromo ? ' is-promotion' : ''}`}>
-        {isPromo && (
-          <div className="promo-tag">
-            <span className="star-icon"><Icon name="star-fill" /></span> جشنواره این ماه
-          </div>
-        )}
-
+      <article className="product-accordion">
         <div className="list-product-content">
           <div className="product-head">
             <div className={`product-title ${titleClass}`}>
-              {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
               <Link className="product-title-link" to={`/p/${selectedVariant.productId}`}>{title}</Link>
             </div>
             {selectedVariant.rating != null && (
@@ -199,13 +191,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
   }
 
   return (
-    <article className={`product-card${isPromo ? ' is-promotion' : ''}`}>
-      {isPromo && (
-        <div className="promo-tag">
-          <span className="star-icon"><Icon name="star-fill" /></span> جشنواره این ماه
-        </div>
-      )}
-
+    <article className="product-card">
       <button
         type="button"
         className={`card-fav-btn${isFav ? ' active' : ''}`}
@@ -220,7 +206,6 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
 
       <div className="product-card-content">
         <div className={`card-title ${titleClass}`}>
-          {isPromo && <span className="title-star"><Icon name="star-fill" /> </span>}
           <Link className="card-title-link" to={`/p/${selectedVariant.productId}`}>{title}</Link>
         </div>
 

@@ -21,7 +21,6 @@ import { IncompleteProfilePopup } from './IncompleteProfilePopup';
 import { GuestPromoPopup } from './GuestPromoPopup';
 import { GoldenCampaignCopy } from './GoldenCampaignCopy';
 import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_IMAGE_URL, GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL, isGoldenCampaignSlide, visibleCampaignSlides } from './goldenCampaign';
-import { HOMEPAGE_FILTER_SETTING_KEY, parseHomepageFilters, type HomepageFilterType } from './homepageFilters';
 import { MobileAppNavigation, type MobileAppTab } from './MobileAppNavigation';
 import { SiteHeader } from './SiteHeader';
 import { scrollPageToTop } from '../lib/scroll';
@@ -280,19 +279,6 @@ export function StorefrontPage() {
     goToCheckout();
   }, [lines.length, user, complete, toast, goToCheckout]);
 
-  const settings = bootstrap.data?.settings ?? {};
-  const homepageFilters = useMemo(
-    () => parseHomepageFilters(settings[HOMEPAGE_FILTER_SETTING_KEY]).filter((filter) => filter.enabled && filter.label.trim()),
-    [settings[HOMEPAGE_FILTER_SETTING_KEY]],
-  );
-  const filterState: Record<HomepageFilterType, boolean> = {
-    promotion,
-    basket: basketOnly,
-  };
-  const toggleHomepageFilter = (type: HomepageFilterType) => {
-    if (type === 'promotion') setPromotion((current) => !current);
-    if (type === 'basket') setBasketOnly((current) => !current);
-  };
   const canViewPrices = Boolean(user?.isActive);
 
   const groups = useMemo(() => {
@@ -530,22 +516,6 @@ export function StorefrontPage() {
                 </div>
               </div>
 
-              {homepageFilters.length > 0 && <div className="side-title" style={{ marginTop: "var(--ds-space-5)" }}>فیلترهای سریع</div>}
-              {homepageFilters.map((filter) => (
-                <div className="switch-row" key={filter.id}>
-                  <span>{filter.label}</span>
-                  <button
-                    type="button"
-                    className={`switch${filterState[filter.type] ? ' on' : ''}`}
-                    role="switch"
-                    aria-label={filter.label}
-                    aria-checked={filterState[filter.type]}
-                    onClick={() => toggleHomepageFilter(filter.type)}
-                  >
-                    <i />
-                  </button>
-                </div>
-              ))}
             </div>
           </aside>
 
