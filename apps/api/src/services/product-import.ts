@@ -8,6 +8,8 @@ import {
   type ProductImportRowResult,
 } from '@tamas/shared';
 import { brands, categories } from '../db/schema.js';
+import { env } from '../env.js';
+import { localizeOwnImageUrl } from '../lib/product-image-url.js';
 import { invalidateCatalog } from './catalog.js';
 import { logAction } from './audit.js';
 import { basketCategoryFor, findTaxonomyId, insertProductRecord, resolveTaxonomy } from './product-create.js';
@@ -87,6 +89,9 @@ export async function importProductRows(
       }
       const body = parsed.data;
       body.title = formatProductTitle(body.title);
+      const ownImage = (url: string) => localizeOwnImageUrl(url, env.PUBLIC_SITE_URL, env.STORAGE_PUBLIC_URL);
+      if (body.imageUrl) body.imageUrl = ownImage(body.imageUrl);
+      body.gallery = body.gallery.map(ownImage);
       const result = { ...base, productId: body.productId, title: body.title };
 
       const duplicate = matchProductDuplicate(candidates, body);

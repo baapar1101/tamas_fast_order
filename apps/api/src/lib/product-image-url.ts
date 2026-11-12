@@ -59,6 +59,26 @@ export function isStoredImageUrl(value: string, publicBase: string): boolean {
   return clean === base || clean.startsWith(`${base}/`);
 }
 
+/**
+ * A full link to a photo already in our media library (copied from the admin
+ * panel, e.g. https://tamasmarket.com/uploads/product/…) becomes the stored
+ * path again, so the image mirror does not download our own file a second time.
+ */
+export function localizeOwnImageUrl(value: string, siteUrl: string, publicBase: string): string {
+  const clean = value.trim();
+  const base = publicBase.replace(/\/$/, '');
+  if (!isRemoteImageUrl(clean) || isRemoteImageUrl(base)) return clean;
+  try {
+    const url = new URL(clean);
+    const site = new URL(siteUrl).hostname.replace(/^www\./i, '').toLowerCase();
+    const host = url.hostname.replace(/^www\./i, '').toLowerCase();
+    if (host !== site || !url.pathname.startsWith(`${base}/`)) return clean;
+    return decodeURI(url.pathname);
+  } catch {
+    return clean;
+  }
+}
+
 export function normalizeStoredImageUrl(value: string, publicBase: string): string {
   const clean = value.trim().replace(/^\.\//, '');
   if (!clean || clean.startsWith('/') || clean.startsWith('data:') || isRemoteImageUrl(clean)) return clean;

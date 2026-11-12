@@ -6,10 +6,20 @@ import {
   isStoredImageUrl,
   legacyCacheStemForUrl,
   legacyImageFilename,
+  localizeOwnImageUrl,
   normalizeStoredImageUrl,
 } from '../src/lib/product-image-url.js';
 
 describe('product image URL utilities', () => {
+  it('turns full links to our own media library back into stored paths', () => {
+    const site = 'https://tamasmarket.com';
+    assert.equal(localizeOwnImageUrl('https://tamasmarket.com/uploads/product/2026-11/a.webp', site, '/uploads'), '/uploads/product/2026-11/a.webp');
+    assert.equal(localizeOwnImageUrl(' https://www.TamasMarket.com/uploads/product/a.webp ', site, '/uploads'), '/uploads/product/a.webp');
+    assert.equal(localizeOwnImageUrl('https://other.com/uploads/a.webp', site, '/uploads'), 'https://other.com/uploads/a.webp');
+    assert.equal(localizeOwnImageUrl('https://tamasmarket.com/logo.png', site, '/uploads'), 'https://tamasmarket.com/logo.png');
+    assert.equal(localizeOwnImageUrl('/uploads/a.webp', site, '/uploads'), '/uploads/a.webp');
+  });
+
   it('recognizes legacy cached filenames and their deterministic hash', () => {
     const url = 'https://image.torob.com/base/images/BB/BA/BBBA4Fz-XEVIwMTU.jpg_/280x280.jpg';
     assert.equal(legacyCacheStemForUrl(url), 'img_d144737fd919');
