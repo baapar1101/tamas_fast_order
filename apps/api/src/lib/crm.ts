@@ -414,12 +414,12 @@ export const crmClient = {
   ): Promise<CrmSyncResult & { remoteId?: number }> {
     try {
       // Hesabix API: POST /api/v1/products/business/{businessId}/search
+      // The CRM ignores a `query` field and just lists its first products, so
+      // filter on the exact code instead.
       const payload = {
-        query: query.productId,
-        take: 50,
+        take: 10,
         skip: 0,
-        sort_desc: false,
-        include_inventory: true,
+        filters: [{ property: 'code', operator: '=', value: query.productId }],
       };
       const data = (await crmRequest<{
         success?: boolean;

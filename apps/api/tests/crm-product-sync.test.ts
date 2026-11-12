@@ -65,6 +65,7 @@ test('a product without a stored id is looked up by code and edited', async () =
   const result = await crmClient.pushProduct(product, config, { retries: 0 });
   assert.equal(result.ok, true);
   assert.deepEqual(calls.map((c) => c.url.split('/').pop()), ['search', 'bulk-upsert']);
+  assert.deepEqual(calls[0].body.filters, [{ property: 'code', operator: '=', value: product.productId }]);
   assert.equal(calls[1].body.items[0].product_id, 5001);
 });
 
