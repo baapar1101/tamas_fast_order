@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, isNotNull, isNull } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { crmSyncLogs, products } from '../db/schema.js';
-import { crmClient, type CrmSyncResult } from '../lib/crm.js';
+import { crmClient, isTransientCrmError, type CrmSyncResult } from '../lib/crm.js';
 import { getCrmConfig } from './settings.js';
 
 type ProductSyncAction = 'create' | 'update' | 'delete';
@@ -13,6 +13,13 @@ export interface CrmProductSyncReport {
 }
 
 let running = false;
+
+/** Network failures are retried this many times; a rejection by the CRM is not retried. */
+export const CRM_PRODUCT_MAX_RETRIES = 8;
+
+export function shouldRetryCrmProductSync(error: string | undefined, attempt: number): boolean {
+  return attempt < CRM_PRODUCT_MAX_RETRIES && isTransientCrmError(error);
+}
 
 export function isCrmProductSyncRunning(): boolean {
   return running;
@@ -82,10 +89,10 @@ async function pushCurrentProduct(
     description: row.description,
     imageUrl: row.imageUrl,
     updatedAt: row.updatedAt.toISOString(),
-  }, config, { retries: 0 });
+  }, config, { retries: 0, remoteId: knownRemoteId });
 }
 
-export async function processPendingCrmProductSync(limit = 2): Promise<CrmProductSyncReport> {
+export async function processPendingCrmProductSync(limit = 10): Promise<CrmProductSyncReport> {
   if (running) return { processed: 0, succeeded: 0, failed: 0 };
   running = true;
   const report: CrmProductSyncReport = { processed: 0, succeeded: 0, failed: 0 };
@@ -127,7 +134,7 @@ export async function processPendingCrmProductSync(limit = 2): Promise<CrmProduc
         response: result as unknown as Record<string, unknown>,
         durationMs: Date.now() - started,
       }).where(eq(crmSyncLogs.id, job.id));
-      if (attempt < 49) {
+      if (shouldRetryCrmProductSync(result.error, attempt)) {
         await db.insert(crmSyncLogs).values({
           entity: 'product',
           entityKey: job.entityKey,

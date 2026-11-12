@@ -115,25 +115,35 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
   app.get('/crm/sync/products/detail', { preHandler: [app.requirePermission('manage_settings')] }, async () => {
     const { db } = await import('../db/client.js');
     const { products, crmSyncLogs } = await import('../db/schema.js');
-    const { desc, eq } = await import('drizzle-orm');
+    const { and, desc, eq, isNotNull } = await import('drizzle-orm');
 
-    const activeProducts = await db.select().from(products).where(eq(products.status, 'active'));
-    
-    const productLogs = await db.query.crmSyncLogs.findMany({
-      where: eq(crmSyncLogs.entity, 'product'),
-      orderBy: [desc(crmSyncLogs.createdAt)],
-    });
-    
-    const logMap = new Map();
-    // Since ordered by desc, the first one we set will be the most recent
-    for (const log of productLogs) {
-      if (!logMap.has(log.entityKey)) {
-        logMap.set(log.entityKey, log);
-      }
-    }
-    
+    // Only the newest row per product (plus its newest error and CRM id) instead of the whole log.
+    const latestPer = (extra?: ReturnType<typeof eq>) => db
+      .selectDistinctOn([crmSyncLogs.entityKey], {
+        entityKey: crmSyncLogs.entityKey,
+        status: crmSyncLogs.status,
+        remoteId: crmSyncLogs.remoteId,
+        error: crmSyncLogs.error,
+        createdAt: crmSyncLogs.createdAt,
+      })
+      .from(crmSyncLogs)
+      .where(extra ? and(eq(crmSyncLogs.entity, 'product'), extra) : eq(crmSyncLogs.entity, 'product'))
+      .orderBy(crmSyncLogs.entityKey, desc(crmSyncLogs.createdAt));
+
+    const [activeProducts, latestLogs, latestErrors, latestRemote] = await Promise.all([
+      db.select().from(products).where(eq(products.status, 'active')),
+      latestPer(),
+      latestPer(eq(crmSyncLogs.status, 'error')),
+      latestPer(isNotNull(crmSyncLogs.remoteId)),
+    ]);
+    const logMap = new Map(latestLogs.map((log) => [log.entityKey, log]));
+    const errorMap = new Map(latestErrors.map((log) => [log.entityKey, log]));
+    const remoteMap = new Map(latestRemote.map((log) => [log.entityKey, log.remoteId]));
+
     const items = activeProducts.map(p => {
         const log = logMap.get(p.productId);
+        const lastError = errorMap.get(p.productId);
+        const remoteId = log?.remoteId ?? remoteMap.get(p.productId);
         return {
           productId: p.productId,
           sku: null,
@@ -145,9 +155,12 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
           tehranStock: p.tehranStock,
           imageUrl: p.imageUrl,
           lastSyncedAt: log?.createdAt,
-          crmId: log?.remoteId ? parseInt(log.remoteId, 10) : undefined,
+          crmId: remoteId ? parseInt(remoteId, 10) : undefined,
           syncStatus: log ? (log.status === 'success' ? 'synced' : log.status === 'error' ? 'error' : 'pending') : 'never',
-          syncError: log?.error || undefined
+          // A queued retry still shows why the previous try failed.
+          syncError: log?.status === 'success'
+            ? undefined
+            : (log?.error || lastError?.error || undefined),
         };
     });
     
@@ -238,6 +251,10 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
       }
       const config = await getCrmConfig();
       const pushResult = await crmClient.pushProduct(result.product, config);
+      await crmClient._logSyncResult('product', result.product.productId, 'update', pushResult, {
+        productId: result.product.productId,
+        source: 'manual',
+      });
       return { ok: pushResult.ok, result: pushResult };
     },
   );
@@ -322,6 +339,7 @@ const routes: FastifyPluginAsync = async (app: FastifyInstance) => {
                 resultObj = await crmClient.pushProduct(
                   { ...variant, productId: variant.productId },
                   config,
+                  { remoteId: searchResult.remoteId },
                 );
               } else {
                 // Product doesn't exist - create it

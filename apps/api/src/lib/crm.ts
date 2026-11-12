@@ -120,6 +120,113 @@ async function crmRequest<T = unknown>(
 }
 
 /* ------------------------------------------------------------------ */
+/* Products                                                             */
+/* ------------------------------------------------------------------ */
+
+type CrmEnvelope = { success?: boolean; data?: unknown; error?: { code?: string; message?: string } | string; message?: string };
+
+function envelopeError(data: CrmEnvelope | null | undefined): string | undefined {
+  if (!data) return 'Empty CRM response';
+  if (typeof data.error === 'string') return data.error;
+  if (data.error) return data.error.message || data.error.code || 'CRM rejected product';
+  if (data.success === false) return data.message || 'CRM rejected product';
+  return undefined;
+}
+
+function toCrmId(value: unknown): number | undefined {
+  const id = typeof value === 'number' ? value : typeof value === 'string' ? Number(value.trim()) : NaN;
+  return Number.isSafeInteger(id) && id > 0 ? id : undefined;
+}
+
+/** The CRM refuses to create a second product with an existing code. */
+export function isDuplicateCodeError(error: string | undefined): boolean {
+  return Boolean(error && /تکراری|duplicate|already exists/i.test(error));
+}
+
+/**
+ * Network trouble and CRM outages are worth retrying; a rejection of the data
+ * itself will fail the same way every time.
+ */
+export function isTransientCrmError(error: string | undefined): boolean {
+  if (!error) return false;
+  return /timeout|timed out|aborted|fetch failed|ECONN|ENOTFOUND|EAI_AGAIN|socket|network|Unexpected token|not valid JSON|exhausted retries|50[0-9]|bad gateway|service unavailable/i.test(error);
+}
+
+/** Fields both creating and editing send. */
+function productFields(product: CrmProduct) {
+  return {
+    code: product.productId,
+    name: product.title,
+    general_barcodes: product.sku || product.productId,
+    base_sales_price: product.price,
+    is_active: product.status === 'active',
+  };
+}
+
+async function createCrmProduct(product: CrmProduct, config: CrmConfig, retries?: number): Promise<CrmSyncResult> {
+  const payload = {
+    item_type: 'کالا',
+    ...productFields(product),
+    track_inventory: product.stock > 0,
+    inventory_mode: 'bulk',
+    base_purchase_price: Math.floor(product.price * 0.8),
+    main_unit: 'عدد',
+    unit_conversion_factor: 1,
+  };
+  // Hesabix API: POST /api/v1/products/business/{businessId}
+  const data = await crmRequest<CrmEnvelope & { data?: { id?: number } }>(
+    `/api/v1/products/business/${config.businessId}`,
+    config,
+    { method: 'POST', body: JSON.stringify(payload), retries },
+  );
+  const error = envelopeError(data);
+  if (error) return { ok: false, entity: 'product', error };
+  return { ok: true, entity: 'product', remoteId: toCrmId(data?.data?.id) };
+}
+
+/**
+ * Reads the single-item result of the CRM's bulk upsert. Only an explicit
+ * "created" or "updated" counts as success, so an unfamiliar reply shows up as
+ * an error instead of silently passing.
+ */
+export function readBulkUpsertResult(data: unknown, fallbackId: number): CrmSyncResult {
+  const envelope = data as CrmEnvelope & { results?: unknown };
+  const error = envelopeError(envelope);
+  if (error) return { ok: false, entity: 'product', remoteId: fallbackId, error };
+  const inner = (envelope?.data ?? {}) as { results?: unknown; items?: unknown };
+  const list = [envelope?.results, inner.results, inner.items].find(Array.isArray) as Array<Record<string, unknown>> | undefined;
+  const item = list?.[0];
+  const status = typeof item?.status === 'string' ? item.status : undefined;
+  const remoteId = toCrmId(item?.product_id) ?? toCrmId(item?.id) ?? fallbackId;
+  if (status === 'created' || status === 'updated') return { ok: true, entity: 'product', remoteId };
+  const reason = item?.error ?? item?.message ?? item?.detail;
+  const text = typeof reason === 'string' ? reason : reason ? JSON.stringify(reason) : '';
+  return {
+    ok: false,
+    entity: 'product',
+    remoteId: fallbackId,
+    error: text || `CRM product update not confirmed: ${JSON.stringify(data).slice(0, 300)}`,
+  };
+}
+
+async function updateCrmProduct(product: CrmProduct, remoteId: number, config: CrmConfig, retries?: number): Promise<CrmSyncResult> {
+  // Hesabix API: POST /api/v1/products/business/{businessId}/bulk-upsert edits by CRM id (JSON body).
+  const data = await crmRequest<unknown>(
+    `/api/v1/products/business/${config.businessId}/bulk-upsert`,
+    config,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        items: [{ client_ref: product.productId, product_id: remoteId, payload: productFields(product) }],
+        create_if_update_missing: false,
+      }),
+      retries,
+    },
+  );
+  return readBulkUpsertResult(data, remoteId);
+}
+
+/* ------------------------------------------------------------------ */
 /* Public client – outbound sync (site → CRM)                           */
 /* ------------------------------------------------------------------ */
 
@@ -129,7 +236,7 @@ export const crmClient = {
     entity: CrmSyncResult['entity'],
     entityKey: string,
     action: 'create' | 'update' | 'delete',
-    result: CrmSyncResult & { remoteId?: number },
+    result: CrmSyncResult,
     payload?: Record<string, unknown>,
   ): Promise<void> {
     try {
@@ -231,44 +338,36 @@ export const crmClient = {
     }
   },
 
-  /** Push a product to the CRM (creates or updates the CRM product). */
+  /**
+   * Push a product to the CRM. A product the CRM already has (known id, or
+   * found by its code) is edited; only a product it lacks is created. Creating
+   * an existing code is rejected as a duplicate, which is why every re-sync
+   * used to fail.
+   */
   async pushProduct(
     product: CrmProduct,
     config: CrmConfig,
-    requestOptions: { retries?: number } = {},
+    requestOptions: { retries?: number; remoteId?: string | number | null } = {},
   ): Promise<CrmSyncResult> {
     try {
-      const payload = {
-        item_type: 'کالا',
-        code: product.productId,
-        name: product.title,
-        general_barcodes: product.sku || product.productId,
-        track_inventory: product.stock > 0,
-        inventory_mode: 'bulk',
-        base_sales_price: product.price,
-        base_purchase_price: Math.floor(product.price * 0.8),
-        main_unit: 'عدد',
-        unit_conversion_factor: 1,
-        is_active: product.status === 'active',
-      };
-      // Hesabix API: POST /api/v1/products/business/{businessId}
-      const data = (await crmRequest<{
-        success?: boolean;
-        data?: { id?: number };
-        error?: { code?: string; message?: string };
-      }>(
-        `/api/v1/products/business/${config.businessId}`,
-        config,
-        { method: 'POST', body: JSON.stringify(payload), retries: requestOptions.retries },
-      )) as { success?: boolean; data?: { id?: number }; error?: { code?: string; message?: string } };
-      if (data?.success === false || data?.error) {
-        return { ok: false, entity: 'product', error: data.error?.message || 'CRM rejected product' };
+      const knownId = toCrmId(requestOptions.remoteId);
+      if (knownId) {
+        const updated = await updateCrmProduct(product, knownId, config, requestOptions.retries);
+        // A stored id can go stale (product removed or re-made in the CRM): fall through and look it up by code.
+        if (updated.ok || isTransientCrmError(updated.error)) return updated;
       }
-      // Log successful product sync with invoice ID
-      await this._logSyncResult('product', product.productId, 'create', {
-        ok: true, entity: 'product', remoteId: data?.data?.id
-      }, { productId: product.productId, crmId: data?.data?.id, title: product.title });
-      return { ok: true, entity: 'product', remoteId: data?.data?.id ?? undefined };
+      const found = await this.searchProduct({ productId: product.productId }, config);
+      if (!found.ok) return found;
+      const remoteId = toCrmId(found.remoteId);
+      if (remoteId) return await updateCrmProduct(product, remoteId, config, requestOptions.retries);
+
+      const created = await createCrmProduct(product, config, requestOptions.retries);
+      if (created.ok || !isDuplicateCodeError(created.error)) return created;
+      // The search missed a product the CRM does hold: look it up again and edit it.
+      const again = await this.searchProduct({ productId: product.productId }, config);
+      const existingId = again.ok ? toCrmId(again.remoteId) : undefined;
+      if (!existingId) return created;
+      return await updateCrmProduct(product, existingId, config, requestOptions.retries);
     } catch (err: any) {
       return { ok: false, entity: 'product', error: err?.message ?? String(err) };
     }
