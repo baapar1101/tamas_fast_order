@@ -13,6 +13,7 @@ import { transitionOrderStatus, transitionOrdersStatus } from '../../services/or
 import { upsertOrderPayment } from '../../services/payments.js';
 import { logAction } from '../../services/audit.js';
 import { formatPaymentAccount, getPaymentRoutingConfig, selectPaymentAccount } from '../../services/payment-routing.js';
+import { issueFirstPurchaseReward } from '../../services/discounts.js';
 
 const listQuery = z.object({
   q: z.string().trim().max(200).optional(),
@@ -374,6 +375,7 @@ const routes: FastifyPluginAsync = async (app) => {
       }).catch((err) => req.log.error({ err }, 'failed to send Telegram order status notification'));
     }
     if (body.paymentStatus === 'paid' && oldPaymentStatus !== 'paid') {
+      void issueFirstPurchaseReward(updated.id).catch((err) => req.log.error({ err }, 'failed to issue first purchase reward'));
       void sendTelegramNotification('payment.paid', {
         title: '✅ پرداخت سفارش',
         fields: [

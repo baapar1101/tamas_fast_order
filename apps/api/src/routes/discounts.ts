@@ -17,7 +17,10 @@ const routes: FastifyPluginAsync = async (app) => {
     const items = await db.select().from(discountCodes)
       .where(and(eq(discountCodes.userId, req.currentUser!.id), eq(discountCodes.isActive, true)))
       .orderBy(desc(discountCodes.createdAt));
-    return { ok: true, items: items.map((item) => ({
+    const now = new Date();
+    return { ok: true, items: items.filter((item) => item.usedCount < item.usageLimit
+      && (!item.startsAt || item.startsAt <= now)
+      && (!item.endsAt || item.endsAt >= now)).map((item) => ({
       code: item.code, kind: item.kind, value: item.value, firstOrderOnly: item.firstOrderOnly,
       minOrderAmount: item.minOrderAmount, maxDiscountAmount: item.maxDiscountAmount,
       startsAt: item.startsAt?.toISOString() ?? null, endsAt: item.endsAt?.toISOString() ?? null,

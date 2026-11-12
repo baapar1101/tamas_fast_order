@@ -12,6 +12,7 @@ import { applyWalletTransaction } from '../services/wallet.js';
 import { transitionOrderStatusInTransaction } from '../services/order-inventory.js';
 import { getPaymentTermsConfig, quotePaymentTerms } from '../services/payment-terms.js';
 import { getPaymentRoutingConfig, securePaymentPlan } from '../services/payment-routing.js';
+import { issueFirstPurchaseReward } from '../services/discounts.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   app.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, (_req, body, done) => {
@@ -188,6 +189,7 @@ const routes: FastifyPluginAsync = async (app) => {
         if (paymentRecord.orderId) {
           const [paidOrder] = await db.select().from(orders).where(eq(orders.id, paymentRecord.orderId)).limit(1);
           if (paidOrder) {
+            void issueFirstPurchaseReward(paidOrder.id).catch((err) => req.log.error({ err }, 'failed to issue first purchase reward'));
             const { sendTelegramNotification } = await import('../services/telegram.js');
             void sendTelegramNotification('payment.paid', {
               title: '✅ پرداخت آنلاین موفق',

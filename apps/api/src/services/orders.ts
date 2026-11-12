@@ -20,7 +20,7 @@ import { applyWalletTransaction } from './wallet.js';
 import { getSetting } from './settings.js';
 import { allocateInventory, type InventoryQuantities } from './inventory-policy.js';
 import { getPaymentTermsConfig, quotePaymentTerms, selectPaymentPlan } from './payment-terms.js';
-import { validateCustomerDiscount } from './discounts.js';
+import { issueFirstPurchaseReward, validateCustomerDiscount } from './discounts.js';
 import { getPaymentRoutingConfig, securePaymentPlan } from './payment-routing.js';
 
 type OrderRow = typeof orders.$inferSelect;
@@ -491,6 +491,9 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
       ).catch((err) => console.error('[Customer messaging] wallet.changed failed:', err));
     }
   });
+  if (walletPayment) {
+    void issueFirstPurchaseReward(created.id).catch((err) => console.error('[first purchase reward] wallet order failed:', err));
+  }
   return created;
 }
 
