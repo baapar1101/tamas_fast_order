@@ -33,7 +33,7 @@ export interface CatalogFilters {
   brands: string[];
   promotion: boolean;
   basketOnly: boolean;
-  sort: 'price_asc' | 'price_desc' | 'newest' | 'title';
+  sort: 'featured' | 'price_asc' | 'price_desc' | 'newest' | 'title';
 }
 
 interface ProductsResponse {

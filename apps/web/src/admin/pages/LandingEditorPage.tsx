@@ -267,10 +267,6 @@ export function LandingEditorPage() {
             <div><h3 className="a-card-title">نمایش صفحهٔ اصلی</h3><p className="a-card-desc">اگر خاموش باشد، آدرس اصلی سایت مثل قبل مستقیم فروشگاه را باز می‌کند.</p></div>
             <Switch label="نمایش صفحهٔ اصلی" checked={config.enabled} onChange={(enabled) => setConfig({ ...config, enabled })} />
           </div>
-          <div className="a-card-head a-card-head--split">
-            <div><h3 className="a-card-title">همکاران تأییدشده مستقیم به فروشگاه بروند</h3><p className="a-card-desc">همکاری که وارد شده و حسابش تأیید است، با باز کردن سایت مستقیم به فروشگاه عمده می‌رود؛ مهمان‌ها صفحهٔ اصلی را می‌بینند.</p></div>
-            <Switch label="همکاران مستقیم به فروشگاه" checked={config.partnersSkipLanding} onChange={(partnersSkipLanding) => setConfig({ ...config, partnersSkipLanding })} />
-          </div>
         </section>
 
         <section className="a-card">

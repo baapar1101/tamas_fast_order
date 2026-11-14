@@ -44,6 +44,7 @@ const WalletsPage = lazy(() => import('./pages/WalletsPage').then((m) => ({ defa
 const ProductImportPage = lazy(() => import('./pages/ProductImportPage').then((m) => ({ default: m.ProductImportPage })));
 const ProductContentImportPage = lazy(() => import('./pages/ProductContentImportPage').then((m) => ({ default: m.ProductContentImportPage })));
 const LabPage = lazy(() => import('./lab/LabPage').then((m) => ({ default: m.LabPage })));
+const FlashSalePage = lazy(() => import('./pages/FlashSalePage').then((m) => ({ default: m.FlashSalePage })));
 const LandingEditorPage = lazy(() => import('./pages/LandingEditorPage').then((m) => ({ default: m.LandingEditorPage })));
 
 const NAV_MAIN = [
@@ -324,6 +325,16 @@ const NAV_TOOLS = [
     requiredPermission: '*',
   },
   {
+    to: '/admin/flash-sale',
+    label: 'فروش ویژهٔ زمان‌دار',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
+  },
+  {
     to: '/admin/landing',
     label: 'صفحهٔ اصلی (لندینگ)',
     icon: (
@@ -443,7 +454,7 @@ const NAV_GROUPS = [
     id: 'content',
     label: 'محتوا و بازاریابی',
     description: 'صفحهٔ اصلی، بنر، رسانه و کمپین',
-    paths: ['/admin/landing', '/admin/slides', '/admin/uploads', '/admin/marketing'],
+    paths: ['/admin/landing', '/admin/flash-sale', '/admin/slides', '/admin/uploads', '/admin/marketing'],
     iconPath: 'M3.75 4.5h16.5A2.25 2.25 0 0122.5 6.75v10.5a2.25 2.25 0 01-2.25 2.25H3.75a2.25 2.25 0 01-2.25-2.25V6.75A2.25 2.25 0 013.75 4.5zm0 11.25l4.5-4.5 3 3 2.25-2.25 6.75 6.75',
   },
   {
@@ -972,6 +983,7 @@ export default function AdminApp() {
             <Route path="target-sites" element={<TargetSitesPage />} />
             <Route path="slides" element={<SlidesPage />} />
             <Route path="landing" element={<LandingEditorPage />} />
+            <Route path="flash-sale" element={<FlashSalePage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="proformas" element={<ProformasPage />} />
             <Route path="users" element={<UsersPage />} />

@@ -33,7 +33,7 @@ export function featuredQuery(section: FeaturedSection) {
     promotion: section.source === 'promotion' ? true : undefined,
     category: section.source === 'category' && section.value ? section.value : undefined,
     brands: section.source === 'brand' && section.value ? [section.value] : undefined,
-    sort: section.source === 'newest' ? 'newest' : 'price_asc',
+    sort: section.source === 'newest' ? 'newest' : 'featured',
     inStock: true,
     page: 1,
     perPage: section.limit,

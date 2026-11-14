@@ -50,6 +50,7 @@ import { visibleCampaignSlides } from '../goldenCampaign';
 import { FlipWords, GlowCard, Marquee, Reveal, SpotCard, TiltFrame } from './effects';
 import { SHOP_PATH, featuredQuery, featuredShopHref, shopHref, shopSearchHref } from './shopLinks';
 import landingCss from './landing.css?inline';
+import { FlashSaleSection } from './FlashSaleSection';
 
 type Section<T extends LandingSection['type']> = Extract<LandingSection, { type: T }>;
 
@@ -477,6 +478,37 @@ function categorySpan(index: number, total: number): string {
   return classes.join(' ');
 }
 
+/** Every Tamas Market category as a plain text link, right under the hero. */
+function CategoryDirectory({ categories }: { categories: CategoryDTO[] }) {
+  if (categories.length === 0) return null;
+  return (
+    <section id="all-categories" aria-labelledby="all-categories-title" className="mx-auto max-w-7xl scroll-mt-24 px-4 pt-12">
+      <div className="rounded-3xl border border-base-100 bg-card-background-50 p-5 md:p-8">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <h2 id="all-categories-title" className="text-xl font-black text-title-50 md:text-2xl">دسته‌بندی‌های تماس مارکت</h2>
+          <Link to={SHOP_PATH} className="inline-flex items-center gap-1.5 text-sm font-bold text-primary-500">همهٔ کالاها <ArrowLeft className="size-4" /></Link>
+        </div>
+        <ul className="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3 lg:grid-cols-5">
+          {categories.map((category) => (
+            <li key={category.id}>
+              <Link
+                to={shopSearchHref({ cat: category.name })}
+                className="group flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm text-text-50 transition hover:bg-primary-50 hover:text-primary-500 md:text-[15px]"
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="size-1.5 shrink-0 rounded-full bg-primary-500/60 transition group-hover:bg-primary-500" aria-hidden="true" />
+                  <span className="truncate font-medium">{category.faName}</span>
+                </span>
+                {category.productCount != null && category.productCount > 0 && <span className="shrink-0 text-xs text-text-100">{formatNumber(category.productCount)}</span>}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 function CategoriesSectionView({ section, categories }: { section: Section<'categories'>; categories: CategoryDTO[] }) {
   const list = categories.slice(0, section.limit);
   if (list.length === 0) return null;
@@ -673,6 +705,8 @@ export function LandingPage({ config }: { config: LandingConfig }) {
         <LandingHeader config={config} onLogin={openLogin} />
         <main>
           <Hero config={config} slides={slides} categories={categories} brandsCount={brands.length} onLogin={openLogin} />
+          <FlashSaleSection canViewPrices={canViewPrices} />
+          <CategoryDirectory categories={categories} />
           {config.sections.filter((section) => section.enabled).map((section) => {
             switch (section.type) {
               case 'wholesale': return <WholesaleSectionView key={section.id} section={section} categoriesCount={categories.length} brandsCount={brands.length} onLogin={openLogin} />;

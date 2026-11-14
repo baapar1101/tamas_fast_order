@@ -52,7 +52,8 @@ export interface ImportRowInput {
 /**
  * Creates new products from spreadsheet rows. Each row stands alone: a bad
  * row is reported and skipped, existing products are never changed, and a
- * product appearing twice in the file is created once.
+ * product appearing twice in the file is created once. Products are matched by
+ * SKU / product code only, never by name (names are edited on the site).
  */
 export async function importProductRows(
   rows: ImportRowInput[],
@@ -94,7 +95,7 @@ export async function importProductRows(
       body.gallery = body.gallery.map(ownImage);
       const result = { ...base, productId: body.productId, title: body.title };
 
-      const duplicate = matchProductDuplicate(candidates, body);
+      const duplicate = matchProductDuplicate(candidates, body, undefined, { codesOnly: true });
       if (duplicate) {
         results.push({ ...result, status: 'duplicate', message: duplicateProductMessage(duplicate) });
         continue;

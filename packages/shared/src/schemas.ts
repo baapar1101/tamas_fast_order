@@ -147,7 +147,7 @@ export const catalogQuerySchema = z.object({
     z.boolean(),
     z.enum(['true', 'false']).transform((value) => value === 'true'),
   ]).default(true),
-  sort: z.enum(['price_asc', 'price_desc', 'newest', 'title']).default('price_asc'),
+  sort: z.enum(['featured', 'price_asc', 'price_desc', 'newest', 'title']).default('featured'),
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(120).default(24),
 });

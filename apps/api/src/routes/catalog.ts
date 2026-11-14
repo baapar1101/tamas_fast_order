@@ -6,6 +6,7 @@ import { slides } from '../db/schema.js';
 import { notFound } from '../lib/errors.js';
 import { findProductByPublicId, listBrands, listCategories, listColors, queryProducts } from '../services/catalog.js';
 import { getPublicSettings } from '../services/settings.js';
+import { flashSaleShowcase } from '../services/flash-sale.js';
 
 const GOLDEN_CAMPAIGN_IMAGE_URL = '/assets/slides/golden-days-2026-10.webp';
 // Midnight at the start of 21 Mehr 1405 in Tehran.
@@ -33,6 +34,11 @@ const routes: FastifyPluginAsync = async (app) => {
       ...result,
     };
     return response;
+  });
+
+  app.get('/catalog/flash-sale', async (_req, reply) => {
+    reply.header('cache-control', 'public, max-age=15, s-maxage=30');
+    return { ok: true, sale: await flashSaleShowcase() };
   });
 
   app.get('/catalog/categories', async (_req, reply) => {

@@ -13,3 +13,4 @@ export * from './native-campaigns.js';
 export * from './funnel.js';
 export * from './product-import.js';
 export * from './landing.js';
+export * from './flash-sale.js';

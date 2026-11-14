@@ -112,7 +112,7 @@ export const landingConfigSchema = z.object({
   version: z.literal(1),
   /** Off: the home address opens the catalog directly, as before. */
   enabled: z.boolean(),
-  /** Approved partners skip the landing and open the catalog. */
+  /** No longer used: the home address always shows the landing. Kept so saved configs parse. */
   partnersSkipLanding: z.boolean(),
   hero: heroSchema,
   sections: z.array(landingSectionSchema).max(16)
@@ -190,7 +190,7 @@ export function newLandingSection(type: LandingSectionType, sectionId: string): 
 export const DEFAULT_LANDING_CONFIG: LandingConfig = {
   version: 1,
   enabled: true,
-  partnersSkipLanding: true,
+  partnersSkipLanding: false,
   hero: {
     badge: 'ویژهٔ همکاران و فروشگاه‌داران',
     titleBefore: 'تأمین هوشمند',

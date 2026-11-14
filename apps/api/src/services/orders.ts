@@ -18,6 +18,8 @@ import { missingProfileFields, type UserRow } from './auth.js';
 import { upsertOrderPayment } from './payments.js';
 import { applyWalletTransaction } from './wallet.js';
 import { getSetting } from './settings.js';
+import { getFlashSaleConfig } from './flash-sale.js';
+import { flashSalePrice } from '@tamas/shared';
 import { allocateInventory, type InventoryQuantities } from './inventory-policy.js';
 import { getPaymentTermsConfig, quotePaymentTerms, selectPaymentPlan } from './payment-terms.js';
 import { issueFirstPurchaseReward, validateCustomerDiscount } from './discounts.js';
@@ -117,6 +119,11 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
   }
   const lines = [...wanted.values()];
   const productIds = [...new Set(lines.map((l) => l.productId))];
+  // The daily timed sale is priced here, on the server, at the moment of ordering.
+  const flashSale = await getFlashSaleConfig();
+  const pricedAt = new Date();
+  const unitPrice = (product: { productId: string; price: number }) =>
+    flashSalePrice(flashSale, product.productId, product.price, pricedAt) ?? product.price;
 
   const walletPayment = input.paymentMethod?.trim() === 'wallet';
   if (walletPayment && input.paymentPlanId) {
@@ -189,14 +196,14 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           stockUpdates.push({ id: part.id, warehouse: line.warehouse, qty: requiredQty });
         }
         // Add bundle itself to order line items (but stockUpdates only has parts)
-        subtotal += product.price * line.qty;
+        subtotal += unitPrice(product) * line.qty;
         toInsert.push({
           orderId: 0,
           productId: product.productId,
           sku: product.sku,
           title: product.title,
           color: product.color,
-          price: product.price,
+          price: unitPrice(product),
           costPrice: product.costPrice,
           qty: line.qty,
           warehouse: line.warehouse,
@@ -211,14 +218,14 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           );
         }
 
-        subtotal += product.price * line.qty;
+        subtotal += unitPrice(product) * line.qty;
         toInsert.push({
           orderId: 0,
           productId: product.productId,
           sku: product.sku,
           title: product.title,
           color: product.color,
-          price: product.price,
+          price: unitPrice(product),
           costPrice: product.costPrice,
           qty: line.qty,
           warehouse: line.warehouse,
@@ -236,7 +243,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     let paymentInstructionsPending = false;
     const paymentQuote = quotePaymentTerms(lines.map((line) => {
       const product = byId.get(line.productId)!;
-      return { categoryId: product.categoryId, price: product.price, qty: line.qty, sellType: product.sellType };
+      return { categoryId: product.categoryId, price: unitPrice(product), qty: line.qty, sellType: product.sellType };
     }), paymentTermsConfig);
     if (paymentQuote.enforcedSettlement && !input.paymentPlanId) {
       throw badRequest(paymentQuote.message ?? 'روش تسویه این فاکتور باید مطابق محدودیت کالاها انتخاب شود.');

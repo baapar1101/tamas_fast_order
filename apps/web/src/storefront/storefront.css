@@ -3562,3 +3562,11 @@
   font-size: 0.8rem;
   font-weight: 700;
 }
+
+/* Daily timed sale («۴ ساعت فروش با پَ مَ سود») */
+.sell-badge.flash-sale-badge {
+  background: linear-gradient(90deg, #f05a28, #e11d48);
+  color: #fff;
+  border-color: transparent;
+  font-weight: 700;
+}

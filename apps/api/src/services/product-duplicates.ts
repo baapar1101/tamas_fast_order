@@ -38,11 +38,21 @@ export async function loadDuplicateCandidates(): Promise<DuplicateCandidate[]> {
     .where(isNull(products.deletedAt));
 }
 
+export interface DuplicateMatchOptions {
+  /**
+   * Imports identify products by their accounting code (SKU / product code)
+   * alone: a product renamed on the site, or two products sharing a name,
+   * must not be matched by title, model or colour.
+   */
+  codesOnly?: boolean;
+}
+
 /** Finds a logical duplicate among `rows` without confusing different colour/model variants. */
 export function matchProductDuplicate(
   rows: DuplicateCandidate[],
   input: ProductIdentityInput,
   excludeId?: number,
+  options: DuplicateMatchOptions = {},
 ): ProductDuplicate | null {
   const productId = normalizeProductIdentity(input.productId);
   const sku = normalizeProductIdentity(input.sku);
@@ -57,6 +67,7 @@ export function matchProductDuplicate(
     if (sku && normalizeProductIdentity(row.sku) === sku) {
       return { id: row.id, productId: row.productId, title: row.title, reason: 'sku' };
     }
+    if (options.codesOnly) continue;
     if (sourceId && productSourceId(row.digikalaLink) === sourceId) {
       return { id: row.id, productId: row.productId, title: row.title, reason: 'source' };
     }
@@ -71,8 +82,9 @@ export function matchProductDuplicate(
 export async function findProductDuplicate(
   input: ProductIdentityInput,
   excludeId?: number,
+  options: DuplicateMatchOptions = {},
 ): Promise<ProductDuplicate | null> {
-  return matchProductDuplicate(await loadDuplicateCandidates(), input, excludeId);
+  return matchProductDuplicate(await loadDuplicateCandidates(), input, excludeId, options);
 }
 
 export function duplicateProductMessage(duplicate: ProductDuplicate): string {

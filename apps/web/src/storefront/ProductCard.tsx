@@ -61,6 +61,11 @@ function productTitleClass(title: string): string {
   return '';
 }
 
+/** «۳۰٪ تخفیف» for the timed-sale badge. */
+function formatPercent(percent: number): string {
+  return `${percent.toLocaleString('fa-IR')}٪ تخفیف`;
+}
+
 export const ProductCard = memo(function ProductCard({ group, colorMap, canViewPrices, viewMode = 'grid', cartLines, onAdd, onUpdateQty, onPreview }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const isFav = useFavorites((state) => state.items.some((item) => group.variants.some((variant) => variant.productId === item.productId)));
@@ -129,6 +134,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                       )}
                     </div>
                     <div className="sell-types">
+                      {v.flashSale && <span className="sell-badge flash-sale-badge">فروش ویژه · {formatPercent(v.discount)}</span>}
                       {types.map((t) => (
                         <span key={t.label} className="sell-badge">
                           <Icon name={t.icon} /> {t.label}
@@ -270,6 +276,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
             </div>
 
           <div className="sell-types">
+            {selectedVariant.flashSale && <span className="sell-badge flash-sale-badge">فروش ویژه · {formatPercent(selectedVariant.discount)}</span>}
             {sellTypes(selectedVariant.sellType).map((t) => (
               <span key={t.label} className="sell-badge">
                 <Icon name={t.icon} /> {t.label}

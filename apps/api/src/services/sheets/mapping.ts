@@ -374,9 +374,9 @@ export const productMapping: EntityMapping = {
       await db.update(products).set(values).where(eq(products.id, existing.id));
       return 'updated';
     }
-    // A different sheet key must not create a second copy of the same logical
-    // product (same SKU/source or same title + model + colour).
-    const duplicate = await findProductDuplicate(values);
+    // A different sheet key must not create a second copy of the same product.
+    // Only the SKU identifies it: names are edited on the site and may differ.
+    const duplicate = await findProductDuplicate(values, undefined, { codesOnly: true });
     if (duplicate) return 'skipped';
     await db.insert(products).values(values);
     return 'created';

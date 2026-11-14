@@ -28,6 +28,7 @@ import { shopHref } from './landing/shopLinks';
 import './storefront.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
+  featured: 'پیشنهادی',
   price_asc: 'ارزان‌ترین',
   price_desc: 'گران‌ترین',
   newest: 'جدیدترین',
@@ -96,7 +97,7 @@ export function StorefrontPage() {
   const [brands, setBrands] = useState<string[]>(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
   const [promotion, setPromotion] = useState(searchParams.get('promo') === '1');
   const [basketOnly, setBasketOnly] = useState(searchParams.get('basket') === '1' || searchParams.get('credit') === '1');
-  const [sort, setSort] = useState<CatalogFilters['sort']>((searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc');
+  const [sort, setSort] = useState<CatalogFilters['sort']>((searchParams.get('sort') as CatalogFilters['sort']) || 'featured');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'grid');
   const [mobileTab, setMobileTab] = useState<MobileAppTab>(() => (
     location.hash === '#cart' ? 'cart' : parseMobileTab(searchParams.get('tab'))
@@ -129,7 +130,7 @@ export function StorefrontPage() {
     params.delete('credit');
     // Legacy links: stock is always enforced and the list loads endlessly.
     params.delete('stock');
-    if (sort !== 'price_asc') params.set('sort', sort); else params.delete('sort');
+    if (sort !== 'featured') params.set('sort', sort); else params.delete('sort');
     params.delete('page');
     if (viewMode !== 'grid') params.set('view', viewMode); else params.delete('view');
     if (mobileTab !== 'home') params.set('tab', mobileTab); else params.delete('tab');
@@ -159,7 +160,7 @@ export function StorefrontPage() {
     const basket = searchParams.get('basket') === '1' || searchParams.get('credit') === '1';
     if (basketOnly !== basket) setBasketOnly(basket);
 
-    const s = (searchParams.get('sort') as CatalogFilters['sort']) || 'price_asc';
+    const s = (searchParams.get('sort') as CatalogFilters['sort']) || 'featured';
     if (sort !== s) setSort(s);
 
     const v = (searchParams.get('view') as 'list' | 'grid') || 'grid';

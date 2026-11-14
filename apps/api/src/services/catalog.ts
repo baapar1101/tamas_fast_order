@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gt, inArray, isNull, not, or, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray, isNull, not, or, sql, type SQL } from 'drizzle-orm';
 import type { BrandDTO, BundleContentDTO, CatalogQuery, CategoryDTO, ColorDTO, ProductDTO, ProductGroupDTO } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { brands, categories, categoryBrands, colors, products } from '../db/schema.js';
@@ -8,6 +8,7 @@ import { resolveBundleContents } from './bundle-contents.js';
 import { offsetOf } from '../lib/pagination.js';
 import { jsonArray, productAttributes, productGallery } from '../lib/catalog-json.js';
 import { getSetting } from './settings.js';
+import { applyFlashSale, flashSaleCacheTag, getFlashSaleConfig } from './flash-sale.js';
 
 type ProductRow = typeof products.$inferSelect;
 
@@ -102,6 +103,41 @@ const sellableProduct = () =>
     or(gt(products.stock, 0), gt(products.kermanStock, 0), gt(products.tehranStock, 0)),
   );
 
+/**
+ * The default storefront order. Within each category, models are ranked:
+ * with a photo first, real brands before generic «متفرقه», the admin's product
+ * order, then the more valuable models. Pages then interleave the categories
+ * (each category's best model in the admin's category order, then each one's
+ * second best, …) so the catalog opens on a varied, premium mix instead of a
+ * wall of cheap adapters or of one category.
+ */
+async function featuredTitles(where: SQL | undefined, groupKeyExpr: SQL<string>, limit: number, offset: number): Promise<Array<{ title: string }>> {
+  const rows = await db.execute(sql`
+    with g as (
+      select ${groupKeyExpr} as title,
+        max(case when coalesce(${products.imageUrl}, '') <> '' then 1 else 0 end) as has_image,
+        min(coalesce(${categories.sortOrder}, 9999)) as category_order,
+        min(coalesce(${products.categoryId}, 0)) as category_id,
+        max(case when ${brands.name} = 'OTHER' or ${brands.faName} = 'متفرقه' then 1 else 0 end) as generic,
+        min(${products.sortOrder}) as manual_order,
+        coalesce(min(nullif(${products.price}, 0)), 0) as price
+      from ${products}
+      left join ${categories} on ${categories.id} = ${products.categoryId}
+      left join ${brands} on ${brands.id} = ${products.brandId}
+      where ${where ?? sql`true`}
+      group by 1
+    ), ranked as (
+      select title, has_image, category_order,
+        row_number() over (partition by category_id, has_image order by generic, manual_order, price desc, title) as rank_in_category
+      from g
+    )
+    select title from ranked
+    order by has_image desc, rank_in_category, category_order, title
+    limit ${limit} offset ${offset}
+  `);
+  return rows as unknown as Array<{ title: string }>;
+}
+
 export async function queryProducts(q: CatalogQuery): Promise<{
   groups: ProductGroupDTO[];
   total: number;
@@ -109,7 +145,9 @@ export async function queryProducts(q: CatalogQuery): Promise<{
   perPage: number;
 }> {
   const campaignActive = (await getSetting('campaign_mode'))?.startsWith('2026-11') ?? false;
-  const cacheKey = `products:${campaignActive}:${JSON.stringify(q)}`;
+  const flashSale = await getFlashSaleConfig();
+  const saleNow = new Date();
+  const cacheKey = `products:${campaignActive}:${flashSaleCacheTag(flashSale, saleNow)}:${JSON.stringify(q)}`;
   const cached = catalogCache.get(cacheKey) as
     | { groups: ProductGroupDTO[]; total: number; page: number; perPage: number }
     | undefined;
@@ -149,20 +187,22 @@ export async function queryProducts(q: CatalogQuery): Promise<{
   // Order the complete model set before slicing pages. Sorting only the rows
   // on the current alphabetical page makes price/newest filters misleading.
   const modelPrice = sql`coalesce(min(nullif(${products.price}, 0)), 0)`;
-  const ordering = q.sort === 'price_asc' ? asc(modelPrice)
-    : q.sort === 'price_desc' ? desc(modelPrice)
-    : q.sort === 'newest' ? desc(sql`max(${products.createdAt})`)
-    : asc(groupKeyExpr);
-  const titleRows = await db
-    .select({ title: groupKeyExpr })
-    .from(products)
-    .leftJoin(categories, eq(categories.id, products.categoryId))
-    .leftJoin(brands, eq(brands.id, products.brandId))
-    .where(where)
-    .groupBy(groupKeyExpr)
-    .orderBy(ordering, asc(groupKeyExpr))
-    .limit(q.perPage)
-    .offset(offsetOf(q));
+  const orderings = q.sort === 'price_asc' ? [asc(modelPrice)]
+    : q.sort === 'price_desc' ? [desc(modelPrice)]
+    : q.sort === 'newest' ? [desc(sql`max(${products.createdAt})`)]
+    : [];
+  const titleRows = q.sort === 'featured'
+    ? await featuredTitles(where, groupKeyExpr, q.perPage, offsetOf(q))
+    : await db
+      .select({ title: groupKeyExpr })
+      .from(products)
+      .leftJoin(categories, eq(categories.id, products.categoryId))
+      .leftJoin(brands, eq(brands.id, products.brandId))
+      .where(where)
+      .groupBy(groupKeyExpr)
+      .orderBy(...orderings, asc(groupKeyExpr))
+      .limit(q.perPage)
+      .offset(offsetOf(q));
 
   const [totalRow] = await db
     .select({ n: sql<number>`count(distinct COALESCE(NULLIF(${products.parentProductId}, ''), ${products.title}))::int` })
@@ -192,7 +232,7 @@ export async function queryProducts(q: CatalogQuery): Promise<{
 
   const byTitle = new Map<string, ProductGroupDTO>();
   for (const row of variantRows) {
-    const dto = toProductDTO(row.product, row.category, row.brand);
+    const dto = applyFlashSale(toProductDTO(row.product, row.category, row.brand), flashSale, saleNow);
     if (campaignActive && !dto.promotion) {
       dto.stock = 0;
       dto.kermanStock = 0;
@@ -322,9 +362,12 @@ export async function findProductByPublicId(
   if (!row) return null;
 
   const campaignActive = !options.adminPreview && ((await getSetting('campaign_mode'))?.startsWith('2026-11') ?? false);
-  const maskUnavailable = (product: ProductDTO): ProductDTO => campaignActive && !product.promotion
-    ? { ...product, stock: 0, kermanStock: 0, tehranStock: 0 }
-    : product;
+  const flashSale = await getFlashSaleConfig();
+  const saleNow = new Date();
+  const maskUnavailable = (dto: ProductDTO): ProductDTO => {
+    const product = applyFlashSale(dto, flashSale, saleNow);
+    return campaignActive && !product.promotion ? { ...product, stock: 0, kermanStock: 0, tehranStock: 0 } : product;
+  };
   const mainProduct = maskUnavailable(toProductDTO(row.product, row.category, row.brand));
   let bundleContents: BundleContentDTO[] = [];
   if (mainProduct.bundleItems.length > 0) {
