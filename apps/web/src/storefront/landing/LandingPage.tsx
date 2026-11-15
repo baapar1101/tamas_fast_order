@@ -25,6 +25,7 @@ import {
 import {
   formatMoney,
   formatNumber,
+  hasRealDiscount,
   type BrandDTO,
   type CategoryDTO,
   type LandingBenefitIcon,
@@ -383,6 +384,9 @@ function FeaturedCard({ group, canViewPrices }: { group: ProductGroupDTO; canVie
   const brand = first.brandFaName || first.brandName;
   const prices = group.variants.map((variant) => variant.price).filter((price) => price > 0);
   const varies = new Set(prices).size > 1;
+  // The cheapest variant's price before its discount, when it has a real one.
+  const cheapest = group.variants.filter((variant) => variant.price > 0).sort((a, b) => a.price - b.price)[0];
+  const oldPrice = cheapest && hasRealDiscount(cheapest.price, cheapest.oldPrice) ? cheapest.oldPrice : null;
   return (
     <GlowCard className="h-full rounded-2xl border border-base-100 bg-card-background-50 transition duration-200 hover:-translate-y-1 hover:shadow-xl">
       <Link to={`/p/${first.productId}`} className="flex h-full flex-col">
@@ -402,7 +406,10 @@ function FeaturedCard({ group, canViewPrices }: { group: ProductGroupDTO; canVie
           {group.variants.length > 1 && <span className="text-xs text-text-200">{formatNumber(group.variants.length)} تنوع</span>}
           <div className="mt-auto flex items-center justify-between gap-2 pt-3">
             {canViewPrices && prices.length > 0 ? (
-              <span className="text-sm font-black text-title-50">{varies && <small className="font-normal text-text-100">از </small>}{formatMoney(Math.min(...prices))}</span>
+              <span className="flex flex-col">
+                {oldPrice && <span className="text-[11px] font-medium text-text-200 line-through decoration-rose-600 decoration-[1.5px]">{formatMoney(oldPrice)}</span>}
+                <span className="text-sm font-black text-title-50">{varies && <small className="font-normal text-text-100">از </small>}{formatMoney(Math.min(...prices))}</span>
+              </span>
             ) : (
               <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg bg-background-soft-100 px-2 py-1.5 text-[11px] font-medium text-text-100 sm:gap-1.5 sm:px-2.5 sm:text-xs"><Lock className="size-3.5" /> قیمت همکاری</span>
             )}

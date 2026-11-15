@@ -1614,6 +1614,29 @@
   letter-spacing: -0.5px;
 }
 
+/* The price before a discount: smaller, muted and struck through in red.
+   The decoration sits on the inner Price span, because a line-through does
+   not reach inside an inline-flex child. */
+.card-old-price {
+  display: block;
+  width: fit-content;
+  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--ds-text-muted, #94a3b8);
+}
+
+.card-old-price > span {
+  text-decoration: line-through;
+  text-decoration-color: #e11d48;
+  text-decoration-thickness: 1.5px;
+}
+
+.card-old-price img {
+  opacity: 0.55 !important;
+}
+
 .price-obscured {
   filter: blur(6px);
   opacity: 0.72;

@@ -698,11 +698,7 @@
   }
 
   .pp-mobile-price .card-old-price {
-    display: block;
     font-size: var(--ds-text-caption);
-    color: var(--text-muted, #94a3b8);
-    text-decoration: line-through;
-    margin-bottom: 2px;
   }
 
   .pp-mobile-price-note {

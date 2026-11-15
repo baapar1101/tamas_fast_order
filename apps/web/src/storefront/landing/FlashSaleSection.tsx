@@ -82,7 +82,7 @@ function SaleCard({ item, active, startHour, canViewPrices }: { item: FlashSaleS
           {canViewPrices ? (
             <div className="flex flex-wrap items-baseline gap-x-2">
               <span className="text-base font-black text-orange-600 dark:text-orange-400">{formatMoney(item.salePrice)}</span>
-              <span className="text-xs text-text-200 line-through">{formatMoney(item.regularPrice)}</span>
+              <span className="text-[11px] text-text-200 line-through decoration-rose-600 decoration-[1.5px]">{formatMoney(item.regularPrice)}</span>
             </div>
           ) : (
             <span className="inline-flex items-center gap-1 rounded-lg bg-background-soft-100 px-2 py-1.5 text-xs font-medium text-text-100"><Lock className="size-3.5" /> قیمت همکاری</span>
