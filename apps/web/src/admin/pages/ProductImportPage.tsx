@@ -182,7 +182,14 @@ export function ProductImportPage() {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'taxonomy'] });
     }
-    toast.ok(`ایمپورت تمام شد: ${formatNumber(created)} کالا ساخته شد.`);
+    const duplicates = collected.filter((row) => row.status === 'duplicate').length;
+    const errors = collected.filter((row) => row.status === 'error').length;
+    const parts = [`${formatNumber(created)} کالا ساخته شد`];
+    if (duplicates) parts.push(`${formatNumber(duplicates)} کالا از قبل در سایت بود و تغییری نکرد`);
+    if (errors) parts.push(`${formatNumber(errors)} ردیف خطا داشت`);
+    const summary = `ایمپورت تمام شد: ${parts.join('، ')}.`;
+    if (created || !errors) toast.ok(summary);
+    else toast.error(summary);
   };
 
   const exportResults = async () => {
