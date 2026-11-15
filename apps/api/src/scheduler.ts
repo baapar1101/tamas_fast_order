@@ -18,6 +18,7 @@ import { pruneFunnelEvents, runFunnelAutomation } from './services/funnel.js';
  */
 export function startScheduler(log: FastifyBaseLogger): () => void {
   const timers: NodeJS.Timeout[] = [];
+  let mirrorRetry: NodeJS.Timeout | undefined;
   const nativeCampaigns = async () => {
     try { await processNativeCampaigns(); } catch (err) { log.error({ err }, 'app notification queue failed'); }
   };
@@ -48,7 +49,16 @@ export function startScheduler(log: FastifyBaseLogger): () => void {
   if (env.PRODUCT_IMAGE_MIRROR_ENABLED && env.PRODUCT_IMAGE_MIRROR_INTERVAL_SECONDS > 0) {
     const interval = env.PRODUCT_IMAGE_MIRROR_INTERVAL_SECONDS * 1000;
     const mirrorImages = async () => {
-      if (isProductImageMirrorRunning() || isSyncRunning()) return;
+      if (isProductImageMirrorRunning()) return;
+      // Both jobs start on the same 300s beat, so skipping while the sheets
+      // pass runs used to skip every time; try again once it has finished.
+      if (isSyncRunning()) {
+        mirrorRetry ??= setTimeout(() => {
+          mirrorRetry = undefined;
+          void mirrorImages();
+        }, 30_000);
+        return;
+      }
       try {
         const report = await mirrorProductImages();
         if (report.localizedImages > 0 || report.failedImages > 0) {
@@ -141,6 +151,7 @@ export function startScheduler(log: FastifyBaseLogger): () => void {
   timers.push(setInterval(() => void housekeeping(), 6 * 3600 * 1000));
 
   return () => {
+    if (mirrorRetry) clearTimeout(mirrorRetry);
     for (const t of timers) {
       clearTimeout(t);
       clearInterval(t);

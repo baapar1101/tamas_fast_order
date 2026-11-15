@@ -19,10 +19,27 @@ export interface StorefrontSlide {
   linkUrl: string | null;
 }
 
+declare global {
+  interface Window {
+    /** The bootstrap request index.html starts before the app loads; used once. */
+    __tamasBootstrap?: Promise<(BootstrapData & { ok?: boolean }) | null>;
+  }
+}
+
+async function fetchBootstrap(): Promise<BootstrapData> {
+  const early = window.__tamasBootstrap;
+  if (early) {
+    window.__tamasBootstrap = undefined;
+    const data = await early;
+    if (data?.ok && Array.isArray(data.categories)) return data;
+  }
+  return api.get<BootstrapData>('/catalog/bootstrap');
+}
+
 export function useBootstrap() {
   return useQuery({
     queryKey: ['bootstrap'],
-    queryFn: () => api.get<BootstrapData>('/catalog/bootstrap'),
+    queryFn: fetchBootstrap,
     staleTime: 5 * 60_000,
   });
 }

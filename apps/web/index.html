@@ -35,6 +35,16 @@
         }
       })();
     </script>
+    <script>
+      // Start the storefront's first data request while the app's scripts are
+      // still downloading; useBootstrap picks the result up (src/storefront/hooks.ts).
+      (function() {
+        if (/^\/admin(\/|$)/.test(window.location.pathname) || !window.fetch) return;
+        window.__tamasBootstrap = fetch('/api/catalog/bootstrap', { credentials: 'same-origin' })
+          .then(function(res) { return res.ok ? res.json() : null; })
+          .catch(function() { return null; });
+      })();
+    </script>
   </head>
   <body>
     <script>
