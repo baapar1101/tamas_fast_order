@@ -8,6 +8,7 @@ import {
   type PaymentTermsQuoteResult,
 } from '@tamas/shared';
 import { getSetting } from './settings.js';
+import { getFestivalState } from './festival.js';
 
 export interface PaymentTermsProductLine {
   categoryId: number | null;
@@ -17,11 +18,11 @@ export interface PaymentTermsProductLine {
 }
 
 export async function getPaymentTermsConfig(): Promise<PaymentTermsConfig> {
-  const [raw, campaignMode] = await Promise.all([
+  const [raw, festival] = await Promise.all([
     getSetting(PAYMENT_TERMS_SETTING_KEY),
-    getSetting('campaign_mode'),
+    getFestivalState(),
   ]);
-  return { ...parsePaymentTermsConfig(raw), festivalActive: campaignMode?.startsWith('2026-11') ?? false };
+  return { ...parsePaymentTermsConfig(raw), festivalActive: festival.festivalPaymentTerms };
 }
 
 export function quotePaymentTerms(

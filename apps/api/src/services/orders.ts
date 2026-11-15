@@ -18,6 +18,7 @@ import { missingProfileFields, type UserRow } from './auth.js';
 import { upsertOrderPayment } from './payments.js';
 import { applyWalletTransaction } from './wallet.js';
 import { getSetting } from './settings.js';
+import { getFestivalState } from './festival.js';
 import { getFlashSaleConfig } from './flash-sale.js';
 import { flashSalePrice } from '@tamas/shared';
 import { allocateInventory, type InventoryQuantities } from './inventory-policy.js';
@@ -140,7 +141,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
   }
 
   const [paymentRouting, paymentTermsConfig] = await Promise.all([getPaymentRoutingConfig(), getPaymentTermsConfig()]);
-  const campaignActive = (await getSetting('campaign_mode'))?.startsWith('2026-11') ?? false;
+  const campaignActive = (await getFestivalState()).onlyFestivalProducts;
   const created = await db.transaction(async (tx) => {
     let rows = await tx
       .select()

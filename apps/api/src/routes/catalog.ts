@@ -1,12 +1,13 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { desc, eq } from 'drizzle-orm';
-import { catalogQuerySchema } from '@tamas/shared';
+import { catalogQuerySchema, festivalSlides } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { slides } from '../db/schema.js';
 import { notFound } from '../lib/errors.js';
 import { findProductByPublicId, listBrands, listCategories, listColors, queryProducts } from '../services/catalog.js';
 import { getPublicSettings } from '../services/settings.js';
 import { flashSaleShowcase } from '../services/flash-sale.js';
+import { getFestivalState } from '../services/festival.js';
 
 const GOLDEN_CAMPAIGN_IMAGE_URL = '/assets/slides/golden-days-2026-10.webp';
 // Midnight at the start of 21 Mehr 1405 in Tehran.
@@ -58,11 +59,12 @@ const routes: FastifyPluginAsync = async (app) => {
 
   /** One round trip for the whole first render: taxonomy + settings together. */
   app.get('/catalog/bootstrap', async (_req, reply) => {
-    const [categories, brands, colors, settings, activeSlides] = await Promise.all([
+    const [categories, brands, colors, settings, festival, activeSlides] = await Promise.all([
       listCategories(),
       listBrands(),
       listColors(),
       getPublicSettings(),
+      getFestivalState(),
       db.select({
         id: slides.id,
         title: slides.title,
@@ -73,9 +75,11 @@ const routes: FastifyPluginAsync = async (app) => {
     ]);
     // Store configuration changes must not leave an old public projection in caches.
     reply.header('cache-control', 'no-store');
-    const visibleSlides = Date.now() >= GOLDEN_CAMPAIGN_END_AT
+    const campaignSlides = Date.now() >= GOLDEN_CAMPAIGN_END_AT
       ? activeSlides.filter((slide) => slide.imageUrl !== GOLDEN_CAMPAIGN_IMAGE_URL)
       : activeSlides;
+    // Festival banners show only while the festival runs (and may hide the rest).
+    const visibleSlides = festivalSlides(campaignSlides, festival);
     return { ok: true, categories, brands, colors, settings, slides: visibleSlides };
   });
 };

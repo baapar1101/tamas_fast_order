@@ -6,6 +6,7 @@ import { api } from '../../lib/api';
 import './settings-layout.css';
 import { PaymentMethodsSettings } from '../components/PaymentMethodsSettings';
 import { PaymentTermsSettings } from '../components/PaymentTermsSettings';
+import { FestivalSettings } from '../components/FestivalSettings';
 import {
   CUSTOMER_DISCOUNT_SETTING_KEY,
   PAYMENT_ROUTING_SETTING_KEY,
@@ -180,7 +181,7 @@ const KNOWN_SETTINGS = [
   { key: 'store_address', label: 'آدرس فروشگاه', textarea: true },
 ] as const;
 
-type SettingsTabId = 'general' | 'storefront-filters' | 'payment' | 'payment-terms' | 'financial-automation' | 'wallet' | 'telegram' | 'customer-telegram' | 'arvan' | 'crm' | 'tools' | 'logs';
+type SettingsTabId = 'general' | 'storefront-filters' | 'festival' | 'payment' | 'payment-terms' | 'financial-automation' | 'wallet' | 'telegram' | 'customer-telegram' | 'arvan' | 'crm' | 'tools' | 'logs';
 
 const SETTINGS_SECTIONS: { title: string; tabs: { id: SettingsTabId; label: string; hint: string }[] }[] = [
   {
@@ -188,6 +189,7 @@ const SETTINGS_SECTIONS: { title: string; tabs: { id: SettingsTabId; label: stri
     tabs: [
       { id: 'general', label: 'اطلاعات فروشگاه', hint: 'نام، تماس، آدرس و دامنه' },
       { id: 'storefront-filters', label: 'فیلترهای صفحه اصلی', hint: 'فیلترهای قابل مشاهده برای مشتری' },
+      { id: 'festival', label: 'جشنواره', hint: 'روشن، خاموش یا زمان‌بندی خودکار' },
     ],
   },
   {
@@ -334,7 +336,13 @@ export function SettingsPage() {
   }, [settings.data]);
 
   const save = useMutation({
-    mutationFn: (body: Record<string, string>) => api.put<{ message: string }>('/admin/settings', body),
+    // Send only what changed since the page loaded, so saving one tab never
+    // writes back a stale copy of a setting another screen has since saved.
+    mutationFn: (body: Record<string, string>) => {
+      const loaded = settings.data?.settings ?? {};
+      const changed = Object.fromEntries(Object.entries(body).filter(([key, value]) => loaded[key] !== value));
+      return api.put<{ message: string }>('/admin/settings', changed);
+    },
     onSuccess: (res) => {
       toast.ok(res.message ?? 'تنظیمات با موفقیت ذخیره شد.');
       void qc.invalidateQueries({ queryKey: ['admin', 'settings'] });
@@ -510,6 +518,8 @@ export function SettingsPage() {
           isSaving={save.isPending}
         />
       )}
+
+      {activeTab === 'festival' && <FestivalSettings />}
 
       {activeTab === 'payment-terms' && (
         <PaymentTermsSettings

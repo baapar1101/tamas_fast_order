@@ -7,7 +7,7 @@ import { sanitizeExternalText } from '../lib/external-content.js';
 import { resolveBundleContents } from './bundle-contents.js';
 import { offsetOf } from '../lib/pagination.js';
 import { jsonArray, productAttributes, productGallery } from '../lib/catalog-json.js';
-import { getSetting } from './settings.js';
+import { getFestivalState } from './festival.js';
 import { applyFlashSale, flashSaleCacheTag, getFlashSaleConfig } from './flash-sale.js';
 
 type ProductRow = typeof products.$inferSelect;
@@ -144,7 +144,7 @@ export async function queryProducts(q: CatalogQuery): Promise<{
   page: number;
   perPage: number;
 }> {
-  const campaignActive = (await getSetting('campaign_mode'))?.startsWith('2026-11') ?? false;
+  const campaignActive = (await getFestivalState()).onlyFestivalProducts;
   const flashSale = await getFlashSaleConfig();
   const saleNow = new Date();
   const cacheKey = `products:${campaignActive}:${flashSaleCacheTag(flashSale, saleNow)}:${JSON.stringify(q)}`;
@@ -361,7 +361,7 @@ export async function findProductByPublicId(
 
   if (!row) return null;
 
-  const campaignActive = !options.adminPreview && ((await getSetting('campaign_mode'))?.startsWith('2026-11') ?? false);
+  const campaignActive = !options.adminPreview && (await getFestivalState()).onlyFestivalProducts;
   const flashSale = await getFlashSaleConfig();
   const saleNow = new Date();
   const maskUnavailable = (dto: ProductDTO): ProductDTO => {
