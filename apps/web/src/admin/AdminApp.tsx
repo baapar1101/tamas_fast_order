@@ -5,6 +5,7 @@ import { formatNumber } from '@tamas/shared';
 import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { SmokeyBackground } from './components/SmokeyBackground';
+import { AdminPasswordLogin } from './components/AdminPasswordLogin';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
 import './reference.css';
@@ -615,6 +616,7 @@ export default function AdminApp() {
               ? 'حساب کاربری شما دسترسی به پنل مدیریت ندارد.'
               : 'برای ورود به پنل مدیریت، ابتدا از فروشگاه وارد حساب کاربری خود شوید.'}
           </p>
+          {!user && <AdminPasswordLogin />}
           <Link
             to="/"
             className="huma-btn-primary admin-entry-action"

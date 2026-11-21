@@ -1,7 +1,10 @@
-import { eq } from 'drizzle-orm';
+import { and, asc, eq, isNull } from 'drizzle-orm';
+import { z } from 'zod';
 import type { FastifyPluginAsync } from 'fastify';
 import {
   isValidJalaliDate,
+  isValidPhone,
+  normalizePhone,
   normalizeJalaliDate,
   normalizeLandline,
   otpRequestSchema,
@@ -14,7 +17,9 @@ import {
 } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { users } from '../db/schema.js';
-import { env } from '../env.js';
+import { adminPhones, env } from '../env.js';
+import { adminCredentialsMatch, adminLoginEnabled } from '../lib/admin-login.js';
+import { logAction } from '../services/audit.js';
 import { claimPrivateFile } from '../services/private-files.js';
 import { setBrowserSession } from '../plugins/auth.js';
 import { AppError, badRequest } from '../lib/errors.js';
@@ -100,6 +105,61 @@ const routes: FastifyPluginAsync = async (app) => {
         complete: missing.length === 0,
         missing,
       };
+    },
+  );
+
+  /** Whether the admin panel should offer the environment username/password form. */
+  app.get('/auth/admin/login', async () => ({
+    ok: true,
+    enabled: adminLoginEnabled({ username: env.ADMIN_LOGIN_USERNAME, password: env.ADMIN_LOGIN_PASSWORD }),
+  }));
+
+  /**
+   * Admin sign-in with ADMIN_LOGIN_USERNAME / ADMIN_LOGIN_PASSWORD from the
+   * environment, for when SMS codes cannot be delivered. Signs in as the
+   * admin account of ADMIN_LOGIN_PHONE (else the first ADMIN_PHONES number,
+   * else the oldest admin) and makes sure that account is an active admin.
+   */
+  app.post(
+    '/auth/admin/login',
+    { config: { rateLimit: { max: 8, timeWindow: '15 minutes' } } },
+    async (req, reply) => {
+      const config = { username: env.ADMIN_LOGIN_USERNAME, password: env.ADMIN_LOGIN_PASSWORD };
+      if (!adminLoginEnabled(config)) {
+        throw new AppError('ورود مدیر با نام کاربری و رمز فعال نیست.', 404, 'not_enabled');
+      }
+      const body = z.object({ username: z.string().max(200), password: z.string().max(500) }).parse(req.body);
+      if (!adminCredentialsMatch(config, body.username, body.password)) {
+        req.log.warn({ ip: req.ip }, 'admin password login rejected');
+        throw badRequest('نام کاربری یا رمز عبور اشتباه است.');
+      }
+
+      const phoneSource = env.ADMIN_LOGIN_PHONE || adminPhones[0] || '';
+      let account: typeof users.$inferSelect | undefined;
+      if (phoneSource) {
+        const phone = normalizePhone(phoneSource);
+        if (!isValidPhone(phone)) throw badRequest('شمارهٔ ADMIN_LOGIN_PHONE معتبر نیست.');
+        account = (await findOrCreateUser(phone)).row;
+      } else {
+        [account] = await db.select().from(users)
+          .where(and(eq(users.role, 'admin'), isNull(users.deletedAt)))
+          .orderBy(asc(users.id))
+          .limit(1);
+      }
+      if (!account) throw badRequest('حساب مدیر پیدا نشد؛ ADMIN_LOGIN_PHONE را تنظیم کنید.');
+      if (account.role !== 'admin' || !account.isActive || account.deletedAt) {
+        [account] = await db.update(users)
+          .set({ role: 'admin', isActive: true, deletedAt: null, updatedAt: new Date() })
+          .where(eq(users.id, account.id))
+          .returning();
+      }
+      if (!account) throw badRequest('حساب مدیر پیدا نشد.');
+
+      const token = await createSession(account.id, { ip: req.ip, userAgent: req.headers['user-agent'] });
+      setBrowserSession(reply, token);
+      await logAction(account.id, 'ADMIN_PASSWORD_LOGIN', 'user', String(account.id), { ip: req.ip });
+      const missing = missingProfileFields(account);
+      return { ok: true, token, user: toUserDTO(account), isNew: false, complete: missing.length === 0, missing };
     },
   );
 

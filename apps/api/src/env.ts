@@ -78,6 +78,15 @@ const envSchema = z.object({
 
   /** Bootstrap admin — the first phone number that may enter /admin. */
   ADMIN_PHONES: z.string().default(''),
+  /**
+   * Optional admin sign-in without SMS: a username and password kept only in
+   * the environment. Both must be set (password at least 12 characters) to
+   * turn it on. It signs in as ADMIN_LOGIN_PHONE, else the first ADMIN_PHONES
+   * number, else the oldest admin account.
+   */
+  ADMIN_LOGIN_USERNAME: z.string().trim().default(''),
+  ADMIN_LOGIN_PASSWORD: z.string().default(''),
+  ADMIN_LOGIN_PHONE: z.string().trim().default(''),
 
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   TRUST_PROXY: bool.default(false),
