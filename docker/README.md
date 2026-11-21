@@ -1,131 +1,161 @@
-# اجرای تماس مارکت با Docker
+# راه‌اندازی تماس مارکت با Docker
 
-کل سایت با یک دستور بالا می‌آید. این دستور چهار سرویس را اجرا می‌کند:
+سایت سه بخش دارد:
 
-| سرویس | کار |
-|---|---|
-| `db` | پایگاه داده PostgreSQL 16 |
-| `migrate` | ساختار پایگاه داده را به‌روز می‌کند و بعد بسته می‌شود |
-| `api` | سرور برنامه (Fastify) |
-| `web` | nginx: فروشگاه و پنل مدیریت را نمایش می‌دهد و `/api` و `/uploads` را به `api` می‌فرستد |
+| بخش | فایل | کار |
+|---|---|---|
+| پایگاه داده | PostgreSQL 16 | همهٔ اطلاعات فروشگاه |
+| API | `docker/api.Dockerfile` | سرور برنامه. موقع شروع، ساختار پایگاه داده را خودش به‌روز می‌کند. عکس‌ها و فایل‌ها را در `/data` نگه می‌دارد. |
+| وب | `docker/web.Dockerfile` | nginx: فروشگاه و پنل را نمایش می‌دهد و `/api` و `/uploads` را به API می‌فرستد. |
 
-فقط `web` روی پورت سرور باز است. پایگاه داده و API از بیرون در دسترس نیستند.
+- [الف) همروش (دارکوب)](#الف-همروش-دارکوب)
+- [ب) هر سروری که Docker دارد](#ب-هر-سروری-که-docker-دارد)
+- [بازگرداندن اطلاعات از بکاپ تلگرام](#بازگرداندن-اطلاعات-از-بکاپ-تلگرام)
 
-## پیش‌نیاز
+---
 
-- Docker Engine 24 یا جدیدتر به‌همراه Docker Compose v2 (`docker compose version`)
-- حداقل ۲ گیگابایت حافظه برای ساخت ایمیج‌ها
-- حدود ۳ گیگابایت فضای خالی دیسک
+## الف) همروش (دارکوب)
 
-## راه‌اندازی اول
+دارکوب هر بخش را یک «اپ» جدا می‌کند. دو راه دارید. **راه ۱ ساده‌تر است** و نیازی به رجیستری ندارد.
+
+### راه ۱ (پیشنهادی): ساخت مستقیم از GitHub
+
+همهٔ اپ‌ها را در **یک namespace** بسازید.
+
+**۱. پایگاه داده**
+
+- در کنسول: ساخت اپ ← دیتابیس ← PostgreSQL.
+- نام: `tamas-db`. پلن: دست‌کم ۱ گیگابایت حافظه.
+- «دسترسی از طریق اینترنت» را فعلاً خاموش بگذارید.
+- از تب «اطلاعات عمومی»، **آدرس داخلی** و **رمز کاربر postgres** را بردارید.
+- آدرس اتصال این شکل می‌شود:
+  ```
+  postgres://postgres:PASSWORD@INTERNAL_ADDRESS:5432/postgres
+  ```
+
+**۲. اپ API**
+
+- ساخت اپ ← از گیت‌هاب ← مخزن `baapar1101/tamas_fast_order`، شاخهٔ `dev`.
+- آدرس داکرفایل: `./docker/api.Dockerfile`. Build Context: `.`
+- نام اپ: `tamas-api`.
+- پورت: `3001`، با نام `http`. به این اپ دامنه ندهید.
+- Readiness Probe: مسیر `/health`.
+- دیسک: «افزودن دیسک»، دست‌کم ۱۰ گیگابایت، مسیر `/data`. Replica باید ۱ بماند.
+- متغیرهای محیطی: از روی [`docker/app.env.example`](app.env.example) پر کنید. دست‌کم این‌ها لازم‌اند:
+  - `DATABASE_URL`: آدرس مرحلهٔ ۱
+  - `APP_SECRET`: رشتهٔ تصادفی بلند (`openssl rand -hex 32`)
+  - `PUBLIC_SITE_URL` و `CORS_ORIGINS`: آدرس دامنهٔ سایت، مثلاً `https://tamasmarket.com`
+  - `TRUST_PROXY=true`
+  - `ADMIN_PHONES`: شمارهٔ موبایل مدیر
+  - تنظیمات پیامک، CRM، زحل و درگاه پرداخت
+- بعد از ساخت، در صفحهٔ اپ **آدرس داخلی** آن را ببینید. مرحلهٔ بعد به آن نیاز دارد.
+
+**۳. اپ وب**
+
+- همان مخزن و شاخه.
+- آدرس داکرفایل: `./docker/web.Dockerfile`. Build Context: `.`
+- نام اپ: `tamas-web`.
+- پورت: `80`، با نام `http`.
+- متغیر محیطی:
+  ```
+  API_UPSTREAM=<آدرس داخلی tamas-api>:3001
+  ```
+  اگر دو اپ در یک namespace باشند، `tamas-api:3001` هم کار می‌کند.
+- دامنه: در تب «آدرس دامنه» دامنهٔ خودتان را اضافه کنید و رکورد CNAME را در DNS بسازید. SSL را با روش HTTP فعال کنید و HTTPS Redirect را روشن کنید. اگر Cloudflare یا ابر آروان دارید، پراکسی یا CDN آن رکورد را خاموش کنید.
+
+«دیپلوی خودکار بعد از push» را برای هر دو اپ روشن کنید تا هر تغییر کد خودکار منتشر شود.
+
+### راه ۲: ایمپورت Docker Compose
+
+ایمپورت compose در دارکوب ایمیج نمی‌سازد و ایمیج آماده می‌خواهد.
+
+۱. در GitHub به Actions ← «Docker images» ← Run workflow بروید. ایمیج‌های `ghcr.io/baapar1101/tamas-api:dev` و `tamas-web:dev` ساخته می‌شوند.
+
+۲. در GitHub، در Packages هر دو بستهٔ `tamas-api` و `tamas-web` را **Public** کنید تا همروش بتواند آن‌ها را بگیرد.
+
+۳. فایل [`docker-compose.hamravesh.yml`](../docker-compose.hamravesh.yml) را کپی کنید و همهٔ `CHANGE_ME`ها را پر کنید. نسخهٔ پرشده را در گیت commit نکنید، چون مخزن عمومی است.
+
+۴. در کنسول: ساخت اپ ← Docker Compose، و متن را بچسبانید.
+
+۵. به `tamas-web` دامنه و HTTPS بدهید، همان‌طور که در راه ۱ گفته شد.
+
+در این راه پایگاه داده یک کانتینر معمولی است. پشتیبان‌گیری خودکارِ دیتابیس مدیریت‌شدهٔ همروش را ندارد.
+
+---
+
+## ب) هر سروری که Docker دارد
 
 ```bash
 cp docker/app.env.example docker/app.env
 ```
 
-فایل `docker/app.env` را باز کنید و دست‌کم این موارد را پر کنید:
-
-- `POSTGRES_PASSWORD`: یک رمز تصادفی. همین رمز را در `DATABASE_URL` هم به‌جای `CHANGE_ME` بگذارید.
-- `APP_SECRET`: یک رشتهٔ تصادفی بلند (`openssl rand -hex 32`).
-- `PUBLIC_SITE_URL` و `CORS_ORIGINS`: آدرسی که مشتری باز می‌کند.
-- `ADMIN_PHONES`: شمارهٔ موبایل مدیر.
-- برای پیامک واقعی: `OTP_PROVIDER` و اطلاعات سرویس پیامک.
-
-سپس:
+`docker/app.env` را پر کنید: رمز پایگاه داده (در هر دو خط)، `APP_SECRET`، آدرس سایت و شمارهٔ مدیر. سپس:
 
 ```bash
 docker compose up -d --build
 ```
 
-سایت روی `http://SERVER:8080` باز می‌شود. برای پورت دیگر:
+سایت روی پورت 8080 بالا می‌آید. برای پورت ۸۰:
 
 ```bash
 WEB_PORT=80 docker compose up -d
 ```
 
-وضعیت سرویس‌ها و لاگ‌ها:
+HTTPS را با nginx خود سرور، Caddy یا CDN جلوی آن بگذارید.
+
+دستورهای مفید:
 
 ```bash
-docker compose ps
 docker compose logs -f api
+docker compose exec -T db pg_dump -U tamas -d tamas -Fc > backup.dump
+git pull && docker compose up -d --build
 ```
 
-با `OTP_PROVIDER=console`، کد ورود در لاگ `api` چاپ می‌شود. این حالت فقط برای آزمایش است.
+`docker compose down -v` همهٔ اطلاعات را پاک می‌کند.
 
-## انتقال اطلاعات از سرور فعلی
+---
 
-۱. روی سرور فعلی، از پایگاه داده خروجی بگیرید:
+## بازگرداندن اطلاعات از بکاپ تلگرام
+
+سایت هر شب از کل پایگاه داده یک فایل `tamas-database-YYYY-MM-DD-HHMMSS.json.gz` می‌سازد و در گروه بکاپ تلگرام می‌فرستد.
+
+**مهم:** عکس‌ها و فایل‌های آپلودشده در این بکاپ **نیستند**. آن‌ها روی دیسک سرور قبلی بودند (`apps/api/storage`). اگر دیتاسنتر دیسک را برگرداند، آن پوشه را در `/data/storage` اپ API کپی کنید.
+
+۱. جدیدترین فایل بکاپ را از گروه تلگرام دانلود کنید.
+
+۲. API را یک بار اجرا کنید تا جدول‌ها ساخته شوند. یعنی اپ `tamas-api` یک بار بالا آمده باشد.
+
+۳. بکاپ را بازگردانید.
+
+**در همروش:**
+- «دسترسی از طریق اینترنت» دیتابیس را موقتاً روشن کنید.
+- روی کامپیوتری که Node.js 22 یا جدیدتر و این مخزن را دارد، اجرا کنید:
 
 ```bash
-pg_dump "$DATABASE_URL" -Fc -f tamas.dump
+npm ci
+npm run build -w @tamas/shared
+npm run build -w @tamas/api
+cd apps/api
+DATABASE_URL="postgres://postgres:PASSWORD@EXTERNAL_ADDRESS:PORT/postgres" APP_SECRET=restore-only-0000000000 node dist/src/db/restore-backup.js /path/to/tamas-database-....json.gz
 ```
 
-۲. روی سرور جدید، فقط پایگاه داده را بالا بیاورید و خروجی را بازگردانید:
+- بعد دسترسی اینترنتی دیتابیس را خاموش کنید و اپ `tamas-api` را ری‌استارت کنید.
+
+**در Docker Compose:**
 
 ```bash
-docker compose up -d db
-docker compose exec -T db pg_restore -U tamas -d tamas --clean --if-exists --no-owner < tamas.dump
+docker compose cp tamas-database-....json.gz api:/tmp/backup.json.gz
+docker compose exec api node dist/src/db/restore-backup.js /tmp/backup.json.gz
+docker compose restart api
 ```
 
-نسخهٔ PostgreSQL در `docker-compose.yml` (الان 16) نباید از نسخهٔ سرور فعلی قدیمی‌تر باشد.
+ابزار بازگردانی:
+- اگر پایگاه داده از قبل کاربر یا سفارش داشته باشد، کاری نمی‌کند. برای جایگزین‌کردن، `--replace` را اضافه کنید.
+- همه چیز در یک تراکنش انجام می‌شود. اگر خطا بدهد، چیزی نیمه‌کاره نمی‌ماند.
 
-۳. عکس‌ها و فایل‌های آپلودشده را کپی کنید. پوشهٔ `apps/api/storage` سرور فعلی را کنار پروژه بیاورید و اجرا کنید:
-
-```bash
-docker compose build
-docker compose up --no-start
-docker run --rm -v tamas_uploads:/data -v "$PWD/apps/api/storage:/src:ro" alpine sh -c "cp -a /src/. /data/ && chown -R 1000:1000 /data"
-docker run --rm -v tamas_private-files:/data -v "$PWD/apps/api/private-storage:/src:ro" alpine sh -c "cp -a /src/. /data/ && chown -R 1000:1000 /data"
-```
-
-۴. همه را بالا بیاورید:
-
-```bash
-docker compose up -d --build
-```
-
-## HTTPS و دامنه
-
-کانتینر `web` فقط HTTP می‌دهد. یکی از این راه‌ها را برای HTTPS بگذارید:
-
-- nginx خود سرور (یا aaPanel) با گواهی SSL که به `http://127.0.0.1:8080` پروکسی کند. هدرهای `Host` و `X-Forwarded-For` و `X-Forwarded-Proto` را بفرستید.
-- یا Caddy / Traefik / CDN جلوی آن.
-
-اپلیکیشن اندروید از پوشهٔ `mobile/releases` با آدرس `/downloads/tamas-market-X.Y.Z.apk` دانلود می‌شود.
-
-## به‌روزرسانی
-
-```bash
-git pull
-docker compose up -d --build
-```
-
-سرویس `migrate` هر بار قبل از `api` اجرا می‌شود و تغییرات پایگاه داده را اعمال می‌کند.
-
-## نسخهٔ پشتیبان
-
-```bash
-docker compose exec -T db pg_dump -U tamas -d tamas -Fc > backup-$(date +%F).dump
-docker run --rm -v tamas_uploads:/data:ro -v "$PWD:/out" alpine tar czf /out/uploads-$(date +%F).tgz -C /data .
-```
-
-## نکته برای نسخهٔ آزمایشی
-
-اگر نسخه‌ای کنار سایت اصلی برای آزمایش بالا می‌آورید، در `docker/app.env` این‌ها را بگذارید تا به سیستم‌های واقعی چیزی فرستاده نشود:
-
+**برای نسخهٔ آزمایشی** این‌ها را بگذارید تا به CRM، گوگل‌شیت و پیامک واقعی چیزی فرستاده نشود:
 - `CRM_SYNC_ENABLED=false`
 - `SHEETS_ENABLED=false`
-- `TELEGRAM_ENABLED=false`
 - `OTP_PROVIDER=console`
 
-ربات تلگرام و بکاپ تلگرامی در تنظیمات پنل مدیریت هم ذخیره می‌شوند. اگر پایگاه داده را از سایت اصلی آورده‌اید، آن‌ها را هم در پنل خاموش کنید.
-
-## دستورهای مفید
-
-```bash
-docker compose restart api
-docker compose exec api node -e "console.log(process.env.PUBLIC_SITE_URL)"
-docker compose down            # توقف؛ اطلاعات روی volumeها می‌ماند
-```
-
-`docker compose down -v` همهٔ اطلاعات، از جمله پایگاه داده و عکس‌ها، را پاک می‌کند.
+ربات و بکاپ تلگرام در تنظیمات پنل ذخیره می‌شوند. اگر پایگاه داده را از سایت اصلی آورده‌اید، آن‌ها را هم در پنل خاموش کنید.

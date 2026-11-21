@@ -131,7 +131,7 @@ async function sha256File(path: string): Promise<string> {
   return hash.digest('hex');
 }
 
-async function createDatabaseBackup(now = new Date()): Promise<{
+export async function createDatabaseBackup(now = new Date()): Promise<{
   path: string;
   fileName: string;
   size: number;

@@ -1,1 +1,7 @@
 catalogs/yesido.pdf filter=lfs diff=lfs merge=lfs -text
+
+# Files read inside Linux containers keep LF line endings on every checkout.
+*.sh text eol=lf
+docker/** text eol=lf
+*.Dockerfile text eol=lf
+docker-compose*.yml text eol=lf

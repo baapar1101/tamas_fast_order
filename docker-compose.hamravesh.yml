@@ -1,0 +1,73 @@
+# Tamas Market for Hamravesh (Darkube → «ساخت اپ» → Docker Compose).
+#
+# Darkube's compose import does not build images; it pulls them. The images
+# below are built from this repository by .github/workflows/docker-images.yml
+# (GitHub → Actions → "Docker images"). Each service becomes its own app.
+#
+# Before pasting into the Hamravesh console, replace every CHANGE_ME:
+#   - the same database password in POSTGRES_PASSWORD and DATABASE_URL
+#   - APP_SECRET: a long random string (openssl rand -hex 32)
+#   - your domain in PUBLIC_SITE_URL and CORS_ORIGINS
+#   - ADMIN_PHONES and the SMS settings (see docker/app.env.example for all keys)
+# Never commit the filled-in copy: this repository is public.
+#
+# After import: give tamas-web the domain (port 80, named http) with HTTPS,
+# and keep each app at 1 replica (they use disks). Full guide: docker/README.md
+
+version: "3.8"
+
+services:
+  tamas-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: tamas
+      POSTGRES_USER: tamas
+      POSTGRES_PASSWORD: CHANGE_ME
+      # A sub-folder, because a fresh disk may already contain lost+found.
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - tamas-db-data:/var/lib/postgresql/data
+
+  tamas-api:
+    image: ghcr.io/baapar1101/tamas-api:dev
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      TRUST_PROXY: "true"
+      DATABASE_URL: postgres://tamas:CHANGE_ME@tamas-db:5432/tamas
+      APP_SECRET: CHANGE_ME_TO_A_LONG_RANDOM_STRING
+      PUBLIC_SITE_URL: https://CHANGE_ME.example
+      CORS_ORIGINS: https://CHANGE_ME.example
+      ADMIN_PHONES: ""
+      OTP_PROVIDER: console
+      SMS_PROVIDER: rastin
+      RASTIN_SMS_USERNAME: ""
+      RASTIN_SMS_PASSWORD: ""
+      RASTIN_SMS_FROM: ""
+      CRM_API_BASE: https://tamastore.ir
+      CRM_API_KEY: ""
+      CRM_SYNC_ENABLED: "true"
+      ZOHAL_API_TOKEN: ""
+      AQAYEPARDAKHT_PIN: ""
+    ports:
+      - "3001:3001"
+    volumes:
+      - tamas-api-data:/data
+    depends_on:
+      - tamas-db
+
+  tamas-web:
+    image: ghcr.io/baapar1101/tamas-web:dev
+    environment:
+      # The API's address inside the namespace (shown on its app page).
+      API_UPSTREAM: tamas-api:3001
+    ports:
+      - "80:80"
+    depends_on:
+      - tamas-api
+
+volumes:
+  tamas-db-data:
+  tamas-api-data:

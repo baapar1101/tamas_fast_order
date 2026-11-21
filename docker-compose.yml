@@ -1,21 +1,19 @@
-# Tamas Market: the whole site in one command.
+# Tamas Market: the whole site on any server with Docker.
 #
 #   cp docker/app.env.example docker/app.env   # then fill it in
 #   docker compose up -d --build
 #
 # Open http://SERVER:8080. Another port: WEB_PORT=80 docker compose up -d
-# (or put WEB_PORT=80 in a .env file next to this one). Guide: docker/README.md
+# (or put WEB_PORT=80 in a .env file next to this one).
+# For Hamravesh see docker-compose.hamravesh.yml and docker/README.md.
 
 name: tamas
-
-x-app-env: &app-env
-  env_file: docker/app.env
 
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
-    <<: *app-env
+    env_file: docker/app.env
     environment:
       POSTGRES_DB: tamas
       POSTGRES_USER: tamas
@@ -29,43 +27,32 @@ services:
       retries: 20
     # Not published: only the API reaches the database.
 
-  # Applies database migrations, then exits. `api` starts only after it succeeds.
-  migrate:
+  api:
     build:
       context: .
-      target: api
-    image: tamas-api:latest
-    <<: *app-env
-    command: ["node", "dist/src/db/migrate.js"]
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: "no"
-
-  api:
+      dockerfile: docker/api.Dockerfile
     image: tamas-api:latest
     restart: unless-stopped
-    <<: *app-env
+    env_file: docker/app.env
     environment:
       PORT: "3001"
       TRUST_PROXY: "true"
     volumes:
-      - uploads:/data/storage
-      - private-files:/data/private-storage
-      - api-private:/app/apps/api/.private
+      # Uploads, private files and in-app backups.
+      - appdata:/data
     depends_on:
       db:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     # Not published: the web container forwards /api and /uploads to it.
 
   web:
     build:
       context: .
-      target: web
+      dockerfile: docker/web.Dockerfile
     image: tamas-web:latest
     restart: unless-stopped
+    environment:
+      API_UPSTREAM: api:3001
     ports:
       - "${WEB_PORT:-8080}:80"
     volumes:
@@ -73,9 +60,9 @@ services:
     depends_on:
       api:
         condition: service_healthy
+        # nginx keeps the API's address from start-up; restart it with the API.
+        restart: true
 
 volumes:
   pgdata:
-  uploads:
-  private-files:
-  api-private:
+  appdata:
