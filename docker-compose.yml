@@ -1,0 +1,81 @@
+# Tamas Market: the whole site in one command.
+#
+#   cp docker/app.env.example docker/app.env   # then fill it in
+#   docker compose up -d --build
+#
+# Open http://SERVER:8080. Another port: WEB_PORT=80 docker compose up -d
+# (or put WEB_PORT=80 in a .env file next to this one). Guide: docker/README.md
+
+name: tamas
+
+x-app-env: &app-env
+  env_file: docker/app.env
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    <<: *app-env
+    environment:
+      POSTGRES_DB: tamas
+      POSTGRES_USER: tamas
+      # POSTGRES_PASSWORD comes from docker/app.env.
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tamas -d tamas"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    # Not published: only the API reaches the database.
+
+  # Applies database migrations, then exits. `api` starts only after it succeeds.
+  migrate:
+    build:
+      context: .
+      target: api
+    image: tamas-api:latest
+    <<: *app-env
+    command: ["node", "dist/src/db/migrate.js"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    image: tamas-api:latest
+    restart: unless-stopped
+    <<: *app-env
+    environment:
+      PORT: "3001"
+      TRUST_PROXY: "true"
+    volumes:
+      - uploads:/data/storage
+      - private-files:/data/private-storage
+      - api-private:/app/apps/api/.private
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    # Not published: the web container forwards /api and /uploads to it.
+
+  web:
+    build:
+      context: .
+      target: web
+    image: tamas-web:latest
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    volumes:
+      - ./mobile/releases:/usr/share/nginx/apk:ro
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  uploads:
+  private-files:
+  api-private:
