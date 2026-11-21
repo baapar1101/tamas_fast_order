@@ -6,7 +6,24 @@ import {
   type SmsTransportResult,
 } from './melipayamak-sms.js';
 import { sendSmsIrBulk, sendSmsIrVerify, type SmsIrVerifyInput } from './smsir-sms.js';
-import { getSmsRuntimeConfig, type SmsRuntimeConfig } from './sms-config.js';
+import { env } from '../env.js';
+import { getSmsRuntimeConfig, type SmsPrimaryProvider, type SmsRuntimeConfig } from './sms-config.js';
+
+/**
+ * Login codes go first through the gateway named in OTP_PROVIDER (for
+ * example `rastin`), whatever the admin panel's primary provider is; the
+ * usual fallbacks still follow. Other messages keep the panel's choice.
+ */
+export function withOtpGateway(config: SmsRuntimeConfig, gateway: string): SmsRuntimeConfig {
+  if (gateway === 'rastin' || gateway === 'payamresan' || gateway === 'melipayamak') {
+    return { ...config, smsProvider: gateway as SmsPrimaryProvider };
+  }
+  return config;
+}
+
+async function otpSmsConfig(): Promise<SmsRuntimeConfig> {
+  return withOtpGateway(await getSmsRuntimeConfig(), env.OTP_PROVIDER);
+}
 
 type SmsIrTemplate = Pick<SmsIrVerifyInput, 'templateId' | 'parameters'>;
 type MelipayamakTemplate = { bodyId: string; values: string[] };
@@ -125,7 +142,7 @@ export async function resendOtpAcrossProviders(
   toPhone: string,
   code: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  const config = await getSmsRuntimeConfig();
+  const config = await otpSmsConfig();
   const text = `کد تایید شما در تماس مارکت: ${code}`;
   const melipayamakTemplate: MelipayamakTemplate = {
     bodyId: config.melipayamak.otpBodyId,
@@ -166,8 +183,9 @@ export async function sendSms(
   toPhone: string,
   text: string,
   templates: SmsTemplates = {},
+  configOverride?: SmsRuntimeConfig,
 ): Promise<{ ok: boolean; error?: string }> {
-  const config = await getSmsRuntimeConfig();
+  const config = configOverride ?? await getSmsRuntimeConfig();
   let result = await sendPrimarySms(config, toPhone, text, templates.melipayamak);
   if (result.ok) return { ok: true };
 
@@ -257,8 +275,8 @@ export async function sendTemplatedSms(
     text = text.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
   }
 
-  const smsConfig = await getSmsRuntimeConfig();
   const isOtp = templateKey === 'sms_template_otp';
+  const smsConfig = isOtp ? await otpSmsConfig() : await getSmsRuntimeConfig();
   const templates: SmsTemplates = {};
   if (isOtp && smsConfig.melipayamak.otpBodyId) {
     templates.melipayamak = {
@@ -276,7 +294,7 @@ export async function sendTemplatedSms(
     };
   }
 
-  return sendSms(toPhone, text, templates);
+  return sendSms(toPhone, text, templates, smsConfig);
 }
 
 export function sendUserApprovedSms(toPhone: string): Promise<{ ok: boolean; error?: string }> {
