@@ -52,6 +52,8 @@ COPY --from=build /app/apps/api/package.json apps/api/
 COPY --from=build /app/apps/api/dist apps/api/dist
 COPY --from=build /app/apps/api/node_modules apps/api/node_modules
 COPY docker/api-entrypoint.sh /usr/local/bin/api-entrypoint
+# Public product/banner photos copied onto the data disk at start if missing.
+COPY docker/seed-uploads /app/seed-uploads
 # The API keeps backups and push credentials in .private/ next to itself;
 # point that at the data disk so it survives restarts.
 RUN chmod 755 /usr/local/bin/api-entrypoint \
