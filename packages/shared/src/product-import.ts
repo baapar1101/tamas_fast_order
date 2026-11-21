@@ -103,7 +103,7 @@ export function normalizeHeader(value: unknown): string {
   return toLatinDigits(String(value ?? ''))
     .replace(/\*/g, '')
     .replace(/[(（][^)）]*[)）]/g, '')
-    .replace(/[‌‏‎\s_\-]/g, '')
+    .replace(/[‌‏‎\s_-]/g, '')
     .replace(/ي/g, 'ی')
     .replace(/ك/g, 'ک')
     .toLowerCase();
@@ -157,7 +157,7 @@ export function matchImportHeaders(headers: unknown[]): ImportHeaderMatch {
 
 function cleanText(value: unknown): string {
   if (value == null) return '';
-  return String(value).replace(/ /g, ' ').trim();
+  return String(value).replace(/\u00a0/g, ' ').trim();
 }
 
 function cleanNumber(value: unknown): string {

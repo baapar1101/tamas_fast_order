@@ -28,7 +28,6 @@ function useCountdown(target: string, serverTime: string, onDone: () => void) {
     const timer = window.setInterval(tick, 1000);
     return () => window.clearInterval(timer);
     // onDone is a refetch and changes identity every render; the target decides.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target, skew]);
   const total = Math.floor(left / 1000);
   return { hours: Math.floor(total / 3600), minutes: Math.floor((total % 3600) / 60), seconds: total % 60 };
