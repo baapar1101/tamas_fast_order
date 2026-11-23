@@ -96,8 +96,10 @@ const photoAttachSchema = z.object({
 
 const bulkSchema = z.object({
   ids: z.array(z.coerce.number().int().positive()).min(1).max(500),
-  action: z.enum(['activate', 'deactivate', 'delete', 'restore', 'promote', 'demote', 'setStock', 'adjustPrice']),
+  action: z.enum(['activate', 'deactivate', 'delete', 'restore', 'promote', 'demote', 'setStock', 'adjustPrice', 'setPoints']),
   stock: z.coerce.number().int().min(0).max(1_000_000).optional(),
+  /** Campaign points per unit for setPoints (0 takes the products out of the campaign). */
+  points: z.coerce.number().int().min(0).max(1_000_000).optional(),
   /** Percentage change, e.g. -10 to cut every selected price by a tenth. */
   percent: z.coerce.number().min(-90).max(900).optional(),
 });
@@ -351,6 +353,11 @@ const routes: FastifyPluginAsync = async (app) => {
       case 'setStock': {
         if (body.stock == null) throw badRequest('مقدار موجودی را وارد کنید.');
         changed = (await db.update(products).set({ stock: body.stock, updatedAt: now }).where(where).returning({ id: products.id })).length;
+        break;
+      }
+      case 'setPoints': {
+        if (body.points == null) throw badRequest('امتیاز کمپین را وارد کنید.');
+        changed = (await db.update(products).set({ campaignPoints: body.points, updatedAt: now }).where(where).returning({ id: products.id })).length;
         break;
       }
       case 'adjustPrice': {

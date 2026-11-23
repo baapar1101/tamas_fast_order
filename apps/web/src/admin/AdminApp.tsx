@@ -46,6 +46,7 @@ const ProductImportPage = lazy(() => import('./pages/ProductImportPage').then((m
 const ProductContentImportPage = lazy(() => import('./pages/ProductContentImportPage').then((m) => ({ default: m.ProductContentImportPage })));
 const LabPage = lazy(() => import('./lab/LabPage').then((m) => ({ default: m.LabPage })));
 const FlashSalePage = lazy(() => import('./pages/FlashSalePage').then((m) => ({ default: m.FlashSalePage })));
+const PointsCampaignPage = lazy(() => import('./pages/PointsCampaignPage').then((m) => ({ default: m.PointsCampaignPage })));
 const LandingEditorPage = lazy(() => import('./pages/LandingEditorPage').then((m) => ({ default: m.LandingEditorPage })));
 
 const NAV_MAIN = [
@@ -336,6 +337,16 @@ const NAV_TOOLS = [
     requiredPermission: 'manage_products',
   },
   {
+    to: '/admin/points-campaign',
+    label: 'کمپین امتیاز و قرعه‌کشی',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
+      </svg>
+    ),
+    requiredPermission: 'manage_settings',
+  },
+  {
     to: '/admin/landing',
     label: 'صفحهٔ اصلی (لندینگ)',
     icon: (
@@ -455,7 +466,7 @@ const NAV_GROUPS = [
     id: 'content',
     label: 'محتوا و بازاریابی',
     description: 'صفحهٔ اصلی، بنر، رسانه و کمپین',
-    paths: ['/admin/landing', '/admin/flash-sale', '/admin/slides', '/admin/uploads', '/admin/marketing'],
+    paths: ['/admin/landing', '/admin/flash-sale', '/admin/points-campaign', '/admin/slides', '/admin/uploads', '/admin/marketing'],
     iconPath: 'M3.75 4.5h16.5A2.25 2.25 0 0122.5 6.75v10.5a2.25 2.25 0 01-2.25 2.25H3.75a2.25 2.25 0 01-2.25-2.25V6.75A2.25 2.25 0 013.75 4.5zm0 11.25l4.5-4.5 3 3 2.25-2.25 6.75 6.75',
   },
   {
@@ -986,6 +997,7 @@ export default function AdminApp() {
             <Route path="slides" element={<SlidesPage />} />
             <Route path="landing" element={<LandingEditorPage />} />
             <Route path="flash-sale" element={<FlashSalePage />} />
+            <Route path="points-campaign" element={<PointsCampaignPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="proformas" element={<ProformasPage />} />
             <Route path="users" element={<UsersPage />} />

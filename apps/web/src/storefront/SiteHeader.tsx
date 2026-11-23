@@ -7,6 +7,7 @@ import { useAuth } from '../store/auth';
 import { useFavorites } from '../store/favorites';
 import { FavoritesDialog } from './FavoritesDialog';
 import { FlashSaleTab } from './flashSale';
+import { CampaignTab } from './pointsCampaign';
 import { useBootstrap } from './hooks';
 
 interface SiteHeaderProps {
@@ -121,6 +122,7 @@ export function SiteHeader({ search, onSearchChange, onRequestLogin }: SiteHeade
 
         <div className="user-actions">
           <FlashSaleTab className="site-header-sale-tab" />
+          <CampaignTab className="site-header-campaign-tab" />
           <ThemeToggle />
           <button
             type="button"

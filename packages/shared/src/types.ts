@@ -77,6 +77,8 @@ export interface ProductDTO {
   colorCode: string | null;
   /** Set while the daily timed sale applies: price is the sale price, oldPrice the regular one. */
   flashSale?: boolean;
+  /** Points campaign: points a customer earns per unit (0 = not in the campaign). */
+  campaignPoints: number;
   price: number;
   /** Admin-only latest unit acquisition cost; omitted from public catalogue responses. */
   costPrice?: number;

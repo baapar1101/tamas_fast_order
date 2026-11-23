@@ -43,6 +43,7 @@ export function toProductDTO(
     sellType: row.sellType ? sanitizeExternalText(row.sellType) : null,
     seller: row.seller ? sanitizeExternalText(row.seller) : null,
     promotion: row.promotion,
+    campaignPoints: row.campaignPoints ?? 0,
     status: row.status,
     subTitle: row.subTitle ? sanitizeExternalText(row.subTitle) : null,
     description: sanitizeExternalText(row.description) || null,
@@ -158,6 +159,7 @@ export async function queryProducts(q: CatalogQuery): Promise<{
   const isBasket = or(eq(categories.name, 'Bondle'), eq(categories.faName, 'سبد ها'))!;
   if (q.promotion && !q.basketOnly) filters.push(and(eq(products.promotion, true), or(isNull(products.categoryId), not(isBasket)))!);
   if (q.basketOnly) filters.push(and(isBasket, eq(products.promotion, true))!);
+  if (q.campaignPoints) filters.push(gt(products.campaignPoints, 0));
   if (q.creditOnly) {
     filters.push(
       or(

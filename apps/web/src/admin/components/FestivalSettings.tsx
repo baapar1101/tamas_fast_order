@@ -22,7 +22,7 @@ const MODE_LABELS: Record<FestivalMode, string> = { off: 'خاموش', on: 'رو
 const EFFECT_KEYS = Object.keys(FESTIVAL_EFFECT_LABELS) as Array<keyof FestivalEffects>;
 
 /** «۲۹ آبان ۱۴۰۵، ساعت ۱۸:۰۰» for a status line. */
-function formatMoment(iso: string | null): string {
+export function formatMoment(iso: string | null): string {
   if (!iso) return '';
   return new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
     timeZone: 'Asia/Tehran', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
@@ -40,7 +40,7 @@ function statusLine(status: FestivalStatus): { text: string; badge: string } {
 }
 
 /** One side of the schedule: a Jalali date and a time, both Tehran time. */
-function MomentInput({ id, label, value, onChange }: { id: string; label: string; value: { date: string; time: string }; onChange: (next: { date: string; time: string }) => void }) {
+export function MomentInput({ id, label, value, onChange }: { id: string; label: string; value: { date: string; time: string }; onChange: (next: { date: string; time: string }) => void }) {
   const invalid = Boolean(value.date || value.time) && !tehranJalaliToIso(value.date, value.time);
   return (
     <div className="a-field">

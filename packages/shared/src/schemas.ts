@@ -79,6 +79,8 @@ export const productWriteSchema = z.object({
   sellType: z.string().trim().max(200).optional().nullable(),
   seller: z.string().trim().max(200).optional().nullable(),
   promotion: sheetBool.default(false),
+  /** Points campaign: points per unit bought. */
+  campaignPoints: z.coerce.number().int().min(0).max(1_000_000).default(0),
   status: z.enum(['active', 'inactive']).default('active'),
   subTitle: z.string().trim().max(400).optional().nullable(),
   description: z.string().optional().nullable(),
@@ -138,6 +140,11 @@ export const catalogQuerySchema = z.object({
     .transform((v) => (v == null ? [] : Array.isArray(v) ? v : v.split(',')))
     .pipe(z.array(z.string().trim().min(1)).max(50)),
   promotion: z.coerce.boolean().optional(),
+  /** Only products that earn points in the points campaign. */
+  campaignPoints: z.union([
+    z.boolean(),
+    z.enum(['true', 'false']).transform((value) => value === 'true'),
+  ]).optional(),
   basketOnly: z.union([
     z.boolean(),
     z.enum(['true', 'false']).transform((value) => value === 'true'),

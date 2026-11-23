@@ -353,6 +353,8 @@ export const products = pgTable(
     sellType: varchar('sell_type', { length: 200 }),
     seller: varchar('seller', { length: 200 }),
     promotion: boolean('promotion').notNull().default(false),
+    /** Points campaign: points earned per unit bought (0 = not in the campaign). */
+    campaignPoints: integer('campaign_points').notNull().default(0),
     status: productStatusEnum('status').notNull().default('active'),
     subTitle: varchar('sub_title', { length: 400 }),
     description: text('description'),
@@ -728,6 +730,8 @@ export const orderItems = pgTable(
     costPrice: bigint('cost_price', { mode: 'number' }).notNull().default(0),
     qty: integer('qty').notNull().default(1),
     warehouse: warehouseEnum('warehouse').notNull().default('kerman'),
+    /** Campaign points per unit, frozen at checkout (0 outside a running campaign). */
+    campaignPoints: integer('campaign_points').notNull().default(0),
   },
   (t) => [index('order_items_order_idx').on(t.orderId)],
 );

@@ -90,6 +90,7 @@ export interface ProductForm {
   sellType: string;
   seller: string;
   promotion: boolean;
+  campaignPoints: number;
   status: 'active' | 'inactive';
   imageUrl: string;
   gallery: string[];
@@ -214,6 +215,7 @@ const blank = (): ProductForm => ({
   sellType: '',
   seller: '',
   promotion: false,
+  campaignPoints: 0,
   status: 'active',
   imageUrl: '',
   gallery: [],
@@ -257,6 +259,7 @@ const fromProduct = (p: ProductDTO): ProductForm => ({
   sellType: p.sellType ?? '',
   seller: p.seller ?? '',
   promotion: p.promotion,
+  campaignPoints: p.campaignPoints ?? 0,
   status: p.status,
   imageUrl: p.imageUrl ?? '',
   gallery: p.gallery,
@@ -1135,6 +1138,23 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                   aria-checked={form.promotion}
                   className="a-switch"
                   onClick={() => set('promotion', !form.promotion)}
+                />
+              </div>
+
+              <div className={`a-option-row${form.campaignPoints > 0 ? ' a-option-row--on' : ''}`}>
+                <div className="a-option-copy">
+                  <label className="a-option-title" htmlFor="product-campaign-points">امتیاز کمپین</label>
+                  <span className="a-option-desc">امتیازی که مشتری برای هر عدد از این کالا می‌گیرد (۰ = خارج از کمپین)</span>
+                </div>
+                <input
+                  id="product-campaign-points"
+                  className="a-input a-ltr"
+                  style={{ maxWidth: 96 }}
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  value={form.campaignPoints}
+                  onChange={(e) => set('campaignPoints', Math.max(0, Math.trunc(Number(e.target.value) || 0)))}
                 />
               </div>
 

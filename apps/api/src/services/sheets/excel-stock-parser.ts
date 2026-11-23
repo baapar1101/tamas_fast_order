@@ -61,11 +61,13 @@ export interface ExcelStockRow {
   priceRial: number | null | undefined;
   kermanStock: number | null | undefined;
   tehranStock: number | null | undefined;
-  /** Site stock; read only when the file has no warehouse columns. */
-  stock?: number | null | undefined;
+  /** Site stock; read only when the file has no warehouse columns (null otherwise). */
+  stock: number | null | undefined;
+  /** Points campaign: points per unit (null = leave unchanged). */
+  points: number | null | undefined;
 }
 
-const SUPPORTED_HEADERS = ['sku', 'product_id', 'price', 'price_toman', 'kerman_stock', 'tehran_stock', 'stock'] as const;
+const SUPPORTED_HEADERS = ['sku', 'product_id', 'price', 'price_toman', 'kerman_stock', 'tehran_stock', 'stock', 'points'] as const;
 type SupportedHeader = (typeof SUPPORTED_HEADERS)[number];
 
 /** Lower case; no spaces, underscores, brackets or zero-width characters; Persian ی and ک. */
@@ -83,6 +85,7 @@ const HEADER_ALIASES: Record<SupportedHeader, string[]> = {
   kerman_stock: ['kerman_stock', 'موجودی کرمان', 'انبار کرمان'],
   tehran_stock: ['tehran_stock', 'موجودی تهران', 'انبار تهران'],
   stock: ['stock', 'موجودی', 'موجودی سایت', 'موجودی کل'],
+  points: ['points', 'campaign_points', 'امتیاز', 'امتیاز کمپین'],
 };
 const HEADER_LOOKUP = new Map<string, SupportedHeader>(
   (Object.entries(HEADER_ALIASES) as Array<[SupportedHeader, string[]]>)
@@ -129,9 +132,9 @@ export function parseExcelStockRows(buffer: Buffer): ExcelStockRow[] {
   if (columnIndexes.has('price') && columnIndexes.has('price_toman')) {
     throw badRequest('فایل هم قیمت ریالی (price) و هم قیمت تومانی (price_toman) دارد؛ فقط یکی را نگه دارید.');
   }
-  const valueColumns: SupportedHeader[] = ['price', 'price_toman', 'kerman_stock', 'tehran_stock', 'stock'];
+  const valueColumns: SupportedHeader[] = ['price', 'price_toman', 'kerman_stock', 'tehran_stock', 'stock', 'points'];
   if (!valueColumns.some((name) => columnIndexes.has(name))) {
-    throw badRequest('فایل باید حداقل یکی از ستون‌های price، price_toman، kerman_stock، tehran_stock یا stock را داشته باشد.');
+    throw badRequest('فایل باید حداقل یکی از ستون‌های price، price_toman، kerman_stock، tehran_stock، stock یا points را داشته باشد.');
   }
   const hasWarehouseColumns = columnIndexes.has('kerman_stock') || columnIndexes.has('tehran_stock');
   const tomanPrices = columnIndexes.has('price_toman');
@@ -157,6 +160,7 @@ export function parseExcelStockRows(buffer: Buffer): ExcelStockRow[] {
       kermanStock: parseOptionalExcelInteger(cell(row, 'kerman_stock')),
       tehranStock: parseOptionalExcelInteger(cell(row, 'tehran_stock')),
       stock: columnIndexes.has('stock') && !hasWarehouseColumns ? parseOptionalExcelInteger(cell(row, 'stock')) : null,
+      points: columnIndexes.has('points') ? parseOptionalExcelInteger(cell(row, 'points')) : null,
     });
   }
   return parsed;

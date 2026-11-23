@@ -21,7 +21,8 @@ test('stock update results become a sheet per outcome with before/after values',
   assert.deepEqual(book.SheetNames, ['همه ردیف‌ها', 'خطاها', 'خلاصه']);
   const all = XLSX.utils.sheet_to_json<unknown[]>(book.Sheets['همه ردیف‌ها']!, { header: 1 });
   assert.equal(all.length, 4);
-  assert.deepEqual(all[1], [2, 'A1', 'به‌روز شد', 'به‌روز شد.', '1040', 'قاب', 100, 120, 1, 5, 2, 2, 3, 7]);
+  // The last pair is campaign points, empty on reports from before the points column.
+  assert.deepEqual(all[1], [2, 'A1', 'به‌روز شد', 'به‌روز شد.', '1040', 'قاب', 100, 120, 1, 5, 2, 2, 3, 7, '', '']);
   // SKUs with leading zeros stay text.
   assert.equal(all[2]![1], '0201');
   const failed = XLSX.utils.sheet_to_json<unknown[]>(book.Sheets['خطاها']!, { header: 1 });

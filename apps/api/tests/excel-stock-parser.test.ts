@@ -21,7 +21,7 @@ describe('Excel stock input', () => {
     const rows = parseExcelStockRows(Buffer.from(xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' })));
     assert.equal(rows.length, 2);
     assert.deepEqual(rows[0], { rowNumber: 2, displayedSku: '01020100127', sku: '01020100127', productId: '',
-      priceRial: null, kermanStock: 4, tehranStock: null, stock: null });
+      priceRial: null, kermanStock: 4, tehranStock: null, stock: null, points: null });
     assert.equal(rows[1]?.sku, '01020100129');
     assert.equal(rows[1]?.kermanStock, 0);
   });
@@ -72,6 +72,7 @@ describe('Excel stock input', () => {
       kermanStock: null,
       tehranStock: 7,
       stock: null,
+      points: null,
     }]);
   });
 
@@ -103,6 +104,17 @@ describe('Excel stock input', () => {
     const [row] = parseExcelStockRows(Buffer.from(xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' })));
     assert.equal(row?.stock, null);
     assert.equal(row?.tehranStock, 2);
+  });
+
+  it('reads campaign points', () => {
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, xlsx.utils.aoa_to_sheet([
+      ['کد کالا', 'امتیاز'],
+      ['1001', 15],
+    ]), 'Sheet1');
+    const [row] = parseExcelStockRows(Buffer.from(xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' })));
+    assert.equal(row?.points, 15);
+    assert.equal(row?.priceRial, null);
   });
 
   it('refuses a file with both rial and toman price columns', () => {

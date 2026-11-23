@@ -8,6 +8,7 @@ import { findProductByPublicId, listBrands, listCategories, listColors, queryPro
 import { getPublicSettings } from '../services/settings.js';
 import { flashSaleShowcase } from '../services/flash-sale.js';
 import { getFestivalState } from '../services/festival.js';
+import { pointsCampaignShowcase } from '../services/points-campaign.js';
 
 const GOLDEN_CAMPAIGN_IMAGE_URL = '/assets/slides/golden-days-2026-10.webp';
 // Midnight at the start of 21 Mehr 1405 in Tehran.
@@ -35,6 +36,12 @@ const routes: FastifyPluginAsync = async (app) => {
       ...result,
     };
     return response;
+  });
+
+  /** The points campaign with its live leaderboard, plus the signed-in customer's own standing. */
+  app.get('/catalog/points-campaign', async (req, reply) => {
+    reply.header('cache-control', 'private, max-age=5');
+    return { ok: true, campaign: await pointsCampaignShowcase(req.currentUser?.id ?? null) };
   });
 
   app.get('/catalog/flash-sale', async (_req, reply) => {

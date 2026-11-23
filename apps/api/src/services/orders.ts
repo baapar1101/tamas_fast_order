@@ -20,6 +20,7 @@ import { applyWalletTransaction } from './wallet.js';
 import { getSetting } from './settings.js';
 import { getFestivalState } from './festival.js';
 import { getFlashSaleConfig } from './flash-sale.js';
+import { checkoutPointsFor } from './points-campaign.js';
 import { flashSalePrice } from '@tamas/shared';
 import { allocateInventory, type InventoryQuantities } from './inventory-policy.js';
 import { getPaymentTermsConfig, quotePaymentTerms, selectPaymentPlan } from './payment-terms.js';
@@ -142,6 +143,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
 
   const [paymentRouting, paymentTermsConfig] = await Promise.all([getPaymentRoutingConfig(), getPaymentTermsConfig()]);
   const campaignActive = (await getFestivalState()).onlyFestivalProducts;
+  const pointsFor = await checkoutPointsFor();
   const created = await db.transaction(async (tx) => {
     let rows = await tx
       .select()
@@ -208,6 +210,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           costPrice: product.costPrice,
           qty: line.qty,
           warehouse: line.warehouse,
+          campaignPoints: pointsFor(product.campaignPoints),
         });
       } else {
         // Normal product stock validation
@@ -230,6 +233,7 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
           costPrice: product.costPrice,
           qty: line.qty,
           warehouse: line.warehouse,
+          campaignPoints: pointsFor(product.campaignPoints),
         });
         stockUpdates.push({ id: product.id, warehouse: line.warehouse, qty: line.qty });
       }
@@ -510,6 +514,7 @@ export async function replaceOrderItems(orderId: number, input: OrderItemsReplac
   previousTotal: number;
   previousItems: OrderItemRow[];
 }> {
+  const pointsFor = await checkoutPointsFor();
   const result = await db.transaction(async (tx) => {
     const [order] = await tx
       .select()
@@ -609,6 +614,7 @@ export async function replaceOrderItems(orderId: number, input: OrderItemsReplac
         costPrice: previous?.costPrice ?? product.costPrice,
         qty: item.qty,
         warehouse: item.warehouse,
+        campaignPoints: previous?.campaignPoints ?? pointsFor(product.campaignPoints),
       });
     }
 

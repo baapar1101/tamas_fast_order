@@ -29,6 +29,7 @@ export function ExcelPreview({ report, fileName, onApply, onCancel, onDownload }
   const [filter, setFilter] = useState<'changes' | 'warnings' | 'errors'>(report.warnings ? 'warnings' : 'changes');
   const rows = report.rows ?? [];
   const counts = countStockRows(rows);
+  const pointsChange = rows.some((row) => row.next?.campaignPoints !== undefined && row.next.campaignPoints !== row.old?.campaignPoints);
   const shown: StockUpdateRow[] = rows.filter((row) =>
     filter === 'errors' ? row.status === 'error'
       : filter === 'warnings' ? row.status === 'updated' && Boolean(row.warning)
@@ -86,6 +87,7 @@ export function ExcelPreview({ report, fileName, onApply, onCancel, onDownload }
                   <th>کرمان</th>
                   <th>تهران</th>
                   <th>موجودی کل</th>
+                  {pointsChange && <th>امتیاز</th>}
                   <th>توجه</th>
                 </>
               )}
@@ -103,6 +105,7 @@ export function ExcelPreview({ report, fileName, onApply, onCancel, onDownload }
                     <td>{change(row.old?.kermanStock, row.next?.kermanStock)}</td>
                     <td>{change(row.old?.tehranStock, row.next?.tehranStock)}</td>
                     <td>{change(row.old?.stock, row.next?.stock)}</td>
+                    {pointsChange && <td>{change(row.old?.campaignPoints, row.next?.campaignPoints)}</td>}
                     <td style={{ color: 'var(--clr-rose)' }}>{row.warning ?? ''}</td>
                   </>
                 )}

@@ -14,6 +14,7 @@ import { faText } from '../lib/text';
 import { useFavorites } from '../store/favorites';
 
 import type { CartLine } from '../store/cart';
+import { PointsBadge } from './pointsCampaign';
 
 interface Props {
   group: ProductGroupDTO;
@@ -135,6 +136,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
                     </div>
                     <div className="sell-types">
                       {v.flashSale && <span className="sell-badge flash-sale-badge">فروش ویژه · {formatPercent(v.discount)}</span>}
+                      <PointsBadge points={v.campaignPoints} />
                       {types.map((t) => (
                         <span key={t.label} className="sell-badge">
                           <Icon name={t.icon} /> {t.label}
@@ -277,6 +279,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
 
           <div className="sell-types">
             {selectedVariant.flashSale && <span className="sell-badge flash-sale-badge">فروش ویژه · {formatPercent(selectedVariant.discount)}</span>}
+            <PointsBadge points={selectedVariant.campaignPoints} />
             {sellTypes(selectedVariant.sellType).map((t) => (
               <span key={t.label} className="sell-badge">
                 <Icon name={t.icon} /> {t.label}

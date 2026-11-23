@@ -24,7 +24,14 @@ interface ProductsResponse {
   perPage: number;
 }
 
-type BulkAction = 'activate' | 'deactivate' | 'delete' | 'promote' | 'demote' | 'setStock' | 'adjustPrice';
+type BulkAction = 'activate' | 'deactivate' | 'delete' | 'promote' | 'demote' | 'setStock' | 'adjustPrice' | 'setPoints';
+type BulkPrompt = 'setStock' | 'adjustPrice' | 'setPoints';
+
+const BULK_PROMPTS: Record<BulkPrompt, { title: string; label: string; placeholder: string }> = {
+  setStock: { title: 'تنظیم موجودی گروهی', label: 'موجودی جدید (عدد کل موجودی)', placeholder: '10' },
+  adjustPrice: { title: 'تغییر درصدی قیمت', label: 'درصد تغییر — مثبت گران‌تر، منفی ارزان‌تر', placeholder: '-5' },
+  setPoints: { title: 'امتیاز کمپین', label: 'امتیاز هر عدد از این کالاها در کمپین (۰ = خارج از کمپین)', placeholder: '10' },
+};
 const SHEET_DRAFT_STORAGE_KEY = 'admin-product-sheet-drafts';
 
 function restoreSheetDrafts(): SheetDrafts {
@@ -107,7 +114,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [editing, setEditing] = useState<ProductDTO | 'new' | null>(null);
-  const [bulkPrompt, setBulkPrompt] = useState<'setStock' | 'adjustPrice' | null>(null);
+  const [bulkPrompt, setBulkPrompt] = useState<BulkPrompt | null>(null);
   const [bulkValue, setBulkValue] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table' | 'sheet'>(() => Object.keys(restoreSheetDrafts()).length ? 'sheet' : 'table');
   const [sheetDrafts, setSheetDrafts] = useState<SheetDrafts>(restoreSheetDrafts);
@@ -182,7 +189,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   });
 
   const bulk = useMutation({
-    mutationFn: (body: { ids: number[]; action: BulkAction; stock?: number; percent?: number }) =>
+    mutationFn: (body: { ids: number[]; action: BulkAction; stock?: number; percent?: number; points?: number }) =>
       api.post<{ changed: number; message: string }>('/admin/products/bulk', body),
     onSuccess: (res) => {
       toast.ok(res.message ?? `${res.changed} مورد به‌روزرسانی شد.`);
@@ -297,7 +304,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   function runBulk(action: BulkAction) {
     setBulkMenuOpen(false);
     if (selected.size === 0) return;
-    if (action === 'setStock' || action === 'adjustPrice') {
+    if (action === 'setStock' || action === 'adjustPrice' || action === 'setPoints') {
       setBulkPrompt(action);
       return;
     }
@@ -315,6 +322,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
       return;
     }
     if (bulkPrompt === 'setStock') bulk.mutate({ ids: [...selected], action: 'setStock', stock: Math.max(0, Math.trunc(n)) });
+    else if (bulkPrompt === 'setPoints') bulk.mutate({ ids: [...selected], action: 'setPoints', points: Math.max(0, Math.trunc(n)) });
     else bulk.mutate({ ids: [...selected], action: 'adjustPrice', percent: n });
   }
 
@@ -424,6 +432,9 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                 </button>
                 <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('adjustPrice')}>
                   تغییر قیمت (درصدی)…
+                </button>
+                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('setPoints')}>
+                  تنظیم امتیاز کمپین…
                 </button>
                 <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-red)] hover:bg-[var(--a-red-soft)] transition-colors" onClick={() => runBulk('delete')}>
                   حذف محصولات
@@ -676,6 +687,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                       <td className=" pp-cell-title">
                         <div className="flex items-center gap-2">
                           {p.promotion && <span className="a-badge a-badge--amber">ویژه</span>}
+                          {p.campaignPoints > 0 && <span className="a-badge a-badge--green">{formatNumber(p.campaignPoints)} امتیاز</span>}
                           <span className="text-sm font-semibold text-[var(--a-t1)] line-clamp-1">{p.title}</span>
                         </div>
                       </td>
@@ -853,7 +865,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
 
       <Modal
         open={bulkPrompt !== null}
-        title={bulkPrompt === 'setStock' ? 'تنظیم موجودی گروهی' : 'تغییر درصدی قیمت'}
+        title={bulkPrompt ? BULK_PROMPTS[bulkPrompt].title : ''}
         onClose={() => setBulkPrompt(null)}
         footer={
           <>
@@ -873,13 +885,13 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
       >
         <div className="space-y-3">
           <label htmlFor="bulk-value" className="a-label">
-            {bulkPrompt === 'setStock' ? 'موجودی جدید (عدد کل موجودی)' : 'درصد تغییر — مثبت گران‌تر، منفی ارزان‌تر'}
+            {bulkPrompt ? BULK_PROMPTS[bulkPrompt].label : ''}
           </label>
           <input
             id="bulk-value"
             className="a-input a-ltr"
             inputMode="numeric"
-            placeholder={bulkPrompt === 'setStock' ? '10' : '-5'}
+            placeholder={bulkPrompt ? BULK_PROMPTS[bulkPrompt].placeholder : ''}
             value={bulkValue}
             onChange={(e) => setBulkValue(e.target.value)}
             autoFocus

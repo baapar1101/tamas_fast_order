@@ -225,6 +225,13 @@
       "when": 1794339926869,
       "tag": "0031_sales_funnel",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1795449339906,
+      "tag": "0032_points_campaign",
+      "breakpoints": true
     }
   ]
 }

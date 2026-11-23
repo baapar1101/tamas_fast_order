@@ -53,6 +53,7 @@ import { SHOP_PATH, featuredQuery, featuredShopHref, shopHref, shopSearchHref } 
 import landingCss from './landing.css?inline';
 import { FlashSaleSection } from './FlashSaleSection';
 import { FlashSaleTab } from '../flashSale';
+import { CampaignTab } from '../pointsCampaign';
 
 type Section<T extends LandingSection['type']> = Extract<LandingSection, { type: T }>;
 
@@ -166,6 +167,7 @@ export function LandingHeader({ config, onLogin }: { config?: LandingConfig; onL
           ))}
         </nav>
         <FlashSaleTab className="hidden md:inline-flex" />
+        <CampaignTab className="hidden md:inline-flex" />
         <form onSubmit={submit} role="search" className="relative ms-auto hidden max-w-xs flex-1 md:block">
           <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
           <input

@@ -18,6 +18,7 @@ interface StockValues {
   kermanStock: number;
   tehranStock: number;
   stock: number;
+  campaignPoints: number;
 }
 
 /** One line of the uploaded file and what happened to it, for the results spreadsheet. */
@@ -81,6 +82,7 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
     stock: products.stock,
     kermanStock: products.kermanStock,
     tehranStock: products.tehranStock,
+    campaignPoints: products.campaignPoints,
   }).from(products).where(isNull(products.deletedAt));
 
   const bySku = new Map<string, typeof activeProducts>();
@@ -101,7 +103,7 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
   const plan: Array<{
     rowNumber: number;
     product: (typeof activeProducts)[number];
-    next: { price: number; kermanStock: number; tehranStock: number; stock: number };
+    next: StockValues;
   }> = [];
   const reject = (row: (typeof rows)[number], message: string, product?: (typeof activeProducts)[number]) => {
     report.errors.push(`ردیف ${row.rowNumber}: ${message}`);
@@ -141,16 +143,16 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
       continue;
     }
     plannedProducts.set(product.id, row.rowNumber);
-    if (row.priceRial === undefined || row.kermanStock === undefined || row.tehranStock === undefined || row.stock === undefined) {
-      reject(row, 'قیمت یا موجودی عدد نامنفی نیست (موجودی باید عدد صحیح باشد).', product);
+    if (row.priceRial === undefined || row.kermanStock === undefined || row.tehranStock === undefined || row.stock === undefined || row.points === undefined) {
+      reject(row, 'قیمت، موجودی یا امتیاز عدد نامنفی نیست (موجودی و امتیاز باید عدد صحیح باشند).', product);
       continue;
     }
-    if (row.priceRial === null && row.kermanStock === null && row.tehranStock === null && row.stock === null) {
-      reject(row, 'هیچ مقدار قیمت یا موجودی برای به‌روزرسانی ثبت نشده است.', product);
+    if (row.priceRial === null && row.kermanStock === null && row.tehranStock === null && row.stock === null && row.points === null) {
+      reject(row, 'هیچ مقدار قیمت، موجودی یا امتیازی برای به‌روزرسانی ثبت نشده است.', product);
       continue;
     }
     const nextPrice = row.priceRial === null ? product.price : Math.floor(row.priceRial / 10);
-    if (nextPrice <= 0) {
+    if (row.priceRial !== null && nextPrice <= 0) {
       reject(row, 'قیمت صفر ثبت نمی‌شود. برای ناموجود کردن کالا موجودی را صفر کنید.', product);
       continue;
     }
@@ -163,13 +165,15 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
       kermanStock: nextKerman,
       tehranStock: nextTehran,
       stock: warehouseGiven ? nextKerman + nextTehran : row.stock ?? product.stock,
+      campaignPoints: row.points ?? product.campaignPoints,
     };
-    const old = { price: product.price, kermanStock: product.kermanStock, tehranStock: product.tehranStock, stock: product.stock };
+    const old = { price: product.price, kermanStock: product.kermanStock, tehranStock: product.tehranStock, stock: product.stock, campaignPoints: product.campaignPoints };
     const base = { rowNumber: row.rowNumber, sku: row.displayedSku, productId: product.productId, title: product.title, old, next };
     if (next.price === product.price && next.kermanStock === product.kermanStock &&
-        next.tehranStock === product.tehranStock && next.stock === product.stock) {
+        next.tehranStock === product.tehranStock && next.stock === product.stock &&
+        next.campaignPoints === product.campaignPoints) {
       report.skipped += 1;
-      report.rows.push({ ...base, status: 'unchanged', message: 'قیمت و موجودی همین حالا هم همین است.' });
+      report.rows.push({ ...base, status: 'unchanged', message: 'قیمت، موجودی و امتیاز همین حالا هم همین است.' });
       continue;
     }
     const warning = priceChangeWarning(product.price, next.price);
@@ -181,8 +185,8 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
   plan.sort((a, b) => a.product.productId.localeCompare(b.product.productId));
   report.planHash = createHash('sha256').update(JSON.stringify(plan.map(({ product, next }) => ({
     productId: product.productId,
-    old: [product.price, product.kermanStock, product.tehranStock, product.stock],
-    next: [next.price, next.kermanStock, next.tehranStock, next.stock],
+    old: [product.price, product.kermanStock, product.tehranStock, product.stock, product.campaignPoints],
+    next: [next.price, next.kermanStock, next.tehranStock, next.stock, next.campaignPoints],
   })))).digest('hex');
   report.updated = plan.length;
   report.rows.sort((a, b) => a.rowNumber - b.rowNumber);
@@ -202,7 +206,7 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
     createdAt: new Date().toISOString(),
     planHash: report.planHash,
     products: plan.map(({ product, next, rowNumber }) => ({ rowNumber, productId: product.productId, sku: product.sku,
-      old: { price: product.price, stock: product.stock, kermanStock: product.kermanStock, tehranStock: product.tehranStock },
+      old: { price: product.price, stock: product.stock, kermanStock: product.kermanStock, tehranStock: product.tehranStock, campaignPoints: product.campaignPoints },
       next })),
   }, null, 2), { mode: 0o600 });
 
@@ -211,7 +215,8 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
       const [updated] = await tx.update(products).set({ ...next, updatedAt: new Date() })
         .where(and(eq(products.id, product.id), isNull(products.deletedAt),
           eq(products.price, product.price), eq(products.kermanStock, product.kermanStock),
-          eq(products.tehranStock, product.tehranStock), eq(products.stock, product.stock)))
+          eq(products.tehranStock, product.tehranStock), eq(products.stock, product.stock),
+          eq(products.campaignPoints, product.campaignPoints)))
         .returning({ id: products.id });
       if (!updated) throw badRequest(`محصول ${product.productId} هم‌زمان تغییر کرده است؛ هیچ‌یک از ردیف‌ها اعمال نشد.`);
       options.onProgress?.(index + 1, plan.length);

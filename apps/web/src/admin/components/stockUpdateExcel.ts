@@ -10,6 +10,8 @@ interface StockValues {
   kermanStock: number;
   tehranStock: number;
   stock: number;
+  /** Points campaign (newer APIs). */
+  campaignPoints?: number;
 }
 
 export interface StockUpdateRow {
@@ -56,8 +58,9 @@ const HEADERS = [
   'موجودی کرمان قبلی', 'موجودی کرمان جدید',
   'موجودی تهران قبلی', 'موجودی تهران جدید',
   'موجودی کل قبلی', 'موجودی کل جدید',
+  'امتیاز قبلی', 'امتیاز جدید',
 ];
-const WIDTHS = [10, 18, 12, 44, 14, 40, 16, 16, 14, 14, 14, 14, 14, 14];
+const WIDTHS = [10, 18, 12, 44, 14, 40, 16, 16, 14, 14, 14, 14, 14, 14, 12, 12];
 
 function rowCells(row: StockUpdateRow): unknown[] {
   const pair = (key: keyof StockValues) => [row.old?.[key] ?? '', row.next?.[key] ?? ''];
@@ -72,6 +75,7 @@ function rowCells(row: StockUpdateRow): unknown[] {
     ...pair('kermanStock'),
     ...pair('tehranStock'),
     ...pair('stock'),
+    ...pair('campaignPoints'),
   ];
 }
 
