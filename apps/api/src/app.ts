@@ -28,6 +28,7 @@ import adminLanding from './routes/admin/landing.js';
 import adminFlashSale from './routes/admin/flash-sale.js';
 import adminFestival from './routes/admin/festival.js';
 import adminPointsCampaign from './routes/admin/points-campaign.js';
+import adminPriceLists from './routes/admin/price-lists.js';
 import adminWarehouses from './routes/admin/warehouses.js';
 import adminAttributes from './routes/admin/attributes.js';
 import adminFinancial from './routes/admin/financial.js';
@@ -193,6 +194,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(adminFlashSale);
         await api.register(adminFestival);
         await api.register(adminPointsCampaign);
+        await api.register(adminPriceLists);
         await api.register(adminWarehouses);
         await api.register(adminAttributes);
         await api.register(adminFinancial);

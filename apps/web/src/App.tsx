@@ -8,6 +8,7 @@ import { StorefrontPage } from './storefront/StorefrontPage';
 import { HomeRoute } from './storefront/landing/HomeRoute';
 import { FlashSalePage } from './storefront/landing/FlashSalePage';
 import { PointsCampaignPage } from './storefront/landing/PointsCampaignPage';
+import { PriceListsPage } from './storefront/landing/PriceListsPage';
 import { ProductPage } from './storefront/ProductPage';
 import { TermsPage } from './storefront/TermsPage';
 import { OrdersPage } from './storefront/OrdersPage';
@@ -89,6 +90,7 @@ export function App() {
         <Route path="/shop" element={<StorefrontPage />} />
         <Route path="/flash-sale" element={<FlashSalePage />} />
         <Route path="/campaign" element={<PointsCampaignPage />} />
+        <Route path="/prices" element={<PriceListsPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/account" element={<AccountLayout />}>
           <Route index element={<OrdersPage />} />

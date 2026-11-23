@@ -9,6 +9,7 @@ import { getPublicSettings } from '../services/settings.js';
 import { flashSaleShowcase } from '../services/flash-sale.js';
 import { getFestivalState } from '../services/festival.js';
 import { pointsCampaignShowcase } from '../services/points-campaign.js';
+import { priceList, priceListSummaries } from '../services/price-lists.js';
 
 const GOLDEN_CAMPAIGN_IMAGE_URL = '/assets/slides/golden-days-2026-10.webp';
 // Midnight at the start of 21 Mehr 1405 in Tehran.
@@ -36,6 +37,23 @@ const routes: FastifyPluginAsync = async (app) => {
       ...result,
     };
     return response;
+  });
+
+  /** Public price lists built from current site prices; prices only for approved partners. */
+  app.get('/catalog/price-lists', async (_req, reply) => {
+    reply.header('cache-control', 'public, max-age=30, s-maxage=60');
+    return { ok: true, lists: await priceListSummaries() };
+  });
+
+  app.get('/catalog/price-lists/:id', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const showPrices = Boolean(req.currentUser?.isActive);
+    // Never shared caches: the same address answers with or without prices depending on who asks.
+    reply.header('cache-control', 'private, no-store');
+    reply.header('vary', 'cookie, authorization');
+    const list = await priceList(id, { showPrices });
+    if (!list) throw notFound('این لیست قیمت پیدا نشد.');
+    return { ok: true, list };
   });
 
   /** The points campaign with its live leaderboard, plus the signed-in customer's own standing. */

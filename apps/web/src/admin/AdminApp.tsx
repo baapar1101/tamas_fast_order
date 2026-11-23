@@ -46,6 +46,7 @@ const ProductImportPage = lazy(() => import('./pages/ProductImportPage').then((m
 const ProductContentImportPage = lazy(() => import('./pages/ProductContentImportPage').then((m) => ({ default: m.ProductContentImportPage })));
 const LabPage = lazy(() => import('./lab/LabPage').then((m) => ({ default: m.LabPage })));
 const FlashSalePage = lazy(() => import('./pages/FlashSalePage').then((m) => ({ default: m.FlashSalePage })));
+const PriceListsAdminPage = lazy(() => import('./pages/PriceListsPage').then((m) => ({ default: m.PriceListsPage })));
 const PointsCampaignPage = lazy(() => import('./pages/PointsCampaignPage').then((m) => ({ default: m.PointsCampaignPage })));
 const LandingEditorPage = lazy(() => import('./pages/LandingEditorPage').then((m) => ({ default: m.LandingEditorPage })));
 
@@ -337,6 +338,16 @@ const NAV_TOOLS = [
     requiredPermission: 'manage_products',
   },
   {
+    to: '/admin/price-lists',
+    label: 'لیست‌های قیمت',
+    icon: (
+      <svg className="h-5 w-5 icon-svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+      </svg>
+    ),
+    requiredPermission: 'manage_products',
+  },
+  {
     to: '/admin/points-campaign',
     label: 'کمپین امتیاز و قرعه‌کشی',
     icon: (
@@ -452,7 +463,7 @@ const NAV_GROUPS = [
     id: 'catalog',
     label: 'کالا و کاتالوگ',
     description: 'محصول، دسته‌بندی، انبار و انتشار',
-    paths: ['/admin/products', '/admin/bundles', '/admin/categories', '/admin/brands', '/admin/attributes', '/admin/warehouses', '/admin/sync', '/admin/product-import', '/admin/product-content-import', '/admin/catalog-export', '/admin/target-sites'],
+    paths: ['/admin/products', '/admin/bundles', '/admin/categories', '/admin/brands', '/admin/attributes', '/admin/warehouses', '/admin/sync', '/admin/product-import', '/admin/product-content-import', '/admin/catalog-export', '/admin/price-lists', '/admin/target-sites'],
     iconPath: 'M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m-.375 0h17.25M9 11.25h6m-6 3h6',
   },
   {
@@ -998,6 +1009,7 @@ export default function AdminApp() {
             <Route path="landing" element={<LandingEditorPage />} />
             <Route path="flash-sale" element={<FlashSalePage />} />
             <Route path="points-campaign" element={<PointsCampaignPage />} />
+            <Route path="price-lists" element={<PriceListsAdminPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="proformas" element={<ProformasPage />} />
             <Route path="users" element={<UsersPage />} />

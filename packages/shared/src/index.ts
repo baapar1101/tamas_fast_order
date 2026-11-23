@@ -16,3 +16,4 @@ export * from './landing.js';
 export * from './flash-sale.js';
 export * from './festival.js';
 export * from './points-campaign.js';
+export * from './price-lists.js';

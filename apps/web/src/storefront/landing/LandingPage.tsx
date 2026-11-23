@@ -166,6 +166,7 @@ export function LandingHeader({ config, onLogin }: { config?: LandingConfig; onL
             <a key={anchor.id} href={`/#${anchor.id}`} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white">{anchor.label}</a>
           ))}
         </nav>
+        <Link to="/prices" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white md:inline-block">لیست قیمت</Link>
         <FlashSaleTab className="hidden md:inline-flex" />
         <CampaignTab className="hidden md:inline-flex" />
         <form onSubmit={submit} role="search" className="relative ms-auto hidden max-w-xs flex-1 md:block">
