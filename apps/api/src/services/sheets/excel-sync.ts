@@ -26,6 +26,8 @@ export interface ExcelSyncRowResult {
   sku: string;
   status: ExcelSyncRowStatus;
   message: string;
+  /** Applied anyway, but worth a look (for example a price that halved). */
+  warning?: string;
   productId?: string;
   title?: string;
   old?: StockValues;
@@ -36,8 +38,12 @@ export interface ExcelSyncReport {
   totalRows: number;
   updated: number;
   skipped: number;
+  /** Rows that will change and carry a warning. */
+  warnings: number;
   errors: string[];
   rows: ExcelSyncRowResult[];
+  /** True for a preview: nothing was written. */
+  dryRun?: boolean;
   planHash?: string;
   backupPath?: string;
 }
@@ -48,9 +54,23 @@ interface UploadOptions {
   onProgress?: (current: number, total: number) => void;
 }
 
-/** Blank cells leave existing values intact; an explicit numeric zero clears them. */
+/**
+ * A price that more than halves or more than doubles is usually a unit slip
+ * (toman typed in the rial column) or a typo; the preview points it out.
+ */
+export function priceChangeWarning(oldPrice: number, newPrice: number): string | undefined {
+  if (oldPrice <= 0 || newPrice === oldPrice) return undefined;
+  const ratio = newPrice / oldPrice;
+  if (ratio > 0.08 && ratio < 0.12) return 'قیمت جدید حدود یک‌دهم قیمت قبلی است؛ شاید قیمت به تومان در ستون ریالی وارد شده است.';
+  if (ratio > 8 && ratio < 12) return 'قیمت جدید حدود ده برابر قیمت قبلی است؛ واحد قیمت (ریال/تومان) را بررسی کنید.';
+  if (ratio < 0.5) return `قیمت ${Math.round((1 - ratio) * 100)}٪ کمتر می‌شود.`;
+  if (ratio > 2) return `قیمت ${Math.round(ratio * 10) / 10} برابر می‌شود.`;
+  return undefined;
+}
+
+/** Blank cells leave existing values intact; an explicit numeric zero clears stock. */
 export async function processExcelUpload(buffer: Buffer, options: UploadOptions = {}): Promise<ExcelSyncReport> {
-  const report: ExcelSyncReport = { totalRows: 0, updated: 0, skipped: 0, errors: [], rows: [] };
+  const report: ExcelSyncReport = { totalRows: 0, updated: 0, skipped: 0, warnings: 0, errors: [], rows: [] };
   const rows = parseExcelStockRows(buffer);
   const activeProducts = await db.select({
     id: products.id,
@@ -71,10 +91,12 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
     matches.push(product);
     bySku.set(key, matches);
   }
+  const byProductId = new Map(activeProducts.map((product) => [product.productId, product]));
   const fileSkuCounts = new Map<string, number>();
   for (const row of rows) {
     if (row.sku) fileSkuCounts.set(row.sku, (fileSkuCounts.get(row.sku) ?? 0) + 1);
   }
+  const plannedProducts = new Map<(typeof activeProducts)[number]['id'], number>();
 
   const plan: Array<{
     rowNumber: number;
@@ -93,37 +115,54 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
     });
   };
   for (const row of rows) {
-    if (!row.sku) {
+    if (!row.sku && !row.productId) {
       reject(row, 'کد کالا (SKU) خالی است.');
       continue;
     }
     report.totalRows += 1;
-    if ((fileSkuCounts.get(row.sku) ?? 0) > 1) {
+    if (row.sku && (fileSkuCounts.get(row.sku) ?? 0) > 1) {
       reject(row, `کد کالا (SKU) «${row.displayedSku}» در فایل تکراری است.`);
       continue;
     }
-    const matches = bySku.get(row.sku) ?? [];
-    if (matches.length !== 1) {
-      reject(row, `کد کالا (SKU) «${row.displayedSku}» در سایت ${matches.length ? 'تکراری است' : 'یافت نشد'}.`);
+    const matches = row.sku ? bySku.get(row.sku) ?? [] : [];
+    if (matches.length > 1) {
+      reject(row, `کد کالا (SKU) «${row.displayedSku}» در سایت تکراری است (${matches.map((item) => item.productId).join('، ')}).`);
       continue;
     }
-    const product = matches[0]!;
-    if (row.priceRial === undefined || row.kermanStock === undefined || row.tehranStock === undefined) {
-      reject(row, 'قیمت یا موجودی عدد صحیح و نامنفی نیست.', product);
+    // A product without a SKU on the site can still be found by its site code.
+    const product = matches[0] ?? (row.productId ? byProductId.get(row.productId) : undefined);
+    if (!product) {
+      reject(row, `کد کالا «${row.displayedSku}» در سایت یافت نشد.`);
       continue;
     }
-    if (row.priceRial === null && row.kermanStock === null && row.tehranStock === null) {
+    const earlierRow = plannedProducts.get(product.id);
+    if (earlierRow !== undefined) {
+      reject(row, `این کالا در ردیف ${earlierRow} هم آمده است.`, product);
+      continue;
+    }
+    plannedProducts.set(product.id, row.rowNumber);
+    if (row.priceRial === undefined || row.kermanStock === undefined || row.tehranStock === undefined || row.stock === undefined) {
+      reject(row, 'قیمت یا موجودی عدد نامنفی نیست (موجودی باید عدد صحیح باشد).', product);
+      continue;
+    }
+    if (row.priceRial === null && row.kermanStock === null && row.tehranStock === null && row.stock == null) {
       reject(row, 'هیچ مقدار قیمت یا موجودی برای به‌روزرسانی ثبت نشده است.', product);
+      continue;
+    }
+    const nextPrice = row.priceRial === null ? product.price : Math.floor(row.priceRial / 10);
+    if (nextPrice <= 0) {
+      reject(row, 'قیمت صفر ثبت نمی‌شود. برای ناموجود کردن کالا موجودی را صفر کنید.', product);
       continue;
     }
 
     const nextKerman = row.kermanStock ?? product.kermanStock;
     const nextTehran = row.tehranStock ?? product.tehranStock;
+    const warehouseGiven = row.kermanStock !== null || row.tehranStock !== null;
     const next = {
-      price: row.priceRial === null ? product.price : Math.floor(row.priceRial / 10),
+      price: nextPrice,
       kermanStock: nextKerman,
       tehranStock: nextTehran,
-      stock: row.kermanStock === null && row.tehranStock === null ? product.stock : nextKerman + nextTehran,
+      stock: warehouseGiven ? nextKerman + nextTehran : row.stock ?? product.stock,
     };
     const old = { price: product.price, kermanStock: product.kermanStock, tehranStock: product.tehranStock, stock: product.stock };
     const base = { rowNumber: row.rowNumber, sku: row.displayedSku, productId: product.productId, title: product.title, old, next };
@@ -133,7 +172,9 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
       report.rows.push({ ...base, status: 'unchanged', message: 'قیمت و موجودی همین حالا هم همین است.' });
       continue;
     }
-    report.rows.push({ ...base, status: 'updated', message: 'به‌روز شد.' });
+    const warning = priceChangeWarning(product.price, next.price);
+    if (warning) report.warnings += 1;
+    report.rows.push({ ...base, status: 'updated', message: options.dryRun ? 'تغییر می‌کند.' : 'به‌روز شد.', ...(warning ? { warning } : {}) });
     plan.push({ rowNumber: row.rowNumber, product, next });
   }
 
@@ -146,7 +187,8 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
   report.updated = plan.length;
   report.rows.sort((a, b) => a.rowNumber - b.rowNumber);
   options.onProgress?.(0, plan.length);
-  if (options.dryRun || plan.length === 0) return report;
+  if (options.dryRun) return { ...report, dryRun: true };
+  if (plan.length === 0) return report;
   if (options.expectedPlanHash && options.expectedPlanHash !== report.planHash) {
     throw badRequest('داده‌های سایت یا فایل از زمان پیش‌نمایش تغییر کرده‌اند؛ دوباره پیش‌نمایش بگیرید.');
   }

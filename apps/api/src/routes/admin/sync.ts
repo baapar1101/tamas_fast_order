@@ -27,6 +27,7 @@ interface ExcelUploadProgress {
 }
 
 const excelUploadProgress = new Map<string, ExcelUploadProgress>();
+let excelUploadRunning = false;
 const excelJobIdSchema = z.string().trim().min(8).max(100).regex(/^[a-zA-Z0-9_-]+$/);
 
 const routes: FastifyPluginAsync = async (app) => {
@@ -137,6 +138,19 @@ const routes: FastifyPluginAsync = async (app) => {
     ]);
     ws['!cols'] = Array.from({ length: 4 }, () => ({ wch: 15 }));
     xlsx.utils.book_append_sheet(wb, ws, 'Prices');
+    const help = xlsx.utils.aoa_to_sheet([
+      ['ستون', 'نام فارسی هم قبول است', 'توضیح'],
+      ['sku', 'کد کالا', 'کد کالا مثل سپیدار. اگر صفر اول افتاده باشد خودکار برمی‌گردد.'],
+      ['product_id', 'شناسه محصول', 'اختیاری: برای کالاهایی که در سایت کد کالا ندارند.'],
+      ['price', 'قیمت (ریال)', 'قیمت به ریال.'],
+      ['price_toman', 'قیمت (تومان)', 'به جای price، اگر قیمت‌ها تومانی است. فقط یکی از این دو ستون.'],
+      ['kerman_stock', 'موجودی کرمان', 'موجودی کل سایت = کرمان + تهران.'],
+      ['tehran_stock', 'موجودی تهران', ''],
+      ['stock', 'موجودی', 'فقط وقتی ستون انبارها نیست: موجودی کل سایت.'],
+      ['', '', 'خانهٔ خالی یعنی تغییر نکند. قیمت صفر رد می‌شود. پیش از اعمال، پیش‌نمایش تغییرات نشان داده می‌شود.'],
+    ]);
+    help['!cols'] = [{ wch: 14 }, { wch: 22 }, { wch: 80 }];
+    xlsx.utils.book_append_sheet(wb, help, 'راهنما');
 
     const raw = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
     const buffer = Buffer.from(raw);
@@ -152,8 +166,16 @@ const routes: FastifyPluginAsync = async (app) => {
     if (isPriceStockSyncRunning()) {
       throw badRequest('همگام‌سازی قیمت/موجودی در حال اجراست. صبر کنید.');
     }
-    
-    const { jobId } = z.object({ jobId: excelJobIdSchema.optional() }).parse(req.query ?? {});
+
+    // ?dryRun=1 only previews; applying sends back the preview's planHash so
+    // nothing is written if the file or the site changed in between.
+    const { jobId, dryRun, planHash } = z.object({
+      jobId: excelJobIdSchema.optional(),
+      dryRun: z.enum(['1', 'true']).optional(),
+      planHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+    }).parse(req.query ?? {});
+    const preview = Boolean(dryRun);
+    if (!preview && excelUploadRunning) throw badRequest('یک فایل اکسل دیگر در حال اعمال است. صبر کنید.');
     if (jobId) excelUploadProgress.set(jobId, { current: 0, total: 0, state: 'reading' });
     const file = await req.file();
     if (!file) {
@@ -162,8 +184,11 @@ const routes: FastifyPluginAsync = async (app) => {
 
     const buffer = await file.toBuffer();
     let report: Awaited<ReturnType<typeof processExcelUpload>>;
+    if (!preview) excelUploadRunning = true;
     try {
       report = await processExcelUpload(buffer, {
+        dryRun: preview,
+        expectedPlanHash: planHash,
         onProgress: jobId ? (current, total) => {
           excelUploadProgress.set(jobId, { current, total, state: current < total ? 'importing' : 'publishing' });
         } : undefined,
@@ -178,9 +203,11 @@ const routes: FastifyPluginAsync = async (app) => {
       });
       throw error;
     } finally {
+      if (!preview) excelUploadRunning = false;
       if (jobId) setTimeout(() => excelUploadProgress.delete(jobId), 5 * 60_000).unref();
     }
-    
+    if (preview) return { ok: true, report };
+
     await logAction(req.currentUser!.id, 'sync:excel-upload', 'sheets', null, {
       updated: report.updated,
       skipped: report.skipped,

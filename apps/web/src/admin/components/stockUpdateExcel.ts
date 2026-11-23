@@ -17,6 +17,7 @@ export interface StockUpdateRow {
   sku: string;
   status: StockUpdateRowStatus;
   message: string;
+  warning?: string;
   productId?: string;
   title?: string;
   old?: StockValues;
@@ -27,6 +28,11 @@ export interface StockUpdateReport {
   totalRows: number;
   updated: number;
   skipped: number;
+  /** Rows that change and carry a warning (newer APIs). */
+  warnings?: number;
+  /** A preview: nothing was written yet. */
+  dryRun?: boolean;
+  planHash?: string;
   errors: string[];
   /** Missing on reports from an API older than the results export. */
   rows?: StockUpdateRow[];
@@ -59,7 +65,7 @@ function rowCells(row: StockUpdateRow): unknown[] {
     row.rowNumber,
     row.sku,
     STOCK_UPDATE_STATUS_LABELS[row.status],
-    row.message,
+    row.warning ? `${row.message} — ${row.warning}` : row.message,
     row.productId ?? '',
     row.title ?? '',
     ...pair('price'),

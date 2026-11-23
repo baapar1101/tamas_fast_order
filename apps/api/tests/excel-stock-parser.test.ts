@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import * as xlsx from '@e965/xlsx';
-import { normalizeExcelSku, parseExcelStockRows, parseOptionalExcelInteger } from '../src/services/sheets/excel-stock-parser.js';
+import {
+  normalizeExcelSku,
+  parseExcelStockRows,
+  parseOptionalExcelAmount,
+  parseOptionalExcelInteger,
+} from '../src/services/sheets/excel-stock-parser.js';
+import { priceChangeWarning } from '../src/services/sheets/excel-sync.js';
 
 describe('Excel stock input', () => {
   it('preserves leading-zero SKUs and treats blank price/stock as unchanged', () => {
@@ -14,7 +20,7 @@ describe('Excel stock input', () => {
     xlsx.utils.book_append_sheet(workbook, sheet, 'Prices');
     const rows = parseExcelStockRows(Buffer.from(xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' })));
     assert.equal(rows.length, 2);
-    assert.deepEqual(rows[0], { rowNumber: 2, displayedSku: '01020100127', sku: '01020100127',
+    assert.deepEqual(rows[0], { rowNumber: 2, displayedSku: '01020100127', sku: '01020100127', productId: '',
       priceRial: null, kermanStock: 4, tehranStock: null });
     assert.equal(rows[1]?.sku, '01020100129');
     assert.equal(rows[1]?.kermanStock, 0);
@@ -61,10 +67,58 @@ describe('Excel stock input', () => {
       rowNumber: 2,
       displayedSku: '01020100127',
       sku: '01020100127',
+      productId: '',
       priceRial: null,
       kermanStock: null,
       tehranStock: 7,
     }]);
+  });
+
+  it('reads Persian headers, toman prices, formula fractions and site stock', () => {
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, xlsx.utils.aoa_to_sheet([
+      ['کد کالا', 'قیمت (تومان)', 'موجودی', 'شناسه محصول'],
+      ['10010100063', '۱٬۲۵۰٬۰۰۰ تومان', 3, null],
+      [null, 99_999.6, null, '12345678'],
+    ]), 'Sheet1');
+    const rows = parseExcelStockRows(Buffer.from(xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' })));
+    assert.equal(rows[0]?.sku, '010010100063');
+    assert.equal(rows[0]?.priceRial, 12_500_000);
+    assert.equal(rows[0]?.stock, 3);
+    assert.equal(rows[1]?.productId, '12345678');
+    assert.equal(rows[1]?.displayedSku, '12345678');
+    assert.equal(rows[1]?.priceRial, 1_000_000);
+    assert.equal(parseOptionalExcelAmount('1,500,000 ریال'), 1_500_000);
+    assert.equal(parseOptionalExcelAmount('abc'), undefined);
+    assert.equal(parseOptionalExcelAmount(-5), undefined);
+  });
+
+  it('ignores the site stock column when warehouse columns are present', () => {
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, xlsx.utils.aoa_to_sheet([
+      ['sku', 'stock', 'tehran_stock'],
+      ['1001', 9, 2],
+    ]), 'Sheet1');
+    const [row] = parseExcelStockRows(Buffer.from(xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' })));
+    assert.equal(row?.stock, undefined);
+    assert.equal(row?.tehranStock, 2);
+  });
+
+  it('refuses a file with both rial and toman price columns', () => {
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, xlsx.utils.aoa_to_sheet([
+      ['sku', 'price', 'قیمت (تومان)'],
+      ['1001', 10, 1],
+    ]), 'Sheet1');
+    assert.throws(() => parseExcelStockRows(Buffer.from(xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' }))), /فقط یکی/);
+  });
+
+  it('flags suspicious price changes', () => {
+    assert.match(priceChangeWarning(1_000_000, 100_000) ?? '', /تومان/);
+    assert.match(priceChangeWarning(100_000, 1_000_000) ?? '', /ده برابر/);
+    assert.match(priceChangeWarning(1_000_000, 400_000) ?? '', /60٪/);
+    assert.equal(priceChangeWarning(1_000_000, 1_200_000), undefined);
+    assert.equal(priceChangeWarning(0, 500_000), undefined);
   });
 
   it('requires sku and at least one editable column', () => {

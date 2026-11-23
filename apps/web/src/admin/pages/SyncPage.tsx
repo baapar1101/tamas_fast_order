@@ -5,6 +5,7 @@ import { SYNC_ENTITIES, SYNC_ENTITY_LABELS, formatNumber } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 import { buildStockUpdateResultWorkbook, countStockRows, type StockUpdateReport } from '../components/stockUpdateExcel';
+import { ExcelPreview } from '../components/ExcelPreview';
 
 const loadXlsx = () => import('@e965/xlsx');
 
@@ -142,24 +143,31 @@ export function SyncPage() {
 
   const progress = excelProgress.data?.progress;
 
+  // Step 1 previews the file (nothing is written); step 2 applies exactly
+  // that preview, identified by its planHash.
+  const [excelFile, setExcelFile] = useState<File | null>(null);
   const excelSync = useMutation({
-    mutationFn: ({ file, jobId }: { file: File; jobId: string }) => {
+    mutationFn: ({ file, jobId, planHash }: { file: File; jobId: string; planHash?: string }) => {
       const formData = new FormData();
       formData.append('excel', file);
-      return api.upload<{ ok: boolean; report: ExcelSyncReport }>(`/admin/sync/excel-upload?jobId=${encodeURIComponent(jobId)}`, formData);
+      const query = planHash ? `&planHash=${planHash}` : '&dryRun=1';
+      return api.upload<{ ok: boolean; report: ExcelSyncReport }>(`/admin/sync/excel-upload?jobId=${encodeURIComponent(jobId)}${query}`, formData);
     },
     onSuccess: (data) => {
       const r = data.report;
       setExcelReport(r);
       setExcelError(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (r.dryRun) return;
+      setExcelFile(null);
       const message = `از اکسل ${formatNumber(r.updated)} محصول به‌روز شد${r.skipped ? ` و ${formatNumber(r.skipped)} ردیف رد شد` : ''}.`;
       if (r.skipped || r.errors.length) toast.show(message, 'info');
       else toast.ok(message);
       invalidate();
-      if (fileInputRef.current) fileInputRef.current.value = '';
     },
     onError: (err: Error) => {
       setExcelReport(null);
+      setExcelFile(null);
       setExcelError(err.message);
       toast.error(err.message);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -167,18 +175,33 @@ export function SyncPage() {
     onSettled: () => setExcelUploading(false),
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const startExcelJob = (file: File, planHash?: string) => {
     const jobId = typeof crypto.randomUUID === 'function'
       ? crypto.randomUUID()
       : `excel-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    setExcelReport(null);
     setExcelError(null);
-    setExcelFileName(file.name);
     setExcelJobId(jobId);
     setExcelUploading(true);
-    excelSync.mutate({ file, jobId });
+    excelSync.mutate({ file, jobId, planHash });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setExcelReport(null);
+    setExcelFileName(file.name);
+    setExcelFile(file);
+    startExcelJob(file);
+  };
+
+  const applyExcelPreview = () => {
+    if (!excelFile || !excelReport?.planHash) return;
+    startExcelJob(excelFile, excelReport.planHash);
+  };
+
+  const cancelExcelPreview = () => {
+    setExcelFile(null);
+    setExcelReport(null);
   };
 
   const downloadExcelResult = async () => {
@@ -305,7 +328,9 @@ export function SyncPage() {
           <div>
             <h3 className="a-card-title">آپدیت گروهی قیمت و موجودی با اکسل</h3>
             <p className="a-card-desc">
-              فایل اکسل ابتدا سایت را بروزرسانی می‌کند و سپس نتیجه به Google Sheet و CRM ارسال می‌شود. فقط ستون sku و یکی از ستون‌های price، kerman_stock یا tehran_stock کافی است؛ قیمت را به ریال وارد کنید.
+              اول پیش‌نمایش تغییرات را می‌بینید و بعد با «اعمال» سایت به‌روز می‌شود و نتیجه به Google Sheet و CRM می‌رود.
+              ستون کد کالا (sku) و یکی از ستون‌های قیمت یا موجودی کافی است. عنوان فارسی ستون‌ها هم قبول است؛
+              قیمت ریالی در ستون price یا «قیمت (ریال)» و قیمت تومانی در ستون price_toman یا «قیمت (تومان)».
             </p>
           </div>
           <div className="a-card-actions">
@@ -329,7 +354,7 @@ export function SyncPage() {
               disabled={excelSync.isPending || isRunning}
               onClick={() => fileInputRef.current?.click()}
             >
-              {excelSync.isPending ? 'در حال آپلود...' : 'آپلود اکسل و بروزرسانی'}
+              {excelSync.isPending ? 'در حال بررسی...' : 'انتخاب فایل اکسل'}
             </button>
           </div>
         </div>
@@ -367,7 +392,17 @@ export function SyncPage() {
           </div>
         )}
 
-        {excelReport && !excelSync.isPending && (
+        {excelReport?.dryRun && !excelSync.isPending && (
+          <ExcelPreview
+            report={excelReport}
+            fileName={excelFileName}
+            onApply={applyExcelPreview}
+            onCancel={cancelExcelPreview}
+            onDownload={() => void downloadExcelResult()}
+          />
+        )}
+
+        {excelReport && !excelReport.dryRun && !excelSync.isPending && (
           <div
             className="a-alert mt-4"
             role="status"
@@ -390,7 +425,7 @@ export function SyncPage() {
         )}
 
         {/* Excel Report */}
-        {excelReport && (
+        {excelReport && !excelReport.dryRun && (
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="a-stat">
               <span className="a-stat-label">کل ردیف‌ها</span>
@@ -413,7 +448,7 @@ export function SyncPage() {
           </div>
         )}
 
-        {excelReport && excelReport.errors.length > 0 && (
+        {excelReport && !excelReport.dryRun && excelReport.errors.length > 0 && (
           <div className="a-error-box mt-3 text-xs" dir="rtl" style={{ maxHeight: 160, overflow: 'auto' }}>
             {excelReport.errors.map((e, i) => (
               <div key={i}>{e}</div>
