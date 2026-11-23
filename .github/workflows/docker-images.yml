@@ -3,7 +3,8 @@ name: Docker images
 # Builds the API and web images and pushes them to GitHub Container Registry,
 # for hosts that deploy prebuilt images (Hamravesh compose import, any VPS):
 #   ghcr.io/<owner>/tamas-api:<branch>  and  ghcr.io/<owner>/tamas-web:<branch>
-# (e.g. :dev), plus a tag per commit SHA.
+# (e.g. :dev), plus a tag per commit SHA. Pushes to dev are then deployed to
+# Hamravesh automatically (see the deploy job).
 on:
   push:
     branches: [main, dev]
@@ -51,3 +52,43 @@ jobs:
             ${{ steps.name.outputs.repo }}:${{ github.sha }}
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+
+  # Puts the new images live on Hamravesh (Darkube) once both are pushed:
+  # the API first (it applies database migrations on start), then the web.
+  # Needs the repository secrets HAMRAVESH_DEPLOY_TOKEN_API and
+  # HAMRAVESH_DEPLOY_TOKEN_WEB ("توکن دیپلوی" under each app's CI/CD
+  # settings); without them this job only prints a notice.
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: hamravesh-deploy
+      cancel-in-progress: false
+    env:
+      API_APP_ID: dcfdefd4-df22-45a9-9700-d1ff1715f24f
+      WEB_APP_ID: 9474eeef-587f-4f04-9927-43e72b384c3e
+      API_TOKEN: ${{ secrets.HAMRAVESH_DEPLOY_TOKEN_API }}
+      WEB_TOKEN: ${{ secrets.HAMRAVESH_DEPLOY_TOKEN_WEB }}
+      TAG: ${{ github.sha }}
+    steps:
+      - name: Deploy to Hamravesh
+        run: |
+          if [ -z "$API_TOKEN" ] || [ -z "$WEB_TOKEN" ]; then
+            echo "::notice::Hamravesh deploy tokens are not set; images were pushed but not deployed."
+            exit 0
+          fi
+          deploy() {
+            local name="$1" app="$2" token="$3"
+            echo "Deploying $name ($TAG)"
+            jq -n --arg t "$token" --arg a "$app" --arg i "$TAG" \
+              '{trigger_deploy_token: $t, app_id: $a, image_tag: $i}' |
+              curl --fail-with-body -sS --retry 3 --retry-delay 10 --retry-all-errors \
+                -X PUT 'https://api.hamravesh.com/api/v1/darkube/apps/update_from_cli/' \
+                -H 'Content-Type: application/json' --data @-
+            echo
+          }
+          deploy tamas-api "$API_APP_ID" "$API_TOKEN"
+          # Give the API time to apply migrations and pass its readiness check.
+          sleep 90
+          deploy tamas-web "$WEB_APP_ID" "$WEB_TOKEN"
