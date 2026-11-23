@@ -178,6 +178,26 @@ function hasPendingImages(row: { imageUrl: string | null; gallery: string[] }): 
   return needsImageWork(row.imageUrl) || row.gallery.some(needsImageWork);
 }
 
+/**
+ * Links that failed to download rest for a while, so a batch full of dead
+ * links does not block every product behind it run after run.
+ */
+const FAILED_SOURCE_COOLDOWN_MS = 6 * 60 * 60 * 1000;
+const failedSources = new Map<string, number>();
+
+function coolingDown(value: string | null | undefined, now: number): boolean {
+  return (failedSources.get(String(value ?? '').trim()) ?? 0) > now;
+}
+
+/** Pending work that is not only links still cooling down after a failure. */
+export function hasRetryableImages(row: { imageUrl: string | null; gallery: string[] }, now = Date.now()): boolean {
+  return [row.imageUrl, ...row.gallery].some((url) => needsImageWork(url) && !coolingDown(url, now));
+}
+
+export function markImageSourceFailed(url: string, now = Date.now()): void {
+  failedSources.set(url.trim(), now + FAILED_SOURCE_COOLDOWN_MS);
+}
+
 async function mapWithConcurrency<T>(items: T[], concurrency: number, fn: (item: T) => Promise<void>): Promise<void> {
   let next = 0;
   await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, async () => {
@@ -204,7 +224,8 @@ export async function mirrorProductImages(options: { limit?: number; concurrency
       .from(products)
       .where(and(isNull(products.deletedAt)));
     const pending = rows.filter(hasPendingImages);
-    const targets = pending.slice(0, limit);
+    const startedAt = Date.now();
+    const targets = pending.filter((row) => hasRetryableImages(row, startedAt)).slice(0, limit);
     const failures: ProductImageMirrorFailure[] = [];
     const sourceCache = new Map<string, Promise<string>>();
     let localizedImages = 0;
@@ -239,14 +260,17 @@ export async function mirrorProductImages(options: { limit?: number; concurrency
       try {
         return await task;
       } catch (error) {
+        markImageSourceFailed(clean);
         failures.push({ productId, url: clean, error: error instanceof Error ? error.message : 'خطای نامشخص' });
         return clean;
       }
     };
 
     await mapWithConcurrency(targets, concurrency, async (row) => {
-      const nextMain = row.imageUrl ? await localize(row.imageUrl, row.productId) : null;
-      const nextGallery = await Promise.all(row.gallery.map((url) => localize(url, row.productId)));
+      // Links cooling down after a failure are left as they are this run.
+      const attempt = (url: string) => coolingDown(url, startedAt) ? Promise.resolve(url) : localize(url, row.productId);
+      const nextMain = row.imageUrl ? await attempt(row.imageUrl) : null;
+      const nextGallery = await Promise.all(row.gallery.map(attempt));
       if (nextMain !== row.imageUrl || nextGallery.some((url, index) => url !== row.gallery[index])) {
         await db.update(products).set({ imageUrl: nextMain, gallery: nextGallery, updatedAt: new Date() }).where(eq(products.id, row.id));
         processedProducts += 1;

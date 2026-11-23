@@ -15,6 +15,7 @@ import { enqueueCrmProductSync } from '../../services/crm-product-sync.js';
 import { duplicateProductMessage, findProductDuplicate } from '../../services/product-duplicates.js';
 import { insertProductRecord, resolveProductCategory, resolveTaxonomy } from '../../services/product-create.js';
 import { importProductRows } from '../../services/product-import.js';
+import { attachProductPhotos, productIdsWithoutPhoto } from '../../services/product-photos.js';
 
 type TrackingLinkInput = { siteId: number; url: string };
 
@@ -80,6 +81,17 @@ const listQuery = z.object({
   parentOnly: z.coerce.boolean().default(false),
   type: z.string().max(50).optional(),
   catalogScope: catalogExportScopeSchema.default('all'),
+  /** missing: the main photo is empty or its file is gone. */
+  photo: z.enum(['missing', 'all']).default('all'),
+});
+
+const photoAttachSchema = z.object({
+  onlyMissing: z.boolean().default(true),
+  items: z.array(z.object({
+    code: z.string().trim().min(1).max(80),
+    imageUrl: z.string().trim().min(1).max(1000),
+    gallery: z.array(z.string().trim().max(1000)).max(40).default([]),
+  })).min(1).max(2000),
 });
 
 const bulkSchema = z.object({
@@ -134,6 +146,10 @@ const routes: FastifyPluginAsync = async (app) => {
     }
     const scopeFilter = catalogExportScopeFilter(q.catalogScope);
     if (scopeFilter) filters.push(scopeFilter);
+    if (q.photo === 'missing') {
+      const ids = await productIdsWithoutPhoto();
+      filters.push(ids.length ? inArray(products.id, ids) : sql`false`);
+    }
 
     const where = filters.length > 0 ? and(...filters) : undefined;
 
@@ -173,6 +189,14 @@ const routes: FastifyPluginAsync = async (app) => {
       page: q.page,
       perPage: q.perPage,
     };
+  });
+
+  /** Puts photos uploaded under product-code file names on the matching existing products. */
+  app.post('/admin/products/photos', async (req) => {
+    const body = photoAttachSchema.parse(req.body);
+    const report = await attachProductPhotos(body.items, { onlyMissing: body.onlyMissing });
+    await logAction(req.currentUser!.id, 'update', 'product', 'photos', { updated: report.updated, items: body.items.length });
+    return { ok: true, ...report };
   });
 
   app.get('/admin/products/:id', async (req) => {

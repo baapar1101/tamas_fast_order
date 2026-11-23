@@ -80,6 +80,11 @@ const STOCK_OPTIONS = [
   { value: 'out', label: 'تمام شده' },
 ];
 
+const PHOTO_OPTIONS = [
+  { value: 'all', label: 'همه کالاها' },
+  { value: 'missing', label: 'بدون عکس (یا عکس خراب)' },
+];
+
 const SORT_OPTIONS = [
   { value: 'updated', label: 'آخرین تغییرات' },
   { value: 'title', label: 'عنوان کالا' },
@@ -95,6 +100,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [stock, setStock] = useState<'all' | 'in' | 'out'>('all');
+  const [photo, setPhoto] = useState<'all' | 'missing'>(() => new URLSearchParams(window.location.search).get('photo') === 'missing' ? 'missing' : 'all');
   const [categoryId, setCategoryId] = useState<number | ''>('');
   const [brandId, setBrandId] = useState<number | ''>('');
   const [sort, setSort] = useState('updated');
@@ -107,7 +113,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [sheetDrafts, setSheetDrafts] = useState<SheetDrafts>(restoreSheetDrafts);
   const [sheetSaving, setSheetSaving] = useState(false);
   const [variantsProduct, setVariantsProduct] = useState<ProductDTO | null>(null);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(() => new URLSearchParams(window.location.search).get('photo') === 'missing');
   const [bulkMenuOpen, setBulkMenuOpen] = useState(false);
   const [rowMenu, setRowMenu] = useState<number | null>(null);
   const [isPrinting, setIsPrinting] = useState(false);
@@ -138,8 +144,8 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   });
 
   const query = useMemo(
-    () => ({ q: debounced, status, stock, categoryId: categoryId || undefined, brandId: brandId || undefined, sort, page, perPage, parentOnly: viewMode !== 'sheet', type: typeFilter || undefined }),
-    [debounced, status, stock, categoryId, brandId, sort, page, perPage, viewMode, typeFilter],
+    () => ({ q: debounced, status, stock, photo: photo === 'missing' ? photo : undefined, categoryId: categoryId || undefined, brandId: brandId || undefined, sort, page, perPage, parentOnly: viewMode !== 'sheet', type: typeFilter || undefined }),
+    [debounced, status, stock, photo, categoryId, brandId, sort, page, perPage, viewMode, typeFilter],
   );
 
   const products = useQuery({
@@ -487,6 +493,17 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                 setPage(1);
               }}
               options={STOCK_OPTIONS}
+            />
+          </div>
+          <div className="a-field">
+            <label>عکس</label>
+            <AnimatedDropdown
+              value={photo}
+              onChange={(v) => {
+                setPhoto(v as typeof photo);
+                setPage(1);
+              }}
+              options={PHOTO_OPTIONS}
             />
           </div>
           <div className="a-field">

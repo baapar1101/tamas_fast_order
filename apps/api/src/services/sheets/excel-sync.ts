@@ -145,7 +145,7 @@ export async function processExcelUpload(buffer: Buffer, options: UploadOptions 
       reject(row, 'قیمت یا موجودی عدد نامنفی نیست (موجودی باید عدد صحیح باشد).', product);
       continue;
     }
-    if (row.priceRial === null && row.kermanStock === null && row.tehranStock === null && row.stock == null) {
+    if (row.priceRial === null && row.kermanStock === null && row.tehranStock === null && row.stock === null) {
       reject(row, 'هیچ مقدار قیمت یا موجودی برای به‌روزرسانی ثبت نشده است.', product);
       continue;
     }

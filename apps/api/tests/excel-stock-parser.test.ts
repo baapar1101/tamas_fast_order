@@ -21,7 +21,7 @@ describe('Excel stock input', () => {
     const rows = parseExcelStockRows(Buffer.from(xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' })));
     assert.equal(rows.length, 2);
     assert.deepEqual(rows[0], { rowNumber: 2, displayedSku: '01020100127', sku: '01020100127', productId: '',
-      priceRial: null, kermanStock: 4, tehranStock: null });
+      priceRial: null, kermanStock: 4, tehranStock: null, stock: null });
     assert.equal(rows[1]?.sku, '01020100129');
     assert.equal(rows[1]?.kermanStock, 0);
   });
@@ -71,6 +71,7 @@ describe('Excel stock input', () => {
       priceRial: null,
       kermanStock: null,
       tehranStock: 7,
+      stock: null,
     }]);
   });
 
@@ -100,7 +101,7 @@ describe('Excel stock input', () => {
       ['1001', 9, 2],
     ]), 'Sheet1');
     const [row] = parseExcelStockRows(Buffer.from(xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' })));
-    assert.equal(row?.stock, undefined);
+    assert.equal(row?.stock, null);
     assert.equal(row?.tehranStock, 2);
   });
 

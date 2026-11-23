@@ -156,7 +156,7 @@ export function parseExcelStockRows(buffer: Buffer): ExcelStockRow[] {
       priceRial: tomanPrices ? (toman == null ? toman : toman * 10) : parseOptionalExcelAmount(cell(row, 'price')),
       kermanStock: parseOptionalExcelInteger(cell(row, 'kerman_stock')),
       tehranStock: parseOptionalExcelInteger(cell(row, 'tehran_stock')),
-      ...(columnIndexes.has('stock') && !hasWarehouseColumns ? { stock: parseOptionalExcelInteger(cell(row, 'stock')) } : {}),
+      stock: columnIndexes.has('stock') && !hasWarehouseColumns ? parseOptionalExcelInteger(cell(row, 'stock')) : null,
     });
   }
   return parsed;

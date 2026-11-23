@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatNumber, type UploadDTO } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
-import { absolutePhotoUrl, buildPhotoLinksWorkbook, photoNameParts, type UploadedPhoto } from '../components/photoLinks';
+import { absolutePhotoUrl, buildPhotoLinksWorkbook, groupPhotosByProduct, photoNameParts, type UploadedPhoto } from '../components/photoLinks';
 import './uploads-page.css';
 
 const PER_PAGE = 48;
@@ -15,6 +15,14 @@ type KindFilter = 'product' | 'all';
 
 interface SessionPhoto extends UploadedPhoto {
   thumbUrl: string | null;
+}
+
+interface PhotoAttachResult {
+  code: string;
+  status: 'updated' | 'skipped' | 'not_found' | 'duplicate' | 'invalid';
+  message: string;
+  productId?: string;
+  title?: string;
 }
 
 interface FailedPhoto {
@@ -127,6 +135,23 @@ export function UploadsPage() {
     download(buildPhotoLinksWorkbook(XLSX, photos, origin()), name);
   };
 
+  // Puts this round's photos on existing products whose code is the file name.
+  const [onlyMissing, setOnlyMissing] = useState(true);
+  const [attachResults, setAttachResults] = useState<PhotoAttachResult[] | null>(null);
+  const attach = useMutation({
+    mutationFn: () => api.post<{ results: PhotoAttachResult[]; updated: number }>('/admin/products/photos', {
+      onlyMissing,
+      items: groupPhotosByProduct(session, origin()).map(({ code, imageUrl, gallery }) => ({ code, imageUrl, gallery })),
+    }),
+    onSuccess: (data) => {
+      setAttachResults(data.results);
+      const missed = data.results.filter((row) => row.status !== 'updated' && row.status !== 'skipped').length;
+      toast.ok(`عکس ${formatNumber(data.updated)} کالا ثبت شد${missed ? `؛ ${formatNumber(missed)} کد پیدا نشد یا مشکل داشت` : ''}.`);
+      void qc.invalidateQueries({ queryKey: ['admin', 'products'] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   const remove = useMutation({
     mutationFn: (id: number) => api.del(`/admin/uploads/${id}`),
     onSuccess: () => {
@@ -146,9 +171,10 @@ export function UploadsPage() {
       <section className="a-page-head">
         <div className="a-titles">
           <h2 className="a-title">فایل‌ها و رسانه</h2>
-          <p className="a-subtitle">عکس کالاها را آپلود کنید و لینکشان را برای فایل اکسل ایمپورت بگیرید.</p>
+          <p className="a-subtitle">عکس کالاها را با نام کد کالا آپلود کنید و یکجا روی کالاهای موجود ثبت کنید، یا لینکشان را برای ایمپورت بگیرید.</p>
         </div>
         <div className="a-page-actions">
+          <Link to="/admin/products?photo=missing" className="a-btn a-btn--secondary">کالاهای بدون عکس</Link>
           <Link to="/admin/product-import" className="a-btn a-btn--secondary">ایمپورت کالا با اکسل</Link>
         </div>
       </section>
@@ -165,6 +191,7 @@ export function UploadsPage() {
             <span className="up-example a-ltr">1040012345-3.jpg</span>
           </li>
           <li><strong>آپلود:</strong> همهٔ عکس‌ها را با هم انتخاب کنید یا داخل کادر پایین بکشید (هر عکس خودکار WebP و سبک می‌شود).</li>
+          <li><strong>کالاهای موجود:</strong> بعد از آپلود «ثبت روی کالاهای موجود» را بزنید؛ عکس هر فایل روی کالایی با همان کد کالا (SKU) یا شناسهٔ محصول می‌نشیند.</li>
           <li><strong>اکسل لینک‌ها:</strong> «دانلود اکسل لینک‌ها» را بزنید؛ برای هر کد محصول یک ردیف با ستون‌های «لینک تصویر اصلی» و «لینک تصاویر گالری» می‌گیرید.</li>
           <li><strong>در فایل ایمپورت:</strong> این دو ستون را کنار کد محصول در فایل نمونهٔ ایمپورت کپی کنید (یا با VLOOKUP روی کد محصول پر کنید) و فایل را ایمپورت کنید.</li>
         </ol>
@@ -222,7 +249,14 @@ export function UploadsPage() {
               <p className="a-card-desc">کد محصول از اسم فایل خوانده شده است.</p>
             </div>
             <div className="up-actions">
-              <button type="button" className="a-btn a-btn--primary" onClick={() => void exportLinks(session, `tamas-photo-links-${today()}.xlsx`)}>
+              <button type="button" className="a-btn a-btn--primary" disabled={attach.isPending} onClick={() => attach.mutate()}>
+                {attach.isPending ? 'در حال ثبت…' : 'ثبت روی کالاهای موجود'}
+              </button>
+              <label className="flex items-center gap-1.5 text-sm">
+                <input type="checkbox" checked={onlyMissing} onChange={(e) => setOnlyMissing(e.target.checked)} />
+                فقط کالاهایی که عکس ندارند
+              </label>
+              <button type="button" className="a-btn a-btn--secondary" onClick={() => void exportLinks(session, `tamas-photo-links-${today()}.xlsx`)}>
                 دانلود اکسل لینک‌ها
               </button>
               <button
@@ -232,9 +266,24 @@ export function UploadsPage() {
               >
                 کپی همهٔ لینک‌ها
               </button>
-              <button type="button" className="a-btn a-btn--secondary" onClick={() => setSession([])}>پاک کردن فهرست</button>
+              <button type="button" className="a-btn a-btn--secondary" onClick={() => { setSession([]); setAttachResults(null); }}>پاک کردن فهرست</button>
             </div>
           </div>
+          {attachResults && (
+            <div className="a-alert mt-3" role="status">
+              <strong>
+                نتیجهٔ ثبت: {formatNumber(attachResults.filter((row) => row.status === 'updated').length)} کالا عکس گرفت،{' '}
+                {formatNumber(attachResults.filter((row) => row.status === 'skipped').length)} کالا عکس سالم داشت و دست نخورد.
+              </strong>
+              {attachResults.some((row) => row.status !== 'updated' && row.status !== 'skipped') && (
+                <ul className="up-failed">
+                  {attachResults.filter((row) => row.status !== 'updated' && row.status !== 'skipped').map((row) => (
+                    <li key={row.code}><span className="a-ltr">{row.code}</span> — {row.message}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
           <div className="a-table-wrap">
             <table className="a-table up-table">
               <thead>
