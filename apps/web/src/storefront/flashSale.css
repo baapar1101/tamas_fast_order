@@ -1,0 +1,71 @@
+/* Daily sale: hourglass, header tab and page. */
+
+.hourglass {
+  display: block;
+  color: #fff7ed;
+  overflow: visible;
+}
+.hourglass-sand {
+  transition: y 1s linear, height 1s linear, d 1s linear;
+}
+.hourglass--running .hourglass-stream {
+  animation: hourglass-stream 0.6s linear infinite;
+}
+@keyframes hourglass-stream {
+  0% { opacity: 1; stroke-dashoffset: 0; }
+  50% { opacity: 0.55; }
+  100% { opacity: 1; }
+}
+.hourglass--idle {
+  animation: hourglass-tilt 3.2s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+@keyframes hourglass-tilt {
+  0%, 70%, 100% { transform: rotate(0deg); }
+  80% { transform: rotate(-8deg); }
+  90% { transform: rotate(8deg); }
+}
+
+.flash-sale-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #9f1239, #e2401f 55%, #f05a28);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+  box-shadow: 0 6px 18px -8px rgba(240, 90, 40, 0.8);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.flash-sale-tab:hover { transform: translateY(-1px); box-shadow: 0 10px 22px -8px rgba(240, 90, 40, 0.9); }
+.flash-sale-tab[aria-current='page'] { outline: 2px solid #fde68a; outline-offset: 2px; }
+.flash-sale-tab-glass { width: 0.9rem; height: 1.4rem; }
+.flash-sale-tab-time {
+  font-variant-numeric: tabular-nums;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  font-size: 0.75rem;
+}
+.flash-sale-tab--live .flash-sale-tab-time { color: #fde68a; }
+
+/* Bottom tab bar item on phones. */
+.tabbar-item.tabbar-item--sale { color: #e2401f; font-weight: 800; }
+.tabbar-item--sale .tabbar-icon .hourglass { width: 0.95rem; height: 1.45rem; color: currentColor; }
+.tabbar-item--sale .hourglass-sand { fill: #f59e0b; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hourglass--running .hourglass-stream,
+  .hourglass--idle { animation: none; }
+  .hourglass-sand { transition: none; }
+}
+
+@media (max-width: 767px) {
+  /* Phones reach the sale from the bottom tab bar. */
+  .site-header-sale-tab { display: none; }
+}

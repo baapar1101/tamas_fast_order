@@ -52,6 +52,7 @@ import { FlipWords, GlowCard, Marquee, Reveal, SpotCard, TiltFrame } from './eff
 import { SHOP_PATH, featuredQuery, featuredShopHref, shopHref, shopSearchHref } from './shopLinks';
 import landingCss from './landing.css?inline';
 import { FlashSaleSection } from './FlashSaleSection';
+import { FlashSaleTab } from '../flashSale';
 
 type Section<T extends LandingSection['type']> = Extract<LandingSection, { type: T }>;
 
@@ -121,7 +122,8 @@ function SectionHeading({ title, subtitle, action }: { title: string; subtitle?:
 // ---------------------------------------------------------------------------
 // Header and hero
 
-function LandingHeader({ config, onLogin }: { config: LandingConfig; onLogin: () => void }) {
+/** The home page's dark header; the sale page uses it too, without section anchors. */
+export function LandingHeader({ config, onLogin }: { config?: LandingConfig; onLogin: () => void }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const items = useCart((state) => cartCount(state.lines));
@@ -136,7 +138,7 @@ function LandingHeader({ config, onLogin }: { config: LandingConfig; onLogin: ()
     return () => window.removeEventListener('scroll', onScroll, { capture: true });
   }, []);
 
-  const anchors = config.sections
+  const anchors = (config?.sections ?? [])
     .filter((section) => section.enabled && ['featured', 'categories', 'benefits', 'steps'].includes(section.type))
     .slice(0, 4)
     .map((section) => ({ id: section.id, label: { featured: 'محصولات ویژه', categories: 'دسته‌بندی‌ها', benefits: 'چرا تماس مارکت', steps: 'نحوهٔ سفارش' }[section.type as 'featured' | 'categories' | 'benefits' | 'steps'] }));
@@ -160,9 +162,10 @@ function LandingHeader({ config, onLogin }: { config: LandingConfig; onLogin: ()
         </Link>
         <nav className="hidden items-center gap-1 lg:flex" aria-label="بخش‌های صفحه">
           {anchors.map((anchor) => (
-            <a key={anchor.id} href={`#${anchor.id}`} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white">{anchor.label}</a>
+            <a key={anchor.id} href={`/#${anchor.id}`} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white">{anchor.label}</a>
           ))}
         </nav>
+        <FlashSaleTab className="hidden md:inline-flex" />
         <form onSubmit={submit} role="search" className="relative ms-auto hidden max-w-xs flex-1 md:block">
           <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
           <input

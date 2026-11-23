@@ -6,6 +6,7 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { useAuth } from '../store/auth';
 import { useFavorites } from '../store/favorites';
 import { FavoritesDialog } from './FavoritesDialog';
+import { FlashSaleTab } from './flashSale';
 import { useBootstrap } from './hooks';
 
 interface SiteHeaderProps {
@@ -119,6 +120,7 @@ export function SiteHeader({ search, onSearchChange, onRequestLogin }: SiteHeade
         </form>
 
         <div className="user-actions">
+          <FlashSaleTab className="site-header-sale-tab" />
           <ThemeToggle />
           <button
             type="button"

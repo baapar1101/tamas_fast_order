@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { formatNumber } from '@tamas/shared';
+import { formatNumber, type FlashSaleShowcase } from '@tamas/shared';
 import { Icon } from '../components/Icon';
+import { FLASH_SALE_PATH, Hourglass, pad, useFlashSale, useSaleClock } from './flashSale';
 
 export type MobileAppTab = 'home' | 'categories' | 'search' | 'cart' | 'profile';
 
@@ -15,7 +16,8 @@ const ITEMS: Array<{ tab: MobileAppTab; label: string; icon: 'home' | 'grid' | '
 ];
 
 interface MobileAppNavigationProps {
-  activeTab: MobileAppTab;
+  /** 'sale' marks the daily sale page, whose tab shows only while the sale is on. */
+  activeTab: MobileAppTab | 'sale';
   cartItemCount?: number;
   links?: TabLinks;
   accountReturnTo?: string;
@@ -45,9 +47,20 @@ export function MobileAppNavigation({
   profileLabel,
   onSelect,
 }: MobileAppNavigationProps) {
+  const { data: sale } = useFlashSale();
   return (
     <nav className="tabbar" aria-label="ناوبری اصلی فروشگاه">
-      {ITEMS.map((item) => {
+      {ITEMS.flatMap((item) => {
+        // The daily sale sits in the middle of the bar while the admin has it on.
+        const saleTab = item.tab === 'search' && sale
+          ? [<SaleTabItem key="sale" sale={sale} active={activeTab === 'sale'} />]
+          : [];
+        return [...saleTab, renderItem(item)];
+      })}
+    </nav>
+  );
+
+  function renderItem(item: (typeof ITEMS)[number]) {
         const displayedItem = item.tab === 'profile' && profileLabel ? { ...item, label: profileLabel } : item;
         const active = activeTab === item.tab;
         const className = `tabbar-item${active ? ' active' : ''}`;
@@ -78,7 +91,17 @@ export function MobileAppNavigation({
             <TabContent {...displayedItem} cartItemCount={cartItemCount} />
           </button>
         );
-      })}
-    </nav>
+  }
+}
+
+function SaleTabItem({ sale, active }: { sale: FlashSaleShowcase; active: boolean }) {
+  const clock = useSaleClock(sale);
+  return (
+    <Link to={FLASH_SALE_PATH} className={`tabbar-item tabbar-item--sale${active ? ' active' : ''}`} aria-current={active ? 'page' : undefined}>
+      <span className="tabbar-icon">
+        <Hourglass remaining={clock.remaining} running={sale.active} />
+      </span>
+      <span>{sale.active ? `${pad(clock.hours)}:${pad(clock.minutes)}` : 'فروش ویژه'}</span>
+    </Link>
   );
 }
