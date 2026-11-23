@@ -90,6 +90,20 @@ jobs:
                 -H 'Content-Type: application/json' --data @-
             echo
           }
+          # Common paste mistakes, reported without printing any secret.
+          check() {
+            local name="$1" token
+            token="$(printf '%s' "$2" | tr -d '[:space:]')"
+            echo "$name: ${#token} characters"
+            [ "$token" = "$API_APP_ID" ] && echo "::error::$name is the tamas-api app ID, not its deploy token."
+            [ "$token" = "$WEB_APP_ID" ] && echo "::error::$name is the tamas-web app ID, not its deploy token."
+            return 0
+          }
+          check HAMRAVESH_DEPLOY_TOKEN_API "$API_TOKEN"
+          check HAMRAVESH_DEPLOY_TOKEN_WEB "$WEB_TOKEN"
+          if [ "$(printf '%s' "$API_TOKEN" | tr -d '[:space:]')" = "$(printf '%s' "$WEB_TOKEN" | tr -d '[:space:]')" ]; then
+            echo "::error::Both secrets hold the same token; each app has its own."
+          fi
           deploy tamas-api "$API_APP_ID" "$API_TOKEN"
           # Give the API time to apply migrations and pass its readiness check.
           sleep 90
