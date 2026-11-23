@@ -1,11 +1,14 @@
-import { asc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
 import { brandWriteSchema, categoryWriteSchema, colorWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
-import { brands, categories, categoryBrands, colors } from '../../db/schema.js';
-import { conflict, notFound } from '../../lib/errors.js';
+import { brands, categories, categoryBrands, colors, products } from '../../db/schema.js';
+import { badRequest, conflict, notFound } from '../../lib/errors.js';
 import { invalidateCatalog, listBrands, listCategories, listColors } from '../../services/catalog.js';
 import { logAction } from '../../services/audit.js';
+import { enqueueCrmProductSync } from '../../services/crm-product-sync.js';
+import { findTaxonomyId } from '../../services/product-create.js';
 
 /** Rebuilds a category's brand links from the names the panel sent. */
 async function syncCategoryBrands(categoryId: number, brandNames: string[]): Promise<void> {
@@ -125,8 +128,22 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.post('/admin/brands', async (req) => {
     const body = brandWriteSchema.parse(req.body);
-    const [clash] = await db.select({ id: brands.id }).from(brands).where(eq(brands.name, body.name)).limit(1);
-    if (clash) throw conflict('برندی با این نام از قبل وجود دارد.');
+    const clashId = await findTaxonomyId(brands, body.name);
+    const [clash] = clashId
+      ? await db.select({ id: brands.id, deletedAt: brands.deletedAt, faName: brands.faName }).from(brands).where(eq(brands.id, clashId)).limit(1)
+      : [];
+    if (clash && clash.deletedAt === null) throw conflict(`برند «${clash.faName}» با همین نام از قبل وجود دارد.`);
+    if (clash) {
+      // The name belongs to a deleted brand: bring it back instead of failing on the unique name.
+      const [revived] = await db
+        .update(brands)
+        .set({ name: body.name, faName: body.faName, iconUrl: body.iconUrl ?? null, sortOrder: body.sortOrder, deletedAt: null, updatedAt: new Date() })
+        .where(eq(brands.id, clash.id))
+        .returning();
+      invalidateCatalog();
+      await logAction(req.currentUser!.id, 'create', 'brand', body.name);
+      return { ok: true, brand: revived };
+    }
 
     const [created] = await db
       .insert(brands)
@@ -157,8 +174,45 @@ const routes: FastifyPluginAsync = async (app) => {
     return { ok: true, brand: updated };
   });
 
+  /**
+   * Moves every product and category link of a duplicate brand onto the brand
+   * to keep, then deletes the duplicate.
+   */
+  app.post('/admin/brands/:id/merge', async (req) => {
+    const id = Number((req.params as { id: string }).id);
+    const { intoId } = z.object({ intoId: z.number().int().positive() }).parse(req.body);
+    if (id === intoId) throw badRequest('برند مقصد باید با برند ادغام‌شونده فرق کند.');
+    const rows = await db.select().from(brands).where(and(inArray(brands.id, [id, intoId]), isNull(brands.deletedAt)));
+    const source = rows.find((row) => row.id === id);
+    const target = rows.find((row) => row.id === intoId);
+    if (!source || !target) throw notFound('برند پیدا نشد.');
+
+    const moved = await db.transaction(async (tx) => {
+      const changed = await tx.update(products).set({ brandId: intoId, updatedAt: new Date() })
+        .where(eq(products.brandId, id)).returning({ productId: products.productId });
+      const links = await tx.select({ categoryId: categoryBrands.categoryId }).from(categoryBrands).where(eq(categoryBrands.brandId, id));
+      if (links.length) {
+        await tx.insert(categoryBrands).values(links.map(({ categoryId }) => ({ categoryId, brandId: intoId }))).onConflictDoNothing();
+      }
+      await tx.delete(categoryBrands).where(eq(categoryBrands.brandId, id));
+      await tx.update(brands).set({ deletedAt: new Date(), updatedAt: new Date() }).where(eq(brands.id, id));
+      return changed;
+    });
+    for (const { productId } of moved) {
+      await enqueueCrmProductSync(productId, 'update', { source: 'brand-merge' }).catch(() => undefined);
+    }
+    invalidateCatalog();
+    await logAction(req.currentUser!.id, 'update', 'brand', `merge ${source.name} → ${target.name}`, { products: moved.length });
+    return { ok: true, moved: moved.length, message: `${moved.length} محصول از «${source.faName}» به «${target.faName}» منتقل شد.` };
+  });
+
   app.delete('/admin/brands/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
+    const [used] = await db.select({ count: sql<number>`count(*)::int` }).from(products)
+      .where(and(eq(products.brandId, id), isNull(products.deletedAt)));
+    if ((used?.count ?? 0) > 0) {
+      throw badRequest(`${used!.count} محصول این برند را دارند. اول با «ادغام» آن‌ها را به برند درست منتقل کنید.`);
+    }
     const [updated] = await db
       .update(brands)
       .set({ deletedAt: new Date(), updatedAt: new Date() })

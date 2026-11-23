@@ -1,4 +1,4 @@
-import { and, eq, isNull, or } from 'drizzle-orm';
+import { and, eq, isNull, or, sql } from 'drizzle-orm';
 import type { ProductWrite } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { brands, categories, products } from '../db/schema.js';
@@ -8,29 +8,62 @@ import { enqueueCrmProductSync } from './crm-product-sync.js';
 
 type TaxonomyTable = typeof categories | typeof brands;
 
-/** Finds a category/brand by its English or Persian name; never creates one. */
+/**
+ * The form two spellings of one name share: "HOCO", "hoco", "Ho-co" and
+ * "هوکو" with Arabic ي/ك all compare equal once spaces, dashes and
+ * zero-width joiners are gone.
+ */
+export function taxonomyKey(name: string): string {
+  return name.normalize('NFKC').toLowerCase()
+    .replace(/ي/g, 'ی').replace(/ك/g, 'ک')
+    .replace(/[\s\u200c\u200d_.-]+/g, '');
+}
+
+const SQL_KEY_PATTERN = '[[:space:]\u200c\u200d_.-]+';
+function sqlKey(column: typeof categories.name | typeof brands.name | typeof categories.faName | typeof brands.faName) {
+  return sql`regexp_replace(translate(lower(${column}), 'يك', 'یک'), ${SQL_KEY_PATTERN}, '', 'g')`;
+}
+
+/**
+ * Finds a category/brand by its English or Persian name, ignoring case,
+ * spaces and Arabic letter forms; live rows win over deleted ones. Never
+ * creates one.
+ */
 export async function findTaxonomyId(
   table: TaxonomyTable,
   name: string | null | undefined,
   options: { liveOnly?: boolean } = {},
 ): Promise<number | null> {
-  const clean = String(name ?? '').trim();
-  if (!clean) return null;
-  const byName = or(eq(table.name, clean), eq(table.faName, clean));
-  const [found] = await db
-    .select({ id: table.id })
-    .from(table)
-    .where(options.liveOnly ? and(byName, isNull(table.deletedAt)) : byName)
-    .limit(1);
-  return found?.id ?? null;
+  return (await findTaxonomy(table, name, options))?.id ?? null;
 }
 
-/** Resolves a category/brand name to its id, creating the row when new. */
+async function findTaxonomy(
+  table: TaxonomyTable,
+  name: string | null | undefined,
+  options: { liveOnly?: boolean } = {},
+): Promise<{ id: number; deleted: boolean } | null> {
+  const clean = String(name ?? '').trim();
+  if (!clean) return null;
+  const key = taxonomyKey(clean);
+  const byName = or(eq(table.name, clean), eq(table.faName, clean), eq(sqlKey(table.name), key), eq(sqlKey(table.faName), key));
+  const [found] = await db
+    .select({ id: table.id, deletedAt: table.deletedAt })
+    .from(table)
+    .where(options.liveOnly ? and(byName, isNull(table.deletedAt)) : byName)
+    .orderBy(sql`${table.deletedAt} is not null`, table.id)
+    .limit(1);
+  return found ? { id: found.id, deleted: found.deletedAt !== null } : null;
+}
+
+/** Resolves a category/brand name to its id, reviving a deleted match or creating the row when new. */
 export async function resolveTaxonomy(table: TaxonomyTable, name: string | null | undefined): Promise<number | null> {
   const clean = String(name ?? '').trim();
   if (!clean) return null;
-  const found = await findTaxonomyId(table, clean);
-  if (found) return found;
+  const found = await findTaxonomy(table, clean);
+  if (found?.deleted) {
+    await db.update(table).set({ deletedAt: null, updatedAt: new Date() }).where(eq(table.id, found.id));
+  }
+  if (found) return found.id;
   const [created] = await db.insert(table).values({ name: clean, faName: clean }).returning({ id: table.id });
   return created?.id ?? null;
 }

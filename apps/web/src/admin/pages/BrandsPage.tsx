@@ -16,6 +16,13 @@ interface BrandForm {
 
 const EMPTY_FORM: BrandForm = { name: '', faName: '', iconUrl: '', sortOrder: 0 };
 
+/** Same rule as the API's taxonomyKey: case, spaces, dashes and ي/ك do not count. */
+function brandKey(name: string): string {
+  return name.normalize('NFKC').toLowerCase()
+    .replace(/ي/g, 'ی').replace(/ك/g, 'ک')
+    .replace(/[\s\u200c\u200d_.-]+/g, '');
+}
+
 export function BrandsPage() {
   const toast = useToast();
   const qc = useQueryClient();
@@ -67,6 +74,23 @@ export function BrandsPage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const [mergeFrom, setMergeFrom] = useState<BrandDTO | null>(null);
+  const [mergeInto, setMergeInto] = useState<number | ''>('');
+  const merge = useMutation({
+    mutationFn: ({ id, intoId }: { id: number; intoId: number }) =>
+      api.post<{ message: string }>(`/admin/brands/${id}/merge`, { intoId }),
+    onSuccess: (data) => {
+      toast.ok(data.message);
+      setMergeFrom(null);
+      setMergeInto('');
+      setLocalBrands([]);
+      void qc.invalidateQueries({ queryKey: ['admin', 'brands'] });
+      void qc.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      void qc.invalidateQueries({ queryKey: ['admin', 'taxonomy'] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [localBrands, setLocalBrands] = useState<BrandDTO[]>([]);
@@ -83,6 +107,26 @@ export function BrandsPage() {
     if (brands.length > 0 && localBrands.length === 0) {
       setLocalBrands(brands);
     }
+  }, [brands]);
+
+  // Brands whose names differ only in case, spacing or Arabic letter forms.
+  const duplicateGroups = useMemo(() => {
+    const groups = new Map<string, BrandDTO[]>();
+    for (const brand of brands) {
+      for (const key of new Set([brandKey(brand.name), brandKey(brand.faName)].filter(Boolean))) {
+        const list = groups.get(key) ?? [];
+        if (!list.includes(brand)) list.push(brand);
+        groups.set(key, list);
+      }
+    }
+    const seen = new Set<string>();
+    return [...groups.values()].filter((list) => {
+      if (list.length < 2) return false;
+      const id = list.map((brand) => brand.id).sort((a, b) => a - b).join(',');
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
   }, [brands]);
 
   const reorder = useMutation({
@@ -207,6 +251,66 @@ export function BrandsPage() {
         </form>
       </Modal>
 
+      <Modal
+        open={mergeFrom !== null}
+        title={<>ادغام برند «{mergeFrom?.faName}»</>}
+        onClose={() => { setMergeFrom(null); setMergeInto(''); }}
+        busy={merge.isPending}
+        footer={
+          <>
+            <button type="button" className="a-btn a-btn--ghost" onClick={() => { setMergeFrom(null); setMergeInto(''); }} disabled={merge.isPending}>انصراف</button>
+            <button
+              type="button"
+              className="a-btn a-btn--primary"
+              disabled={merge.isPending || mergeInto === '' || !mergeFrom}
+              onClick={() => mergeFrom && mergeInto !== '' && merge.mutate({ id: mergeFrom.id, intoId: mergeInto })}
+            >
+              {merge.isPending ? 'در حال ادغام…' : 'ادغام'}
+            </button>
+          </>
+        }
+      >
+        <p className="a-card-sub">
+          {formatNumber(mergeFrom?.productCount ?? 0)} محصول و دسته‌بندی‌های «{mergeFrom?.faName} / {mergeFrom?.name}» به برند انتخابی منتقل
+          می‌شوند و این برند حذف می‌شود.
+        </p>
+        <label className="a-field mt-3">
+          <span className="a-label">برند درست</span>
+          <select className="a-input" value={mergeInto} onChange={(e) => setMergeInto(e.target.value ? Number(e.target.value) : '')}>
+            <option value="">انتخاب کنید…</option>
+            {brands.filter((brand) => brand.id !== mergeFrom?.id).map((brand) => (
+              <option key={brand.id} value={brand.id}>
+                {brand.faName} / {brand.name} ({formatNumber(brand.productCount ?? 0)} محصول)
+              </option>
+            ))}
+          </select>
+        </label>
+      </Modal>
+
+      {duplicateGroups.length > 0 && (
+        <section className="a-alert mt-2" role="status">
+          <strong>برندهای احتمالاً تکراری:</strong>
+          {duplicateGroups.map((group) => {
+            const keep = [...group].sort((a, b) => (b.productCount ?? 0) - (a.productCount ?? 0))[0]!;
+            return (
+              <div key={group.map((brand) => brand.id).join('-')} className="flex flex-wrap items-center gap-2 mt-2">
+                <span>{group.map((brand) => `${brand.faName} / ${brand.name} (${formatNumber(brand.productCount ?? 0)})`).join('  ،  ')}</span>
+                {group.filter((brand) => brand.id !== keep.id).map((brand) => (
+                  <button
+                    key={brand.id}
+                    type="button"
+                    className="a-btn a-btn--secondary a-btn--xs"
+                    onClick={() => { setMergeFrom(brand); setMergeInto(keep.id); }}
+                  >
+                    ادغام «{brand.name}» در «{keep.name}»
+                  </button>
+                ))}
+              </div>
+            );
+          })}
+        </section>
+      )}
+
       {/* List */}
       <section className="a-searchbar">
         <input className="a-input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی برند…" />
@@ -251,6 +355,7 @@ export function BrandsPage() {
               </div>
               <div className="a-list-actions">
                 <button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={() => edit(brand)}>ویرایش</button>
+                <button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={() => { setMergeFrom(brand); setMergeInto(''); }}>ادغام</button>
                 <button type="button" className="a-btn a-btn--danger a-btn--xs" disabled={remove.isPending} onClick={() => { if (confirm(`برند «${brand.faName}» حذف شود؟`)) remove.mutate(brand.id); }}>حذف</button>
               </div>
             </article>
