@@ -216,6 +216,98 @@ export async function sendTelegramDocumentToGroup(
   return { groupName: group.name, size: file.size };
 }
 
+function proxyAgent(proxyUrl: string): https.Agent | undefined {
+  return proxyUrl ? (new SocksProxyAgent(proxyUrl) as unknown as https.Agent) : undefined;
+}
+
+/** Sends a small in-memory file (for example a price list workbook) to any chat. */
+export async function sendTelegramDocument(
+  chatId: string | number,
+  file: { buffer: Buffer; fileName: string; mimeType: string },
+  caption: string,
+  messageThreadId?: number,
+): Promise<void> {
+  const config = await getTelegramConfig();
+  if (!config.enabled || !config.botToken) throw new Error('ربات تلگرام فعال و تنظیم نشده است.');
+  const boundary = `----tamas-${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
+  const safeName = file.fileName.replace(/["\r\n]/g, '_');
+  const body = Buffer.concat([
+    multipartField(boundary, 'chat_id', String(chatId)),
+    ...(messageThreadId ? [multipartField(boundary, 'message_thread_id', String(messageThreadId))] : []),
+    multipartField(boundary, 'caption', caption.slice(0, 1024)),
+    multipartField(boundary, 'parse_mode', 'HTML'),
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="document"; filename*=UTF-8''${encodeURIComponent(safeName)}\r\nContent-Type: ${file.mimeType}\r\n\r\n`, 'utf8'),
+    file.buffer,
+    Buffer.from(`\r\n--${boundary}--\r\n`, 'utf8'),
+  ]);
+  await new Promise<void>((resolve, reject) => {
+    const request = https.request({
+      hostname: 'api.telegram.org',
+      port: 443,
+      path: `/bot${config.botToken}/sendDocument`,
+      method: 'POST',
+      agent: proxyAgent(config.proxyUrl),
+      headers: { 'content-type': `multipart/form-data; boundary=${boundary}`, 'content-length': body.length },
+      timeout: 60_000,
+    }, (response) => {
+      const chunks: Buffer[] = [];
+      response.on('data', (chunk: Buffer) => chunks.push(chunk));
+      response.on('end', () => {
+        try {
+          const parsed = JSON.parse(Buffer.concat(chunks).toString('utf8')) as TelegramApiResponse;
+          if (parsed.ok) resolve();
+          else reject(new Error(parsed.description || `Telegram returned HTTP ${response.statusCode ?? 0}`));
+        } catch {
+          reject(new Error(`Telegram returned HTTP ${response.statusCode ?? 0}`));
+        }
+      });
+    });
+    request.on('timeout', () => request.destroy(new Error('Telegram document upload timed out')));
+    request.on('error', reject);
+    request.end(body);
+  });
+}
+
+/** Downloads a file a user sent to the bot (Telegram allows bots up to 20 MB). */
+export async function downloadTelegramFile(fileId: string, maxBytes: number): Promise<Buffer> {
+  const config = await getTelegramConfig();
+  if (!config.botToken) throw new Error('توکن ربات تلگرام تنظیم نشده است.');
+  const info = await callTelegramApi(config.botToken, 'getFile', { file_id: fileId }, config.proxyUrl);
+  const result = (info.result ?? {}) as { file_path?: string; file_size?: number };
+  if (!result.file_path) throw new Error('تلگرام فایل را برنگرداند.');
+  if ((result.file_size ?? 0) > maxBytes) throw new Error('حجم فایل بیشتر از حد مجاز است.');
+  return new Promise<Buffer>((resolve, reject) => {
+    const request = https.request({
+      hostname: 'api.telegram.org',
+      port: 443,
+      path: `/file/bot${config.botToken}/${result.file_path}`,
+      method: 'GET',
+      agent: proxyAgent(config.proxyUrl),
+      timeout: 60_000,
+    }, (response) => {
+      if (response.statusCode !== 200) {
+        response.resume();
+        reject(new Error(`دریافت فایل از تلگرام ناموفق بود (HTTP ${response.statusCode ?? 0}).`));
+        return;
+      }
+      const chunks: Buffer[] = [];
+      let size = 0;
+      response.on('data', (chunk: Buffer) => {
+        size += chunk.length;
+        if (size > maxBytes) {
+          request.destroy(new Error('حجم فایل بیشتر از حد مجاز است.'));
+          return;
+        }
+        chunks.push(chunk);
+      });
+      response.on('end', () => resolve(Buffer.concat(chunks)));
+    });
+    request.on('timeout', () => request.destroy(new Error('دریافت فایل از تلگرام طول کشید.')));
+    request.on('error', reject);
+    request.end();
+  });
+}
+
 export function callTelegramApi(
   token: string,
   method: string,
@@ -356,6 +448,8 @@ export async function configureTelegramWebhook(webhookUrl: string): Promise<{ en
       { command: 'start', description: 'منوی مدیریت تماس مارکت' },
       { command: 'pending', description: 'مشتریان در انتظار تأیید' },
       { command: 'orders', description: 'آخرین سفارش‌ها' },
+      { command: 'prices', description: 'لیست قیمت فعلی' },
+      { command: 'publish_prices', description: 'ارسال لیست قیمت به گروه لیست قیمت' },
       { command: 'id', description: 'نمایش شناسه تلگرام من' },
     ],
   }, config.proxyUrl);

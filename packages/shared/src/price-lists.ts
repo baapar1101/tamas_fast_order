@@ -22,10 +22,19 @@ export const priceListDefinitionSchema = z.object({
 });
 export type PriceListDefinition = z.infer<typeof priceListDefinitionSchema>;
 
+export const priceListsTelegramSchema = z.object({
+  /** A group from the Telegram settings (its id there); empty = not published. */
+  groupId: z.string().trim().max(120),
+  /** Publish the lists again after every applied price update (Excel in the panel or the bot). */
+  autoPublish: z.boolean(),
+});
+export type PriceListsTelegram = z.infer<typeof priceListsTelegramSchema>;
+
 export const priceListsConfigSchema = z.object({
   version: z.literal(1),
   lists: z.array(priceListDefinitionSchema).max(PRICE_LISTS_MAX)
     .refine((lists) => new Set(lists.map((list) => list.id)).size === lists.length, 'شناسهٔ دو لیست یکی است.'),
+  telegram: priceListsTelegramSchema.default({ groupId: '', autoPublish: false }),
 });
 export type PriceListsConfig = z.infer<typeof priceListsConfigSchema>;
 
@@ -35,6 +44,7 @@ export const DEFAULT_PRICE_LISTS_CONFIG: PriceListsConfig = {
     { id: 'mobile', title: 'لیست قیمت موبایل', categoryNames: ['گوشی موبایل'], brandNames: [], inStockOnly: true, enabled: true },
     { id: 'original', title: 'لیست قیمت محصولات اورجینال', categoryNames: [], brandNames: [], inStockOnly: true, enabled: false },
   ],
+  telegram: { groupId: '', autoPublish: false },
 };
 
 export function parsePriceListsConfig(raw: string | null | undefined): PriceListsConfig {

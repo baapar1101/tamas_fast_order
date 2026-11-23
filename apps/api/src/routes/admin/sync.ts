@@ -11,6 +11,7 @@ import { clearSyncError, isSyncRunning, readSyncState, runSync } from '../../ser
 import { isPriceStockSyncRunning, syncPriceStockFromSheet } from '../../services/sheets/price-stock-sync.js';
 import { processExcelUpload } from '../../services/sheets/excel-sync.js';
 import { logAction } from '../../services/audit.js';
+import { schedulePriceListAutoPublish } from '../../services/price-list-telegram.js';
 import * as xlsx from '@e965/xlsx';
 
 const conflictQuery = z.object({
@@ -213,7 +214,8 @@ const routes: FastifyPluginAsync = async (app) => {
       skipped: report.skipped,
       totalRows: report.totalRows,
     });
-    
+    if (report.updated > 0) schedulePriceListAutoPublish();
+
     return { ok: true, report };
   });
 

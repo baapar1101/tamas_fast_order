@@ -12,6 +12,14 @@ import {
   sendTelegramMessage,
   type TelegramButton,
 } from './telegram.js';
+import { publishPriceListsToGroup, sendPriceListsToChat } from './price-list-telegram.js';
+import {
+  handlePriceUpdateCallback,
+  handlePriceUpdateDocument,
+  isPriceUpdateCallback,
+  isPriceUpdateFile,
+  type TelegramDocument,
+} from './telegram-price-update.js';
 
 interface TelegramUser {
   id: number;
@@ -28,6 +36,8 @@ interface TelegramMessage {
   message_id: number;
   message_thread_id?: number;
   text?: string;
+  caption?: string;
+  document?: TelegramDocument;
   chat: TelegramChat;
   from?: TelegramUser;
 }
@@ -234,8 +244,17 @@ async function handleCommand(message: TelegramMessage, authorized: boolean): Pro
     await sendRecentOrders(message.chat.id, message.message_thread_id);
     return;
   }
+  if (command === '/prices') {
+    await sendPriceListsToChat(message.chat.id, message.message_thread_id);
+    return;
+  }
+  if (command === '/publish_prices') {
+    const result = await publishPriceListsToGroup();
+    await sendTelegramMessage(message.chat.id, `📤 ${result.lists.toLocaleString('fa-IR')} لیست قیمت به «${escapeHtml(result.groupName)}» ارسال شد.`, undefined, message.message_thread_id);
+    return;
+  }
   await sendTelegramMessage(message.chat.id,
-    '🤖 <b>مدیریت تماس مارکت</b>\n\n/pending — مشتریان در انتظار تأیید\n/orders — آخرین سفارش‌ها\n/id — نمایش شناسه تلگرام',
+    '🤖 <b>مدیریت تماس مارکت</b>\n\n/pending — مشتریان در انتظار تأیید\n/orders — آخرین سفارش‌ها\n/prices — لیست قیمت فعلی\n/publish_prices — ارسال لیست قیمت به گروه لیست قیمت\n/id — نمایش شناسه تلگرام\n\n📄 برای به‌روزرسانی قیمت و موجودی، فایل اکسل را همین‌جا بفرستید؛ اول پیش‌نمایش می‌آید و با «اعمال» ثبت می‌شود.',
     [[{ text: '👥 مشتریان در انتظار', callbackData: 'tm1|list|users' }, { text: '📦 سفارش‌ها', callbackData: 'tm1|list|orders' }]],
     message.message_thread_id,
   );
@@ -248,6 +267,9 @@ async function handleCallback(query: TelegramCallbackQuery, authorized: boolean)
   if (!authorized) return;
   if (query.data === 'tm1|list|users') return sendPendingCustomers(chatId, query.message?.message_thread_id);
   if (query.data === 'tm1|list|orders') return sendRecentOrders(chatId, query.message?.message_thread_id);
+  if (query.data && isPriceUpdateCallback(query.data)) {
+    return handlePriceUpdateCallback(chatId, query.message?.message_thread_id, query.data, query.from);
+  }
   const action = parseTelegramAction(query.data);
   if (!action) throw new Error('عملیات شناخته نشد یا منقضی شده است.');
   if (action.stage === 'menu') {
@@ -273,6 +295,14 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
   try {
     if (update.callback_query) await handleCallback(update.callback_query, authorized);
     else if (update.message?.text?.startsWith('/')) await handleCommand(update.message, authorized);
+    else if (update.message?.document && isPriceUpdateFile(update.message.document)) {
+      const { message } = update;
+      if (!authorized) {
+        await sendTelegramMessage(message.chat.id, `⛔ دسترسی عملیاتی ندارید.\nشناسه شما: <code>${from.id}</code>`, undefined, message.message_thread_id);
+      } else {
+        await handlePriceUpdateDocument(message.chat.id, message.message_thread_id, message.document!, from);
+      }
+    }
   } catch (error) {
     const chatId = update.callback_query?.message?.chat.id ?? update.message?.chat.id;
     const threadId = update.callback_query?.message?.message_thread_id ?? update.message?.message_thread_id;

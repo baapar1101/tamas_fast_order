@@ -13,7 +13,11 @@ import {
 import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 
-interface Loaded { config: PriceListsConfig; summaries: PriceListSummary[] }
+interface Loaded {
+  config: PriceListsConfig;
+  summaries: PriceListSummary[];
+  telegram: { enabled: boolean; groups: Array<{ id: string; name: string }> };
+}
 
 function Chips({ options, value, onChange }: { options: Array<{ key: string; label: string }>; value: string[]; onChange: (next: string[]) => void }) {
   return (
@@ -62,6 +66,14 @@ export function PriceListsPage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const publish = useMutation({
+    mutationFn: () => api.post<{ message: string }>('/admin/price-lists/publish', {}),
+    onSuccess: (data) => toast.ok(data.message),
+    onError: (err: Error) => toast.error(err.message),
+  });
+  const savedTelegram = query.data?.config.telegram;
+  const telegramDirty = Boolean(savedTelegram) && (savedTelegram!.groupId !== config.telegram.groupId || savedTelegram!.autoPublish !== config.telegram.autoPublish);
+
   const update = (index: number, patch: Partial<PriceListDefinition>) =>
     setConfig({ ...config, lists: config.lists.map((list, i) => (i === index ? { ...list, ...patch } : list)) });
   const addList = () => {
@@ -90,6 +102,56 @@ export function PriceListsPage() {
             {save.isPending ? 'در حال ذخیره…' : 'ذخیره'}
           </button>
         </div>
+      </section>
+
+      <section className="a-card mt-4">
+        <div className="a-card-head a-card-head--split">
+          <div>
+            <h3 className="a-card-title">ارسال در تلگرام</h3>
+            <p className="a-card-desc">
+              لیست‌های منتشرشده (متن و فایل اکسل، با قیمت) به گروه انتخابی فرستاده می‌شوند. مدیران مجاز می‌توانند فایل اکسل قیمت را
+              برای ربات بفرستند؛ ربات پیش‌نمایش تغییرها را نشان می‌دهد و با «اعمال» ثبت می‌کند. دستورهای ربات: /prices و /publish_prices
+            </p>
+          </div>
+          <div className="a-card-actions">
+            <button
+              type="button"
+              className="a-btn a-btn--secondary"
+              disabled={!savedTelegram?.groupId || telegramDirty || publish.isPending}
+              title={telegramDirty ? 'اول تغییرات را ذخیره کنید.' : undefined}
+              onClick={() => publish.mutate()}
+            >
+              {publish.isPending ? 'در حال ارسال…' : 'ارسال الان'}
+            </button>
+          </div>
+        </div>
+        {query.data && !query.data.telegram.enabled ? (
+          <p className="a-hint">ربات تلگرام در تنظیمات فعال نیست.</p>
+        ) : (
+          <div className="a-form-grid">
+            <label className="a-field">
+              <span className="a-label">گروه لیست قیمت</span>
+              <select
+                className="a-input"
+                value={config.telegram.groupId}
+                onChange={(e) => setConfig({ ...config, telegram: { ...config.telegram, groupId: e.target.value } })}
+              >
+                <option value="">ارسال نشود</option>
+                {(query.data?.telegram.groups ?? []).map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
+              </select>
+              <span className="a-hint">گروه‌ها از تنظیمات ← تلگرام می‌آیند. قیمت‌ها کامل فرستاده می‌شوند؛ گروهی انتخاب کنید که فقط همکاران در آن هستند.</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm" style={{ alignSelf: 'center' }}>
+              <input
+                type="checkbox"
+                checked={config.telegram.autoPublish}
+                disabled={!config.telegram.groupId}
+                onChange={(e) => setConfig({ ...config, telegram: { ...config.telegram, autoPublish: e.target.checked } })}
+              />
+              بعد از هر به‌روزرسانی قیمت با اکسل (پنل یا ربات)، یک دقیقه بعد خودکار ارسال شود
+            </label>
+          </div>
+        )}
       </section>
 
       {config.lists.map((list, index) => (
