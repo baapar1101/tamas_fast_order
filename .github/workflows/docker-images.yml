@@ -79,11 +79,13 @@ jobs:
             exit 0
           fi
           deploy() {
-            local name="$1" app="$2" token="$3"
+            local name="$1" app="$2" token
+            # A pasted secret often carries a stray space or newline.
+            token="$(printf '%s' "$3" | tr -d '[:space:]')"
             echo "Deploying $name ($TAG)"
             jq -n --arg t "$token" --arg a "$app" --arg i "$TAG" \
               '{trigger_deploy_token: $t, app_id: $a, image_tag: $i}' |
-              curl --fail-with-body -sS --retry 3 --retry-delay 10 --retry-all-errors \
+              curl --fail-with-body -sS --retry 3 --retry-delay 10 \
                 -X PUT 'https://api.hamravesh.com/api/v1/darkube/apps/update_from_cli/' \
                 -H 'Content-Type: application/json' --data @-
             echo
