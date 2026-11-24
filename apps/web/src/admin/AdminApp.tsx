@@ -1,10 +1,11 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { formatNumber } from '@tamas/shared';
+import { formatNumber, type AdminBackground } from '@tamas/shared';
 import { api } from '../lib/api';
 import { useAuth } from '../store/auth';
 import { SmokeyBackground } from './components/SmokeyBackground';
+import { AdminBackdrop, AdminBackgroundPicker, useAdminBackground } from './components/AdminBackdrop';
 import { AdminPasswordLogin } from './components/AdminPasswordLogin';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
@@ -520,6 +521,10 @@ export default function AdminApp() {
     }
   });
 
+  const savedBackground = useAdminBackground();
+  const [backgroundPreview, setBackgroundPreview] = useState<AdminBackground | null>(null);
+  const [backgroundPickerOpen, setBackgroundPickerOpen] = useState(false);
+
   const toggleTheme = () => {
     setTheme((current) => {
       const next = current === 'dark' ? 'light' : 'dark';
@@ -670,8 +675,9 @@ export default function AdminApp() {
 
   return (
     <div className="admin-body-shell">
-      {/* Smokey WebGL Background */}
-      <SmokeyBackground className="fixed inset-0 z-0 pointer-events-auto" bgColor={theme === 'light' ? '#e2e8f0' : '#000000'} color={theme === 'light' ? '#d1d5db' : '#030b14'} />
+      {/* The admin's own backdrop: animated smoke by default */}
+      <AdminBackdrop background={backgroundPreview ?? savedBackground} theme={theme} />
+      <AdminBackgroundPicker open={backgroundPickerOpen} onClose={() => setBackgroundPickerOpen(false)} onPreview={setBackgroundPreview} />
 
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
@@ -833,6 +839,19 @@ export default function AdminApp() {
                   {currentTime.time || '--:--:--'}
                 </span>
               </div>
+
+              {/* Backdrop picker */}
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => setBackgroundPickerOpen(true)}
+                aria-label="پس‌زمینه پنل"
+                title="تغییر پس‌زمینه پنل"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.16-5.16a2.25 2.25 0 0 1 3.18 0l5.16 5.16m-1.5-1.5 1.41-1.41a2.25 2.25 0 0 1 3.18 0l2.91 2.91M3.75 21h16.5A1.5 1.5 0 0 0 21.75 19.5V4.5A1.5 1.5 0 0 0 20.25 3H3.75A1.5 1.5 0 0 0 2.25 4.5v15A1.5 1.5 0 0 0 3.75 21Zm10.5-11.25h.008v.008h-.008V9.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                </svg>
+              </button>
 
               {/* Theme Toggle */}
               <button

@@ -1,0 +1,198 @@
+/* The admin's chosen backdrop: a built-in scene or their own photo, with a
+   veil on top so cards and text stay readable. */
+.admin-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.admin-backdrop__scene {
+  position: absolute;
+  inset: 0;
+  background-color: #050816;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.admin-backdrop__dim {
+  position: absolute;
+  inset: 0;
+  background: #020617;
+  transition: opacity 0.2s ease;
+}
+
+body.admin-theme-light .admin-backdrop__dim {
+  background: #f1f5f9f2;
+}
+
+/* ---- built-in scenes (also used for the picker swatches) ---- */
+.admin-backdrop--starry {
+  background-color: #070b1f;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #ffffffd9 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 34%, #ffffffbf 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 38% 62%, #ffffffe6 50%, transparent 51%),
+    radial-gradient(1px 1px at 86% 76%, #ffffffa6 50%, transparent 51%),
+    radial-gradient(1px 1px at 22% 88%, #ffffffb3 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 58% 12%, #fffffff2 50%, transparent 51%),
+    radial-gradient(1px 1px at 94% 8%, #ffffff99 50%, transparent 51%),
+    radial-gradient(1px 1px at 4% 46%, #ffffffb3 50%, transparent 51%),
+    radial-gradient(ellipse 60% 30% at 55% 40%, #8b7cc833, transparent 70%),
+    linear-gradient(170deg, #0b1030 0%, #1a1f4a 45%, #2b2a5e 70%, #0d1124 100%);
+  background-size:
+    13rem 13rem, 11rem 11rem, 17rem 17rem, 9rem 9rem, 15rem 15rem, 19rem 19rem, 7rem 7rem, 12rem 12rem,
+    100% 100%, 100% 100%;
+  background-repeat: repeat, repeat, repeat, repeat, repeat, repeat, repeat, repeat, no-repeat, no-repeat;
+}
+
+.admin-backdrop--aurora {
+  background-color: #04131c;
+  background-image:
+    radial-gradient(ellipse 70% 45% at 25% 20%, #14b8a666, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 35%, #8b5cf659, transparent 70%),
+    radial-gradient(ellipse 80% 50% at 50% 100%, #0e749066, transparent 70%),
+    linear-gradient(180deg, #031018 0%, #071f2c 60%, #04131c 100%);
+}
+
+.admin-backdrop--ocean {
+  background-color: #031a2e;
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% 0%, #0ea5e955, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 90% 90%, #0369a166, transparent 70%),
+    linear-gradient(200deg, #02263f 0%, #04345a 45%, #021829 100%);
+}
+
+.admin-backdrop--sunset {
+  background-color: #1d0f24;
+  background-image:
+    radial-gradient(ellipse 70% 40% at 50% 100%, #fb923c66, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 15% 70%, #e11d4855, transparent 70%),
+    linear-gradient(180deg, #120a22 0%, #3b1440 50%, #6b2348 85%, #8a3b3b 100%);
+}
+
+.admin-backdrop--forest {
+  background-color: #06150f;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 30% 10%, #22c55e33, transparent 70%),
+    radial-gradient(ellipse 80% 50% at 80% 100%, #14532d88, transparent 70%),
+    linear-gradient(175deg, #041009 0%, #0a2418 55%, #06150f 100%);
+}
+
+.admin-backdrop--graphite {
+  background-color: #0d1117;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 0%, #33415555, transparent 70%),
+    linear-gradient(180deg, #0f141b 0%, #0b0f14 100%);
+}
+
+/* ---- picker ---- */
+.admin-bg-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-bg-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-bg-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.4rem;
+  border: 1px solid var(--a-border);
+  border-radius: 0.9rem;
+  background: transparent;
+  color: var(--a-t2);
+  text-align: right;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-bg-tile:hover:not(:disabled) {
+  border-color: var(--a-brand);
+}
+
+.admin-bg-tile.is-active {
+  border-color: var(--a-brand);
+  box-shadow: 0 0 0 2px var(--a-brand-soft-strong);
+  color: var(--a-t1);
+}
+
+.admin-bg-tile:focus-visible {
+  outline: 0;
+  box-shadow: var(--a-focus);
+}
+
+.admin-bg-tile__swatch {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  border-radius: 0.6rem;
+  background-position: center;
+  background-size: cover;
+  overflow: hidden;
+}
+
+.admin-bg-tile__swatch.admin-backdrop--starry {
+  background-size:
+    3rem 3rem, 2.6rem 2.6rem, 4rem 4rem, 2.2rem 2.2rem, 3.5rem 3.5rem, 4.4rem 4.4rem, 1.8rem 1.8rem, 2.8rem 2.8rem,
+    100% 100%, 100% 100%;
+}
+
+.admin-bg-tile__swatch--animated {
+  background:
+    radial-gradient(ellipse 70% 60% at 30% 40%, #1e3a5f99, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 75% 65%, #0f2a4499, transparent 70%),
+    #02060c;
+}
+
+.admin-bg-tile__swatch--empty {
+  border: 1px dashed var(--a-border-2);
+  color: var(--a-t3);
+}
+
+.admin-bg-tile__swatch--empty svg {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.admin-bg-tile__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.admin-bg-picker__upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.admin-bg-picker__sliders {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.admin-bg-picker__sliders input[type='range'] {
+  width: 100%;
+  accent-color: var(--a-brand);
+}
+
+.admin-bg-picker__value {
+  margin-inline-start: auto;
+  color: var(--a-t1);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-bg-picker__reset {
+  margin-inline-end: auto;
+}

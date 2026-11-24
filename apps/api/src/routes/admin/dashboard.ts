@@ -1,7 +1,7 @@
 import { and, count, desc, eq, gte, isNull, sql } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import type { DashboardStats } from '@tamas/shared';
+import { ADMIN_BACKGROUND_SETTING_PREFIX, type DashboardStats } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { orderItems, orders, products, syncState, users } from '../../db/schema.js';
 import { deleteSetting, getAllSettings, setSetting, setSettings } from '../../services/settings.js';
@@ -9,6 +9,11 @@ import { recentAudit } from '../../services/audit.js';
 import { configureTelegramWebhook, TELEGRAM_EVENTS, testTelegramGroup } from '../../services/telegram.js';
 import { runTelegramBackup } from '../../services/telegram-backup.js';
 import { badRequest } from '../../lib/errors.js';
+
+/** Each admin's own panel backdrop is managed from the panel itself, not listed here. */
+function visibleSettings(all: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(Object.entries(all).filter(([key]) => !key.startsWith(ADMIN_BACKGROUND_SETTING_PREFIX)));
+}
 
 const routes: FastifyPluginAsync = async (app) => {
   // Operational overview is safe for every admin/operator; the sensitive
@@ -200,13 +205,13 @@ const routes: FastifyPluginAsync = async (app) => {
   app.get(
     '/admin/settings',
     { preHandler: app.requirePermission('manage_settings') },
-    async () => ({ ok: true, settings: await getAllSettings() }),
+    async () => ({ ok: true, settings: visibleSettings(await getAllSettings()) }),
   );
 
   app.put('/admin/settings', { preHandler: app.requirePermission('manage_settings') }, async (req) => {
     const body = z.record(z.string().max(120), z.string().max(20_000)).parse(req.body);
     await setSettings(body);
-    return { ok: true, settings: await getAllSettings(), message: 'تنظیمات ذخیره شد.' };
+    return { ok: true, settings: visibleSettings(await getAllSettings()), message: 'تنظیمات ذخیره شد.' };
   });
 
   app.get('/admin/telegram/events', { preHandler: app.requirePermission('manage_settings') }, async () => ({
