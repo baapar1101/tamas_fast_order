@@ -6,7 +6,7 @@ import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
 import { isProductUnavailable, stockFor } from '../store/cart';
 import { resolveProductColor } from './productColor';
-import { isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneModelImages } from './productVariants';
+import { isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneVariantImages } from './productVariants';
 import { AnimatedDropdown } from '../admin/components/AnimatedDropdown';
 import { resolveImageUrl } from '../lib/images';
 import { ProductImageGallery } from './ProductImageGallery';
@@ -80,11 +80,11 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
   const selectedVariant = displayVariants[activeIndex] || group.variants[0];
   const allImages = useMemo(() => {
     const raw = isPhone
-      ? phoneModelImages(group.variants)
+      ? selectedVariant ? phoneVariantImages(selectedVariant) : []
       : group.variants.flatMap((variant) => [variant.imageUrl, ...variant.gallery]);
-    if (group.imageUrl) raw.unshift(group.imageUrl);
+    if (!isPhone && group.imageUrl) raw.unshift(group.imageUrl);
     return [...new Set(raw.filter((item): item is string => Boolean(item?.trim())).map((item) => resolveImageUrl(item)))];
-  }, [group.imageUrl, group.variants, isPhone]);
+  }, [group.imageUrl, group.variants, isPhone, selectedVariant]);
   const images = allImages.length ? allImages : ['/logo.png'];
   if (!selectedVariant) return null;
 

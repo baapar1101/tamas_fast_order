@@ -58,6 +58,11 @@ export function phoneDefaultVariantIndex(variants: ProductDTO[]): number {
   return priced >= 0 ? priced : 0;
 }
 
+/** Keep a colour SKU's photos separate from other colours of the same model. */
+export function phoneVariantImages(variant: ProductDTO): string[] {
+  return [...new Set([variant.imageUrl, ...variant.gallery].filter((image): image is string => Boolean(image?.trim())))];
+}
+
 /** A phone's gallery belongs to its model, not to the selected colour SKU. */
 export function phoneModelImages(variants: ProductDTO[]): string[] {
   const ordered = [...variants].sort((a, b) =>

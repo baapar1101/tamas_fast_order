@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { ProductDTO } from '@tamas/shared';
-import { isPhoneMediaOnlyProduct, isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneModelImages } from '../src/storefront/productVariants.ts';
+import { isPhoneMediaOnlyProduct, isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneModelImages, phoneVariantImages } from '../src/storefront/productVariants.ts';
 
 function product(fields: Partial<ProductDTO>): ProductDTO {
   return {
@@ -50,9 +50,12 @@ test('an uncoloured but priced phone remains a real product', () => {
   assert.deepEqual(phoneDisplayVariants([phone]), [phone]);
 });
 
-test('phone images are model-wide and independent of the selected colour', () => {
-  const red = product({ productId: '4', color: 'قرمز', imageUrl: '/red.webp' });
-  const blue = product({ productId: '5', color: 'آبی', gallery: ['/blue.webp', '/red.webp'] });
+test('phone photos follow the selected colour and do not borrow another colour', () => {
+  const red = product({ productId: '4', color: 'قرمز', imageUrl: '/red.webp', gallery: ['/red-side.webp'] });
+  const blue = product({ productId: '5', color: 'آبی', imageUrl: '/blue.webp', gallery: ['/blue-side.webp', '/blue.webp'] });
+  const green = product({ productId: '6', color: 'سبز' });
 
-  assert.deepEqual(phoneModelImages([blue, red]), ['/red.webp', '/blue.webp']);
+  assert.deepEqual(phoneVariantImages(red), ['/red.webp', '/red-side.webp']);
+  assert.deepEqual(phoneVariantImages(blue), ['/blue.webp', '/blue-side.webp']);
+  assert.deepEqual(phoneVariantImages(green), []);
 });

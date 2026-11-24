@@ -16,7 +16,7 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { ProductCard } from './ProductCard';
 import { ProductImagePreview } from './ProductImagePreview';
 import { createColorMap, resolveProductColor } from './productColor';
-import { isPhoneMediaOnlyProduct, isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneModelImages } from './productVariants';
+import { isPhoneMediaOnlyProduct, isPhoneProduct, phoneDefaultVariantIndex, phoneDisplayVariants, phoneVariantImages } from './productVariants';
 import { StoreFooter } from './StoreFooter';
 import { IncompleteProfilePopup } from './IncompleteProfilePopup';
 import { useBootstrap } from './hooks';
@@ -134,13 +134,13 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
 
   const images = useMemo(() => {
     if (!selected) return [];
-    const sources = isPhone ? phoneModelImages(variants.length ? variants : [selected]) : [selected.imageUrl, ...selected.gallery];
+    const sources = isPhone ? phoneVariantImages(selected) : [selected.imageUrl, ...selected.gallery];
     const list = sources
       .map((src) => imageSrc(src))
       .filter((s): s is string => Boolean(s));
     if (list.length === 0) list.push('/logo.png');
     return [...new Set(list)];
-  }, [isPhone, selected, variants]);
+  }, [isPhone, selected]);
 
   const previewOpen = previewIndex !== null;
   const showPreviewImage = (direction: -1 | 1) => {
