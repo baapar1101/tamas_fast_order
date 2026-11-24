@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { formatNumber, type UploadDTO } from '@tamas/shared';
+import { formatNumber, type ProductDTO, type UploadDTO } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 import { absolutePhotoUrl, buildPhotoLinksWorkbook, groupPhotosByProduct, photoNameParts, type UploadedPhoto } from '../components/photoLinks';
@@ -135,6 +135,45 @@ export function UploadsPage() {
     download(buildPhotoLinksWorkbook(XLSX, photos, origin()), name);
   };
 
+  // Every product whose main photo is empty or broken, as an Excel to hand to
+  // whoever finds the photos: the file-name code column is what the photo
+  // files must be called for «ثبت روی کالاهای موجود».
+  const [exportingMissing, setExportingMissing] = useState(false);
+  const exportMissingPhotos = async () => {
+    setExportingMissing(true);
+    try {
+      const data = await api.get<{ items: ProductDTO[]; total: number }>('/admin/products', {
+        photo: 'missing', status: 'active', perPage: 5000, page: 1, sort: 'title',
+      });
+      const XLSX = await loadXlsx();
+      const rows = data.items.map((product) => [
+        product.sku || product.productId,
+        product.productId,
+        product.sku ?? '',
+        product.title,
+        product.brandFaName || product.brandName || '',
+        product.categoryFaName || product.categoryName || '',
+        product.model ?? '',
+        product.color ?? '',
+        `${origin()}/p/${product.productId}`,
+      ]);
+      const sheet = XLSX.utils.aoa_to_sheet([
+        ['کد برای نام فایل', 'کد محصول', 'SKU', 'عنوان کالا', 'برند', 'دسته', 'مدل', 'رنگ', 'لینک کالا در سایت'],
+        ...rows,
+      ]);
+      sheet['!cols'] = [{ wch: 16 }, { wch: 12 }, { wch: 16 }, { wch: 50 }, { wch: 14 }, { wch: 16 }, { wch: 18 }, { wch: 12 }, { wch: 40 }];
+      const book = XLSX.utils.book_new();
+      book.Workbook = { Views: [{ RTL: true }] };
+      XLSX.utils.book_append_sheet(book, sheet, 'بدون عکس');
+      download(new Uint8Array(XLSX.write(book, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer), `products-without-photo-${today()}.xlsx`);
+      toast.ok(`${formatNumber(rows.length)} کالای بدون عکس در فایل آمد.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'ساخت فایل ناموفق بود.');
+    } finally {
+      setExportingMissing(false);
+    }
+  };
+
   // Puts this round's photos on existing products whose code is the file name.
   const [onlyMissing, setOnlyMissing] = useState(true);
   const [attachResults, setAttachResults] = useState<PhotoAttachResult[] | null>(null);
@@ -175,6 +214,9 @@ export function UploadsPage() {
         </div>
         <div className="a-page-actions">
           <Link to="/admin/products?photo=missing" className="a-btn a-btn--secondary">کالاهای بدون عکس</Link>
+          <button type="button" className="a-btn a-btn--secondary" disabled={exportingMissing} onClick={() => void exportMissingPhotos()}>
+            {exportingMissing ? 'در حال ساخت…' : 'اکسل کالاهای بدون عکس'}
+          </button>
           <Link to="/admin/product-import" className="a-btn a-btn--secondary">ایمپورت کالا با اکسل</Link>
         </div>
       </section>
