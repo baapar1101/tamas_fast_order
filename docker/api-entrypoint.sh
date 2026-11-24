@@ -8,7 +8,8 @@ for dir in /data/storage /data/private-storage /data/app-private; do
   mkdir -p "$dir"
 done
 
-# Photos recovered after the November 2026 server loss ship inside the image;
+# Photos recovered after the November 2026 server loss (and copied from the
+# old server's apps/api/storage: product/, slide/) ship inside the image;
 # copy any that the disk does not have yet (never overwrite newer files).
 if [ -d /app/seed-uploads ]; then
   cp -rn /app/seed-uploads/. /data/storage/ 2>/dev/null || true
