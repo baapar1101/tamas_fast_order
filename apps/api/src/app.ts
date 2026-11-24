@@ -12,6 +12,7 @@ import { AppError } from './lib/errors.js';
 import { clientErrorResponse } from './lib/client-error.js';
 import authPlugin from './plugins/auth.js';
 import { storage } from './services/storage/index.js';
+import { registerBucketUploads } from './routes/bucket-uploads.js';
 import privateFileRoutes, { guardLegacyUpload } from './routes/private-files.js';
 import { ensurePrivateStorage } from './services/private-storage.js';
 import documentRecoveryRoutes from './routes/document-recovery.js';
@@ -107,11 +108,11 @@ export async function buildApp(): Promise<FastifyInstance> {
   await ensurePrivateStorage();
   app.addHook('onRequest', guardLegacyUpload);
 
-  // Serve uploads directly when the local driver is in use; behind nginx you
-  // would normally let it serve this path instead.
+  // Public uploads keep their /uploads/... addresses whichever driver stores
+  // them: from the disk folder, or streamed from the bucket.
   const root = storage.localRoot();
-  if (root) {
-    await mkdir(root, { recursive: true });
+  await mkdir(root, { recursive: true });
+  if (storage.driver === 'local') {
     await app.register(fastifyStatic, {
       root,
       prefix: `${env.STORAGE_PUBLIC_URL.replace(/\/$/, '')}/`,
@@ -119,6 +120,8 @@ export async function buildApp(): Promise<FastifyInstance> {
       maxAge: '30d',
       immutable: true,
     });
+  } else {
+    registerBucketUploads(app);
   }
 
   app.get('/health', async () => ({ ok: true, uptime: process.uptime(), env: env.NODE_ENV }));

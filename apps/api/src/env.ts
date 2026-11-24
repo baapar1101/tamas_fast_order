@@ -52,8 +52,17 @@ const envSchema = z.object({
   OTP_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(20).default(5),
   OTP_MAX_PER_HOUR: z.coerce.number().int().min(1).max(50).default(6),
 
-  /* --- Storage (local disk today, S3 adapter can drop in later) --- */
-  STORAGE_DRIVER: z.enum(['local']).default('local'),
+  /* --- Storage: local disk, or S3-compatible object storage (Hamravesh) --- */
+  STORAGE_DRIVER: z.enum(['local', 's3']).default('local'),
+  /** s3: e.g. https://<endpoint from the provider>; path-style addressing by default. */
+  S3_ENDPOINT: z.string().default(''),
+  S3_REGION: z.string().default('us-east-1'),
+  S3_BUCKET: z.string().default(''),
+  S3_ACCESS_KEY_ID: z.string().default(''),
+  S3_SECRET_ACCESS_KEY: z.string().default(''),
+  S3_FORCE_PATH_STYLE: bool.default(true),
+  /** Copy files still on the local disk into the bucket when the API starts. */
+  S3_SYNC_ON_START: bool.default(true),
   STORAGE_ROOT: z.string().default('./storage'),
   /** Must stay outside every public web root; defaults to a sibling of STORAGE_ROOT. */
   PRIVATE_STORAGE_ROOT: z.string().optional(),

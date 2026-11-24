@@ -10,6 +10,8 @@ build/
 npm-debug.log*
 storage/
 !storage/.gitkeep
+# Source code, not uploaded files.
+!apps/api/src/services/storage/
 .private/
 private-storage/
 apps/api/drizzle/meta/_journal.json.bak

@@ -2,9 +2,11 @@ import { buildApp } from './app.js';
 import { closeDb } from './db/client.js';
 import { env } from './env.js';
 import { startScheduler } from './scheduler.js';
+import { startBucketSyncOnBoot } from './services/storage/sync.js';
 
 const app = await buildApp();
 const stopScheduler = startScheduler(app.log);
+startBucketSyncOnBoot((message) => app.log.info(message));
 
 async function shutdown(signal: string): Promise<void> {
   app.log.info(`${signal} received, shutting down`);

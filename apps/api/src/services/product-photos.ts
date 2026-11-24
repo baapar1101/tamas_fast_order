@@ -1,5 +1,3 @@
-import { stat } from 'node:fs/promises';
-import { join } from 'node:path';
 import { eq, isNull } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { products } from '../db/schema.js';
@@ -7,6 +5,7 @@ import { env } from '../env.js';
 import { invalidateCatalog } from './catalog.js';
 import { enqueueCrmProductSync } from './crm-product-sync.js';
 import { normalizeExcelSku } from './sheets/excel-stock-parser.js';
+import { bucket, storage } from './storage/index.js';
 
 const MAX_GALLERY = 12;
 
@@ -33,26 +32,35 @@ export function storedPhotoPath(url: string | null | undefined): string | null {
   return decodeURI(path);
 }
 
-/** Whether a product photo actually loads: a stored file must be on disk; other links are trusted. */
-export async function photoExists(url: string | null | undefined, cache = new Map<string, Promise<boolean>>()): Promise<boolean> {
+/**
+ * Whether a product photo actually loads: a stored file must exist (in the
+ * bucket or on disk); other links are trusted. `known` is an optional listing
+ * of the bucket, so a whole catalogue is checked without a request per photo.
+ */
+export async function photoExists(
+  url: string | null | undefined,
+  cache = new Map<string, Promise<boolean>>(),
+  known?: Set<string>,
+): Promise<boolean> {
   const clean = String(url ?? '').trim();
   if (!clean) return false;
   const path = storedPhotoPath(clean);
   if (!path) return /^https?:\/\//i.test(clean);
   let task = cache.get(path);
   if (!task) {
-    const file = join(env.STORAGE_ROOT, path.slice(uploadsPrefix().length));
-    task = stat(file).then((info) => info.isFile() && info.size > 0, () => false);
+    const key = path.slice(uploadsPrefix().length);
+    task = known?.has(key) ? Promise.resolve(true) : storage.exists(key).catch(() => false);
     cache.set(path, task);
   }
   return task;
 }
 
-/** Ids of live products whose main photo is empty or missing from disk. */
+/** Ids of live products whose main photo is empty or missing from storage. */
 export async function productIdsWithoutPhoto(): Promise<number[]> {
   const rows = await db.select({ id: products.id, imageUrl: products.imageUrl }).from(products).where(isNull(products.deletedAt));
   const cache = new Map<string, Promise<boolean>>();
-  const checks = await Promise.all(rows.map(async (row) => ({ id: row.id, ok: await photoExists(row.imageUrl, cache) })));
+  const known = await bucket()?.listKeys().catch(() => undefined);
+  const checks = await Promise.all(rows.map(async (row) => ({ id: row.id, ok: await photoExists(row.imageUrl, cache, known) })));
   return checks.filter((row) => !row.ok).map((row) => row.id);
 }
 
