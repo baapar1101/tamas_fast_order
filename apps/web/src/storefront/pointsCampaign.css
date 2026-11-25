@@ -14,7 +14,7 @@
   padding: 0.35rem 0.75rem;
   border-radius: 999px;
   background: linear-gradient(90deg, #4c1d95, #7c3aed 60%, #a21caf);
-  color: #fff;
+  color: var(--ds-on-interactive);
   font-size: 0.8125rem;
   font-weight: 800;
   white-space: nowrap;

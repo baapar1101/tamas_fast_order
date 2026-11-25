@@ -33,7 +33,7 @@
   padding: 0.35rem 0.75rem 0.35rem 0.6rem;
   border-radius: 999px;
   background: linear-gradient(90deg, #9f1239, #e2401f 55%, #f05a28);
-  color: #fff;
+  color: var(--ds-on-interactive);
   font-size: 0.8125rem;
   font-weight: 800;
   line-height: 1.2;
@@ -57,7 +57,8 @@
 /* Bottom tab bar item on phones. */
 .tabbar-item.tabbar-item--sale { color: #e2401f; font-weight: 800; }
 .tabbar-item--sale .tabbar-icon .hourglass { width: 0.95rem; height: 1.45rem; color: currentColor; }
-.tabbar-item--sale .hourglass-sand { fill: #f59e0b; }
+.tabbar-item--sale { --sale-hourglass-sand: #f59e0b; }
+.tabbar-item--sale .hourglass-sand { fill: var(--sale-hourglass-sand); }
 
 @media (prefers-reduced-motion: reduce) {
   .hourglass--running .hourglass-stream,

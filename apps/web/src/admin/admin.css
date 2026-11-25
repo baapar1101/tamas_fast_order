@@ -2529,7 +2529,7 @@ body.admin-page-active .modal-panel:has(.credit-report-overview) {
 .nav-footer-link:hover {
   border-color: color-mix(in srgb, var(--a-green) 45%, transparent);
   background: color-mix(in srgb, var(--a-green) 8%, transparent);
-  color: #fff;
+  color: var(--ds-on-interactive);
 }
 
 .nav-footer-link svg {
