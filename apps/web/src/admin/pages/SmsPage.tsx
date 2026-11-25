@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ORDER_STATUSES, ORDER_STATUS_LABELS } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
+import { SmsCampaignPanel } from './SmsCampaignPanel';
 
 interface SmsEventDef {
   /** Unique suffix used to build the enabled key: sms_enabled_<key>. */
@@ -313,8 +314,8 @@ export function SmsPage() {
       {/* Header */}
       <section className="a-page-head">
         <div className="a-titles">
-          <h2 className="a-title">پیامک هوشمند</h2>
-          <p className="a-subtitle">متن پیامک‌های خودکار در موقعیت‌های مختلف سفارش و ورود کاربران</p>
+          <h2 className="a-title">پیامک به مشتریان و پیامک هوشمند</h2>
+          <p className="a-subtitle">ارسال دستی به مشتریان، پیگیری ارسال و تنظیم پیامک‌های خودکار</p>
         </div>
         <div className="a-page-actions">
           <span className="a-badge a-badge--brand">{savedCount} پیامک فعال</span>
@@ -328,6 +329,8 @@ export function SmsPage() {
           </button>
         </div>
       </section>
+
+      <SmsCampaignPanel />
 
       {/* SMS providers */}
       <section className="a-card">

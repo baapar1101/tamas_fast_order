@@ -232,6 +232,13 @@
       "when": 1795449339906,
       "tag": "0032_points_campaign",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1795536000000,
+      "tag": "0033_sms_campaigns",
+      "breakpoints": true
     }
   ]
 }

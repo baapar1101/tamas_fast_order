@@ -1227,6 +1227,33 @@ export const nativeCampaignDeliveries = pgTable('native_campaign_deliveries', {
   index('native_campaign_delivery_user_idx').on(t.userId),
 ]);
 
+export const smsCampaigns = pgTable('sms_campaigns', {
+  id: serial('id').primaryKey(),
+  requestId: varchar('request_id', { length: 36 }).notNull(),
+  body: text('body').notNull(),
+  audience: varchar('audience', { length: 12 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('queued'),
+  total: integer('total').notNull(),
+  createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+}, t => [uniqueIndex('sms_campaigns_request_key').on(t.requestId), index('sms_campaigns_created_idx').on(t.createdAt)]);
+
+export const smsCampaignDeliveries = pgTable('sms_campaign_deliveries', {
+  id: serial('id').primaryKey(),
+  campaignId: integer('campaign_id').notNull().references(() => smsCampaigns.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+  phoneHash: varchar('phone_hash', { length: 64 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('queued'),
+  error: varchar('error', { length: 200 }),
+  processingAt: timestamp('processing_at', { withTimezone: true }),
+  sentAt: timestamp('sent_at', { withTimezone: true }),
+}, t => [
+  uniqueIndex('sms_campaign_delivery_user_key').on(t.campaignId, t.userId),
+  index('sms_campaign_delivery_queue_idx').on(t.status, t.id),
+  index('sms_campaign_delivery_campaign_idx').on(t.campaignId),
+]);
+
 /* ------------------------------------------------------------------ *
  * Sales funnel: storefront behaviour, saved carts, automatic follow-ups
  * ------------------------------------------------------------------ */

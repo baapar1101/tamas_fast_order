@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { isValidPhone, normalizePhone } from '@tamas/shared';
 import { badRequest } from '../../lib/errors.js';
 import { sendSms, testSmsProvider } from '../../services/sms.js';
+import { cancelSmsCampaign, listSmsCampaigns, previewSmsCampaign, queueSmsCampaign, searchSmsCustomers, smsCampaignDeliveriesPage, smsCampaignInput } from '../../services/sms-campaigns.js';
+import { logAction } from '../../services/audit.js';
 import {
   getSmsRuntimeConfig,
   smsConfigForAdmin,
@@ -58,6 +60,40 @@ const SAMPLE_VARS: Record<string, string> = {
 export const smsRoutes: FastifyPluginAsync = async (app) => {
   // Configuring the smart SMS templates is part of the panel settings.
   app.addHook('preHandler', app.requirePermission('manage_settings'));
+
+  app.get('/admin/sms/customers', async (req) => {
+    const { q } = z.object({ q: z.string().trim().max(80).default('') }).parse(req.query);
+    return { ok: true, items: await searchSmsCustomers(q) };
+  });
+
+  app.post('/admin/sms/campaigns/preview', async (req) => {
+    return { ok: true, ...await previewSmsCampaign(smsCampaignInput.parse(req.body)) };
+  });
+
+  app.post('/admin/sms/campaigns', { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (req) => {
+    const { previewToken, ...input } = z.object({
+      body: z.string(), audience: z.enum(['all', 'selected']), userIds: z.array(z.number()),
+      previewToken: z.string().regex(/^[a-f0-9]{64}$/),
+      requestId: z.string().uuid(),
+    }).strict().parse(req.body);
+    const { requestId, ...draft } = input;
+    const campaign = await queueSmsCampaign(smsCampaignInput.parse(draft), previewToken, requestId, req.currentUser!.id);
+    await logAction(req.currentUser!.id, 'queue', 'sms_campaign', String(campaign.id), { total: campaign.total, audience: draft.audience });
+    return { ok: true, campaign };
+  });
+
+  app.get('/admin/sms/campaigns', async () => ({ ok: true, items: await listSmsCampaigns() }));
+  app.get('/admin/sms/campaigns/:id/deliveries', async (req) => {
+    const { id } = z.object({ id: z.coerce.number().int().positive() }).parse(req.params);
+    const { page } = z.object({ page: z.coerce.number().int().min(1).default(1) }).parse(req.query);
+    return { ok: true, ...await smsCampaignDeliveriesPage(id, page) };
+  });
+  app.post('/admin/sms/campaigns/:id/cancel', async (req) => {
+    const { id } = z.object({ id: z.coerce.number().int().positive() }).parse(req.params);
+    await cancelSmsCampaign(id);
+    await logAction(req.currentUser!.id, 'cancel', 'sms_campaign', String(id));
+    return { ok: true };
+  });
 
   app.get('/admin/sms/providers', async () => ({
     ok: true,

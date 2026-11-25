@@ -9,6 +9,7 @@ import { isSyncRunning, pruneConflicts, runSync } from './services/sheets/sync.j
 import { sendDueInstallmentReceiptReminders } from './services/installment-receipts.js';
 import { runScheduledTelegramBackup } from './services/telegram-backup.js';
 import { processNativeCampaigns } from './services/native-campaigns.js';
+import { processSmsCampaigns } from './services/sms-campaigns.js';
 import { pruneFunnelEvents, runFunnelAutomation } from './services/funnel.js';
 
 /**
@@ -24,6 +25,11 @@ export function startScheduler(log: FastifyBaseLogger): () => void {
   };
   timers.push(setTimeout(() => void nativeCampaigns(), 5_000));
   timers.push(setInterval(() => void nativeCampaigns(), 3_000));
+  const smsCampaigns = async () => {
+    try { await processSmsCampaigns(); } catch (err) { log.error({ err }, 'sms campaign queue failed'); }
+  };
+  timers.push(setTimeout(() => void smsCampaigns(), 7_000));
+  timers.push(setInterval(() => void smsCampaigns(), 3_000));
 
   if (env.SHEETS_ENABLED && env.SHEETS_SYNC_INTERVAL_SECONDS > 0) {
     const interval = env.SHEETS_SYNC_INTERVAL_SECONDS * 1000;
