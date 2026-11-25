@@ -1,17 +1,14 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { and, eq, inArray, isNull, ne } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import { z } from 'zod';
-import { paymentAudienceForCategory } from '@tamas/shared';
 import { db } from '../db/client.js';
-import { orders, payments, products } from '../db/schema.js';
-import { badRequest, notFound } from '../lib/errors.js';
+import { orders, payments } from '../db/schema.js';
 // @ts-ignore
 import paymentGateway from '@tamas/payment';
-import { env } from '../env.js';
 import { applyWalletTransaction } from '../services/wallet.js';
 import { transitionOrderStatusInTransaction } from '../services/order-inventory.js';
-import { getPaymentTermsConfig, quotePaymentTerms } from '../services/payment-terms.js';
-import { getPaymentRoutingConfig, securePaymentPlan } from '../services/payment-routing.js';
+import { quoteCartPaymentTerms } from '../services/cart-quote.js';
+import { createGatewayPayment } from '../services/gateway-payment.js';
 import { issueFirstPurchaseReward } from '../services/discounts.js';
 
 const routes: FastifyPluginAsync = async (app) => {
@@ -25,43 +22,7 @@ const routes: FastifyPluginAsync = async (app) => {
         qty: z.coerce.number().int().min(1).max(10_000),
       })).min(1).max(200),
     }).parse(req.body);
-    const quantityByProduct = new Map<string, number>();
-    for (const item of body.items) {
-      quantityByProduct.set(item.productId, (quantityByProduct.get(item.productId) ?? 0) + item.qty);
-    }
-    const ids = [...quantityByProduct.keys()];
-    const rows = await db.select({
-      productId: products.productId,
-      categoryId: products.categoryId,
-      price: products.price,
-      sellType: products.sellType,
-      ribbon: products.ribbon,
-      status: products.status,
-    }).from(products).where(and(inArray(products.productId, ids), isNull(products.deletedAt)));
-    if (rows.length !== ids.length || rows.some((row) => row.status !== 'active')) {
-      throw badRequest('یکی از کالاهای سبد دیگر قابل سفارش نیست. سبد خرید را تازه‌سازی کنید.');
-    }
-    const [config, routing] = await Promise.all([getPaymentTermsConfig(), getPaymentRoutingConfig()]);
-    const quote = quotePaymentTerms(rows.map((row) => ({
-      categoryId: row.categoryId,
-      price: row.price,
-      qty: quantityByProduct.get(row.productId) ?? 0,
-      sellType: row.sellType,
-      ribbon: row.ribbon,
-    })), config);
-    // Additive metadata for native checkout: mixed carts become separate invoices.
-    // The server, not a category-name heuristic on the phone, owns this decision.
-    const partitions = (['mobile', 'accessory'] as const).flatMap((audience) => {
-      const partitionRows = rows.filter((row) => paymentAudienceForCategory(row.categoryId, config) === audience);
-      if (partitionRows.length === 0) return [];
-      const partitionQuote = quotePaymentTerms(partitionRows.map((row) => ({
-        categoryId: row.categoryId, price: row.price,
-        qty: quantityByProduct.get(row.productId) ?? 0, sellType: row.sellType, ribbon: row.ribbon,
-      })), config);
-      return [{ ...partitionQuote, productIds: partitionRows.map((row) => row.productId),
-        plans: partitionQuote.plans.map((plan) => securePaymentPlan(plan, routing).plan) }];
-    });
-    return { ok: true, ...quote, plans: quote.plans.map((plan) => securePaymentPlan(plan, routing).plan), partitions };
+    return { ok: true, ...(await quoteCartPaymentTerms(body.items)) };
   });
 
   // Create a payment transaction and return the bank URL
@@ -70,52 +31,7 @@ const routes: FastifyPluginAsync = async (app) => {
     { preHandler: [app.requireUser], config: { rateLimit: { max: 10, timeWindow: '1 minute' } } },
     async (req) => {
       const { orderId } = z.object({ orderId: z.coerce.number().int().positive() }).parse(req.body);
-      
-      const [order] = await db
-        .select()
-        .from(orders)
-        .where(and(eq(orders.id, orderId), eq(orders.userId, req.currentUser!.id), isNull(orders.deletedAt)))
-        .limit(1);
-
-      if (!order) throw notFound('سفارش پیدا نشد.');
-      if (order.paymentStatus === 'paid') throw badRequest('این سفارش قبلاً پرداخت شده است.');
-      if (order.status === 'cancelled') throw badRequest('امکان پرداخت سفارش لغوشده وجود ندارد.');
-
-      const amount = order.total;
-      
-      const callbackUrl = `${env.PUBLIC_SITE_URL.replace(/\/$/, '')}/api/payment/callback`;
-
-      try {
-        const response = await paymentGateway.Create({
-          amount,
-          callback: callbackUrl,
-          invoice_id: String(order.id),
-          mobile: order.phone,
-          description: `پرداخت سفارش ${order.orderCode}`,
-        });
-
-        const data = response.data;
-        if (data && data.status === 'success') {
-          const transid = data.transid;
-          
-          await db.insert(payments).values({
-            orderId: order.id,
-            userId: req.currentUser!.id,
-            amount,
-            gateway: 'aqayepardakht',
-            refId: transid,
-            status: 'pending',
-          });
-
-          return { ok: true, url: paymentGateway.StartPay(transid) };
-        } else {
-          throw new Error('خطا در ارتباط با درگاه پرداخت: ' + (data?.code || ''));
-        }
-      } catch (err: any) {
-        req.log.error({ err: err.response?.data || err.message }, 'Payment create failed');
-        const bankError = err.response?.data?.code || err.response?.data?.message || err.message;
-        throw badRequest(`خطا در ایجاد تراکنش بانکی (${bankError}).`);
-      }
+      return { ok: true, url: await createGatewayPayment(req.currentUser!.id, orderId, req.log) };
     }
   );
 

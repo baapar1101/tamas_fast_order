@@ -1,15 +1,10 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { eq, and, isNull } from 'drizzle-orm';
 import { orderCreateSchema } from '@tamas/shared';
 import { createOrder, listOrdersForUser } from '../services/orders.js';
 import { processUpload } from '../services/uploads.js';
-import { db } from '../db/client.js';
-import { orders } from '../db/schema.js';
-import { badRequest } from '../lib/errors.js';
-import { registerOrderCheque } from '../services/credit-cheques.js';
-import { claimPrivateFile } from '../services/private-files.js';
 import { clearUserCart } from '../services/funnel.js';
+import { submitOrderPaymentInfo } from '../services/order-payment-info.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   app.post(
@@ -47,58 +42,7 @@ const routes: FastifyPluginAsync = async (app) => {
         checkNote: z.string().optional(),
       }).parse(req.body);
 
-      const [order] = await db
-        .select()
-        .from(orders)
-        .where(and(eq(orders.id, body.orderId), eq(orders.userId, req.currentUser!.id), isNull(orders.deletedAt)))
-        .limit(1);
-
-      if (!order) {
-        return { ok: false, message: 'سفارش یافت نشد.' };
-      }
-      if (body.receiptImageUrl) body.receiptImageUrl = await claimPrivateFile(body.receiptImageUrl, req.currentUser!.id, 'payment');
-
-      let registeredCheque: Awaited<ReturnType<typeof registerOrderCheque>>['cheque'] | null = null;
-      if (order.paymentPlan?.kind === 'cheque') {
-        if (!body.checkNumber?.trim() || !body.checkBankName?.trim()) {
-          throw badRequest('شماره صیادی و نام بانک چک اول را وارد کنید.');
-        }
-        const result = await registerOrderCheque(req.currentUser!.id, {
-          orderId: order.id,
-          chequeNumber: body.checkNumber.trim(),
-          bankName: body.checkBankName.trim(),
-          accountHolder: order.customerName,
-          imageUrl: body.receiptImageUrl || null,
-          notes: body.checkNote || null,
-        });
-        registeredCheque = result.cheque;
-      }
-
-      // Build a payment info note
-      const { orderId, ...info } = body;
-      const existingNote = order.note || '';
-      const paymentNote = `\n--- اطلاعات پرداخت (${new Date().toLocaleDateString('fa-IR')}) ---\n${JSON.stringify(info, null, 2)}`;
-
-      await db.update(orders)
-        .set({ note: existingNote + paymentNote, updatedAt: new Date() })
-        .where(eq(orders.id, orderId));
-
-      const { sendTelegramNotification } = await import('../services/telegram.js');
-      void sendTelegramNotification('payment.info_submitted', {
-        title: '🧾 اطلاعات پرداخت دستی',
-        fields: [
-          { label: 'شماره سفارش', value: order.orderCode },
-          { label: 'مشتری', value: order.customerName },
-          { label: 'روش پرداخت', value: order.paymentPlan?.label ?? body.paymentMethod },
-          { label: 'واریزکننده', value: body.depositorName },
-          { label: 'شماره پیگیری', value: body.refNumber },
-          { label: 'شماره چک', value: body.checkNumber },
-          { label: 'مبلغ چک', value: registeredCheque ? `${Number(registeredCheque.amount).toLocaleString('fa-IR')} تومان` : undefined },
-          { label: 'سررسید چک', value: registeredCheque?.dueDate },
-        ],
-      }).catch((err) => req.log.error({ err }, 'failed to send Telegram payment info notification'));
-
-      return { ok: true, message: 'اطلاعات پرداخت با موفقیت ثبت شد.' };
+      return submitOrderPaymentInfo(req.currentUser!.id, body, req.log);
     },
   );
 

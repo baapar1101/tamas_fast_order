@@ -272,6 +272,15 @@ export async function sendTelegramDocument(
 export async function downloadTelegramFile(fileId: string, maxBytes: number): Promise<Buffer> {
   const config = await getTelegramConfig();
   if (!config.botToken) throw new Error('توکن ربات تلگرام تنظیم نشده است.');
+  return downloadTelegramBotFile({ botToken: config.botToken, proxyUrl: config.proxyUrl }, fileId, maxBytes);
+}
+
+/** The same download for any bot of ours (the customer bot has its own token and proxy). */
+export async function downloadTelegramBotFile(
+  config: { botToken: string; proxyUrl: string },
+  fileId: string,
+  maxBytes: number,
+): Promise<Buffer> {
   const info = await callTelegramApi(config.botToken, 'getFile', { file_id: fileId }, config.proxyUrl);
   const result = (info.result ?? {}) as { file_path?: string; file_size?: number };
   if (!result.file_path) throw new Error('تلگرام فایل را برنگرداند.');

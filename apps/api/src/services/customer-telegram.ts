@@ -1,19 +1,23 @@
-import { and, desc, eq, gt, isNull } from 'drizzle-orm';
+import { and, eq, gt, isNull } from 'drizzle-orm';
 import { normalizePhone } from '@tamas/shared';
 import { db } from '../db/client.js';
 import {
-  creditApplications,
-  creditCheques,
   customerTelegramAccounts,
   customerTelegramLinkTokens,
-  orders,
-  users,
-  walletAccounts,
 } from '../db/schema.js';
 import { randomToken, sha256 } from '../lib/hash.js';
-import { callTelegramApi } from './telegram.js';
+import { callTelegramApi, downloadTelegramBotFile } from './telegram.js';
 import { generateSecret, getAllSettings, setSetting } from './settings.js';
 import { normalizeTelegramBotUsername, parseCustomerTelegramLinkToken, telegramContactBelongsToSender } from './customer-telegram-model.js';
+import {
+  BOT_CALLBACK_PREFIX,
+  handleCustomerBotInput,
+  type BotChannel,
+  type BotIncoming,
+  type BotSendOptions,
+  type BotTransport,
+  type CustomerBotDeps,
+} from './customer-bot.js';
 
 export const CUSTOMER_TELEGRAM_EVENTS = [
   'order.created',
@@ -64,7 +68,10 @@ interface TelegramMessage {
   chat: { id: number; type?: string };
   from?: TelegramPerson;
   text?: string;
+  caption?: string;
   contact?: { phone_number: string; user_id?: number; first_name?: string; last_name?: string };
+  photo?: Array<{ file_id: string; file_size?: number; width?: number; height?: number }>;
+  document?: { file_id: string; file_name?: string; mime_type?: string; file_size?: number };
 }
 
 interface TelegramCallback {
@@ -81,10 +88,6 @@ export interface CustomerTelegramUpdate {
 }
 
 const DEFAULT_EVENTS = Object.fromEntries(CUSTOMER_TELEGRAM_EVENTS.map((event) => [event, true])) as Record<CustomerTelegramEvent, boolean>;
-const STATUS_LABELS: Record<string, string> = {
-  new: 'جدید', confirmed: 'تأییدشده', preparing: 'در حال آماده‌سازی', shipped: 'ارسال‌شده', delivered: 'تحویل‌شده', cancelled: 'لغوشده',
-  pending: 'در انتظار', reviewing: 'در حال بررسی', active: 'فعال', action_required: 'نیازمند اقدام', passed: 'وصول‌شده', bounced: 'برگشتی', returned: 'عودت‌شده',
-};
 
 function bool(value: string | undefined): boolean {
   return value != null && !['', '0', 'false', 'off', 'no'].includes(value.toLowerCase());
@@ -123,10 +126,6 @@ function escapeHtml(value: unknown): string {
   return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
-function money(value: number): string {
-  return `${Math.round(value).toLocaleString('fa-IR')} تومان`;
-}
-
 function inlineKeyboard(rows: Array<Array<{ text: string; data?: string; url?: string }>>): Record<string, unknown> {
   return { inline_keyboard: rows.map((row) => row.map((button) => ({ text: button.text, ...(button.data ? { callback_data: button.data } : {}), ...(button.url ? { url: button.url } : {}) }))) };
 }
@@ -143,22 +142,68 @@ async function sendCustomerBotMessage(chatId: string | number, text: string, rep
   }, config.proxyUrl);
 }
 
-async function answerCallback(id: string, text: string): Promise<void> {
+/** Stops the button's loading spinner; without text Telegram shows no toast. */
+async function answerCallback(id: string, text = ''): Promise<void> {
   const config = await getCustomerTelegramConfig();
   if (!config.botToken) return;
-  await callTelegramApi(config.botToken, 'answerCallbackQuery', { callback_query_id: id, text: text.slice(0, 180) }, config.proxyUrl);
+  await callTelegramApi(config.botToken, 'answerCallbackQuery', { callback_query_id: id, ...(text ? { text: text.slice(0, 180) } : {}) }, config.proxyUrl);
 }
 
+/** Buttons under notifications and broadcasts: shortcuts into the customer bot. */
 function mainMenu(config: CustomerTelegramConfig): Record<string, unknown> {
   const rows = [
-    [{ text: '📦 سفارش‌های من', data: 'ctg:orders' }, { text: '💳 کیف پول', data: 'ctg:wallet' }],
-    [{ text: '🧾 پرونده اعتباری', data: 'ctg:credit' }, { text: '👤 حساب من', data: 'ctg:profile' }],
-    [{ text: '🔔 تنظیم اعلان‌ها', data: 'ctg:notifications' }],
-    [{ text: '❓ راهنما', data: 'ctg:help' }, { text: '🔌 قطع اتصال', data: 'ctg:disconnect' }],
-    [{ text: '🛍 ورود به فروشگاه', url: config.siteUrl }],
+    [{ text: '📦 سفارش‌های من', data: `${BOT_CALLBACK_PREFIX}o` }, { text: '🛒 سبد خرید', data: `${BOT_CALLBACK_PREFIX}cart` }],
+    [{ text: '🛍 محصولات', data: `${BOT_CALLBACK_PREFIX}cat` }, { text: '🏠 منوی اصلی', data: `${BOT_CALLBACK_PREFIX}m` }],
+    [{ text: '🌐 ورود به فروشگاه', url: config.siteUrl }],
   ];
   if (config.supportUrl) rows.push([{ text: '💬 پشتیبانی', url: config.supportUrl }]);
   return inlineKeyboard(rows);
+}
+
+/** Notification settings and disconnect stay Telegram-specific; everything else is the shared engine. */
+const TELEGRAM_MENU_ROWS = [[
+  { text: '🔔 تنظیم اعلان‌ها', data: 'ctg:notifications' },
+  { text: '🔌 قطع اتصال', data: 'ctg:disconnect' },
+]];
+
+/** Callback data of messages sent before the shared engine existed. */
+const LEGACY_ACTIONS: Record<string, string> = {
+  orders: 'o', wallet: 'w', credit: 'cr', profile: 'pf', help: 'help', menu: 'm',
+};
+
+function telegramReplyMarkup(options: BotSendOptions | undefined): Record<string, unknown> {
+  if (options?.contactButton) {
+    return { reply_markup: { keyboard: [[{ text: options.contactButton, request_contact: true }]], resize_keyboard: true, one_time_keyboard: true } };
+  }
+  if (options?.buttons?.length) return { reply_markup: inlineKeyboard(options.buttons) };
+  if (options?.removeKeyboard) return { reply_markup: { remove_keyboard: true } };
+  return {};
+}
+
+function telegramTransport(config: CustomerTelegramConfig): BotTransport {
+  return {
+    async send(chatId, html, options) {
+      await callTelegramApi(config.botToken, 'sendMessage', {
+        chat_id: chatId,
+        text: html.slice(0, 4096),
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+        ...telegramReplyMarkup(options),
+      }, config.proxyUrl);
+    },
+    async sendPhoto(chatId, photoUrl, captionHtml, options) {
+      await callTelegramApi(config.botToken, 'sendPhoto', {
+        chat_id: chatId,
+        photo: photoUrl,
+        caption: captionHtml.slice(0, 1024),
+        parse_mode: 'HTML',
+        ...telegramReplyMarkup(options),
+      }, config.proxyUrl);
+    },
+    async download(fileId) {
+      return { buffer: await downloadTelegramBotFile(config, fileId, 15 * 1024 * 1024) };
+    },
+  };
 }
 
 async function linkedAccount(telegramUserId: number) {
@@ -222,49 +267,6 @@ async function linkByToken(token: string, person: TelegramPerson, chatId: number
   });
 }
 
-async function sendWelcome(chatId: number): Promise<void> {
-  const config = await getCustomerTelegramConfig();
-  await sendCustomerBotMessage(chatId, `✅ <b>حساب شما با موفقیت متصل شد</b>\n\n${escapeHtml(config.welcomeMessage)}`, mainMenu(config));
-}
-
-async function requestContact(chatId: number): Promise<void> {
-  await sendCustomerBotMessage(chatId, 'برای اتصال حساب، شماره‌ای را که با آن در تماس مارکت ثبت‌نام کرده‌اید از دکمه زیر به‌اشتراک بگذارید.', {
-    keyboard: [[{ text: '📱 اشتراک‌گذاری شماره من', request_contact: true }]],
-    resize_keyboard: true,
-    one_time_keyboard: true,
-  });
-}
-
-async function sendOrders(chatId: number, userId: number): Promise<void> {
-  const rows = await db.select({ id: orders.id, code: orders.orderCode, total: orders.total, status: orders.status, createdAt: orders.createdAt })
-    .from(orders).where(and(eq(orders.userId, userId), isNull(orders.deletedAt))).orderBy(desc(orders.createdAt)).limit(8);
-  if (!rows.length) return sendCustomerBotMessage(chatId, '📦 هنوز سفارشی برای حساب شما ثبت نشده است.');
-  const lines = rows.map((order) => `• <code>${escapeHtml(order.code)}</code> — ${escapeHtml(STATUS_LABELS[order.status] ?? order.status)}\n  ${money(order.total)} · ${order.createdAt.toLocaleDateString('fa-IR')}`);
-  await sendCustomerBotMessage(chatId, `<b>📦 آخرین سفارش‌های شما</b>\n\n${lines.join('\n\n')}`);
-}
-
-async function sendWallet(chatId: number, userId: number): Promise<void> {
-  const [wallet] = await db.select().from(walletAccounts).where(eq(walletAccounts.userId, userId)).limit(1);
-  await sendCustomerBotMessage(chatId, wallet
-    ? `<b>💳 کیف پول شما</b>\n\nموجودی: <b>${money(wallet.balance)}</b>\nمجموع واریز: ${money(wallet.lifetimeCredit)}\nمجموع برداشت: ${money(wallet.lifetimeDebit)}${wallet.isFrozen ? '\n\n⚠️ کیف پول مسدود است.' : ''}`
-    : '💳 هنوز کیف پولی برای حساب شما ایجاد نشده است.');
-}
-
-async function sendCredit(chatId: number, userId: number): Promise<void> {
-  const [application] = await db.select().from(creditApplications).where(eq(creditApplications.userId, userId)).orderBy(desc(creditApplications.createdAt)).limit(1);
-  if (!application) return sendCustomerBotMessage(chatId, '🧾 پرونده اعتباری فعالی ندارید.');
-  const cheques = await db.select().from(creditCheques).where(eq(creditCheques.userId, userId)).orderBy(desc(creditCheques.createdAt)).limit(10);
-  const pending = cheques.filter((item) => item.status === 'pending').reduce((sum, item) => sum + item.amount, 0);
-  const bounced = cheques.filter((item) => item.status === 'bounced').length;
-  await sendCustomerBotMessage(chatId, `<b>🧾 پرونده اعتباری</b>\n\nوضعیت: <b>${escapeHtml(STATUS_LABELS[application.status] ?? application.status)}</b>\nسقف اعتبار: ${money(application.assignedCreditLimit)}\nچک در انتظار: ${money(pending)}${bounced ? `\n⚠️ چک برگشتی: ${bounced.toLocaleString('fa-IR')} فقره` : ''}`);
-}
-
-async function sendProfile(chatId: number, userId: number): Promise<void> {
-  const [user] = await db.select().from(users).where(and(eq(users.id, userId), isNull(users.deletedAt))).limit(1);
-  if (!user) throw new Error('حساب کاربری پیدا نشد.');
-  await sendCustomerBotMessage(chatId, `<b>👤 حساب تماس مارکت</b>\n\nنام: ${escapeHtml([user.name, user.lastName].filter(Boolean).join(' ') || 'ثبت نشده')}\nفروشگاه: ${escapeHtml(user.storeName || 'ثبت نشده')}\nموبایل: <code>${escapeHtml(user.phone)}</code>\nوضعیت حساب: ${user.isActive ? 'فعال ✅' : 'در انتظار تأیید ⏳'}`);
-}
-
 async function sendNotificationSettings(chatId: number, account: typeof customerTelegramAccounts.$inferSelect): Promise<void> {
   const prefs = account.notificationPreferences ?? {};
   const labels: Record<CustomerTelegramEvent, string> = { 'order.created': 'ثبت سفارش', 'order.status_changed': 'وضعیت سفارش', 'order.items_changed': 'تغییر اقلام', 'payment.paid': 'پرداخت موفق', 'payment.failed': 'پرداخت ناموفق', 'credit.application_status_changed': 'پرونده اعتبار', 'credit.document_reupload_requested': 'تکمیل مدرک', 'credit.cheque_status_changed': 'وضعیت چک', 'credit.installment_receipt_reminder': 'یادآوری رسید قسط', 'credit.installment_receipt_status_changed': 'بررسی رسید قسط', 'wallet.changed': 'گردش کیف پول', 'payment.instructions_ready': 'اطلاعات پرداخت', 'discount.created': 'کد تخفیف', 'cart.reminder': 'یادآوری سبد خرید', 'order.payment_reminder': 'یادآوری پرداخت', promotion: 'جشنواره‌ها' };
@@ -274,37 +276,71 @@ async function sendNotificationSettings(chatId: number, account: typeof customer
   await sendCustomerBotMessage(chatId, `<b>🔔 تنظیم اعلان‌ها</b>\n\nاعلان کلی: ${account.notificationsEnabled ? 'فعال' : 'غیرفعال'}\nروی هر مورد بزنید تا فعال یا غیرفعال شود.`, inlineKeyboard(rows));
 }
 
-async function routeLinkedAction(chatId: number, account: typeof customerTelegramAccounts.$inferSelect, action: string): Promise<void> {
-  if (action === 'orders') return sendOrders(chatId, account.userId);
-  if (action === 'wallet') return sendWallet(chatId, account.userId);
-  if (action === 'credit') return sendCredit(chatId, account.userId);
-  if (action === 'profile') return sendProfile(chatId, account.userId);
-  if (action === 'notifications') return sendNotificationSettings(chatId, account);
+/** Telegram-only actions: notification preferences and disconnecting. Returns false for anything else. */
+async function routeTelegramAction(chatId: number, account: typeof customerTelegramAccounts.$inferSelect, action: string): Promise<boolean> {
+  if (action === 'notifications') {
+    await sendNotificationSettings(chatId, account);
+    return true;
+  }
   if (action === 'toggle-all') {
     const [updated] = await db.update(customerTelegramAccounts)
       .set({ notificationsEnabled: !account.notificationsEnabled, updatedAt: new Date() })
       .where(eq(customerTelegramAccounts.id, account.id)).returning();
     if (updated) await sendNotificationSettings(chatId, updated);
-    return;
+    return true;
   }
-  if (action === 'help') {
-    await sendCustomerBotMessage(chatId, '<b>راهنمای ربات مشتریان تماس مارکت</b>\n\nاز منوی زیر می‌توانید سفارش‌ها، کیف پول، پرونده اعتباری و تنظیم اعلان‌ها را ببینید. برای امنیت، اطلاعات فقط برای حساب متصل‌شده نمایش داده می‌شود. برای قطع ارتباط دستور /disconnect را بفرستید.', mainMenu(await getCustomerTelegramConfig()));
-    return;
+  if (action.startsWith('toggle:')) {
+    const event = action.slice('toggle:'.length) as CustomerTelegramEvent;
+    if (!CUSTOMER_TELEGRAM_EVENTS.includes(event)) return true;
+    const next = { ...(account.notificationPreferences ?? {}), [event]: account.notificationPreferences?.[event] === false };
+    const [updated] = await db.update(customerTelegramAccounts).set({ notificationPreferences: next, updatedAt: new Date() }).where(eq(customerTelegramAccounts.id, account.id)).returning();
+    if (updated) await sendNotificationSettings(chatId, updated);
+    return true;
   }
   if (action === 'disconnect') {
-    await sendCustomerBotMessage(chatId, 'آیا از قطع اتصال حساب تماس مارکت مطمئن هستید؟ پس از آن برای اتصال دوباره باید از سایت لینک جدید بگیرید.', inlineKeyboard([
+    await sendCustomerBotMessage(chatId, 'آیا از قطع اتصال حساب تماس مارکت مطمئن هستید؟ پس از آن برای اتصال دوباره باید از سایت لینک بگیرید یا با کد پیامکی وارد شوید.', inlineKeyboard([
       [{ text: 'بله، قطع اتصال', data: 'ctg:disconnect_confirm' }],
-      [{ text: 'انصراف', data: 'ctg:menu' }],
+      [{ text: 'انصراف', data: `${BOT_CALLBACK_PREFIX}m` }],
     ]));
-    return;
+    return true;
   }
   if (action === 'disconnect_confirm') {
     await db.delete(customerTelegramAccounts).where(eq(customerTelegramAccounts.id, account.id));
     await sendCustomerBotMessage(chatId, 'اتصال حساب شما با ربات قطع شد. برای اتصال دوباره از سایت یا /start استفاده کنید.');
-    return;
+    return true;
   }
-  const config = await getCustomerTelegramConfig();
-  await sendCustomerBotMessage(chatId, `<b>منوی مشتریان تماس مارکت</b>\n\nیکی از گزینه‌ها را انتخاب کنید.`, mainMenu(config));
+  return false;
+}
+
+/** Turns a Telegram update into the shared engine's input. */
+export function toTelegramBotIncoming(person: { id: number }, chatId: number, message: TelegramMessage | undefined, callbackData: string | undefined): BotIncoming {
+  const incoming: BotIncoming = { botUserId: String(person.id), chatId: String(chatId) };
+  if (callbackData) return { ...incoming, callbackData };
+  if (!message) return incoming;
+  if (message.contact) {
+    // Telegram vouches for a contact only when it is the sender's own; another
+    // number goes through the SMS code like a typed one.
+    return telegramContactBelongsToSender(message.contact.user_id, person.id)
+      ? { ...incoming, ownContactPhone: normalizePhone(message.contact.phone_number) }
+      : { ...incoming, text: message.contact.phone_number };
+  }
+  const photo = message.photo?.length ? message.photo[message.photo.length - 1] : undefined;
+  if (photo) return { ...incoming, file: { fileId: photo.file_id, photo: true, size: photo.file_size } };
+  if (message.document) {
+    return { ...incoming, file: { fileId: message.document.file_id, photo: false, mimeType: message.document.mime_type, fileName: message.document.file_name, size: message.document.file_size } };
+  }
+  return { ...incoming, text: message.text ?? message.caption ?? '' };
+}
+
+let customerBotDeps: Promise<CustomerBotDeps> | null = null;
+function botDeps(): Promise<CustomerBotDeps> {
+  customerBotDeps ??= import('./customer-bot-deps.js')
+    .then(({ createCustomerBotDeps }) => createCustomerBotDeps())
+    .catch((error: unknown) => {
+      customerBotDeps = null; // retry on the next update instead of failing until restart
+      throw error;
+    });
+  return customerBotDeps;
 }
 
 export async function handleCustomerTelegramUpdate(update: CustomerTelegramUpdate): Promise<void> {
@@ -316,47 +352,45 @@ export async function handleCustomerTelegramUpdate(update: CustomerTelegramUpdat
   try {
     const chatType = message?.chat.type ?? callback?.message?.chat.type;
     if (chatType && chatType !== 'private') throw new Error('برای حفظ حریم خصوصی، ربات مشتریان فقط در گفت‌وگوی خصوصی قابل استفاده است.');
-    if (message?.text?.startsWith('/start')) {
-      const linkToken = parseCustomerTelegramLinkToken(message.text);
-      if (linkToken) {
-        await linkByToken(linkToken, person, chatId);
-        return sendWelcome(chatId);
-      }
-      const account = await linkedAccount(person.id);
-      if (account) { await touchAccount(account.id); return routeLinkedAction(chatId, account, 'menu'); }
-      return requestContact(chatId);
+    const config = await getCustomerTelegramConfig();
+    if (!config.enabled || !config.botToken) return;
+
+    const linkToken = message?.text?.startsWith('/start') ? parseCustomerTelegramLinkToken(message.text) : null;
+    if (linkToken) {
+      await linkByToken(linkToken, person, chatId);
+      await sendCustomerBotMessage(chatId, `✅ <b>حساب شما با موفقیت متصل شد</b>\n\n${escapeHtml(config.welcomeMessage)}`);
     }
 
-    if (message?.contact) {
-      if (!telegramContactBelongsToSender(message.contact.user_id, person.id)) throw new Error('فقط شماره متعلق به حساب تلگرام خودتان قابل پذیرش است.');
-      const phone = normalizePhone(message.contact.phone_number);
-      const [user] = await db.select().from(users).where(and(eq(users.phone, phone), isNull(users.deletedAt))).limit(1);
-      if (!user) throw new Error('حسابی با این شماره در تماس مارکت پیدا نشد. ابتدا در سایت ثبت‌نام کنید.');
-      await linkAccount(user.id, person, chatId);
-      return sendWelcome(chatId);
+    let account = await linkedAccount(person.id);
+    if (account) await touchAccount(account.id);
+
+    let callbackData = callback?.data;
+    if (callback) await answerCallback(callback.id).catch(() => undefined);
+    if (callbackData?.startsWith('ctg:')) {
+      const action = callbackData.slice('ctg:'.length);
+      if (LEGACY_ACTIONS[action]) callbackData = `${BOT_CALLBACK_PREFIX}${LEGACY_ACTIONS[action]}`;
+      else if (account && await routeTelegramAction(chatId, account, action)) return;
+      else callbackData = `${BOT_CALLBACK_PREFIX}m`;
     }
-
-    const account = await linkedAccount(person.id);
-    if (!account) return requestContact(chatId);
-    await touchAccount(account.id);
-
-    if (callback) {
-      await answerCallback(callback.id, 'انجام شد');
-      const data = callback.data ?? '';
-      if (data.startsWith('ctg:toggle:')) {
-        const event = data.slice('ctg:toggle:'.length) as CustomerTelegramEvent;
-        if (!CUSTOMER_TELEGRAM_EVENTS.includes(event)) return;
-        const next = { ...(account.notificationPreferences ?? {}), [event]: account.notificationPreferences?.[event] === false };
-        const [updated] = await db.update(customerTelegramAccounts).set({ notificationPreferences: next, updatedAt: new Date() }).where(eq(customerTelegramAccounts.id, account.id)).returning();
-        if (updated) await sendNotificationSettings(chatId, updated);
-        return;
-      }
-      return routeLinkedAction(chatId, account, data.replace(/^ctg:/, ''));
-    }
-
     const command = (message?.text ?? '').split('@')[0]!.split(/\s+/)[0]!.toLowerCase();
-    const action = command === '/orders' ? 'orders' : command === '/wallet' ? 'wallet' : command === '/credit' ? 'credit' : command === '/profile' ? 'profile' : command === '/notifications' ? 'notifications' : command === '/disconnect' ? 'disconnect' : command === '/help' ? 'help' : 'menu';
-    await routeLinkedAction(chatId, account, action);
+    if (account && (command === '/notifications' || command === '/disconnect')) {
+      await routeTelegramAction(chatId, account, command.slice(1));
+      return;
+    }
+
+    const channel: BotChannel = {
+      platform: 'telegram',
+      transport: telegramTransport(config),
+      siteUrl: config.siteUrl,
+      supportUrl: config.supportUrl || undefined,
+      extraMenuRows: TELEGRAM_MENU_ROWS,
+      linkedUserId: async () => account?.userId ?? null,
+      link: async (userId) => {
+        await linkAccount(userId, person, chatId);
+        account = await linkedAccount(person.id);
+      },
+    };
+    await handleCustomerBotInput(channel, toTelegramBotIncoming(person, chatId, message, callbackData), await botDeps());
   } catch (error) {
     await sendCustomerBotMessage(chatId, `❌ ${escapeHtml((error as Error).message || 'عملیات انجام نشد.')}`).catch(() => undefined);
   }
@@ -419,13 +453,19 @@ export async function configureCustomerTelegramWebhook(webhookUrl: string): Prom
   }
   await callTelegramApi(config.botToken, 'setWebhook', { url: webhookUrl, secret_token: config.webhookSecret, allowed_updates: ['message', 'callback_query'], drop_pending_updates: false }, config.proxyUrl);
   await callTelegramApi(config.botToken, 'setMyCommands', { commands: [
-    { command: 'start', description: 'اتصال حساب و منوی اصلی' },
+    { command: 'start', description: 'منوی اصلی' },
+    { command: 'login', description: 'ورود یا ثبت‌نام با کد پیامکی' },
+    { command: 'products', description: 'دسته‌بندی محصولات' },
+    { command: 'search', description: 'جستجوی کالا' },
+    { command: 'cart', description: 'سبد خرید و ثبت سفارش' },
     { command: 'orders', description: 'سفارش‌های من' },
+    { command: 'track', description: 'پیگیری سفارش با کد' },
+    { command: 'profile', description: 'حساب، جواز کسب و احراز هویت' },
+    { command: 'credit', description: 'درخواست و وضعیت اعتبار' },
     { command: 'wallet', description: 'کیف پول من' },
-    { command: 'credit', description: 'پرونده اعتباری من' },
-    { command: 'profile', description: 'حساب کاربری من' },
     { command: 'notifications', description: 'تنظیم اعلان‌ها' },
     { command: 'help', description: 'راهنمای استفاده' },
+    { command: 'cancel', description: 'لغو مرحله فعلی' },
     { command: 'disconnect', description: 'قطع اتصال حساب' },
   ] }, config.proxyUrl);
   await setSetting('CUSTOMER_TELEGRAM_WEBHOOK_URL', webhookUrl);

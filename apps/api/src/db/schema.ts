@@ -608,6 +608,29 @@ export const customerBaleLinkTokens = pgTable(
   ],
 );
 
+/**
+ * Where a customer is in a multi-step bot conversation (OTP login, profile
+ * questions, credit documents, checkout choices). Kept in the database so a
+ * redeploy in the middle of a conversation does not lose uploaded documents.
+ * One row per bot user; expired rows are treated as empty.
+ */
+export const customerBotSessions = pgTable(
+  'customer_bot_sessions',
+  {
+    id: serial('id').primaryKey(),
+    platform: varchar('platform', { length: 16 }).notNull(),
+    botUserId: varchar('bot_user_id', { length: 32 }).notNull(),
+    chatId: varchar('chat_id', { length: 32 }).notNull(),
+    state: jsonb('state').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('customer_bot_sessions_user_key').on(t.platform, t.botUserId),
+    index('customer_bot_sessions_expires_idx').on(t.expiresAt),
+  ],
+);
+
 export const discountCodes = pgTable(
   'discount_codes',
   {

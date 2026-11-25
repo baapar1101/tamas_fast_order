@@ -7,16 +7,15 @@ import {
   formatMoney,
   formatPersianDueDate,
 } from '@tamas/shared';
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import { db, schema } from '../db/client.js';
 import { badRequest, notFound } from '../lib/errors.js';
 import { registerOrderCheque } from '../services/credit-cheques.js';
-import { creditReportExpiresAt, toCreditReportSnapshotDTO } from '../services/credit-reports.js';
-import { parseIcsCreditReport } from '../services/ics-credit-report.js';
+import { toCreditReportSnapshotDTO } from '../services/credit-reports.js';
 import { buildInstallmentOrderDTO, resolveInstallmentDueDate, toInstallmentReceiptDTO } from '../services/installment-receipts.js';
-import { processUpload } from '../services/uploads.js';
 import { claimPrivateFile } from '../services/private-files.js';
+import { latestCreditApplication, storeCreditReport, submitCreditApplication, toCreditApplicationDTO } from '../services/credit-applications.js';
 
 const routes: FastifyPluginAsync = async (app) => {
   // Uploading an official ICS24 report always creates a new snapshot. Previous
@@ -25,120 +24,15 @@ const routes: FastifyPluginAsync = async (app) => {
     if (!req.isMultipart()) throw badRequest('فایل گزارش باید با فرمت multipart ارسال شود.');
     const part = await req.file();
     if (!part) throw badRequest('فایل PDF گزارش اعتبارسنجی دریافت نشد.');
-    if (part.mimetype !== 'application/pdf' && !part.filename.toLowerCase().endsWith('.pdf')) {
-      throw badRequest('فقط فایل PDF صادرشده از سامانه ICS24 قابل قبول است.');
-    }
-
     const buffer = await part.toBuffer();
-    if (buffer.subarray(0, 5).toString('ascii') !== '%PDF-') throw badRequest('ساختار فایل PDF معتبر نیست.');
-
-    let parsed;
-    try {
-      parsed = await parseIcsCreditReport(buffer);
-    } catch (error) {
-      throw badRequest(error instanceof Error ? error.message : 'اطلاعات گزارش اعتبارسنجی قابل استخراج نیست.');
-    }
-
-    const user = req.currentUser!;
-    const expectedNationalId = user.nationalCode.replace(/\D/g, '');
-    const extractedNationalId = parsed.identity.nationalId?.replace(/\D/g, '') ?? '';
-    if (expectedNationalId && extractedNationalId && expectedNationalId !== extractedNationalId) {
-      throw badRequest('کد ملی داخل گزارش با کد ملی حساب کاربری شما مطابقت ندارد.');
-    }
-
-    const [application] = await db.select({ id: schema.creditApplications.id })
-      .from(schema.creditApplications)
-      .where(eq(schema.creditApplications.userId, user.id))
-      .orderBy(desc(schema.creditApplications.createdAt))
-      .limit(1);
-    const upload = await processUpload({
-      buffer,
-      filename: part.filename || 'ics24-credit-report.pdf',
-      mimeType: 'application/pdf',
-      kind: 'certificate',
-      uploadedBy: user.id,
-    });
-    const createdAt = new Date();
-    const extractionStatus = parsed.confidence >= 70 && parsed.identity.nationalId && parsed.score !== null
-      ? 'parsed' as const
-      : 'needs_review' as const;
-    const [snapshot] = await db.insert(schema.creditReportSnapshots).values({
-      userId: user.id,
-      creditApplicationId: application?.id ?? null,
-      fileUrl: upload.url,
-      originalName: upload.originalName,
-      reportNumber: parsed.reportNumber,
-      reportDate: parsed.reportDate,
-      extractedNationalId: parsed.identity.nationalId,
-      extractedFullName: parsed.identity.fullName,
-      extractedMobile: parsed.identity.mobile,
-      score: parsed.score,
-      riskGrade: parsed.riskGrade,
-      riskLevel: parsed.riskLevel,
-      goodPayerMinBasisPoints: parsed.goodPayerProbability ? Math.round(parsed.goodPayerProbability.min * 100) : null,
-      goodPayerMaxBasisPoints: parsed.goodPayerProbability ? Math.round(parsed.goodPayerProbability.max * 100) : null,
-      bouncedChequeCount: parsed.bouncedChequeCount,
-      extractionStatus,
-      confidence: parsed.confidence,
-      warnings: parsed.warnings,
-      data: parsed as unknown as Record<string, unknown>,
-      expiresAt: creditReportExpiresAt(createdAt),
-      createdAt,
-    }).returning();
-    if (!snapshot) throw badRequest('ذخیره گزارش اعتبارسنجی انجام نشد.');
-
-    const userUpdates: Record<string, string> = {};
-    if (!user.nationalCode && parsed.identity.nationalId) userUpdates.nationalCode = parsed.identity.nationalId;
-    if (!user.birthDate && parsed.identity.birthDate) userUpdates.birthDate = parsed.identity.birthDate;
-    if (!user.fatherName && parsed.identity.fatherName) userUpdates.fatherName = parsed.identity.fatherName;
-    if (Object.keys(userUpdates).length > 0) {
-      await db.update(schema.users).set({ ...userUpdates, updatedAt: new Date() }).where(eq(schema.users.id, user.id));
-    }
-
-    return reply.send({
-      ok: true,
-      report: toCreditReportSnapshotDTO(snapshot),
-      message: extractionStatus === 'parsed'
-        ? 'گزارش با موفقیت خوانده و در پرونده شما ذخیره شد.'
-        : 'گزارش ذخیره شد و برای کنترل نهایی مدیر علامت‌گذاری شد.',
-    });
+    const result = await storeCreditReport(req.currentUser!, { buffer, filename: part.filename, mimeType: part.mimetype });
+    return reply.send({ ok: true, ...result });
   });
 
   // Get current user's credit application status
   app.get('/credit/my-application', { preHandler: [app.requireUser] }, async (req, reply) => {
-    const user = req.currentUser!;
-    const [existing] = await db
-      .select()
-      .from(schema.creditApplications)
-      .where(eq(schema.creditApplications.userId, user.id))
-      .orderBy(desc(schema.creditApplications.createdAt))
-      .limit(1);
-
-    if (!existing) {
-      return reply.send({ ok: true, application: null });
-    }
-
-    return reply.send({
-      ok: true,
-      application: {
-        id: existing.id,
-        userId: existing.userId,
-        nationalId: existing.nationalId,
-        businessType: existing.businessType,
-        nationalCardUrl: existing.nationalCardUrl,
-        businessDocsUrl: existing.businessDocsUrl,
-        checkImageUrl: existing.checkImageUrl,
-        bankStatementUrl: existing.bankStatementUrl,
-        referralInfo: existing.referralInfo,
-        status: existing.status,
-        rejectionReason: existing.rejectionReason,
-        adminCreditScore: existing.adminCreditScore,
-        assignedCreditLimit: Number(existing.assignedCreditLimit),
-        internalNotes: existing.internalNotes,
-        createdAt: existing.createdAt.toISOString(),
-        updatedAt: existing.updatedAt.toISOString(),
-      },
-    });
+    const existing = await latestCreditApplication(req.currentUser!.id);
+    return reply.send({ ok: true, application: existing ? toCreditApplicationDTO(existing) : null });
   });
 
   // Get full Credit Dashboard (metrics, cheques, notifications)
@@ -497,129 +391,9 @@ const routes: FastifyPluginAsync = async (app) => {
 
   // Submit or update credit application
   app.post('/credit/apply', { preHandler: [app.requireUser] }, async (req, reply) => {
-    const user = req.currentUser!;
     const body = creditApplicationWriteSchema.parse(req.body);
-    for (const field of ['nationalCardUrl', 'businessDocsUrl', 'checkImageUrl', 'bankStatementUrl'] as const) {
-      if (body[field]) body[field] = await claimPrivateFile(body[field], user.id, 'credit');
-    }
-
-    const [freshReport] = await db.select()
-      .from(schema.creditReportSnapshots)
-      .where(and(
-        eq(schema.creditReportSnapshots.userId, user.id),
-        eq(schema.creditReportSnapshots.extractionStatus, 'parsed'),
-        sql`${schema.creditReportSnapshots.expiresAt} > NOW()`,
-      ))
-      .orderBy(desc(schema.creditReportSnapshots.createdAt))
-      .limit(1);
-    if (!freshReport) {
-      throw badRequest('ابتدا گزارش اعتبارسنجی جدید خود را از سامانه ICS24 دریافت و بارگذاری کنید.');
-    }
-    if (freshReport.extractedNationalId && freshReport.extractedNationalId.replace(/\D/g, '') !== body.nationalId.replace(/\D/g, '')) {
-      throw badRequest('کد ملی فرم با کد ملی استخراج‌شده از گزارش اعتبارسنجی مطابقت ندارد.');
-    }
-
-    const [existing] = await db
-      .select()
-      .from(schema.creditApplications)
-      .where(eq(schema.creditApplications.userId, user.id))
-      .orderBy(desc(schema.creditApplications.createdAt))
-      .limit(1);
-
-    let resultId: number;
-
-    if (existing) {
-      const [updated] = await db
-        .update(schema.creditApplications)
-        .set({
-          nationalId: body.nationalId,
-          businessType: body.businessType,
-          nationalCardUrl: body.nationalCardUrl,
-          businessDocsUrl: body.businessDocsUrl,
-          checkImageUrl: body.checkImageUrl,
-          bankStatementUrl: body.bankStatementUrl || null,
-          referralInfo: body.referralInfo || null,
-          status: 'pending',
-          rejectionReason: null,
-          updatedAt: new Date(),
-        })
-        .where(eq(schema.creditApplications.id, existing.id))
-        .returning();
-      if (!updated) throw badRequest('خطا در بروزرسانی پرونده اعتباری.');
-      resultId = updated.id;
-    } else {
-      const [inserted] = await db
-        .insert(schema.creditApplications)
-        .values({
-          userId: user.id,
-          nationalId: body.nationalId,
-          businessType: body.businessType,
-          nationalCardUrl: body.nationalCardUrl,
-          businessDocsUrl: body.businessDocsUrl,
-          checkImageUrl: body.checkImageUrl,
-          bankStatementUrl: body.bankStatementUrl || null,
-          referralInfo: body.referralInfo || null,
-          status: 'pending',
-        })
-        .returning();
-      if (!inserted) throw badRequest('خطا در ثبت پرونده اعتباری.');
-      resultId = inserted.id;
-    }
-
-    if (freshReport.creditApplicationId !== resultId) {
-      await db.update(schema.creditReportSnapshots)
-        .set({ creditApplicationId: resultId })
-        .where(eq(schema.creditReportSnapshots.id, freshReport.id));
-    }
-
-    const [record] = await db
-      .select()
-      .from(schema.creditApplications)
-      .where(eq(schema.creditApplications.id, resultId))
-      .limit(1);
-
-    if (!record) throw notFound('پرونده یافت نشد.');
-
-    const { sendTelegramNotification } = await import('../services/telegram.js');
-    void sendTelegramNotification('credit.application_submitted', {
-      title: '💳 درخواست اعتبار جدید',
-      fields: [
-        { label: 'کاربر', value: [user.name, user.lastName].filter(Boolean).join(' ') || user.phone },
-        { label: 'تلفن', value: user.phone },
-        { label: 'نوع کسب‌وکار', value: record.businessType },
-        { label: 'کد ملی', value: record.nationalId },
-      ],
-    }).catch((err) => req.log.error({ err }, 'failed to send Telegram credit application notification'));
-
-    const { sendTemplatedSms } = await import('../services/sms.js');
-    void sendTemplatedSms(
-      user.phone,
-      'sms_template_credit_pending',
-      { name: user.name || 'کاربر' },
-      `کاربر گرامی ${user.name || ''}، درخواست اعتباری شما دریافت شد و در صف بررسی قرار گرفت.`
-    ).catch(err => req.log.error({ err }, 'failed to send SMS'));
-
-    return reply.send({
-      ok: true,
-      application: {
-        id: record.id,
-        userId: record.userId,
-        nationalId: record.nationalId,
-        businessType: record.businessType,
-        nationalCardUrl: record.nationalCardUrl,
-        businessDocsUrl: record.businessDocsUrl,
-        checkImageUrl: record.checkImageUrl,
-        bankStatementUrl: record.bankStatementUrl,
-        referralInfo: record.referralInfo,
-        status: record.status,
-        rejectionReason: record.rejectionReason,
-        adminCreditScore: record.adminCreditScore,
-        assignedCreditLimit: Number(record.assignedCreditLimit),
-        internalNotes: record.internalNotes,
-        createdAt: record.createdAt.toISOString(),
-        updatedAt: record.updatedAt.toISOString(),
-      },
-    });
+    const application = await submitCreditApplication(req.currentUser!, body, req.log);
+    return reply.send({ ok: true, application });
   });
 };
 

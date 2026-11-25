@@ -1,19 +1,32 @@
-import { and, desc, eq, gt, isNull } from 'drizzle-orm';
+import { and, eq, gt, isNull } from 'drizzle-orm';
 import { normalizePhone } from '@tamas/shared';
 import { db } from '../db/client.js';
-import { customerBaleAccounts, customerBaleLinkTokens, orders, users, walletAccounts } from '../db/schema.js';
+import { customerBaleAccounts, customerBaleLinkTokens } from '../db/schema.js';
 import { randomToken, sha256 } from '../lib/hash.js';
 import { generateSecret, getAllSettings, setSetting } from './settings.js';
 import type { CustomerTelegramEvent } from './customer-telegram.js';
+import {
+  BOT_CALLBACK_PREFIX,
+  handleCustomerBotInput,
+  type BotChannel,
+  type BotIncoming,
+  type BotSendOptions,
+  type BotTransport,
+  type CustomerBotDeps,
+} from './customer-bot.js';
 
 interface BalePerson { id: number; username?: string; first_name?: string; last_name?: string }
 interface BaleMessage {
-  chat: { id: number };
+  chat: { id: number; type?: string };
   from?: BalePerson;
   text?: string;
+  caption?: string;
   contact?: { phone_number: string; user_id?: number };
+  photo?: Array<{ file_id: string; file_size?: number }>;
+  document?: { file_id: string; file_name?: string; mime_type?: string; file_size?: number };
 }
-export interface CustomerBaleUpdate { update_id: number; message?: BaleMessage }
+interface BaleCallback { id: string; from: BalePerson; data?: string; message?: BaleMessage }
+export interface CustomerBaleUpdate { update_id: number; message?: BaleMessage; callback_query?: BaleCallback }
 
 export interface CustomerBaleConfig {
   enabled: boolean;
@@ -47,17 +60,66 @@ async function callBaleApi(token: string, method: string, body: Record<string, u
   return payload;
 }
 
-async function sendBaleMessage(chatId: string | number, text: string, keyboard = true): Promise<void> {
+/** Labels of the reply keyboard older Bale chats still show. */
+const LEGACY_KEYBOARD: Record<string, string> = {
+  '📦 سفارش‌های من': '/orders',
+  '💳 کیف پول': '/wallet',
+  '🛍 ورود به فروشگاه': '/menu',
+};
+
+/** Bale's support for HTML formatting is not guaranteed, so the engine's markup becomes plain text. */
+export function baleText(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, '')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&amp;', '&')
+    .slice(0, 4000);
+}
+
+function baleReplyMarkup(options: BotSendOptions | undefined): Record<string, unknown> {
+  if (options?.contactButton) {
+    return { reply_markup: { keyboard: [[{ text: options.contactButton, request_contact: true }]], resize_keyboard: true, one_time_keyboard: true } };
+  }
+  if (options?.buttons?.length) {
+    return { reply_markup: { inline_keyboard: options.buttons.map((row) => row.map((button) => ({
+      text: button.text,
+      ...(button.data ? { callback_data: button.data } : {}),
+      ...(button.url ? { url: button.url } : {}),
+    }))) } };
+  }
+  if (options?.removeKeyboard) return { reply_markup: { remove_keyboard: true } };
+  return {};
+}
+
+async function sendBaleMessage(chatId: string | number, text: string, options?: BotSendOptions): Promise<void> {
   const config = await getCustomerBaleConfig();
   if (!config.enabled || !config.botToken) throw new Error('ربات بله فعال یا تنظیم نشده است.');
-  await callBaleApi(config.botToken, 'sendMessage', {
-    chat_id: chatId,
-    text: text.slice(0, 4000),
-    ...(keyboard ? { reply_markup: { keyboard: [
-      [{ text: '📦 سفارش‌های من' }, { text: '💳 کیف پول' }],
-      [{ text: '🛍 ورود به فروشگاه' }, { text: '🔌 قطع اتصال' }],
-    ], resize_keyboard: true } } : {}),
-  });
+  await callBaleApi(config.botToken, 'sendMessage', { chat_id: chatId, text: baleText(text), ...baleReplyMarkup(options) });
+}
+
+async function downloadBaleFile(token: string, fileId: string, maxBytes: number): Promise<Buffer> {
+  const info = await callBaleApi(token, 'getFile', { file_id: fileId }) as { result?: { file_path?: string; file_size?: number } };
+  const path = info.result?.file_path;
+  if (!path) throw new Error('بله فایل را برنگرداند.');
+  if ((info.result?.file_size ?? 0) > maxBytes) throw new Error('حجم فایل بیشتر از حد مجاز است.');
+  const response = await fetch(`https://tapi.bale.ai/file/bot${token}/${path}`);
+  if (!response.ok) throw new Error(`دریافت فایل از بله ناموفق بود (HTTP ${response.status}).`);
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (buffer.byteLength > maxBytes) throw new Error('حجم فایل بیشتر از حد مجاز است.');
+  return buffer;
+}
+
+function baleTransport(config: CustomerBaleConfig): BotTransport {
+  return {
+    send: (chatId, html, options) => sendBaleMessage(chatId, html, options),
+    async sendPhoto(chatId, photoUrl, captionHtml, options) {
+      await callBaleApi(config.botToken, 'sendPhoto', { chat_id: chatId, photo: photoUrl, caption: baleText(captionHtml).slice(0, 1024), ...baleReplyMarkup(options) });
+    },
+    async download(fileId) {
+      return { buffer: await downloadBaleFile(config.botToken, fileId, 15 * 1024 * 1024) };
+    },
+  };
 }
 
 async function linkByToken(token: string, person: BalePerson, chatId: number): Promise<void> {
@@ -81,60 +143,106 @@ async function linkByToken(token: string, person: BalePerson, chatId: number): P
   });
 }
 
-async function linkByContact(message: BaleMessage, person: BalePerson): Promise<void> {
-  if (!message.contact || (message.contact.user_id != null && message.contact.user_id !== person.id)) throw new Error('لطفاً شماره متعلق به همین حساب بله را ارسال کنید.');
-  const phone = normalizePhone(message.contact.phone_number);
-  const [user] = await db.select().from(users).where(and(eq(users.phone, phone), isNull(users.deletedAt))).limit(1);
-  if (!user) throw new Error('حسابی با این شماره در سایت پیدا نشد.');
-  const token = randomToken(18);
-  const expiresAt = new Date(Date.now() + 60_000);
-  await db.insert(customerBaleLinkTokens).values({ userId: user.id, tokenHash: sha256(token), expiresAt });
-  await linkByToken(token, person, message.chat.id);
+/** Links a Bale user to a site account after the engine verified the login. */
+async function linkBaleAccount(userId: number, person: BalePerson, chatId: number): Promise<void> {
+  const now = new Date();
+  const baleUserId = String(person.id);
+  await db.transaction(async (tx) => {
+    const [occupied] = await tx.select({ userId: customerBaleAccounts.userId }).from(customerBaleAccounts).where(eq(customerBaleAccounts.baleUserId, baleUserId)).limit(1);
+    if (occupied && occupied.userId !== userId) throw new Error('این حساب بله قبلاً به مشتری دیگری متصل شده است. ابتدا اتصال قبلی را قطع کنید.');
+    await tx.insert(customerBaleAccounts).values({
+      userId, baleUserId, chatId: String(chatId), username: person.username ?? null,
+      firstName: person.first_name ?? null, lastName: person.last_name ?? null, linkedAt: now, lastInteractionAt: now,
+    }).onConflictDoUpdate({ target: customerBaleAccounts.userId, set: {
+      baleUserId, chatId: String(chatId), username: person.username ?? null, firstName: person.first_name ?? null,
+      lastName: person.last_name ?? null, linkedAt: now, lastInteractionAt: now, updatedAt: now,
+    } });
+  });
 }
+
+async function linkedBaleAccount(baleUserId: number) {
+  const [account] = await db.select().from(customerBaleAccounts).where(eq(customerBaleAccounts.baleUserId, String(baleUserId))).limit(1);
+  return account ?? null;
+}
+
+/** Turns a Bale update into the shared engine's input. */
+export function toBaleBotIncoming(person: { id: number }, chatId: number, message: BaleMessage | undefined, callbackData: string | undefined): BotIncoming {
+  const incoming: BotIncoming = { botUserId: String(person.id), chatId: String(chatId) };
+  if (callbackData) return { ...incoming, callbackData };
+  if (!message) return incoming;
+  if (message.contact) {
+    // Only a contact Bale marks as the sender's own skips the SMS code.
+    return message.contact.user_id === person.id
+      ? { ...incoming, ownContactPhone: normalizePhone(message.contact.phone_number) }
+      : { ...incoming, text: message.contact.phone_number };
+  }
+  const photo = message.photo?.length ? message.photo[message.photo.length - 1] : undefined;
+  if (photo) return { ...incoming, file: { fileId: photo.file_id, photo: true, size: photo.file_size } };
+  if (message.document) {
+    return { ...incoming, file: { fileId: message.document.file_id, photo: false, mimeType: message.document.mime_type, fileName: message.document.file_name, size: message.document.file_size } };
+  }
+  const text = message.text ?? message.caption ?? '';
+  return { ...incoming, text: LEGACY_KEYBOARD[text] ?? text };
+}
+
+let customerBotDeps: Promise<CustomerBotDeps> | null = null;
+function botDeps(): Promise<CustomerBotDeps> {
+  customerBotDeps ??= import('./customer-bot-deps.js')
+    .then(({ createCustomerBotDeps }) => createCustomerBotDeps())
+    .catch((error: unknown) => {
+      customerBotDeps = null; // retry on the next update instead of failing until restart
+      throw error;
+    });
+  return customerBotDeps;
+}
+
+const BALE_MENU_ROWS = [[{ text: '🔌 قطع اتصال', data: 'cbale:disconnect' }]];
 
 export async function handleCustomerBaleUpdate(update: CustomerBaleUpdate): Promise<void> {
   const message = update.message;
-  const person = message?.from;
-  if (!message || !person) return;
+  const callback = update.callback_query;
+  const person = message?.from ?? callback?.from;
+  const chatId = message?.chat.id ?? callback?.message?.chat.id;
+  if (!person || !chatId) return;
   try {
-    const start = message.text?.match(/^\/start(?:\s+link_([A-Za-z0-9_-]+))?/);
+    const chatType = message?.chat.type ?? callback?.message?.chat.type;
+    if (chatType && chatType !== 'private') throw new Error('برای حفظ حریم خصوصی، ربات مشتریان فقط در گفت‌وگوی خصوصی قابل استفاده است.');
+    const config = await getCustomerBaleConfig();
+    if (!config.enabled || !config.botToken) return;
+    if (callback) await callBaleApi(config.botToken, 'answerCallbackQuery', { callback_query_id: callback.id }).catch(() => undefined);
+
+    const start = message?.text?.match(/^\/start(?:\s+link_([A-Za-z0-9_-]+))?/);
     if (start?.[1]) {
-      await linkByToken(start[1], person, message.chat.id);
-      const config = await getCustomerBaleConfig();
-      await sendBaleMessage(message.chat.id, `✅ حساب شما با موفقیت متصل شد.\n\n${config.welcomeMessage}`);
-      return;
+      await linkByToken(start[1], person, chatId);
+      await sendBaleMessage(chatId, `✅ حساب شما با موفقیت متصل شد.\n\n${config.welcomeMessage}`);
     }
-    if (message.contact) {
-      await linkByContact(message, person);
-      await sendBaleMessage(message.chat.id, '✅ حساب شما با موفقیت متصل شد.');
-      return;
+
+    let account = await linkedBaleAccount(person.id);
+    if (account) {
+      await db.update(customerBaleAccounts).set({ lastInteractionAt: new Date(), updatedAt: new Date() }).where(eq(customerBaleAccounts.id, account.id));
     }
-    const [account] = await db.select().from(customerBaleAccounts).where(eq(customerBaleAccounts.baleUserId, String(person.id))).limit(1);
-    if (!account) {
-      await sendBaleMessage(message.chat.id, 'برای اتصال امن، از حساب کاربری سایت روی «اتصال به بله» بزنید یا شماره تماس خودتان را با دکمه زیر ارسال کنید.', false);
-      await callBaleApi((await getCustomerBaleConfig()).botToken, 'sendMessage', {
-        chat_id: message.chat.id, text: 'شماره تماس حساب سایت را ارسال کنید:',
-        reply_markup: { keyboard: [[{ text: '📱 اشتراک‌گذاری شماره من', request_contact: true }]], resize_keyboard: true, one_time_keyboard: true },
-      });
-      return;
-    }
-    await db.update(customerBaleAccounts).set({ lastInteractionAt: new Date(), updatedAt: new Date() }).where(eq(customerBaleAccounts.id, account.id));
-    const text = message.text ?? '';
-    if (text === '🔌 قطع اتصال' || text === '/disconnect') {
+    const text = message?.text ?? '';
+    if (account && (text === '🔌 قطع اتصال' || text === '/disconnect' || callback?.data === 'cbale:disconnect')) {
       await db.delete(customerBaleAccounts).where(eq(customerBaleAccounts.id, account.id));
-      await sendBaleMessage(message.chat.id, 'اتصال حساب بله قطع شد.', false);
-    } else if (text === '📦 سفارش‌های من' || text === '/orders') {
-      const recent = await db.select().from(orders).where(and(eq(orders.userId, account.userId), isNull(orders.deletedAt))).orderBy(desc(orders.createdAt)).limit(5);
-      await sendBaleMessage(message.chat.id, recent.length ? recent.map((order) => `${order.orderCode} — ${order.total.toLocaleString('fa-IR')} تومان — ${order.status}`).join('\n') : 'هنوز سفارشی ندارید.');
-    } else if (text === '💳 کیف پول' || text === '/wallet') {
-      const [wallet] = await db.select().from(walletAccounts).where(eq(walletAccounts.userId, account.userId)).limit(1);
-      await sendBaleMessage(message.chat.id, `موجودی کیف پول: ${(wallet?.balance ?? 0).toLocaleString('fa-IR')} تومان`);
-    } else {
-      const config = await getCustomerBaleConfig();
-      await sendBaleMessage(message.chat.id, `ربات مشتریان تماس مارکت آماده است.\n${config.siteUrl}`);
+      await sendBaleMessage(chatId, 'اتصال حساب بله قطع شد. برای اتصال دوباره /start را بزنید.', { removeKeyboard: true });
+      return;
     }
+
+    const channel: BotChannel = {
+      platform: 'bale',
+      transport: baleTransport(config),
+      siteUrl: config.siteUrl,
+      extraMenuRows: BALE_MENU_ROWS,
+      linkedUserId: async () => account?.userId ?? null,
+      link: async (userId) => {
+        await linkBaleAccount(userId, person, chatId);
+        account = await linkedBaleAccount(person.id);
+      },
+    };
+    const data = callback?.data?.startsWith(BOT_CALLBACK_PREFIX) ? callback.data : callback ? `${BOT_CALLBACK_PREFIX}m` : undefined;
+    await handleCustomerBotInput(channel, toBaleBotIncoming(person, chatId, message, data), await botDeps());
   } catch (error) {
-    await sendBaleMessage(message.chat.id, `❌ ${(error as Error).message}`).catch(() => undefined);
+    await sendBaleMessage(chatId, `❌ ${(error as Error).message || 'عملیات انجام نشد.'}`).catch(() => undefined);
   }
 }
 
@@ -154,7 +262,7 @@ export async function sendCustomerBaleNotification(userId: number | null | undef
   if (!config.enabled || !config.botToken) return false;
   const [account] = await db.select().from(customerBaleAccounts).where(eq(customerBaleAccounts.userId, userId)).limit(1);
   if (!account?.notificationsEnabled || account.notificationPreferences?.[event] === false) return false;
-  await sendBaleMessage(account.chatId, `${title}\n\n${text}`);
+  await sendBaleMessage(account.chatId, `${title}\n\n${text}`, { buttons: [[{ text: '📦 سفارش‌های من', data: `${BOT_CALLBACK_PREFIX}o` }, { text: '🏠 منوی اصلی', data: `${BOT_CALLBACK_PREFIX}m` }]] });
   return true;
 }
 

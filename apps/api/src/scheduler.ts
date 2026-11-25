@@ -4,6 +4,7 @@ import { env } from './env.js';
 import { isCrmProductSyncRunning, processPendingCrmProductSync } from './services/crm-product-sync.js';
 import { pruneSessions } from './services/auth.js';
 import { pruneOtpCodes } from './services/otp.js';
+import { pruneCustomerBotSessions } from './services/customer-bot-deps.js';
 import { isProductImageMirrorRunning, mirrorProductImages } from './services/product-image-mirror.js';
 import { isSyncRunning, pruneConflicts, runSync } from './services/sheets/sync.js';
 import { sendDueInstallmentReceiptReminders } from './services/installment-receipts.js';
@@ -147,8 +148,8 @@ export function startScheduler(log: FastifyBaseLogger): () => void {
 
   const housekeeping = async () => {
     try {
-      const [sessions, otps, conflicts] = await Promise.all([pruneSessions(), pruneOtpCodes(), pruneConflicts()]);
-      if (sessions + otps + conflicts > 0) log.debug({ sessions, otps, conflicts }, 'housekeeping pruned rows');
+      const [sessions, otps, conflicts, botSessions] = await Promise.all([pruneSessions(), pruneOtpCodes(), pruneConflicts(), pruneCustomerBotSessions()]);
+      if (sessions + otps + conflicts + botSessions > 0) log.debug({ sessions, otps, conflicts, botSessions }, 'housekeeping pruned rows');
     } catch (err) {
       log.warn({ err }, 'housekeeping failed');
     }

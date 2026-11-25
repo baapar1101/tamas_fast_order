@@ -239,6 +239,13 @@
       "when": 1795536000000,
       "tag": "0033_sms_campaigns",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1795622400000,
+      "tag": "0034_customer_bot_sessions",
+      "breakpoints": true
     }
   ]
 }
