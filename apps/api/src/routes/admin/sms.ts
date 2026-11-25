@@ -74,7 +74,7 @@ export const smsRoutes: FastifyPluginAsync = async (app) => {
     const { previewToken, ...input } = z.object({
       body: z.string(), audience: z.enum(['all', 'selected']), userIds: z.array(z.number()),
       previewToken: z.string().regex(/^[a-f0-9]{64}$/),
-      requestId: z.string().uuid(),
+      requestId: z.string().guid(),
     }).strict().parse(req.body);
     const { requestId, ...draft } = input;
     const campaign = await queueSmsCampaign(smsCampaignInput.parse(draft), previewToken, requestId, req.currentUser!.id);

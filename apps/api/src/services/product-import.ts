@@ -26,14 +26,15 @@ export function describeImportIssue(issue: ZodIssue): string {
   // Messages written in Persian by the schema itself are already user-facing.
   if (/[؀-ۿ]/.test(issue.message)) return `${column}: ${issue.message}`;
   switch (issue.code) {
+    // `input` is present because the row is parsed with `reportInput: true`.
     case 'invalid_type':
-      return issue.received === 'undefined' ? `${column} خالی است.` : `${column}: مقدار باید ${issue.expected === 'number' ? 'عدد' : 'متن'} باشد.`;
+      return issue.input === undefined ? `${column} خالی است.` : `${column}: مقدار باید ${issue.expected === 'number' ? 'عدد' : 'متن'} باشد.`;
     case 'too_small':
-      return issue.type === 'string' ? `${column} خالی است.` : `${column}: مقدار کمتر از حد مجاز است.`;
+      return issue.origin === 'string' ? `${column} خالی است.` : `${column}: مقدار کمتر از حد مجاز است.`;
     case 'too_big':
-      return issue.type === 'array' ? `${column}: تعداد موارد بیش از حد مجاز است.` : `${column}: مقدار بیشتر از حد مجاز است.`;
-    case 'invalid_enum_value':
-      return `${column}: مقدار «${String(issue.received)}» قابل قبول نیست.`;
+      return issue.origin === 'array' ? `${column}: تعداد موارد بیش از حد مجاز است.` : `${column}: مقدار بیشتر از حد مجاز است.`;
+    case 'invalid_value':
+      return `${column}: مقدار «${String(issue.input)}» قابل قبول نیست.`;
     default:
       return `${column}: مقدار نامعتبر است.`;
   }
@@ -83,7 +84,7 @@ export async function importProductRows(
     const base = { rowNumber: row.rowNumber, productId: rawText(values, 'productId'), title: rawText(values, 'title') };
 
     try {
-      const parsed = productWriteSchema.safeParse(normalizeImportValues(values));
+      const parsed = productWriteSchema.safeParse(normalizeImportValues(values), { reportInput: true });
       if (!parsed.success) {
         results.push({ ...base, status: 'error', message: describeImportIssue(parsed.error.issues[0]!) });
         continue;

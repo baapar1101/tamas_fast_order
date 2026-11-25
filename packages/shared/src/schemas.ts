@@ -105,7 +105,21 @@ export const productWriteSchema = z.object({
 });
 export type ProductWrite = z.infer<typeof productWriteSchema>;
 
-export const productPatchSchema = productWriteSchema.partial();
+/**
+ * `.partial()` for PATCH bodies, without the write schema's defaults.
+ * Zod 4 applies a field's `.default()` even when the field is optional, so a plain
+ * `.partial()` would reset every omitted field (price → 0, stock → 0, sortOrder → 0…).
+ * A patch must only touch the fields it sends.
+ */
+export function patchSchema<T extends z.ZodObject>(schema: T) {
+  const partial = schema.partial();
+  const shape = Object.fromEntries(
+    Object.entries(schema.shape).map(([key, field]) => [key, field instanceof z.ZodDefault ? field.unwrap() : field]),
+  );
+  return schema.extend(shape).partial() as unknown as typeof partial;
+}
+
+export const productPatchSchema = patchSchema(productWriteSchema);
 
 export const categoryWriteSchema = z.object({
   name: z.string().trim().min(1).max(160),

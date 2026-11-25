@@ -1,7 +1,7 @@
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { brandWriteSchema, categoryWriteSchema, colorWriteSchema } from '@tamas/shared';
+import { brandWriteSchema, categoryWriteSchema, colorWriteSchema, patchSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { brands, categories, categoryBrands, colors, products } from '../../db/schema.js';
 import { badRequest, conflict, notFound } from '../../lib/errors.js';
@@ -68,7 +68,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.patch('/admin/categories/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
-    const body = categoryWriteSchema.partial().parse(req.body);
+    const body = patchSchema(categoryWriteSchema).parse(req.body);
 
     const [existing] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
     if (!existing) throw notFound('دسته‌بندی پیدا نشد.');
@@ -156,7 +156,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.patch('/admin/brands/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
-    const body = brandWriteSchema.partial().parse(req.body);
+    const body = patchSchema(brandWriteSchema).parse(req.body);
     const [updated] = await db
       .update(brands)
       .set({
@@ -262,7 +262,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.patch('/admin/colors/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
-    const body = colorWriteSchema.partial().parse(req.body);
+    const body = patchSchema(colorWriteSchema).parse(req.body);
     const [updated] = await db
       .update(colors)
       .set({

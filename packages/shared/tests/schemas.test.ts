@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { catalogQuerySchema, idSchema, installmentReceiptWriteSchema, orderItemsReplaceSchema, productCodeSchema, productPatchSchema, sheetBool } from '../src/schemas.js';
+import { brandWriteSchema, catalogQuerySchema, categoryWriteSchema, idSchema, installmentReceiptWriteSchema, orderItemsReplaceSchema, patchSchema, productCodeSchema, productPatchSchema, sheetBool } from '../src/schemas.js';
 
 describe('shared schemas', () => {
   it('coerces positive integer ids and rejects invalid ids', () => {
@@ -33,6 +33,14 @@ describe('shared schemas', () => {
     const items = Array.from({ length: 100 }, (_, index) => ({ productId: `0${index + 1}`, qty: 1 }));
     assert.equal(productPatchSchema.parse({ bundleItems: items }).bundleItems?.length, 100);
     assert.throws(() => productPatchSchema.parse({ bundleItems: Array.from({ length: 201 }, () => items[0]) }));
+  });
+
+  it('patches only the fields that are sent, without write defaults', () => {
+    assert.deepEqual(productPatchSchema.parse({ title: 'x' }), { title: 'x' });
+    assert.deepEqual(productPatchSchema.parse({ price: '1200' }), { price: 1200 });
+    assert.deepEqual(patchSchema(categoryWriteSchema).parse({ name: 'a' }), { name: 'a' });
+    assert.deepEqual(patchSchema(brandWriteSchema).parse({ sortOrder: '3' }), { sortOrder: 3 });
+    assert.equal(categoryWriteSchema.parse({ name: 'a', faName: 'ب' }).sortOrder, 0);
   });
 
   it('validates complete order item replacements', () => {

@@ -15,7 +15,7 @@ const attributeSchema = z
   .superRefine((data, ctx) => {
     if (data.type === 'select' && data.options.length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['options'],
         message: 'برای ویژگی چندگزینهای باید حداقل یک گزینه تعریف کنید',
       });

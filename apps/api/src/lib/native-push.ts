@@ -1,6 +1,6 @@
 import { z } from 'zod';
 export const nativeDeviceSchema = z.object({
-  installationId: z.string().uuid(),
+  installationId: z.string().guid(),
   token: z.string().trim().min(30).max(4096).regex(/^[A-Za-z0-9_:-]+$/),
   platform: z.literal('android'),
 }).strict();

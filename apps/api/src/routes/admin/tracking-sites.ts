@@ -1,6 +1,6 @@
 import { and, asc, count, eq, isNull } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
-import { idSchema, trackingSiteWriteSchema } from '@tamas/shared';
+import { idSchema, patchSchema, trackingSiteWriteSchema } from '@tamas/shared';
 import { db } from '../../db/client.js';
 import { productTrackingLinks, products, trackingSites } from '../../db/schema.js';
 import { badRequest, conflict, notFound } from '../../lib/errors.js';
@@ -93,7 +93,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
   app.patch('/admin/tracking-sites/:id', async (req) => {
     const id = idSchema.parse((req.params as { id: string }).id);
-    const body = trackingSiteWriteSchema.partial().parse(req.body);
+    const body = patchSchema(trackingSiteWriteSchema).parse(req.body);
     const [updated] = await db.update(trackingSites).set({ ...body, updatedAt: new Date() }).where(eq(trackingSites.id, id)).returning();
     if (!updated) throw notFound('سایت پیدا نشد.');
     await logAction(req.currentUser!.id, 'update', 'tracking_site', String(id), body);
