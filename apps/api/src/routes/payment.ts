@@ -35,6 +35,7 @@ const routes: FastifyPluginAsync = async (app) => {
       categoryId: products.categoryId,
       price: products.price,
       sellType: products.sellType,
+      ribbon: products.ribbon,
       status: products.status,
     }).from(products).where(and(inArray(products.productId, ids), isNull(products.deletedAt)));
     if (rows.length !== ids.length || rows.some((row) => row.status !== 'active')) {
@@ -46,6 +47,7 @@ const routes: FastifyPluginAsync = async (app) => {
       price: row.price,
       qty: quantityByProduct.get(row.productId) ?? 0,
       sellType: row.sellType,
+      ribbon: row.ribbon,
     })), config);
     // Additive metadata for native checkout: mixed carts become separate invoices.
     // The server, not a category-name heuristic on the phone, owns this decision.
@@ -54,7 +56,7 @@ const routes: FastifyPluginAsync = async (app) => {
       if (partitionRows.length === 0) return [];
       const partitionQuote = quotePaymentTerms(partitionRows.map((row) => ({
         categoryId: row.categoryId, price: row.price,
-        qty: quantityByProduct.get(row.productId) ?? 0, sellType: row.sellType,
+        qty: quantityByProduct.get(row.productId) ?? 0, sellType: row.sellType, ribbon: row.ribbon,
       })), config);
       return [{ ...partitionQuote, productIds: partitionRows.map((row) => row.productId),
         plans: partitionQuote.plans.map((plan) => securePaymentPlan(plan, routing).plan) }];

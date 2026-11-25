@@ -49,6 +49,7 @@ export interface CatalogFilters {
   category: string | null;
   brands: string[];
   promotion: boolean;
+  blackFriday: boolean;
   basketOnly: boolean;
   sort: 'featured' | 'price_asc' | 'price_desc' | 'newest' | 'title';
 }
@@ -101,6 +102,7 @@ export function useProducts(filters: CatalogFilters) {
             category: filters.category ?? undefined,
             brands: filters.brands,
             promotion: filters.promotion || undefined,
+            blackFriday: filters.blackFriday || undefined,
             basketOnly: filters.basketOnly || undefined,
             inStock: true,
             sort: filters.sort,

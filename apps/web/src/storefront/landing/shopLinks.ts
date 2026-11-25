@@ -4,7 +4,7 @@ import type { LandingSection } from '@tamas/shared';
 export const SHOP_PATH = '/shop';
 
 /** Query keys the catalog reads; a home link carrying any of them belongs to the catalog. */
-const CATALOG_PARAMS = ['q', 'cat', 'brand', 'promo', 'basket', 'credit', 'sort', 'view', 'tab', 'stock', 'page'];
+const CATALOG_PARAMS = ['q', 'cat', 'brand', 'promo', 'blackFriday', 'basket', 'credit', 'sort', 'view', 'tab', 'stock', 'page'];
 
 export function hasCatalogParams(search: string): boolean {
   const params = new URLSearchParams(search);

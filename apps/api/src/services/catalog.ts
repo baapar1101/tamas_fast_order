@@ -1,5 +1,5 @@
 import { and, asc, count, desc, eq, gt, inArray, isNull, not, or, sql, type SQL } from 'drizzle-orm';
-import type { BrandDTO, BundleContentDTO, CatalogQuery, CategoryDTO, ColorDTO, ProductDTO, ProductGroupDTO } from '@tamas/shared';
+import { BLACK_FRIDAY_RIBBON, type BrandDTO, type BundleContentDTO, type CatalogQuery, type CategoryDTO, type ColorDTO, type ProductDTO, type ProductGroupDTO } from '@tamas/shared';
 import { db } from '../db/client.js';
 import { brands, categories, categoryBrands, colors, products } from '../db/schema.js';
 import { catalogCache } from '../lib/cache.js';
@@ -158,6 +158,7 @@ export async function queryProducts(q: CatalogQuery): Promise<{
   if (campaignActive && q.inStock) filters.push(eq(products.promotion, true));
   const isBasket = or(eq(categories.name, 'Bondle'), eq(categories.faName, 'سبد ها'))!;
   if (q.promotion && !q.basketOnly) filters.push(and(eq(products.promotion, true), or(isNull(products.categoryId), not(isBasket)))!);
+  if (q.blackFriday) filters.push(eq(products.ribbon, BLACK_FRIDAY_RIBBON));
   if (q.basketOnly) filters.push(and(isBasket, eq(products.promotion, true))!);
   if (q.campaignPoints) filters.push(gt(products.campaignPoints, 0));
   if (q.creditOnly) {

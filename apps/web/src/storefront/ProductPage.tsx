@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { BundleContentDTO, ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
-import { WAREHOUSE_LABELS, formatNumber, hasRealDiscount } from '@tamas/shared';
+import { BLACK_FRIDAY_RIBBON, WAREHOUSE_LABELS, formatNumber, hasRealDiscount } from '@tamas/shared';
 import { api, ApiRequestError } from '../lib/api';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../store/auth';
@@ -22,6 +22,7 @@ import { IncompleteProfilePopup } from './IncompleteProfilePopup';
 import { useBootstrap } from './hooks';
 import './storefront.css';
 import './product-page.css';
+import './black-friday.css';
 
 interface ProductDetailResponse {
   product: ProductDTO;
@@ -381,7 +382,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
               onClick={() => setPreviewIndex(0)}
               aria-label="بزرگ‌نمایی تصویر"
             >
-              {selected.ribbon && <div className="pp-ribbon">{selected.ribbon}</div>}
+              {selected.ribbon && selected.ribbon !== BLACK_FRIDAY_RIBBON && <div className="pp-ribbon">{selected.ribbon}</div>}
               <img
                 src={images[0]}
                 alt={selected.title}
@@ -390,6 +391,7 @@ export function ProductPage({ adminPreview = false }: { adminPreview?: boolean }
                 }}
               />
             </button>
+            {selected.ribbon === BLACK_FRIDAY_RIBBON && <div className="black-friday-image-label">{BLACK_FRIDAY_RIBBON}</div>}
             {images.length > 1 && (
               <div className="pp-thumbs">
                 {images.map((src, index) => (

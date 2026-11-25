@@ -23,7 +23,7 @@ import { getFlashSaleConfig } from './flash-sale.js';
 import { checkoutPointsFor } from './points-campaign.js';
 import { flashSalePrice } from '@tamas/shared';
 import { allocateInventory, type InventoryQuantities } from './inventory-policy.js';
-import { getPaymentTermsConfig, quotePaymentTerms, selectPaymentPlan } from './payment-terms.js';
+import { blackFridayCashSelectionAllowed, getPaymentTermsConfig, quotePaymentTerms, selectPaymentPlan } from './payment-terms.js';
 import { issueFirstPurchaseReward, validateCustomerDiscount } from './discounts.js';
 import { getPaymentRoutingConfig, securePaymentPlan } from './payment-routing.js';
 
@@ -246,10 +246,14 @@ export async function createOrder(user: UserRow, input: OrderCreate): Promise<Or
     let paymentPlan: PaymentPlanQuote | null = null;
     let total = discountedSubtotal;
     let paymentInstructionsPending = false;
-    const paymentQuote = quotePaymentTerms(lines.map((line) => {
+    const paymentLines = lines.map((line) => {
       const product = byId.get(line.productId)!;
-      return { categoryId: product.categoryId, price: unitPrice(product), qty: line.qty, sellType: product.sellType };
-    }), paymentTermsConfig);
+      return { categoryId: product.categoryId, price: unitPrice(product), qty: line.qty, sellType: product.sellType, ribbon: product.ribbon };
+    });
+    const paymentQuote = quotePaymentTerms(paymentLines, paymentTermsConfig);
+    if (!blackFridayCashSelectionAllowed(paymentLines, paymentQuote, input.paymentPlanId, input.paymentMethod)) {
+      throw badRequest('سفارش دارای کالای ویژه بلک فرایدی فقط با برنامهٔ نقدی ثبت می‌شود.');
+    }
     if (paymentQuote.enforcedSettlement && !input.paymentPlanId) {
       throw badRequest(paymentQuote.message ?? 'روش تسویه این فاکتور باید مطابق محدودیت کالاها انتخاب شود.');
     }

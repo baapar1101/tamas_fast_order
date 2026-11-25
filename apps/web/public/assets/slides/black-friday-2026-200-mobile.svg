@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="760" viewBox="0 0 720 760" role="img" aria-label="بلک فرایدی تماس مارکت">
+  <style>.latin{font-family:Arial,Helvetica,sans-serif;font-weight:900;letter-spacing:7px;fill:#ef4444}.fa{font-family:Vazirmatn,Tahoma,Arial,sans-serif;fill:#ef4444;unicode-bidi:plaintext}.main{font-weight:900}.sub{font-weight:600}.action{font-weight:700;fill:#f87171}</style>
+  <rect width="720" height="760" fill="#090909"/>
+  <path d="M96 74h528M96 686h528" stroke="#7f1d1d" stroke-width="2"/>
+  <text x="360" y="238" text-anchor="middle" class="latin" font-size="75">BLACK</text>
+  <text x="360" y="322" text-anchor="middle" class="latin" font-size="75">FRIDAY</text>
+  <path d="M245 371h230" stroke="#dc2626" stroke-width="4"/>
+  <text x="360" y="453" text-anchor="middle" class="fa main" font-size="41" direction="rtl">تخفیف واقعی تا ۶۵٪</text>
+  <text x="360" y="529" text-anchor="middle" class="fa sub" font-size="31" direction="rtl">روی بیش از ۲۰۰ قلم کالا</text>
+  <text x="360" y="646" text-anchor="middle" class="fa action" font-size="26" direction="rtl">مشاهدهٔ کالاها  ←</text>
+</svg>

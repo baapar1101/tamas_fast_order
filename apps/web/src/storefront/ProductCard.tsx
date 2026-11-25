@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { ProductDTO, ProductGroupDTO, Warehouse } from '@tamas/shared';
-import { WAREHOUSE_LABELS, formatMoney, formatNumber, hasRealDiscount } from '@tamas/shared';
+import { BLACK_FRIDAY_RIBBON, WAREHOUSE_LABELS, formatMoney, formatNumber, hasRealDiscount } from '@tamas/shared';
 import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
 import { isProductUnavailable, stockFor } from '../store/cart';
@@ -193,7 +193,10 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
           </div>
         </div>
 
-        <ProductImageGallery key={`${group.key}:${selectedVariant.productId}:list`} images={images} title={group.title} mode="list" onPreview={onPreview} />
+        <div className="black-friday-image-wrap">
+          <ProductImageGallery key={`${group.key}:${selectedVariant.productId}:list`} images={images} title={group.title} mode="list" onPreview={onPreview} />
+          {selectedVariant.ribbon === BLACK_FRIDAY_RIBBON && <span className="black-friday-image-label">{BLACK_FRIDAY_RIBBON}</span>}
+        </div>
       </article>
     );
   }
@@ -211,6 +214,7 @@ export const ProductCard = memo(function ProductCard({ group, colorMap, canViewP
       </button>
 
       <ProductImageGallery key={`${group.key}:${selectedVariant.productId}:grid`} images={images} title={group.title} mode="grid" onPreview={onPreview} />
+      {selectedVariant.ribbon === BLACK_FRIDAY_RIBBON && <span className="black-friday-image-label">{BLACK_FRIDAY_RIBBON}</span>}
 
       <div className="product-card-content">
         <div className={`card-title ${titleClass}`}>

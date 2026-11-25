@@ -1,0 +1,1571 @@
+{
+  "source": "black friday.xls",
+  "items": [
+    {
+      "sku": "10010100042",
+      "title": "هيتر رو ميزي برند hoco مدل HX24 رنگ سفيد",
+      "quantity": 5,
+      "discountPercent": 15
+    },
+    {
+      "sku": "02020200180",
+      "title": "هندزفري طرح ايرپاد PRO 2 مدل AIRPOD PRO 2",
+      "quantity": 4,
+      "discountPercent": 12
+    },
+    {
+      "sku": "02020200178",
+      "title": "هندزفري طرح ايرپاد 2 مدل AIRPOD 2",
+      "quantity": 19,
+      "discountPercent": 20
+    },
+    {
+      "sku": "02020200229",
+      "title": "هندزفري بلوتوث القايي برند YESIDO مدل YSP29 رنگ مشكي",
+      "quantity": 4,
+      "discountPercent": 15
+    },
+    {
+      "sku": "02020100182",
+      "title": "هندزفري برند YESIDO مدل YH41 USB-C رنگ مشكي",
+      "quantity": 5,
+      "discountPercent": 10
+    },
+    {
+      "sku": "02020100173",
+      "title": "هندزفري برند OXYGEN مدل H19 رنگ مشكي",
+      "quantity": 8,
+      "discountPercent": 10
+    },
+    {
+      "sku": "02020100169",
+      "title": "هندزفري برند OXYGEN مدل H15 رنگ سفيد",
+      "quantity": 10,
+      "discountPercent": 10
+    },
+    {
+      "sku": "02020300102",
+      "title": "هدست بيسيم دورگردني برند OXYGEN مدل KX3 رنگ مشكي",
+      "quantity": 14,
+      "discountPercent": 10
+    },
+    {
+      "sku": "02020300101",
+      "title": "هدست بيسيم دورگردني برند OXYGEN مدل KX2 رنگ مشكي",
+      "quantity": 12,
+      "discountPercent": 10
+    },
+    {
+      "sku": "02020300096",
+      "title": "هدست بيسيم دورگردني برند OXYGEN مدل E2 رنگ مشكي",
+      "quantity": 5,
+      "discountPercent": 5
+    },
+    {
+      "sku": "02020300061",
+      "title": "هدست بيسيم دورگردني برند LENOVO مدل HE05X رنگ مشكي",
+      "quantity": 47,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02020300090",
+      "title": "هدست بي سيم برند متفرقه مدل PRO AIR رنگ سفيد",
+      "quantity": 43,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02020100109",
+      "title": "ميكروفون يقه اي سيم دار مدل JH-042 پورت Type-C رنگ مشكي",
+      "quantity": 10,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02020100110",
+      "title": "ميكروفون يقه اي سيم دار مدل JH-041 پورت Lightning رنگ مشكي",
+      "quantity": 25,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010300007",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Xiaomi Redmi Note 11 Pro بي رنگ",
+      "quantity": 13,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300006",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Xiaomi Redmi Note 11 4G بي رنگ",
+      "quantity": 24,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300001",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Xiaomi Redmi Note 10 Pro بي رنگ",
+      "quantity": 68,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300019",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Xiaomi Redmi 10 بي رنگ",
+      "quantity": 37,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300120",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Xiaomi Poco X4 GT مشكي",
+      "quantity": 2,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300022",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Xiaomi Poco X3 GT بي رنگ",
+      "quantity": 52,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300090",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Xiaomi Poco M4 Pro بي رنگ",
+      "quantity": 34,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300020",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Xiaomi Poco M4 Pro 5G بي رنگ",
+      "quantity": 49,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300004",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Xiaomi Poco M3 بي رنگ",
+      "quantity": 38,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300030",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Xiaomi Poco F3 بي رنگ",
+      "quantity": 1,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300023",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Xiaomi Mi 11 Lite بي رنگ",
+      "quantity": 1,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300113",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Samsung Galaxy S23 Ultra مشكي",
+      "quantity": 1,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300112",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Samsung Galaxy S22 Ultra 5G مشكي",
+      "quantity": 2,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300011",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Samsung Galaxy A32 بي رنگ",
+      "quantity": 34,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300012",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Samsung Galaxy A32 5G بي رنگ",
+      "quantity": 6,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300017",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Samsung Galaxy A23 بي رنگ",
+      "quantity": 8,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300091",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Samsung Galaxy A22 5G بي رنگ",
+      "quantity": 1,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300015",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Samsung Galaxy A13 بي رنگ",
+      "quantity": 24,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300014",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Samsung Galaxy A13 5G بي رنگ",
+      "quantity": 46,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300013",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Samsung Galaxy A03s بي رنگ",
+      "quantity": 27,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300010",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Apple iPhone 12 Pro Max بي رنگ",
+      "quantity": 8,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300008",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي Apple iPhone 12 mini بي رنگ",
+      "quantity": 59,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300118",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي  Xiaomi Poco X5 مشكي",
+      "quantity": 1,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300110",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي  Samsung Galaxy A34 مشكي",
+      "quantity": 16,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300109",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي  Samsung Galaxy A14 مشكي",
+      "quantity": 18,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010300111",
+      "title": "محافظ لنز متفرقه شيشه اي سه بعدي گوشي   Samsung Galaxy A54 مشكي",
+      "quantity": 18,
+      "discountPercent": 65
+    },
+    {
+      "sku": "02010200955",
+      "title": "محافظ صفحه نمايش فول نانو براق متفرقه مدل SM0501 گوشي Xiaomi Redmi Note 15 4Gبدون رنگ",
+      "quantity": 50,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010200840",
+      "title": "محافظ صفحه نمايش فول نانو براق متفرقه مدل SM0501 گوشي Samsung Galaxy S22 Ultra 5Gبدون رنگ",
+      "quantity": 5,
+      "discountPercent": 30
+    },
+    {
+      "sku": "02010200954",
+      "title": "محافظ صفحه نمايش فول نانو براق متفرقه مدل SM0101 گوشي Xiaomi Redmi Note 15 Pro+بدون رنگ",
+      "quantity": 15,
+      "discountPercent": 30
+    },
+    {
+      "sku": "02010200956",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق متفرقه مدل SM0601 گوشي Xiaomi Redmi Note 15 4Gبدون رنگ",
+      "quantity": 40,
+      "discountPercent": 30
+    },
+    {
+      "sku": "02010200988",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق WOLFELEX مدل SM0101 گوشي Xiaomi Redmi Note 12Sمشكي",
+      "quantity": 40,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200962",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق WOLFELEX مدل SM0101 گوشي Xiaomi Poco X3مشكي",
+      "quantity": 150,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200966",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق WOLFELEX مدل SM0101 گوشي Samsung Galaxy A71مشكي",
+      "quantity": 70,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200981",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق WOLFELEX مدل SM0101 گوشي Samsung Galaxy A57مشكي",
+      "quantity": 30,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200969",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق WOLFELEX مدل SM0101 گوشي Samsung Galaxy A37مشكي",
+      "quantity": 60,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200971",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق WOLFELEX مدل SM0101 گوشي Samsung Galaxy A32مشكي",
+      "quantity": 45,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200974",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق WOLFELEX مدل SM0101 گوشي Samsung Galaxy A27مشكي",
+      "quantity": 50,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200977",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق WOLFELEX مدل SM0101 گوشي Samsung Galaxy A17مشكي",
+      "quantity": 180,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200961",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق WOLFELEX مدل SM0101 گوشي Samsung Galaxy A12مشكي",
+      "quantity": 200,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200970",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق WOLFELEX مدل SM0101 گوشي Samsung Galaxy A07 4Gمشكي",
+      "quantity": 50,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200820",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق UMBOS مدل SM0101 گوشي Samsung Galaxy S23 FEمشكي",
+      "quantity": 50,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200783",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق UMBOS مدل SM0101 گوشي Apple iPhone 15 Pro Maxمشكي",
+      "quantity": 60,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200670",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق tokin مدل SM0201 گوشي Samsung Galaxy A35مشكي",
+      "quantity": 60,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200672",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق tokin مدل SM0201 گوشي Oppo A38مشكي",
+      "quantity": 30,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200623",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق tokin مدل SM0201 گوشي  Honor X8مشكي",
+      "quantity": 30,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200847",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق OG SUPER X مدل SM0101 گوشي Xiaomi Redmi Note 13 Pro 4Gمشكي",
+      "quantity": 30,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200862",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق OG SUPER X مدل SM0101 گوشي Apple iPhone 16 Pro Maxمشكي",
+      "quantity": 250,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200924",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق OG SUPER X 380AB مدل SM0101 گوشي Apple iPhone 17 Pro Maxمشكي",
+      "quantity": 250,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200915",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق OG SUPER X  مدل SM0101 گوشي Apple iPhone 17مشكي",
+      "quantity": 30,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200897",
+      "title": "محافظ صفحه نمايش فول شيشه اي براق OG OVOG مدل SM0101 گوشي Apple iPhone 17مشكي",
+      "quantity": 30,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200759",
+      "title": "محافظ صفحه نمايش فول شيشه اي OG SUPER X مدل SM0101 گوشي Samsung Galaxy A36",
+      "quantity": 150,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200758",
+      "title": "محافظ صفحه نمايش فول شيشه اي OG SUPER X مدل SM0101 گوشي Samsung Galaxy A16",
+      "quantity": 100,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02010200658",
+      "title": "محافظ صفحه نمايش فول UV PRIVACY براق tokin مدل SM0202 گوشي Xiaomi 13 Liteبدون رنگ",
+      "quantity": 75,
+      "discountPercent": 22
+    },
+    {
+      "sku": "02010200637",
+      "title": "محافظ صفحه نمايش فول UV PRIVACY براق tokin مدل SM0202 گوشي Samsung Galaxy S23 Ultraبدون رنگ",
+      "quantity": 158,
+      "discountPercent": 22
+    },
+    {
+      "sku": "02010200643",
+      "title": "محافظ صفحه نمايش فول UV PRIVACY براق tokin مدل SM0202 گوشي Samsung Galaxy S21بدون رنگ",
+      "quantity": 37,
+      "discountPercent": 22
+    },
+    {
+      "sku": "02010200652",
+      "title": "محافظ صفحه نمايش فول UV PRIVACY براق tokin مدل SM0202 گوشي Samsung Galaxy Note20بدون رنگ",
+      "quantity": 118,
+      "discountPercent": 22
+    },
+    {
+      "sku": "02010200660",
+      "title": "محافظ صفحه نمايش فول UV PRIVACY براق tokin مدل SM0202 گوشي Huawei nova 10بدون رنگ",
+      "quantity": 26,
+      "discountPercent": 22
+    },
+    {
+      "sku": "02010200669",
+      "title": "محافظ صفحه نمايش شيشه اي براق tokin مدل SM0201 گوشي Samsung Galaxy A15مشكي",
+      "quantity": 121,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02010200569",
+      "title": "محافظ صفحه نمايش شيشه اي براق tokin مدل SM0201 گوشي  Samsung Galaxy A34مشكي",
+      "quantity": 145,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02010200540",
+      "title": "محافظ صفحه نمايش سراميك براق متفرقه مدل SM0101 گوشي Samsung Galaxy Tab A7 Liteمشكي",
+      "quantity": 48,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02010200542",
+      "title": "محافظ صفحه نمايش سراميك براق متفرقه مدل SM0101 گوشي Samsung Galaxy Tab A7 10.4 (2020)مشكي",
+      "quantity": 59,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02010200543",
+      "title": "محافظ صفحه نمايش سراميك براق متفرقه مدل SM0101 گوشي Huawei MatePad T 10مشكي",
+      "quantity": 10,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02010200663",
+      "title": "محافظ صفحه نمايش UV براق tokin مدل SM0201 گوشي Samsung Galaxy S23+بدون رنگ",
+      "quantity": 47,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02010200476",
+      "title": "محافظ صفحه نمايش UV براق tokin مدل SM گوشي Samsung Galaxy S9بدون رنگ",
+      "quantity": 31,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02010200458",
+      "title": "محافظ صفحه نمايش UV براق tokin مدل SM گوشي Samsung Galaxy S9+بدون رنگ",
+      "quantity": 54,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02010200464",
+      "title": "محافظ صفحه نمايش UV براق tokin مدل SM گوشي Samsung Galaxy Note20بدون رنگ",
+      "quantity": 42,
+      "discountPercent": 25
+    },
+    {
+      "sku": "03010100023",
+      "title": "محافظ صفحه سراميكي مچ بند شيائومي MI BAND 4 مشكي مات",
+      "quantity": 49,
+      "discountPercent": 25
+    },
+    {
+      "sku": "03010100021",
+      "title": "محافظ صفحه سراميكي ساعت هواوي GT2 42MM شفاف",
+      "quantity": 27,
+      "discountPercent": 25
+    },
+    {
+      "sku": "03010100025",
+      "title": "محافظ صفحه سراميكي ساعت شيائومي AMAZFIT BIP شفاف",
+      "quantity": 16,
+      "discountPercent": 25
+    },
+    {
+      "sku": "03010100024",
+      "title": "محافظ صفحه سراميكي ساعت شيائومي AMAZFIT 1S شفاف",
+      "quantity": 33,
+      "discountPercent": 25
+    },
+    {
+      "sku": "03010100022",
+      "title": "محافظ صفحه سراميكي ساعت سامسونگ ACTIVE 2 40MM شفاف",
+      "quantity": 10,
+      "discountPercent": 25
+    },
+    {
+      "sku": "03010100011",
+      "title": "محافظ صفحه TOKIN مچ بند شيائومي MI BAND 6",
+      "quantity": 17,
+      "discountPercent": 25
+    },
+    {
+      "sku": "03010100038",
+      "title": "محافظ صفحه TOKIN ساعت هواوي WATCH FIT2",
+      "quantity": 74,
+      "discountPercent": 25
+    },
+    {
+      "sku": "03010100002",
+      "title": "محافظ صفحه TOKIN ساعت هواوي WATCH 3 46MM",
+      "quantity": 76,
+      "discountPercent": 25
+    },
+    {
+      "sku": "03010100047",
+      "title": "محافظ صفحه TOKIN اپل واچ 49MM",
+      "quantity": 30,
+      "discountPercent": 25
+    },
+    {
+      "sku": "03010100010",
+      "title": "محافظ صفحه TOKIN اپل واچ 45MM",
+      "quantity": 55,
+      "discountPercent": 25
+    },
+    {
+      "sku": "03010100033",
+      "title": "محافظ صفحه TOKIN اپل واچ 44MM",
+      "quantity": 81,
+      "discountPercent": 25
+    },
+    {
+      "sku": "03010100032",
+      "title": "محافظ صفحه TOKIN اپل واچ 42MM",
+      "quantity": 42,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02040100054",
+      "title": "مبدل USB به جك 3.5 ميلي متري برند YESIDO مدل YAU46 رنگ مشكي",
+      "quantity": 15,
+      "discountPercent": 10
+    },
+    {
+      "sku": "02040100043",
+      "title": "مبدل LIGHTNING به جك 3.5 ميلي متري برند متفرقه مدل GJ-008 رنگ مشكي",
+      "quantity": 18,
+      "discountPercent": 5
+    },
+    {
+      "sku": "02040100073",
+      "title": "مبدل LIGHTNING به جك 3.5 ميلي متري برند YESIDO مدل YAU45 رنگ مشكي",
+      "quantity": 14,
+      "discountPercent": 5
+    },
+    {
+      "sku": "10010100026",
+      "title": "ماشين خط زن موي برند YESIDO مدل MG06 رنگ مشكي",
+      "quantity": 1,
+      "discountPercent": 5
+    },
+    {
+      "sku": "09010100003",
+      "title": "ماساژور گردن وشانه برند YESIDO مدل MG11 رنگ سفيد",
+      "quantity": 1,
+      "discountPercent": 5
+    },
+    {
+      "sku": "09010100005",
+      "title": "ماساژور كمر برند YESIDO مدل MG15 رنگ طوسي",
+      "quantity": 2,
+      "discountPercent": 7
+    },
+    {
+      "sku": "09010100053",
+      "title": "ماساژور عصايي برقي گردن برند YESIDO مدل MG07 رنگ مشكي",
+      "quantity": 1,
+      "discountPercent": 5
+    },
+    {
+      "sku": "09010100060",
+      "title": "ماساژور سر برند YESIDO مدل MG04 رنگ مشكي",
+      "quantity": 1,
+      "discountPercent": 8
+    },
+    {
+      "sku": "09010100052",
+      "title": "ماساژور چشم برند YESIDO مدل MG13 رنگ سفيد",
+      "quantity": 1,
+      "discountPercent": 8
+    },
+    {
+      "sku": "09010100037",
+      "title": "ماساژور تفنگي برند YESIDO مدل MG61 رنگ مشكي",
+      "quantity": 1,
+      "discountPercent": 8
+    },
+    {
+      "sku": "09010100019",
+      "title": "ماساژور تفنگي برند YESIDO مدل MG02 رنگ مشكي",
+      "quantity": 7,
+      "discountPercent": 5
+    },
+    {
+      "sku": "09010100054",
+      "title": "ماساژور تفنگي برند YESIDO مدل MG01 رنگ مشكي",
+      "quantity": 1,
+      "discountPercent": 8
+    },
+    {
+      "sku": "09010100051",
+      "title": "ماساژور برقي گردن برند YESIDO مدل MG16 رنگ سفيد",
+      "quantity": 1,
+      "discountPercent": 7
+    },
+    {
+      "sku": "10010100077",
+      "title": "لامپ ال اي دي شارژي 60 وات برند YESIDO مدل DH16 رنگ سفيد",
+      "quantity": 5,
+      "discountPercent": 5
+    },
+    {
+      "sku": "02050100135",
+      "title": "گيمبال دستي هوشمند برند YESIDO مدل SF21 رنگ مشكي",
+      "quantity": 2,
+      "discountPercent": 5
+    },
+    {
+      "sku": "02050100090",
+      "title": "گيمبال دستي سه محوره برند YESIDO مدل SF27 رنگ مشكي",
+      "quantity": 3,
+      "discountPercent": 5
+    },
+    {
+      "sku": "02020500004",
+      "title": "گيرنده بلوتوثي برند YESIDO مدل YAU41 رنگ مشكي",
+      "quantity": 8,
+      "discountPercent": 8
+    },
+    {
+      "sku": "08010100035",
+      "title": "كيبورد گيمينگ برند YESIDO مدل KB44 رنگ مشكي",
+      "quantity": 2,
+      "discountPercent": 3
+    },
+    {
+      "sku": "10010100052",
+      "title": "كنترل از راه دور ليزري هوشمند برند hoco مدل GM200 رنگ مشكي",
+      "quantity": 4,
+      "discountPercent": 5
+    },
+    {
+      "sku": "10010100072",
+      "title": "كمپرسور هوا برند YESIDO مدل VC17 رنگ مشكي",
+      "quantity": 1,
+      "discountPercent": 4
+    },
+    {
+      "sku": "10010100006",
+      "title": "كمپرسور هوا برند YESIDO مدل VC12 رنگ مشكي",
+      "quantity": 2,
+      "discountPercent": 8
+    },
+    {
+      "sku": "02010104544",
+      "title": "كاور متفرقه مدل مگ سيف چرمي گوشي Xiaomi Redmi Note 15 Proميكس",
+      "quantity": 3,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104540",
+      "title": "كاور متفرقه مدل مگ سيف چرمي گوشي Xiaomi Redmi 15 4Gميكس",
+      "quantity": 6,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104529",
+      "title": "كاور متفرقه مدل مگ سيف PC گوشي Xiaomi Redmi Note 15 Proميكس",
+      "quantity": 6,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104530",
+      "title": "كاور متفرقه مدل مگ سيف PC گوشي Xiaomi Redmi Note 15 Pro+ميكس",
+      "quantity": 1,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104528",
+      "title": "كاور متفرقه مدل مگ سيف PC گوشي Xiaomi Redmi Note 15 4Gميكس",
+      "quantity": 16,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104525",
+      "title": "كاور متفرقه مدل مگ سيف PC گوشي Xiaomi Redmi A5 4Gميكس",
+      "quantity": 4,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104527",
+      "title": "كاور متفرقه مدل مگ سيف PC گوشي Xiaomi Redmi 15C 4Gميكس",
+      "quantity": 4,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104526",
+      "title": "كاور متفرقه مدل مگ سيف PC گوشي Xiaomi Redmi 15 4Gميكس",
+      "quantity": 8,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104524",
+      "title": "كاور متفرقه مدل مگ سيف PC گوشي Samsung Galaxy S25 FEميكس",
+      "quantity": 6,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104523",
+      "title": "كاور متفرقه مدل مگ سيف PC گوشي Samsung Galaxy A57ميكس",
+      "quantity": 4,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104522",
+      "title": "كاور متفرقه مدل مگ سيف PC گوشي Samsung Galaxy A37ميكس",
+      "quantity": 11,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104521",
+      "title": "كاور متفرقه مدل مگ سيف PC گوشي Samsung Galaxy A17ميكس",
+      "quantity": 13,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104520",
+      "title": "كاور متفرقه مدل مگ سيف PC گوشي Samsung Galaxy A07 4Gميكس",
+      "quantity": 15,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104519",
+      "title": "كاور متفرقه مدل مگ سيف PC گوشي Samsung Galaxy A06ميكس",
+      "quantity": 5,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104602",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Xiaomi Redmi Note 15 Proميكس",
+      "quantity": 8,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104603",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Xiaomi Redmi Note 15 Pro+ميكس",
+      "quantity": 2,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104601",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Xiaomi Redmi Note 15 Pro 4Gميكس",
+      "quantity": 16,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104600",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Xiaomi Redmi Note 15 4Gميكس",
+      "quantity": 35,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104597",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Xiaomi Redmi A5 4Gميكس",
+      "quantity": 10,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104599",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Xiaomi Redmi 15Cميكس",
+      "quantity": 16,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104598",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Xiaomi Redmi 15 4Gميكس",
+      "quantity": 14,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104596",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Samsung Galaxy S26 Ultraميكس",
+      "quantity": 7,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104595",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Samsung Galaxy S25 FEميكس",
+      "quantity": 7,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104594",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Samsung Galaxy A57ميكس",
+      "quantity": 14,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104593",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Samsung Galaxy A37ميكس",
+      "quantity": 14,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104592",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Samsung Galaxy A17ميكس",
+      "quantity": 21,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104589",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Samsung Galaxy A12ميكس",
+      "quantity": 7,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104591",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Samsung Galaxy A07 4Gميكس",
+      "quantity": 31,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104590",
+      "title": "كاور متفرقه مدل گارد هولوگرامي SO COOL گوشي Samsung Galaxy A06ميكس",
+      "quantity": 7,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104619",
+      "title": "كاور متفرقه مدل گارد مگ سيف شفاف گوشي Samsung Galaxy S26 Ultraميكس",
+      "quantity": 6,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104618",
+      "title": "كاور متفرقه مدل گارد مگ سيف شفاف گوشي Samsung Galaxy A57ميكس",
+      "quantity": 30,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104617",
+      "title": "كاور متفرقه مدل گارد مگ سيف شفاف گوشي Samsung Galaxy A37ميكس",
+      "quantity": 24,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104616",
+      "title": "كاور متفرقه مدل گارد مگ سيف شفاف گوشي Samsung Galaxy A17ميكس",
+      "quantity": 48,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104615",
+      "title": "كاور متفرقه مدل گارد مگ سيف شفاف گوشي Samsung Galaxy A07 4Gميكس",
+      "quantity": 48,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104614",
+      "title": "كاور متفرقه مدل گارد عروسكي دو تيكه گوشي Xiaomi Redmi Note 15 Pro 4Gميكس",
+      "quantity": 20,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104613",
+      "title": "كاور متفرقه مدل گارد عروسكي دو تيكه گوشي Xiaomi Redmi Note 15 4Gميكس",
+      "quantity": 20,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104611",
+      "title": "كاور متفرقه مدل گارد عروسكي دو تيكه گوشي Xiaomi Redmi 15ميكس",
+      "quantity": 7,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104612",
+      "title": "كاور متفرقه مدل گارد عروسكي دو تيكه گوشي Xiaomi Redmi 15Cميكس",
+      "quantity": 10,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104610",
+      "title": "كاور متفرقه مدل گارد عروسكي دو تيكه گوشي Samsung Galaxy S26 Ultraميكس",
+      "quantity": 7,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104608",
+      "title": "كاور متفرقه مدل گارد عروسكي دو تيكه گوشي Samsung Galaxy A57ميكس",
+      "quantity": 7,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104607",
+      "title": "كاور متفرقه مدل گارد عروسكي دو تيكه گوشي Samsung Galaxy A37ميكس",
+      "quantity": 7,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104606",
+      "title": "كاور متفرقه مدل گارد عروسكي دو تيكه گوشي Samsung Galaxy A17ميكس",
+      "quantity": 16,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104605",
+      "title": "كاور متفرقه مدل گارد عروسكي دو تيكه گوشي Samsung Galaxy A07 4Gميكس",
+      "quantity": 27,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104604",
+      "title": "كاور متفرقه مدل گارد عروسكي دو تيكه گوشي Samsung Galaxy A06ميكس",
+      "quantity": 7,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104630",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Xiaomi Redmi Note 15ميكس",
+      "quantity": 72,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104632",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Xiaomi Redmi Note 15 Proميكس",
+      "quantity": 26,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104631",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Xiaomi Redmi Note 15 Pro 4Gميكس",
+      "quantity": 72,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104627",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Xiaomi Redmi A5 4Gميكس",
+      "quantity": 18,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104629",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Xiaomi Redmi 15ميكس",
+      "quantity": 38,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104628",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Xiaomi Redmi 15Cميكس",
+      "quantity": 36,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104626",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Samsung Galaxy S26 Ultraميكس",
+      "quantity": 18,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104625",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Samsung Galaxy S25 FEميكس",
+      "quantity": 9,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104624",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Samsung Galaxy A57ميكس",
+      "quantity": 36,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104623",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Samsung Galaxy A37ميكس",
+      "quantity": 36,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104622",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Samsung Galaxy A17ميكس",
+      "quantity": 72,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104621",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Samsung Galaxy A07 4Gميكس",
+      "quantity": 72,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104620",
+      "title": "كاور متفرقه مدل گارد پاستيلي گوشي Samsung Galaxy A06ميكس",
+      "quantity": 18,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104451",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Xiaomi Redmi Note 14 Pro 5Gميكس",
+      "quantity": 5,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104450",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Xiaomi Redmi Note 14 4Gميكس",
+      "quantity": 83,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104454",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Xiaomi Redmi 14Cميكس",
+      "quantity": 26,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104453",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Xiaomi Redmi 13ميكس",
+      "quantity": 33,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104452",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Xiaomi Mi A3ميكس",
+      "quantity": 52,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104449",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Samsung Galaxy S25 Ultraميكس",
+      "quantity": 22,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104448",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Samsung Galaxy A56ميكس",
+      "quantity": 63,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104447",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Samsung Galaxy A36ميكس",
+      "quantity": 57,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104446",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Samsung Galaxy A26ميكس",
+      "quantity": 43,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104445",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Samsung Galaxy A16ميكس",
+      "quantity": 108,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104443",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Samsung Galaxy A12ميكس",
+      "quantity": 9,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104444",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Samsung Galaxy A06ميكس",
+      "quantity": 61,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02010104455",
+      "title": "كاور متفرقه مدل عروسكي SMILE گوشي Apple iPhone 16ميكس",
+      "quantity": 7,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02010104506",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Xiaomi Redmi Note 15 مشكي",
+      "quantity": 31,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104507",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Xiaomi Redmi Note 15 Pro مشكي",
+      "quantity": 7,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104504",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Xiaomi Redmi Note 14S مشكي",
+      "quantity": 19,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104505",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Xiaomi Redmi Note 14 Pro 4G مشكي",
+      "quantity": 16,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104503",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Xiaomi Redmi Note 14 4G مشكي",
+      "quantity": 17,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104511",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Xiaomi Redmi A5 مشكي",
+      "quantity": 18,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104509",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Xiaomi Redmi 15C 4G مشكي",
+      "quantity": 21,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104510",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Xiaomi Redmi 15 مشكي",
+      "quantity": 27,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104508",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Xiaomi Redmi 14C 4G مشكي",
+      "quantity": 2,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104512",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Xiaomi Poco M7 4G مشكي",
+      "quantity": 19,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104501",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Samsung Galaxy S25 FE مشكي",
+      "quantity": 26,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104500",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Samsung Galaxy A17 مشكي",
+      "quantity": 46,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104499",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Samsung Galaxy A07 مشكي",
+      "quantity": 18,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104494",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Samsung Galaxy A06 مشكي",
+      "quantity": 20,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104516",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Apple iPhone 17 مشكي",
+      "quantity": 34,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104518",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Apple iPhone 17 Pro Max مشكي",
+      "quantity": 35,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104517",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Apple iPhone 17 Pro  مشكي",
+      "quantity": 5,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104514",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Apple iPhone 16 مشكي",
+      "quantity": 28,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104515",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Apple iPhone 16 Pro Max مشكي",
+      "quantity": 32,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104513",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي Apple iPhone 13 مشكي",
+      "quantity": 5,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02010104495",
+      "title": "كاور متفرقه مدل CAR LOGO گوشي  Samsung Galaxy A16مشكي",
+      "quantity": 20,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02030100394",
+      "title": "كابل USB-C برند متفرقه مدل Super Fast طول 100cm سفيد",
+      "quantity": 138,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02030100432",
+      "title": "كابل USB-C برند OXYGEN مدل LX-33 طول 120cm مشكي",
+      "quantity": 12,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02030100397",
+      "title": "كابل USB-C to USB-C برند متفرقه مدل S23 طول 100cm مشكي",
+      "quantity": 117,
+      "discountPercent": 15
+    },
+    {
+      "sku": "02030100442",
+      "title": "كابل USB-C to USB-C برند OXYGEN مدل LX-44 طول 120cm مشكي",
+      "quantity": 50,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02030100441",
+      "title": "كابل USB-C to USB-C برند OXYGEN مدل LX-38 طول 120cm نقره اي",
+      "quantity": 14,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02030100430",
+      "title": "كابل USB-C to USB-C برند OXYGEN مدل LX-32 طول 200cm مشكي",
+      "quantity": 19,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02030100425",
+      "title": "كابل USB-C to USB-C برند OXYGEN مدل LX-28 طول 100cm مشكي",
+      "quantity": 24,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02030100307",
+      "title": "كابل USB-C to USB-C برند Borofone مدل BX93 - 60w طول 25cm سفيد",
+      "quantity": 47,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02030100392",
+      "title": "كابل USB-C to Lightning برند متفرقه مدل iPHONE 13 - Taiwan طول 100cm سفيد",
+      "quantity": 52,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02030100439",
+      "title": "كابل USB-C to Lightning برند OXYGEN مدل LX-36 طول 120cm نقره اي",
+      "quantity": 26,
+      "discountPercent": 28
+    },
+    {
+      "sku": "02030100434",
+      "title": "كابل USB-C to Lightning برند OXYGEN مدل LX-33 طول 120cm مشكي",
+      "quantity": 28,
+      "discountPercent": 28
+    },
+    {
+      "sku": "02030100422",
+      "title": "كابل USB-C to Lightning برند OXYGEN مدل LX-27 طول 100cm مشكي",
+      "quantity": 23,
+      "discountPercent": 28
+    },
+    {
+      "sku": "02030100405",
+      "title": "كابل USB-C to Lightning برند OXYGEN مدل LX-23 طول 100cm مشكي",
+      "quantity": 20,
+      "discountPercent": 28
+    },
+    {
+      "sku": "02030100306",
+      "title": "كابل USB-C to Lightning برند Borofone مدل BX93 - 20w طول 25cm سفيد",
+      "quantity": 45,
+      "discountPercent": 28
+    },
+    {
+      "sku": "02030100415",
+      "title": "كابل MicroUSB برند OXYGEN مدل LX-25 طول 100cm مشكي",
+      "quantity": 19,
+      "discountPercent": 18
+    },
+    {
+      "sku": "02030100379",
+      "title": "كابل Lightning برند متفرقه مدل iPHONE XS - NEW PACK طول 100cm سفيد",
+      "quantity": 24,
+      "discountPercent": 30
+    },
+    {
+      "sku": "02030100420",
+      "title": "كابل Lightning برند OXYGEN مدل LX-27 طول 100cm مشكي",
+      "quantity": 15,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02040200025",
+      "title": "كابل AUX برند YESIDO مدل YAU43 طول 100cm مشكي",
+      "quantity": 17,
+      "discountPercent": 15
+    },
+    {
+      "sku": "02040200031",
+      "title": "كابل AUX TO USB-C برند YESIDO مدل YAU42 طول 100cm مشكي",
+      "quantity": 25,
+      "discountPercent": 8
+    },
+    {
+      "sku": "02040200030",
+      "title": "كابل AUX TO USB-C برند OXYGEN مدل AUX-06 طول 100cm مشكي",
+      "quantity": 17,
+      "discountPercent": 8
+    },
+    {
+      "sku": "02030100435",
+      "title": "كابل 4 IN 1 برند OXYGEN مدل LX-35 طول 120cm مشكي",
+      "quantity": 17,
+      "discountPercent": 25
+    },
+    {
+      "sku": "09010100055",
+      "title": "عينك هوشمند صوتي پلاريزه برند YESIDO مدل IO44 رنگ مشكي",
+      "quantity": 3,
+      "discountPercent": 7
+    },
+    {
+      "sku": "09010100056",
+      "title": "عينك هوشمند صوتي برند YESIDO مدل IO41 رنگ مشكي",
+      "quantity": 5,
+      "discountPercent": 7
+    },
+    {
+      "sku": "09010100018",
+      "title": "عينك هوشمند برند YESIDO مدل IO35 رنگ مشكي",
+      "quantity": 4,
+      "discountPercent": 7
+    },
+    {
+      "sku": "02030400059",
+      "title": "شارژر فندكي برند OXYGEN مدل AC-14 رنگ مشكي",
+      "quantity": 14,
+      "discountPercent": 8
+    },
+    {
+      "sku": "02030400058",
+      "title": "شارژر فندكي برند OXYGEN مدل AC-07 رنگ مشكي",
+      "quantity": 14,
+      "discountPercent": 8
+    },
+    {
+      "sku": "02030400063",
+      "title": "شارژر فندكي 30 وات برند YESIDO مدل Y73 با كابل PD رنگ مشكي",
+      "quantity": 4,
+      "discountPercent": 7
+    },
+    {
+      "sku": "02030400064",
+      "title": "شارژر فندكي 15 وات و اف ام پلير برند YESIDO مدل Y70 رنگ مشكي",
+      "quantity": 3,
+      "discountPercent": 7
+    },
+    {
+      "sku": "02050100133",
+      "title": "سه‌پايه و مونوپاد سلفي با پايه مغناطيسي و ريموت بلوتوث برند YESIDO مدل SF31 رنگ مشكي",
+      "quantity": 2,
+      "discountPercent": 12
+    },
+    {
+      "sku": "09010100047",
+      "title": "سشوار برند YESIDO مدل MG22 رنگ سفيد",
+      "quantity": 2,
+      "discountPercent": 5
+    },
+    {
+      "sku": "01020100129",
+      "title": "ساعت هوشمند برند YESIDO مدل IO27 رنگ مشكي",
+      "quantity": 4,
+      "discountPercent": 5
+    },
+    {
+      "sku": "10010100044",
+      "title": "دستگاه بخور و رطوبت ساز برند hoco مدل HX31 رنگ سفيد",
+      "quantity": 1,
+      "discountPercent": 55
+    },
+    {
+      "sku": "10010100043",
+      "title": "دستگاه بخور و پخش رايحه برند hoco مدل HX30 رنگ سفيد",
+      "quantity": 2,
+      "discountPercent": 55
+    },
+    {
+      "sku": "02020500013",
+      "title": "دانگل بلوتوث برند YESIDO مدل YAU82 رنگ مشكي",
+      "quantity": 19,
+      "discountPercent": 15
+    },
+    {
+      "sku": "02040100067",
+      "title": "تبديل شارژر سه به دو برند Earldomمدل SC20 رنگ سفيد",
+      "quantity": 38,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02040100049",
+      "title": "تبديل USB-C به USB-B برند متفرقه رنگي",
+      "quantity": 39,
+      "discountPercent": 45
+    },
+    {
+      "sku": "10010100002",
+      "title": "پنكه دستي كوچك برند متفرقه طرح عروسكي",
+      "quantity": 15,
+      "discountPercent": 35
+    },
+    {
+      "sku": "10010100003",
+      "title": "پنكه دستي ايستاده برند متفرقه طرح عروسكي",
+      "quantity": 3,
+      "discountPercent": 35
+    },
+    {
+      "sku": "02050100101",
+      "title": "پايه نگهدارنده گوشي موبايل و تبلت برند hoco مدل HD10 رنگ مشكي",
+      "quantity": 4,
+      "discountPercent": 45
+    },
+    {
+      "sku": "02050100108",
+      "title": "پايه نگهدارنده گوشي موبايل برند OXYGEN مدل HD26 رنگ مشكي",
+      "quantity": 10,
+      "discountPercent": 20
+    },
+    {
+      "sku": "02050100107",
+      "title": "پايه نگهدارنده گوشي موبايل برند OXYGEN مدل HD25 رنگ مشكي",
+      "quantity": 11,
+      "discountPercent": 20
+    },
+    {
+      "sku": "02050100099",
+      "title": "پايه نگهدارنده گوشي موبايل برند hoco مدل PH23 رنگ سفيد",
+      "quantity": 5,
+      "discountPercent": 15
+    },
+    {
+      "sku": "02050100036",
+      "title": "پايه نگهدارنده گوشي موبايل برند Borofone مدل BH63 رنگ مشكي",
+      "quantity": 3,
+      "discountPercent": 15
+    },
+    {
+      "sku": "02050100046",
+      "title": "پايه نگهدارنده گوشي موبايل برند Borofone مدل BH23 رنگ سفيد",
+      "quantity": 2,
+      "discountPercent": 15
+    },
+    {
+      "sku": "02050100044",
+      "title": "پايه نگهدارنده گوشي موبايل برند Borofone مدل BH121 رنگ مشكي",
+      "quantity": 1,
+      "discountPercent": 15
+    },
+    {
+      "sku": "02050100041",
+      "title": "پايه نگهدارنده گوشي موبايل برند Borofone مدل BH111 رنگ مشكي",
+      "quantity": 3,
+      "discountPercent": 15
+    },
+    {
+      "sku": "02050100038",
+      "title": "پايه نگهدارنده گوشي موبايل برند Borofone مدل BH103 رنگ مشكي",
+      "quantity": 2,
+      "discountPercent": 15
+    },
+    {
+      "sku": "02030500118",
+      "title": "پاور بانك وايرلس برند YESIDO مدل YP57 ظرفيت 10000mAh رنگ مشكي",
+      "quantity": 5,
+      "discountPercent": 5
+    },
+    {
+      "sku": "09010100042",
+      "title": "بالشت طبي نشينمن برند YESIDO مدل MG27 رنگ طوسي",
+      "quantity": 1,
+      "discountPercent": 8
+    },
+    {
+      "sku": "09010100050",
+      "title": "بالشت طبي گردني برند YESIDO مدل MG17 رنگ طوسي",
+      "quantity": 1,
+      "discountPercent": 8
+    },
+    {
+      "sku": "06010100032",
+      "title": "باتري قلمي 27A برند hoco مدل DLR07",
+      "quantity": 14,
+      "discountPercent": 5
+    },
+    {
+      "sku": "06010100031",
+      "title": "باتري قلمي 23A برند hoco مدل DLR06",
+      "quantity": 9,
+      "discountPercent": 5
+    },
+    {
+      "sku": "10010100063",
+      "title": "آسياب قهوه شارژي برند YESIDO مدل EC29 رنگ مشكي",
+      "quantity": 2,
+      "discountPercent": 10
+    },
+    {
+      "sku": "02030200131",
+      "title": "آداپتور شارژ USB-C برند SAMSUNG مدل  SOLUM NEW PACK-45w سيم بدون كابل مشكي 3 PIN",
+      "quantity": 48,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02030200129",
+      "title": "آداپتور شارژ USB-C برند SAMSUNG مدل  SOLUM NEW PACK-45w سيم USB C TO USB C سفيد 3 PIN",
+      "quantity": 55,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02030200114",
+      "title": "آداپتور شارژ USB برند متفرقه مدل XIAOMI - ORG-67w سيم بدون كابل سفيد 2 PIN/IR",
+      "quantity": 19,
+      "discountPercent": 25
+    },
+    {
+      "sku": "02020400079",
+      "title": "اسپيكر بلوتوثي قابل حمل برند OXYGEN مدل AX-100 20W رنگ مشكي",
+      "quantity": 12,
+      "discountPercent": 35
+    }
+  ]
+}

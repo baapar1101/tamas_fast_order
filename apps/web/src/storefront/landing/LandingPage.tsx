@@ -26,6 +26,7 @@ import {
   formatMoney,
   formatNumber,
   hasRealDiscount,
+  BLACK_FRIDAY_RIBBON,
   type BrandDTO,
   type CategoryDTO,
   type LandingBenefitIcon,
@@ -51,6 +52,7 @@ import { visibleCampaignSlides } from '../goldenCampaign';
 import { FlipWords, GlowCard, Marquee, Reveal, SpotCard, TiltFrame } from './effects';
 import { SHOP_PATH, featuredQuery, featuredShopHref, shopHref, shopSearchHref } from './shopLinks';
 import landingCss from './landing.css?inline';
+import '../black-friday.css';
 import { FlashSaleSection } from './FlashSaleSection';
 import { FlashSaleTab } from '../flashSale';
 import { CampaignTab } from '../pointsCampaign';
@@ -406,6 +408,7 @@ function FeaturedCard({ group, canViewPrices }: { group: ProductGroupDTO; canVie
             className="aspect-square w-full object-contain p-4 transition duration-300 hover:scale-105"
           />
         </div>
+        {first.ribbon === BLACK_FRIDAY_RIBBON && <span className="black-friday-image-label mx-4">{BLACK_FRIDAY_RIBBON}</span>}
         <div className="flex flex-1 flex-col gap-1.5 px-4 pb-4 pt-1">
           {brand && <span className="text-xs font-medium text-primary-500">{brand}</span>}
           <h3 className="line-clamp-2 text-sm font-bold leading-6 text-title-50">{group.title}</h3>

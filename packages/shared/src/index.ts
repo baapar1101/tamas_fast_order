@@ -14,6 +14,7 @@ export * from './funnel.js';
 export * from './product-import.js';
 export * from './landing.js';
 export * from './flash-sale.js';
+export * from './black-friday.js';
 export * from './festival.js';
 export * from './points-campaign.js';
 export * from './price-lists.js';

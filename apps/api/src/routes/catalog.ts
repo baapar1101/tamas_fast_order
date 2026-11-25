@@ -1,8 +1,8 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { desc, eq } from 'drizzle-orm';
-import { catalogQuerySchema, festivalSlides } from '@tamas/shared';
+import { and, desc, eq, gt, isNull, sql } from 'drizzle-orm';
+import { BLACK_FRIDAY_RIBBON, catalogQuerySchema, festivalSlides } from '@tamas/shared';
 import { db } from '../db/client.js';
-import { slides } from '../db/schema.js';
+import { products, slides } from '../db/schema.js';
 import { notFound } from '../lib/errors.js';
 import { findProductByPublicId, listBrands, listCategories, listColors, queryProducts } from '../services/catalog.js';
 import { getPublicSettings } from '../services/settings.js';
@@ -84,7 +84,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
   /** One round trip for the whole first render: taxonomy + settings together. */
   app.get('/catalog/bootstrap', async (_req, reply) => {
-    const [categories, brands, colors, settings, festival, activeSlides] = await Promise.all([
+    const [categories, brands, colors, settings, festival, activeSlides, blackFriday] = await Promise.all([
       listCategories(),
       listBrands(),
       listColors(),
@@ -97,6 +97,14 @@ const routes: FastifyPluginAsync = async (app) => {
         mobileImageUrl: slides.mobileImageUrl,
         linkUrl: slides.linkUrl,
       }).from(slides).where(eq(slides.isActive, true)).orderBy(desc(slides.sortOrder), desc(slides.id)),
+      db.select({
+        count: sql<number>`count(distinct ${products.sku})::int`,
+        hasSixtyFive: sql<boolean>`coalesce(bool_or(${products.discount} = 65 and ${products.oldPrice} > ${products.price} and round((${products.oldPrice} - ${products.price}) * 100.0 / nullif(${products.oldPrice}, 0)) >= 65), false)`,
+      }).from(products).where(and(
+        isNull(products.deletedAt), eq(products.status, 'active'),
+        eq(products.ribbon, BLACK_FRIDAY_RIBBON), gt(products.price, 0),
+        sql`(${products.stock} > 0 or ${products.kermanStock} > 0 or ${products.tehranStock} > 0)`,
+      )).then((rows) => rows[0]),
     ]);
     // Store configuration changes must not leave an old public projection in caches.
     reply.header('cache-control', 'no-store');
@@ -105,7 +113,16 @@ const routes: FastifyPluginAsync = async (app) => {
       : activeSlides;
     // Festival banners show only while the festival runs (and may hide the rest).
     const visibleSlides = festivalSlides(campaignSlides, festival);
-    return { ok: true, categories, brands, colors, settings, slides: visibleSlides };
+    const blackFridaySlide = blackFriday && blackFriday.count > 200 && blackFriday.hasSixtyFive
+      ? [{
+          id: -20261125,
+          title: 'بلک فرایدی تماس مارکت؛ تخفیف واقعی تا ۶۵٪ روی بیش از ۲۰۰ قلم کالا',
+          imageUrl: '/assets/slides/black-friday-2026-200.svg',
+          mobileImageUrl: '/assets/slides/black-friday-2026-200-mobile.svg',
+          linkUrl: '/shop?blackFriday=1',
+        }]
+      : [];
+    return { ok: true, categories, brands, colors, settings, slides: [...blackFridaySlide, ...visibleSlides] };
   });
 };
 

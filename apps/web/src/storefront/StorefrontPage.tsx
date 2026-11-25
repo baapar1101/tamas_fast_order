@@ -26,6 +26,7 @@ import { SiteHeader } from './SiteHeader';
 import { scrollPageToTop } from '../lib/scroll';
 import { shopHref } from './landing/shopLinks';
 import './storefront.css';
+import './black-friday.css';
 
 const SORT_LABELS: Record<CatalogFilters['sort'], string> = {
   featured: 'پیشنهادی',
@@ -96,6 +97,7 @@ export function StorefrontPage() {
   const [category, setCategory] = useState<string | null>(searchParams.get('cat') || null);
   const [brands, setBrands] = useState<string[]>(searchParams.get('brand') ? searchParams.get('brand')!.split(',') : []);
   const [promotion, setPromotion] = useState(searchParams.get('promo') === '1');
+  const [blackFriday, setBlackFriday] = useState(searchParams.get('blackFriday') === '1');
   const [basketOnly, setBasketOnly] = useState(searchParams.get('basket') === '1' || searchParams.get('credit') === '1');
   const [sort, setSort] = useState<CatalogFilters['sort']>((searchParams.get('sort') as CatalogFilters['sort']) || 'featured');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'grid');
@@ -126,6 +128,7 @@ export function StorefrontPage() {
     if (category) params.set('cat', category); else params.delete('cat');
     if (brandsStr) params.set('brand', brandsStr); else params.delete('brand');
     if (promotion) params.set('promo', '1'); else params.delete('promo');
+    if (blackFriday) params.set('blackFriday', '1'); else params.delete('blackFriday');
     if (basketOnly) params.set('basket', '1'); else params.delete('basket');
     params.delete('credit');
     // Legacy links: stock is always enforced and the list loads endlessly.
@@ -138,7 +141,7 @@ export function StorefrontPage() {
     if (params.toString() !== searchParams.toString()) {
       setSearchParams(params, { replace: true });
     }
-  }, [search, category, brandsStr, promotion, basketOnly, sort, viewMode, mobileTab, searchParams, setSearchParams]);
+  }, [search, category, brandsStr, promotion, blackFriday, basketOnly, sort, viewMode, mobileTab, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (searchParams.toString() === observedUrlRef.current) return;
@@ -156,6 +159,8 @@ export function StorefrontPage() {
 
     const promo = searchParams.get('promo') === '1';
     if (promotion !== promo) setPromotion(promo);
+    const blackFridayParam = searchParams.get('blackFriday') === '1';
+    if (blackFriday !== blackFridayParam) setBlackFriday(blackFridayParam);
 
     const basket = searchParams.get('basket') === '1' || searchParams.get('credit') === '1';
     if (basketOnly !== basket) setBasketOnly(basket);
@@ -191,8 +196,8 @@ export function StorefrontPage() {
 
   const debouncedSearch = useDebounced(search);
   const filters: CatalogFilters = useMemo(
-    () => ({ q: debouncedSearch, category, brands, promotion, basketOnly, sort }),
-    [debouncedSearch, category, brands, promotion, basketOnly, sort],
+    () => ({ q: debouncedSearch, category, brands, promotion, blackFriday, basketOnly, sort }),
+    [debouncedSearch, category, brands, promotion, blackFriday, basketOnly, sort],
   );
 
   const bootstrap = useBootstrap();
@@ -442,6 +447,15 @@ export function StorefrontPage() {
               </span>
               <span className="chip-title">همه کالاها</span>
             </button>
+            <button
+              type="button"
+              className={`category-chip black-friday-filter${blackFriday ? ' active' : ''}`}
+              aria-pressed={blackFriday}
+              onClick={() => { setBlackFriday((current) => !current); setPromotion(false); setBasketOnly(false); }}
+            >
+              <span className="chip-icon">٪</span>
+              <span className="chip-title">ویژه بلک فرایدی</span>
+            </button>
             {(bootstrap.data?.categories ?? []).map((c) => {
               const iconSrc = c.iconUrl
                 ? c.iconUrl.startsWith('http') || c.iconUrl.startsWith('/')
@@ -529,7 +543,7 @@ export function StorefrontPage() {
                   <strong>{formatNumber(total)}</strong>
                   <span>کالا پیدا شد</span>
                 </div>
-                {(brands.length > 0 || category || promotion || basketOnly || search) && (
+                {(brands.length > 0 || category || promotion || blackFriday || basketOnly || search) && (
                   <button
                     type="button"
                     className="btn sm toolbar-reset"
@@ -538,6 +552,7 @@ export function StorefrontPage() {
                       setCategory(null);
                       setBrands([]);
                       setPromotion(false);
+                      setBlackFriday(false);
                       setBasketOnly(false);
                     }}
                   >
@@ -684,6 +699,7 @@ export function StorefrontPage() {
             setCategory(null);
             setBrands([]);
             setPromotion(false);
+            setBlackFriday(false);
             setBasketOnly(false);
           }
           selectMobileTab(tab);
