@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { formatNumber } from '@tamas/shared';
 import { countStockRows, type StockUpdateReport, type StockUpdateRow } from './stockUpdateExcel';
+import { TableState } from './AdminState';
+import './excel-preview.css';
 
 const PAGE = 200;
 
 function change(oldValue: number | undefined, newValue: number | undefined) {
-  if (oldValue === newValue) return <span className="text-muted">{formatNumber(newValue ?? 0)}</span>;
+  if (oldValue === newValue) return <span className="xp-muted">{formatNumber(newValue ?? 0)}</span>;
   return (
     <span>
-      <s className="text-muted">{formatNumber(oldValue ?? 0)}</s>
-      {' ← '}
+      <s className="xp-muted" aria-label={`قبلی ${formatNumber(oldValue ?? 0)}`}>{formatNumber(oldValue ?? 0)}</s>
+      <span aria-hidden="true">{' ← '}</span>
       <strong>{formatNumber(newValue ?? 0)}</strong>
     </span>
   );
@@ -34,16 +36,17 @@ export function ExcelPreview({ report, fileName, onApply, onCancel, onDownload }
     filter === 'errors' ? row.status === 'error'
       : filter === 'warnings' ? row.status === 'updated' && Boolean(row.warning)
         : row.status === 'updated');
+  const columnCount = filter === 'errors' ? 4 : 8 + (pointsChange ? 1 : 0);
 
   return (
-    <div className="a-card mt-4" style={{ borderColor: 'var(--clr-amber, #f59e0b)' }}>
+    <div className="a-card mt-4 excel-preview">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <strong>پیش‌نمایش «{fileName}»: هنوز چیزی تغییر نکرده است.</strong>
-          <div className="text-sm mt-1">
+          <div className="xp-summary">
             {formatNumber(counts.updated)} کالا تغییر می‌کند، {formatNumber(counts.unchanged)} بدون تغییر،{' '}
             {formatNumber(counts.error)} ردیف خطا
-            {report.warnings ? <> و <strong style={{ color: 'var(--clr-rose)' }}>{formatNumber(report.warnings)} تغییر مشکوک</strong></> : null}.
+            {report.warnings ? <> و <strong className="xp-warn">{formatNumber(report.warnings)} تغییر مشکوک</strong></> : null}.
           </div>
         </div>
         <div className="a-card-actions">
@@ -55,7 +58,7 @@ export function ExcelPreview({ report, fileName, onApply, onCancel, onDownload }
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mt-3" role="tablist">
+      <div className="a-segmented mt-3" role="tablist" aria-label="نوع ردیف‌های پیش‌نمایش">
         {([
           ['changes', `تغییرها (${formatNumber(counts.updated)})`],
           ['warnings', `مشکوک (${formatNumber(report.warnings ?? 0)})`],
@@ -66,7 +69,7 @@ export function ExcelPreview({ report, fileName, onApply, onCancel, onDownload }
             type="button"
             role="tab"
             aria-selected={filter === key}
-            className={`a-btn a-btn--sm ${filter === key ? 'a-btn--primary' : 'a-btn--secondary'}`}
+            className={`a-seg${filter === key ? ' a-seg--on' : ''}`}
             onClick={() => setFilter(key)}
           >
             {label}
@@ -74,20 +77,20 @@ export function ExcelPreview({ report, fileName, onApply, onCancel, onDownload }
         ))}
       </div>
 
-      <div className="a-table-wrap mt-3" style={{ maxHeight: 420, overflow: 'auto' }}>
+      <div className="a-table-wrap xp-table-wrap mt-3" role="tabpanel">
         <table className="a-table">
           <thead>
             <tr>
-              <th>ردیف</th>
+              <th className="a-num">ردیف</th>
               <th>کد کالا</th>
               <th>کالا</th>
               {filter === 'errors' ? <th>خطا</th> : (
                 <>
-                  <th>قیمت (تومان)</th>
-                  <th>کرمان</th>
-                  <th>تهران</th>
-                  <th>موجودی کل</th>
-                  {pointsChange && <th>امتیاز</th>}
+                  <th className="a-num">قیمت (تومان)</th>
+                  <th className="a-num">کرمان</th>
+                  <th className="a-num">تهران</th>
+                  <th className="a-num">موجودی کل</th>
+                  {pointsChange && <th className="a-num">امتیاز</th>}
                   <th>توجه</th>
                 </>
               )}
@@ -95,30 +98,30 @@ export function ExcelPreview({ report, fileName, onApply, onCancel, onDownload }
           </thead>
           <tbody>
             {shown.slice(0, PAGE).map((row) => (
-              <tr key={row.rowNumber} style={row.warning ? { background: 'rgba(244, 63, 94, .08)' } : undefined}>
-                <td>{formatNumber(row.rowNumber)}</td>
-                <td dir="ltr">{row.sku}</td>
+              <tr key={row.rowNumber} className={row.warning ? 'xp-row--warning' : undefined}>
+                <td className="a-num">{formatNumber(row.rowNumber)}</td>
+                <td className="a-ltr">{row.sku}</td>
                 <td>{row.title ?? '—'}</td>
                 {filter === 'errors' ? <td>{row.message}</td> : (
                   <>
-                    <td>{change(row.old?.price, row.next?.price)}</td>
-                    <td>{change(row.old?.kermanStock, row.next?.kermanStock)}</td>
-                    <td>{change(row.old?.tehranStock, row.next?.tehranStock)}</td>
-                    <td>{change(row.old?.stock, row.next?.stock)}</td>
-                    {pointsChange && <td>{change(row.old?.campaignPoints, row.next?.campaignPoints)}</td>}
-                    <td style={{ color: 'var(--clr-rose)' }}>{row.warning ?? ''}</td>
+                    <td className="a-num">{change(row.old?.price, row.next?.price)}</td>
+                    <td className="a-num">{change(row.old?.kermanStock, row.next?.kermanStock)}</td>
+                    <td className="a-num">{change(row.old?.tehranStock, row.next?.tehranStock)}</td>
+                    <td className="a-num">{change(row.old?.stock, row.next?.stock)}</td>
+                    {pointsChange && <td className="a-num">{change(row.old?.campaignPoints, row.next?.campaignPoints)}</td>}
+                    <td className="xp-note">{row.warning ?? ''}</td>
                   </>
                 )}
               </tr>
             ))}
             {!shown.length && (
-              <tr><td colSpan={8} className="text-muted">ردیفی برای نمایش نیست.</td></tr>
+              <TableState colSpan={columnCount} kind="filtered" noun="ردیف" />
             )}
           </tbody>
         </table>
       </div>
       {shown.length > PAGE && (
-        <p className="text-xs text-muted mt-2">
+        <p className="a-hint mt-2">
           {formatNumber(PAGE)} ردیف اول نمایش داده شد؛ همهٔ ردیف‌ها در «دانلود پیش‌نمایش» هست.
         </p>
       )}

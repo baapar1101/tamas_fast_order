@@ -1,9 +1,15 @@
-.funnel-page .a-page-head { flex-wrap: wrap; gap: 12px; }
+.funnel-page {
+  /* Bar fill = chart series 1 (docs/ui-guidelines.md §2.4). */
+  --funnel-series: var(--a-series-1);
+}
+
+.funnel-page .a-page-head { flex-wrap: wrap; gap: var(--ds-space-3); }
+.funnel-state { padding: var(--ds-space-1) var(--ds-space-5) var(--ds-space-5); }
 
 .funnel-steps {
   list-style: none;
   margin: 0;
-  padding: 8px 20px 20px;
+  padding: var(--ds-space-2) var(--ds-space-5) var(--ds-space-5);
   display: grid;
   gap: 10px;
 }
@@ -18,8 +24,8 @@
 .funnel-step-label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: var(--ds-space-2);
+  font-size: var(--ds-text-sm);
   font-weight: 600;
   color: var(--a-t1);
 }
@@ -30,16 +36,16 @@
   width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: var(--a-brand-soft);
-  color: var(--a-brand);
-  font-size: 11px;
+  background: var(--a-soft);
+  color: var(--a-t2);
+  font-size: var(--ds-text-xs);
   flex: none;
 }
 
 .funnel-step-bar {
   height: 14px;
   border-radius: 999px;
-  background: var(--a-surface-2);
+  background: var(--a-soft);
   overflow: hidden;
 }
 
@@ -47,34 +53,38 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--a-brand);
-  transition: width 0.3s ease;
+  background: var(--funnel-series);
+  transition: width 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .funnel-step-value {
   display: flex;
   align-items: baseline;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--ds-space-2);
   font-variant-numeric: tabular-nums;
 }
 
-.funnel-step-value strong { font-size: 16px; color: var(--a-t1); }
+.funnel-step-value strong { font-size: var(--ds-text-lg); color: var(--a-t1); }
 .funnel-step-value span,
-.funnel-muted { font-size: 12px; color: var(--a-t3); }
+.funnel-muted { font-size: var(--ds-text-caption); color: var(--a-t3); }
 
 .funnel-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
-  gap: var(--a-grid-gap, 16px);
+  gap: var(--a-grid-gap, var(--ds-space-4));
 }
 
-.funnel-options { padding: 4px 20px 16px; }
+.funnel-options { padding: var(--ds-space-1) var(--ds-space-5) var(--ds-space-4); }
 
 .funnel-table td { white-space: nowrap; }
 
+@media (prefers-reduced-motion: reduce) {
+  .funnel-step-bar > span { transition: none; }
+}
+
 @media (max-width: 720px) {
-  .funnel-steps { padding: 8px 14px 16px; }
+  .funnel-steps { padding: var(--ds-space-2) 14px var(--ds-space-4); }
   .funnel-step {
     grid-template-columns: 1fr auto;
     gap: 6px 10px;

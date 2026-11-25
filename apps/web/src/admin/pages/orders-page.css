@@ -1,0 +1,29 @@
+/* Orders admin page: tokens only (docs/ui-guidelines.md §11). */
+.orders-check-col { width: 36px; }
+.orders-check { width: 16px; height: 16px; accent-color: var(--a-t1); cursor: pointer; }
+.a-page--orders .a-table th.a-num > div { justify-content: flex-end; }
+
+.orders-tab-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  margin-inline-start: var(--ds-space-2);
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--a-soft);
+  color: var(--a-t1);
+  font-size: var(--ds-text-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.orders-detail-label { color: var(--a-t3); }
+.orders-detail-value { color: var(--a-t2); }
+
+.orders-search-results { border: 1px solid var(--a-border); }
+.orders-search-option { background: var(--a-surface-2); }
+
+.orders-profit--neg { color: var(--a-red); }
+.orders-profit--pos { color: var(--a-green); }
+
+.orders-total-box { border: 1px solid var(--a-border); background: var(--a-surface-2); }
+.orders-total-value { color: var(--a-t1); font-variant-numeric: tabular-nums; }

@@ -1,0 +1,5 @@
+/* Flash sale admin page: tokens only (docs/ui-guidelines.md §11). */
+.flash-sale-table { margin-top: var(--ds-space-2, var(--ds-space-2)); }
+.flash-sale-table--items { margin-top: var(--ds-space-4, var(--ds-space-4)); }
+.flash-sale-actions-cell { text-align: end; }
+.flash-sale-price-input { max-width: 160px; }

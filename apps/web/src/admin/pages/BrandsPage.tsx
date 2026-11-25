@@ -6,6 +6,8 @@ import { useToast } from '../../components/Toast';
 import { Modal } from '../../components/Modal';
 import { api } from '../../lib/api';
 import { ImagePicker } from '../components/ImagePicker';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { AdminState } from '../components/AdminState';
 
 interface BrandForm {
   name: string;
@@ -30,6 +32,7 @@ export function BrandsPage() {
   const [form, setForm] = useState<BrandForm>(EMPTY_FORM);
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<BrandDTO | null>(null);
 
   const query = useQuery({
     queryKey: ['admin', 'brands'],
@@ -276,7 +279,7 @@ export function BrandsPage() {
         </p>
         <label className="a-field mt-3">
           <span className="a-label">برند درست</span>
-          <select className="a-input" value={mergeInto} onChange={(e) => setMergeInto(e.target.value ? Number(e.target.value) : '')}>
+          <select className="a-select" value={mergeInto} onChange={(e) => setMergeInto(e.target.value ? Number(e.target.value) : '')}>
             <option value="">انتخاب کنید…</option>
             {brands.filter((brand) => brand.id !== mergeFrom?.id).map((brand) => (
               <option key={brand.id} value={brand.id}>
@@ -313,7 +316,7 @@ export function BrandsPage() {
 
       {/* List */}
       <section className="a-searchbar">
-        <input className="a-input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی برند…" />
+        <input className="a-input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی برند…" aria-label="جستجوی برند" />
       </section>
 
       <section className="a-card a-container-md">
@@ -336,7 +339,7 @@ export function BrandsPage() {
               className={`a-list-item${editingId === brand.id ? ' a-list-item--active' : ''}${draggedIndex === index ? ' is-dragging' : ''}${dragOverIndex === index ? ' is-drag-over' : ''}`}
             >
               <div className="a-drag-handle" title="برای جابجایی بکشید">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                   <circle cx="5" cy="3" r="1.5" />
                   <circle cx="11" cy="3" r="1.5" />
                   <circle cx="5" cy="8" r="1.5" />
@@ -356,13 +359,31 @@ export function BrandsPage() {
               <div className="a-list-actions">
                 <button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={() => edit(brand)}>ویرایش</button>
                 <button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={() => { setMergeFrom(brand); setMergeInto(''); }}>ادغام</button>
-                <button type="button" className="a-btn a-btn--danger a-btn--xs" disabled={remove.isPending} onClick={() => { if (confirm(`برند «${brand.faName}» حذف شود؟`)) remove.mutate(brand.id); }}>حذف</button>
+                <button type="button" className="a-btn a-btn--danger a-btn--xs" disabled={remove.isPending} onClick={() => setPendingDelete(brand)}>حذف</button>
               </div>
             </article>
           ))}
-          {!query.isLoading && filtered.length === 0 && <div className="a-empty">برندی پیدا نشد.</div>}
+          {query.isLoading && <AdminState kind="loading" />}
+          {query.isError && <AdminState kind="error" error={query.error} onRetry={() => void query.refetch()} />}
+          {!query.isLoading && !query.isError && filtered.length === 0 && (
+            <AdminState
+              kind={search.trim() ? 'filtered' : 'empty'}
+              noun="برند"
+              action={search.trim() ? <button type="button" className="a-btn a-btn--ghost a-btn--sm" onClick={() => setSearch('')}>پاک کردن جستجو</button> : undefined}
+            />
+          )}
         </div>
       </section>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="حذف برند"
+        description={pendingDelete ? `برند «${pendingDelete.faName}» حذف می‌شود؛ حذف برگشت ندارد.` : ''}
+        confirmLabel="حذف"
+        busy={remove.isPending}
+        onConfirm={() => { if (pendingDelete) remove.mutate(pendingDelete.id, { onSuccess: () => setPendingDelete(null) }); }}
+        onClose={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

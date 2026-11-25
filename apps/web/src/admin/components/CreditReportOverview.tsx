@@ -74,12 +74,12 @@ export function CreditReportOverview({ report, onClose }: CreditReportOverviewPr
         </div>
         <div className="credit-overview-actions">
           <button type="button" onClick={() => window.print()}><Printer size={16} /> چاپ / ذخیره PDF</button>
-          <a href={report.fileUrl} target="_blank" rel="noreferrer"><ExternalLink size={16} /> فایل اصلی ICS24</a>
+          <a href={report.fileUrl} target="_blank" rel="noreferrer" aria-label="فایل اصلی ICS24 (در پنجرهٔ جدید)"><ExternalLink size={16} /> فایل اصلی ICS24</a>
         </div>
       </header>
 
       <section className="credit-overview-summary">
-        <div className={`credit-score-gauge credit-score-gauge--${risk}`} role="img" aria-label={`امتیاز اعتباری ${score ?? 'نامشخص'} از ۹۰۰`} style={{ '--credit-score-progress': `${scoreProgress}%` } as CSSProperties}>
+        <div className={`credit-score-gauge credit-score-gauge--${risk}`} role="img" aria-label={`امتیاز اعتباری ${score?.toLocaleString('fa-IR') ?? 'نامشخص'} از ۹۰۰`} style={{ '--credit-score-progress': `${scoreProgress}%` } as CSSProperties}>
           <div className="credit-score-gauge__inner">
             <span>امتیاز اعتباری</span>
             <strong>{score?.toLocaleString('fa-IR') ?? '—'}</strong>
@@ -97,7 +97,7 @@ export function CreditReportOverview({ report, onClose }: CreditReportOverviewPr
           <small>این جمع‌بندی جایگزین تصمیم نهایی واحد اعتبار نیست و بر اساس داده‌های همین نسخه گزارش ساخته شده است.</small>
         </div>
 
-        <div className="credit-confidence-ring" role="img" aria-label={`دقت استخراج ${report.confidence} درصد`} style={{ '--credit-confidence': `${Math.max(0, Math.min(100, report.confidence))}%` } as CSSProperties}>
+        <div className="credit-confidence-ring" role="img" aria-label={`دقت استخراج ${report.confidence.toLocaleString('fa-IR')} درصد`} style={{ '--credit-confidence': `${Math.max(0, Math.min(100, report.confidence))}%` } as CSSProperties}>
           <div><strong>{formatPercent(report.confidence)}</strong><span>دقت استخراج</span></div>
         </div>
       </section>
@@ -115,7 +115,7 @@ export function CreditReportOverview({ report, onClose }: CreditReportOverviewPr
           {payerMin === null ? (
             <div className="credit-overview-empty">این شاخص در گزارش استخراج نشده است.</div>
           ) : (
-            <div className="credit-payer-chart" role="img" aria-label={`احتمال خوش‌حسابی از ${payerMin} تا ${payerMax ?? payerMin} درصد`}>
+            <div className="credit-payer-chart" role="img" aria-label={`احتمال خوش‌حسابی از ${payerMin.toLocaleString('fa-IR')} تا ${(payerMax ?? payerMin).toLocaleString('fa-IR')} درصد`}>
               <div className="credit-payer-value"><strong>{formatPercent(payerMin)}</strong><span>حداقل</span><strong>{formatPercent(payerMax)}</strong><span>حداکثر</span></div>
               <div className="credit-payer-scale"><i style={{ right: `${payerMin}%`, width: `${Math.max(2, (payerMax ?? payerMin) - payerMin)}%` }} /></div>
               <div className="credit-payer-ticks"><span>۰٪</span><span>۲۵٪</span><span>۵۰٪</span><span>۷۵٪</span><span>۱۰۰٪</span></div>
@@ -128,10 +128,10 @@ export function CreditReportOverview({ report, onClose }: CreditReportOverviewPr
           {inquiryMonth === null && inquiryYear === null ? (
             <div className="credit-overview-empty">آمار استعلام در گزارش موجود نیست.</div>
           ) : (
-            <div className="credit-inquiry-chart" role="img" aria-label={`استعلام یک‌ماهه ${inquiryMonth ?? 'نامشخص'} و یک‌ساله ${inquiryYear ?? 'نامشخص'}`}>
+            <div className="credit-inquiry-chart" role="img" aria-label={`استعلام یک‌ماهه ${inquiryMonth?.toLocaleString('fa-IR') ?? 'نامشخص'} و یک‌ساله ${inquiryYear?.toLocaleString('fa-IR') ?? 'نامشخص'}`}>
               {[
-                { label: 'یک ماه اخیر', value: inquiryMonth, color: '#06b6d4' },
-                { label: 'یک سال اخیر', value: inquiryYear, color: '#8b5cf6' },
+                { label: 'یک ماه اخیر', value: inquiryMonth, color: '#2a78d6' },
+                { label: 'یک سال اخیر', value: inquiryYear, color: '#6250d6' },
               ].map((item) => <div key={item.label}><span>{item.label}</span><div><i style={{ width: item.value === null ? 0 : `${Math.max(4, (item.value / inquiryMaximum) * 100)}%`, backgroundColor: item.color }} /></div><strong>{item.value?.toLocaleString('fa-IR') ?? '—'}</strong></div>)}
             </div>
           )}
@@ -157,7 +157,7 @@ export function CreditReportOverview({ report, onClose }: CreditReportOverviewPr
             ['شماره موبایل', report.data.identity.mobile],
             ['شماره گزارش', report.reportNumber],
             ['تاریخ گزارش', report.reportDate],
-          ].map(([label, value]) => <div key={label}><span>{label}</span><strong>{value || 'ثبت نشده'}</strong></div>)}
+          ].map(([label, value]) => <div key={label}><span>{label}</span><strong className={value && (label === 'کد ملی' || label === 'شماره موبایل' || label === 'شماره گزارش') ? 'a-ltr' : undefined}>{value || 'ثبت نشده'}</strong></div>)}
         </div>
       </section>
 

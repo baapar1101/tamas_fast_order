@@ -5,6 +5,7 @@ import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 import { documentHasIssue, useDocumentHealth } from '../../lib/document-requests';
+import { AdminState, TableState } from './AdminState';
 
 const deliveryLabel: Record<string, string> = { registered: 'ثبت در پنل', accepted: 'پذیرفته‌شده توسط سرویس', not_requested: 'انتخاب نشده', not_sent: 'ارسال نشد / اتصال غیرفعال', failed: 'خطای ارسال' };
 export function DocumentRecoveryPanel() {
@@ -51,9 +52,9 @@ export function DocumentRecoveryPanel() {
     <div className="doc-toolbar">
       <label className="ds-field"><span className="ds-label">جستجوی حساب یا شناسهٔ فایل</span><input className="ds-control" type="search" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
       <label className="ds-field"><span className="ds-label">نمایش</span><select className="ds-control" value={filter} onChange={(event) => setFilter(event.target.value)}><option value="issues">نیازمند پیگیری</option><option value="requests">دارای درخواست / تاریخچه</option><option value="all">همهٔ مدارک خصوصی</option></select></label>
-      <button className="a-btn a-btn--secondary" type="button" disabled={query.isFetching} onClick={() => void query.refetch()}>بررسی مجدد فایل‌ها</button>
+      <button className="a-btn a-btn--secondary" type="button" disabled={query.isFetching} aria-busy={query.isFetching || undefined} onClick={() => void query.refetch()}>{query.isFetching ? 'در حال بررسی…' : 'بررسی مجدد فایل‌ها'}</button>
     </div>
-    {query.isPending ? <p role="status">در حال بررسی فضای خصوصی مدارک…</p> : query.isError ? <p role="alert" className="ds-alert ds-alert--danger">دریافت وضعیت مدارک انجام نشد. دوباره تلاش کنید.</p> : <div className="doc-table-scroll">
+    {query.isPending ? <AdminState kind="loading" title="در حال بررسی فضای خصوصی مدارک…" /> : query.isError ? <AdminState kind="error" title="دریافت وضعیت مدارک انجام نشد." error={query.error} onRetry={() => void query.refetch()} /> : <div className="doc-table-scroll">
       <table className="a-table"><caption className="doc-table-caption">سلامت مدارک و درخواست‌های آپلود مجدد</caption><thead><tr><th>حساب و نقش</th><th>مدرک</th><th>محل استفاده</th><th>وضعیت فایل</th><th>درخواست / عملیات</th></tr></thead><tbody>
         {filtered.map((item) => {
           const active = item.requests.find((request) => ['pending', 'submitted'].includes(request.status));
@@ -67,10 +68,10 @@ export function DocumentRecoveryPanel() {
               {item.requests.length > 0 && <button type="button" className="a-btn a-btn--ghost" onClick={() => { setReview({ document: item, request: active ?? item.requests[0]! }); setNote(''); }}>تاریخچه ({item.requests.length.toLocaleString('fa-IR')})</button>}</div></td>
           </tr>;
         })}
-        {!filtered.length && <tr><td colSpan={5}>موردی با این فیلتر یافت نشد.</td></tr>}
+        {!filtered.length && <TableState colSpan={5} kind={search.trim() || filter !== 'all' ? 'filtered' : 'empty'} noun="مدرک" />}
       </tbody></table>
     </div>}
-    <Modal open={Boolean(selected)} title="درخواست آپلود مجدد مدرک" onClose={() => setSelected(null)} busy={busy} size="md" footer={<><button className="ds-button" type="button" disabled={busy} onClick={() => setSelected(null)}>انصراف</button><button className="ds-button ds-button--primary" type="button" disabled={busy || message.trim().length < 5} onClick={() => void create()}>{busy ? 'در حال ثبت…' : 'ثبت درخواست برای این حساب'}</button></>}>
+    <Modal open={Boolean(selected)} title="درخواست آپلود مجدد مدرک" onClose={() => setSelected(null)} busy={busy} size="md" footer={<><button className="a-btn a-btn--primary" type="button" disabled={busy || message.trim().length < 5} aria-busy={busy || undefined} onClick={() => void create()}>{busy ? 'در حال ثبت…' : 'ثبت درخواست برای این حساب'}</button><button className="a-btn a-btn--secondary" type="button" disabled={busy} onClick={() => setSelected(null)}>انصراف</button></>}>
       {selected && <div className="doc-stack"><p>گیرنده: <strong>{selected.userName}</strong> · فایل #{selected.uploadId}</p>{selected.userRole !== 'customer' && <p className="ds-alert ds-alert--warning">این حساب مدیریتی است، نه مشتری.</p>}{!selected.references.length && <p className="ds-alert ds-alert--warning">این فایل ارجاع فعالی ندارد؛ فقط در صورت نیاز واقعی درخواست ثبت کنید.</p>}
         <label className="ds-field"><span className="ds-label">توضیح قابل مشاهده برای صاحب حساب</span><textarea className="ds-control" rows={4} maxLength={2000} value={message} onChange={(event) => setMessage(event.target.value)} /></label>
         <p className="ds-hint">درخواست همیشه در پنل حساب ثبت می‌شود. اعلان بیرونی فقط با انتخاب شما و طبق تنظیمات سرویس و ترجیحات کاربر ارسال می‌شود؛ اطلاعات خود مدرک ارسال نمی‌شود.</p>
@@ -78,8 +79,8 @@ export function DocumentRecoveryPanel() {
       </div>}
     </Modal>
     <Modal open={Boolean(review)} title="پیگیری و بررسی مدرک جایگزین" onClose={() => setReview(null)} busy={busy} size="lg" footer={review && ['pending', 'submitted'].includes(review.request.status) ? <>
-      <button className="ds-button" type="button" disabled={busy} onClick={() => void reviewRequest('cancel')}>لغو درخواست</button>
-      {review.request.status === 'submitted' && <><button className="ds-button" type="button" disabled={busy || note.trim().length < 3} onClick={() => void reviewRequest('reject')}>رد و درخواست اصلاح</button><button className="ds-button ds-button--primary" type="button" disabled={busy} onClick={() => void reviewRequest('approve')}>تأیید و جایگزینی مدرک</button></>}
+      {review.request.status === 'submitted' && <><button className="a-btn a-btn--primary" type="button" disabled={busy} aria-busy={busy || undefined} onClick={() => void reviewRequest('approve')}>تأیید و جایگزینی مدرک</button><button className="a-btn a-btn--outline" type="button" disabled={busy || note.trim().length < 3} onClick={() => void reviewRequest('reject')}>رد و درخواست اصلاح</button></>}
+      <button className="a-btn a-btn--secondary" type="button" disabled={busy} onClick={() => void reviewRequest('cancel')}>لغو درخواست</button>
     </> : undefined}>
       {review && <div className="doc-stack"><p><strong>{review.document.userName}</strong> · درخواست #{review.request.id} · {DOCUMENT_REQUEST_STATUS_LABELS[review.request.status]}</p><p className="doc-message">{review.request.message}</p><p className="ds-hint">صرفاً ارجاع مدرک پس از تأیید شما عوض می‌شود؛ سقف اعتبار، وضعیت پرونده و وضعیت مالی رسیدها تغییر نمی‌کنند.</p>
         <dl className="doc-delivery">{Object.entries(review.request.notificationDelivery).map(([channel, status]) => <div key={channel}><dt>{{ inApp: 'پنل حساب', sms: 'پیامک', telegram: 'تلگرام', bale: 'بله' }[channel] ?? channel}</dt><dd>{deliveryLabel[status] ?? status}</dd></div>)}</dl>

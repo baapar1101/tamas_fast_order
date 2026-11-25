@@ -1,0 +1,71 @@
+/* Dashboard — docs/ui-guidelines.md §1 (calm, monochrome), §2.4 (chart series), §4.11 (KPI).
+   Overrides the legacy dashboard rules in admin.css/theme.css, scoped to the page root. */
+
+.dash-page {
+  /* §2.4 chart series: 1 = primary series, "other" = comparison / rest. */
+  --dash-series-1: var(--a-series-1);
+  --dash-series-other: var(--a-series-other);
+  --dash-grid: var(--a-border);
+}
+
+/* Hero */
+.dash-page .dash-eyebrow {
+  margin: 0 0 var(--ds-space-3);
+  font-size: var(--ds-text-caption);
+  font-weight: 500;
+  color: var(--a-t3);
+}
+.dash-page .dash-em { font-weight: 700; color: var(--a-t1); }
+
+.dash-page .admin-goal-ring { width: 8.5rem; height: 8.5rem; }
+.dash-page .dash-ring-track { stroke: var(--a-soft); }
+.dash-page .dash-ring-value {
+  stroke: var(--a-t1);
+  transition: stroke-dashoffset 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.dash-page .dash-ring-caption { margin-top: 2px; font-size: var(--ds-text-xs); color: var(--a-t3); }
+
+/* KPI cards: neutral icon tiles, no decorative colour. */
+.dash-page .stat-icon.dash-stat-icon {
+  background: var(--a-soft);
+  color: var(--a-t2);
+  transform: none;
+}
+.dash-page .dash-stat-icon svg { width: 1.5rem; height: 1.5rem; }
+.dash-page .dash-unit { font-size: var(--ds-text-caption); font-weight: 400; color: var(--a-t3); }
+.dash-page .dash-toman { display: inline; width: 1em; height: 1em; vertical-align: -0.1em; }
+
+/* Sparklines: single series, flat fill. */
+.dash-page .admin-sparkline { color: var(--dash-series-1); }
+.dash-page .dash-spark-area { fill: currentColor; fill-opacity: 0.12; }
+.dash-page .dash-spark-line { stroke: currentColor; }
+
+/* Revenue chart */
+.dash-page .admin-real-grid { stroke: var(--dash-grid); stroke-dasharray: none; }
+.dash-page .admin-revenue-current { stroke: var(--dash-series-1); stroke-width: 2.5; }
+.dash-page .admin-revenue-previous { stroke: var(--dash-series-other); stroke-width: 2; }
+.dash-page .dash-revenue-area { fill: var(--dash-series-1); fill-opacity: 0.08; }
+.dash-page .admin-y-axis,
+.dash-page .admin-x-axis { color: var(--a-t3); }
+
+.dash-page .dash-legend { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-space-3); }
+.dash-page .dash-legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: var(--ds-text-caption); color: var(--a-t2); }
+.dash-page .dash-legend-swatch { display: inline-block; width: 14px; height: 0; border-top: 2.5px solid var(--dash-series-1); border-radius: 2px; }
+.dash-page .dash-legend-swatch--previous { border-top: 2px dashed var(--dash-series-other); }
+
+/* Acquisition donut (segment colours come from the data). */
+.dash-page .admin-donut,
+body.admin-page-active.admin-theme-light .dash-page .admin-donut { filter: none; }
+.dash-page .admin-donut::after { border-color: var(--a-border); }
+.dash-page .dash-donut-caption { margin-top: 2px; font-size: var(--ds-text-xs); font-weight: 500; color: var(--a-t3); }
+.dash-page .dash-donut-legend { border-top: 1px solid var(--a-border); }
+.dash-page .dash-legend-label { color: var(--a-t2); }
+.dash-page .dash-legend-dot { width: 10px; height: 10px; flex: 0 0 10px; border-radius: 999px; }
+
+@media (max-width: 640px) {
+  .dash-page .admin-goal-ring { width: 7.25rem; height: 7.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-page .dash-ring-value { transition: none; }
+}

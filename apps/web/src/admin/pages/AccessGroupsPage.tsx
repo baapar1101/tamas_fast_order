@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatNumber } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
+import { TableState } from '../components/AdminState';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 interface AccessGroup {
   id: number;
@@ -32,6 +34,7 @@ export function AccessGroupsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState('');
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [pendingDelete, setPendingDelete] = useState<AccessGroup | null>(null);
 
   const groups = useQuery({
     queryKey: ['admin', 'access-groups'],
@@ -64,6 +67,7 @@ export function AccessGroupsPage() {
     onSuccess: () => {
       invalidate();
       toast.ok('گروه حذف شد.');
+      setPendingDelete(null);
     },
     onError: (err: Error) => toast.error(err.message || 'خطا در حذف گروه.'),
   });
@@ -119,31 +123,32 @@ export function AccessGroupsPage() {
 
       {/* List */}
       <section className="a-card a-card--flush">
-        {groups.isLoading ? (
-          <div className="a-empty">در حال دریافت گروه‌ها...</div>
-        ) : (groups.data ?? []).length === 0 ? (
-          <div className="a-empty">هنوز گروهی ساخته نشده است. با «افزودن گروه جدید» شروع کنید.</div>
-        ) : (
-          <div className="a-table-wrap">
+        <div className="a-table-wrap">
             <table className="a-table">
               <thead>
                 <tr>
                   <th>نام گروه</th>
-                  <th>اعضا</th>
+                  <th className="a-num">اعضا</th>
                   <th>دسترسی‌ها</th>
                   <th>عملیات</th>
                 </tr>
               </thead>
               <tbody>
-                {groups.data?.map((g) => (
+                {groups.isLoading ? (
+                  <TableState colSpan={4} kind="loading" />
+                ) : groups.isError ? (
+                  <TableState colSpan={4} kind="error" error={groups.error} onRetry={() => void groups.refetch()} />
+                ) : (groups.data ?? []).length === 0 ? (
+                  <TableState colSpan={4} kind="empty" noun="گروه" text="با «افزودن گروه جدید» شروع کنید." />
+                ) : groups.data?.map((g) => (
                   <tr key={g.id} className="order-row">
                     <td>
-                      <div className="font-bold text-white">{g.name}</div>
-                      <div className="text-[11px] text-slate-500" dir="ltr">
+                      <div className="a-strong">{g.name}</div>
+                      <div className="a-cell-sub a-ltr">
                         #{g.id}
                       </div>
                     </td>
-                    <td>
+                    <td className="a-num">
                       <span className={`chip ${g.memberCount > 0 ? 'chip-brand' : 'chip-slate'}`}>
                         {formatNumber(g.memberCount)} نفر
                       </span>
@@ -155,7 +160,7 @@ export function AccessGroupsPage() {
                             {permissionLabel(p)}
                           </span>
                         ))}
-                        {g.permissions.length === 0 && <span className="text-xs text-slate-500">بدون دسترسی</span>}
+                        {g.permissions.length === 0 && <span className="a-hint">بدون دسترسی</span>}
                       </div>
                     </td>
                     <td>
@@ -167,10 +172,9 @@ export function AccessGroupsPage() {
                           type="button"
                           className="a-btn a-btn--danger a-btn--xs"
                           disabled={g.memberCount > 0}
-                          title={g.memberCount > 0 ? 'ابتدا اعضای این گروه را جابه‌جا کنید' : 'حذف گروه'}
-                          onClick={() => {
-                            if (window.confirm(`آیا از حذف گروه «${g.name}» اطمینان دارید؟`)) deleteMutation.mutate(g.id);
-                          }}
+                          title={g.memberCount > 0 ? 'ابتدا اعضای این گروه را جابه‌جا کنید.' : 'حذف گروه'}
+                          aria-label={`حذف گروه «${g.name}»`}
+                          onClick={() => setPendingDelete(g)}
                         >
                           حذف
                         </button>
@@ -181,12 +185,23 @@ export function AccessGroupsPage() {
               </tbody>
             </table>
           </div>
-        )}
       </section>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="حذف گروه دسترسی"
+        description={pendingDelete ? `گروه «${pendingDelete.name}» حذف می‌شود؛ حذف برگشت ندارد.` : ''}
+        confirmLabel="حذف"
+        busy={deleteMutation.isPending}
+        onConfirm={() => {
+          if (pendingDelete) deleteMutation.mutate(pendingDelete.id);
+        }}
+        onClose={() => setPendingDelete(null)}
+      />
 
       {/* Modal */}
       {(isEditing || isCreating) && (
-        <div className="admin-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 overflow-y-auto">
+        <div className="admin-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="admin-modal-surface a-card w-full max-w-xl" role="dialog" aria-modal="true" aria-labelledby="access-group-dialog-title">
             <div className="a-card-head">
               <h3 id="access-group-dialog-title" className="a-card-title">{isEditing ? 'ویرایش گروه دسترسی' : 'گروه دسترسی جدید'}</h3>
@@ -238,8 +253,8 @@ export function AccessGroupsPage() {
                 <button type="button" className="a-btn a-btn--secondary" onClick={handleClose}>
                   انصراف
                 </button>
-                <button type="submit" className="a-btn a-btn--primary" disabled={saveMutation.isPending}>
-                  {saveMutation.isPending ? 'در حال ذخیره...' : 'ذخیره گروه'}
+                <button type="submit" className="a-btn a-btn--primary" disabled={saveMutation.isPending} aria-busy={saveMutation.isPending || undefined}>
+                  {saveMutation.isPending ? 'در حال ذخیره…' : 'ذخیره گروه'}
                 </button>
               </div>
             </form>

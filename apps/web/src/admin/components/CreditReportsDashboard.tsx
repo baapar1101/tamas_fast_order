@@ -18,11 +18,15 @@ import {
   type CreditPortfolioPriority,
   type CreditRiskBucket,
 } from './creditReportAnalytics';
+import { AdminState, TableState } from './AdminState';
 
 interface CreditReportsDashboardProps {
   reports: AdminCreditReport[];
   applicants: CreditApplicationDTO[];
   loading: boolean;
+  /** Load error from the parent page; shown with a retry when nothing could be loaded. */
+  error?: unknown;
+  onRetry?: () => void;
   onSelectReport: (report: AdminCreditReport) => void;
 }
 
@@ -54,7 +58,7 @@ function dateLabel(value: string): string {
   return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('fa-IR');
 }
 
-export function CreditReportsDashboard({ reports, applicants, loading, onSelectReport }: CreditReportsDashboardProps) {
+export function CreditReportsDashboard({ reports, applicants, loading, error, onRetry, onSelectReport }: CreditReportsDashboardProps) {
   const analytics = useMemo(() => buildCreditReportAnalytics(reports, applicants), [reports, applicants]);
   const [query, setQuery] = useState('');
   const [riskFilter, setRiskFilter] = useState<'all' | CreditRiskBucket>('all');
@@ -86,13 +90,24 @@ export function CreditReportsDashboard({ reports, applicants, loading, onSelectR
 
   if (loading) {
     return (
-      <section className="credit-dashboard-loading" aria-live="polite">
-        <span className="credit-dashboard-spinner" aria-hidden="true" />
-        <strong>در حال تحلیل پرونده‌های اعتبارسنجی…</strong>
-        <small>گزارش‌ها و شاخص‌های تجمیعی در حال آماده‌سازی هستند.</small>
-      </section>
+      <AdminState
+        kind="loading"
+        title="در حال تحلیل پرونده‌های اعتبارسنجی…"
+        text="گزارش‌ها و شاخص‌های تجمیعی در حال آماده‌سازی هستند."
+      />
     );
   }
+
+  if (error && reports.length === 0 && applicants.length === 0) {
+    return <AdminState kind="error" title="گزارش‌های اعتبارسنجی دریافت نشد." error={error} onRetry={onRetry} />;
+  }
+
+  const filtersActive = query.trim() !== '' || riskFilter !== 'all' || statusFilter !== 'all';
+  const clearFilters = () => {
+    setQuery('');
+    setRiskFilter('all');
+    setStatusFilter('all');
+  };
 
   const kpis = [
     {
@@ -156,10 +171,10 @@ export function CreditReportsDashboard({ reports, applicants, loading, onSelectR
         <section className="credit-attention-panel" aria-label="موارد نیازمند توجه">
           <div className="credit-attention-head"><AlertTriangle size={19} /><div><strong>صف پیگیری هوشمند</strong><small>موارد مهم بر اساس آخرین گزارش هر مشتری مرتب شده‌اند.</small></div></div>
           <div className="credit-attention-items">
-            <button type="button" onClick={() => setStatusFilter('missing')}><strong>{analytics.missingCount.toLocaleString('fa-IR')}</strong><span>فاقد گزارش</span></button>
-            <button type="button" onClick={() => setStatusFilter('expired')}><strong>{analytics.expiredCount.toLocaleString('fa-IR')}</strong><span>گزارش منقضی</span></button>
-            <button type="button" onClick={() => setStatusFilter('follow_up')}><strong>{analytics.expiringSoonCount.toLocaleString('fa-IR')}</strong><span>نزدیک به انقضا</span></button>
-            <button type="button" onClick={() => setStatusFilter('urgent')}><strong>{analytics.reviewNeededCount.toLocaleString('fa-IR')}</strong><span>نیازمند بازبینی</span></button>
+            <button type="button" aria-pressed={statusFilter === 'missing'} onClick={() => setStatusFilter('missing')}><strong>{analytics.missingCount.toLocaleString('fa-IR')}</strong><span>فاقد گزارش</span></button>
+            <button type="button" aria-pressed={statusFilter === 'expired'} onClick={() => setStatusFilter('expired')}><strong>{analytics.expiredCount.toLocaleString('fa-IR')}</strong><span>گزارش منقضی</span></button>
+            <button type="button" aria-pressed={statusFilter === 'follow_up'} onClick={() => setStatusFilter('follow_up')}><strong>{analytics.expiringSoonCount.toLocaleString('fa-IR')}</strong><span>نزدیک به انقضا</span></button>
+            <button type="button" aria-pressed={statusFilter === 'urgent'} onClick={() => setStatusFilter('urgent')}><strong>{analytics.reviewNeededCount.toLocaleString('fa-IR')}</strong><span>نیازمند بازبینی</span></button>
           </div>
         </section>
       )}
@@ -224,9 +239,9 @@ export function CreditReportsDashboard({ reports, applicants, loading, onSelectR
 
         <div className="credit-portfolio-toolbar">
           <label className="credit-search"><Search size={17} aria-hidden="true" /><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="جست‌وجوی نام، فروشگاه، موبایل یا کد ملی…" aria-label="جست‌وجوی مشتری" /></label>
-          <label><span>ریسک</span><select value={riskFilter} onChange={(event) => setRiskFilter(event.target.value as 'all' | CreditRiskBucket)}><option value="all">همه سطوح</option><option value="low">کم‌ریسک</option><option value="medium">متوسط</option><option value="high">پرریسک</option><option value="unknown">نامشخص</option></select></label>
-          <label><span>وضعیت</span><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}><option value="all">همه وضعیت‌ها</option><option value="urgent">اقدام فوری</option><option value="follow_up">نیازمند پیگیری</option><option value="normal">عادی</option><option value="missing">فاقد گزارش</option><option value="expired">منقضی</option></select></label>
-          <label><span>مرتب‌سازی</span><select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}><option value="priority">اولویت پیگیری</option><option value="score_desc">بیشترین امتیاز</option><option value="score_asc">کمترین امتیاز</option><option value="latest">جدیدترین گزارش</option></select></label>
+          <label><span>ریسک</span><select aria-label="فیلتر سطح ریسک" value={riskFilter} onChange={(event) => setRiskFilter(event.target.value as 'all' | CreditRiskBucket)}><option value="all">همه سطوح</option><option value="low">کم‌ریسک</option><option value="medium">متوسط</option><option value="high">پرریسک</option><option value="unknown">نامشخص</option></select></label>
+          <label><span>وضعیت</span><select aria-label="فیلتر وضعیت گزارش" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}><option value="all">همه وضعیت‌ها</option><option value="urgent">اقدام فوری</option><option value="follow_up">نیازمند پیگیری</option><option value="normal">عادی</option><option value="missing">فاقد گزارش</option><option value="expired">منقضی</option></select></label>
+          <label><span>مرتب‌سازی</span><select aria-label="مرتب‌سازی مشتریان" value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}><option value="priority">اولویت پیگیری</option><option value="score_desc">بیشترین امتیاز</option><option value="score_asc">کمترین امتیاز</option><option value="latest">جدیدترین گزارش</option></select></label>
         </div>
 
         <div className="credit-table-wrap">
@@ -238,17 +253,27 @@ export function CreditReportsDashboard({ reports, applicants, loading, onSelectR
                 const inquiries = report?.data.inquiryCounts;
                 return (
                   <tr key={row.userId}>
-                    <td><strong>{row.userName}</strong><span>{row.userStoreName || row.userPhone || 'بدون اطلاعات تماس'}</span>{row.userStoreName && row.userPhone && <small>{row.userPhone}</small>}</td>
+                    <td><strong>{row.userName}</strong><span>{row.userStoreName || row.userPhone || 'بدون اطلاعات تماس'}</span>{row.userStoreName && row.userPhone && <small className="a-ltr">{row.userPhone}</small>}</td>
                     <td>{report ? <><strong className="credit-score-value">{report.score?.toLocaleString('fa-IR') ?? '—'}</strong><span className={`credit-risk credit-risk--${row.risk}`}>{[report.riskGrade, riskLabels[row.risk]].filter(Boolean).join(' · ')}</span></> : <span className="credit-muted">بدون گزارش</span>}</td>
                     <td><strong>{report ? percentLabel(report.goodPayerMinPercent, report.goodPayerMaxPercent) : '—'}</strong></td>
                     <td>{report ? <><strong className={(report.bouncedChequeCount ?? 0) > 0 ? 'credit-danger-text' : ''}>{(report.bouncedChequeCount ?? 0).toLocaleString('fa-IR')} چک برگشتی</strong><span>{(inquiries?.oneMonth ?? 0).toLocaleString('fa-IR')} استعلام ماه / {(inquiries?.oneYear ?? 0).toLocaleString('fa-IR')} سال</span></> : '—'}</td>
                     <td>{report ? <><strong>{dateLabel(report.createdAt)}</strong><span className={report.isExpired ? 'credit-danger-text' : ''}>{report.isExpired ? 'منقضی شده' : `معتبر تا ${dateLabel(report.expiresAt)}`}</span><small>{row.historyCount.toLocaleString('fa-IR')} نسخه در تاریخچه</small></> : <span className="credit-muted">بارگذاری نشده</span>}</td>
                     <td><span className={`credit-priority credit-priority--${row.priority}`}>{priorityLabels[row.priority]}</span><div className="credit-priority-reasons">{row.priorityReasons.length ? row.priorityReasons.slice(0, 3).map((reason) => <small key={reason}>{reason}</small>) : <small>مورد خاصی شناسایی نشد</small>}</div></td>
-                    <td><div className="credit-row-actions">{report ? <><button type="button" onClick={() => onSelectReport(report)}><Eye size={15} /> جزئیات</button><a href={report.fileUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} /> PDF</a></> : <span>در انتظار فایل مشتری</span>}</div></td>
+                    <td><div className="credit-row-actions">{report ? <><button type="button" aria-label={`جزئیات گزارش ${row.userName}`} onClick={() => onSelectReport(report)}><Eye size={15} /> جزئیات</button><a href={report.fileUrl} target="_blank" rel="noreferrer" aria-label={`فایل PDF گزارش ${row.userName} (در پنجرهٔ جدید)`}><ExternalLink size={15} /> PDF</a></> : <span>در انتظار فایل مشتری</span>}</div></td>
                   </tr>
                 );
               })}
-              {filteredRows.length === 0 && <tr><td colSpan={7}><div className="credit-table-empty"><FileQuestion size={28} /><strong>مشتری مطابق فیلترها پیدا نشد</strong><span>فیلترها یا عبارت جست‌وجو را تغییر دهید.</span></div></td></tr>}
+              {filteredRows.length === 0 && (filtersActive ? (
+                <TableState
+                  colSpan={7}
+                  kind="filtered"
+                  noun="مشتری"
+                  text="فیلترها یا عبارت جست‌وجو را تغییر دهید."
+                  action={<button type="button" className="a-btn a-btn--ghost a-btn--sm" onClick={clearFilters}>پاک کردن فیلترها</button>}
+                />
+              ) : (
+                <TableState colSpan={7} kind="empty" noun="متقاضی اعتبار" />
+              ))}
             </tbody>
           </table>
         </div>

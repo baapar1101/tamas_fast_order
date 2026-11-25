@@ -51,7 +51,7 @@ export function AdminPasswordLogin() {
   };
 
   return (
-    <form onSubmit={(event) => void submit(event)} style={{ display: 'grid', gap: 10, marginBottom: 16, textAlign: 'start' }} aria-label="ورود مدیر با نام کاربری و رمز">
+    <form onSubmit={(event) => void submit(event)} className="admin-password-login" aria-label="ورود مدیر با نام کاربری و رمز">
       <input
         className="a-input"
         dir="ltr"
@@ -72,7 +72,7 @@ export function AdminPasswordLogin() {
         onChange={(event) => setPassword(event.target.value)}
       />
       {error && <div className="a-alert a-alert--error" role="alert">{error}</div>}
-      <button type="submit" className="huma-btn-primary admin-entry-action" disabled={busy}>
+      <button type="submit" className="huma-btn-primary admin-entry-action" disabled={busy} aria-busy={busy || undefined}>
         {busy ? 'در حال ورود…' : 'ورود به پنل مدیریت'}
       </button>
     </form>

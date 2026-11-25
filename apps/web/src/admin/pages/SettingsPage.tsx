@@ -7,6 +7,8 @@ import './settings-layout.css';
 import { PaymentMethodsSettings } from '../components/PaymentMethodsSettings';
 import { PaymentTermsSettings } from '../components/PaymentTermsSettings';
 import { FestivalSettings } from '../components/FestivalSettings';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { AdminState, TableState } from '../components/AdminState';
 import {
   CUSTOMER_DISCOUNT_SETTING_KEY,
   PAYMENT_ROUTING_SETTING_KEY,
@@ -267,6 +269,7 @@ export function SettingsPage() {
   const [form, setForm] = useState<Record<string, string>>({});
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
+  const [pendingKeyDelete, setPendingKeyDelete] = useState<string | null>(null);
   const [customerTelegramBroadcast, setCustomerTelegramBroadcast] = useState({ title: '', message: '' });
   const [customerTelegramBroadcasting, setCustomerTelegramBroadcasting] = useState(false);
   const [telegramBackupSending, setTelegramBackupSending] = useState(false);
@@ -357,6 +360,7 @@ export function SettingsPage() {
       toast.ok('کلید تنظیمات حذف شد.');
       void qc.invalidateQueries({ queryKey: ['admin', 'settings'] });
     },
+    onError: (err: Error) => toast.error(err.message || 'کلید حذف نشد؛ دوباره تلاش کنید.'),
   });
 
   const knownKeys = new Set<string>([
@@ -470,10 +474,11 @@ export function SettingsPage() {
           <button
             type="button"
             className="a-btn a-btn--primary"
-            disabled={save.isPending}
+            disabled={save.isPending || !settings.data}
+            aria-busy={save.isPending || undefined}
             onClick={() => save.mutate(form)}
           >
-            {save.isPending ? 'در حال ذخیره...' : 'ذخیره کل تنظیمات'}
+            {save.isPending ? 'در حال ذخیره…' : 'ذخیره کل تنظیمات'}
           </button>
         </div>
       </section>
@@ -510,6 +515,11 @@ export function SettingsPage() {
         </nav>
 
         <div className="settings-panel">
+      {settings.isError ? (
+        <AdminState kind="error" title="دریافت تنظیمات انجام نشد." error={settings.error} onRetry={() => void settings.refetch()} />
+      ) : settings.isLoading ? (
+        <AdminState kind="loading" title="در حال دریافت تنظیمات…" />
+      ) : (<>
       {activeTab === 'payment' && (
         <PaymentMethodsSettings
           value={form.payment_methods}
@@ -536,7 +546,7 @@ export function SettingsPage() {
           <section className="a-card">
             <div className="a-card-head a-card-head--split">
               <div><h3 className="a-card-title">کد تخفیف اختصاصی مشتریان</h3><p className="a-card-desc">برای هر مشتری یک کد امن و شخصی ساخته می‌شود؛ محدودیت سفارش اول و بازه زمانی در زمان ثبت سفارش کنترل می‌شود.</p></div>
-              <button type="button" role="switch" className="a-switch" aria-checked={customerDiscount.enabled} onClick={() => updateCustomerDiscount({ ...customerDiscount, enabled: !customerDiscount.enabled })} />
+              <button type="button" role="switch" className="a-switch" aria-label="فعال‌سازی کد تخفیف اختصاصی مشتریان" aria-checked={customerDiscount.enabled} onClick={() => updateCustomerDiscount({ ...customerDiscount, enabled: !customerDiscount.enabled })} />
             </div>
             <div className="a-form-grid a-cols--3">
               <div className="a-field"><label className="a-label">نوع تخفیف</label><select className="a-select" value={customerDiscount.kind} onChange={(event) => updateCustomerDiscount({ ...customerDiscount, kind: event.target.value as typeof customerDiscount.kind })}><option value="percent">درصدی</option><option value="fixed">مبلغ ثابت</option><option value="free_shipping">ارسال رایگان</option></select></div>
@@ -553,7 +563,7 @@ export function SettingsPage() {
           </section>
 
           <section className="a-card">
-            <div className="a-card-head a-card-head--split"><div><h3 className="a-card-title">مسیریابی هوشمند مبالغ بالا</h3><p className="a-card-desc">همه واریزی‌های بالاتر از سقف، شماره حساب را پنهان می‌کنند و برای ارسال دستی یا انتخاب هوشمند حساب وارد صف اپراتور می‌شوند.</p></div><button type="button" role="switch" className="a-switch" aria-checked={paymentRouting.enabled} onClick={() => updatePaymentRouting({ ...paymentRouting, enabled: !paymentRouting.enabled })} /></div>
+            <div className="a-card-head a-card-head--split"><div><h3 className="a-card-title">مسیریابی هوشمند مبالغ بالا</h3><p className="a-card-desc">همه واریزی‌های بالاتر از سقف، شماره حساب را پنهان می‌کنند و برای ارسال دستی یا انتخاب هوشمند حساب وارد صف اپراتور می‌شوند.</p></div><button type="button" role="switch" className="a-switch" aria-label="فعال‌سازی مسیریابی هوشمند مبالغ بالا" aria-checked={paymentRouting.enabled} onClick={() => updatePaymentRouting({ ...paymentRouting, enabled: !paymentRouting.enabled })} /></div>
             <div className="a-form-grid a-cols--2"><div className="a-field"><label className="a-label">سقف کنترل (تومان)</label><input className="a-input a-ltr" type="number" value={paymentRouting.thresholdAmount} onChange={(event) => updatePaymentRouting({ ...paymentRouting, thresholdAmount: Number(event.target.value) })} /></div><div className="a-field a-field--full"><label className="a-label">پیام انتظار مشتری</label><textarea className="a-textarea" rows={3} value={paymentRouting.pendingMessage} onChange={(event) => updatePaymentRouting({ ...paymentRouting, pendingMessage: event.target.value })} /></div></div>
             <div className="a-card-head a-card-head--split mt-4"><h4 className="a-card-title">حساب‌های قابل اعلام</h4><button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={() => updatePaymentRouting({ ...paymentRouting, accounts: [...paymentRouting.accounts, { id: `account-${Date.now()}`, label: 'حساب جدید', bankName: '', holder: '', cardNumber: '', iban: '', accountNumber: '', enabled: true, minAmount: paymentRouting.thresholdAmount, maxAmount: null }] })}>+ افزودن حساب</button></div>
             <div className="a-page-stack">{paymentRouting.accounts.map((account, index) => {
@@ -646,7 +656,7 @@ export function SettingsPage() {
           </div>
           <div className="mt-5">
             <button type="button" className="a-btn a-btn--primary" disabled={save.isPending} onClick={() => save.mutate(form)}>
-              {save.isPending ? 'در حال ذخیره...' : 'ذخیره فیلترهای صفحه اصلی'}
+              {save.isPending ? 'در حال ذخیره…' : 'ذخیره فیلترهای صفحه اصلی'}
             </button>
           </div>
         </section>
@@ -694,6 +704,7 @@ export function SettingsPage() {
               <button
                 type="button"
                 role="switch"
+                aria-label="فعال‌سازی ربات تلگرام"
                 aria-checked={form.TELEGRAM_ENABLED === 'true'}
                 className="a-switch"
                 onClick={() => setForm({ ...form, TELEGRAM_ENABLED: form.TELEGRAM_ENABLED === 'true' ? 'false' : 'true' })}
@@ -706,7 +717,7 @@ export function SettingsPage() {
                   className="a-input a-ltr"
                   dir="ltr"
                   type="password"
-                  placeholder="123456:ABC..."
+                  placeholder="123456:ABC…"
                   autoComplete="new-password"
                   value={form.private_TELEGRAM_BOT_TOKEN ?? form.TELEGRAM_BOT_TOKEN ?? ''}
                   onChange={(e) => setForm({ ...form, private_TELEGRAM_BOT_TOKEN: e.target.value })}
@@ -735,6 +746,7 @@ export function SettingsPage() {
               <button
                 type="button"
                 role="switch"
+                aria-label="فعال‌سازی عملیات مدیریتی داخل ربات"
                 aria-checked={form.TELEGRAM_OPERATIONS_ENABLED === 'true'}
                 className="a-switch"
                 onClick={() => setForm({
@@ -917,7 +929,7 @@ export function SettingsPage() {
                   </button>
                 ))}
                 {form.TELEGRAM_BACKUP_GROUP_ID && !backupTargetReady && (
-                  <p className="a-note" style={{ color: 'var(--a-red)' }}>گروه انتخاب‌شده آماده ارسال نیست؛ آن را فعال کنید و Chat ID را بررسی کنید.</p>
+                  <p className="a-note settings-note--danger" role="alert">گروه انتخاب‌شده آماده ارسال نیست؛ آن را فعال کنید و Chat ID را بررسی کنید.</p>
                 )}
               </div>
               <div className="a-field">
@@ -967,7 +979,7 @@ export function SettingsPage() {
                     {form.TELEGRAM_BACKUP_LAST_FILE} · {Math.max(1, Math.round(Number(form.TELEGRAM_BACKUP_LAST_SIZE ?? 0) / 1024))} KB
                   </p>
                 )}
-                {form.TELEGRAM_BACKUP_LAST_ERROR && <p className="a-note" style={{ color: 'var(--a-red)' }}>{form.TELEGRAM_BACKUP_LAST_ERROR}</p>}
+                {form.TELEGRAM_BACKUP_LAST_ERROR && <p className="a-note settings-note--danger">{form.TELEGRAM_BACKUP_LAST_ERROR}</p>}
               </div>
             </div>
 
@@ -991,7 +1003,7 @@ export function SettingsPage() {
                   }
                 }}
               >
-                {telegramBackupSending ? 'در حال ساخت و ارسال...' : 'ذخیره و ارسال آزمایشی الآن'}
+                {telegramBackupSending ? 'در حال ساخت و ارسال…' : 'ذخیره و ارسال آزمایشی الآن'}
               </button>
             </div>
           </section>
@@ -1057,7 +1069,7 @@ export function SettingsPage() {
             <div className="a-form-grid a-cols--2">
               <div className="a-field">
                 <label className="a-label">توکن ربات مشتریان</label>
-                <input className="a-input a-ltr" dir="ltr" type="password" autoComplete="new-password" placeholder="123456:ABC..." value={form.private_CUSTOMER_TELEGRAM_BOT_TOKEN ?? ''} onChange={(e) => setForm({ ...form, private_CUSTOMER_TELEGRAM_BOT_TOKEN: e.target.value })} />
+                <input className="a-input a-ltr" dir="ltr" type="password" autoComplete="new-password" placeholder="123456:ABC…" value={form.private_CUSTOMER_TELEGRAM_BOT_TOKEN ?? ''} onChange={(e) => setForm({ ...form, private_CUSTOMER_TELEGRAM_BOT_TOKEN: e.target.value })} />
               </div>
               <div className="a-field">
                 <label className="a-label">نام کاربری ربات</label>
@@ -1107,7 +1119,7 @@ export function SettingsPage() {
           <section className="a-card">
             <div className="a-card-head a-card-head--split">
               <div><h3 className="a-card-title">ربات داخلی بله</h3><p className="a-card-desc">سرویس داخلی کنار تلگرام؛ اتصال امن حساب، پیگیری سفارش، کیف پول و اعلان‌های مالی.</p></div>
-              <button type="button" role="switch" className="a-switch" aria-checked={form.CUSTOMER_BALE_ENABLED === 'true'} onClick={() => setForm({ ...form, CUSTOMER_BALE_ENABLED: form.CUSTOMER_BALE_ENABLED === 'true' ? 'false' : 'true' })} />
+              <button type="button" role="switch" className="a-switch" aria-label="فعال‌سازی ربات بله" aria-checked={form.CUSTOMER_BALE_ENABLED === 'true'} onClick={() => setForm({ ...form, CUSTOMER_BALE_ENABLED: form.CUSTOMER_BALE_ENABLED === 'true' ? 'false' : 'true' })} />
             </div>
             <div className="a-form-grid a-cols--2">
               <div className="a-field"><label className="a-label">توکن ربات بله</label><input className="a-input a-ltr" dir="ltr" type="password" value={form.private_CUSTOMER_BALE_BOT_TOKEN ?? ''} onChange={(event) => setForm({ ...form, private_CUSTOMER_BALE_BOT_TOKEN: event.target.value })} /></div>
@@ -1134,11 +1146,11 @@ export function SettingsPage() {
               </div>
               <div className="a-field a-field--full">
                 <label className="a-label">توضیح پاپ‌آپ</label>
-                <textarea className="a-textarea" rows={3} value={form.CUSTOMER_TELEGRAM_POPUP_TEXT ?? ''} placeholder="برای دریافت وضعیت سفارش، پرداخت و اعتبار..." onChange={(e) => setForm({ ...form, CUSTOMER_TELEGRAM_POPUP_TEXT: e.target.value })} />
+                <textarea className="a-textarea" rows={3} value={form.CUSTOMER_TELEGRAM_POPUP_TEXT ?? ''} placeholder="برای دریافت وضعیت سفارش، پرداخت و اعتبار…" onChange={(e) => setForm({ ...form, CUSTOMER_TELEGRAM_POPUP_TEXT: e.target.value })} />
               </div>
               <div className="a-field a-field--full">
                 <label className="a-label">پیام خوش‌آمدگویی ربات</label>
-                <textarea className="a-textarea" rows={3} value={form.CUSTOMER_TELEGRAM_WELCOME ?? ''} placeholder="به ربات مشتریان تماس مارکت خوش آمدید..." onChange={(e) => setForm({ ...form, CUSTOMER_TELEGRAM_WELCOME: e.target.value })} />
+                <textarea className="a-textarea" rows={3} value={form.CUSTOMER_TELEGRAM_WELCOME ?? ''} placeholder="به ربات مشتریان تماس مارکت خوش آمدید…" onChange={(e) => setForm({ ...form, CUSTOMER_TELEGRAM_WELCOME: e.target.value })} />
               </div>
             </div>
           </section>
@@ -1166,7 +1178,7 @@ export function SettingsPage() {
 
           <section className="a-card">
             <div className="a-card-head"><h3 className="a-card-title">روش اتصال و امنیت</h3></div>
-            <ol className="a-note" style={{ lineHeight: 2, paddingInlineStart: '1.5rem' }}>
+            <ol className="a-note settings-steps">
               <li>مشتری بعد از ورود، لینک یک‌بارمصرف ۱۰ دقیقه‌ای دریافت می‌کند.</li>
               <li>ربات لینک را به همان حساب سایت متصل می‌کند؛ یا شماره تماس متعلق به خود کاربر را می‌پذیرد.</li>
               <li>هر حساب تلگرام فقط به یک مشتری متصل می‌شود و webhook با کلید محرمانه Telegram اعتبارسنجی می‌شود.</li>
@@ -1277,7 +1289,7 @@ export function SettingsPage() {
                   }
                 }}
               >
-                {save.isPending ? 'در حال بررسی...' : 'ذخیره و بررسی اتصال'}
+                {save.isPending ? 'در حال بررسی…' : 'ذخیره و بررسی اتصال'}
               </button>
               <p className="a-note m-0">کلیدها فقط توسط بک‌اند استفاده می‌شوند و در درخواست‌های مستقیم مرورگر به اروان ارسال نمی‌شوند.</p>
             </div>
@@ -1373,28 +1385,24 @@ export function SettingsPage() {
             <div className="a-page-stack">
               {extraKeys.map((key) => (
                 <div key={key} className="a-key-row">
-                  <input className="a-input a-key-row__key a-ltr" dir="ltr" value={key} readOnly />
+                  <input className="a-input a-key-row__key a-ltr" dir="ltr" value={key} readOnly aria-label="کلید" />
                   <input
                     className="a-input a-grow"
+                    aria-label={`مقدار ${key}`}
                     value={form[key] ?? ''}
                     onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                   />
                   <button
                     type="button"
                     className="a-btn a-btn--danger a-btn--xs"
-                    onClick={() => {
-                      if (!confirm(`کلید «${key}» حذف شود؟`)) return;
-                      removeKey.mutate(key);
-                      const next = { ...form };
-                      delete next[key];
-                      setForm(next);
-                    }}
+                    aria-label={`حذف کلید ${key}`}
+                    onClick={() => setPendingKeyDelete(key)}
                   >
                     حذف
                   </button>
                 </div>
               ))}
-              {extraKeys.length === 0 && <p className="a-note">هیچ کلید دلخواهی تعریف نشده است.</p>}
+              {extraKeys.length === 0 && <AdminState kind="empty" noun="کلید دلخواه" compact />}
             </div>
 
             <div className="a-key-row a-key-row--new">
@@ -1402,12 +1410,14 @@ export function SettingsPage() {
                 className="a-input a-key-row__key a-ltr"
                 dir="ltr"
                 placeholder="کلید جدید"
+                aria-label="کلید جدید"
                 value={newKey}
                 onChange={(e) => setNewKey(e.target.value)}
               />
               <input
                 className="a-input a-grow"
                 placeholder="مقدار"
+                aria-label="مقدار کلید جدید"
                 value={newValue}
                 onChange={(e) => setNewValue(e.target.value)}
               />
@@ -1495,6 +1505,7 @@ export function SettingsPage() {
               <button
                 type="button"
                 role="switch"
+                aria-label="فعال‌سازی همگام‌سازی خودکار CRM"
                 aria-checked={form.CRM_SYNC_ENABLED === 'true'}
                 className="a-switch"
                 onClick={() => setForm({ ...form, CRM_SYNC_ENABLED: form.CRM_SYNC_ENABLED === 'true' ? 'false' : 'true' })}
@@ -1532,17 +1543,17 @@ export function SettingsPage() {
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="relative flex-1 h-3 bg-slate-200 rounded-full overflow-hidden">
+                <div className="settings-progress" role="progressbar" aria-label={p.label} aria-valuemin={0} aria-valuemax={p.total} aria-valuenow={p.current}>
                   <div
-                    className={`absolute inset-0 rounded-full transition-all duration-200 ${p.error ? 'bg-red-400' : p.done ? 'bg-emerald-400' : 'bg-blue-500'}`}
+                    className={`settings-progress__bar${p.error ? ' is-error' : p.done ? ' is-done' : ''}`}
                     style={{ width: `${Math.min(100, Math.round((p.current / (p.total || 1)) * 100))}%` }}
                   />
                 </div>
-                <span className="a-ltr font-mono text-sm font-bold w-20 text-right">
-                  {p.current}/{p.total}
+                <span className="a-num settings-progress__count">
+                  {p.current.toLocaleString('fa-IR')}/{p.total.toLocaleString('fa-IR')}
                 </span>
                 {!p.done && (
-                  <svg className="h-4 w-4 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 animate-spin settings-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                   </svg>
@@ -1569,10 +1580,10 @@ export function SettingsPage() {
                     try {
                       const res = await api.get<{ ok: boolean; crm: { reachable: boolean; baseUrl: string } }>('/crm/health');
                       if (res.crm?.reachable) toast.ok(`CRM قابل دسترسی: ${res.crm.baseUrl}`);
-                      else toast.error('CRM غیرقابل دسترسی است');
+                      else toast.error('CRM در دسترس نیست.');
                       void qc.invalidateQueries({ queryKey: ['admin', 'crm-stats'] });
                     } catch (err) {
-                      toast.error(err instanceof Error ? err.message : 'خطا در بررسی اتصال');
+                      toast.error(err instanceof Error ? err.message : 'بررسی اتصال انجام نشد؛ دوباره تلاش کنید.');
                     }
                   }}
                 >
@@ -1582,11 +1593,9 @@ export function SettingsPage() {
             </div>
 
             {crmStats.isLoading ? (
-              <div className="a-skeleton a-skeleton--text" />
-            ) : crmStats.error ? (
-              <div className="a-alert a-alert--error">
-                خطا در بارگذاری وضعیت: {crmStats.error.message}
-              </div>
+              <AdminState kind="loading" compact />
+            ) : crmStats.isError ? (
+              <AdminState kind="error" compact title="دریافت وضعیت CRM انجام نشد." error={crmStats.error} onRetry={() => void crmStats.refetch()} />
             ) : crmStats.data && (
               <div className="a-grid a-grid--4 a-gap--4">
                 <div className="a-stat-card">
@@ -1619,7 +1628,7 @@ export function SettingsPage() {
                 </div>
                 <div className="a-stat-card">
                   <div className="a-stat-label">خطاهای همگام‌سازی</div>
-                  <div className="a-stat-value text-red-400">{crmStats.data.syncStats?.totalErrors?.toLocaleString('fa-IR') ?? 0}</div>
+                  <div className="a-stat-value settings-stat--danger">{crmStats.data.syncStats?.totalErrors?.toLocaleString('fa-IR') ?? 0}</div>
                 </div>
                 <div className="a-stat-card">
                   <div className="a-stat-label">آخرین همگام‌سازی</div>
@@ -1646,8 +1655,9 @@ export function SettingsPage() {
                   className="a-btn a-btn--secondary"
                   onClick={() => syncProducts.refetch()}
                   disabled={syncProducts.isFetching}
+                  aria-busy={syncProducts.isFetching || undefined}
                 >
-                  {syncProducts.isFetching ? 'بارگذاری...' : 'بازآوری'}
+                  {syncProducts.isFetching ? 'در حال دریافت…' : 'بازآوری'}
                 </button>
                 <button
                   type="button"
@@ -1655,15 +1665,15 @@ export function SettingsPage() {
                   onClick={async () => {
                     try {
                       const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/products/push');
-                      if (res.ok) toast.ok(`${res.pushed} محصول همگام‌سازی شد. خطاها: ${res.errors}`);
-                      else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                      if (res.ok) toast.ok(`${res.pushed.toLocaleString('fa-IR')} محصول همگام‌سازی شد. خطاها: ${res.errors.toLocaleString('fa-IR')}.`);
+                      else toast.error(`همگام‌سازی کامل نشد: ${res.errorDetails?.slice(0, 3).join('، ')}`);
                       syncProducts.refetch();
                     } catch (err) {
-                      toast.error(err instanceof Error ? err.message : 'خطa در همگام‌سازی محصولات');
+                      toast.error(err instanceof Error ? err.message : 'همگام‌سازی محصولات انجام نشد؛ دوباره تلاش کنید.');
                     }
                   }}
                 >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   همگام‌سازی همه
@@ -1672,11 +1682,9 @@ export function SettingsPage() {
             </div>
 
             {syncProducts.isLoading ? (
-              <div className="a-skeleton a-skeleton--text" />
-            ) : syncProducts.error ? (
-              <div className="a-alert a-alert--error">
-                خطa در بارگذاری جزئیات محصولات: {syncProducts.error.message}
-              </div>
+              <AdminState kind="loading" compact />
+            ) : syncProducts.isError ? (
+              <AdminState kind="error" compact title="دریافت جزئیات محصولات انجام نشد." error={syncProducts.error} onRetry={() => void syncProducts.refetch()} />
             ) : syncProducts.data?.items && syncProducts.data.items.length > 0 ? (
               <div className="a-table-wrap">
                 <table className="a-table">
@@ -1684,12 +1692,12 @@ export function SettingsPage() {
                     <tr>
                       <th>تصویر</th>
                       <th>محصول / SKU</th>
-                      <th>قیمت</th>
+                      <th className="a-num">قیمت</th>
                       <th>موجودی</th>
                       <th>وضعیت CRM</th>
                       <th>ID در CRM</th>
                       <th>آخرین همگام‌سازی</th>
-                      <th>خطa</th>
+                      <th>خطا</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1702,37 +1710,35 @@ export function SettingsPage() {
                         </td>
                         <td>
                           <div className="font-medium">{p.title}</div>
-                          <div className="text-xs text-slate-400 a-ltr">{p.sku ?? '—'}</div>
-                          <div className="text-xs text-slate-400 a-ltr">ID: {p.productId}</div>
+                          <div className="a-cell-sub a-ltr">{p.sku ?? '—'}</div>
+                          <div className="a-cell-sub a-ltr">ID: {p.productId}</div>
                         </td>
-                        <td className="a-ltr font-mono">{p.price.toLocaleString('fa-IR')}</td>
+                        <td className="a-num">{p.price.toLocaleString('fa-IR')}</td>
                         <td>
-                          <div className="a-ltr font-mono">
-                            {p.kermanStock !== undefined || p.tehranStock !== undefined
-                              ? `کرمان: ${p.kermanStock ?? 0} | تهران: ${p.tehranStock ?? 0} | کل: ${p.stock}`
-                              : `کل: ${p.stock}`}
-                          </div>
+                          {p.kermanStock !== undefined || p.tehranStock !== undefined
+                            ? `کرمان: ${(p.kermanStock ?? 0).toLocaleString('fa-IR')} | تهران: ${(p.tehranStock ?? 0).toLocaleString('fa-IR')} | کل: ${p.stock.toLocaleString('fa-IR')}`
+                            : `کل: ${p.stock.toLocaleString('fa-IR')}`}
                         </td>
                         <td>
                           <span className={`a-badge ${
                             p.syncStatus === 'synced' ? 'a-badge--success' :
                             p.syncStatus === 'pending' ? 'a-badge--warning' :
                             p.syncStatus === 'error' ? 'a-badge--danger' :
-                            'a-badge--muted'
+                            'a-badge--neutral'
                           }`}>
-                            {p.syncStatus === 'synced' ? 'همگام‌سازی شده' :
+                            {p.syncStatus === 'synced' ? 'همگام‌سازی‌شده' :
                              p.syncStatus === 'pending' ? 'در صف' :
-                             p.syncStatus === 'error' ? 'خطa' :
+                             p.syncStatus === 'error' ? 'خطا' :
                              'هرگز همگام‌سازی نشده'}
                           </span>
                         </td>
-                        <td className="a-ltr font-mono">{p.crmId ?? '—'}</td>
-                        <td className="text-xs text-slate-400">
+                        <td className="a-ltr a-mono">{p.crmId ?? '—'}</td>
+                        <td className="a-cell-sub">
                           {p.lastSyncedAt
                             ? new Date(p.lastSyncedAt).toLocaleString('fa-IR')
                             : '—'}
                         </td>
-                        <td className="text-red-400 text-xs max-w-xs truncate block" title={p.syncError}>
+                        <td className="settings-cell-error max-w-xs truncate block" title={p.syncError}>
                           {p.syncError ?? '—'}
                         </td>
                       </tr>
@@ -1741,7 +1747,7 @@ export function SettingsPage() {
                 </table>
               </div>
             ) : (
-              <p className="a-note">هیچ محصولی برای نمایش وجود ندارد.</p>
+              <AdminState kind="empty" compact title="هنوز محصولی همگام‌سازی نشده است." />
             )}
           </section>
 
@@ -1757,17 +1763,16 @@ export function SettingsPage() {
                 className="a-btn a-btn--secondary"
                 onClick={() => syncLogs.refetch()}
                 disabled={syncLogs.isFetching}
+                aria-busy={syncLogs.isFetching || undefined}
               >
-                {syncLogs.isFetching ? 'بارگذاری...' : 'بازآوری'}
+                {syncLogs.isFetching ? 'در حال دریافت…' : 'بازآوری'}
               </button>
             </div>
 
             {syncLogs.isLoading ? (
-              <div className="a-skeleton a-skeleton--text" />
-            ) : syncLogs.error ? (
-              <div className="a-alert a-alert--error">
-                خطa در بارگذاری لاگ‌ها: {syncLogs.error.message}
-              </div>
+              <AdminState kind="loading" compact />
+            ) : syncLogs.isError ? (
+              <AdminState kind="error" compact title="دریافت لاگ‌ها انجام نشد." error={syncLogs.error} onRetry={() => void syncLogs.refetch()} />
             ) : syncLogs.data?.items && syncLogs.data.items.length > 0 ? (
               <div className="a-table-wrap">
                 <table className="a-table">
@@ -1785,10 +1790,10 @@ export function SettingsPage() {
                   <tbody>
                     {syncLogs.data.items.slice(0, 100).map((log) => (
                       <tr key={log.id} className={log.status === 'error' ? 'a-row--error' : ''}>
-                        <td className="text-xs text-slate-400">
+                        <td className="a-cell-sub">
                           {new Date(log.createdAt).toLocaleString('fa-IR')}
                         </td>
-                        <td className="font-mono text-xs">
+                        <td>
                           {log.entity === 'order' ? 'سفارش' :
                            log.entity === 'product' ? 'محصول' :
                            log.entity === 'person' ? 'مشتری' : 'چت'}
@@ -1798,23 +1803,23 @@ export function SettingsPage() {
                             log.action === 'create' ? 'a-badge--success' :
                             log.action === 'update' ? 'a-badge--info' :
                             log.action === 'delete' ? 'a-badge--danger' :
-                            'a-badge--muted'
+                            'a-badge--neutral'
                           }`}>
                             {log.action}
                           </span>
                         </td>
-                        <td className="a-ltr font-mono text-xs">{log.entityKey}</td>
+                        <td className="a-ltr a-mono">{log.entityKey}</td>
                         <td>
                           <span className={`a-badge ${
                             log.status === 'success' ? 'a-badge--success' :
                             log.status === 'error' ? 'a-badge--danger' :
                             log.status === 'pending' ? 'a-badge--warning' :
-                            'a-badge--muted'
+                            'a-badge--neutral'
                           }`}>
                             {log.status}
                           </span>
                         </td>
-                        <td className="a-ltr font-mono text-xs">{log.remoteId ?? '—'}</td>
+                        <td className="a-ltr a-mono">{log.remoteId ?? '—'}</td>
                         <td className="a-ltr text-xs max-w-md truncate block" title={log.error || JSON.stringify(log.response?.detail ?? log.response)}>
                           {log.error || (log.response ? 'مشاهده پاسخ' : '—')}
                         </td>
@@ -1824,7 +1829,7 @@ export function SettingsPage() {
                 </table>
               </div>
             ) : (
-              <p className="a-note">هنوز لاگی ثبت نشده است.</p>
+              <AdminState kind="empty" compact noun="لاگ" />
             )}
           </section>
 
@@ -1834,7 +1839,7 @@ export function SettingsPage() {
               <h3 className="a-card-title">عملیات همگام‌سازی دستی</h3>
             </div>
             <p className="a-note mb-4">
-              این عملیات مستقیمااً API را صدا می‌زنند و نتیجه را در جدول لاگ‌ها و آمارها منعکس می‌کنند.
+              این عملیات مستقیماً API را صدا می‌زنند و نتیجه را در جدول لاگ‌ها و آمارها منعکس می‌کنند.
             </p>
 
             <div className="a-grid a-grid--2 a-gap--4">
@@ -1845,8 +1850,8 @@ export function SettingsPage() {
                                 const total = crmStats.data?.local.activeProducts ?? 10;
                                 startSync('products-push', 'همگام‌سازی محصولات', total, async () => {
                                   const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/products/push');
-                                  if (res.ok) toast.ok(`${res.pushed} محصول همگام‌سازی شد. خطاها: ${res.errors}`);
-                                  else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                                  if (res.ok) toast.ok(`${res.pushed.toLocaleString('fa-IR')} محصول همگام‌سازی شد. خطاها: ${res.errors.toLocaleString('fa-IR')}.`);
+                                  else toast.error(`همگام‌سازی کامل نشد: ${res.errorDetails?.slice(0, 3).join('، ')}`);
                                   syncProducts.refetch();
                                   syncLogs.refetch();
                                   crmStats.refetch();
@@ -1855,7 +1860,7 @@ export function SettingsPage() {
                               }}
                             >
                               <div className="flex items-center justify-center gap-2">
-                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                                 <span>همگام‌سازی کامل محصولات</span>
@@ -1869,8 +1874,8 @@ export function SettingsPage() {
                   const total = crmStats.data?.local.activeProducts ?? 10;
                   startSync('stock-sync', 'همگام‌سازی موجودی (کرمان/تهران)', total, async () => {
                     const res = await api.post<{ ok: boolean; synced: number; errors: number; errorDetails: string[] }>('/crm/sync/stock');
-                    if (res.ok) toast.ok(`${res.synced} محصول Stok همگam‌سازی شد. خطاها: ${res.errors}`);
-                    else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                    if (res.ok) toast.ok(`موجودی ${res.synced.toLocaleString('fa-IR')} محصول همگام‌سازی شد. خطاها: ${res.errors.toLocaleString('fa-IR')}.`);
+                    else toast.error(`همگام‌سازی کامل نشد: ${res.errorDetails?.slice(0, 3).join('، ')}`);
                     syncProducts.refetch();
                     syncLogs.refetch();
                     return res;
@@ -1878,10 +1883,10 @@ export function SettingsPage() {
                 }}
               >
                 <div className="flex items-center justify-center gap-2">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
-                  <span>همگam‌سازی Stok (کرمان/تهران)</span>
+                  <span>همگام‌سازی موجودی (کرمان/تهران)</span>
                 </div>
               </button>
 
@@ -1890,10 +1895,10 @@ export function SettingsPage() {
                 className="a-btn a-btn--secondary a-btn--block"
                 onClick={() => {
                   const total = crmStats.data?.local.totalOrders ?? 10;
-                  startSync('orders-sync', 'همگam‌سازی سفارش‌های جدید', total, async () => {
+                  startSync('orders-sync', 'همگام‌سازی سفارش‌های جدید', total, async () => {
                     const res = await api.post<{ ok: boolean; pushed: number; skipped?: number; errors: number; errorDetails: string[] }>('/crm/sync/orders');
-                    if (res.ok) toast.ok(`${res.pushed} سفارش ارسال شد، ${res.skipped ?? 0} سفارش قبلاً ارسال شده بود. خطاها: ${res.errors}`);
-                    else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                    if (res.ok) toast.ok(`${res.pushed.toLocaleString('fa-IR')} سفارش ارسال شد، ${(res.skipped ?? 0).toLocaleString('fa-IR')} سفارش قبلاً ارسال شده بود. خطاها: ${res.errors.toLocaleString('fa-IR')}.`);
+                    else toast.error(`همگام‌سازی کامل نشد: ${res.errorDetails?.slice(0, 3).join('، ')}`);
                     syncLogs.refetch();
                     crmStats.refetch();
                     return res;
@@ -1901,10 +1906,10 @@ export function SettingsPage() {
                 }}
               >
                 <div className="flex items-center justify-center gap-2">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
-                  <span>همگam‌سازی سفارش‌های جدید</span>
+                  <span>همگام‌سازی سفارش‌های جدید</span>
                 </div>
               </button>
 
@@ -1913,10 +1918,10 @@ export function SettingsPage() {
                 className="a-btn a-btn--secondary a-btn--block"
                 onClick={() => {
                   const total = crmStats.data?.local.activeUsers ?? 10;
-                  startSync('persons-sync', 'همگam‌سازی مشتریان', total, async () => {
+                  startSync('persons-sync', 'همگام‌سازی مشتریان', total, async () => {
                     const res = await api.post<{ ok: boolean; pushed: number; errors: number; errorDetails: string[] }>('/crm/sync/persons');
-                    if (res.ok) toast.ok(`${res.pushed} مشتری همگam‌سازی شد. خطاها: ${res.errors}`);
-                    else toast.error(`خطاها: ${res.errorDetails?.slice(0, 3).join(', ')}`);
+                    if (res.ok) toast.ok(`${res.pushed.toLocaleString('fa-IR')} مشتری همگام‌سازی شد. خطاها: ${res.errors.toLocaleString('fa-IR')}.`);
+                    else toast.error(`همگام‌سازی کامل نشد: ${res.errorDetails?.slice(0, 3).join('، ')}`);
                     syncLogs.refetch();
                     crmStats.refetch();
                     return res;
@@ -1924,10 +1929,10 @@ export function SettingsPage() {
                 }}
               >
                 <div className="flex items-center justify-center gap-2">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M18 9V6a2 2 0 00-2-2H8a2 2 0 00-2 2v3m8-6v12a2 2 0 01-2 2H8a2 2 0 01-2-2V9m8-6h-6" />
                   </svg>
-                  <span>همگam‌سازی مشتریان</span>
+                  <span>همگام‌سازی مشتریان</span>
                 </div>
               </button>
             </div>
@@ -1952,25 +1957,25 @@ export function SettingsPage() {
                 </tr>
               </thead>
               <tbody>
-                {(audit.data?.items ?? []).length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="a-empty">
-                      هیچ تغییر مدیریتی ثبت نشده است.
-                    </td>
-                  </tr>
+                {audit.isLoading ? (
+                  <TableState colSpan={4} kind="loading" />
+                ) : audit.isError ? (
+                  <TableState colSpan={4} kind="error" error={audit.error} onRetry={() => void audit.refetch()} />
+                ) : (audit.data?.items ?? []).length === 0 ? (
+                  <TableState colSpan={4} kind="empty" title="هنوز تغییر مدیریتی ثبت نشده است." />
                 ) : (
                   audit.data?.items.slice(0, 30).map((a) => (
                     <tr key={a.id} className="order-row">
-                      <td className="text-xs text-slate-400">
+                      <td className="a-cell-sub">
                         {new Date(a.createdAt).toLocaleString('fa-IR')}
                       </td>
-                      <td className="font-mono text-xs text-emerald-300" dir="ltr">
+                      <td className="a-ltr a-mono a-strong">
                         {a.action}
                       </td>
-                      <td className="font-mono text-xs text-slate-300" dir="ltr">
+                      <td className="a-ltr a-mono">
                         {a.entity}
                       </td>
-                      <td className="font-mono text-xs text-slate-400" dir="ltr">
+                      <td className="a-ltr a-mono a-cell-sub">
                         {a.entityKey ?? '—'}
                       </td>
                     </tr>
@@ -1981,8 +1986,27 @@ export function SettingsPage() {
           </div>
         </section>
       )}
+      </>)}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={pendingKeyDelete !== null}
+        title="حذف کلید تنظیمات"
+        description={pendingKeyDelete ? <>کلید <span className="a-ltr">«{pendingKeyDelete}»</span> و مقدارش حذف می‌شود؛ حذف برگشت ندارد.</> : ''}
+        confirmLabel="حذف"
+        busy={removeKey.isPending}
+        onConfirm={() => {
+          const key = pendingKeyDelete;
+          if (!key) return;
+          removeKey.mutate(key);
+          const next = { ...form };
+          delete next[key];
+          setForm(next);
+          setPendingKeyDelete(null);
+        }}
+        onClose={() => setPendingKeyDelete(null)}
+      />
     </div>
   );
 }

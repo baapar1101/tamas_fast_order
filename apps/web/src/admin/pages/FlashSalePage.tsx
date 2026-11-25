@@ -13,6 +13,8 @@ import {
 import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 import { useDebounced } from '../../storefront/hooks';
+import { AdminState, Skeleton, TableState } from '../components/AdminState';
+import './flash-sale.css';
 
 type ProductInfo = { price: number; title: string };
 type SaleWindow = { active: boolean; startsAt: string; endsAt: string };
@@ -60,11 +62,17 @@ export function FlashSalePage() {
       setSaleWindow(data.window);
       toast.ok(data.message);
     },
-    onError: (err: Error) => toast.error(err.message || 'ذخیرهٔ فروش ویژه ناموفق بود.'),
+    onError: (err: Error) => toast.error(err.message || 'فروش ویژه ذخیره نشد؛ دوباره تلاش کنید.'),
   });
 
-  if (query.isError) return <div className="a-page"><div className="a-alert a-alert--error">دریافت تنظیمات فروش ویژه ناموفق بود.</div></div>;
-  if (!config) return <div className="a-page a-fade"><div className="a-card"><div className="a-skeleton a-skeleton--text" /></div></div>;
+  if (query.isError) {
+    return (
+      <div className="a-page">
+        <AdminState kind="error" title="تنظیمات فروش ویژه دریافت نشد." error={query.error} onRetry={() => query.refetch()} />
+      </div>
+    );
+  }
+  if (!config) return <div className="a-page a-fade" role="status" aria-busy="true"><div className="a-card"><Skeleton lines={4} /></div></div>;
 
   const listed = new Set(config.items.map((item) => item.productId));
   const add = (product: ProductDTO) => {
@@ -93,8 +101,8 @@ export function FlashSalePage() {
         </div>
         <div className="a-page-actions">
           <a className="a-btn a-btn--secondary" href="/#flash-sale" target="_blank" rel="noreferrer">مشاهده در سایت</a>
-          <button type="button" className="a-btn a-btn--primary" disabled={!dirty || save.isPending || invalid.length > 0} onClick={() => save.mutate(config)}>
-            {save.isPending ? 'در حال ذخیره…' : dirty ? 'ذخیرهٔ تغییرات' : 'ذخیره شده'}
+          <button type="button" className="a-btn a-btn--primary" disabled={!dirty || save.isPending || invalid.length > 0} aria-busy={save.isPending || undefined} onClick={() => save.mutate(config)}>
+            {save.isPending ? 'در حال ذخیره…' : dirty ? 'ذخیرهٔ تغییرات' : 'ذخیره شده است'}
           </button>
         </div>
       </section>
@@ -122,13 +130,13 @@ export function FlashSalePage() {
           </div>
           <div className="a-field">
             <label className="a-label" htmlFor="fs-start">ساعت شروع</label>
-            <select id="fs-start" className="a-input" value={config.startHour} onChange={(event) => setConfig({ ...config, startHour: Number(event.target.value) })}>
+            <select id="fs-start" className="a-select" value={config.startHour} onChange={(event) => setConfig({ ...config, startHour: Number(event.target.value) })}>
               {HOURS.slice(0, 24).map((hour) => <option key={hour} value={hour}>{formatNumber(hour)}:۰۰</option>)}
             </select>
           </div>
           <div className="a-field">
             <label className="a-label" htmlFor="fs-end">ساعت پایان</label>
-            <select id="fs-end" className="a-input" value={config.endHour} onChange={(event) => setConfig({ ...config, endHour: Number(event.target.value) })}>
+            <select id="fs-end" className="a-select" value={config.endHour} onChange={(event) => setConfig({ ...config, endHour: Number(event.target.value) })}>
               {HOURS.slice(1).map((hour) => <option key={hour} value={hour} disabled={hour <= config.startHour}>{formatNumber(hour)}:۰۰</option>)}
             </select>
           </div>
@@ -146,31 +154,37 @@ export function FlashSalePage() {
           <input className="a-input" type="search" placeholder="جست‌وجوی نام یا کد کالا…" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="جست‌وجوی کالا برای فروش ویژه" />
         </div>
         {debounced.length >= 2 && (
-          <div className="a-table-wrap" style={{ marginTop: 8 }}>
+          <div className="a-table-wrap flash-sale-table">
             <table className="a-table">
               <tbody>
+                {results.isLoading && <TableState colSpan={3} kind="loading" />}
+                {results.isError && <TableState colSpan={3} kind="error" error={results.error} onRetry={() => results.refetch()} />}
                 {(results.data?.items ?? []).map((product) => (
                   <tr key={product.productId}>
-                    <td>{product.title}{product.color ? ` — ${product.color}` : ''}<div className="a-hint">{product.productId}</div></td>
-                    <td>{formatMoney(product.price)}</td>
-                    <td style={{ textAlign: 'end' }}>
+                    <td>{product.title}{product.color ? ` — ${product.color}` : ''}<div className="a-hint a-ltr">{product.productId}</div></td>
+                    <td className="a-num">{formatMoney(product.price)}</td>
+                    <td className="flash-sale-actions-cell">
                       <button type="button" className="a-btn a-btn--secondary a-btn--sm" disabled={listed.has(product.productId) || product.price <= 0} onClick={() => add(product)}>
                         {listed.has(product.productId) ? 'اضافه شده' : 'افزودن'}
                       </button>
                     </td>
                   </tr>
                 ))}
-                {results.isSuccess && results.data.items.length === 0 && <tr><td>کالایی پیدا نشد.</td></tr>}
+                {results.isSuccess && results.data.items.length === 0 && <TableState colSpan={3} kind="filtered" noun="کالا" title="کالایی با این جست‌وجو پیدا نشد." />}
               </tbody>
             </table>
           </div>
         )}
 
+        {config.items.length === 0 && debounced.length < 2 && (
+          <AdminState kind="empty" compact title="هنوز کالایی به فروش ویژه اضافه نشده است." text="از جست‌وجوی بالا کالا را پیدا کنید و «افزودن» را بزنید." />
+        )}
+
         {config.items.length > 0 && (
-          <div className="a-table-wrap" style={{ marginTop: 16 }}>
+          <div className="a-table-wrap flash-sale-table flash-sale-table--items">
             <table className="a-table">
               <thead>
-                <tr><th>کالا</th><th>قیمت فعلی</th><th>قیمت ویژه (تومان)</th><th>تخفیف</th><th /></tr>
+                <tr><th>کالا</th><th className="a-num">قیمت فعلی</th><th>قیمت ویژه (تومان)</th><th className="a-num">تخفیف</th><th><span className="a-sr-only">عملیات</span></th></tr>
               </thead>
               <tbody>
                 {config.items.map((item) => {
@@ -179,21 +193,23 @@ export function FlashSalePage() {
                   const bad = !price || item.salePrice >= price || item.salePrice < flashSaleFloor(price);
                   return (
                     <tr key={item.productId}>
-                      <td>{product?.title ?? 'کالای حذف‌شده'}<div className="a-hint">{item.productId}</div></td>
-                      <td>{price ? formatMoney(price) : '—'}</td>
+                      <td>{product?.title ?? 'کالای حذف‌شده'}<div className="a-hint a-ltr">{item.productId}</div></td>
+                      <td className="a-num">{price ? formatMoney(price) : '—'}</td>
                       <td>
                         <input
-                          className="a-input"
+                          className="a-input flash-sale-price-input"
                           inputMode="numeric"
-                          style={{ maxWidth: 160 }}
+                          dir="ltr"
                           value={item.salePrice}
+                          aria-label={`قیمت ویژهٔ ${product?.title ?? item.productId}`}
                           aria-invalid={bad}
+                          aria-describedby={bad && price > 0 ? `fs-price-error-${item.productId}` : undefined}
                           onChange={(event) => setPrice(item.productId, Number(event.target.value.replace(/[^\d]/g, '')) || 0)}
                         />
-                        {bad && price > 0 && <div className="a-hint" style={{ color: 'var(--a-danger, #dc2626)' }}>بین {formatMoney(flashSaleFloor(price))} و کمتر از {formatMoney(price)}</div>}
+                        {bad && price > 0 && <div className="a-field-error" id={`fs-price-error-${item.productId}`}>بین {formatMoney(flashSaleFloor(price))} و کمتر از {formatMoney(price)}</div>}
                       </td>
-                      <td>{price ? `${formatNumber(discountPercent(price, item.salePrice))}٪` : '—'}</td>
-                      <td style={{ textAlign: 'end' }}><button type="button" className="a-btn a-btn--ghost a-btn--sm" onClick={() => remove(item.productId)}>حذف</button></td>
+                      <td className="a-num">{price ? `${formatNumber(discountPercent(price, item.salePrice))}٪` : '—'}</td>
+                      <td className="flash-sale-actions-cell"><button type="button" className="a-btn a-btn--ghost a-btn--sm" aria-label={`برداشتن ${product?.title ?? item.productId} از فروش ویژه`} onClick={() => remove(item.productId)}>برداشتن</button></td>
                     </tr>
                   );
                 })}

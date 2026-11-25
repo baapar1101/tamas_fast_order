@@ -6,6 +6,8 @@ import { api } from '../../lib/api';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
 import { FunnelInfographic } from '../components/FunnelInfographic';
 import { useAuth } from '../../store/auth';
+import { AdminState, Skeleton } from '../components/AdminState';
+import './analytics-page.css';
 
 interface AnalyticsDTO {
   revenueLast30Days: number;
@@ -63,14 +65,14 @@ export function AnalyticsPage() {
   const maxDaily = Math.max(1, ...(data?.ordersPerDay.map((item) => item.total) ?? [1]));
 
   return (
-    <div className="a-page a-fade">
+    <div className="a-page a-fade analytics-page">
       <section className="a-page-head">
         <div className="a-titles">
           <h2 className="a-title">تحلیل‌ها و گزارش‌ها</h2>
           <p className="a-subtitle">نمای کلی عملکرد فروش، سفارش‌ها، کاربران و موجودی</p>
         </div>
         <div className="a-page-actions">
-          <span className="chip chip-brand">گزارش زنده فروشگاه</span>
+          <span className="a-badge a-badge--neutral">گزارش زندهٔ فروشگاه</span>
         </div>
       </section>
 
@@ -81,7 +83,7 @@ export function AnalyticsPage() {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="a-card-title">تحلیل کاربران سایت</h3>
-              <span className="chip chip-aqua">داده واقعی اروان کلاد</span>
+              <span className="a-badge a-badge--neutral">دادهٔ واقعی اروان‌کلاد</span>
             </div>
             <p className="a-card-desc">بازدیدکنندگان یکتا و مصرف CDN برای {arvan.data?.domain || 'دامنه فروشگاه'}</p>
           </div>
@@ -91,42 +93,54 @@ export function AnalyticsPage() {
               value={period}
               onChange={(next) => setPeriod(next as ArvanPeriod)}
               options={(Object.keys(PERIOD_LABELS) as ArvanPeriod[]).map((value) => ({ value, label: PERIOD_LABELS[value] }))}
-              ariaLabel="بازه زمانی گزارش"
+              ariaLabel="بازهٔ زمانی گزارش"
             />
-            <button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={arvan.isFetching} onClick={() => void arvan.refetch()}>
+            <button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={arvan.isFetching} aria-busy={arvan.isFetching || undefined} onClick={() => void arvan.refetch()}>
               {arvan.isFetching ? 'در حال دریافت…' : 'به‌روزرسانی'}
             </button>
           </div>
         </div>
 
         {arvan.isLoading ? (
-          <div className="a-empty">در حال دریافت گزارش بازدیدکنندگان از اروان کلاد…</div>
+          <AdminState kind="loading" title="در حال دریافت گزارش بازدیدکنندگان از اروان‌کلاد…" />
         ) : arvan.isError ? (
-          <div className="a-alert a-alert--error">
-            <strong>دریافت گزارش اروان ناموفق بود.</strong>
-            <span>{arvan.error.message}</span>
-          </div>
+          <AdminState
+            kind="error"
+            title="دریافت گزارش اروان‌کلاد انجام نشد."
+            error={arvan.error}
+            onRetry={() => void arvan.refetch()}
+          />
         ) : !arvan.data?.configured ? (
-          <div className="a-empty arvan-empty-state">
-            <strong>اتصال اروان کلاد هنوز تنظیم نشده است.</strong>
-            <span>از بخش «تنظیمات ← تحلیل اروان کلاد» دامنه و کلید API را ثبت و اتصال را بررسی کنید.</span>
-          </div>
+          <AdminState
+            kind="empty"
+            title="اتصال اروان‌کلاد هنوز تنظیم نشده است."
+            text="از بخش «تنظیمات ← تحلیل اروان‌کلاد» دامنه و کلید API را ثبت و اتصال را بررسی کنید."
+          />
         ) : (
           <ArvanVisitors analytics={arvan.data} />
         )}
       </section>
 
+      {stats.isError && (
+        <AdminState
+          kind="error"
+          title="دریافت آمار فروشگاه انجام نشد."
+          error={stats.error}
+          onRetry={() => void stats.refetch()}
+        />
+      )}
+
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ['فروش ۳۰ روز اخیر', data?.revenueLast30Days ?? 0, <img key="toman" src="/toman.svg" alt="تومان" style={{ width: '1.15em', height: '1.15em', display: 'inline', verticalAlign: '-0.15em' }} />, 'chip-brand'],
-          ['سفارش جدید', data?.newOrderCount ?? 0, 'سفارش', 'chip-aqua'],
-          ['کاربر در انتظار بررسی', data?.pendingUserCount ?? 0, 'کاربر', 'chip-amber'],
-          ['محصول ناموجود', data?.outOfStockCount ?? 0, 'کالا', 'chip-rose'],
-        ].map(([label, value, unit, tone]) => (
+          ['فروش ۳۰ روز اخیر', data?.revenueLast30Days ?? 0, <img key="toman" src="/toman.svg" alt="تومان" className="an-toman" />],
+          ['سفارش جدید', data?.newOrderCount ?? 0, 'سفارش'],
+          ['کاربر در انتظار بررسی', data?.pendingUserCount ?? 0, 'کاربر'],
+          ['محصول ناموجود', data?.outOfStockCount ?? 0, 'کالا'],
+        ].map(([label, value, unit]) => (
           <article className="a-stat" key={String(label)}>
-            <span className={`chip ${tone}`}>{unit}</span>
-            <p className="mt-5 text-xs a-muted">{label}</p>
-            <p className="mt-1 a-stat-value">{stats.isLoading ? '…' : formatNumber(Number(value))}</p>
+            <span className="a-badge a-badge--neutral">{unit}</span>
+            <p className="an-stat-label">{label}</p>
+            <p className="mt-1 a-stat-value">{stats.isLoading ? '…' : stats.isError ? '—' : formatNumber(Number(value))}</p>
           </article>
         ))}
       </section>
@@ -138,17 +152,18 @@ export function AnalyticsPage() {
               <h3 className="a-card-title">فروش روزانه</h3>
               <p className="a-card-desc">۳۰ روز گذشته</p>
             </div>
-            <span className="chip chip-brand">{formatNumber(data?.orderCount ?? 0)} سفارش کل</span>
+            <span className="a-badge a-badge--neutral">{stats.isLoading ? '…' : formatNumber(data?.orderCount ?? 0)} سفارش کل</span>
           </div>
-          <div className="admin-bar-chart mt-6">
+          <div className="admin-bar-chart mt-6" role={data?.ordersPerDay.length ? 'img' : undefined} aria-label={data?.ordersPerDay.length ? 'نمودار فروش روزانهٔ ۱۴ روز اخیر' : undefined}>
             {(data?.ordersPerDay ?? []).slice(-14).map((item) => (
               <div className="admin-bar-column" key={item.day} title={`${formatNumber(item.total)} تومان`}>
                 <span className="admin-bar-value" style={{ height: `${Math.max(6, (item.total / maxDaily) * 100)}%` }} />
-                <small>{new Date(item.day).toLocaleDateString('fa-IR', { day: 'numeric', month: 'numeric' })}</small>
+                <small aria-hidden="true">{new Date(item.day).toLocaleDateString('fa-IR', { day: 'numeric', month: 'numeric' })}</small>
               </div>
             ))}
+            {stats.isLoading && <Skeleton block />}
             {!stats.isLoading && (data?.ordersPerDay.length ?? 0) === 0 && (
-              <div className="a-empty">هنوز داده‌ای برای نمودار ثبت نشده است.</div>
+              <AdminState kind="empty" compact title="هنوز فروشی برای نمودار ثبت نشده است." />
             )}
           </div>
         </article>
@@ -177,12 +192,13 @@ export function AnalyticsPage() {
               <span className="admin-rank a-title-fallback">{formatNumber(index + 1)}</span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold a-title-fallback">{product.title}</p>
-                <p className="mt-1 text-[11px] a-muted">{formatNumber(product.qty)} عدد فروش</p>
+                <p className="an-rank-sub">{formatNumber(product.qty)} عدد فروش</p>
               </div>
-              <strong className="text-sm text-emerald-300"><Price amount={product.total} /></strong>
+              <strong className="text-sm an-strong a-num"><Price amount={product.total} /></strong>
             </div>
           ))}
-          {!stats.isLoading && (data?.topProducts.length ?? 0) === 0 && <div className="a-empty">هنوز محصول پرفروشی ثبت نشده است.</div>}
+          {stats.isLoading && <Skeleton lines={4} />}
+          {!stats.isLoading && !stats.isError && (data?.topProducts.length ?? 0) === 0 && <AdminState kind="empty" compact noun="محصول پرفروش" />}
         </div>
       </section>
     </div>
@@ -206,23 +222,23 @@ function ArvanVisitors({ analytics }: { analytics: ArvanAnalyticsDTO }) {
     <div className="arvan-analytics-body">
       <div className="arvan-metric-grid">
         <article className="a-stat">
-          <span className="chip chip-aqua">کاربر</span>
-          <p className="mt-4 text-xs a-muted">مجموع بازدیدکنندگان</p>
+          <span className="a-badge a-badge--neutral">کاربر</span>
+          <p className="an-stat-label an-stat-label--tight">مجموع بازدیدکنندگان</p>
           <p className="mt-1 a-stat-value">{formatNumber(analytics.totalVisitors ?? 0)}</p>
         </article>
         <article className="a-stat">
-          <span className="chip chip-brand">درخواست</span>
-          <p className="mt-4 text-xs a-muted">درخواست‌های سرو‌شده</p>
+          <span className="a-badge a-badge--neutral">درخواست</span>
+          <p className="an-stat-label an-stat-label--tight">درخواست‌های سرو‌شده</p>
           <p className="mt-1 a-stat-value">{formatNumber(analytics.requests?.total ?? 0)}</p>
         </article>
         <article className="a-stat">
-          <span className="chip chip-amber">ترافیک</span>
-          <p className="mt-4 text-xs a-muted">ترافیک سرو‌شده</p>
+          <span className="a-badge a-badge--neutral">ترافیک</span>
+          <p className="an-stat-label an-stat-label--tight">ترافیک سرو‌شده</p>
           <p className="mt-1 a-stat-value arvan-byte-value">{formatBytes(analytics.traffic?.total ?? 0)}</p>
         </article>
         <article className="a-stat">
-          <span className="chip chip-rose">اوج بازدید</span>
-          <p className="mt-4 text-xs a-muted">بیشترین بازدید در</p>
+          <span className="a-badge a-badge--neutral">اوج بازدید</span>
+          <p className="an-stat-label an-stat-label--tight">بیشترین بازدید در</p>
           <p className="mt-1 a-stat-value arvan-date-value">{formatDateTime(analytics.peakAt)}</p>
         </article>
       </div>
@@ -233,19 +249,13 @@ function ArvanVisitors({ analytics }: { analytics: ArvanAnalyticsDTO }) {
             <strong>روند بازدیدکنندگان</strong>
             <p className="a-card-desc">{PERIOD_LABELS[analytics.period ?? '24h']}</p>
           </div>
-          <span className="a-muted text-xs">آخرین دریافت: {formatDateTime(analytics.fetchedAt)}</span>
+          <span className="a-hint">آخرین دریافت: {formatDateTime(analytics.fetchedAt)}</span>
         </div>
         {coordinates.length > 0 ? (
           <>
-            <svg width="1000" height="260" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="نمودار بازدیدکنندگان اروان کلاد" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="arvanVisitorArea" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.02" />
-                </linearGradient>
-              </defs>
+            <svg width="1000" height="260" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`نمودار بازدیدکنندگان اروان‌کلاد، ${PERIOD_LABELS[analytics.period ?? '24h']}`} preserveAspectRatio="none">
               {[0.25, 0.5, 0.75].map((ratio) => <line key={ratio} x1="0" x2={width} y1={height * ratio} y2={height * ratio} className="arvan-grid-line" />)}
-              <polygon points={area} fill="url(#arvanVisitorArea)" />
+              <polygon points={area} className="an-visitor-area" />
               <polyline points={line} fill="none" className="arvan-chart-line" />
               {coordinates.map((point, index) => <circle key={`${point.x}-${index}`} cx={point.x} cy={point.y} r="4" className="arvan-chart-dot"><title>{formatNumber(points[index]?.visitors ?? 0)} بازدیدکننده</title></circle>)}
             </svg>
@@ -254,7 +264,7 @@ function ArvanVisitors({ analytics }: { analytics: ArvanAnalyticsDTO }) {
             </div>
           </>
         ) : (
-          <div className="a-empty">برای این بازه داده‌ای از اروان دریافت نشد.</div>
+          <AdminState kind="empty" compact title="برای این بازه بازدیدی از اروان‌کلاد دریافت نشد." />
         )}
       </div>
 
@@ -272,9 +282,9 @@ function SavedMetric({ label, saved, total, formatter }: { label: string; saved:
     <article className="arvan-saved-card">
       <div className="flex items-center justify-between gap-3">
         <strong>{label}</strong>
-        <span className="chip chip-aqua">{formatter(saved)}</span>
+        <span className="a-badge a-badge--neutral">{formatter(saved)}</span>
       </div>
-      <div className="progress-track"><span className="progress-fill progress-brand" style={{ width: `${percent}%` }} /></div>
+      <div className="progress-track" aria-hidden="true"><span className="progress-fill an-fill--series" style={{ width: `${percent}%` }} /></div>
       <p className="a-card-desc">{formatNumber(percent)}٪ از مجموع {formatter(total)}</p>
     </article>
   );
@@ -302,15 +312,17 @@ function formatChartDate(value: string, period?: ArvanPeriod): string {
     : date.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
 }
 
+const METRIC_FILL = { brand: 'an-fill--ok', rose: 'an-fill--danger', amber: 'an-fill--warning' } as const;
+
 function Metric({ label, value, total, tone }: { label: string; value: number; total: number; tone: 'brand' | 'rose' | 'amber' }) {
   const percent = total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0;
   return (
     <div>
       <div className="flex items-center justify-between text-xs">
-        <span className="text-slate-300">{label}</span>
+        <span className="an-text-secondary">{label}</span>
         <span className="font-bold a-title-fallback">{formatNumber(value)} ({formatNumber(percent)}٪)</span>
       </div>
-      <div className="progress-track"><span className={`progress-fill progress-${tone}`} style={{ width: `${percent}%` }} /></div>
+      <div className="progress-track" aria-hidden="true"><span className={`progress-fill ${METRIC_FILL[tone]}`} style={{ width: `${percent}%` }} /></div>
     </div>
   );
 }

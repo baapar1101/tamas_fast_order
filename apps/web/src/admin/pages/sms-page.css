@@ -1,0 +1,32 @@
+/* SmsPage + SmsCampaignPanel — page-local presentation (docs/ui-guidelines.md §2, §4) */
+.sms-event--divided {
+  border-top: 1px solid var(--a-divider);
+}
+
+.sms-var {
+  margin-inline: 2px;
+  padding: 1px var(--ds-space-1);
+  border-radius: 4px;
+  background: var(--a-soft);
+  color: var(--a-t1);
+  font-size: var(--ds-text-xs);
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.sms-box {
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-inner, 12px);
+}
+
+.sms-box--provider {
+  border-radius: var(--a-radius-panel, 16px);
+}
+
+.sms-box-row {
+  border-bottom: 1px solid var(--a-divider);
+}
+
+.sms-box-row:last-child {
+  border-bottom: 0;
+}

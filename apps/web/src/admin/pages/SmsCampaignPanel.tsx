@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
+import { AdminState, TableState } from '../components/AdminState';
+import './sms-page.css';
 
 type Customer = { id: number; name: string; lastName: string; storeName: string; phone: string };
 type Draft = { body: string; audience: 'all' | 'selected'; userIds: number[] };
@@ -90,16 +92,16 @@ export function SmsCampaignPanel() {
           </select>
         </label>
         {draft.audience === 'selected' && <div className="space-y-3">
-          <input className="a-input w-full sm:w-96" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="نام، نام فروشگاه یا شماره موبایل" />
+          <input className="a-input w-full sm:w-96" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="نام، نام فروشگاه یا شماره موبایل…" aria-label="جست‌وجوی مشتری" />
           {selected.length > 0 && <div className="flex flex-wrap gap-2">{selected.map(customer =>
-            <button key={customer.id} type="button" className="a-badge a-badge--brand" onClick={() => toggleCustomer(customer)} title="حذف از گیرندگان">{customer.name || customer.storeName || customer.phone} ×</button>
+            <button key={customer.id} type="button" className="a-badge a-badge--brand" onClick={() => toggleCustomer(customer)} title="حذف از گیرندگان" aria-label={`حذف ${customer.name || customer.storeName || customer.phone} از گیرندگان`}>{customer.name || customer.storeName || customer.phone} <span aria-hidden="true">×</span></button>
           )}</div>}
-          <div className="max-h-56 overflow-y-auto rounded-xl border border-white/[0.08]">
-            {customers.isPending ? <p className="a-note p-3">در حال دریافت مشتریان…</p> : customers.isError ? <p className="a-note p-3" role="alert">{customers.error.message}</p> : customers.data?.items.length === 0 ? <p className="a-note p-3">مشتری‌ای پیدا نشد.</p> : customers.data?.items.map(customer =>
-              <label key={customer.id} className="flex cursor-pointer items-center gap-3 border-b border-white/[0.06] p-3 text-sm last:border-0">
+          <div className="sms-box max-h-56 overflow-y-auto">
+            {customers.isPending ? <AdminState compact kind="loading" /> : customers.isError ? <AdminState compact kind="error" error={customers.error} onRetry={() => void customers.refetch()} /> : customers.data?.items.length === 0 ? <AdminState compact kind={debouncedSearch ? 'filtered' : 'empty'} noun="مشتری" /> : customers.data?.items.map(customer =>
+              <label key={customer.id} className="sms-box-row flex cursor-pointer items-center gap-3 p-3 text-sm">
                 <input type="checkbox" checked={draft.userIds.includes(customer.id)} onChange={() => toggleCustomer(customer)} />
                 <span>{[customer.name, customer.lastName].filter(Boolean).join(' ') || customer.storeName || 'مشتری'}</span>
-                <span dir="ltr" className="a-note">{customer.phone}</span>
+                <span className="a-note a-ltr">{customer.phone}</span>
               </label>
             )}
           </div>
@@ -110,14 +112,14 @@ export function SmsCampaignPanel() {
           <textarea className="a-textarea w-full" rows={4} dir="rtl" maxLength={1000} value={draft.body} onChange={event => update({ ...draft, body: event.target.value })} placeholder="متن پیام را بنویسید…" />
           <span className="a-note">{number(draft.body.length)} / {number(1000)} نویسه · هزینهٔ ارسال به تعداد پیامک‌های محاسبه‌شده توسط درگاه بستگی دارد.</span>
         </label>
-        <button type="button" className="a-btn a-btn--secondary" disabled={!draft.body.trim() || (draft.audience === 'selected' && !draft.userIds.length) || previewMutation.isPending} onClick={() => previewMutation.mutate()}>
+        <button type="button" className="a-btn a-btn--secondary" disabled={!draft.body.trim() || (draft.audience === 'selected' && !draft.userIds.length) || previewMutation.isPending} aria-busy={previewMutation.isPending || undefined} onClick={() => previewMutation.mutate()}>
           {previewMutation.isPending ? 'در حال شمارش…' : 'پیش‌نمایش گیرندگان'}
         </button>
-        {preview && <div className="rounded-xl border border-white/[0.12] p-4 space-y-3" role="status">
+        {preview && <div className="sms-box p-4 space-y-3" role="status">
           <strong>ارسال به {number(preview.count)} شمارهٔ معتبر</strong>
           <p className="a-note">نمونه: {preview.sample.map(item => `${item.name} (${item.phone})`).join('، ') || '—'}</p>
           <p className="a-note">پس از تأیید، پیام‌ها در صف قرار می‌گیرند. ارسال‌شده‌ها قابل بازگرداندن نیستند.</p>
-          <button type="button" className="a-btn a-btn--primary" disabled={preview.count === 0 || sendMutation.isPending} onClick={() => sendMutation.mutate()}>
+          <button type="button" className="a-btn a-btn--primary" disabled={preview.count === 0 || sendMutation.isPending} aria-busy={sendMutation.isPending || undefined} onClick={() => sendMutation.mutate()}>
             {sendMutation.isPending ? 'در حال ثبت…' : `تأیید و ارسال به ${number(preview.count)} مشتری`}
           </button>
         </div>}
@@ -125,21 +127,21 @@ export function SmsCampaignPanel() {
     </section>
     <section className="a-card">
       <div className="a-card-head"><h3 className="a-card-title">تاریخچهٔ ارسال گروهی</h3></div>
-      {campaigns.isError ? <p role="alert">{campaigns.error.message}</p> : campaigns.isPending ? <p className="a-note">در حال دریافت…</p> : !campaigns.data?.items.length ? <p className="a-note">هنوز ارسال گروهی ثبت نشده است.</p> : <div className="a-table-wrap"><table className="a-table"><thead><tr><th>متن</th><th>گیرندگان</th><th>وضعیت</th><th>پذیرفته / نامشخص / ارسال‌نشده</th><th>تاریخ</th><th>عملیات</th></tr></thead><tbody>
+      {campaigns.isError && !campaigns.data ? <AdminState compact kind="error" error={campaigns.error} onRetry={() => void campaigns.refetch()} /> : campaigns.isPending ? <AdminState compact kind="loading" /> : !campaigns.data?.items.length ? <AdminState compact kind="empty" title="هنوز ارسال گروهی ثبت نشده است." /> : <div className="a-table-wrap"><table className="a-table"><thead><tr><th>متن</th><th className="a-num">گیرندگان</th><th>وضعیت</th><th className="a-num">پذیرفته / نامشخص / ارسال‌نشده</th><th>تاریخ</th><th>عملیات</th></tr></thead><tbody>
         {campaigns.data.items.map(campaign => <tr key={campaign.id}>
           <td className="max-w-64 truncate" title={campaign.body}>{campaign.body}</td>
-          <td>{number(campaign.total)}</td>
+          <td className="a-num">{number(campaign.total)}</td>
           <td>{statusLabel[campaign.status] || campaign.status}</td>
-          <td>{number(campaign.stats.accepted || 0)} / {number(campaign.stats.unknown || 0)} / {number((campaign.stats.skipped || 0) + (campaign.stats.cancelled || 0))}</td>
+          <td className="a-num">{number(campaign.stats.accepted || 0)} / {number(campaign.stats.unknown || 0)} / {number((campaign.stats.skipped || 0) + (campaign.stats.cancelled || 0))}</td>
           <td>{new Date(campaign.createdAt).toLocaleString('fa-IR')}</td>
-          <td><div className="flex flex-wrap gap-2"><button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={() => { setDetailId(detailId === campaign.id ? null : campaign.id); setDetailPage(1); }}>جزئیات</button>{['queued', 'sending'].includes(campaign.status) && <button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={cancelMutation.isPending} onClick={() => cancelMutation.mutate(campaign.id)}>لغو باقی‌مانده</button>}</div></td>
+          <td><div className="flex flex-wrap gap-2"><button type="button" className="a-btn a-btn--secondary a-btn--xs" aria-expanded={detailId === campaign.id} onClick={() => { setDetailId(detailId === campaign.id ? null : campaign.id); setDetailPage(1); }}>جزئیات</button>{['queued', 'sending'].includes(campaign.status) && <button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={cancelMutation.isPending} onClick={() => cancelMutation.mutate(campaign.id)}>لغو باقی‌مانده</button>}</div></td>
         </tr>)}
       </tbody></table></div>}
       {detailId !== null && <div className="mt-5 space-y-3">
         <h4 className="text-sm font-semibold">گزارش گیرندگان ارسال شمارهٔ {number(detailId)}</h4>
-        {deliveries.isPending ? <p className="a-note">در حال دریافت…</p> : deliveries.isError ? <p role="alert">{deliveries.error.message}</p> : <>
+        {deliveries.isError && !deliveries.data ? <AdminState compact kind="error" error={deliveries.error} onRetry={() => void deliveries.refetch()} /> : deliveries.isPending ? <AdminState compact kind="loading" /> : <>
           <div className="a-table-wrap"><table className="a-table"><thead><tr><th>مشتری</th><th>شماره</th><th>وضعیت</th><th>زمان پذیرش</th></tr></thead><tbody>
-            {deliveries.data?.items.map(item => <tr key={item.id}><td>{[item.name, item.lastName].filter(Boolean).join(' ') || 'حساب حذف‌شده'}</td><td dir="ltr">{item.phone}</td><td>{({ queued: 'در صف', processing: 'در حال ارسال', accepted: 'پذیرفته‌شده توسط درگاه', unknown: 'نتیجه نامشخص', skipped: 'حساب یا شماره تغییر کرده', cancelled: 'لغوشده' } as Record<string, string>)[item.status] || item.status}</td><td>{item.sentAt ? new Date(item.sentAt).toLocaleString('fa-IR') : '—'}</td></tr>)}
+            {deliveries.data?.items.length === 0 ? <TableState colSpan={4} kind="empty" noun="گیرنده" /> : deliveries.data?.items.map(item => <tr key={item.id}><td>{[item.name, item.lastName].filter(Boolean).join(' ') || 'حساب حذف‌شده'}</td><td className="a-ltr">{item.phone}</td><td>{({ queued: 'در صف', processing: 'در حال ارسال', accepted: 'پذیرفته‌شده توسط درگاه', unknown: 'نتیجه نامشخص', skipped: 'حساب یا شماره تغییر کرده', cancelled: 'لغوشده' } as Record<string, string>)[item.status] || item.status}</td><td>{item.sentAt ? new Date(item.sentAt).toLocaleString('fa-IR') : '—'}</td></tr>)}
           </tbody></table></div>
           <div className="flex items-center gap-3"><button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={detailPage === 1} onClick={() => setDetailPage(detailPage - 1)}>قبلی</button><span className="a-note">صفحهٔ {number(detailPage)} از {number(Math.max(1, Math.ceil((deliveries.data?.total || 0) / 30)))}</span><button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={detailPage * 30 >= (deliveries.data?.total || 0)} onClick={() => setDetailPage(detailPage + 1)}>بعدی</button></div>
         </>}

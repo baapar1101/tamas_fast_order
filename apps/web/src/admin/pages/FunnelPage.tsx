@@ -4,6 +4,7 @@ import { formatNumber, type FunnelAutomationConfig, type FunnelMessageKind, type
 import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 import { useAuth } from '../../store/auth';
+import { AdminState, Skeleton, TableState } from '../components/AdminState';
 import './funnel-page.css';
 
 const PERIODS = [
@@ -66,7 +67,7 @@ export function FunnelPage() {
       toast.ok(result.message);
       void queryClient.invalidateQueries({ queryKey: ['admin', 'funnel'] });
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : 'ذخیره ناموفق بود.'),
+    onError: (error) => toast.error(error instanceof Error ? error.message : 'ذخیره نشد؛ دوباره تلاش کنید.'),
   });
 
   // Logged-in visits are a subset of visits, not a stage of their own.
@@ -87,7 +88,7 @@ export function FunnelPage() {
         <div className="a-page-actions">
           <nav className="a-segmented" aria-label="بازهٔ زمانی">
             {PERIODS.map((period) => (
-              <button key={period.days} type="button" className={`a-seg${days === period.days ? ' a-seg--on' : ''}`} onClick={() => setDays(period.days)}>
+              <button key={period.days} type="button" className={`a-seg${days === period.days ? ' a-seg--on' : ''}`} aria-pressed={days === period.days} onClick={() => setDays(period.days)}>
                 {period.label}
               </button>
             ))}
@@ -106,9 +107,13 @@ export function FunnelPage() {
           </div>
         </div>
         {report.isLoading ? (
-          <div className="p-6"><div className="a-skeleton a-skeleton--text" /></div>
+          <div className="p-6" role="status" aria-busy="true" aria-label="در حال دریافت گزارش قیف…"><Skeleton lines={4} /></div>
         ) : report.isError ? (
-          <div className="a-alert a-alert--error m-4">دریافت گزارش قیف ناموفق بود.</div>
+          <div className="funnel-state">
+            <AdminState kind="error" title="دریافت گزارش قیف انجام نشد." error={report.error} onRetry={() => void report.refetch()} />
+          </div>
+        ) : top === 0 ? (
+          <AdminState kind="empty" title="در این بازه هنوز بازدیدی ثبت نشده است." text="آمار از لحظهٔ فعال‌شدن ردیابی جمع می‌شود." />
         ) : (
           <ol className="funnel-steps">
             {steps.map((step, index) => {
@@ -140,16 +145,20 @@ export function FunnelPage() {
           </div>
           <nav className="a-segmented" aria-label="بخش قیف">
             {SEGMENTS.map((item) => (
-              <button key={item.id} type="button" className={`a-seg${segment === item.id ? ' a-seg--on' : ''}`} onClick={() => setSegment(item.id)}>
+              <button key={item.id} type="button" className={`a-seg${segment === item.id ? ' a-seg--on' : ''}`} aria-pressed={segment === item.id} onClick={() => setSegment(item.id)}>
                 {item.label}
               </button>
             ))}
           </nav>
         </div>
         {users.isLoading ? (
-          <div className="p-6"><div className="a-skeleton a-skeleton--text" /></div>
+          <div className="p-6" role="status" aria-busy="true" aria-label="در حال دریافت فهرست مشتریان…"><Skeleton lines={4} /></div>
+        ) : users.isError ? (
+          <div className="funnel-state">
+            <AdminState kind="error" title="دریافت فهرست مشتریان انجام نشد." error={users.error} onRetry={() => void users.refetch()} />
+          </div>
         ) : !users.data?.length ? (
-          <div className="a-empty">در این بازه کسی در این مرحله نیست.</div>
+          <AdminState kind="empty" title="در این بازه مشتری‌ای در این مرحله نیست." />
         ) : (
           <div className="a-table-wrap">
             <table className="a-table funnel-table">
@@ -159,9 +168,9 @@ export function FunnelPage() {
                   <th>موبایل</th>
                   <th>فروشگاه</th>
                   <th>آخرین فعالیت</th>
-                  {segment === 'browsed' && <><th>مشاهدهٔ کالا</th><th>اسکرول</th></>}
-                  {segment === 'cart' && <><th>کالای سبد</th><th>مبلغ سبد</th></>}
-                  {segment === 'unpaid' && <><th>سفارش</th><th>مبلغ</th></>}
+                  {segment === 'browsed' && <><th className="a-num">مشاهدهٔ کالا</th><th className="a-num">اسکرول</th></>}
+                  {segment === 'cart' && <><th className="a-num">کالای سبد</th><th className="a-num">مبلغ سبد</th></>}
+                  {segment === 'unpaid' && <><th>سفارش</th><th className="a-num">مبلغ</th></>}
                   <th>پیگیری خودکار</th>
                 </tr>
               </thead>
@@ -172,9 +181,9 @@ export function FunnelPage() {
                     <td><a className="a-ltr" href={`tel:${row.phone}`}>{row.phone}</a></td>
                     <td>{row.storeName || '—'}</td>
                     <td>{dateTime(row.lastActivityAt)}</td>
-                    {segment === 'browsed' && <><td>{formatNumber(row.productViews)}</td><td>{formatNumber(row.scrolls)}</td></>}
-                    {segment === 'cart' && <><td>{row.cartItems ? formatNumber(row.cartItems) : 'خالی شده'}</td><td>{row.cartTotal ? `${formatNumber(row.cartTotal)} تومان` : '—'}</td></>}
-                    {segment === 'unpaid' && <><td className="a-ltr">{row.orderCode}</td><td>{formatNumber(row.orderTotal ?? 0)} تومان</td></>}
+                    {segment === 'browsed' && <><td className="a-num">{formatNumber(row.productViews)}</td><td className="a-num">{formatNumber(row.scrolls)}</td></>}
+                    {segment === 'cart' && <><td className="a-num">{row.cartItems ? formatNumber(row.cartItems) : 'خالی‌شده'}</td><td className="a-num">{row.cartTotal ? `${formatNumber(row.cartTotal)} تومان` : '—'}</td></>}
+                    {segment === 'unpaid' && <><td className="a-ltr">{row.orderCode}</td><td className="a-num">{formatNumber(row.orderTotal ?? 0)} تومان</td></>}
                     <td>{row.messagesSent ? `${formatNumber(row.messagesSent)} پیام، آخرین: ${dateTime(row.lastMessageAt)}` : 'ارسال نشده'}</td>
                   </tr>
                 ))}
@@ -205,6 +214,7 @@ export function FunnelPage() {
                   className="a-switch"
                   aria-label={option.title}
                   aria-checked={Boolean(automation?.[option.key])}
+                  aria-busy={saveAutomation.isPending || undefined}
                   disabled={!automation || !canEditSettings || saveAutomation.isPending}
                   onClick={() => automation && saveAutomation.mutate({ ...automation, [option.key]: !automation[option.key] })}
                 />
@@ -222,14 +232,20 @@ export function FunnelPage() {
           </div>
           <div className="a-table-wrap">
             <table className="a-table">
-              <thead><tr><th>پیام</th><th>ارسال</th><th>تحویل</th><th>خرید پس از پیام</th></tr></thead>
+              <thead><tr><th>پیام</th><th className="a-num">ارسال</th><th className="a-num">تحویل</th><th className="a-num">خرید پس از پیام</th></tr></thead>
               <tbody>
-                {(report.data?.messages ?? []).map((item) => (
+                {report.isLoading ? (
+                  <TableState colSpan={4} kind="loading" />
+                ) : report.isError ? (
+                  <TableState colSpan={4} kind="error" title="نتیجهٔ پیام‌ها دریافت نشد." error={report.error} onRetry={() => void report.refetch()} />
+                ) : !(report.data?.messages ?? []).length ? (
+                  <TableState colSpan={4} kind="empty" noun="پیام خودکار" />
+                ) : (report.data?.messages ?? []).map((item) => (
                   <tr key={item.kind}>
                     <td>{MESSAGE_LABELS[item.kind]}</td>
-                    <td>{formatNumber(item.sent)}</td>
-                    <td>{formatNumber(item.delivered)}</td>
-                    <td>{formatNumber(item.converted)} <span className="funnel-muted">({percent(item.converted, item.sent)})</span></td>
+                    <td className="a-num">{formatNumber(item.sent)}</td>
+                    <td className="a-num">{formatNumber(item.delivered)}</td>
+                    <td className="a-num">{formatNumber(item.converted)} <span className="funnel-muted">({percent(item.converted, item.sent)})</span></td>
                   </tr>
                 ))}
               </tbody>

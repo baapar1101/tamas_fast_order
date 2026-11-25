@@ -3,15 +3,18 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 import type { CommentDTO, Paged } from '@tamas/shared';
+import { TableState } from '../components/AdminState';
+import './comments-page.css';
 
 export function CommentsPage() {
   const toast = useToast();
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useQuery({
+  const comments = useQuery({
     queryKey: ['admin', 'comments', page],
     queryFn: () => api.get<Paged<CommentDTO>>('/admin/comments', { page }),
   });
+  const { data, isLoading } = comments;
 
   const changeStatus = useMutation({
     mutationFn: ({ id, status }: { id: number; status: 'approved' | 'rejected' }) =>
@@ -48,30 +51,28 @@ export function CommentsPage() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="a-empty">
-                    در حال دریافت اطلاعات...
-                  </td>
-                </tr>
+                <TableState colSpan={7} kind="loading" />
+              ) : comments.isError ? (
+                <TableState colSpan={7} kind="error" error={comments.error} onRetry={() => void comments.refetch()} />
               ) : data?.items.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="a-empty">
-                    هیچ نظری یافت نشد.
-                  </td>
-                </tr>
+                <TableState colSpan={7} kind="empty" noun="نظر" />
               ) : (
                 data?.items.map((comment) => (
                   <tr key={comment.id}>
-                    <td className="font-bold text-white">{comment.guestName || `کاربر #${comment.userId}`}</td>
-                    <td className="font-mono text-slate-300">#{comment.productId}</td>
-                    <td className="text-amber-400 text-lg tracking-widest">{Array(comment.rating).fill('★').join('')}</td>
-                    <td className="text-slate-400 text-xs max-w-xs truncate" title={comment.content}>{comment.content}</td>
+                    <td className="a-strong">{comment.guestName || `کاربر #${comment.userId}`}</td>
+                    <td className="a-ltr">#{comment.productId}</td>
                     <td>
-                      <span className={`chip ${comment.status === 'approved' ? 'chip-brand' : comment.status === 'rejected' ? 'chip-rose' : 'chip-amber'}`}>
-                        {comment.status === 'approved' ? 'تایید شده' : comment.status === 'rejected' ? 'رد شده' : 'در انتظار بررسی'}
+                      <span className="comments-stars" role="img" aria-label={`امتیاز ${comment.rating.toLocaleString('fa-IR')} از ۵`}>
+                        {Array(comment.rating).fill('★').join('')}
                       </span>
                     </td>
-                    <td className="text-xs text-slate-400">
+                    <td className="max-w-xs truncate" title={comment.content}>{comment.content}</td>
+                    <td>
+                      <span className={`chip ${comment.status === 'approved' ? 'chip-brand' : comment.status === 'rejected' ? 'chip-rose' : 'chip-amber'}`}>
+                        {comment.status === 'approved' ? 'تأییدشده' : comment.status === 'rejected' ? 'رد شده' : 'در انتظار بررسی'}
+                      </span>
+                    </td>
+                    <td className="a-hint">
                       {new Date(comment.createdAt).toLocaleDateString('fa-IR')}
                     </td>
                     <td>
@@ -82,8 +83,9 @@ export function CommentsPage() {
                             onClick={() => changeStatus.mutate({ id: comment.id, status: 'approved' })}
                             className="a-btn a-btn--info a-btn--xs"
                             disabled={changeStatus.isPending}
+                            aria-label={`تأیید نظر ${comment.guestName || `کاربر #${comment.userId}`}`}
                           >
-                            تایید
+                            تأیید
                           </button>
                         )}
                         {comment.status !== 'rejected' && (
@@ -92,6 +94,7 @@ export function CommentsPage() {
                             onClick={() => changeStatus.mutate({ id: comment.id, status: 'rejected' })}
                             className="a-btn a-btn--danger a-btn--xs"
                             disabled={changeStatus.isPending}
+                            aria-label={`رد نظر ${comment.guestName || `کاربر #${comment.userId}`}`}
                           >
                             رد
                           </button>

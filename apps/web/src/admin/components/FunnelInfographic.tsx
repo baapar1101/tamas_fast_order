@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { formatNumber, type FunnelReportDTO, type FunnelStepDTO } from '@tamas/shared';
 import { api } from '../../lib/api';
+import { AdminState } from './AdminState';
 import { FUNNEL_MIN_WIDTH as MIN_WIDTH, funnelWidths } from './funnelGeometry';
 import './funnel-infographic.css';
 
@@ -78,13 +79,22 @@ export function FunnelInfographic() {
       </div>
 
       {report.isLoading ? (
-        <div className="funnel-ig-skeleton" aria-hidden="true">
-          {[100, 84, 70, 58, 48, 40, 34].map((width) => <span key={width} style={{ width: `${width}%` }} />)}
+        <div className="funnel-ig-skeleton" role="status" aria-busy="true" aria-label="در حال دریافت آمار قیف فروش…">
+          {[100, 84, 70, 58, 48, 40, 34].map((width) => <span key={width} aria-hidden="true" style={{ width: `${width}%` }} />)}
         </div>
       ) : report.isError ? (
-        <div className="a-alert a-alert--error m-4">دریافت آمار قیف فروش ناموفق بود.</div>
+        <AdminState
+          kind="error"
+          title="دریافت آمار قیف فروش انجام نشد."
+          error={report.error}
+          onRetry={() => void report.refetch()}
+        />
       ) : top === 0 ? (
-        <div className="a-empty">در این بازه هنوز بازدیدی ثبت نشده است. آمار از لحظهٔ فعال‌شدن ردیابی جمع می‌شود.</div>
+        <AdminState
+          kind="empty"
+          title="در این بازه هنوز بازدیدی ثبت نشده است."
+          text="آمار از لحظهٔ فعال‌شدن ردیابی جمع می‌شود."
+        />
       ) : (
         <>
           <div className="funnel-ig-summary">
@@ -165,7 +175,7 @@ export function FunnelInfographic() {
 
           <div className="funnel-ig-foot">
             <span>درصد کنار هر لایه: سهم افرادی که از مرحلهٔ قبل به این مرحله رسیده‌اند.</span>
-            <Link to="/admin/funnel" className="a-btn a-btn--secondary a-btn--xs">فهرست مشتریان و پیگیری خودکار</Link>
+            <Link to="/admin/funnel" className="a-btn a-btn--secondary a-btn--xs">مشاهدهٔ مشتریان و پیگیری خودکار</Link>
           </div>
         </>
       )}

@@ -3,6 +3,10 @@ import React, { useState } from 'react';
 import { Modal } from '../components/Modal';
 import { api } from '../lib/api';
 import { useToast } from '../components/Toast';
+import { ConfirmDialog } from './components/ConfirmDialog';
+import { AdminState, TableState } from './components/AdminState';
+
+const fa = (value: number) => value.toLocaleString('fa-IR');
 
 interface Attribute {
   id: string;
@@ -16,7 +20,7 @@ const TYPE_LABELS: Record<string, string> = {
   text: 'متن ساده',
   number: 'عدد',
   boolean: 'بله / خیر',
-  select: 'چند گزینهای',
+  select: 'چندگزینه‌ای',
 };
 
 export function AttributesPage() {
@@ -30,8 +34,9 @@ export function AttributesPage() {
   });
   const [formOpen, setFormOpen] = useState(false);
   const [focusRow, setFocusRow] = useState(-1);
+  const [pendingDelete, setPendingDelete] = useState<Attribute | null>(null);
 
-  const { data: attributes, isLoading } = useQuery({
+  const { data: attributes, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['admin', 'attributes'],
     queryFn: async () => {
       const list = await api.get<Attribute[]>('/admin/attributes');
@@ -48,13 +53,13 @@ export function AttributesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'attributes'] });
-      toast.ok('ویژگی با موفقیت ذخیره شد');
+      toast.ok('ویژگی ذخیره شد.');
       setEditingId(null);
       setFormData({ name: '', type: 'text', options: [] });
       setFormOpen(false);
     },
     onError: (err: Error) => {
-      toast.error(err.message || 'خطا در ذخیره ویژگی');
+      toast.error(err.message || 'ویژگی ذخیره نشد؛ دوباره تلاش کنید.');
     },
   });
 
@@ -62,9 +67,9 @@ export function AttributesPage() {
     mutationFn: (id: string) => api.del(`/admin/attributes/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'attributes'] });
-      toast.ok('ویژگی حذف شد');
+      toast.ok('ویژگی حذف شد.');
     },
-    onError: (err: Error) => toast.error(err.message || 'خطا در حذف ویژگی'),
+    onError: (err: Error) => toast.error(err.message || 'ویژگی حذف نشد؛ دوباره تلاش کنید.'),
   });
 
   const handleEdit = (a: Attribute) => {
@@ -108,7 +113,7 @@ export function AttributesPage() {
     if (formData.type === 'select') {
       const cleaned = formData.options.map((o) => o.trim()).filter(Boolean);
       if (cleaned.length === 0) {
-        toast.error('برای ویژگی چندگزینه‌ای باید حداقل یک گزینه وارد کنید');
+        toast.error('برای ویژگی چندگزینه‌ای دست‌کم یک گزینه وارد کنید.');
         return;
       }
       saveMutation.mutate({ ...formData, name: formData.name.trim(), options: cleaned });
@@ -135,7 +140,7 @@ export function AttributesPage() {
         </div>
         <div className="a-page-actions">
           <button type="button" className="a-btn a-btn--primary" onClick={handleCreate}>+ افزودن ویژگی</button>
-          <span className="a-badge a-badge--brand">{attributes?.length ?? 0} ویژگی</span>
+          <span className="a-badge a-badge--brand">{fa(attributes?.length ?? 0)} ویژگی</span>
         </div>
       </section>
 
@@ -174,7 +179,7 @@ export function AttributesPage() {
                   className="a-input"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="مثلا: حافظه داخلی"
+                  placeholder="مثلاً: حافظهٔ داخلی"
                 />
               </label>
               <label className="a-field">
@@ -185,6 +190,7 @@ export function AttributesPage() {
                       key={val}
                       type="button"
                       className={`a-seg ${formData.type === val ? 'a-seg--on' : ''}`}
+                      aria-pressed={formData.type === val}
                       onClick={() => setFormData({ ...formData, type: val })}
                     >
                       {label}
@@ -209,14 +215,16 @@ export function AttributesPage() {
 
               <div className="space-y-2">
                 {formData.options.length === 0 && (
-                  <div className="a-empty a-empty--small">
-                    <p>هنوز گزینه‌ای اضافه نشده است.</p>
-                    <span>با دکمه «+ افزودن گزینه» شروع کنید؛ حداقل یک گزینه لازم است.</span>
-                  </div>
+                  <AdminState
+                    kind="empty"
+                    compact
+                    title="هنوز گزینه‌ای اضافه نشده است."
+                    text="با دکمهٔ «+ افزودن گزینه» شروع کنید؛ دست‌کم یک گزینه لازم است."
+                  />
                 )}
                 {formData.options.map((opt, idx) => (
                   <div key={idx} className="a-option-row">
-                    <span className="a-badge a-badge--neutral a-option-index">{idx + 1}</span>
+                    <span className="a-badge a-badge--neutral a-option-index">{fa(idx + 1)}</span>
                     <input
                       type="text"
                       className={`a-input ${isDuplicate(opt, idx) ? 'a-input--warn' : ''}`}
@@ -229,11 +237,13 @@ export function AttributesPage() {
                           addOption();
                         }
                       }}
-                      placeholder={`گزینه ${idx + 1} (مثلا: ۱۲۸ گیگابایت)`}
+                      placeholder={`گزینهٔ ${fa(idx + 1)} (مثلاً: ۱۲۸ گیگابایت)`}
+                      aria-label={`گزینهٔ ${fa(idx + 1)}`}
+                      aria-invalid={isDuplicate(opt, idx) || undefined}
                     />
                     {isDuplicate(opt, idx) && (
                       <span className="a-option-dup">
-                        <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
+                        <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                         </svg>
                         تکراری
@@ -243,7 +253,7 @@ export function AttributesPage() {
                       type="button"
                       className="a-btn a-btn--ghost a-btn--xs shrink-0"
                       onClick={() => removeOption(idx)}
-                      aria-label="حذف گزینه"
+                      aria-label={`حذف گزینهٔ ${fa(idx + 1)}`}
                       title="حذف گزینه"
                     >
                       ✕
@@ -256,7 +266,7 @@ export function AttributesPage() {
                 <>
                   <div className="a-option-preview-title">
                     پیش‌نمایش در فرم محصول
-                    <span className="a-badge a-badge--neutral">{previewOptions.length} گزینه</span>
+                    <span className="a-badge a-badge--neutral">{fa(previewOptions.length)} گزینه</span>
                   </div>
                   <div className="a-option-grid">
                     {previewOptions.map((o, i) => (
@@ -264,7 +274,7 @@ export function AttributesPage() {
                         <input type="checkbox" readOnly />
                         <span className="a-chip-opt-copy">
                           <strong>{o}</strong>
-                          <small>گزینه {i + 1}</small>
+                          <small>گزینهٔ {fa(i + 1)}</small>
                         </span>
                       </label>
                     ))}
@@ -288,7 +298,7 @@ export function AttributesPage() {
               {Object.entries(TYPE_LABELS).map(([val, label]) =>
                 typeCounts[val] ? (
                   <span key={val} className="a-badge a-badge--neutral">
-                    {label}: {typeCounts[val]}
+                    {label}: {fa(typeCounts[val] ?? 0)}
                   </span>
                 ) : null,
               )}
@@ -308,9 +318,11 @@ export function AttributesPage() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={4} className="text-center text-slate-500">در حال دریافت...</td></tr>
-              ) : attributes?.length === 0 ? (
-                <tr><td colSpan={4} className="text-center text-slate-500">هیچ ویژگی یافت نشد.</td></tr>
+                <TableState colSpan={4} kind="loading" />
+              ) : isError ? (
+                <TableState colSpan={4} kind="error" error={error} onRetry={() => void refetch()} />
+              ) : !attributes || attributes.length === 0 ? (
+                <TableState colSpan={4} kind="empty" noun="ویژگی" />
               ) : (
                 attributes?.map((a: Attribute) => (
                   <tr key={a.id}>
@@ -328,26 +340,24 @@ export function AttributesPage() {
                               <span key={opt} className="a-badge a-badge--amber">{opt}</span>
                             ))}
                             {a.options.length > 3 && (
-                              <span className="a-badge a-badge--neutral">+{a.options.length - 3}</span>
+                              <span className="a-badge a-badge--neutral">+{fa(a.options.length - 3)}</span>
                             )}
                           </div>
                         ) : (
                           <span className="a-badge a-badge--red">بدون گزینه</span>
                         )
                       ) : (
-                        <span className="text-slate-500">—</span>
+                        <span className="a-cell-sub">—</span>
                       )}
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
-                        <button onClick={() => handleEdit(a)} className="a-btn a-btn--secondary a-btn--xs">ویرایش</button>
+                        <button type="button" onClick={() => handleEdit(a)} className="a-btn a-btn--secondary a-btn--xs" aria-label={`ویرایش ویژگی «${a.name}»`}>ویرایش</button>
                         <button
-                          onClick={() => {
-                            if (window.confirm('آیا از حذف این ویژگی مطمئن هستید؟')) {
-                              deleteMutation.mutate(a.id);
-                            }
-                          }}
+                          type="button"
+                          onClick={() => setPendingDelete(a)}
                           className="a-btn a-btn--danger a-btn--xs"
+                          aria-label={`حذف ویژگی «${a.name}»`}
                         >
                           حذف
                         </button>
@@ -360,6 +370,16 @@ export function AttributesPage() {
           </table>
         </div>
       </section>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="حذف ویژگی"
+        description={pendingDelete ? `ویژگی «${pendingDelete.name}» حذف می‌شود؛ حذف برگشت ندارد.` : ''}
+        confirmLabel="حذف"
+        busy={deleteMutation.isPending}
+        onConfirm={() => { if (pendingDelete) deleteMutation.mutate(pendingDelete.id, { onSuccess: () => setPendingDelete(null) }); }}
+        onClose={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

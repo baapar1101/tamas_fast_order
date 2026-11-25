@@ -13,6 +13,9 @@ import {
 import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 import { MomentInput, formatMoment } from '../components/FestivalSettings';
+import { AdminState, TableState } from '../components/AdminState';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import './points-campaign.css';
 
 interface Standing {
   userId: number;
@@ -59,6 +62,7 @@ export function PointsCampaignPage() {
   const [start, setStart] = useState({ date: '', time: '00:00' });
   const [end, setEnd] = useState({ date: '', time: '23:59' });
   const [loadedAt, setLoadedAt] = useState(0);
+  const [drawConfirmOpen, setDrawConfirmOpen] = useState(false);
 
   // Fill the form once per load of the saved settings, not on every refetch.
   useEffect(() => {
@@ -87,6 +91,7 @@ export function PointsCampaignPage() {
     mutationFn: () => api.post<{ draw: PointsCampaignDraw; message: string }>('/admin/points-campaign/draw', {}),
     onSuccess: (data) => {
       toast.ok(data.message);
+      setDrawConfirmOpen(false);
       setLoadedAt(0);
       void qc.invalidateQueries({ queryKey: ['admin', 'points-campaign'] });
     },
@@ -108,8 +113,8 @@ export function PointsCampaignPage() {
     XLSX.writeFile(book, `campaign-standings-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  if (query.isLoading) return <div className="a-page"><p className="a-empty">در حال بارگذاری…</p></div>;
-  if (query.error) return <div className="a-page"><div className="a-alert a-alert--error">{(query.error as Error).message}</div></div>;
+  if (query.isLoading) return <div className="a-page"><AdminState kind="loading" /></div>;
+  if (query.error) return <div className="a-page"><AdminState kind="error" title="تنظیمات کمپین دریافت نشد." error={query.error} onRetry={() => query.refetch()} /></div>;
   const data = query.data!;
   const phase = PHASE_TEXT[data.phase];
   const savedDraw = data.config.draw;
@@ -126,7 +131,7 @@ export function PointsCampaignPage() {
         </div>
         <div className="a-page-actions">
           <span className={phase.badge}>{phase.text}</span>
-          <a className="a-btn a-btn--secondary" href="/campaign" target="_blank" rel="noreferrer">صفحهٔ کمپین ↗</a>
+          <a className="a-btn a-btn--secondary" href="/campaign" target="_blank" rel="noreferrer">مشاهدهٔ صفحهٔ کمپین <span aria-hidden="true">↗</span></a>
         </div>
       </section>
 
@@ -147,7 +152,7 @@ export function PointsCampaignPage() {
             </p>
           </div>
           <div className="a-card-actions">
-            <Link className="a-btn a-btn--secondary" to="/admin/products">فهرست کالاها</Link>
+            <Link className="a-btn a-btn--secondary" to="/admin/products">رفتن به فهرست کالاها</Link>
             <Link className="a-btn a-btn--secondary" to="/admin/sync">آپدیت با اکسل</Link>
           </div>
         </div>
@@ -192,10 +197,10 @@ export function PointsCampaignPage() {
         </div>
         <label className="a-field mt-3">
           <span className="a-label">قوانین (هر خط یک بند)</span>
-          <textarea className="a-input" rows={5} maxLength={3000} value={config.rules} onChange={(e) => setConfig({ ...config, rules: e.target.value })} />
+          <textarea className="a-textarea" rows={5} maxLength={3000} value={config.rules} onChange={(e) => setConfig({ ...config, rules: e.target.value })} />
         </label>
         <div className="flex justify-end mt-3">
-          <button type="submit" className="a-btn a-btn--primary" disabled={save.isPending}>{save.isPending ? 'در حال ذخیره…' : 'ذخیرهٔ تنظیمات'}</button>
+          <button type="submit" className="a-btn a-btn--primary" disabled={save.isPending} aria-busy={save.isPending || undefined}>{save.isPending ? 'در حال ذخیره…' : 'ذخیرهٔ تنظیمات'}</button>
         </div>
       </form>
 
@@ -216,7 +221,8 @@ export function PointsCampaignPage() {
               type="button"
               className="a-btn a-btn--primary"
               disabled={data.phase !== 'ended' || draw.isPending || data.participants === 0}
-              onClick={() => { if (confirm('قرعه‌کشی فقط یک بار انجام می‌شود و قابل تکرار نیست. ادامه می‌دهید؟')) draw.mutate(); }}
+              aria-busy={draw.isPending || undefined}
+              onClick={() => setDrawConfirmOpen(true)}
             >
               {draw.isPending ? 'در حال قرعه‌کشی…' : 'انجام قرعه‌کشی'}
             </button>
@@ -225,14 +231,14 @@ export function PointsCampaignPage() {
         {savedDraw && (
           <div className="a-table-wrap mt-3">
             <table className="a-table">
-              <thead><tr><th>جایزه</th><th>نام</th><th>موبایل</th><th>امتیاز</th></tr></thead>
+              <thead><tr><th>جایزه</th><th>نام</th><th className="a-ltr">موبایل</th><th className="a-num">امتیاز</th></tr></thead>
               <tbody>
                 {savedDraw.winners.map((winner) => (
                   <tr key={`${winner.kind}-${winner.userId}`}>
                     <td>{winner.kind === 'first' ? `نفر اول: ${data.config.firstPrize || '—'}` : `قرعه‌کشی: ${data.config.lotteryPrize || '—'}`}</td>
                     <td>{winner.name || '—'}</td>
                     <td className="a-ltr">{winner.phone}</td>
-                    <td>{formatNumber(winner.points)}</td>
+                    <td className="a-num">{formatNumber(winner.points)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -249,25 +255,37 @@ export function PointsCampaignPage() {
           </div>
           <button type="button" className="a-btn a-btn--secondary" disabled={!data.standings.length} onClick={() => void exportStandings()}>دانلود اکسل</button>
         </div>
-        <div className="a-table-wrap" style={{ maxHeight: 520, overflow: 'auto' }}>
+        <div className="a-table-wrap points-standings-wrap">
           <table className="a-table">
-            <thead><tr><th>رتبه</th><th>نام</th><th>فروشگاه</th><th>موبایل</th><th>سفارش‌ها</th><th>امتیاز</th></tr></thead>
+            <thead><tr><th className="a-num">رتبه</th><th>نام</th><th>فروشگاه</th><th className="a-ltr">موبایل</th><th className="a-num">سفارش‌ها</th><th className="a-num">امتیاز</th></tr></thead>
             <tbody>
               {data.standings.map((row, index) => (
                 <tr key={row.userId}>
-                  <td>{formatNumber(index + 1)}</td>
+                  <td className="a-num">{formatNumber(index + 1)}</td>
                   <td>{`${row.name} ${row.lastName}`.trim() || '—'}</td>
                   <td>{row.storeName || '—'}</td>
                   <td className="a-ltr">{row.phone}</td>
-                  <td>{formatNumber(row.orders)}</td>
-                  <td><strong>{formatNumber(row.points)}</strong></td>
+                  <td className="a-num">{formatNumber(row.orders)}</td>
+                  <td className="a-num a-strong">{formatNumber(row.points)}</td>
                 </tr>
               ))}
-              {!data.standings.length && <tr><td colSpan={6} className="a-empty">هنوز کسی امتیاز نگرفته است.</td></tr>}
+              {!data.standings.length && <TableState colSpan={6} kind="empty" title="هنوز کسی امتیاز نگرفته است." />}
             </tbody>
           </table>
         </div>
       </section>
+
+      <ConfirmDialog
+        open={drawConfirmOpen}
+        title="انجام قرعه‌کشی"
+        description={`قرعه‌کشی بین ${formatNumber(data.participants)} شرکت‌کننده انجام می‌شود و نتیجه در صفحهٔ کمپین نمایش داده می‌شود. قرعه‌کشی فقط یک بار انجام می‌شود و برگشت ندارد.`}
+        confirmLabel="انجام قرعه‌کشی"
+        busyLabel="در حال قرعه‌کشی…"
+        tone="primary"
+        busy={draw.isPending}
+        onConfirm={() => draw.mutate()}
+        onClose={() => { if (!draw.isPending) setDrawConfirmOpen(false); }}
+      />
     </div>
   );
 }

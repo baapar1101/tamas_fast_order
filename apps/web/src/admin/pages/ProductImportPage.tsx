@@ -23,6 +23,7 @@ import {
   parseImportWorkbook,
   type ParsedImportFile,
 } from '../components/productImportExcel';
+import { AdminState } from '../components/AdminState';
 import './product-import.css';
 
 const FIELDS_KEY = 'tamas_product_import_fields';
@@ -124,7 +125,7 @@ export function ProductImportPage() {
       download(buildTemplateWorkbook(XLSX, selected, { categories: data?.categories ?? [], brands: data?.brands ?? [] }), `نمونه-ایمپورت-کالا-${today()}.xlsx`);
       toast.ok(`فایل نمونه با ${formatNumber(selectedCount)} ستون ساخته شد.`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'ساخت فایل نمونه ناموفق بود.');
+      toast.error(error instanceof Error ? error.message : 'ساخت فایل نمونه انجام نشد.');
     } finally {
       setBuilding(false);
     }
@@ -142,7 +143,7 @@ export function ProductImportPage() {
       if (!result.rows.length) throw new Error('هیچ ردیف کالایی زیر سطر عنوان‌ها پیدا نشد.');
       setParsed(result);
     } catch (error) {
-      setParseError(error instanceof Error ? error.message : 'خواندن فایل ناموفق بود.');
+      setParseError(error instanceof Error ? error.message : 'خواندن فایل انجام نشد.');
     } finally {
       if (fileInput.current) fileInput.current.value = '';
     }
@@ -164,13 +165,13 @@ export function ProductImportPage() {
         });
         collected.push(...response.results);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'ارسال این بخش ناموفق بود.';
+        const message = error instanceof Error ? error.message : 'ارسال این بخش انجام نشد.';
         collected.push(...batch.map((row) => ({
           rowNumber: row.rowNumber,
           status: 'error' as const,
           productId: String(row.values.productId ?? ''),
           title: String(row.values.title ?? ''),
-          message: `ارسال به سرور ناموفق بود: ${message}`,
+          message: `ارسال به سرور انجام نشد: ${message}`,
         })));
       }
       setResults([...collected]);
@@ -255,7 +256,7 @@ export function ProductImportPage() {
         </div>
         <div className="pi-footer">
           <span>{formatNumber(selectedCount)} ستون انتخاب شده · فایل شامل برگه‌های راهنما، دسته‌بندی‌ها و برندهای فعلی سایت است.</span>
-          <button type="button" className="a-btn a-btn--primary" onClick={() => void downloadTemplate()} disabled={building}>
+          <button type="button" className="a-btn a-btn--primary" onClick={() => void downloadTemplate()} disabled={building} aria-busy={building || undefined}>
             {building ? 'در حال ساخت…' : 'دانلود فایل نمونه'}
           </button>
         </div>
@@ -282,6 +283,7 @@ export function ProductImportPage() {
               ref={fileInput}
               type="file"
               accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              aria-label="انتخاب فایل اکسل کالاها"
               disabled={running}
               onChange={(event) => void readFile(event.target.files?.[0])}
             />
@@ -292,7 +294,7 @@ export function ProductImportPage() {
             <span className="a-note">xlsx، xls یا csv</span>
           </label>
 
-          {parseError && <div className="a-alert a-alert--error">{parseError}</div>}
+          {parseError && <AdminState kind="error" title="خواندن فایل انجام نشد." text={parseError} />}
 
           {parsed && (
             <div className="pi-preview">
@@ -302,7 +304,7 @@ export function ProductImportPage() {
               </div>
               <div className="pi-chips">
                 <span className="pi-chips-title">ستون‌های شناخته‌شده:</span>
-                {parsed.match.columns.map((column) => <span key={column.key} className="a-badge a-badge--brand">{importFieldLabel(column.key)}</span>)}
+                {parsed.match.columns.map((column) => <span key={column.key} className="a-badge a-badge--success">{importFieldLabel(column.key)}</span>)}
               </div>
               {parsed.match.ignored.length > 0 && (
                 <div className="pi-chips">
@@ -311,10 +313,10 @@ export function ProductImportPage() {
                 </div>
               )}
               {parsed.match.duplicates.length > 0 && (
-                <div className="a-alert a-alert--error">این ستون‌ها دو بار آمده‌اند و فقط اولی خوانده می‌شود: {parsed.match.duplicates.join('، ')}</div>
+                <div className="a-alert a-alert--error" role="alert">این ستون‌ها دو بار آمده‌اند و فقط اولی خوانده می‌شود: {parsed.match.duplicates.join('، ')}</div>
               )}
               {blocked && (
-                <div className="a-alert a-alert--error">
+                <div className="a-alert a-alert--error" role="alert">
                   ستون اجباری در فایل نیست: {parsed.match.missingRequired.map(importFieldLabel).join('، ')}. فایل نمونه را دوباره بسازید.
                 </div>
               )}
@@ -327,12 +329,12 @@ export function ProductImportPage() {
               </label>
               <div className="pi-footer pi-footer--flush">
                 {running ? (
-                  <div className="pi-progress" role="progressbar" aria-valuemin={0} aria-valuemax={parsed.rows.length} aria-valuenow={progress}>
+                  <div className="pi-progress" role="progressbar" aria-label="پیشرفت ایمپورت" aria-valuemin={0} aria-valuemax={parsed.rows.length} aria-valuenow={progress}>
                     <span style={{ width: `${(progress / parsed.rows.length) * 100}%` }} />
                     <em>{formatNumber(progress)} از {formatNumber(parsed.rows.length)} ردیف</em>
                   </div>
                 ) : <span />}
-                <button type="button" className="a-btn a-btn--primary" disabled={running || blocked} onClick={() => void runImport()}>
+                <button type="button" className="a-btn a-btn--primary" disabled={running || blocked} aria-busy={running || undefined} onClick={() => void runImport()}>
                   {running ? 'در حال ایمپورت…' : `ایمپورت ${formatNumber(parsed.rows.length)} ردیف`}
                 </button>
               </div>
@@ -361,23 +363,25 @@ export function ProductImportPage() {
           </div>
           <nav className="a-segmented pi-filter" aria-label="فیلتر نتیجه">
             {([['all', 'همه'], ['created', 'ایجادشده'], ['duplicate', 'تکراری'], ['error', 'خطا']] as const).map(([id, label]) => (
-              <button key={id} type="button" className={`a-seg${filter === id ? ' a-seg--on' : ''}`} onClick={() => setFilter(id)}>
+              <button key={id} type="button" className={`a-seg${filter === id ? ' a-seg--on' : ''}`} aria-pressed={filter === id} onClick={() => setFilter(id)}>
                 {label} ({formatNumber(id === 'all' ? results.length : counts[id])})
               </button>
             ))}
           </nav>
           {visible.length === 0 ? (
-            <div className="a-empty">{running ? 'در حال پردازش…' : 'ردیفی در این بخش نیست.'}</div>
+            running
+              ? <AdminState kind="loading" compact title="در حال پردازش…" />
+              : <AdminState kind="filtered" compact noun="ردیف" />
           ) : (
             <div className="a-table-wrap">
               <table className="a-table pi-table" data-export-title="نتیجه ایمپورت کالا">
                 <thead>
-                  <tr><th>ردیف</th><th>کد محصول</th><th>عنوان</th><th>نتیجه</th><th>توضیح</th></tr>
+                  <tr><th className="a-num">ردیف</th><th>کد محصول</th><th>عنوان</th><th>نتیجه</th><th>توضیح</th></tr>
                 </thead>
                 <tbody>
                   {visible.map((row) => (
                     <tr key={row.rowNumber}>
-                      <td>{formatNumber(row.rowNumber)}</td>
+                      <td className="a-num">{formatNumber(row.rowNumber)}</td>
                       <td className="a-ltr">{row.productId || '—'}</td>
                       <td>{row.title || '—'}</td>
                       <td><span className={STATUS_BADGE[row.status]}>{PRODUCT_IMPORT_STATUS_LABELS[row.status]}</span></td>

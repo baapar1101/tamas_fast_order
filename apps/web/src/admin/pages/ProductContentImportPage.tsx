@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatNumber } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
+import { AdminState } from '../components/AdminState';
 
 interface ImportableProduct {
   id: number;
@@ -75,11 +76,11 @@ export function ProductContentImportPage() {
         aggregate.errors.push(...response.errors);
       }
       aggregate.ok = aggregate.errors.length === 0;
-      aggregate.message = `${aggregate.results.length} محصول به‌روزرسانی شد.`;
+      aggregate.message = `${formatNumber(aggregate.results.length)} محصول به‌روزرسانی شد.`;
       return aggregate;
     },
     onSuccess: async (response) => {
-      if (response.errors.length > 0) toast.error(`${response.results.length} موفق، ${response.errors.length} ناموفق`);
+      if (response.errors.length > 0) toast.error(`${formatNumber(response.results.length)} محصول به‌روزرسانی شد و دریافت ${formatNumber(response.errors.length)} محصول انجام نشد.`);
       else toast.ok(response.message);
       setSelected(new Set());
       await refresh();
@@ -102,6 +103,7 @@ export function ProductContentImportPage() {
             type="button"
             className="a-btn a-btn--secondary"
             disabled={busy || items.length === 0}
+            aria-busy={batchImport.isPending || undefined}
             onClick={() => batchImport.mutate(items.map((item) => item.id))}
           >
             {batchImport.isPending ? 'در حال دریافت…' : 'دریافت همه'}
@@ -123,35 +125,38 @@ export function ProductContentImportPage() {
             <h3 className="a-card-title">محصولات دارای لینک</h3>
             <p className="a-card-desc">قیمت، موجودی، عنوان، فروشنده و نظرات در این عملیات تغییر نمی‌کنند.</p>
           </div>
-          <span className="a-badge a-badge--info">{formatNumber(items.length)} محصول</span>
+          <span className="a-badge a-badge--neutral">{products.isLoading ? '…' : formatNumber(items.length)} محصول</span>
         </div>
         <div className="p-4 border-b glass-border">
           <input
             className="a-input"
+            type="search"
+            aria-label="جست‌وجوی نام یا شناسهٔ محصول"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="جست‌وجوی نام یا شناسه محصول…"
+            placeholder="جست‌وجوی نام یا شناسهٔ محصول…"
           />
         </div>
 
         {products.isLoading ? (
-          <p className="a-empty">در حال دریافت فهرست محصولات…</p>
+          <AdminState kind="loading" title="در حال دریافت فهرست محصولات…" />
         ) : products.isError ? (
-          <div className="a-empty">
-            <p>دریافت فهرست محصولات ناموفق بود.</p>
-            <button type="button" className="a-btn a-btn--secondary" onClick={() => void products.refetch()}>تلاش دوباره</button>
+          <div className="p-4">
+            <AdminState kind="error" title="دریافت فهرست محصولات انجام نشد." error={products.error} onRetry={() => void products.refetch()} />
           </div>
         ) : filtered.length === 0 ? (
-          <p className="a-empty">محصولی با لینک ثبت‌شده پیدا نشد.</p>
+          query.trim()
+            ? <AdminState kind="filtered" noun="محصول" action={<button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => setQuery('')}>پاک کردن جست‌وجو</button>} />
+            : <AdminState kind="empty" title="هنوز محصولی با لینک ثبت‌شده نیست." />
         ) : (
           <div className="a-table-wrap">
             <table className="a-table">
               <thead>
                 <tr>
-                  <th>
+                  <th className="a-center">
                     <input
                       type="checkbox"
-                      aria-label="انتخاب همه"
+                      aria-label="انتخاب همهٔ محصولات"
                       checked={filtered.length > 0 && filtered.every((item) => selected.has(item.id))}
                       onChange={(event) => {
                         const next = new Set(selected);
@@ -161,9 +166,9 @@ export function ProductContentImportPage() {
                     />
                   </th>
                   <th>محصول</th>
-                  <th>تصاویر</th>
-                  <th>ویژگی‌ها</th>
-                  <th>امتیاز</th>
+                  <th className="a-num">تصاویر</th>
+                  <th className="a-num">ویژگی‌ها</th>
+                  <th className="a-num">امتیاز</th>
                   <th>آخرین دریافت</th>
                   <th>عملیات</th>
                 </tr>
@@ -171,7 +176,7 @@ export function ProductContentImportPage() {
               <tbody>
                 {filtered.map((item) => (
                   <tr key={item.id}>
-                    <td>
+                    <td className="a-center">
                       <input
                         type="checkbox"
                         aria-label={`انتخاب ${item.title}`}
@@ -184,21 +189,22 @@ export function ProductContentImportPage() {
                       />
                     </td>
                     <td>
-                      <strong>{item.title}</strong>
-                      <small className="block a-ltr text-slate-500">{item.productId}</small>
+                      <strong className="a-strong">{item.title}</strong>
+                      <small className="a-cell-sub block a-ltr">{item.productId}</small>
                     </td>
-                    <td>{formatNumber(item.imageCount)}</td>
-                    <td>{formatNumber(item.attributeCount)}</td>
-                    <td>{item.rating == null ? '—' : `${(item.rating / 100).toLocaleString('fa-IR', { maximumFractionDigits: 2 })} از ۵`}</td>
-                    <td>{item.externalDataUpdatedAt ? new Date(item.externalDataUpdatedAt).toLocaleString('fa-IR') : 'دریافت نشده'}</td>
+                    <td className="a-num">{formatNumber(item.imageCount)}</td>
+                    <td className="a-num">{formatNumber(item.attributeCount)}</td>
+                    <td className="a-num">{item.rating == null ? '—' : `${(item.rating / 100).toLocaleString('fa-IR', { maximumFractionDigits: 2 })} از ۵`}</td>
+                    <td className="a-cell-sub">{item.externalDataUpdatedAt ? new Date(item.externalDataUpdatedAt).toLocaleString('fa-IR') : 'دریافت نشده'}</td>
                     <td>
                       <button
                         type="button"
                         className="a-btn a-btn--secondary a-btn--sm"
                         disabled={busy}
+                        aria-busy={(singleImport.isPending && singleImport.variables === item.id) || undefined}
                         onClick={() => singleImport.mutate(item.id)}
                       >
-                        دریافت اطلاعات
+                        {singleImport.isPending && singleImport.variables === item.id ? 'در حال دریافت…' : 'دریافت اطلاعات'}
                       </button>
                     </td>
                   </tr>

@@ -17,6 +17,9 @@ import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 import { useBootstrap } from '../../storefront/hooks';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { AdminState } from '../components/AdminState';
+
+const fa = (value: number) => value.toLocaleString('fa-IR');
 
 const BENEFIT_ICON_LABELS: Record<LandingBenefitIcon, string> = {
   warehouse: 'انبار',
@@ -51,11 +54,11 @@ const lines = (value: string) => value.split('\n').map((item) => item.trim()).fi
 
 function Field({ label, children, full = false, hint }: { label: string; children: ReactNode; full?: boolean; hint?: string }) {
   return (
-    <div className={`a-field${full ? ' a-field--full' : ''}`}>
-      <label className="a-label">{label}</label>
+    <label className={`a-field${full ? ' a-field--full' : ''}`}>
+      <span className="a-label">{label}</span>
       {children}
-      {hint && <p className="a-hint">{hint}</p>}
-    </div>
+      {hint && <span className="a-hint">{hint}</span>}
+    </label>
   );
 }
 
@@ -143,7 +146,7 @@ function SectionFields({ section, onChange }: { section: LandingSection; onChang
             const setItem = (next: typeof item) => onChange({ ...section, items: section.items.map((current, i) => (i === index ? next : current)) });
             return (
               <div key={index} className="a-form-grid a-cols--3 landing-editor__item">
-                <Field label={`آیکون مزیت ${index + 1}`}>
+                <Field label={`آیکون مزیت ${fa(index + 1)}`}>
                   <select className="a-select" value={item.icon} onChange={(event) => setItem({ ...item, icon: event.target.value as LandingBenefitIcon })}>
                     {LANDING_BENEFIT_ICONS.map((icon) => <option key={icon} value={icon}>{BENEFIT_ICON_LABELS[icon]}</option>)}
                   </select>
@@ -167,7 +170,7 @@ function SectionFields({ section, onChange }: { section: LandingSection; onChang
             const setItem = (next: typeof item) => onChange({ ...section, items: section.items.map((current, i) => (i === index ? next : current)) });
             return (
               <div key={index} className="a-form-grid a-cols--3 landing-editor__item">
-                <Field label={`عنوان قدم ${index + 1}`}><input className="a-input" maxLength={60} value={item.title} onChange={(event) => setItem({ ...item, title: event.target.value })} /></Field>
+                <Field label={`عنوان قدم ${fa(index + 1)}`}><input className="a-input" maxLength={60} value={item.title} onChange={(event) => setItem({ ...item, title: event.target.value })} /></Field>
                 <Field label="توضیح" full><input className="a-input" maxLength={200} value={item.text} onChange={(event) => setItem({ ...item, text: event.target.value })} /></Field>
                 <button type="button" className="a-btn a-btn--danger a-btn--xs" onClick={() => onChange({ ...section, items: section.items.filter((_, i) => i !== index) })}>حذف این قدم</button>
               </div>
@@ -223,11 +226,15 @@ export function LandingEditorPage() {
     onError: (err: Error) => toast.error(err.message || 'ذخیرهٔ صفحهٔ اصلی ناموفق بود.'),
   });
 
-  if (query.isLoading || !config) {
-    return <div className="a-page a-fade"><div className="a-card"><div className="a-skeleton a-skeleton--text" /></div></div>;
-  }
   if (query.isError) {
-    return <div className="a-page"><div className="a-alert a-alert--error">دریافت تنظیمات صفحهٔ اصلی ناموفق بود.</div></div>;
+    return (
+      <div className="a-page">
+        <AdminState kind="error" title="دریافت تنظیمات صفحهٔ اصلی انجام نشد." error={query.error} onRetry={() => void query.refetch()} />
+      </div>
+    );
+  }
+  if (query.isLoading || !config) {
+    return <div className="a-page a-fade"><div className="a-card"><AdminState kind="loading" /></div></div>;
   }
 
   const setHero = (patch: Partial<LandingConfig['hero']>) => setConfig({ ...config, hero: { ...config.hero, ...patch } });
@@ -255,8 +262,8 @@ export function LandingEditorPage() {
         </div>
         <div className="a-page-actions">
           <a className="a-btn a-btn--secondary" href="/" target="_blank" rel="noreferrer">مشاهدهٔ صفحه</a>
-          <button type="button" className="a-btn a-btn--primary" disabled={!dirty || save.isPending} onClick={() => save.mutate(config)}>
-            {save.isPending ? 'در حال ذخیره…' : dirty ? 'ذخیرهٔ تغییرات' : 'ذخیره شده'}
+          <button type="button" className="a-btn a-btn--primary" disabled={!dirty || save.isPending} aria-busy={save.isPending || undefined} onClick={() => save.mutate(config)}>
+            {save.isPending ? 'در حال ذخیره…' : dirty ? 'ذخیرهٔ تغییرات' : 'ذخیره‌شده'}
           </button>
         </div>
       </section>
@@ -300,14 +307,14 @@ export function LandingEditorPage() {
           </div>
 
           <div className="a-page-stack">
-            {config.sections.length === 0 && <div className="a-empty">هیچ بخشی نیست؛ فقط بخش بالای صفحه نمایش داده می‌شود.</div>}
+            {config.sections.length === 0 && <AdminState kind="empty" noun="بخش" text="فقط بخش بالای صفحه نمایش داده می‌شود؛ از «افزودن بخش» بخش تازه بسازید." />}
             {config.sections.map((section, index) => {
               const open = openId === section.id;
               return (
                 <div key={section.id} className={`a-card landing-editor__section${section.enabled ? '' : ' is-off'}`}>
                   <div className="a-card-head a-card-head--split">
                     <button type="button" className="landing-editor__toggle" aria-expanded={open} onClick={() => setOpenId(open ? null : section.id)}>
-                      <span className="a-badge a-badge--neutral">{index + 1}</span>
+                      <span className="a-badge a-badge--neutral">{fa(index + 1)}</span>
                       <span>
                         <strong>{LANDING_SECTION_LABELS[section.type]}</strong>
                         {'title' in section && section.title && <span className="a-card-desc"> — {section.title}</span>}
@@ -315,9 +322,9 @@ export function LandingEditorPage() {
                       </span>
                     </button>
                     <div className="flex flex-wrap items-center gap-2">
-                      <button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={index === 0} onClick={() => move(index, -1)} aria-label="بالاتر">▲</button>
-                      <button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={index === config.sections.length - 1} onClick={() => move(index, 1)} aria-label="پایین‌تر">▼</button>
-                      <button type="button" className="a-btn a-btn--danger a-btn--xs" onClick={() => setConfig({ ...config, sections: config.sections.filter((_, i) => i !== index) })}>حذف</button>
+                      <button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={index === 0} onClick={() => move(index, -1)} aria-label={`بردن «${LANDING_SECTION_LABELS[section.type]}» به بالا`}><span aria-hidden="true">▲</span></button>
+                      <button type="button" className="a-btn a-btn--secondary a-btn--xs" disabled={index === config.sections.length - 1} onClick={() => move(index, 1)} aria-label={`بردن «${LANDING_SECTION_LABELS[section.type]}» به پایین`}><span aria-hidden="true">▼</span></button>
+                      <button type="button" className="a-btn a-btn--danger a-btn--xs" onClick={() => setConfig({ ...config, sections: config.sections.filter((_, i) => i !== index) })} aria-label={`حذف بخش «${LANDING_SECTION_LABELS[section.type]}»`}>حذف</button>
                       <Switch label={`نمایش ${LANDING_SECTION_LABELS[section.type]}`} checked={section.enabled} onChange={(enabled) => setSection(index, { ...section, enabled })} />
                     </div>
                   </div>
@@ -338,9 +345,10 @@ export function LandingEditorPage() {
 
       <ConfirmDialog
         open={confirmReset}
-        title="بازگشت به حالت پیش‌فرض؟"
-        description="همهٔ تغییرات این صفحه با حالت اولیه جایگزین می‌شود. بعد از آن باید «ذخیرهٔ تغییرات» را بزنید."
-        confirmLabel="بله، پیش‌فرض"
+        title="بازگشت به حالت پیش‌فرض"
+        description="همهٔ متن‌ها و بخش‌های این صفحه با حالت اولیه جایگزین می‌شوند."
+        hint="تا «ذخیرهٔ تغییرات» را نزنید، روی سایت اعمال نمی‌شود."
+        confirmLabel="بازگرداندن پیش‌فرض"
         onConfirm={() => { setConfig(DEFAULT_LANDING_CONFIG); setConfirmReset(false); }}
         onClose={() => setConfirmReset(false)}
       />

@@ -1,13 +1,15 @@
+import './embed-page.css';
+
 export function ArchifyPage() {
   return (
-    <div className="a-page a-fade">
+    <div className="a-page a-fade embed-page">
       <section className="a-page-head">
         <div className="a-titles">
           <h2 className="a-title">نمودار معماری سیستم</h2>
           <p className="a-subtitle">نمایش تعاملی معماری کامل سیستم تماس مارکت</p>
         </div>
         <div className="a-page-actions">
-          <span className="chip chip-aqua">Archify Architecture Diagram</span>
+          <span className="a-badge a-badge--neutral a-ltr">Archify Architecture Diagram</span>
         </div>
       </section>
 
@@ -23,14 +25,14 @@ export function ArchifyPage() {
             rel="noopener noreferrer"
             className="a-btn a-btn--secondary"
           >
-            باز در تب جدید
+            باز کردن در تب جدید
           </a>
         </div>
-        <div className="relative" style={{ height: 'calc(100vh - 300px)', minHeight: '500px' }}>
+        <div className="embed-frame">
           <iframe
             src="/tamas-fast-order-architecture.html"
             className="w-full h-full border-0"
-            title="System Architecture Diagram"
+            title="نمودار معماری سیستم"
             sandbox="allow-scripts allow-same-origin allow-popups"
           />
         </div>

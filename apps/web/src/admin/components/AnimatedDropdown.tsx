@@ -161,14 +161,14 @@ export function AnimatedDropdown({
           {searchable && <div className="searchable-select__search-wrap">
             <Search size={16} aria-hidden="true" />
             <input ref={searchRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)}
-              placeholder="جستجو در گزینه‌ها..." aria-label="جستجو در گزینه‌ها" />
+              placeholder="جستجو در گزینه‌ها…" aria-label="جستجو در گزینه‌ها" />
           </div>}
           <div id={listboxId} role="listbox" aria-label={ariaLabel || placeholder} className="searchable-select__options">
             {filteredOptions.length ? filteredOptions.map((option, index) => (
               <button key={`${option.value}-${index}`} data-dropdown-index={index} type="button" role="option" tabIndex={-1} aria-selected={value === option.value}
                 className={cn('searchable-select__option', value === option.value && 'searchable-select__option--selected', index === activeIndex && 'searchable-select__option--active')}
                 onMouseEnter={() => setActiveIndex(index)} onClick={() => selectOption(option)}>{option.label}</button>
-            )) : <div className="searchable-select__empty">گزینه‌ای پیدا نشد</div>}
+            )) : <div className="searchable-select__empty" role="status">گزینه‌ای با این جستجو نیست.</div>}
           </div>
         </div>, document.body,
       )}

@@ -14,6 +14,8 @@ import {
 import { api } from '../../lib/api';
 import { resolveImageUrl } from '../../lib/images';
 import { useToast } from '../../components/Toast';
+import { AdminState } from './AdminState';
+import './festival-settings.css';
 
 type SlideRow = { id: number; title: string | null; imageUrl: string; isActive: boolean };
 type Loaded = { config: FestivalConfig; status: FestivalStatus; festivalProducts: number; slides: SlideRow[] };
@@ -45,7 +47,7 @@ export function MomentInput({ id, label, value, onChange }: { id: string; label:
   return (
     <div className="a-field">
       <label className="a-label" htmlFor={`${id}-date`}>{label}</label>
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div className="fest-moment">
         <input
           id={`${id}-date`}
           className="a-input a-ltr"
@@ -53,19 +55,19 @@ export function MomentInput({ id, label, value, onChange }: { id: string; label:
           inputMode="numeric"
           value={value.date}
           aria-invalid={invalid}
+          aria-describedby={`${id}-hint`}
           onChange={(event) => onChange({ ...value, date: event.target.value })}
         />
         <input
-          className="a-input a-ltr"
           type="time"
-          aria-label={`${label} — ساعت`}
-          style={{ maxWidth: 130 }}
+          aria-label={`${label}؛ ساعت`}
+          className="a-input a-ltr fest-moment__time"
           value={value.time}
           onChange={(event) => onChange({ ...value, time: event.target.value })}
         />
       </div>
-      <span className="a-hint" style={invalid ? { color: 'var(--a-red, #dc2626)' } : undefined}>
-        {invalid ? 'تاریخ شمسی را به شکل ۱۴۰۵/۰۸/۲۹ و ساعت را کامل وارد کنید.' : 'تاریخ شمسی و ساعت به وقت تهران'}
+      <span id={`${id}-hint`} className={invalid ? 'a-field-error' : 'a-hint'}>
+        {invalid ? 'تاریخ شمسی را به شکل ۱۴۰۵/۰۸/۲۹ و ساعت را کامل وارد کنید.' : 'تاریخ شمسی و ساعت به وقت تهران.'}
       </span>
     </div>
   );
@@ -107,11 +109,11 @@ export function FestivalSettings() {
       void qc.invalidateQueries({ queryKey: ['bootstrap'] });
       toast.ok(data.message);
     },
-    onError: (err: Error) => toast.error(err.message || 'ذخیرهٔ جشنواره ناموفق بود.'),
+    onError: (err: Error) => toast.error(err.message || 'جشنواره ذخیره نشد؛ دوباره تلاش کنید.'),
   });
 
-  if (query.isError) return <div className="a-alert a-alert--error">دریافت تنظیمات جشنواره ناموفق بود.</div>;
-  if (!config || !draft || !query.data) return <div className="a-card"><div className="a-skeleton a-skeleton--text" /></div>;
+  if (query.isError) return <AdminState kind="error" title="دریافت تنظیمات جشنواره انجام نشد." error={query.error} onRetry={() => void query.refetch()} />;
+  if (!config || !draft || !query.data) return <div className="a-card"><AdminState kind="loading" compact /></div>;
 
   const scheduleError = config.mode === 'scheduled'
     ? !draft.startsAt || !draft.endsAt ? 'زمان شروع و پایان را کامل وارد کنید.'
@@ -138,7 +140,7 @@ export function FestivalSettings() {
           </div>
           <span className={line.badge}>{status.active ? 'فعال' : 'غیرفعال'}</span>
         </div>
-        <p className="a-note" style={{ marginBottom: 16 }}>{line.text}{dirty && ' (تغییرات هنوز ذخیره نشده‌اند.)'}</p>
+        <p className="a-note fest-status" role="status">{line.text}{dirty && ' (تغییرات هنوز ذخیره نشده‌اند.)'}</p>
 
         <div className="a-field">
           <span className="a-label">وضعیت</span>
@@ -151,7 +153,7 @@ export function FestivalSettings() {
           </div>
         </div>
 
-        <div className="a-form-grid a-cols--2" style={{ marginTop: 12 }}>
+        <div className="a-form-grid a-cols--2 fest-gap-top">
           <div className="a-field">
             <label className="a-label" htmlFor="festival-title">نام جشنواره</label>
             <input id="festival-title" className="a-input" maxLength={80} value={config.title} onChange={(event) => setConfig({ ...config, title: event.target.value })} />
@@ -160,12 +162,12 @@ export function FestivalSettings() {
         </div>
 
         {config.mode === 'scheduled' && (
-          <div className="a-form-grid a-cols--2" style={{ marginTop: 12 }}>
+          <div className="a-form-grid a-cols--2 fest-gap-top">
             <MomentInput id="festival-start" label="شروع" value={start} onChange={setStart} />
             <MomentInput id="festival-end" label="پایان" value={end} onChange={setEnd} />
           </div>
         )}
-        {scheduleError && <div className="a-alert a-alert--error" style={{ marginTop: 12 }}>{scheduleError}</div>}
+        {scheduleError && <div className="a-alert a-alert--error fest-gap-top" role="alert">{scheduleError}</div>}
       </section>
 
       <section className="a-card">
@@ -175,15 +177,15 @@ export function FestivalSettings() {
             <p className="a-card-desc">هر مورد را که تیک بزنید، فقط وقتی جشنواره روشن است اعمال می‌شود.</p>
           </div>
         </div>
-        <div style={{ display: 'grid', gap: 12 }}>
+        <div className="fest-effects">
           {EFFECT_KEYS.map((key) => (
-            <label key={key} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}>
-              <input type="checkbox" style={{ marginTop: 4 }} checked={config.effects[key]} onChange={(event) => setEffect(key, event.target.checked)} />
+            <label key={key} className="fest-effect">
+              <input type="checkbox" className="fest-effect__check" checked={config.effects[key]} onChange={(event) => setEffect(key, event.target.checked)} />
               <span>
-                <span style={{ display: 'block', fontWeight: 600 }}>{FESTIVAL_EFFECT_LABELS[key].label}</span>
+                <span className="fest-effect__label">{FESTIVAL_EFFECT_LABELS[key].label}</span>
                 <span className="a-hint">{FESTIVAL_EFFECT_LABELS[key].hint}</span>
                 {key === 'onlyFestivalProducts' && (
-                  <span className="a-hint" style={{ display: 'block' }}>
+                  <span className="a-hint fest-block">
                     اکنون {formatNumber(query.data.festivalProducts)} کالای فعال «کالای جشنواره» است. این علامت را در <Link to="/admin/products">ویرایش کالا</Link> یا ستون «کالای جشنواره» ایمپورت اکسل بزنید.
                   </span>
                 )}
@@ -201,14 +203,14 @@ export function FestivalSettings() {
               <p className="a-card-desc">بنرهایی را که مخصوص جشنواره‌اند تیک بزنید. بنرها را در بخش <Link to="/admin/slides">اسلایدها</Link> بسازید؛ بنر غیرفعال هیچ‌وقت نمایش داده نمی‌شود.</p>
             </div>
           </div>
-          {query.data.slides.length === 0 ? <p className="a-hint">هنوز بنری ساخته نشده است.</p> : (
-            <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+          {query.data.slides.length === 0 ? <AdminState kind="empty" noun="بنر" compact /> : (
+            <div className="fest-slides">
               {query.data.slides.map((slide) => {
                 const checked = config.festivalSlideIds.includes(slide.id);
                 return (
-                  <label key={slide.id} style={{ display: 'grid', gap: 6, cursor: 'pointer', opacity: slide.isActive ? 1 : 0.55 }}>
-                    <img src={resolveImageUrl(slide.imageUrl)} alt="" loading="lazy" style={{ width: '100%', aspectRatio: '4 / 1', objectFit: 'cover', borderRadius: 10, outline: checked ? '2px solid var(--a-brand)' : '1px solid var(--a-border, rgba(127,127,127,.25))' }} />
-                    <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <label key={slide.id} className={`fest-slide${slide.isActive ? '' : ' is-inactive'}${checked ? ' is-checked' : ''}`}>
+                    <img className="fest-slide__img" src={resolveImageUrl(slide.imageUrl)} alt="" loading="lazy" />
+                    <span className="fest-slide__row">
                       <input type="checkbox" checked={checked} onChange={() => toggleSlide(slide.id)} />
                       <span>{slide.title || `بنر ${formatNumber(slide.id)}`}{!slide.isActive && ' (غیرفعال)'}</span>
                     </span>
@@ -220,9 +222,9 @@ export function FestivalSettings() {
         </section>
       )}
 
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button type="button" className="a-btn a-btn--primary" disabled={!dirty || save.isPending || Boolean(scheduleError)} onClick={() => save.mutate(toSave)}>
-          {save.isPending ? 'در حال ذخیره…' : dirty ? 'ذخیرهٔ جشنواره' : 'ذخیره شده'}
+      <div className="fest-actions">
+        <button type="button" className="a-btn a-btn--primary" disabled={!dirty || save.isPending || Boolean(scheduleError)} aria-busy={save.isPending || undefined} onClick={() => save.mutate(toSave)}>
+          {save.isPending ? 'در حال ذخیره…' : dirty ? 'ذخیرهٔ جشنواره' : 'ذخیره‌شده'}
         </button>
       </div>
     </>

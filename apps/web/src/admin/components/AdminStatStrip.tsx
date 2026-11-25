@@ -8,7 +8,6 @@ export type StatStripKind = 'users' | 'products' | 'orders';
 
 interface Card {
   label: string;
-  tone: 'emerald' | 'cyan' | 'amber' | 'rose';
   icon: string;
   render: (s: DashboardStats) => ReactNode;
   sub?: (s: DashboardStats) => string;
@@ -16,22 +15,22 @@ interface Card {
 
 const CARDS: Record<StatStripKind, Card[]> = {
   users: [
-    { label: 'کل کاربران', tone: 'emerald', icon: 'users', render: (s) => formatNumber(s.userCount), sub: (s) => `${formatNumber(s.activeProductCount)} محصول` },
-    { label: 'کاربران جدید (۳۰ روز)', tone: 'cyan', icon: 'spark', render: (s) => formatNumber(s.newUser30) },
-    { label: 'کاربران فعال', tone: 'amber', icon: 'check', render: (s) => formatNumber(Math.max(0, s.userCount - s.pendingUserCount)) },
-    { label: 'در انتظار فعال‌سازی', tone: 'rose', icon: 'clock', render: (s) => formatNumber(s.pendingUserCount) },
+    { label: 'کل کاربران', icon: 'users', render: (s) => formatNumber(s.userCount), sub: (s) => `${formatNumber(s.activeProductCount)} محصول` },
+    { label: 'کاربران جدید (۳۰ روز)', icon: 'spark', render: (s) => formatNumber(s.newUser30) },
+    { label: 'کاربران فعال', icon: 'check', render: (s) => formatNumber(Math.max(0, s.userCount - s.pendingUserCount)) },
+    { label: 'در انتظار فعال‌سازی', icon: 'clock', render: (s) => formatNumber(s.pendingUserCount) },
   ],
   products: [
-    { label: 'کل محصولات', tone: 'emerald', icon: 'cube', render: (s) => formatNumber(s.productCount) },
-    { label: 'محصولات فعال', tone: 'cyan', icon: 'check', render: (s) => formatNumber(s.activeProductCount) },
-    { label: 'ناموجود', tone: 'rose', icon: 'x', render: (s) => formatNumber(s.outOfStockCount) },
-    { label: 'افزوده‌شده (۳۰ روز)', tone: 'amber', icon: 'plus', render: (s) => formatNumber(s.newProduct30) },
+    { label: 'کل محصولات', icon: 'cube', render: (s) => formatNumber(s.productCount) },
+    { label: 'محصولات فعال', icon: 'check', render: (s) => formatNumber(s.activeProductCount) },
+    { label: 'ناموجود', icon: 'x', render: (s) => formatNumber(s.outOfStockCount) },
+    { label: 'افزوده‌شده (۳۰ روز)', icon: 'plus', render: (s) => formatNumber(s.newProduct30) },
   ],
   orders: [
-    { label: 'کل سفارش‌ها', tone: 'emerald', icon: 'bag', render: (s) => formatNumber(s.orderCount) },
-    { label: 'سفارش‌های جدید', tone: 'amber', icon: 'inbox', render: (s) => formatNumber(s.newOrderCount) },
-    { label: 'درآمد کل', tone: 'cyan', icon: 'coin', render: (s) => <Price amount={s.revenueTotal} /> },
-    { label: 'درآمد ۳۰ روز اخیر', tone: 'rose', icon: 'trend', render: (s) => <Price amount={s.revenueLast30Days} /> },
+    { label: 'کل سفارش‌ها', icon: 'bag', render: (s) => formatNumber(s.orderCount) },
+    { label: 'سفارش‌های جدید', icon: 'inbox', render: (s) => formatNumber(s.newOrderCount) },
+    { label: 'درآمد کل', icon: 'coin', render: (s) => <Price amount={s.revenueTotal} /> },
+    { label: 'درآمد ۳۰ روز اخیر', icon: 'trend', render: (s) => <Price amount={s.revenueLast30Days} /> },
   ],
 };
 
@@ -49,8 +48,14 @@ const ICONS: Record<string, string> = {
   trend: 'M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28-5.941',
 };
 
+const STRIP_LABELS: Record<StatStripKind, string> = {
+  users: 'آمار کاربران',
+  products: 'آمار محصولات',
+  orders: 'آمار سفارش‌ها',
+};
+
 export function AdminStatStrip({ kind }: { kind: StatStripKind }) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['admin', 'dashboard-stats'],
     queryFn: async () => {
       const res = await api.get<{ ok: boolean; stats: DashboardStats }>('/admin/stats');
@@ -60,19 +65,19 @@ export function AdminStatStrip({ kind }: { kind: StatStripKind }) {
   });
 
   return (
-    <section className={`a-stat-strip a-stat-strip--${kind}`} aria-label="آمار">
+    <section className={`a-stat-strip a-stat-strip--${kind}`} aria-label={STRIP_LABELS[kind]} aria-busy={isLoading || undefined}>
       {CARDS[kind].map((card) => {
         const value = data ? card.render(data) : null;
         return (
-          <article key={card.label} className={`a-stat-card a-stat-card--${card.tone}`}>
-            <span className="a-stat-card-ico">
-              <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-5 w-5">
+          <article key={card.label} className="a-stat-card">
+            <span className="a-stat-card-ico" aria-hidden="true">
+              <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-5 w-5" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d={ICONS[card.icon]} />
               </svg>
             </span>
             <div className="a-stat-card-copy">
               <strong className="a-stat-card-value">
-                {isLoading || value === null ? '…' : value}
+                {isLoading ? '…' : isError || value === null ? '—' : value}
               </strong>
               <span className="a-stat-card-label">{card.label}</span>
             </div>

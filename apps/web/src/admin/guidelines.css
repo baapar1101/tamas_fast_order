@@ -1,0 +1,929 @@
+/* ==========================================================================
+   Tamas Admin — UI guideline layer (markstreet / MARK Insight contract)
+   --------------------------------------------------------------------------
+   Imported LAST by AdminApp so it settles every earlier admin layer
+   (admin.css → theme.css → foundation.css). Every selector is scoped to the
+   admin shell or `body.admin-page-active`, so the storefront never changes.
+   Rationale and values: docs/ui-guidelines.md
+   ========================================================================== */
+
+@font-face {
+  font-family: "Vazirmatn FD";
+  src: url("/fonts/Vazirmatn-FD-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn FD";
+  src: url("/fonts/Vazirmatn-FD-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn FD";
+  src: url("/fonts/Vazirmatn-FD-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn FD";
+  src: url("/fonts/Vazirmatn-FD-Bold.woff2") format("woff2");
+  font-weight: 700 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn FD";
+  src: url("/fonts/Vazirmatn-FD-ExtraBold.woff2") format("woff2");
+  font-weight: 900;
+  font-display: swap;
+}
+
+/* --------------------------------------------------------------------------
+   §2 Tokens
+   -------------------------------------------------------------------------- */
+body.admin-page-active,
+body.admin-page-active .admin-body-shell {
+  --ds-font-sans: "Vazirmatn FD", Vazirmatn, Tahoma, sans-serif;
+
+  /* Motion */
+  --a-motion-fast: 140ms;
+  --a-motion-enter: 200ms;
+  --a-motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Layers: sheet → dialog → popover → toast → busy (relative order is fixed) */
+  --a-z-sheet: 100;
+  --a-z-dialog: 100000;
+  --a-z-popover: 100010;
+  --a-z-toast: 100100;
+  --a-z-busy: 100200;
+
+  /* Rhythm */
+  --a-pad-card: 24px;
+  --a-pad-block: 20px;
+  --a-row-y: 8px;
+  --a-control-h: 2.25rem;
+  --a-control-h-sm: 2rem;
+  --a-control-h-xs: 1.5rem;
+  --a-control-h-lg: 2.5rem;
+  --a-radius-control: 0.5rem;
+  --a-radius-panel: 1rem;
+  --a-radius-inner: 0.75rem;
+  --a-radius-dialog: 0.875rem;
+
+  /* Extra semantic roles */
+  --a-info: var(--ds-admin-info);
+  --a-info-soft: var(--ds-admin-info-soft);
+  --a-signal: var(--ds-admin-signal);
+  --a-chosen: var(--ds-admin-chosen);
+  --a-chosen-edge: inset 0 0 0 1.5px var(--a-t1);
+  --a-soft: var(--ds-admin-interactive-soft);
+  --a-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --a-tooltip-bg: #e4e4e7;
+  --a-tooltip-ink: #111113;
+  --a-thumb: rgba(255, 255, 255, 0.17);
+  --a-thumb-hover: rgba(255, 255, 255, 0.3);
+  --a-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Chart series (§2.4) */
+  --a-series-1: #3987e5;
+  --a-series-2: #d95926;
+  --a-series-3: #199e70;
+  --a-series-4: #c98500;
+  --a-series-5: #d55181;
+  --a-series-6: #008300;
+  --a-series-7: #9085e9;
+  --a-series-8: #e66767;
+  --a-series-other: #6b7079;
+  --a-grid: rgba(255, 255, 255, 0.1);
+
+  /* Status aliases consumed by older layers */
+  --a-brand-ring: color-mix(in srgb, var(--a-brand) 45%, transparent);
+  --a-slate: var(--a-t3);
+  --a-slate-soft: var(--a-soft);
+  --a-focus: 0 0 0 3px color-mix(in srgb, var(--a-brand) 45%, transparent);
+  --a-danger-focus: 0 0 0 3px color-mix(in srgb, var(--a-red) 25%, transparent);
+}
+
+body.admin-page-active.admin-theme-light {
+  --a-series-1: #2a78d6;
+  --a-series-2: #eb6834;
+  --a-series-3: #1baf7a;
+  --a-series-4: #eda100;
+  --a-series-5: #e87ba4;
+  --a-series-6: #008300;
+  --a-series-7: #6250d6;
+  --a-series-8: #e34948;
+  --a-series-other: #9aa0a8;
+  --a-grid: rgba(28, 28, 28, 0.08);
+  --a-tooltip-bg: #2a2a2d;
+  --a-tooltip-ink: #ffffff;
+  --a-thumb: rgba(20, 20, 20, 0.16);
+  --a-thumb-hover: rgba(20, 20, 20, 0.3);
+  --a-chosen-edge: inset 0 0 0 1.5px var(--a-t1);
+}
+
+@media (pointer: coarse), (max-width: 760px) {
+  body.admin-page-active,
+  body.admin-page-active .admin-body-shell {
+    --a-control-h: 2.75rem;
+    --a-control-h-sm: 2.5rem;
+    --a-control-h-lg: 3rem;
+    --a-pad-card: 16px;
+    --a-pad-block: 16px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Base type
+   -------------------------------------------------------------------------- */
+body.admin-page-active {
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-md);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body.admin-page-active :where(button, input, select, textarea) { font-family: inherit; }
+body.admin-page-active :where(.a-num, .a-money, .a-stat-value, .a-stat-card-value, .a-table td, input[type="number"]) {
+  font-variant-numeric: tabular-nums;
+}
+body.admin-page-active .a-ltr,
+body.admin-page-active .a-table .a-ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: start;
+}
+body.admin-page-active .a-num { text-align: end; }
+body.admin-page-active ::selection { background: var(--a-brand); color: var(--a-brand-contrast); }
+
+/* --------------------------------------------------------------------------
+   §7 Focus — always visible; outline for actions, ring for fields
+   -------------------------------------------------------------------------- */
+body.admin-page-active :where(button, a, summary, [role="button"], [role="tab"]):focus-visible,
+body.admin-page-active .a-btn:focus-visible,
+body.admin-page-active .modal-close:focus-visible,
+body.admin-page-active .nav-item:focus-visible,
+body.admin-page-active .mobile-admin-nav-item:focus-visible {
+  outline: 2px solid var(--a-brand);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+body.admin-page-active :where(.a-input, .a-select, .a-textarea):focus-visible,
+body.admin-page-active :where(.a-input, .a-select, .a-textarea):focus {
+  outline: none;
+  border-color: var(--a-brand);
+  box-shadow: var(--a-focus);
+}
+body.admin-page-active .a-table-wrap:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--a-brand) 50%, transparent);
+  outline-offset: 2px;
+}
+
+/* Skip link */
+body.admin-page-active .a-skip-link {
+  position: absolute;
+  inset-block-start: 12px;
+  inset-inline-start: 50%;
+  z-index: var(--a-z-popover);
+  transform: translateX(50%);
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border-radius: var(--a-radius-control);
+  background: var(--a-brand);
+  color: var(--a-brand-contrast);
+  font-size: var(--ds-text-sm);
+  font-weight: 500;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+body.admin-page-active .a-skip-link:focus-visible { clip-path: none; }
+
+/* sr-only helper */
+body.admin-page-active .a-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Scrollbars — thin and quiet
+   -------------------------------------------------------------------------- */
+body.admin-page-active,
+body.admin-page-active * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--a-thumb) transparent;
+}
+body.admin-page-active ::-webkit-scrollbar { width: 8px; height: 8px; }
+body.admin-page-active ::-webkit-scrollbar-track { background: transparent; }
+body.admin-page-active ::-webkit-scrollbar-thumb { border-radius: 999px; background: var(--a-thumb); }
+body.admin-page-active ::-webkit-scrollbar-thumb:hover { background: var(--a-thumb-hover); }
+
+/* --------------------------------------------------------------------------
+   §2.9 Motion — only state properties transition
+   -------------------------------------------------------------------------- */
+body.admin-page-active :where(.a-btn, .nav-item, .mobile-admin-nav-item, .a-input, .a-select, .a-textarea, .a-badge, .a-tab, .a-seg, .modal-close, .icon-btn) {
+  transition:
+    background-color var(--a-motion-fast) ease,
+    border-color var(--a-motion-fast) ease,
+    color var(--a-motion-fast) ease,
+    box-shadow var(--a-motion-fast) ease,
+    opacity var(--a-motion-fast) ease;
+}
+body.admin-page-active :where(.a-btn, .a-page-actions a, .a-filterbar a):active:not(:disabled) { transform: translateY(1px); }
+body.admin-page-active .a-fade { animation: a-guideline-enter var(--a-motion-enter) var(--a-motion-ease); }
+@keyframes a-guideline-enter {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* --------------------------------------------------------------------------
+   §3 Shell
+   -------------------------------------------------------------------------- */
+body.admin-page-active .admin-sidebar {
+  width: 18rem;
+  border-inline-start: 0;
+  border-left: 1px solid var(--a-border) !important;
+  box-shadow: none;
+}
+body.admin-page-active .admin-sidebar nav { padding-inline: var(--ds-space-3); }
+body.admin-page-active .admin-sidebar .nav-domain-list { border-right-color: var(--a-divider); }
+
+body.admin-page-active .admin-sidebar .nav-item {
+  min-height: 2rem;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-1) var(--ds-space-2);
+  border-radius: var(--a-radius-control);
+  background-image: none;
+  color: var(--a-t3);
+  font-size: var(--ds-text-sm);
+  font-weight: 400;
+  line-height: 1.6;
+}
+body.admin-page-active .admin-sidebar .nav-item::before {
+  inset-inline-start: -12px;
+  right: auto;
+  width: 3px;
+  background: var(--a-t1);
+  background-image: none;
+  transition: opacity var(--a-motion-fast) ease, height var(--a-motion-fast) ease;
+}
+body.admin-page-active .admin-sidebar .nav-item:hover::before { opacity: 0; }
+body.admin-page-active .admin-sidebar .nav-item.active::before { height: 55%; opacity: 1; }
+body.admin-page-active .admin-sidebar .nav-item:hover { background: var(--a-hover); color: var(--a-t1); }
+body.admin-page-active .admin-sidebar .nav-item.active,
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-item.active {
+  background: var(--a-soft);
+  background-image: none;
+  color: var(--a-t1);
+  font-weight: 500;
+  box-shadow: none;
+}
+body.admin-page-active .admin-sidebar .nav-item .icon-svg,
+body.admin-page-active .admin-sidebar .nav-item > svg { width: 1.125rem; height: 1.125rem; min-width: 1.125rem; transform: none; }
+body.admin-page-active .admin-sidebar .nav-subitem { min-height: 2rem; padding: var(--ds-space-1) var(--ds-space-2); font-size: var(--ds-text-sm); }
+body.admin-page-active .admin-sidebar .nav-subitem.active { background: var(--a-soft); }
+body.admin-page-active .admin-sidebar .nav-domain-copy strong { font-size: var(--ds-text-sm); font-weight: 500; }
+body.admin-page-active .admin-sidebar .nav-domain-copy small { font-size: var(--ds-text-xs); color: var(--a-t4); }
+body.admin-page-active .admin-sidebar .nav-domain-badge {
+  min-width: 1.25rem;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--a-signal);
+  color: var(--ds-on-interactive);
+  font-size: var(--ds-text-xs);
+  font-weight: 500;
+}
+body.admin-page-active .admin-sidebar .nav-accordion-count { color: var(--a-t4); font-size: var(--ds-text-xs); }
+
+body.admin-page-active .admin-topbar {
+  border-bottom: 1px solid var(--a-border) !important;
+  box-shadow: none;
+}
+body.admin-page-active .admin-topbar > div {
+  min-height: 4.25rem;
+  height: auto;
+}
+body.admin-page-active .admin-topbar .icon-btn,
+body.admin-page-active .admin-topbar button.icon-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--a-radius-control);
+  border-color: transparent;
+  background: transparent;
+  color: var(--a-t2);
+}
+body.admin-page-active .admin-topbar .icon-btn:hover { background: var(--a-soft); color: var(--a-t1); }
+
+body.admin-page-active .admin-main-content > div {
+  max-width: 81.25rem !important; /* 1300px — markstreet view-content */
+}
+
+/* Entry (login / boot) */
+body.admin-page-active .admin-password-login { display: grid; gap: 10px; margin-bottom: var(--ds-space-4); text-align: start; }
+body.admin-page-active .admin-entry-card { border-radius: var(--a-radius-panel); background: var(--a-surface-3); box-shadow: var(--a-shadow-2); }
+body.admin-page-active .admin-entry-action,
+body.admin-page-active .admin-entry-action:hover { box-shadow: none; border-radius: var(--a-radius-control); min-height: var(--a-control-h-lg); }
+
+/* Header chrome: overlay, counters, avatar, menus */
+body.admin-page-active .admin-sidebar-overlay { background: var(--a-overlay); backdrop-filter: blur(3px); }
+body.admin-page-active .admin-count-badge {
+  display: grid;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  place-items: center;
+  padding-inline: var(--ds-space-1);
+  border-radius: 999px;
+  background: var(--a-signal);
+  color: var(--ds-on-interactive);
+  font-size: 10.5px;
+  font-weight: 600;
+  box-shadow: 0 0 0 2px var(--ds-admin-canvas);
+}
+body.admin-page-active .admin-avatar { background: var(--a-brand); color: var(--a-brand-contrast); }
+body.admin-page-active .admin-presence-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 999px;
+  background: var(--a-green);
+  box-shadow: 0 0 0 2px var(--ds-admin-canvas);
+}
+body.admin-page-active .admin-profile-trigger:hover { background: var(--a-soft) !important; }
+body.admin-page-active .notif-dot--ok { background: var(--a-green); }
+body.admin-page-active .notif-dot--warn { background: var(--a-amber); }
+body.admin-page-active .admin-inline-currency { display: inline; width: 1em; height: 1em; vertical-align: -0.125em; }
+body.admin-page-active .profile-menu-item--danger { color: var(--a-red); }
+body.admin-page-active .profile-menu-item--danger:hover { background: var(--a-red-soft); color: var(--a-red); }
+body.admin-page-active .admin-main-content:focus { outline: none; }
+
+
+/* Neutralise the former emerald brand in shell chrome (both themes). */
+body.admin-page-active .admin-sidebar .nav-domain,
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-domain {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+body.admin-page-active .admin-sidebar .nav-domain.is-open,
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-domain.is-open {
+  border-color: var(--a-border);
+  background: color-mix(in srgb, var(--a-t1) 3%, transparent);
+  box-shadow: none;
+}
+body.admin-page-active .admin-sidebar .nav-item:hover,
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-item:hover { font-weight: inherit; text-shadow: none; }
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-item { color: var(--a-t2); }
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-item.active { color: var(--a-t1); }
+body.admin-page-active .admin-sidebar .nav-accordion-count,
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-accordion-count {
+  min-width: 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--a-soft);
+  color: var(--a-t3);
+}
+body.admin-page-active .admin-sidebar .nav-accordion-chevron { color: var(--a-t4); }
+body.admin-page-active .admin-sidebar .nav-submenu,
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-submenu { border-right-color: var(--a-divider); }
+body.admin-page-active.admin-theme-light .admin-sidebar .nav-domain-badge { background: var(--a-signal); color: var(--ds-on-interactive); }
+
+body.admin-page-active .admin-topbar .icon-btn,
+body.admin-page-active.admin-theme-light .admin-topbar .icon-btn,
+body.admin-page-active .admin-sidebar .icon-btn,
+body.admin-page-active.admin-theme-light .admin-sidebar .icon-btn {
+  border-color: transparent;
+  background: transparent;
+  color: var(--a-t2);
+  box-shadow: none;
+}
+body.admin-page-active .admin-topbar .icon-btn:hover,
+body.admin-page-active.admin-theme-light .admin-topbar .icon-btn:hover,
+body.admin-page-active .admin-sidebar .icon-btn:hover,
+body.admin-page-active.admin-theme-light .admin-sidebar .icon-btn:hover {
+  border-color: transparent;
+  background: var(--a-soft);
+  color: var(--a-t1);
+  box-shadow: none;
+}
+body.admin-page-active.admin-theme-light .admin-topbar .mr-auto > .relative > button.group,
+body.admin-page-active .admin-profile-trigger { background-color: transparent; border-color: var(--a-border); }
+body.admin-page-active.admin-theme-light .admin-topbar .mr-auto > .relative > button.group:hover { border-color: var(--a-border-2); }
+body.admin-page-active .admin-topbar input,
+body.admin-page-active .admin-topbar .glass-bg-surface { box-shadow: none; }
+body.admin-page-active .admin-topbar input { border-radius: var(--a-radius-control); min-height: var(--a-control-h); }
+body.admin-page-active .admin-topbar .rounded-xl { border-radius: var(--a-radius-control); }
+
+/* Mobile bottom navigation (§3): flat bar, 64px + safe area, full width */
+@media (max-width: 1023px) {
+  body.admin-page-active .mobile-admin-nav {
+    inset-inline: 0;
+    bottom: 0;
+    min-height: calc(4rem + env(safe-area-inset-bottom));
+    padding: 0 0 env(safe-area-inset-bottom);
+    border: 0;
+    border-top: 1px solid var(--a-border);
+    border-radius: 0;
+    background: color-mix(in srgb, var(--ds-admin-canvas) 94%, transparent);
+    box-shadow: none;
+  }
+  body.admin-page-active .mobile-admin-nav-item {
+    min-height: 4rem;
+    gap: var(--ds-space-1);
+    border-radius: 0;
+    color: var(--a-t4);
+    font-size: var(--ds-text-xs);
+    font-weight: 500;
+  }
+  body.admin-page-active .mobile-admin-nav-item.active,
+  body.admin-page-active .mobile-admin-nav-item[aria-current="page"],
+  body.admin-page-active .mobile-admin-nav-item[aria-expanded="true"] {
+    background: transparent;
+    color: var(--a-t1);
+    transform: none;
+  }
+  body.admin-page-active .mobile-admin-nav-item[aria-expanded="true"] { background: var(--a-soft); }
+  body.admin-page-active .mobile-admin-nav-icon i { background: var(--a-signal); }
+  body.admin-page-active .admin-main-content { padding-bottom: calc(4rem + env(safe-area-inset-bottom) + var(--ds-space-6)); }
+}
+
+/* --------------------------------------------------------------------------
+   Page heading
+   -------------------------------------------------------------------------- */
+body.admin-page-active .a-page { gap: var(--ds-space-4); }
+body.admin-page-active .a-page-head { min-height: 0; gap: var(--ds-space-3); }
+body.admin-page-active .a-title { font-size: 1.25rem; font-weight: 700; line-height: 1.5; letter-spacing: 0; color: var(--a-t1); }
+body.admin-page-active .a-subtitle { margin-top: 2px; font-size: var(--ds-text-sm); line-height: 1.7; color: var(--a-t3); }
+
+/* --------------------------------------------------------------------------
+   Panels / cards (§2.7, §2.8)
+   -------------------------------------------------------------------------- */
+body.admin-page-active .a-card {
+  gap: var(--ds-space-4);
+  padding: var(--a-pad-block) var(--a-pad-card);
+  border-radius: var(--a-radius-panel);
+  border-color: var(--a-border);
+  box-shadow: var(--ds-admin-shadow);
+}
+body.admin-page-active .a-card--flush { padding: 0; gap: 0; overflow: hidden; }
+body.admin-page-active .a-page > .a-card { width: 100%; }
+body.admin-page-active .a-card--flush > .a-filterbar,
+body.admin-page-active .a-card--flush > .a-card-head { padding: var(--ds-space-3) var(--ds-space-4); }
+body.admin-page-active .a-card--flush > .a-table-wrap { border: 0; border-radius: 0; }
+body.admin-page-active .a-card-head { min-height: 0; gap: var(--ds-space-3); }
+body.admin-page-active .a-card-title { font-size: var(--ds-text-md); font-weight: 600; line-height: 1.7; color: var(--a-t1); }
+body.admin-page-active .a-card-sub { font-size: var(--ds-text-caption); line-height: 1.7; color: var(--a-t3); }
+body.admin-page-active .a-card:hover { transform: none; }
+
+/* --------------------------------------------------------------------------
+   §4.1 Buttons
+   -------------------------------------------------------------------------- */
+body.admin-page-active .a-btn {
+  min-height: var(--a-control-h);
+  gap: 6px;
+  padding: 0 var(--ds-space-4);
+  border-radius: var(--a-radius-control);
+  font-size: var(--ds-text-sm);
+  font-weight: 500;
+  line-height: 1.5;
+  box-shadow: none;
+}
+body.admin-page-active .a-btn > svg { width: 1rem; height: 1rem; flex: 0 0 auto; }
+body.admin-page-active .a-btn:disabled,
+body.admin-page-active .a-btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+body.admin-page-active .a-btn[aria-busy="true"] { cursor: progress; }
+
+body.admin-page-active .a-btn--primary { background: var(--a-brand); border-color: var(--a-brand); color: var(--a-brand-contrast); box-shadow: none; }
+body.admin-page-active .a-btn--primary:hover:not(:disabled) { background: var(--a-brand-hover); border-color: var(--a-brand-hover); color: var(--a-brand-contrast); }
+
+body.admin-page-active .a-btn--secondary { background: var(--a-soft); border-color: transparent; color: var(--a-t1); }
+body.admin-page-active .a-btn--secondary:hover:not(:disabled) { background: color-mix(in srgb, var(--a-t1) 12%, transparent); border-color: transparent; color: var(--a-t1); }
+
+body.admin-page-active .a-btn--outline { background: var(--a-input-bg); border-color: var(--a-border-2); color: var(--a-t1); box-shadow: var(--a-shadow-xs); }
+body.admin-page-active .a-btn--outline:hover:not(:disabled) { background: var(--a-hover); }
+
+body.admin-page-active .a-btn--ghost { background: transparent; border-color: transparent; color: var(--a-t2); }
+body.admin-page-active .a-btn--ghost:hover:not(:disabled) { background: var(--a-soft); color: var(--a-t1); }
+
+body.admin-page-active .a-btn--info { background: var(--a-info-soft); border-color: transparent; color: var(--a-info); }
+body.admin-page-active .a-btn--info:hover:not(:disabled) { background: color-mix(in srgb, var(--a-info) 22%, transparent); color: var(--a-info); border-color: transparent; }
+
+/* danger-soft is the default trigger look (row/form delete); the solid
+   destructive look is reserved for the confirming action inside a dialog. */
+body.admin-page-active .a-btn--danger,
+body.admin-page-active .a-btn--danger-soft { background: var(--a-red-soft); border-color: transparent; color: var(--a-red); }
+body.admin-page-active .a-btn--danger:hover:not(:disabled),
+body.admin-page-active .a-btn--danger-soft:hover:not(:disabled) { background: color-mix(in srgb, var(--a-red) 22%, transparent); border-color: transparent; color: var(--a-red); }
+body.admin-page-active :is(.modal-foot, .a-confirm-actions) .a-btn--danger,
+body.admin-page-active .a-btn--danger-solid { background: var(--a-red); border-color: var(--a-red); color: var(--ds-admin-on-interactive); }
+body.admin-page-active.admin-theme-light :is(.modal-foot, .a-confirm-actions) .a-btn--danger,
+body.admin-page-active.admin-theme-light .a-btn--danger-solid { color: var(--ds-on-interactive); }
+body.admin-page-active :is(.modal-foot, .a-confirm-actions) .a-btn--danger:hover:not(:disabled),
+body.admin-page-active .a-btn--danger-solid:hover:not(:disabled) { background: color-mix(in srgb, var(--a-red) 86%, #000); border-color: transparent; color: var(--ds-admin-on-interactive); }
+body.admin-page-active.admin-theme-light :is(.modal-foot, .a-confirm-actions) .a-btn--danger:hover:not(:disabled) { color: var(--ds-on-interactive); }
+
+body.admin-page-active .a-btn--link { min-height: 0; padding: 6px 0; background: none; border: 0; color: var(--a-t1); text-decoration: underline; text-underline-offset: 4px; }
+
+body.admin-page-active .a-btn--lg { min-height: var(--a-control-h-lg); padding-inline: var(--ds-space-6); }
+body.admin-page-active .a-btn--sm { min-height: var(--a-control-h-sm); padding: 0 var(--ds-space-3); font-size: 12.5px; border-radius: var(--a-radius-control); }
+body.admin-page-active .a-btn--xs { min-height: var(--a-control-h-xs); padding: 0 var(--ds-space-2); font-size: var(--ds-text-caption); border-radius: 6px; gap: var(--ds-space-1); }
+body.admin-page-active .a-btn--icon { width: var(--a-control-h); min-width: var(--a-control-h); padding: 0; }
+body.admin-page-active .a-btn--icon.a-btn--sm { width: var(--a-control-h-sm); min-width: var(--a-control-h-sm); }
+
+body.admin-page-active .a-form-actions .a-btn { min-width: 88px; }
+
+/* --------------------------------------------------------------------------
+   §4.3 Fields
+   -------------------------------------------------------------------------- */
+body.admin-page-active .a-field { gap: 6px; }
+body.admin-page-active .a-label,
+body.admin-page-active :where(.modal-backdrop, .admin-modal-backdrop) .a-label {
+  font-size: var(--ds-text-sm) !important;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--a-t2) !important;
+}
+body.admin-page-active .a-field:focus-within > .a-label { color: var(--a-t1) !important; }
+body.admin-page-active .a-hint { font-size: var(--ds-text-caption); line-height: 1.7; color: var(--a-t3); }
+body.admin-page-active .a-field-error,
+body.admin-page-active .a-error-text { margin: 0; font-size: var(--ds-text-caption); line-height: 1.7; color: var(--a-red); }
+
+body.admin-page-active :where(.a-input, .a-select):not(textarea),
+body.admin-page-active :where(.modal-backdrop, .admin-modal-backdrop) :where(.a-input, .a-select):not(textarea) {
+  min-height: var(--a-control-h) !important;
+}
+body.admin-page-active .a-input,
+body.admin-page-active .a-select,
+body.admin-page-active .a-textarea {
+  border-radius: var(--a-radius-control);
+  border: 1px solid var(--a-border-2);
+  background-color: var(--a-input-bg);
+  padding-block: 6px;
+  padding-inline: var(--ds-space-3);
+  font-size: var(--ds-text-md);
+  color: var(--a-t1);
+  box-shadow: var(--a-shadow-xs);
+}
+body.admin-page-active .a-select { padding-inline-start: var(--ds-space-8); }
+body.admin-page-active .a-textarea { padding-block: var(--ds-space-2); line-height: 1.8; }
+body.admin-page-active :where(.a-input, .a-textarea)::placeholder { color: var(--a-t4); opacity: 1; }
+body.admin-page-active :where(.a-input, .a-select, .a-textarea):disabled { opacity: 0.5; cursor: not-allowed; }
+body.admin-page-active :where(.a-input, .a-select, .a-textarea)[aria-invalid="true"],
+body.admin-page-active :where(.a-input, .a-select, .a-textarea).is-invalid {
+  border-color: var(--a-red) !important;
+  box-shadow: var(--a-danger-focus) !important;
+}
+body.admin-page-active .a-req { color: var(--a-red); }
+body.admin-page-active :where(input[type="checkbox"], input[type="radio"]) { accent-color: var(--a-brand); }
+
+/* --------------------------------------------------------------------------
+   §4.2 Badges / chips
+   -------------------------------------------------------------------------- */
+body.admin-page-active .a-badge {
+  gap: var(--ds-space-1);
+  padding: 2px var(--ds-space-2);
+  border-radius: 6px;
+  font-size: var(--ds-text-caption);
+  font-weight: 500;
+  line-height: 1.6;
+}
+body.admin-page-active .a-badge--brand,
+body.admin-page-active .a-badge--neutral,
+body.admin-page-active .a-badge--muted { background: var(--a-soft); color: var(--a-t2); }
+body.admin-page-active .a-badge--green,
+body.admin-page-active .a-badge--success { background: var(--a-green-soft); color: var(--a-green); }
+body.admin-page-active .a-badge--red,
+body.admin-page-active .a-badge--danger { background: var(--a-red-soft); color: var(--a-red); }
+body.admin-page-active .a-badge--amber,
+body.admin-page-active .a-badge--warning { background: var(--a-amber-soft); color: var(--a-amber); }
+body.admin-page-active .a-badge--info,
+body.admin-page-active .a-badge--blue,
+body.admin-page-active .a-badge--fresh { background: var(--a-info-soft); color: var(--a-info); }
+
+/* Legacy `.chip` pills inside admin views follow the badge contract. */
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) .chip {
+  padding: 2px var(--ds-space-2);
+  border: 0;
+  border-radius: 6px;
+  background: var(--a-soft);
+  color: var(--a-t2);
+  font-size: var(--ds-text-caption);
+  font-weight: 500;
+  line-height: 1.6;
+}
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.chip-brand, .chip-emerald, .chip-green) { background: var(--a-green-soft); color: var(--a-green); }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.chip-rose, .chip-red) { background: var(--a-red-soft); color: var(--a-red); }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.chip-amber, .chip-yellow) { background: var(--a-amber-soft); color: var(--a-amber); }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.chip-aqua, .chip-sky, .chip-blue, .chip-indigo, .chip-violet) { background: var(--a-info-soft); color: var(--a-info); }
+
+/* --------------------------------------------------------------------------
+   §4.5 Segments, tabs and choice cards
+   -------------------------------------------------------------------------- */
+body.admin-page-active .a-seg--on,
+body.admin-page-active .a-tab--on,
+body.admin-page-active .slides-device-toggle button.active {
+  background: var(--a-brand);
+  color: var(--a-brand-contrast);
+  box-shadow: none;
+}
+body.admin-page-active .a-choice.is-selected,
+body.admin-page-active [aria-pressed="true"].a-choice {
+  background: var(--a-chosen);
+  box-shadow: var(--a-chosen-edge);
+  color: var(--a-t1);
+}
+
+/* --------------------------------------------------------------------------
+   §4.6 Tables
+   -------------------------------------------------------------------------- */
+body.admin-page-active .a-table-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: var(--a-radius-inner);
+  border: 1px solid var(--a-border);
+  background: var(--a-surface);
+  backdrop-filter: none;
+}
+body.admin-page-active .a-table { font-size: var(--ds-text-sm); text-align: start; border-collapse: separate; border-spacing: 0; }
+body.admin-page-active .a-table th {
+  height: 2.5rem;
+  padding: 0 var(--ds-space-3);
+  text-align: start;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--a-t3);
+  background: color-mix(in srgb, var(--a-t1) 4%, transparent);
+  border-bottom: 1px solid var(--a-border);
+  white-space: nowrap;
+}
+body.admin-page-active .a-table th > div,
+body.admin-page-active .a-table th > span { justify-content: flex-start; gap: 6px; }
+body.admin-page-active .a-table td {
+  padding: var(--a-row-y) var(--ds-space-3);
+  text-align: start;
+  color: var(--a-t2);
+  border-bottom: 1px solid var(--a-divider);
+  vertical-align: middle;
+}
+body.admin-page-active .a-table td.a-num,
+body.admin-page-active .a-table th.a-num { text-align: end; }
+body.admin-page-active .a-table td.a-center,
+body.admin-page-active .a-table th.a-center { text-align: center; }
+body.admin-page-active .a-table tbody tr:last-child td { border-bottom: 0; }
+body.admin-page-active .a-table tbody tr:hover td { background: color-mix(in srgb, var(--a-t1) 3%, transparent); }
+body.admin-page-active .a-table tbody tr[aria-selected="true"] td,
+body.admin-page-active .a-table tbody tr.is-selected td { background: var(--a-soft); }
+body.admin-page-active .a-table .a-strong { font-weight: 600; color: var(--a-t1); }
+body.admin-page-active .a-table td.a-empty,
+body.admin-page-active .a-table td.a-state-cell { text-align: center; }
+body.admin-page-active .a-cell-sub { margin-top: 2px; font-size: var(--ds-text-caption); color: var(--a-t3); }
+body.admin-page-active .a-money { color: var(--a-t1); font-weight: 600; }
+
+/* --------------------------------------------------------------------------
+   §4.7 Dialogs
+   -------------------------------------------------------------------------- */
+body.admin-page-active .modal-backdrop,
+body.admin-page-active .admin-modal-backdrop,
+body.admin-page-active.admin-theme-light .modal-backdrop,
+body.admin-page-active.admin-theme-light .admin-modal-backdrop {
+  background: var(--a-overlay) !important;
+  backdrop-filter: blur(3px) !important;
+  -webkit-backdrop-filter: blur(3px) !important;
+  animation: a-guideline-fade var(--a-motion-enter) ease-out;
+}
+body.admin-page-active .modal-panel,
+body.admin-page-active .admin-modal-surface {
+  border: 1px solid var(--a-border) !important;
+  border-radius: var(--a-radius-dialog) !important;
+  background: var(--a-surface-3) !important;
+  box-shadow: var(--a-shadow-2) !important;
+  animation: a-guideline-dialog var(--a-motion-enter) var(--a-motion-ease);
+}
+body.admin-page-active .modal-panel--sm { max-width: 440px !important; }
+body.admin-page-active .modal-head { min-height: 0; padding: var(--ds-space-3) var(--ds-space-6) !important; border-bottom: 1px solid var(--a-divider); }
+body.admin-page-active .modal-head h3 { font-size: var(--ds-text-md); font-weight: 600; line-height: 1.7; }
+body.admin-page-active .modal-body { padding: var(--ds-space-5) var(--ds-space-6) !important; font-size: var(--ds-text-sm); line-height: 1.9; }
+body.admin-page-active .modal-foot { min-height: 0; padding: var(--ds-space-3) var(--ds-space-6) !important; gap: var(--ds-space-2); border-top: 1px solid var(--a-divider); }
+body.admin-page-active .modal-close {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  border: 0;
+  border-radius: var(--a-radius-control);
+  background: transparent;
+  color: var(--a-t3);
+}
+body.admin-page-active .modal-close:hover:not(:disabled) { background: var(--a-soft); color: var(--a-t1); border-color: transparent; }
+body.admin-page-active .modal-close svg { width: 1.125rem; height: 1.125rem; }
+@keyframes a-guideline-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes a-guideline-dialog { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 640px) {
+  body.admin-page-active .modal-backdrop { align-items: flex-end !important; }
+  body.admin-page-active .modal-panel {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: calc(100dvh - 2rem - env(safe-area-inset-top)) !important;
+    border-radius: var(--a-radius-panel) var(--a-radius-panel) 0 0 !important;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  body.admin-page-active .modal-foot { flex-direction: column-reverse; }
+  body.admin-page-active .modal-foot > .a-btn { width: 100%; }
+}
+
+/* §4.8 Confirm */
+body.admin-page-active .a-confirm { gap: var(--ds-space-3); }
+body.admin-page-active .a-confirm__icon { width: 2.5rem; height: 2.5rem; flex-basis: 2.5rem; border-radius: var(--a-radius-inner); background: var(--a-red-soft); color: var(--a-red); }
+body.admin-page-active .a-confirm__icon--neutral { background: var(--a-soft); color: var(--a-t2); }
+body.admin-page-active .a-confirm__icon svg { width: 1.25rem; height: 1.25rem; }
+body.admin-page-active .a-confirm__text { font-size: var(--ds-text-sm); line-height: 1.9; }
+body.admin-page-active .a-confirm__hint { font-size: var(--ds-text-caption); color: var(--a-t3); }
+
+/* --------------------------------------------------------------------------
+   §4.9 Tooltip / popover / dropdown surfaces
+   -------------------------------------------------------------------------- */
+body.admin-page-active .a-tooltip,
+body.admin-page-active [role="tooltip"] {
+  padding: 6px var(--ds-space-3);
+  border-radius: var(--a-radius-control);
+  background: var(--a-tooltip-bg);
+  color: var(--a-tooltip-ink);
+  font-size: var(--ds-text-caption);
+  font-weight: 500;
+  text-wrap: balance;
+}
+body.admin-page-active .admin-glass-popover,
+body.admin-page-active.admin-theme-light .admin-glass-popover {
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-inner);
+  background: var(--a-surface-3);
+  box-shadow: var(--a-shadow-2);
+}
+
+/* --------------------------------------------------------------------------
+   §4.10 Toasts (admin scope only)
+   -------------------------------------------------------------------------- */
+body.admin-page-active .toast-host { z-index: var(--a-z-toast); gap: var(--ds-space-2); }
+body.admin-page-active .toast {
+  min-height: 2.75rem;
+  padding: 10px var(--ds-space-4);
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-inner);
+  background: var(--a-surface-3);
+  color: var(--a-t1);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-sm);
+  font-weight: 500;
+  line-height: 1.7;
+  box-shadow: var(--a-shadow-2);
+  backdrop-filter: none;
+}
+body.admin-page-active .toast.ok { border-inline-start: 3px solid var(--a-green); }
+body.admin-page-active .toast.error { border-inline-start: 3px solid var(--a-red); }
+body.admin-page-active .toast.info { border-inline-start: 3px solid var(--a-info); }
+
+/* --------------------------------------------------------------------------
+   §4.11 Stats / KPI
+   -------------------------------------------------------------------------- */
+body.admin-page-active .a-stat-card {
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-4) var(--ds-space-5);
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-panel);
+  background: var(--a-surface);
+  box-shadow: var(--ds-admin-shadow);
+}
+/* Label-on-top layout for the simple stat card (label / value / unit). */
+body.admin-page-active .a-stat-card:has(> .a-stat-label) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "label unit" "value value";
+  align-items: baseline;
+  column-gap: 6px;
+  row-gap: 2px;
+}
+body.admin-page-active .a-stat-card > .a-stat-label { grid-area: label; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.admin-page-active .a-stat-card > .a-stat-value { grid-area: value; min-width: 0; white-space: nowrap; }
+@media (max-width: 420px) { body.admin-page-active .a-stat-card > .a-stat-value { font-size: 1.125rem; } body.admin-page-active .a-stat-card { padding: var(--ds-space-3) 14px; } }
+body.admin-page-active .a-stat-card > .a-stat-caption { grid-area: unit; margin: 0; }
+body.admin-page-active .a-stat-label,
+body.admin-page-active .a-stat-card-label { font-size: var(--ds-text-caption); font-weight: 400; color: var(--a-t3); }
+body.admin-page-active .a-stat-value,
+body.admin-page-active .a-stat-card-value { font-size: 1.375rem; font-weight: 700; line-height: 1.5; color: var(--a-t1); }
+body.admin-page-active .a-stat-caption { font-size: var(--ds-text-caption); color: var(--a-t4); }
+body.admin-page-active .a-stat-card-ico,
+body.admin-page-active [class*="a-stat-card--"] .a-stat-card-ico { background: var(--a-soft) !important; color: var(--a-t2) !important; }
+
+/* --------------------------------------------------------------------------
+   §5 States — AdminState.tsx
+   -------------------------------------------------------------------------- */
+body.admin-page-active .a-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-10) var(--ds-space-4);
+  text-align: center;
+  color: var(--a-t3);
+}
+body.admin-page-active .a-state--compact { padding: var(--ds-space-5) var(--ds-space-3); }
+body.admin-page-active .a-state__icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: var(--a-radius-inner);
+  background: var(--a-soft);
+  color: var(--a-t3);
+}
+body.admin-page-active .a-state__icon svg { width: 1.25rem; height: 1.25rem; }
+body.admin-page-active .a-state__title { margin: 0; font-size: var(--ds-text-md); font-weight: 600; line-height: 1.7; color: var(--a-t1); }
+body.admin-page-active .a-state__text { margin: 0; max-width: 46ch; font-size: 12.5px; line-height: 1.8; color: var(--a-t3); }
+body.admin-page-active .a-state__action { margin-top: var(--ds-space-1); }
+body.admin-page-active .a-state--loading .a-state__icon svg { animation: ds-spin 900ms linear infinite; }
+
+body.admin-page-active .a-state--error,
+body.admin-page-active .a-error-summary {
+  align-items: stretch;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-4);
+  border: 1px solid color-mix(in srgb, var(--a-red) 70%, transparent);
+  border-radius: var(--a-radius-inner);
+  background: var(--a-red-soft);
+  color: var(--a-t1);
+  text-align: start;
+  font-size: 12.5px;
+}
+body.admin-page-active .a-state--error { flex-direction: row; align-items: flex-start; }
+body.admin-page-active .a-state--error .a-state__icon { flex: 0 0 auto; background: transparent; color: var(--a-red); width: 1.5rem; height: 1.5rem; }
+body.admin-page-active .a-state--error .a-state__body { display: flex; flex: 1 1 auto; flex-direction: column; gap: var(--ds-space-1); min-width: 0; }
+body.admin-page-active .a-state--error .a-state__title { font-size: var(--ds-text-sm); }
+body.admin-page-active .a-state--error .a-state__text { max-width: none; color: var(--a-t2); }
+body.admin-page-active .a-state--error .a-state__action { margin: 0; align-self: center; }
+body.admin-page-active .a-error-summary ul { margin: 0; padding-inline-start: 18px; }
+body.admin-page-active .a-error-summary li { padding: var(--ds-space-1) 0; }
+
+body.admin-page-active .a-empty { padding: var(--ds-space-8) var(--ds-space-4); font-size: var(--ds-text-sm); color: var(--a-t3); text-align: center; }
+
+body.admin-page-active .a-skeleton {
+  display: block;
+  min-height: 0.875rem;
+  border-radius: var(--a-radius-control);
+  background: var(--a-soft);
+  animation: a-guideline-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+body.admin-page-active .a-skeleton--block { min-height: 5rem; border-radius: var(--a-radius-inner); }
+body.admin-page-active .a-skeleton-stack { display: flex; flex-direction: column; gap: var(--ds-space-2); }
+@keyframes a-guideline-pulse { 50% { opacity: 0.5; } }
+
+/* --------------------------------------------------------------------------
+   Tailwind palette safety net — semantic colour for leftover utility classes
+   inside admin views (pages should use a-* classes; see guideline §11).
+   -------------------------------------------------------------------------- */
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.text-emerald-300, .text-emerald-400, .text-emerald-500, .text-emerald-600, .text-green-400, .text-green-500, .text-green-600, .text-teal-400, .text-brand-300, .text-brand-400) { color: var(--a-green) !important; }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.text-rose-300, .text-rose-400, .text-rose-500, .text-red-300, .text-red-400, .text-red-500, .text-red-600) { color: var(--a-red) !important; }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.text-amber-300, .text-amber-400, .text-amber-500, .text-yellow-400, .text-orange-400) { color: var(--a-amber) !important; }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.text-sky-300, .text-sky-400, .text-blue-300, .text-blue-400, .text-blue-500, .text-cyan-300, .text-cyan-400, .text-indigo-300, .text-indigo-400, .text-violet-300, .text-violet-400, .text-purple-400) { color: var(--a-info) !important; }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.text-white, .text-slate-50, .text-slate-100, .text-slate-200) { color: var(--a-t1) !important; }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.text-slate-300) { color: var(--a-t2) !important; }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.text-slate-400, .text-slate-500, .text-gray-400, .text-gray-500) { color: var(--a-t3) !important; }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.bg-emerald-500\/10, .bg-emerald-500\/15, .bg-emerald-500\/20, .bg-green-500\/10) { background-color: var(--a-green-soft) !important; }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.bg-rose-500\/10, .bg-rose-500\/15, .bg-rose-500\/20, .bg-red-500\/10) { background-color: var(--a-red-soft) !important; }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.bg-amber-500\/10, .bg-amber-500\/15, .bg-amber-500\/20) { background-color: var(--a-amber-soft) !important; }
+body.admin-page-active :where(.admin-main-content, .modal-backdrop, .admin-modal-backdrop) :is(.bg-sky-500\/10, .bg-sky-500\/15, .bg-blue-500\/10, .bg-blue-500\/15, .bg-cyan-500\/10, .bg-indigo-500\/10) { background-color: var(--a-info-soft) !important; }
+
+/* --------------------------------------------------------------------------
+   §2.9 Reduced motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  body.admin-page-active *:not([data-lift]),
+  body.admin-page-active *::before,
+  body.admin-page-active *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   §10 Print
+   -------------------------------------------------------------------------- */
+@media print {
+  body.admin-page-active .admin-sidebar,
+  body.admin-page-active .admin-topbar,
+  body.admin-page-active .mobile-admin-nav,
+  body.admin-page-active .a-page-actions,
+  body.admin-page-active .a-filterbar { display: none !important; }
+  body.admin-page-active .admin-main-shell { margin: 0 !important; }
+  body.admin-page-active :where(.a-card, .a-stat-card) {
+    break-inside: avoid;
+    border: 1px solid var(--a-border);
+    box-shadow: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

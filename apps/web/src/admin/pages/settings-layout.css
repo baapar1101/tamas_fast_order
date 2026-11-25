@@ -30,7 +30,7 @@
 }
 
 .settings-nav-title {
-  margin: 0 0 4px;
+  margin: 0 0 var(--ds-space-1);
   padding: 0 10px;
   color: var(--a-t3);
   font-size: 0.68rem;
@@ -43,7 +43,7 @@
   display: grid;
   gap: 1px;
   width: 100%;
-  padding: 8px 12px;
+  padding: var(--ds-space-2) var(--ds-space-3);
   border: 0;
   border-radius: 10px;
   background: transparent;
@@ -110,4 +110,35 @@
   .settings-nav-group {
     display: none;
   }
+}
+
+/* Page-local states (docs/ui-guidelines.md §2, §5): tokens only. */
+.settings-note--danger { color: var(--a-red); }
+.settings-steps { line-height: 2; padding-inline-start: 1.5rem; }
+.settings-stat--danger { color: var(--a-red); }
+.settings-cell-error { color: var(--a-red); font-size: var(--ds-text-caption); }
+
+.settings-progress {
+  position: relative;
+  flex: 1;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--a-soft);
+}
+.settings-progress__bar {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  border-radius: 999px;
+  background: var(--a-info);
+  transition: width 200ms ease;
+}
+.settings-progress__bar.is-done { background: var(--a-green); }
+.settings-progress__bar.is-error { background: var(--a-red); }
+.settings-progress__count { min-width: 5rem; font-size: var(--ds-text-sm); font-weight: 600; }
+.settings-spin { color: var(--a-info); }
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-progress__bar { transition: none; }
 }

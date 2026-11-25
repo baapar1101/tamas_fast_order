@@ -145,32 +145,39 @@
   --ds-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ds-interactive) 22%, transparent);
   --ds-danger-ring: 0 0 0 3px color-mix(in srgb, var(--ds-danger) 18%, transparent);
 
-  /* Admin semantic contract; same scale, purpose-built accent and surfaces. */
-  --ds-admin-canvas: #08111e;
-  --ds-admin-surface: rgba(12, 22, 37, 0.92);
-  --ds-admin-surface-subtle: rgba(18, 31, 50, 0.94);
-  --ds-admin-surface-raised: #16243a;
-  --ds-admin-text: #f8fafc;
-  --ds-admin-text-secondary: #e2e8f0;
-  --ds-admin-text-muted: #b8c4d4;
-  --ds-admin-text-faint: #8fa0b5;
-  --ds-admin-border: rgba(148, 163, 184, 0.18);
-  --ds-admin-border-strong: rgba(148, 163, 184, 0.32);
-  --ds-admin-divider: rgba(148, 163, 184, 0.14);
-  --ds-admin-interactive: var(--ds-blue-500);
-  --ds-admin-interactive-hover: var(--ds-blue-600);
-  --ds-admin-interactive-soft: rgba(22, 135, 248, 0.14);
-  --ds-admin-success: #42caa0;
-  --ds-admin-success-soft: rgba(18, 167, 127, 0.16);
-  --ds-admin-warning: #ffba52;
-  --ds-admin-warning-soft: rgba(217, 130, 8, 0.16);
-  --ds-admin-danger: #ff7069;
-  --ds-admin-danger-soft: rgba(224, 68, 62, 0.16);
-  --ds-admin-field: rgba(7, 15, 27, 0.72);
-  --ds-admin-hover: rgba(148, 163, 184, 0.1);
-  --ds-admin-shadow: 0 10px 34px rgba(0, 0, 0, 0.28);
-  --ds-admin-shadow-raised: 0 24px 70px rgba(0, 0, 0, 0.52);
-  --ds-admin-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ds-admin-interactive) 24%, transparent);
+  /* Admin semantic contract — markstreet (MARK Insight) ink palette.
+     Dark is the admin default; light is opt-in via .admin-theme-light.
+     See docs/ui-guidelines.md §2. */
+  --ds-admin-canvas: #1c1c1c;
+  --ds-admin-surface: rgba(40, 40, 40, 0.9);
+  --ds-admin-surface-subtle: rgba(49, 49, 52, 0.92);
+  --ds-admin-surface-raised: #282828;
+  --ds-admin-text: #ffffff;
+  --ds-admin-text-secondary: rgba(255, 255, 255, 0.86);
+  --ds-admin-text-muted: rgba(255, 255, 255, 0.66);
+  --ds-admin-text-faint: rgba(255, 255, 255, 0.56);
+  --ds-admin-border: rgba(255, 255, 255, 0.1);
+  --ds-admin-border-strong: rgba(255, 255, 255, 0.22);
+  --ds-admin-divider: rgba(255, 255, 255, 0.08);
+  --ds-admin-interactive: #ffffff;
+  --ds-admin-interactive-hover: #e4e4e7;
+  --ds-admin-interactive-soft: rgba(255, 255, 255, 0.1);
+  --ds-admin-on-interactive: #1c1c1c;
+  --ds-admin-success: #4cc46a;
+  --ds-admin-success-soft: rgba(76, 196, 106, 0.14);
+  --ds-admin-warning: #f5a524;
+  --ds-admin-warning-soft: rgba(245, 165, 36, 0.14);
+  --ds-admin-danger: #ff8a97;
+  --ds-admin-danger-soft: rgba(255, 99, 110, 0.14);
+  --ds-admin-info: #5b93f0;
+  --ds-admin-info-soft: rgba(91, 147, 240, 0.14);
+  --ds-admin-signal: #e5484d;
+  --ds-admin-field: rgba(0, 0, 0, 0.38);
+  --ds-admin-hover: rgba(255, 255, 255, 0.08);
+  --ds-admin-chosen: rgba(255, 255, 255, 0.16);
+  --ds-admin-shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --ds-admin-shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 48px -16px rgba(0, 0, 0, 0.7);
+  --ds-admin-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ds-admin-interactive) 45%, transparent);
 }
 
 [data-theme="dark"] {
@@ -206,27 +213,35 @@
 }
 
 body.admin-page-active.admin-theme-light {
-  --ds-admin-canvas: #f1f5f9;
-  --ds-admin-surface: rgba(255, 255, 255, 0.88);
-  --ds-admin-surface-subtle: rgba(248, 250, 252, 0.96);
+  --ds-admin-canvas: #f4f5f7;
+  --ds-admin-surface: rgba(255, 255, 255, 0.94);
+  --ds-admin-surface-subtle: rgba(247, 249, 251, 0.96);
   --ds-admin-surface-raised: var(--ds-white);
-  --ds-admin-text: #111827;
-  --ds-admin-text-secondary: #27364a;
-  --ds-admin-text-muted: #526175;
-  --ds-admin-text-faint: #6b788b;
-  --ds-admin-border: #dbe3ec;
-  --ds-admin-border-strong: #c7d2df;
-  --ds-admin-divider: #e3e9f0;
-  --ds-admin-field: rgba(255, 255, 255, 0.98);
-  --ds-admin-hover: #eef3f8;
-  --ds-admin-success: var(--ds-green-600);
-  --ds-admin-success-soft: var(--ds-green-50);
-  --ds-admin-warning: var(--ds-amber-600);
-  --ds-admin-warning-soft: var(--ds-amber-50);
-  --ds-admin-danger: var(--ds-red-600);
-  --ds-admin-danger-soft: var(--ds-red-50);
-  --ds-admin-shadow: var(--ds-shadow-sm);
-  --ds-admin-shadow-raised: var(--ds-shadow-lg);
+  --ds-admin-text: #1c1c1c;
+  --ds-admin-text-secondary: rgba(28, 28, 28, 0.85);
+  --ds-admin-text-muted: rgba(28, 28, 28, 0.66);
+  --ds-admin-text-faint: rgba(28, 28, 28, 0.62);
+  --ds-admin-border: rgba(28, 28, 28, 0.1);
+  --ds-admin-border-strong: rgba(28, 28, 28, 0.24);
+  --ds-admin-divider: rgba(28, 28, 28, 0.08);
+  --ds-admin-interactive: #1c1c1c;
+  --ds-admin-interactive-hover: #3d3d3d;
+  --ds-admin-interactive-soft: rgba(28, 28, 28, 0.06);
+  --ds-admin-on-interactive: var(--ds-white);
+  --ds-admin-field: var(--ds-white);
+  --ds-admin-hover: rgba(0, 0, 0, 0.05);
+  --ds-admin-chosen: #e4e6ea;
+  --ds-admin-success: #17692b;
+  --ds-admin-success-soft: rgba(23, 105, 43, 0.1);
+  --ds-admin-warning: #7a4f00;
+  --ds-admin-warning-soft: rgba(196, 132, 0, 0.15);
+  --ds-admin-danger: #a51d2d;
+  --ds-admin-danger-soft: rgba(165, 29, 45, 0.09);
+  --ds-admin-info: #2f6fd6;
+  --ds-admin-info-soft: rgba(47, 111, 214, 0.1);
+  --ds-admin-signal: #d6343c;
+  --ds-admin-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --ds-admin-shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.05), 0 10px 28px -12px rgba(0, 0, 0, 0.18);
 }
 
 /* Shared primitive API for new storefront and admin work. */

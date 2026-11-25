@@ -6,6 +6,8 @@ import { useToast } from '../../components/Toast';
 import { Modal } from '../../components/Modal';
 import { api } from '../../lib/api';
 import { ImagePicker } from '../components/ImagePicker';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { AdminState } from '../components/AdminState';
 
 interface CategoryForm {
   name: string;
@@ -25,6 +27,7 @@ export function CategoriesPage() {
   const [search, setSearch] = useState('');
   const [brandSearch, setBrandSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<CategoryDTO | null>(null);
 
   const categoriesQuery = useQuery({ queryKey: ['admin', 'categories'], queryFn: () => api.get<{ categories: CategoryDTO[] }>('/admin/categories') });
   const brandsQuery = useQuery({ queryKey: ['admin', 'brands'], queryFn: () => api.get<{ brands: BrandDTO[] }>('/admin/brands') });
@@ -234,6 +237,7 @@ export function CategoriesPage() {
               value={brandSearch}
               onChange={(e) => setBrandSearch(e.target.value)}
               placeholder="جستجو میان برندها…"
+              aria-label="جستجو میان برندها"
             />
             <div className="a-option-grid">
               {filteredBrands.map((brand) => {
@@ -249,14 +253,16 @@ export function CategoriesPage() {
                 );
               })}
             </div>
-            {filteredBrands.length === 0 && <div className="a-empty">برندی پیدا نشد.</div>}
+            {filteredBrands.length === 0 && (brandsQuery.isError
+              ? <AdminState compact kind="error" error={brandsQuery.error} onRetry={() => void brandsQuery.refetch()} />
+              : <AdminState compact kind={brandSearch.trim() ? 'filtered' : 'empty'} noun="برند" />)}
           </section>
         </form>
       </Modal>
 
       {/* List */}
       <section className="a-searchbar">
-        <input className="a-input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی دسته…" />
+        <input className="a-input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی دسته…" aria-label="جستجوی دسته‌بندی" />
       </section>
 
       <section className="a-card a-container-md">
@@ -279,7 +285,7 @@ export function CategoriesPage() {
               className={`a-list-item${editingId === category.id ? ' a-list-item--active' : ''}${draggedIndex === index ? ' is-dragging' : ''}${dragOverIndex === index ? ' is-drag-over' : ''}`}
             >
               <div className="a-drag-handle" title="برای جابجایی بکشید">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                   <circle cx="5" cy="3" r="1.5" />
                   <circle cx="11" cy="3" r="1.5" />
                   <circle cx="5" cy="8" r="1.5" />
@@ -308,13 +314,31 @@ export function CategoriesPage() {
               </div>
               <div className="a-list-actions">
                 <button type="button" className="a-btn a-btn--secondary a-btn--xs" onClick={() => edit(category)}>ویرایش</button>
-                <button type="button" className="a-btn a-btn--danger a-btn--xs" disabled={remove.isPending} onClick={() => { if (confirm(`دسته‌بندی «${category.faName}» حذف شود؟`)) remove.mutate(category.id); }}>حذف</button>
+                <button type="button" className="a-btn a-btn--danger a-btn--xs" disabled={remove.isPending} onClick={() => setPendingDelete(category)}>حذف</button>
               </div>
             </article>
           ))}
-          {!categoriesQuery.isLoading && filteredCategories.length === 0 && <div className="a-empty">دسته‌بندی پیدا نشد.</div>}
+          {categoriesQuery.isLoading && <AdminState kind="loading" />}
+          {categoriesQuery.isError && <AdminState kind="error" error={categoriesQuery.error} onRetry={() => void categoriesQuery.refetch()} />}
+          {!categoriesQuery.isLoading && !categoriesQuery.isError && filteredCategories.length === 0 && (
+            <AdminState
+              kind={search.trim() ? 'filtered' : 'empty'}
+              noun="دسته‌بندی"
+              action={search.trim() ? <button type="button" className="a-btn a-btn--ghost a-btn--sm" onClick={() => setSearch('')}>پاک کردن جستجو</button> : undefined}
+            />
+          )}
         </div>
       </section>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="حذف دسته‌بندی"
+        description={pendingDelete ? `دسته‌بندی «${pendingDelete.faName}» حذف می‌شود؛ حذف برگشت ندارد.` : ''}
+        confirmLabel="حذف"
+        busy={remove.isPending}
+        onConfirm={() => { if (pendingDelete) remove.mutate(pendingDelete.id, { onSuccess: () => setPendingDelete(null) }); }}
+        onClose={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

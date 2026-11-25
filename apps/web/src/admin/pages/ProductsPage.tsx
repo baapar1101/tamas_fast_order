@@ -14,6 +14,8 @@ import { VariantsEditor } from '../components/VariantsEditor';
 import { AnimatedDropdown } from '../components/AnimatedDropdown';
 import { CatalogPrintView } from '../components/CatalogPrintView';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { AdminState } from '../components/AdminState';
+import './products-page.css';
 import { ProductSheetView } from '../components/ProductSheetView';
 import { parseSheetPatch, sheetCellValue, type SheetDrafts, type SheetEditableKey } from '../components/productSheetModel';
 
@@ -51,7 +53,7 @@ function Chevron() {
 
 function SearchIcon() {
   return (
-    <svg className="absolute right-3 w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg className="pp-search-icon absolute right-3 w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="m21 21-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0" />
     </svg>
   );
@@ -76,19 +78,19 @@ interface Opt<T extends string> {
 
 
 const STATUS_OPTIONS = [
-  { value: 'all', label: <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-gray-400" />همه</span> },
-  { value: 'active', label: <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500" />فعال</span> },
-  { value: 'inactive', label: <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-500" />غیرفعال</span> },
+  { value: 'all', label: <span className="flex items-center gap-2"><span className="pp-status-dot" aria-hidden="true" />همه</span> },
+  { value: 'active', label: <span className="flex items-center gap-2"><span className="pp-status-dot pp-status-dot--active" aria-hidden="true" />فعال</span> },
+  { value: 'inactive', label: <span className="flex items-center gap-2"><span className="pp-status-dot pp-status-dot--inactive" aria-hidden="true" />غیرفعال</span> },
 ];
 
 const STOCK_OPTIONS = [
-  { value: 'all', label: 'همه موجودی‌ها' },
+  { value: 'all', label: 'همهٔ موجودی‌ها' },
   { value: 'in', label: 'موجود در انبار' },
   { value: 'out', label: 'تمام شده' },
 ];
 
 const PHOTO_OPTIONS = [
-  { value: 'all', label: 'همه کالاها' },
+  { value: 'all', label: 'همهٔ کالاها' },
   { value: 'missing', label: 'بدون عکس (یا عکس خراب)' },
 ];
 
@@ -125,6 +127,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const [rowMenu, setRowMenu] = useState<number | null>(null);
   const [isPrinting, setIsPrinting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ProductDTO | 'bulk' | null>(null);
+  const [discardOpen, setDiscardOpen] = useState(false);
 
   const debounced = useDebounced(search);
   const perPage = viewMode === 'sheet' ? 100 : 24;
@@ -216,6 +219,18 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
   const categoryOptions: CategoryDTO[] = taxonomyData?.categories ?? taxonomyData?.data?.categories ?? [];
   const brandOptions: BrandDTO[] = taxonomyData?.brands ?? taxonomyData?.data?.brands ?? [];
   const activeFilterCount = (stock !== 'all' ? 1 : 0) + (categoryId !== '' ? 1 : 0) + (brandId !== '' ? 1 : 0);
+  const hasFilters = search.trim() !== '' || status !== 'all' || photo !== 'all' || activeFilterCount > 0;
+  const productNoun = typeFilter === 'bundle' ? 'باندل' : 'محصول';
+
+  function clearFilters() {
+    setSearch('');
+    setStatus('all');
+    setStock('all');
+    setPhoto('all');
+    setCategoryId('');
+    setBrandId('');
+    setPage(1);
+  }
 
   function toggle(id: number) {
     const next = new Set(selected);
@@ -364,15 +379,15 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
         </div>
         <div className="a-page-actions flex items-center gap-3">
           <Link to="/admin/catalog-export" className="a-btn a-btn--secondary">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
             کاتالوگ PDF و تصویر
           </Link>
           <Link to="/admin/product-import" className="a-btn a-btn--secondary">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
             ایمپورت کالای جدید
           </Link>
           <Link to="/admin/sync" className="a-btn a-btn--secondary">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             ورود قیمت با اکسل
           </Link>
           <button type="button" className="a-btn a-btn--primary" onClick={() => setEditing('new')}>
@@ -388,7 +403,9 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           <SearchIcon />
           <input
             className="a-input pl-4 pr-10"
-            placeholder="جستجو در عنوان، کد کالا یا SKU..."
+            type="search"
+            aria-label={`جست‌وجوی ${typeFilter === 'bundle' ? 'باندل‌ها' : 'محصولات'}`}
+            placeholder="جست‌وجو در عنوان، کد کالا یا SKU…"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -405,38 +422,39 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
             className="a-btn a-btn--secondary"
             disabled={selected.size === 0}
             aria-expanded={bulkMenuOpen}
+            aria-haspopup="menu"
             onClick={() => setBulkMenuOpen((o) => !o)}
           >
-            عملیات
-            {selected.size > 0 && <span className="bg-[var(--a-brand)] text-white text-[10px] px-1.5 py-0.5 rounded-full mr-2">{formatNumber(selected.size)}</span>}
+            عملیات گروهی
+            {selected.size > 0 && <span className="pp-count-chip">{formatNumber(selected.size)}</span>}
             <Chevron />
           </button>
           {bulkMenuOpen && (
             <>
               <div className="admin-popover-backdrop fixed inset-0 z-40" onClick={() => setBulkMenuOpen(false)} />
-              <div className="admin-glass-popover absolute right-0 mt-2 w-56 bg-[var(--a-dropdown-bg)] border border-[var(--a-border)] rounded-lg shadow-xl z-50 py-1 overflow-hidden backdrop-blur-xl" style={{ minWidth: 220 }}>
-                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('activate')}>
+              <div className="admin-glass-popover pp-menu absolute right-0 mt-2 w-56 bg-[var(--a-dropdown-bg)] border border-[var(--a-border)] rounded-lg shadow-xl z-50 py-1 overflow-hidden backdrop-blur-xl" role="menu">
+                <button type="button" role="menuitem" className="w-full text-start px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('activate')}>
                   فعال‌سازی
                 </button>
-                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('deactivate')}>
+                <button type="button" role="menuitem" className="w-full text-start px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('deactivate')}>
                   غیرفعال‌سازی
                 </button>
-                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('promote')}>
+                <button type="button" role="menuitem" className="w-full text-start px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('promote')}>
                   نمایش در پیشنهاد ویژه
                 </button>
-                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('demote')}>
+                <button type="button" role="menuitem" className="w-full text-start px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('demote')}>
                   حذف از پیشنهاد ویژه
                 </button>
-                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('setStock')}>
+                <button type="button" role="menuitem" className="w-full text-start px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('setStock')}>
                   تنظیم موجودی…
                 </button>
-                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('adjustPrice')}>
+                <button type="button" role="menuitem" className="w-full text-start px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('adjustPrice')}>
                   تغییر قیمت (درصدی)…
                 </button>
-                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('setPoints')}>
+                <button type="button" role="menuitem" className="w-full text-start px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors" onClick={() => runBulk('setPoints')}>
                   تنظیم امتیاز کمپین…
                 </button>
-                <button type="button" className="w-full text-right px-4 py-2 text-sm text-[var(--a-red)] hover:bg-[var(--a-red-soft)] transition-colors" onClick={() => runBulk('delete')}>
+                <button type="button" role="menuitem" className="w-full text-start px-4 py-2 text-sm text-[var(--a-red)] hover:bg-[var(--a-red-soft)] transition-colors" onClick={() => runBulk('delete')}>
                   حذف محصولات
                 </button>
               </div>
@@ -462,7 +480,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           onClick={() => setFiltersOpen((o) => !o)}
         >
           فیلترها
-          {activeFilterCount > 0 && <span className="bg-[var(--a-brand)] text-white text-[10px] px-1.5 py-0.5 rounded-full mr-2">{formatNumber(activeFilterCount)}</span>}
+          {activeFilterCount > 0 && <span className="pp-count-chip">{formatNumber(activeFilterCount)}</span>}
           <Chevron />
         </button>
 
@@ -472,6 +490,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           <button
             type="button"
             className={`a-seg${viewMode === 'grid' ? ' a-seg--on' : ''}`}
+            aria-pressed={viewMode === 'grid'}
             onClick={() => switchView('grid')}
           >
             کارت‌ها
@@ -479,6 +498,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           <button
             type="button"
             className={`a-seg${viewMode === 'table' ? ' a-seg--on' : ''}`}
+            aria-pressed={viewMode === 'table'}
             onClick={() => switchView('table')}
           >
             جدول
@@ -486,6 +506,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           <button
             type="button"
             className={`a-seg${viewMode === 'sheet' ? ' a-seg--on' : ''}`}
+            aria-pressed={viewMode === 'sheet'}
             onClick={() => switchView('sheet')}
           >
             صفحه‌گسترده
@@ -525,9 +546,9 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                 setCategoryId(v ? Number(v) : '');
                 setPage(1);
               }}
-              placeholder="همه دسته‌بندی‌ها"
+              placeholder="همهٔ دسته‌بندی‌ها"
               options={[
-                { value: '', label: 'همه دسته‌بندی‌ها' },
+                { value: '', label: 'همهٔ دسته‌بندی‌ها' },
                 ...categoryOptions.map(c => ({ value: String(c.id), label: c.faName }))
               ]}
             />
@@ -540,9 +561,9 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                 setBrandId(v ? Number(v) : '');
                 setPage(1);
               }}
-              placeholder="همه برندها"
+              placeholder="همهٔ برندها"
               options={[
-                { value: '', label: 'همه برندها' },
+                { value: '', label: 'همهٔ برندها' },
                 ...brandOptions.map(b => ({ value: String(b.id), label: b.faName }))
               ]}
             />
@@ -552,7 +573,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
             <AnimatedDropdown value={sort} onChange={setSort} options={SORT_OPTIONS} />
           </div>
           <button type="button" className="a-btn a-btn--secondary a-btn--sm pp-filters-close" onClick={() => setFiltersOpen(false)}>
-            بستن
+            بستن فیلترها
           </button>
         </section>
       )}
@@ -568,28 +589,32 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
 
       <section className="a-card products-results-card">
         {products.isLoading ? (
-          <div className="flex flex-col items-center justify-center p-12 text-center">
-            <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mb-4"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg></div>
-            <div className="text-lg font-bold mb-2 text-[var(--a-t1)]">در حال دریافت محصولات...</div>
-          </div>
+          <AdminState kind="loading" />
         ) : products.isError ? (
-          <div className="flex flex-col items-center justify-center p-12 text-center">
-            <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mb-4"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg></div>
-            <div className="text-lg font-bold mb-2 text-[var(--a-t1)]">خطا در دریافت لیست محصولات</div>
-            <div className="text-sm text-[var(--a-t4)] mb-6">{products.error?.message ?? 'دوباره تلاش کنید.'}</div>
-            <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => void products.refetch()}>
-              تلاش مجدد
-            </button>
-          </div>
+          <AdminState
+            kind="error"
+            title={typeFilter === 'bundle' ? 'فهرست باندل‌ها دریافت نشد.' : 'فهرست محصولات دریافت نشد.'}
+            error={products.error}
+            onRetry={() => void products.refetch()}
+          />
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-12 text-center">
-            <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mb-4"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg></div>
-            <div className="text-lg font-bold mb-2 text-[var(--a-t1)]">{typeFilter === 'bundle' ? 'باندلی یافت نشد' : 'محصولی یافت نشد'}</div>
-            <div className="text-sm text-[var(--a-t4)] mb-6">هیچ {typeFilter === 'bundle' ? 'باندلی' : 'محصولی'} با مشخصات جستجو‌یافته پیدا نشد.</div>
-            <button type="button" className="a-btn a-btn--primary a-btn--sm" onClick={() => setEditing('new')}>
-              + {typeFilter === 'bundle' ? 'ایجاد باندل' : 'ایجاد محصول'}
-            </button>
-          </div>
+          hasFilters ? (
+            <AdminState
+              kind="filtered"
+              noun={productNoun}
+              action={<button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={clearFilters}>پاک کردن فیلترها</button>}
+            />
+          ) : (
+            <AdminState
+              kind="empty"
+              noun={productNoun}
+              action={
+                <button type="button" className="a-btn a-btn--primary a-btn--sm" onClick={() => setEditing('new')}>
+                  + {typeFilter === 'bundle' ? 'ایجاد باندل' : 'ایجاد محصول'}
+                </button>
+              }
+            />
+          )
         ) : viewMode === 'sheet' ? (
           <ProductSheetView
             items={items}
@@ -603,7 +628,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
             drafts={sheetDrafts}
             onChange={changeSheetCell}
             onSave={() => { void saveSheet(); }}
-            onDiscard={() => { if (window.confirm('تغییرات ذخیره‌نشده کنار گذاشته شوند؟')) setSheetDrafts({}); }}
+            onDiscard={() => setDiscardOpen(true)}
             saving={sheetSaving}
             categories={categoryOptions}
             brands={brandOptions}
@@ -617,54 +642,56 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
             <table className="a-table">
               <thead>
                 <tr>
-                  <th className="">
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: "var(--ds-space-2)" }}>
+                  <th className="a-center">
+                    <div className="pp-th">
                       <input
                         type="checkbox"
-                        className="w-4 h-4 rounded border-gray-300 text-brand focus:ring-brand"
+                        className="pp-check"
+                        aria-label="انتخاب همهٔ محصولات این صفحه"
                         checked={allOnPageSelected}
                         onChange={(e) => toggleAll(e.target.checked)}
                       />
                       <span>#</span>
                     </div>
                   </th>
-                  <th className="">
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: "var(--ds-space-2)" }}>
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
+                  <th>
+                    <div className="pp-th">
+                      <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
                       <span>عنوان</span>
                     </div>
                   </th>
-                  <th className="">
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: "var(--ds-space-2)" }}>
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                  <th className="a-num">
+                    <div className="pp-th">
+                      <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
                       <span>قیمت (تومان)</span>
                     </div>
                   </th>
-                  <th className="">
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: "var(--ds-space-2)" }}>
+                  <th className="a-num">
+                    <div className="pp-th">
                       <span>خرید / ارزش موجودی</span>
                     </div>
                   </th>
-                  <th className="">
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: "var(--ds-space-2)" }}>
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m6 4.125 2.25 2.25m0 0 2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
+                  <th className="a-num">
+                    <div className="pp-th">
+                      <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m6 4.125 2.25 2.25m0 0 2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
                       <span>موجودی (عدد)</span>
                     </div>
                   </th>
-                  <th className="">
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: "var(--ds-space-2)" }}>
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" /></svg>
+                  <th>
+                    <div className="pp-th">
+                      <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" /></svg>
                       <span>وضعیت</span>
                     </div>
                   </th>
-                  <th className="">
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: "var(--ds-space-2)" }}>
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+                  <th>
+                    <div className="pp-th">
+                      <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
                       <span>تاریخ ایجاد</span>
                     </div>
                   </th>
-                  <th className="">
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <th className="a-center">
+                    <span className="a-sr-only">عملیات</span>
+                    <div className="pp-th" aria-hidden="true">
                       <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                     </div>
                   </th>
@@ -675,31 +702,32 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                   const totalStock = p.kermanStock + p.tehranStock > 0 ? p.kermanStock + p.tehranStock : p.stock;
                   const created = p.createdAt ? new Date(p.createdAt).toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
                   return (
-                    <tr key={p.id} className="">
-                      <td className="">
+                    <tr key={p.id}>
+                      <td className="a-center">
                         <input
                           type="checkbox"
-                          className="w-4 h-4 rounded border-gray-300 text-brand focus:ring-brand"
+                          className="pp-check"
+                          aria-label={`انتخاب ${p.title}`}
                           checked={selected.has(p.id)}
                           onChange={() => toggle(p.id)}
                         />
                       </td>
-                      <td className=" pp-cell-title">
+                      <td className="pp-cell-title">
                         <div className="flex items-center gap-2">
-                          {p.promotion && <span className="a-badge a-badge--amber">ویژه</span>}
-                          {p.campaignPoints > 0 && <span className="a-badge a-badge--green">{formatNumber(p.campaignPoints)} امتیاز</span>}
+                          {p.promotion && <span className="a-badge a-badge--warning">ویژه</span>}
+                          {p.campaignPoints > 0 && <span className="a-badge a-badge--success">{formatNumber(p.campaignPoints)} امتیاز</span>}
                           <span className="text-sm font-semibold text-[var(--a-t1)] line-clamp-1">{p.title}</span>
                         </div>
                       </td>
-                      <td className="">
+                      <td className="a-num">
                         <div className="text-sm font-bold text-[var(--a-t1)]">{formatNumber(p.price)}</div>
                         {p.oldPrice && p.oldPrice > p.price && <div className="text-xs text-[var(--a-t4)] line-through">{formatNumber(p.oldPrice)}</div>}
                       </td>
-                      <td className="">
+                      <td className="a-num">
                         <div className="text-sm font-bold text-[var(--a-t1)]">{formatNumber(p.costPrice ?? 0)}</div>
                         <div className="text-xs text-[var(--a-t4)]">ارزش: {formatNumber(p.inventoryValue ?? totalStock * (p.costPrice ?? 0))}</div>
                       </td>
-                      <td className="">
+                      <td className="a-num">
                         {totalStock === 0 ? (
                           <span className="text-[var(--a-red)] font-bold">ناموجود</span>
                         ) : (
@@ -707,17 +735,19 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                         )}
                       </td>
                       <td className="">
-                        <span className={`a-badge ${p.status === 'active' ? 'a-badge--green' : 'a-badge--neutral'}`}>
+                        <span className={`a-badge ${p.status === 'active' ? 'a-badge--success' : 'a-badge--neutral'}`}>
                           {p.status === 'active' ? 'فعال' : 'غیرفعال'}
                         </span>
                       </td>
-                      <td className="">{created}</td>
-                      <td className="">
+                      <td>{created}</td>
+                      <td className="a-center">
                         <div className="relative">
                           <button
                             type="button"
                             className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--a-t3)] hover:text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors"
-                            aria-label="عملیات"
+                            aria-label={`عملیات ${p.title}`}
+                            aria-haspopup="menu"
+                            aria-expanded={rowMenu === p.id}
                             onClick={() => setRowMenu(rowMenu === p.id ? null : p.id)}
                           >
                             <Dots />
@@ -725,12 +755,13 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                           {rowMenu === p.id && (
                             <>
                               <div className="admin-popover-backdrop fixed inset-0 z-40" onClick={() => setRowMenu(null)} />
-                              <div className="admin-glass-popover absolute left-0 mt-2 w-48 bg-[var(--a-dropdown-bg)] border border-[var(--a-border)] rounded-lg shadow-xl z-50 py-1 overflow-hidden backdrop-blur-xl">
+                              <div className="admin-glass-popover absolute left-0 mt-2 w-48 bg-[var(--a-dropdown-bg)] border border-[var(--a-border)] rounded-lg shadow-xl z-50 py-1 overflow-hidden backdrop-blur-xl" role="menu">
                                 {rowActions(p).map((a) => (
                                   <button
                                     key={a.label}
                                     type="button"
-                                    className={`w-full text-right px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors${a.danger ? ' text-[var(--a-red)] hover:bg-[var(--a-red-soft)]' : ''}`}
+                                    role="menuitem"
+                                    className={`w-full text-start px-4 py-2 text-sm text-[var(--a-t1)] hover:bg-[var(--a-hover)] transition-colors${a.danger ? ' text-[var(--a-red)] hover:bg-[var(--a-red-soft)]' : ''}`}
                                     onClick={() => {
                                       setRowMenu(null);
                                       a.run();
@@ -768,12 +799,12 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                     />
                     <input
                       type="checkbox"
-                      className="w-4 h-4 rounded border-gray-300 text-brand focus:ring-brand pp-gcheck"
+                      className="pp-check pp-gcheck"
                       checked={selected.has(p.id)}
                       onChange={() => toggle(p.id)}
                       aria-label={`انتخاب ${p.title}`}
                     />
-                    {p.promotion && <span className="a-badge a-badge--amber pp-gbadge">ویژه</span>}
+                    {p.promotion && <span className="a-badge a-badge--warning pp-gbadge">ویژه</span>}
                   </div>
                   <div className="admin-product-card__body">
                     <div className="admin-product-card__meta">
@@ -827,7 +858,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
                       </div>
                     </div>
                     <div className="admin-product-card__stock">
-                      <span className={`a-badge ${totalStock === 0 ? 'a-badge--red' : 'a-badge--green'}`}>
+                      <span className={`a-badge ${totalStock === 0 ? 'a-badge--danger' : 'a-badge--success'}`}>
                         {totalStock === 0 ? 'ناموجود' : `${formatNumber(totalStock)} عدد`}
                       </span>
                       <span className="a-badge a-badge--neutral">
@@ -849,13 +880,13 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
             {pageCount > 1 && (
               <div className="admin-product-pager__actions">
                 <button type="button" className="a-btn a-btn--secondary a-btn--sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                  صفحه قبلی
+                  صفحهٔ قبل
                 </button>
                 <span className="admin-product-pager__page">
                   صفحه {formatNumber(page)} از {formatNumber(pageCount)}
                 </span>
                 <button type="button" className="a-btn a-btn--secondary a-btn--sm" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
-                  صفحه بعدی
+                  صفحهٔ بعد
                 </button>
               </div>
             )}
@@ -866,6 +897,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
       <Modal
         open={bulkPrompt !== null}
         title={bulkPrompt ? BULK_PROMPTS[bulkPrompt].title : ''}
+        busy={bulk.isPending}
         onClose={() => setBulkPrompt(null)}
         footer={
           <>
@@ -874,10 +906,11 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
               className="a-btn a-btn--primary"
               onClick={confirmBulkValue}
               disabled={bulk.isPending}
+              aria-busy={bulk.isPending || undefined}
             >
-              اعمال روی {formatNumber(selected.size)} محصول
+              {bulk.isPending ? 'در حال اعمال…' : <>اعمال روی {formatNumber(selected.size)} محصول</>}
             </button>
-            <button type="button" className="a-btn a-btn--secondary" onClick={() => setBulkPrompt(null)}>
+            <button type="button" className="a-btn a-btn--secondary" disabled={bulk.isPending} onClick={() => setBulkPrompt(null)}>
               انصراف
             </button>
           </>
@@ -890,6 +923,7 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
           <input
             id="bulk-value"
             className="a-input a-ltr"
+            dir="ltr"
             inputMode="numeric"
             placeholder={bulkPrompt ? BULK_PROMPTS[bulkPrompt].placeholder : ''}
             value={bulkValue}
@@ -905,15 +939,30 @@ export function ProductsPage({ typeFilter }: { typeFilter?: 'physical' | 'bundle
         busy={remove.isPending || bulk.isPending}
         description={
           deleteTarget === 'bulk' ? (
-            <>تعداد <strong>{formatNumber(selected.size)}</strong> محصول حذف شود؟ محصولات از فروشگاه و نتایج جستجو خارج می‌شوند و سابقه آن‌ها برای گزارش‌ها باقی می‌ماند.</>
+            <><strong>{formatNumber(selected.size)}</strong> محصول حذف می‌شود. محصولات از فروشگاه و نتایج جست‌وجو خارج می‌شوند و سابقهٔ آن‌ها برای گزارش‌ها باقی می‌ماند.</>
           ) : (
-            <>محصول <strong>«{deleteTarget?.title}»</strong> حذف شود؟ این محصول دیگر در فروشگاه نمایش داده نخواهد شد.</>
+            <>محصول <strong>«{deleteTarget?.title}»</strong> حذف می‌شود و دیگر در فروشگاه نمایش داده نمی‌شود.</>
           )
         }
-        onClose={() => setDeleteTarget(null)}
+        confirmLabel="حذف"
+        onClose={() => { if (!remove.isPending && !bulk.isPending) setDeleteTarget(null); }}
         onConfirm={() => {
           if (deleteTarget === 'bulk') bulk.mutate({ ids: [...selected], action: 'delete' });
           else if (deleteTarget) remove.mutate(deleteTarget.id);
+        }}
+      />
+
+      <ConfirmDialog
+        open={discardOpen}
+        title="کنار گذاشتن تغییرات"
+        description={<>تغییرات ذخیره‌نشدهٔ <strong>{formatNumber(sheetDirtyCount)}</strong> محصول در صفحه‌گسترده کنار گذاشته می‌شود؛ این کار برگشت ندارد.</>}
+        confirmLabel="کنار گذاشتن تغییرات"
+        busyLabel="در حال کنار گذاشتن…"
+        hint={null}
+        onClose={() => setDiscardOpen(false)}
+        onConfirm={() => {
+          setSheetDrafts({});
+          setDiscardOpen(false);
         }}
       />
 

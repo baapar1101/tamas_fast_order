@@ -150,10 +150,10 @@ function StoreSamples({ surface, mode }: { surface: Surface; mode: Mode }) {
         <div className="text-xl font-bold text-primary-500">تماس مارکت</div>
         <div className="relative min-w-60 flex-1">
           <Search className="pointer-events-none absolute start-3 top-1/2 size-5 -translate-y-1/2 text-text-200" />
-          <Input className="w-full ps-10" placeholder="جستجوی کالا، برند یا کد…" aria-label="جستجو" />
+          <Input className="w-full ps-10" placeholder="جست‌وجوی کالا، برند یا کد…" aria-label="جست‌وجوی کالا" />
         </div>
         <Button variant="ghost" size="sm">ورود / ثبت‌نام</Button>
-        <Button size="sm"><ShoppingCart /> سبد خرید <Badge size="sm" className="bg-white/20 text-white">{fa(3)}</Badge></Button>
+        <Button size="sm"><ShoppingCart /> سبد خرید <Badge size="sm" className="lab-cart-count">{fa(3)}</Badge></Button>
       </div>
 
       <Section title="کارت محصول" hint="موجودی، تخفیف، افزودن به سبد و تغییر تعداد (روی دکمه‌ها بزنید)">
@@ -193,7 +193,7 @@ function StoreSamples({ surface, mode }: { surface: Surface; mode: Mode }) {
                 <Button variant="success">پرداخت شد</Button>
                 <Button variant="ghost">انصراف</Button>
                 <Button disabled>غیرفعال</Button>
-                <Button pending>در حال ارسال</Button>
+                <Button pending>در حال ارسال…</Button>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <Button size="xs">خیلی کوچک</Button>
@@ -357,7 +357,7 @@ function AdminSamples({ surface, mode }: { surface: Surface; mode: Mode }) {
             </TabList>
             <div className="relative ms-auto">
               <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-text-200" />
-              <Input className="w-56 py-2 ps-9 text-sm" placeholder="جستجوی سفارش…" aria-label="جستجوی سفارش" />
+              <Input className="w-56 py-2 ps-9 text-sm" placeholder="جست‌وجوی سفارش…" aria-label="جست‌وجوی سفارش" />
             </div>
             <Button appearance="outline" size="sm" className="px-3 py-2"><Download /> خروجی اکسل</Button>
           </div>

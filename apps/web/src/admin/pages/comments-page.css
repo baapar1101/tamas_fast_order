@@ -1,0 +1,7 @@
+/* CommentsPage — page-local presentation (docs/ui-guidelines.md §4.6) */
+.comments-stars {
+  color: var(--a-amber);
+  font-size: var(--ds-text-lg);
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}

@@ -1,0 +1,64 @@
+/* PaymentMethodsSettings + PaymentTermsSettings — tokens only (docs/ui-guidelines.md §2). */
+
+.pm-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+}
+.pm-head__sub { margin: var(--ds-space-1) 0 0; }
+.pm-head__actions { display: flex; flex-wrap: wrap; gap: var(--ds-space-2); }
+
+.pm-body { padding: var(--ds-space-4); }
+.pm-list { display: flex; flex-direction: column; gap: var(--ds-space-3); }
+
+.pm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+  padding: 14px var(--ds-space-4);
+  background: var(--a-surface);
+  border: 1px solid var(--a-border);
+  border-radius: 12px;
+  transition: opacity 140ms ease, border-color 140ms ease, background-color 140ms ease;
+}
+.pm-row.is-off {
+  background: var(--a-surface-2);
+  border-style: dashed;
+  opacity: .65;
+}
+.pm-row__main { display: flex; align-items: center; gap: 14px; flex: 1; min-width: min(240px, 100%); }
+.pm-row__main .a-switch { flex-shrink: 0; }
+.pm-row__title { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ds-space-2); }
+.pm-row__label { font-size: var(--ds-text-md); font-weight: 600; color: var(--a-t1); }
+.pm-row__desc { margin: var(--ds-space-1) 0 0; font-size: var(--ds-text-caption); color: var(--a-t3); }
+.pm-row__note {
+  margin-top: var(--ds-space-1);
+  font-size: var(--ds-text-xs);
+  color: var(--a-t2);
+  white-space: pre-line;
+}
+.pm-row__note--muted { color: var(--a-t3); }
+.pm-row__actions { display: flex; align-items: center; gap: 6px; }
+
+.pm-form { display: flex; flex-direction: column; gap: 14px; }
+.pm-form__pair { display: grid; grid-template-columns: 1fr; gap: var(--ds-space-3); }
+@media (min-width: 640px) {
+  .pm-form__pair { grid-template-columns: 1fr 1fr; }
+}
+.pm-check {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  font-size: var(--ds-text-sm);
+  font-weight: 500;
+  color: var(--a-t1);
+  cursor: pointer;
+}
+.pm-check input { width: 18px; height: 18px; accent-color: var(--a-green); }
+
+.pt-chip-check { margin-inline-end: 6px; }
+.pt-installments { min-width: 220px; }

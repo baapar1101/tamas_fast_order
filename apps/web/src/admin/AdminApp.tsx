@@ -13,6 +13,7 @@ import './reference.css';
 import './admin.css';
 import './theme.css';
 import './foundation.css';
+import './guidelines.css';
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const ProductsPage = lazy(() => import('./pages/ProductsPage').then((m) => ({ default: m.ProductsPage })));
@@ -675,6 +676,7 @@ export default function AdminApp() {
 
   return (
     <div className="admin-body-shell">
+      <a href="#admin-main" className="a-skip-link">پرش به محتوای اصلی</a>
       {/* The admin's own backdrop: animated smoke by default */}
       <AdminBackdrop background={backgroundPreview ?? savedBackground} theme={theme} />
       <AdminBackgroundPicker open={backgroundPickerOpen} onClose={() => setBackgroundPickerOpen(false)} onPreview={setBackgroundPreview} />
@@ -682,7 +684,8 @@ export default function AdminApp() {
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
         <div
-          className="admin-sidebar-overlay fixed inset-0 z-30 bg-slate-950/80 backdrop-blur-sm lg:hidden"
+          className="admin-sidebar-overlay fixed inset-0 z-30 lg:hidden"
+          aria-hidden="true"
           onClick={() => setMobileSidebarOpen(false)}
         />
       )}
@@ -700,7 +703,7 @@ export default function AdminApp() {
           </div>
           <div>
             <h1 className="text-lg font-extrabold glass-text-t1 leading-none">تماس مارکت</h1>
-            <p className="mt-1 text-[11px] text-slate-500">پنل مدیریت هوشمند</p>
+            <p className="mt-1 text-[11px] glass-text-t4">پنل مدیریت هوشمند</p>
           </div>
           <button
             type="button"
@@ -716,7 +719,7 @@ export default function AdminApp() {
 
         {/* Sidebar Links */}
         <nav className="flex-1 overflow-y-auto px-4 pb-4">
-          <p className="mb-2 px-4 text-[11px] font-semibold tracking-wide text-slate-500">پنل مدیریت</p>
+          <p className="mb-2 px-2 text-[11px] font-medium glass-text-t4">پنل مدیریت</p>
           {dashboardItem && hasPermission(dashboardItem.requiredPermission) && (
             <NavLink to={dashboardItem.to} end className={({ isActive }) => `nav-item nav-dashboard-item${isActive ? ' active' : ''}`}>
               {dashboardItem.icon}
@@ -809,7 +812,8 @@ export default function AdminApp() {
             {/* Quick Search Input */}
             <div className="group relative hidden flex-1 max-w-md sm:block">
               <svg
-                className="pointer-events-none absolute right-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-emerald-400"
+                className="pointer-events-none absolute right-3.5 top-1/2 h-5 w-5 -translate-y-1/2 glass-text-t4"
+                aria-hidden="true"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="1.8"
@@ -819,7 +823,8 @@ export default function AdminApp() {
               </svg>
               <input
                 type="text"
-                placeholder="جستجو در بخش مدیریت..."
+                placeholder="جستجو در بخش مدیریت…"
+                aria-label="جستجو در بخش مدیریت"
                 className="w-full rounded-xl border glass-border glass-bg-input py-2 pr-11 pl-4 text-xs glass-text-t1 glass-placeholder outline-none transition-all duration-300 glass-input focus:shadow-glow"
               />
               <kbd className="absolute left-3 top-1/2 hidden -translate-y-1/2 rounded-md border glass-border glass-bg-surface px-1.5 py-0.5 text-[10px] glass-text-t4 md:block">
@@ -830,12 +835,12 @@ export default function AdminApp() {
             {/* Real-time Jalali Date & Clock */}
             <div className="mr-auto flex items-center gap-2 sm:gap-3">
               <div className="hidden items-center gap-2.5 rounded-xl border glass-border glass-bg-surface px-4 py-2 md:flex">
-                <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                <svg className="h-4 w-4 glass-text-t4" aria-hidden="true" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
-                <span className="text-xs font-medium glass-text-t2">{currentTime.date || 'در حال دریافت...'}</span>
+                <span className="text-xs font-medium glass-text-t2">{currentTime.date || 'در حال دریافت…'}</span>
                 <span className="h-3 w-px bg-[var(--a-divider)]" />
-                <span dir="ltr" className="text-xs font-semibold tabular-nums text-emerald-300">
+                <span dir="ltr" className="text-xs font-medium tabular-nums glass-text-t1">
                   {currentTime.time || '--:--:--'}
                 </span>
               </div>
@@ -882,11 +887,13 @@ export default function AdminApp() {
                     setProfileOpen(false);
                   }}
                   aria-label="اعلان‌ها"
+                  aria-haspopup="true"
+                  aria-expanded={notifOpen}
                 >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                  <svg className="h-5 w-5" aria-hidden="true" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                   </svg>
-                  <span className="absolute -left-0.5 -top-0.5 grid h-5 w-5 place-items-center rounded-full bg-rose-500 text-[10px] font-bold text-slate-950 ring-2 ring-slate-950">
+                  <span className="admin-count-badge absolute -left-0.5 -top-0.5">
                     ۲
                   </span>
                 </button>
@@ -905,10 +912,10 @@ export default function AdminApp() {
                             className="notif-item"
                             onClick={() => setNotifOpen(false)}
                           >
-                            <span className="notif-dot bg-emerald-400" />
+                            <span className="notif-dot notif-dot--ok" aria-hidden="true" />
                             <div>
                               <p className="text-xs font-semibold glass-text-t1">سفارش جدید دریافت شد</p>
-                              <p className="mt-0.5 text-[11px] text-slate-500">سفارش به ارزش ۲,۴۵۰,۰۰۰ <img src="/toman.svg" alt="تومان" style={{ width: '1em', height: '1em', display: 'inline' }} /> · ۳ دقیقه پیش</p>
+                              <p className="mt-0.5 text-[11px] glass-text-t4">سفارش به ارزش ۲٬۴۵۰٬۰۰۰ <img src="/toman.svg" alt="تومان" className="admin-inline-currency" /> · ۳ دقیقه پیش</p>
                             </div>
                           </Link>
                         </li>
@@ -918,10 +925,10 @@ export default function AdminApp() {
                             className="notif-item"
                             onClick={() => setNotifOpen(false)}
                           >
-                            <span className="notif-dot bg-amber-400" />
+                            <span className="notif-dot notif-dot--warn" aria-hidden="true" />
                             <div>
-                              <p className="text-xs font-semibold text-slate-200">کد ملی ثبت نام شد</p>
-                              <p className="mt-0.5 text-[11px] text-slate-500">کاربر جدید کد ملی خود را جهت بررسی ارسال نمود · ۱۵ دقیقه پیش</p>
+                              <p className="text-xs font-semibold glass-text-t1">کد ملی ثبت نام شد</p>
+                              <p className="mt-0.5 text-[11px] glass-text-t4">کاربر جدید کد ملی خود را جهت بررسی ارسال نمود · ۱۵ دقیقه پیش</p>
                             </div>
                           </Link>
                         </li>
@@ -935,23 +942,26 @@ export default function AdminApp() {
               <div className="relative">
                 <button
                   type="button"
-                  className="group flex items-center gap-2.5 rounded-xl border glass-border glass-bg-surface py-1.5 pl-3 pr-1.5 transition-all duration-300 hover:border-emerald-500/30"
+                  className="admin-profile-trigger group flex items-center gap-2.5 rounded-lg border glass-border glass-bg-surface py-1.5 pl-3 pr-1.5"
+                  aria-haspopup="true"
+                  aria-expanded={profileOpen}
+                  aria-label="منوی حساب مدیریت"
                   onClick={() => {
                     setProfileOpen(!profileOpen);
                     setNotifOpen(false);
                   }}
                 >
                   <span className="relative">
-                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-amber-500 to-rose-500 text-sm font-extrabold text-slate-950">
+                    <span className="admin-avatar grid h-9 w-9 place-items-center rounded-lg text-sm font-bold" aria-hidden="true">
                       {user?.name?.[0] || 'م'}
                     </span>
-                    <span className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
+                    <span className="admin-presence-dot absolute -bottom-0.5 -left-0.5" aria-hidden="true" />
                   </span>
                   <span className="hidden text-right md:block">
                     <span className="block text-xs font-bold glass-text-t1">{user?.name} {user?.lastName}</span>
                     <span className="block text-[10px] glass-text-t2">مدیر سیستم</span>
                   </span>
-                  <svg className="hidden h-4 w-4 text-slate-500 transition-transform duration-300 md:block" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                  <svg className="hidden h-4 w-4 glass-text-t4 md:block" aria-hidden="true" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                   </svg>
                 </button>
@@ -960,12 +970,12 @@ export default function AdminApp() {
                   <div className="absolute left-0 top-14 w-72 max-w-[calc(100vw-2rem)] z-50">
                     <div className="glass-card-static overflow-hidden p-0 shadow-2xl glass-bg-dropdown backdrop-blur-xl">
                       <div className="flex items-center gap-3 border-b glass-border px-5 py-4">
-                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 text-base font-extrabold text-slate-950">
+                        <span className="admin-avatar grid h-11 w-11 shrink-0 place-items-center rounded-xl text-base font-bold" aria-hidden="true">
                           {user?.name?.[0] || 'م'}
                         </span>
                         <div>
                           <p className="text-sm font-bold glass-text-t1">{user?.name} {user?.lastName}</p>
-                          <p className="mt-0.5 text-xs glass-text-t2">{user?.phone}</p>
+                          <p className="mt-0.5 text-xs glass-text-t2 a-ltr">{user?.phone}</p>
                           <span className="chip chip-brand mt-1.5">مدیر ارشد</span>
                         </div>
                       </div>
@@ -991,7 +1001,7 @@ export default function AdminApp() {
                       <div className="border-t glass-border p-2">
                           <button
                             type="button"
-                            className="profile-menu-item text-rose-600 dark:text-rose-400 w-full hover:bg-rose-500/10 rounded-lg text-right"
+                            className="profile-menu-item profile-menu-item--danger w-full rounded-lg text-right"
                           onClick={() => void logout()}
                         >
                           <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
@@ -1009,7 +1019,7 @@ export default function AdminApp() {
         </header>
 
         {/* Main Content Body */}
-        <main className="admin-main-content flex-1 p-4 sm:p-6 lg:p-8">
+        <main id="admin-main" tabIndex={-1} className="admin-main-content flex-1 p-4 sm:p-6 lg:p-8">
           <div className="max-w-6xl mx-auto w-full">
             <Suspense fallback={<div className="ds-route-loading" role="status">در حال بارگذاری بخش…</div>}>
             <Routes>

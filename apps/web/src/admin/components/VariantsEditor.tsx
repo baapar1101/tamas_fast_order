@@ -7,6 +7,8 @@ import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 import { ProductEditor, type ProductForm } from './ProductEditor';
+import { ConfirmDialog } from './ConfirmDialog';
+import { AdminState } from './AdminState';
 
 interface Props {
   product: ProductDTO;
@@ -19,13 +21,15 @@ export function VariantsEditor({ product, categories, brands, onClose }: Props) 
   const toast = useToast();
   const qc = useQueryClient();
   const [editingVariant, setEditingVariant] = useState<ProductDTO | 'new' | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ProductDTO | null>(null);
 
   const queryKey = ['admin', 'products', 'variants', product.productId];
 
-  const { data, isLoading } = useQuery({
+  const variantsQuery = useQuery({
     queryKey,
     queryFn: () => api.get<{ items: ProductDTO[] }>('/admin/products', { parentProductId: product.productId }),
   });
+  const { data, isLoading } = variantsQuery;
 
   const save = useMutation({
     mutationFn: async ({ id, body }: { id: number | null; body: ProductForm }) =>
@@ -42,6 +46,7 @@ export function VariantsEditor({ product, categories, brands, onClose }: Props) 
     mutationFn: (id: number) => api.del(`/admin/products/${id}`),
     onSuccess: () => {
       toast.ok('واریانت حذف شد.');
+      setPendingDelete(null);
       void qc.invalidateQueries({ queryKey });
     },
     onError: (err: Error) => toast.error(err.message),
@@ -81,25 +86,27 @@ export function VariantsEditor({ product, categories, brands, onClose }: Props) 
     <Modal open title={`مدیریت واریانت‌ها: ${product.title}`} onClose={onClose} wide>
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <p className="text-sm text-slate-400">تعداد واریانت‌ها: {variants.length}</p>
+          <p className="a-hint">تعداد واریانت‌ها: {formatNumber(variants.length)}</p>
           <button type="button" className="a-btn a-btn--primary" onClick={() => setEditingVariant('new')}>
             افزودن واریانت جدید
           </button>
         </div>
 
         {isLoading ? (
-          <div className="animate-pulse p-4 text-center">در حال بارگذاری...</div>
+          <AdminState kind="loading" />
+        ) : variantsQuery.isError ? (
+          <AdminState kind="error" error={variantsQuery.error} onRetry={() => variantsQuery.refetch()} />
         ) : variants.length === 0 ? (
-          <div className="p-8 text-center text-slate-500 glass-card">هیچ واریانتی یافت نشد.</div>
+          <AdminState kind="empty" noun="واریانت" />
         ) : (
-          <div className="huma-table-container">
-            <table className="huma-table">
+          <div className="a-table-wrap">
+            <table className="a-table">
               <thead>
                 <tr>
                   <th>رنگ</th>
-                  <th>SKU</th>
-                  <th>قیمت</th>
-                  <th>موجودی کل</th>
+                  <th className="a-ltr">SKU</th>
+                  <th className="a-num">قیمت</th>
+                  <th className="a-num">موجودی کل</th>
                   <th>وضعیت</th>
                   <th>عملیات</th>
                 </tr>
@@ -110,22 +117,22 @@ export function VariantsEditor({ product, categories, brands, onClose }: Props) 
                   return (
                     <tr key={v.id}>
                       <td>
-                        <div className="flex items-center gap-2 font-bold text-white">
+                        <div className="flex items-center gap-2 a-strong">
                           {v.colorCode && (
-                            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: v.colorCode }} />
+                            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: v.colorCode }} aria-hidden="true" />
                           )}
                           {v.color || 'بدون رنگ'}
                         </div>
                       </td>
-                      <td className="text-xs text-slate-400" dir="ltr">{v.sku || '-'}</td>
-                      <td className="font-bold text-emerald-300"><Price amount={v.price} /></td>
-                      <td>
-                        <span className={`chip ${totalStock > 0 ? 'chip-brand' : 'chip-rose'}`}>
+                      <td className="a-ltr a-cell-sub">{v.sku || '—'}</td>
+                      <td className="a-num a-strong"><Price amount={v.price} /></td>
+                      <td className="a-num">
+                        <span className={`a-badge ${totalStock > 0 ? 'a-badge--success' : 'a-badge--danger'}`}>
                           {formatNumber(totalStock)}
                         </span>
                       </td>
                       <td>
-                        <span className={`chip ${v.status === 'active' ? 'chip-brand' : 'chip-slate'}`}>
+                        <span className={`a-badge ${v.status === 'active' ? 'a-badge--success' : 'a-badge--neutral'}`}>
                           {v.status === 'active' ? 'فعال' : 'غیرفعال'}
                         </span>
                       </td>
@@ -141,9 +148,7 @@ export function VariantsEditor({ product, categories, brands, onClose }: Props) 
                           <button
                             type="button"
                             className="a-btn a-btn--danger a-btn--xs"
-                            onClick={() => {
-                              if (confirm('واریانت حذف شود؟')) remove.mutate(v.id);
-                            }}
+                            onClick={() => setPendingDelete(v)}
                           >
                             حذف
                           </button>
@@ -157,6 +162,15 @@ export function VariantsEditor({ product, categories, brands, onClose }: Props) 
           </div>
         )}
       </div>
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="حذف واریانت"
+        description={pendingDelete ? <>واریانت «{pendingDelete.color || pendingDelete.title}» حذف می‌شود؛ حذف برگشت ندارد.</> : ''}
+        confirmLabel="حذف"
+        busy={remove.isPending}
+        onConfirm={() => { if (pendingDelete) remove.mutate(pendingDelete.id); }}
+        onClose={() => { if (!remove.isPending) setPendingDelete(null); }}
+      />
     </Modal>
   );
 }

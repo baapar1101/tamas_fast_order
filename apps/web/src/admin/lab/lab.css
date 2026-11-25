@@ -32,3 +32,9 @@
   background: var(--tg-canvas);
   color: var(--tg-text);
 }
+
+/* Count chip inside a filled button: follows the button's own ink. */
+.lab-cart-count {
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  color: inherit;
+}

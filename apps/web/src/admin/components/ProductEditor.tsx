@@ -7,6 +7,8 @@ import { ImagePicker } from './ImagePicker';
 import { Price } from '../../components/Price';
 import { ProductLinks } from './ProductLinks';
 import { AnimatedDropdown } from './AnimatedDropdown';
+import { AdminState } from './AdminState';
+import './product-editor.css';
 
 import { useEffect } from 'react';
 
@@ -29,9 +31,11 @@ function BundleItemSelect({ value, onChange }: { value: string; onChange: (val: 
   });
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="pe-bundle-select">
       <input
         className="a-input font-mono"
+        dir="ltr"
+        aria-label="جست‌وجوی کالای باندل"
         value={term}
         onChange={(e) => {
           setTerm(e.target.value);
@@ -40,16 +44,16 @@ function BundleItemSelect({ value, onChange }: { value: string; onChange: (val: 
         }}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 200)}
-        placeholder="جستجوی نام یا شناسه..."
+        placeholder="جست‌وجوی نام یا شناسه…"
         autoComplete="off"
       />
       {open && data?.items && data.items.length > 0 && (
-        <div style={{ position: 'absolute', zIndex: 50, width: '100%', top: '100%', left: 0, marginTop: "var(--ds-space-1)", background: 'var(--card)', border: '1px solid var(--tamas-border)', borderRadius: 8, maxHeight: 250, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+        <div className="pe-bundle-menu">
           {data.items.map((p) => (
             <button
               key={p.productId}
               type="button"
-              style={{ width: '100%', textAlign: 'right', padding: "10px var(--ds-space-3)", borderBottom: '1px solid var(--tamas-border)', background: 'transparent' }}
+              className="pe-bundle-option"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
                 setTerm(p.productId);
@@ -57,8 +61,8 @@ function BundleItemSelect({ value, onChange }: { value: string; onChange: (val: 
                 setOpen(false);
               }}
             >
-              <div style={{ fontSize: "var(--ds-text-sm)", fontWeight: 700, color: 'var(--tamas-fg)', marginBottom: "var(--ds-space-1)" }}>{p.title}</div>
-              <div style={{ fontSize: "var(--ds-text-xs)", color: 'var(--tamas-muted)', fontFamily: 'monospace' }}>{p.productId}</div>
+              <span className="pe-bundle-option-title">{p.title}</span>
+              <span className="pe-bundle-option-id a-ltr">{p.productId}</span>
             </button>
           ))}
         </div>
@@ -294,11 +298,12 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
   const unitGrossProfit = form.price - form.costPrice;
 
   // Variants Fetching (if editing an existing parent product)
-  const { data: variantsData, isLoading: variantsLoading } = useQuery({
+  const variantsQuery = useQuery({
     queryKey: ['admin', 'products', 'variants', form.productId],
     queryFn: () => api.get<{ items: ProductDTO[] }>('/admin/products', { parentProductId: form.productId }),
     enabled: !!product && !!form.productId && !form.parentProductId,
   });
+  const { data: variantsData, isLoading: variantsLoading } = variantsQuery;
   const variants = variantsData?.items ?? [];
 
   const { data: attributeDefs } = useQuery({
@@ -417,15 +422,15 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
           <button type="button" className="a-btn a-btn--secondary" onClick={onClose} disabled={busy}>
             انصراف
           </button>
-          <button type="button" className="a-btn a-btn--primary" onClick={submit} disabled={busy}>
-            {busy ? 'در حال ذخیره…' : 'ذخیره محصول'}
+          <button type="button" className="a-btn a-btn--primary" onClick={submit} disabled={busy} aria-busy={busy || undefined}>
+            {busy ? 'در حال ذخیره…' : 'ذخیرهٔ محصول'}
           </button>
         </div>
       </div>
 
       {error && (
         <div className="mb-6 px-4">
-          <div className="a-error-box">{error}</div>
+          <div className="a-error-box" role="alert">{error}</div>
         </div>
       )}
 
@@ -500,35 +505,30 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
               </div>
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-color-code">کد رنگ (هگز)</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="pe-color-row">
                   <input
                     id="pe-color-code"
                     className="a-input a-ltr"
+                    dir="ltr"
                     placeholder="#000000"
                     value={form.colorCode}
                     onChange={(e) => set('colorCode', e.target.value)}
-                    style={{ flex: 1 }}
                   />
                   <span
-                    style={{
-                      width: '2.2rem',
-                      height: '2.2rem',
-                      borderRadius: '0.5rem',
-                      border: '2px solid var(--a-border-2)',
-                      background: form.colorCode && /^#?[0-9a-f]{3,8}$/i.test(form.colorCode.trim())
-                        ? (form.colorCode.trim().startsWith('#') ? form.colorCode.trim() : `#${form.colorCode.trim()}`)
-                        : 'var(--a-surface)',
-                      flexShrink: 0,
-                      transition: 'background 0.15s ease',
-                    }}
+                    className="pe-color-swatch"
+                    style={form.colorCode && /^#?[0-9a-f]{3,8}$/i.test(form.colorCode.trim())
+                      ? { backgroundColor: form.colorCode.trim().startsWith('#') ? form.colorCode.trim() : `#${form.colorCode.trim()}` }
+                      : undefined}
                     title="پیش‌نمایش رنگ"
+                    aria-hidden="true"
                   />
                   <input
                     type="color"
+                    className="pe-color-picker"
                     value={form.colorCode && /^#[0-9a-f]{6}$/i.test(form.colorCode.trim()) ? form.colorCode.trim() : '#000000'}
                     onChange={(e) => set('colorCode', e.target.value)}
-                    style={{ width: '2.2rem', height: '2.2rem', padding: "var(--ds-space-0)", border: 'none', cursor: 'pointer', background: 'transparent' }}
                     title="انتخاب رنگ"
+                    aria-label="انتخاب رنگ از پالت"
                   />
                 </div>
               </div>
@@ -572,17 +572,28 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                       copy.splice(idx, 1);
                       set('gallery', copy);
                     }}
-                    className="absolute top-6 left-1 bg-rose-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg"
+                    className="pe-gallery-remove absolute top-6 left-1 rounded-full w-6 h-6 flex items-center justify-center"
+                    aria-label={`برداشتن خانهٔ تصویر ${formatNumber(idx + 1)}`}
+                    title="برداشتن تصویر"
                   >
-                    ✕
+                    <span aria-hidden="true">✕</span>
                   </button>
                 </div>
               ))}
               {form.gallery.length < 5 && (
                 <div className="pt-5">
-                  <div className="a-dropzone a-dropzone--min flex items-center justify-center"
-                        onClick={() => set('gallery', [...form.gallery, ''])}>
-                    <span className="a-muted text-xl">+</span>
+                  <div className="a-dropzone a-dropzone--min pe-gallery-add flex items-center justify-center"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="افزودن تصویر به گالری"
+                        onClick={() => set('gallery', [...form.gallery, ''])}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            set('gallery', [...form.gallery, '']);
+                          }
+                        }}>
+                    <span className="a-muted text-xl" aria-hidden="true">+</span>
                   </div>
                 </div>
               )}
@@ -600,7 +611,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 {form.bundleItems.map((item, idx) => (
                   <div key={idx} className="pe-bundle-row">
                     <div className="pe-bundle-product">
-                      <label className="a-label text-xs">شناسه کالا (Product ID) یا جستجو</label>
+                      <label className="a-label text-xs">شناسهٔ کالا (Product ID) یا جست‌وجو</label>
                       <BundleItemSelect
                         value={item.productId}
                         onChange={(val) => {
@@ -617,6 +628,9 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                       <input
                         type="number"
                         min="1"
+                        inputMode="numeric"
+                        dir="ltr"
+                        aria-label="تعداد"
                         className="a-input text-center"
                         value={item.qty || 1}
                         onChange={(e) => {
@@ -636,9 +650,11 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                           copy.splice(idx, 1);
                           set('bundleItems', copy);
                         }}
-                        className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 flex items-center justify-center transition-colors"
+                        className="a-btn a-btn--danger a-btn--icon"
+                        aria-label="حذف این قلم از باندل"
+                        title="حذف از باندل"
                       >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                       </button>
                     </div>
                   </div>
@@ -727,17 +743,17 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 <input id="pe-warranty" className="a-input" value={form.warranty} onChange={(e) => set('warranty', e.target.value)} />
               </div>
               <div className="a-field a-span-2">
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
+                <div className="pe-profit-box">
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div><small className="a-help">ارزش خرید موجودی</small><strong className="block text-[var(--a-t1)]">{formatNumber(inventoryUnits * form.costPrice)} تومان</strong></div>
-                    <div><small className="a-help">سود ناخالص واحد</small><strong className={`block ${unitGrossProfit < 0 ? 'text-rose-500' : 'text-emerald-500'}`}>{formatNumber(unitGrossProfit)} تومان</strong></div>
-                    <div><small className="a-help">حاشیه سود واحد</small><strong className="block text-[var(--a-t1)]">{form.price ? `${((unitGrossProfit / form.price) * 100).toLocaleString('fa-IR', { maximumFractionDigits: 1 })}٪` : '—'}</strong></div>
+                    <div><small className="a-help">ارزش خرید موجودی</small><strong className="pe-profit-value">{formatNumber(inventoryUnits * form.costPrice)} تومان</strong></div>
+                    <div><small className="a-help">سود ناخالص واحد</small><strong className={`pe-profit-value ${unitGrossProfit < 0 ? 'pe-profit-value--neg' : 'pe-profit-value--pos'}`}>{formatNumber(unitGrossProfit)} تومان</strong></div>
+                    <div><small className="a-help">حاشیهٔ سود واحد</small><strong className="pe-profit-value">{form.price ? `${((unitGrossProfit / form.price) * 100).toLocaleString('fa-IR', { maximumFractionDigits: 1 })}٪` : '—'}</strong></div>
                   </div>
                 </div>
               </div>
               <div className="a-field">
                 <label className="a-label" htmlFor="pe-digikala">لینک دیجی‌کالا</label>
-                <input id="pe-digikala" className="a-input a-ltr" placeholder="https://www.digikala.com/product/dkp-..." value={form.digikalaLink} onChange={(e) => set('digikalaLink', e.target.value)} />
+                <input id="pe-digikala" className="a-input a-ltr" placeholder="https://www.digikala.com/product/dkp-…" value={form.digikalaLink} onChange={(e) => set('digikalaLink', e.target.value)} />
               </div>
             </div>
           </ProductAccordionSection>
@@ -752,7 +768,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
           >
             <div className="p-4">
               {trackingSites.length === 0 ? (
-                <p className="a-empty">ابتدا از بخش «سایت‌های رهگیری» حداقل یک سایت اضافه کنید.</p>
+                <AdminState kind="empty" compact title="هنوز سایت رهگیری تعریف نشده است." text="ابتدا از بخش «سایت‌های رهگیری» حداقل یک سایت اضافه کنید." />
               ) : (
                 <div className="a-form-grid">
                   {trackingSites.map((site) => {
@@ -767,7 +783,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                           id={`pe-tracking-site-${site.id}`}
                           type="url"
                           className="a-input a-ltr"
-                          placeholder={site.baseUrl ? `${site.baseUrl.replace(/\/$/, '')}/product/...` : 'https://example.com/product/...'}
+                          placeholder={site.baseUrl ? `${site.baseUrl.replace(/\/$/, '')}/product/…` : 'https://example.com/product/…'}
                           value={link?.url ?? ''}
                           disabled={disabled}
                           onChange={(event) => setTrackingUrl(site.id, event.target.value)}
@@ -790,7 +806,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
           >
             <div className="a-form-grid">
               <div className="a-field a-span-2">
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div className="flex flex-wrap gap-2">
                   {[
                     { value: 'فقط نقدی', icon: '💵', help: 'فقط پرداخت کامل نقدی' },
                     { value: 'چک فقط ۲ ماهه', icon: '📄', help: 'پیش‌پرداخت و چک ماه دوم' },
@@ -801,12 +817,11 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                       <button
                         key={st.value}
                         type="button"
-                        className={`a-chip-opt ${isOn ? 'a-chip-opt--on' : ''}`}
-                        style={{ padding: '0.5rem 0.85rem', cursor: 'pointer' }}
+                        className={`a-chip-opt pe-sell-chip ${isOn ? 'a-chip-opt--on' : ''}`}
                         aria-pressed={isOn}
                         onClick={() => set('sellType', isOn ? '' : st.value)}
                       >
-                        <span>{st.icon}</span>
+                        <span aria-hidden="true">{st.icon}</span>
                         <span className="a-chip-opt-copy"><strong>{st.value}</strong><small>{st.help}</small></span>
                       </button>
                     );
@@ -845,17 +860,19 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
               {!product ? (
                 <div className="a-amber-box">ابتدا اطلاعات محصول را ذخیره کنید تا امکان افزودن تنوع فراهم شود.</div>
               ) : variantsLoading ? (
-                <div className="animate-pulse p-4 text-center a-muted">در حال بارگذاری تنوع‌ها...</div>
+                <AdminState kind="loading" compact />
+              ) : variantsQuery.isError ? (
+                <AdminState kind="error" compact title="تنوع‌ها دریافت نشد." error={variantsQuery.error} onRetry={() => variantsQuery.refetch()} />
               ) : variants.length === 0 ? (
-                <div className="a-empty">هیچ تنوعی ثبت نشده است.</div>
+                <AdminState kind="empty" compact noun="تنوع" />
               ) : (
                 <div className="a-table-wrap">
                   <table className="a-table">
                     <thead>
                       <tr>
                         <th>رنگ / تنوع</th>
-                        <th>قیمت (تومان)</th>
-                        <th>موجودی</th>
+                        <th className="a-num">قیمت (تومان)</th>
+                        <th className="a-num">موجودی</th>
                         <th>وضعیت</th>
                         <th>عملیات</th>
                       </tr>
@@ -868,19 +885,19 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                             <td>
                               <div className="a-strong flex items-center gap-2">
                                 {v.colorCode && (
-                                  <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: v.colorCode }} />
+                                  <span className="w-3 h-3 rounded-full pe-swatch-dot" style={{ backgroundColor: v.colorCode }} aria-hidden="true" />
                                 )}
                                 {v.color || 'بدون نام'}
                               </div>
                             </td>
-                            <td><Price amount={v.price} /></td>
-                            <td>
-                              <span className={`a-badge ${totalStock > 0 ? 'a-badge--green' : 'a-badge--red'}`}>
+                            <td className="a-num"><Price amount={v.price} /></td>
+                            <td className="a-num">
+                              <span className={`a-badge ${totalStock > 0 ? 'a-badge--success' : 'a-badge--danger'}`}>
                                 {formatNumber(totalStock)}
                               </span>
                             </td>
                             <td>
-                              <span className={`a-badge ${v.status === 'active' ? 'a-badge--green' : 'a-badge--neutral'}`}>
+                              <span className={`a-badge ${v.status === 'active' ? 'a-badge--success' : 'a-badge--neutral'}`}>
                                 {v.status === 'active' ? 'فعال' : 'غیرفعال'}
                               </span>
                             </td>
@@ -953,7 +970,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
 
             <div className="space-y-3">
               {form.attributes.length === 0 ? (
-                <div className="a-empty">هیچ ویژگی ثبت نشده است.</div>
+                <AdminState kind="empty" compact noun="ویژگی" />
               ) : (
                 form.attributes.map((attr, idx) => {
                   const def = attrByKey.get(attr.key.trim());
@@ -1021,7 +1038,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                         )}
                         <button
                           type="button"
-                          className="absolute left-1 top-2 w-6 h-6 flex items-center justify-center text-rose-400 hover:bg-rose-500/20 rounded-lg transition"
+                          className="pe-remove-x absolute left-1 top-2 w-6 h-6 flex items-center justify-center rounded-lg"
                           aria-label="حذف ویژگی"
                           onClick={() => {
                             const cp = [...form.attributes];
@@ -1029,7 +1046,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                             set('attributes', cp);
                           }}
                         >
-                          ✕
+                          <span aria-hidden="true">✕</span>
                         </button>
                       </div>
                     </div>
@@ -1148,8 +1165,7 @@ export function ProductEditor({ product, template, categories, brands, busy, isB
                 </div>
                 <input
                   id="product-campaign-points"
-                  className="a-input a-ltr"
-                  style={{ maxWidth: 96 }}
+                  className="a-input a-ltr pe-points-input"
                   type="number"
                   min={0}
                   inputMode="numeric"

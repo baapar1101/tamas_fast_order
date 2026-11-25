@@ -10,13 +10,15 @@ import { catalogProductImage } from '../components/catalogProduct';
 import { catalogSecondaryLabel, groupCatalogProducts, paginateCatalog, A4_CATALOG_LAYOUT, type CatalogGroupBy } from '../components/catalogPages';
 import { MobileGlassCatalog } from '../components/MobileGlassCatalog';
 import { isMobilePhoneProduct } from '../components/mobileGlassCatalogData';
+import { AdminState } from '../components/AdminState';
+import './catalog-export.css';
 
 type CatalogScope = 'all' | 'festival_singles' | 'baskets' | 'mobile_glass';
 
 const catalogScopes: { value: CatalogScope; label: string; hint: string }[] = [
-  { value: 'all', label: 'همه محصولات', hint: 'کاتالوگ عمومی فروشگاه' },
+  { value: 'all', label: 'همهٔ محصولات', hint: 'کاتالوگ عمومی فروشگاه' },
   { value: 'festival_singles', label: 'محصولات تکی جشنواره', hint: 'بدون سبدها و باندل‌ها' },
-  { value: 'baskets', label: 'سبدها', hint: 'کاتالوگ جداگانه سبدها' },
+  { value: 'baskets', label: 'سبدها', hint: 'کاتالوگ جداگانهٔ سبدها' },
   { value: 'mobile_glass', label: 'کاتالوگ شیشه‌ای موبایل', hint: 'تصویر ۱۲۸۰ پیکسلی مدل، رنگ و قیمت' },
 ];
 
@@ -47,7 +49,7 @@ export function CatalogExportPage() {
   const brands = taxonomyData?.brands ?? taxonomyData?.data?.brands ?? [];
 
   // Fetch products based on filters
-  const { data: productsData, isLoading: isLoadingProducts } = useQuery({
+  const { data: productsData, isLoading: isLoadingProducts, isError: isProductsError, error: productsError, refetch: refetchProducts } = useQuery({
     queryKey: ['admin', 'products', 'catalog-export', catalogScope, selectedCategory, selectedBrand, stockStatus],
     queryFn: () =>
       api.get<{ items: ProductDTO[] }>('/admin/products', {
@@ -116,7 +118,7 @@ export function CatalogExportPage() {
       });
       setPdfProgress(85);
       const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((result) => result ? resolve(result) : reject(new Error('ساخت فایل تصویر ناموفق بود.')), 'image/jpeg', 0.95);
+        canvas.toBlob((result) => result ? resolve(result) : reject(new Error('ساخت فایل تصویر انجام نشد.')), 'image/jpeg', 0.95);
       });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
@@ -129,7 +131,7 @@ export function CatalogExportPage() {
       setPdfProgress(100);
       toast.ok(`تصویر کاتالوگ با عرض ۱۲۸۰ پیکسل و ${products.length.toLocaleString('fa-IR')} کالا ذخیره شد.`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'ساخت تصویر کاتالوگ ناموفق بود.');
+      toast.error(error instanceof Error ? error.message : 'ساخت تصویر کاتالوگ انجام نشد.');
     } finally {
       setIsGenerating(false);
       setPdfProgress(0);
@@ -169,24 +171,21 @@ export function CatalogExportPage() {
       setPdfProgress(45);
       await waitForImages(printPortal);
       setPdfProgress(100);
-      toast.ok('لطفاً در پنجره باز شده، گزینه Save as PDF را انتخاب کنید.');
+      toast.ok('لطفاً در پنجرهٔ بازشده، گزینهٔ Save as PDF را انتخاب کنید.');
       window.addEventListener('afterprint', cleanup, { once: true });
       window.print();
       window.setTimeout(cleanup, 60_000);
     } catch {
       cleanup();
-      toast.error('ساخت نسخه چاپی کاتالوگ ناموفق بود.');
+      toast.error('ساخت نسخهٔ چاپی کاتالوگ انجام نشد.');
     }
   };
 
   return (
-    <div className="a-page a-fade space-y-6">
+    <div className="a-page a-fade space-y-6 catalog-export-page">
       <header className="a-page-head">
-        <div>
-          <h1 className="a-title-mega-sm flex items-center gap-2">
-            <span>📄</span>
-            <span>مرکز خروجی کاتالوگ</span>
-          </h1>
+        <div className="a-titles">
+          <h1 className="a-title">مرکز خروجی کاتالوگ</h1>
           <p className="a-subtitle">ساخت کاتالوگ چاپی PDF یا تصویر شیشه‌ای موبایل با داده‌های زنده فروشگاه</p>
         </div>
       </header>
@@ -210,10 +209,10 @@ export function CatalogExportPage() {
                     setSelectedCategory('all');
                     setSelectedBrand('all');
                   }}
-                  className={`rounded-xl border p-4 text-right transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-500 ${catalogScope === scope.value ? 'border-cyan-500 bg-cyan-500/15' : 'border-[var(--a-border)] hover:border-cyan-500/60'}`}
+                  className="catalog-scope-option"
                 >
-                  <span className="block font-bold text-[var(--a-t1)]">{scope.label}</span>
-                  <span className="block mt-1 text-xs text-[var(--a-t2)]">{scope.hint}</span>
+                  <span className="catalog-scope-title">{scope.label}</span>
+                  <span className="catalog-scope-hint">{scope.hint}</span>
                 </button>
               ))}
             </div>
@@ -221,13 +220,14 @@ export function CatalogExportPage() {
           <div className="catalog-filter-grid mb-6" onClick={(event) => event.stopPropagation()}>
             {/* Category Filter */}
             <div>
-              <label className="a-label">دسته‌بندی</label>
+              <span className="a-label">دسته‌بندی</span>
               <AnimatedDropdown
+                ariaLabel="دسته‌بندی"
                 value={String(selectedCategory)}
                 disabled={catalogScope === 'baskets' || isMobileGlass}
                 onChange={(val) => setSelectedCategory(val === 'all' ? 'all' : Number(val))}
                 options={[
-                  { value: 'all', label: catalogScope === 'baskets' ? 'سبدها (خودکار)' : isMobileGlass ? 'گوشی موبایل (خودکار)' : 'همه دسته‌بندی‌ها' },
+                  { value: 'all', label: catalogScope === 'baskets' ? 'سبدها (خودکار)' : isMobileGlass ? 'گوشی موبایل (خودکار)' : 'همهٔ دسته‌بندی‌ها' },
                   ...categories.filter((cat: CategoryDTO) => catalogScope !== 'festival_singles' || (cat.name !== 'Bondle' && cat.faName !== 'سبد ها')).map((cat: CategoryDTO) => ({
                     value: String(cat.id),
                     label: cat.faName || cat.name,
@@ -238,12 +238,13 @@ export function CatalogExportPage() {
 
             {/* Brand Filter */}
             <div>
-              <label className="a-label">برند</label>
+              <span className="a-label">برند</span>
               <AnimatedDropdown
+                ariaLabel="برند"
                 value={String(selectedBrand)}
                 onChange={(val) => setSelectedBrand(val === 'all' ? 'all' : Number(val))}
                 options={[
-                  { value: 'all', label: 'همه برندها' },
+                  { value: 'all', label: 'همهٔ برندها' },
                   ...brands.map((brand: BrandDTO) => ({
                     value: String(brand.id),
                     label: brand.faName || brand.name,
@@ -254,12 +255,13 @@ export function CatalogExportPage() {
 
             {/* Stock Filter */}
             <div>
-              <label className="a-label">وضعیت موجودی</label>
+              <span className="a-label">وضعیت موجودی</span>
               <AnimatedDropdown
+                ariaLabel="وضعیت موجودی"
                 value={stockStatus}
                 onChange={(val) => setStockStatus(val as any)}
                 options={[
-                  { value: 'all', label: 'همه موارد' },
+                  { value: 'all', label: 'همهٔ موارد' },
                   { value: 'in', label: 'فقط موجود' },
                   { value: 'out', label: 'فقط ناموجود' },
                 ]}
@@ -268,8 +270,9 @@ export function CatalogExportPage() {
 
             {/* Grouping */}
             <div>
-              <label className="a-label">مرتب‌سازی و گروه‌بندی</label>
+              <span className="a-label">مرتب‌سازی و گروه‌بندی</span>
               <AnimatedDropdown
+                ariaLabel="مرتب‌سازی و گروه‌بندی"
                 value={groupBy}
                 disabled={isMobileGlass}
                 onChange={(val) => setGroupBy(val as CatalogGroupBy)}
@@ -282,27 +285,25 @@ export function CatalogExportPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between border-t border-[var(--a-border)] pt-6 gap-4">
-            <div className="text-sm text-[var(--a-t2)]">
+            <div className="catalog-count" aria-live="polite">
               تعداد کالاهای یافت‌شده:{' '}
-              <strong className="text-[var(--a-t1)] text-base mx-1">
-                {isLoadingProducts ? '...' : formatNumber(products.length)}
+              <strong>
+                {isLoadingProducts ? '…' : isProductsError ? '—' : formatNumber(products.length)}
               </strong>{' '}
               عدد {isMobileGlass ? '(یک تصویر با عرض ۱۲۸۰ پیکسل)' : `(${formatNumber(totalPages)} صفحه A4)`}
             </div>
             <button
               type="button"
-              className="a-btn a-btn--primary px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all"
+              className="a-btn a-btn--primary a-btn--lg"
               onClick={isMobileGlass ? handleDownloadImage : handleGeneratePdf}
               disabled={isGenerating || isLoadingProducts || products.length === 0}
+              aria-busy={isGenerating || undefined}
             >
               {isGenerating ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>در حال ساخت {isMobileGlass ? 'تصویر' : 'کاتالوگ'} ({pdfProgress}٪)</span>
-                </>
+                <span>در حال ساخت {isMobileGlass ? 'تصویر' : 'کاتالوگ'}… ({formatNumber(pdfProgress)}٪)</span>
               ) : (
                 <>
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                   </svg>
                   <span>{isMobileGlass ? 'دانلود تصویر JPG' : 'دانلود کاتالوگ PDF'}</span>
@@ -316,23 +317,19 @@ export function CatalogExportPage() {
       {/* Catalog Render & Live Preview Container */}
       <section className="a-card overflow-hidden">
         <div className="a-card-head flex items-center justify-between">
-          <h3 className="a-card-title flex items-center gap-2">
-            <span>👁️</span>
-            <span>{isMobileGlass ? 'پیش‌نمایش کاتالوگ شیشه‌ای موبایل' : 'پیش‌نمایش صفحات کاتالوگ'}</span>
+          <h3 className="a-card-title">
+            {isMobileGlass ? 'پیش‌نمایش کاتالوگ شیشه‌ای موبایل' : 'پیش‌نمایش صفحات کاتالوگ'}
           </h3>
-          <span className="text-xs text-[var(--a-muted)]">{isMobileGlass ? 'عرض خروجی دقیق: ۱۲۸۰ پیکسل' : 'ابعاد استاندارد A4 چاپی'}</span>
+          <span className="a-hint">{isMobileGlass ? 'عرض خروجی دقیق: ۱۲۸۰ پیکسل' : 'ابعاد استاندارد A4 چاپی'}</span>
         </div>
 
         <div className="p-6 bg-[var(--a-bg)] overflow-x-auto">
           {isLoadingProducts ? (
-            <div className="p-12 text-center text-[var(--a-muted)] flex flex-col items-center justify-center gap-2">
-              <div className="animate-spin text-2xl">⏳</div>
-              <div>در حال بارگذاری لیست محصولات...</div>
-            </div>
+            <AdminState kind="loading" title="در حال دریافت فهرست محصولات…" />
+          ) : isProductsError ? (
+            <AdminState kind="error" title="دریافت فهرست محصولات انجام نشد." error={productsError} onRetry={() => void refetchProducts()} />
           ) : products.length === 0 ? (
-            <div className="p-12 text-center text-[var(--a-muted)]">
-              هیچ محصولی با فیلترهای انتخابی یافت نشد.
-            </div>
+            <AdminState kind="filtered" noun="محصول" />
           ) : isMobileGlass ? (
             <div className="mobile-glass-preview-shell" aria-label="پیش‌نمایش تصویر کاتالوگ شیشه‌ای موبایل">
               <MobileGlassCatalog ref={mobileGlassRef} products={products} date={today} />

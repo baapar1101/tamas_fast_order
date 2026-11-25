@@ -5,6 +5,8 @@ import { formatNumber, type ProductDTO, type UploadDTO } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 import { absolutePhotoUrl, buildPhotoLinksWorkbook, groupPhotosByProduct, photoNameParts, type UploadedPhoto } from '../components/photoLinks';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { AdminState } from '../components/AdminState';
 import './uploads-page.css';
 
 const PER_PAGE = 48;
@@ -48,7 +50,7 @@ function download(bytes: Uint8Array, filename: string): void {
 
 function CopyIcon() {
   return (
-    <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
+    <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
     </svg>
   );
@@ -64,6 +66,7 @@ export function UploadsPage() {
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [session, setSession] = useState<SessionPhoto[]>([]);
   const [failed, setFailed] = useState<FailedPhoto[]>([]);
+  const [pendingDelete, setPendingDelete] = useState<UploadDTO | null>(null);
 
   const library = useQuery({
     queryKey: ['admin', 'uploads', kind, page],
@@ -78,7 +81,7 @@ export function UploadsPage() {
   const copy = (text: string, message: string) => {
     navigator.clipboard.writeText(text).then(
       () => toast.ok(message),
-      () => toast.error('کپی ناموفق بود؛ لینک را دستی انتخاب کنید.'),
+      () => toast.error('کپی انجام نشد؛ لینک را دستی انتخاب کنید.'),
     );
   };
 
@@ -106,7 +109,7 @@ export function UploadsPage() {
             const item = res.uploads[0];
             if (item) uploaded.push({ fileName: file.name, url: item.url, thumbUrl: item.thumbUrl });
           } catch (err) {
-            errors.push({ fileName: file.name, message: err instanceof Error ? err.message : 'آپلود ناموفق بود.' });
+            errors.push({ fileName: file.name, message: err instanceof Error ? err.message : 'آپلود انجام نشد.' });
           } finally {
             done += 1;
             setProgress({ done, total: files.length });
@@ -168,7 +171,7 @@ export function UploadsPage() {
       download(new Uint8Array(XLSX.write(book, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer), `products-without-photo-${today()}.xlsx`);
       toast.ok(`${formatNumber(rows.length)} کالای بدون عکس در فایل آمد.`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'ساخت فایل ناموفق بود.');
+      toast.error(err instanceof Error ? err.message : 'ساخت فایل انجام نشد؛ دوباره تلاش کنید.');
     } finally {
       setExportingMissing(false);
     }
@@ -214,8 +217,8 @@ export function UploadsPage() {
         </div>
         <div className="a-page-actions">
           <Link to="/admin/products?photo=missing" className="a-btn a-btn--secondary">کالاهای بدون عکس</Link>
-          <button type="button" className="a-btn a-btn--secondary" disabled={exportingMissing} onClick={() => void exportMissingPhotos()}>
-            {exportingMissing ? 'در حال ساخت…' : 'اکسل کالاهای بدون عکس'}
+          <button type="button" className="a-btn a-btn--secondary" disabled={exportingMissing} aria-busy={exportingMissing || undefined} onClick={() => void exportMissingPhotos()}>
+            {exportingMissing ? 'در حال ساخت فایل…' : 'دریافت اکسل کالاهای بدون عکس'}
           </button>
           <Link to="/admin/product-import" className="a-btn a-btn--secondary">ایمپورت کالا با اکسل</Link>
         </div>
@@ -256,14 +259,14 @@ export function UploadsPage() {
         >
           <input ref={inputRef} type="file" accept="image/*" multiple disabled={busy} onChange={(e) => void uploadAll(e.target.files)} />
           <span className="a-dropzone-icon">
-            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
             </svg>
           </span>
-          <span className="a-dropzone-title">
+          <span className="a-dropzone-title" aria-live="polite">
             {busy ? `در حال آپلود ${formatNumber(progress.done)} از ${formatNumber(progress.total)}…` : 'عکس‌های کالا را انتخاب کنید یا اینجا بکشید (چند عکس با هم)'}
           </span>
-          <span className="a-dropzone-hint">JPG، PNG، WebP — هر عکس حداکثر ۱۵ مگابایت</span>
+          <span className="a-dropzone-hint">JPG، PNG، WebP؛ هر عکس حداکثر ۱۵ مگابایت</span>
           {busy && (
             <span className="up-progress" aria-hidden="true">
               <span style={{ width: `${(progress.done / progress.total) * 100}%` }} />
@@ -273,7 +276,7 @@ export function UploadsPage() {
       </section>
 
       {failed.length > 0 && (
-        <div className="a-alert a-alert--error">
+        <div className="a-alert a-alert--error" role="alert">
           <strong>{formatNumber(failed.length)} عکس آپلود نشد:</strong>
           <ul className="up-failed">
             {failed.map((item) => (
@@ -291,7 +294,7 @@ export function UploadsPage() {
               <p className="a-card-desc">کد محصول از اسم فایل خوانده شده است.</p>
             </div>
             <div className="up-actions">
-              <button type="button" className="a-btn a-btn--primary" disabled={attach.isPending} onClick={() => attach.mutate()}>
+              <button type="button" className="a-btn a-btn--primary" disabled={attach.isPending} aria-busy={attach.isPending || undefined} onClick={() => attach.mutate()}>
                 {attach.isPending ? 'در حال ثبت…' : 'ثبت روی کالاهای موجود'}
               </button>
               <label className="flex items-center gap-1.5 text-sm">
@@ -334,7 +337,7 @@ export function UploadsPage() {
                   <th>نام فایل</th>
                   <th>کد محصول</th>
                   <th>لینک</th>
-                  <th aria-label="کپی" />
+                  <th className="a-center" aria-label="کپی لینک" />
                 </tr>
               </thead>
               <tbody>
@@ -350,8 +353,8 @@ export function UploadsPage() {
                         <span className="up-order">{parts.order === 1 ? 'عکس اصلی' : `گالری ${formatNumber(parts.order)}`}</span>
                       </td>
                       <td><span className="up-link a-ltr" title={link}>{link}</span></td>
-                      <td>
-                        <button type="button" className="a-icon-btn a-icon-btn--info a-icon-btn--sm" onClick={() => copy(link, 'لینک عکس کپی شد.')} title="کپی لینک">
+                      <td className="a-center">
+                        <button type="button" className="a-icon-btn a-icon-btn--info a-icon-btn--sm" onClick={() => copy(link, 'لینک عکس کپی شد.')} title="کپی لینک" aria-label={`کپی لینک ${photo.fileName}`}>
                           <CopyIcon />
                         </button>
                       </td>
@@ -393,16 +396,16 @@ export function UploadsPage() {
               disabled={!items.length}
               onClick={() => void exportLinks(items.map((item) => ({ fileName: item.originalName, url: item.url })), `tamas-media-links-page-${page}.xlsx`)}
             >
-              اکسل لینک‌های این صفحه
+              دانلود اکسل لینک‌های این صفحه
             </button>
           </div>
         </div>
         {library.isLoading ? (
-          <div className="a-empty">در حال دریافت تصاویر…</div>
+          <AdminState kind="loading" title="در حال دریافت تصاویر…" />
         ) : library.isError ? (
-          <div className="a-empty">دریافت تصاویر ناموفق بود.</div>
+          <AdminState kind="error" title="دریافت تصاویر انجام نشد." error={library.error} onRetry={() => void library.refetch()} />
         ) : items.length === 0 ? (
-          <div className="a-empty">هنوز عکسی آپلود نشده است.</div>
+          <AdminState kind="empty" title={kind === 'product' ? 'هنوز عکس کالایی آپلود نشده است.' : 'هنوز فایلی آپلود نشده است.'} />
         ) : (
           <div className="up-grid">
             {items.map((img) => {
@@ -414,18 +417,17 @@ export function UploadsPage() {
                   </a>
                   <div className="up-tile-foot">
                     <span className="up-tile-name a-ltr" title={img.originalName}>{img.originalName}</span>
-                    <button type="button" className="a-icon-btn a-icon-btn--info a-icon-btn--sm" onClick={() => copy(link, 'لینک عکس کپی شد.')} title="کپی لینک">
+                    <button type="button" className="a-icon-btn a-icon-btn--info a-icon-btn--sm" onClick={() => copy(link, 'لینک عکس کپی شد.')} title="کپی لینک" aria-label={`کپی لینک ${img.originalName}`}>
                       <CopyIcon />
                     </button>
                     <button
                       type="button"
                       className="a-icon-btn a-icon-btn--danger a-icon-btn--sm"
-                      onClick={() => {
-                        if (confirm('این عکس حذف شود؟ اگر کالایی از آن استفاده کند، عکسش خالی می‌شود.')) remove.mutate(img.id);
-                      }}
+                      onClick={() => setPendingDelete(img)}
                       title="حذف"
+                      aria-label={`حذف عکس ${img.originalName}`}
                     >
-                      <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
+                      <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                       </svg>
                     </button>
@@ -438,11 +440,21 @@ export function UploadsPage() {
         {pages > 1 && (
           <div className="up-pager">
             <button type="button" className="a-btn a-btn--secondary a-btn--sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>قبلی</button>
-            <span>صفحهٔ {formatNumber(page)} از {formatNumber(pages)}</span>
+            <span aria-live="polite">صفحهٔ {formatNumber(page)} از {formatNumber(pages)}</span>
             <button type="button" className="a-btn a-btn--secondary a-btn--sm" disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>بعدی</button>
           </div>
         )}
       </section>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="حذف عکس"
+        description={pendingDelete ? <>عکس <span className="a-ltr">{pendingDelete.originalName}</span> حذف می‌شود؛ اگر کالایی از آن استفاده کند، عکسش خالی می‌شود. حذف برگشت ندارد.</> : ''}
+        confirmLabel="حذف"
+        busy={remove.isPending}
+        onConfirm={() => { if (pendingDelete) remove.mutate(pendingDelete.id, { onSuccess: () => setPendingDelete(null) }); }}
+        onClose={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

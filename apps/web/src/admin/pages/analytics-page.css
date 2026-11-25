@@ -1,0 +1,42 @@
+/* Analytics — docs/ui-guidelines.md §1 (calm, monochrome), §2.4 (chart series), §4.11 (KPI).
+   Overrides the legacy chart rules in admin.css, scoped to the page root. */
+
+.analytics-page {
+  --an-series-1: var(--a-series-1);
+  --an-grid: var(--a-border);
+}
+
+.analytics-page .an-toman { display: inline; width: 1.15em; height: 1.15em; vertical-align: -0.15em; }
+.analytics-page .an-stat-label { margin-top: var(--ds-space-5); font-size: var(--ds-text-caption); color: var(--a-t3); }
+.analytics-page .an-stat-label--tight { margin-top: var(--ds-space-4); }
+.analytics-page .an-text-secondary { color: var(--a-t2); }
+.analytics-page .an-strong { font-weight: 700; color: var(--a-t1); }
+
+/* Daily sales bars: one series. */
+.analytics-page .admin-bar-column { color: var(--a-t3); font-size: var(--ds-text-xs); }
+.analytics-page .admin-bar-value { background: var(--an-series-1); box-shadow: none; }
+
+/* Ranked list: neutral surfaces. */
+.analytics-page .admin-ranked-row { border-color: var(--a-border); background: var(--a-surface-2); }
+.analytics-page .admin-rank { color: var(--a-t2); background: var(--a-soft); }
+.analytics-page .an-rank-sub { margin-top: var(--ds-space-1); font-size: var(--ds-text-caption); color: var(--a-t3); }
+
+/* Progress meters: track neutral, fill carries status meaning only. */
+.analytics-page .progress-track { background: var(--a-soft); }
+.analytics-page .progress-fill.an-fill--ok { background: var(--a-green); }
+.analytics-page .progress-fill.an-fill--danger { background: var(--a-red); }
+.analytics-page .progress-fill.an-fill--warning { background: var(--a-amber); }
+.analytics-page .progress-fill.an-fill--series { background: var(--an-series-1); }
+
+/* Arvan visitors chart */
+.analytics-page .arvan-grid-line { stroke: var(--an-grid); }
+.analytics-page .arvan-chart-line { stroke: var(--an-series-1); stroke-width: 2.5; }
+.analytics-page .arvan-chart-dot { fill: var(--a-surface); stroke: var(--an-series-1); stroke-width: 2; }
+.analytics-page .an-visitor-area { fill: var(--an-series-1); fill-opacity: 0.1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .analytics-page .progress-fill { transition: none; }
+}
+
+.analytics-page .admin-bar-chart > .a-skeleton,
+.analytics-page .admin-bar-chart > .a-state { flex: 1 1 auto; align-self: stretch; }

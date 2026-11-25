@@ -1,0 +1,6 @@
+/* Full-height embedded viewers (Archify, Graphify). */
+.embed-page .embed-frame {
+  position: relative;
+  height: calc(100vh - 300px);
+  min-height: 500px;
+}

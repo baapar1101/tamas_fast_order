@@ -1,0 +1,107 @@
+/* CrmChatPage — page-local presentation (docs/ui-guidelines.md §2, §4, §8) */
+.crm-chat-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  background: var(--a-surface);
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-panel, 16px);
+}
+
+.crm-chat-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-3) 14px;
+  border-bottom: 1px solid var(--a-border);
+  background: var(--a-surface);
+  font-size: var(--ds-text-md);
+  font-weight: 600;
+  color: var(--a-t1);
+}
+
+.crm-chat-panel-head small {
+  font-size: var(--ds-text-caption);
+  font-weight: 400;
+  color: var(--a-t3);
+}
+
+.crm-chat-conv {
+  display: block;
+  width: 100%;
+  padding: var(--ds-space-3);
+  border: 0;
+  border-bottom: 1px solid var(--a-border);
+  border-inline-start: 3px solid transparent;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--a-motion-fast) var(--a-motion-ease), border-color var(--a-motion-fast) var(--a-motion-ease);
+}
+
+.crm-chat-conv:hover {
+  background: var(--a-hover);
+}
+
+.crm-chat-conv[aria-current='true'] {
+  background: var(--a-soft);
+  border-inline-start-color: var(--a-t1);
+}
+
+.crm-chat-conv-name {
+  margin-bottom: var(--ds-space-1);
+  font-size: var(--ds-text-md);
+  font-weight: 600;
+  color: var(--a-t1);
+}
+
+.crm-chat-conv-sub {
+  font-size: var(--ds-text-caption);
+  color: var(--a-t3);
+}
+
+.crm-chat-placeholder {
+  color: var(--a-t3);
+}
+
+.crm-chat-bubble {
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-radius: 16px;
+  font-size: var(--ds-text-md);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.crm-chat-bubble--agent {
+  background: var(--a-brand);
+  color: var(--a-brand-contrast);
+  border-end-end-radius: 4px;
+}
+
+.crm-chat-bubble--visitor {
+  background: var(--a-surface-2);
+  color: var(--a-t1);
+  border: 1px solid var(--a-border);
+  border-end-start-radius: 4px;
+}
+
+.crm-chat-time {
+  margin-top: var(--ds-space-1);
+  padding-inline: var(--ds-space-1);
+  font-size: var(--ds-text-xs);
+  color: var(--a-t3);
+  text-align: start;
+}
+
+.crm-chat-time--agent {
+  text-align: end;
+}
+
+.crm-chat-reply {
+  border-top: 1px solid var(--a-border);
+}

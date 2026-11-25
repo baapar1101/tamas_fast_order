@@ -6,6 +6,8 @@ import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 import { buildStockUpdateResultWorkbook, countStockRows, type StockUpdateReport } from '../components/stockUpdateExcel';
 import { ExcelPreview } from '../components/ExcelPreview';
+import { AdminState, TableState } from '../components/AdminState';
+import './sync-page.css';
 
 const loadXlsx = () => import('@e965/xlsx');
 
@@ -102,14 +104,16 @@ export function SyncPage() {
       toast.ok('خطای همگام‌سازی پاک شد.');
       invalidate();
     },
+    onError: (err: Error) => toast.error(err.message),
   });
 
   const clearConflicts = useMutation({
     mutationFn: () => api.del('/admin/sync/conflicts'),
     onSuccess: () => {
-      toast.ok('تاریخچه تضادها پاک شد.');
+      toast.ok('تاریخچهٔ تضادها پاک شد.');
       invalidate();
     },
+    onError: (err: Error) => toast.error(err.message),
   });
 
   /* ---------- Product publish (site DB → Google Sheet) ---------- */
@@ -120,7 +124,7 @@ export function SyncPage() {
     onSuccess: (data) => {
       const r = data.report;
       setPriceStockReport(r);
-      toast.ok(`اطلاعات سایت در شیت منتشر شد: ${r.updated} ردیف تغییر کرد.`);
+      toast.ok(`اطلاعات سایت در شیت منتشر شد: ${formatNumber(r.updated)} ردیف تغییر کرد.`);
       invalidate();
     },
     onError: (err: Error) => toast.error(err.message),
@@ -211,7 +215,7 @@ export function SyncPage() {
       const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
       downloadBytes(buildStockUpdateResultWorkbook(XLSX, excelReport, excelFileName), `نتیجه-آپدیت-قیمت-موجودی-${stamp}.xlsx`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'ساخت فایل نتیجه ناموفق بود.');
+      toast.error(err instanceof Error ? err.message : 'ساخت فایل نتیجه انجام نشد.');
     }
   };
   const excelCounts = countStockRows(excelReport?.rows);
@@ -220,7 +224,7 @@ export function SyncPage() {
     try {
       await api.download('/admin/sync/excel-template', {}, 'price-update-template.xlsx');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'خطا در دانلود فایل نمونه');
+      toast.error(err instanceof Error ? err.message : 'دانلود فایل نمونه انجام نشد.');
     }
   };
 
@@ -242,7 +246,7 @@ export function SyncPage() {
   ];
 
   return (
-    <div className="a-page a-fade">
+    <div className="a-page a-fade sync-page">
       {/* Header */}
       <section className="a-page-head">
         <div className="a-titles">
@@ -250,8 +254,8 @@ export function SyncPage() {
           <p className="a-subtitle">سایت منبع اصلی محصولات است؛ گوگل شیت نسخه همگام‌شده سایت را نگه می‌دارد.</p>
         </div>
         <div className="a-page-actions a-actions">
-          <span className={`chip ${enabled ? 'chip-brand' : 'chip-rose'}`}>
-            {enabled ? 'فعال (Enabled)' : 'غیرفعال'}
+          <span className={`a-badge ${enabled ? 'a-badge--success' : 'a-badge--neutral'}`}>
+            {status.isLoading ? 'در حال دریافت…' : enabled ? 'فعال' : 'غیرفعال'}
           </span>
           {status.data?.spreadsheetId && (
             <a
@@ -260,21 +264,21 @@ export function SyncPage() {
               rel="noreferrer"
               className="a-btn a-btn--secondary a-btn--sm"
             >
-              باز کردن شیت ↗
+              باز کردن شیت <span aria-hidden="true">↗</span>
             </a>
           )}
         </div>
       </section>
 
       {/* === Price & Stock Sync Card === */}
-      <section className="a-card" style={{ borderColor: 'var(--clr-brand)', borderWidth: 2 }}>
+      <section className="a-card">
         <div className="a-card-head a-card-head--split">
           <div>
             <h3 className="a-card-title">انتشار محصولات سایت در گوگل شیت</h3>
             <p className="a-card-desc">
               کد، مشخصات، قیمت و موجودی محصولات را از سایت در شیت منتشر می‌کند؛ محصولات حذف‌شده نیز از شیت حذف می‌شوند.
               <br />
-              <strong>سایت = منبع اصلی همه اطلاعات محصول</strong>
+              <strong>سایت = منبع اصلی همهٔ اطلاعات محصول</strong>
             </p>
           </div>
           <div className="a-card-actions">
@@ -282,9 +286,10 @@ export function SyncPage() {
               type="button"
               className="a-btn a-btn--primary"
               disabled={priceStockSync.isPending}
+              aria-busy={priceStockSync.isPending || undefined}
               onClick={() => priceStockSync.mutate()}
             >
-              {priceStockSync.isPending ? 'در حال انتشار...' : 'انتشار سایت در شیت'}
+              {priceStockSync.isPending ? 'در حال انتشار…' : 'انتشار سایت در شیت'}
             </button>
           </div>
         </div>
@@ -297,8 +302,8 @@ export function SyncPage() {
               <span className="a-stat-value">{formatNumber(priceStockReport.totalRows)}</span>
             </div>
             <div className="a-stat">
-              <span className="a-stat-label">بروزرسانی شده</span>
-              <span className="a-stat-value" style={{ color: 'var(--clr-brand)' }}>{formatNumber(priceStockReport.updated)}</span>
+              <span className="a-stat-label">به‌روزرسانی‌شده</span>
+              <span className="a-stat-value">{formatNumber(priceStockReport.updated)}</span>
             </div>
             <div className="a-stat">
               <span className="a-stat-label">رد شده</span>
@@ -306,15 +311,15 @@ export function SyncPage() {
             </div>
             <div className="a-stat">
               <span className="a-stat-label">خطا</span>
-              <span className="a-stat-value" style={{ color: priceStockReport.errors.length > 0 ? 'var(--clr-rose)' : undefined }}>
-                {priceStockReport.errors.length}
+              <span className={`a-stat-value${priceStockReport.errors.length > 0 ? ' sync-stat-danger' : ''}`}>
+                {formatNumber(priceStockReport.errors.length)}
               </span>
             </div>
           </div>
         )}
 
         {priceStockReport && priceStockReport.errors.length > 0 && (
-          <div className="a-error-box mt-3 text-xs" dir="rtl" style={{ maxHeight: 160, overflow: 'auto' }}>
+          <div className="a-error-box sync-error-list mt-3" dir="rtl" role="alert">
             {priceStockReport.errors.map((e, i) => (
               <div key={i}>{e}</div>
             ))}
@@ -323,7 +328,7 @@ export function SyncPage() {
       </section>
 
       {/* === Excel Upload Card === */}
-      <section className="a-card" style={{ borderColor: 'var(--clr-aqua)', borderWidth: 2, marginTop: "var(--ds-space-4)" }}>
+      <section className="a-card">
         <div className="a-card-head a-card-head--split">
           <div>
             <h3 className="a-card-title">آپدیت گروهی قیمت و موجودی با اکسل</h3>
@@ -345,6 +350,7 @@ export function SyncPage() {
               type="file"
               accept=".xlsx,.xls"
               className="hidden"
+              aria-label="انتخاب فایل اکسل قیمت و موجودی"
               ref={fileInputRef}
               onChange={handleFileChange}
             />
@@ -352,34 +358,36 @@ export function SyncPage() {
               type="button"
               className="a-btn a-btn--primary"
               disabled={excelSync.isPending || isRunning}
+              aria-busy={excelSync.isPending || undefined}
               onClick={() => fileInputRef.current?.click()}
             >
-              {excelSync.isPending ? 'در حال بررسی...' : 'انتخاب فایل اکسل'}
+              {excelSync.isPending ? 'در حال بررسی…' : 'انتخاب فایل اکسل'}
             </button>
           </div>
         </div>
 
         {excelSync.isPending && (
-          <div className="a-card mt-4" aria-live="polite">
+          <div className="a-card mt-4" role="status" aria-live="polite">
             <div className="flex items-center justify-between gap-3">
               <strong>
                 {progress?.state === 'publishing'
-                  ? 'در حال انتشار تغییرات در سرویس‌های متصل...'
+                  ? 'در حال انتشار تغییرات در سرویس‌های متصل…'
                   : progress?.total
                     ? `در حال ورود محصول ${formatNumber(progress.current)} از ${formatNumber(progress.total)}`
-                    : 'در حال خواندن و بررسی فایل اکسل...'}
+                    : 'در حال خواندن و بررسی فایل اکسل…'}
               </strong>
               {progress?.total ? <span>{formatNumber(Math.round((progress.current / progress.total) * 100))}٪</span> : null}
             </div>
             <div
               className="progress-track"
               role="progressbar"
+              aria-label="پیشرفت ورود فایل اکسل"
               aria-valuemin={0}
               aria-valuemax={progress?.total || undefined}
               aria-valuenow={progress?.total ? progress.current : undefined}
             >
-              <div
-                className="progress-bar from-aqua-400 to-brand-400"
+              <span
+                className="sync-progress-fill"
                 style={{ width: progress?.total ? `${Math.max(3, (progress.current / progress.total) * 100)}%` : '18%' }}
               />
             </div>
@@ -387,8 +395,8 @@ export function SyncPage() {
         )}
 
         {excelError && (
-          <div className="a-alert a-alert--error mt-4" role="alert">
-            <strong>ورود فایل ناموفق بود:</strong> {excelError}
+          <div className="mt-4">
+            <AdminState kind="error" title="ورود فایل انجام نشد." text={excelError} />
           </div>
         )}
 
@@ -403,11 +411,7 @@ export function SyncPage() {
         )}
 
         {excelReport && !excelReport.dryRun && !excelSync.isPending && (
-          <div
-            className="a-alert mt-4"
-            role="status"
-            style={{ color: 'var(--clr-brand)', borderColor: 'rgba(16, 185, 129, .3)', background: 'rgba(16, 185, 129, .08)' }}
-          >
+          <div className="sync-done mt-4" role="status">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <span>
                 عملیات تمام شد: {formatNumber(excelReport.updated)} محصول با موفقیت به‌روزرسانی شد
@@ -432,8 +436,8 @@ export function SyncPage() {
               <span className="a-stat-value">{formatNumber(excelReport.totalRows)}</span>
             </div>
             <div className="a-stat">
-              <span className="a-stat-label">بروزرسانی شده</span>
-              <span className="a-stat-value" style={{ color: 'var(--clr-aqua)' }}>{formatNumber(excelReport.updated)}</span>
+              <span className="a-stat-label">به‌روزرسانی‌شده</span>
+              <span className="a-stat-value">{formatNumber(excelReport.updated)}</span>
             </div>
             <div className="a-stat">
               <span className="a-stat-label">رد شده</span>
@@ -441,15 +445,15 @@ export function SyncPage() {
             </div>
             <div className="a-stat">
               <span className="a-stat-label">خطا</span>
-              <span className="a-stat-value" style={{ color: excelReport.errors.length > 0 ? 'var(--clr-rose)' : undefined }}>
-                {excelReport.errors.length}
+              <span className={`a-stat-value${excelReport.errors.length > 0 ? ' sync-stat-danger' : ''}`}>
+                {formatNumber(excelReport.errors.length)}
               </span>
             </div>
           </div>
         )}
 
         {excelReport && !excelReport.dryRun && excelReport.errors.length > 0 && (
-          <div className="a-error-box mt-3 text-xs" dir="rtl" style={{ maxHeight: 160, overflow: 'auto' }}>
+          <div className="a-error-box sync-error-list mt-3" dir="rtl">
             {excelReport.errors.map((e, i) => (
               <div key={i}>{e}</div>
             ))}
@@ -477,9 +481,10 @@ export function SyncPage() {
               type="button"
               className="a-btn a-btn--primary"
               disabled={isRunning || runSync.isPending || syncSelectedEntities.length === 0}
+              aria-busy={isRunning || runSync.isPending || undefined}
               onClick={() => runSync.mutate(false)}
             >
-              {isRunning ? 'در حال اجرا...' : 'همگام‌سازی الان'}
+              {isRunning ? 'در حال اجرا…' : runSync.isPending ? 'در حال همگام‌سازی…' : 'همگام‌سازی الان'}
             </button>
           </div>
         </div>
@@ -487,13 +492,14 @@ export function SyncPage() {
         {/* Advanced Options Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
           <div>
-            <label className="a-label a-label--static mb-2">جهت همگام‌سازی:</label>
-            <div className="a-segmented">
+            <p className="a-label a-label--static mb-2" id="sync-direction-label">جهت همگام‌سازی:</p>
+            <div className="a-segmented" role="group" aria-labelledby="sync-direction-label">
               {DIRECTIONS.map((d) => (
                 <button
                   key={d.id}
                   type="button"
                   className={`a-seg ${syncDirection === d.id ? 'a-seg--on' : ''}`}
+                  aria-pressed={syncDirection === d.id}
                   onClick={() => setSyncDirection(d.id)}
                 >
                   {d.label}
@@ -503,15 +509,16 @@ export function SyncPage() {
           </div>
 
           <div>
-            <label className="a-label a-label--static mb-2 flex items-center justify-between">
-              جداول هدف:
-              <span
-                className="a-link cursor-pointer"
+            <div className="a-label a-label--static mb-2 flex items-center justify-between">
+              <span>جداول هدف:</span>
+              <button
+                type="button"
+                className="a-btn a-btn--link a-btn--xs"
                 onClick={() => setSyncSelectedEntities([...SYNC_ENTITIES])}
               >
                 انتخاب همه
-              </span>
-            </label>
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {SYNC_ENTITIES.map((e) => (
                 <label
@@ -534,6 +541,11 @@ export function SyncPage() {
       </section>
 
       {/* 7 Entity Sync Status Cards Grid */}
+      {status.isLoading ? (
+        <AdminState kind="loading" title="در حال دریافت وضعیت همگام‌سازی…" />
+      ) : status.isError ? (
+        <AdminState kind="error" title="وضعیت همگام‌سازی دریافت نشد." error={status.error} onRetry={() => void status.refetch()} />
+      ) : (
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {SYNC_ENTITIES.map((entityKey) => {
           const state = status.data?.entities.find((e) => e.entity === entityKey);
@@ -543,41 +555,42 @@ export function SyncPage() {
             <div key={entityKey} className={`a-card ${hasErr ? 'a-card--danger' : ''}`}>
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-bold a-title-fallback text-sm">{SYNC_ENTITY_LABELS[entityKey]}</h4>
-                <span className={`chip ${hasErr ? 'chip-rose' : 'chip-brand'}`}>
+                <span className={`a-badge ${hasErr ? 'a-badge--danger' : 'a-badge--success'}`}>
                   {hasErr ? 'خطا' : 'سالم'}
                 </span>
               </div>
 
               {hasErr ? (
                 <div className="flex flex-col gap-2 flex-1 mt-2">
-                  <p className="a-error-box text-[11px] leading-relaxed line-clamp-3 text-left font-mono" dir="ltr">
+                  <p className="a-error-box sync-entity-error line-clamp-3 a-ltr" dir="ltr">
                     {state?.lastError}
                   </p>
                   <button
                     type="button"
                     className="a-btn a-btn--danger a-btn--sm w-full mt-auto"
+                    disabled={clearError.isPending}
                     onClick={() => clearError.mutate(entityKey)}
                   >
-                    پاکسازی خطا
+                    پاک کردن خطا
                   </button>
                 </div>
               ) : (
                 <div className="space-y-1 text-xs a-muted">
                   <div>
                     دریافتی:{' '}
-                    <span className="font-bold text-emerald-300">
+                    <span className="sync-strong">
                       {formatNumber(state?.rowsPulled ?? 0)}
                     </span>
                   </div>
                   <div>
                     ارسالی:{' '}
-                    <span className="font-bold text-cyan-300">
+                    <span className="sync-strong">
                       {formatNumber(state?.rowsPushed ?? 0)}
                     </span>
                   </div>
                   {state?.lastPulledAt && (
-                    <div className="text-[10px] a-muted mt-2">
-                      آخرین بروزرسانی: {new Date(state.lastPulledAt).toLocaleTimeString('fa-IR')}
+                    <div className="a-hint mt-2">
+                      آخرین به‌روزرسانی: {new Date(state.lastPulledAt).toLocaleTimeString('fa-IR')}
                     </div>
                   )}
                 </div>
@@ -586,16 +599,23 @@ export function SyncPage() {
           );
         })}
       </section>
+      )}
 
       {/* Conflict History Table */}
       <section className="a-card a-card--flush">
         <div className="a-card-head a-card-head--px">
-          <h3 className="a-card-title">تاریخچه تضادها (Conflicts)</h3>
+          <h3 className="a-card-title">تاریخچهٔ تضادها (Conflicts)</h3>
           <div className="a-card-actions">
-            <span className="chip chip-slate">{formatNumber(conflicts.data?.total ?? 0)} تضاد ثبت‌شده</span>
+            <span className="a-badge a-badge--neutral">{formatNumber(conflicts.data?.total ?? 0)} تضاد ثبت‌شده</span>
             {(conflicts.data?.items ?? []).length > 0 && (
-              <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => clearConflicts.mutate()}>
-                پاک کردن همه
+              <button
+                type="button"
+                className="a-btn a-btn--secondary a-btn--sm"
+                disabled={clearConflicts.isPending}
+                aria-busy={clearConflicts.isPending || undefined}
+                onClick={() => clearConflicts.mutate()}
+              >
+                {clearConflicts.isPending ? 'در حال پاک کردن…' : 'پاک کردن همه'}
               </button>
             )}
           </div>
@@ -609,30 +629,30 @@ export function SyncPage() {
                 <th>فیلد</th>
                 <th>مقدار دیتابیس</th>
                 <th>مقدار گوگل شیت</th>
-                <th>برنده تضاد</th>
+                <th>برندهٔ تضاد</th>
                 <th>تاریخ</th>
               </tr>
             </thead>
             <tbody>
-              {(conflicts.data?.items ?? []).length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="a-empty">
-                    هیچ تضادی بین دیتابیس و گوگل شیت وجود ندارد.
-                  </td>
-                </tr>
+              {conflicts.isLoading ? (
+                <TableState colSpan={6} kind="loading" />
+              ) : conflicts.isError ? (
+                <TableState colSpan={6} kind="error" error={conflicts.error} onRetry={() => void conflicts.refetch()} />
+              ) : (conflicts.data?.items ?? []).length === 0 ? (
+                <TableState colSpan={6} kind="empty" title="هیچ تضادی بین دیتابیس و گوگل شیت وجود ندارد." />
               ) : (
                 conflicts.data?.items.map((c) => (
                   <tr key={c.id} className="order-row">
-                    <td className="font-bold text-white">{c.entity}</td>
-                    <td className="font-mono text-xs text-slate-300 a-ltr">{c.field}</td>
-                    <td className="text-xs text-slate-300">{c.dbValue || '—'}</td>
-                    <td className="text-xs text-slate-300">{c.sheetValue || '—'}</td>
+                    <td className="a-strong">{c.entity}</td>
+                    <td className="font-mono a-ltr">{c.field}</td>
+                    <td>{c.dbValue || '—'}</td>
+                    <td>{c.sheetValue || '—'}</td>
                     <td>
-                      <span className={`chip ${c.resolvedTo === 'db' ? 'chip-brand' : 'chip-aqua'}`}>
+                      <span className="a-badge a-badge--neutral">
                         {c.resolvedTo === 'db' ? 'دیتابیس' : 'گوگل شیت'}
                       </span>
                     </td>
-                    <td className="text-xs text-slate-500">
+                    <td className="a-cell-sub">
                       {new Date(c.createdAt).toLocaleTimeString('fa-IR')}
                     </td>
                   </tr>

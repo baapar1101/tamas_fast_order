@@ -58,7 +58,7 @@ body.admin-page-active {
 .admin-body-shell input:focus-visible,
 .admin-body-shell select:focus-visible,
 .admin-body-shell textarea:focus-visible {
-  outline: 2px solid rgba(16, 185, 129, 0.5);
+  outline: 2px solid color-mix(in srgb, var(--a-green) 50%, transparent);
   outline-offset: 2px;
 }
 
@@ -92,7 +92,7 @@ body.admin-page-active {
 
 .glass-card:hover {
   transform: translateY(-0.25rem);
-  border-color: rgba(16,185,129,.25);
+  border-color: color-mix(in srgb, var(--a-green) 25%, transparent);
   box-shadow: 0 20px 45px -15px rgba(2,8,20,.85);
 }
 
@@ -142,7 +142,7 @@ form.glass-card:hover {
 }
 
 .nav-item.active {
-  background-image: linear-gradient(to left, rgba(16,185,129,.15), transparent);
+  background-image: linear-gradient(to left, color-mix(in srgb, var(--a-green) 15%, transparent), transparent);
   color: var(--brand-300);
 }
 
@@ -181,7 +181,7 @@ form.glass-card:hover {
 }
 
 .nav-domain.is-open {
-  border-color: rgba(52, 211, 153, 0.18);
+  border-color: color-mix(in srgb, var(--a-green) 18%, transparent);
   background: rgba(15, 23, 42, 0.32);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
@@ -241,7 +241,7 @@ form.glass-card:hover {
   min-width: 1.35rem;
   padding: 0.1rem 0.35rem;
   border-radius: 999px;
-  background: rgba(16, 185, 129, 0.16);
+  background: color-mix(in srgb, var(--a-green) 16%, transparent);
   color: var(--brand-300);
   font-size: 0.62rem;
   font-weight: 800;
@@ -319,7 +319,7 @@ form.glass-card:hover {
 }
 
 .nav-subitem.active {
-  background: rgba(16, 185, 129, 0.1);
+  background: color-mix(in srgb, var(--a-green) 10%, transparent);
 }
 
 /* Chips & Badges */
@@ -335,22 +335,22 @@ form.glass-card:hover {
 }
 
 .chip-brand {
-  background-color: rgba(16, 185, 129, 0.15);
+  background-color: color-mix(in srgb, var(--a-green) 15%, transparent);
   color: var(--brand-300);
 }
 
 .chip-aqua {
-  background-color: rgba(6, 182, 212, 0.15);
+  background-color: color-mix(in srgb, var(--a-info) 15%, transparent);
   color: var(--aqua-400);
 }
 
 .chip-amber {
-  background-color: rgba(245, 158, 11, 0.1);
+  background-color: color-mix(in srgb, var(--a-amber) 10%, transparent);
   color: var(--amberx);
 }
 
 .chip-rose {
-  background-color: rgba(251, 113, 133, 0.1);
+  background-color: color-mix(in srgb, var(--a-red) 10%, transparent);
   color: var(--rose);
 }
 
@@ -375,9 +375,9 @@ form.glass-card:hover {
 }
 
 .icon-btn:hover {
-  border-color: rgba(16,185,129,.3);
+  border-color: color-mix(in srgb, var(--a-green) 30%, transparent);
   color: var(--brand-300);
-  box-shadow: 0 0 24px -6px rgba(16,185,129,.45);
+  box-shadow: 0 0 24px -6px color-mix(in srgb, var(--a-green) 45%, transparent);
 }
 
 /* Stat Icon Box */
@@ -471,9 +471,9 @@ form.glass-card:hover {
   height: 100%;
   border-radius: 50%;
   background: conic-gradient(
-    #34d399 0 53%, transparent 53% 54%,
-    #22d3ee 54% 77%, transparent 77% 78%,
-    #f59e0b 78% 91%, transparent 91% 92%,
+    var(--a-green) 0 53%, transparent 53% 54%,
+    var(--a-info) 54% 77%, transparent 77% 78%,
+    var(--a-amber) 78% 91%, transparent 91% 92%,
     #64748b 92% 99%, transparent 99% 100%
   );
   filter: drop-shadow(0 12px 28px rgba(2, 8, 20, 0.35));
@@ -486,7 +486,7 @@ form.glass-card:hover {
   inset: 16%;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 50%;
-  background: #0e1626;
+  background: var(--a-surface-3);
 }
 
 .admin-donut-label {
@@ -518,17 +518,17 @@ form.glass-card:hover {
 
 .admin-product-stock {
   max-width: 100%;
-  border: 1px solid rgba(52, 211, 153, 0.18);
-  background: rgba(16, 185, 129, 0.11);
-  color: #6ee7b7;
+  border: 1px solid color-mix(in srgb, var(--a-green) 18%, transparent);
+  background: color-mix(in srgb, var(--a-green) 11%, transparent);
+  color: var(--a-green);
   font-size: 0.65rem;
   line-height: 1.25;
 }
 
 .admin-product-stock.chip-rose {
-  border-color: rgba(251, 113, 133, 0.2);
-  background: rgba(251, 113, 133, 0.1);
-  color: #fda4af;
+  border-color: color-mix(in srgb, var(--a-red) 20%, transparent);
+  background: color-mix(in srgb, var(--a-red) 10%, transparent);
+  color: var(--a-red);
 }
 
 .admin-product-stock-dot {
@@ -640,8 +640,8 @@ select.huma-input {
 }
 
 .huma-input:focus {
-  border-color: rgba(16,185,129,.4);
-  box-shadow: 0 0 24px -6px rgba(16,185,129,.45);
+  border-color: color-mix(in srgb, var(--a-green) 40%, transparent);
+  box-shadow: 0 0 24px -6px color-mix(in srgb, var(--a-green) 45%, transparent);
   background-color: var(--ink-800);
 }
 
@@ -684,7 +684,7 @@ select.huma-input {
 }
 
 .huma-btn-secondary:hover {
-  border-color: rgba(16,185,129,.3);
+  border-color: color-mix(in srgb, var(--a-green) 30%, transparent);
   color: var(--ds-on-interactive);
 }
 
@@ -887,11 +887,11 @@ svg.w-full, .w-full { width: 100%; }
 .border-white\/\[0\.04\] { border-color: rgba(255, 255, 255, 0.04); }
 
 .bg-slate-950\/80 { background-color: rgba(2, 6, 23, 0.8); }
-.bg-emerald-400 { background-color: #34d399; }
-.bg-amber-400 { background-color: #fbbf24; }
-.bg-rose-500 { background-color: #f43f5e; }
+.bg-emerald-400 { background-color: var(--a-green); }
+.bg-amber-400 { background-color: var(--a-amber); }
+.bg-rose-500 { background-color: var(--a-red); }
 
-.bg-gradient-to-br { background-image: linear-gradient(to bottom right, var(--tw-gradient-from, #34d399), var(--tw-gradient-to, #06b6d4)); }
+.bg-gradient-to-br { background-image: linear-gradient(to bottom right, var(--tw-gradient-from, var(--a-green)), var(--tw-gradient-to, var(--a-info))); }
 .from-emerald-400 { --tw-gradient-from: #34d399; }
 .to-cyan-500 { --tw-gradient-to: #06b6d4; }
 .from-amber-500 { --tw-gradient-from: #f59e0b; }
@@ -904,13 +904,13 @@ svg.w-full, .w-full { width: 100%; }
 .text-slate-950 { color: #020617; }
 .text-slate-500 { color: var(--ds-text-muted); }
 .text-slate-400 { color: var(--ds-text-muted); }
-.text-slate-300 { color: #cbd5e1; }
-.text-slate-200 { color: #e2e8f0; }
+.text-slate-300 { color: var(--a-t2); }
+.text-slate-200 { color: var(--a-t1); }
 .text-white { color: var(--ds-on-interactive); }
-.text-emerald-400 { color: #34d399; }
-.text-emerald-300 { color: #6ee7b7; }
-.text-amber-400 { color: #fbbf24; }
-.text-rose-400 { color: #fb7185; }
+.text-emerald-400 { color: var(--a-green); }
+.text-emerald-300 { color: var(--a-green); }
+.text-amber-400 { color: var(--a-amber); }
+.text-rose-400 { color: var(--a-red); }
 
 .text-\[10px\] { font-size: var(--ds-text-2xs); }
 .text-\[11px\] { font-size: var(--ds-text-xs); }
@@ -966,26 +966,26 @@ svg.w-full, .w-full { width: 100%; }
 }
 .admin-body-shell .border-2 { border-width: 2px; }
 .admin-body-shell .border-dashed { border-style: dashed; }
-.admin-body-shell .border-emerald-500\/20 { border-color: rgba(16, 185, 129, 0.2); }
-.admin-body-shell .border-emerald-500\/30 { border-color: rgba(16, 185, 129, 0.3); }
-.admin-body-shell .bg-\[\#070b12\] { background-color: #070b12; }
+.admin-body-shell .border-emerald-500\/20 { border-color: color-mix(in srgb, var(--a-green) 20%, transparent); }
+.admin-body-shell .border-emerald-500\/30 { border-color: color-mix(in srgb, var(--a-green) 30%, transparent); }
+.admin-body-shell .bg-\[\#070b12\] { background-color: var(--a-surface-3); }
 .admin-body-shell .bg-\[\#070b12\]\/75 { background-color: rgba(7, 11, 18, 0.75); }
 .admin-body-shell .bg-\[\#0e1626\]\/80 { background-color: rgba(14, 22, 38, 0.8); }
-.admin-body-shell .bg-\[\#131c2e\] { background-color: #131c2e; }
+.admin-body-shell .bg-\[\#131c2e\] { background-color: var(--a-surface-3); }
 .admin-body-shell .bg-\[\#131c2e\]\/40 { background-color: rgba(19, 28, 46, 0.4); }
 .admin-body-shell .bg-\[\#131c2e\]\/60 { background-color: rgba(19, 28, 46, 0.6); }
 .admin-body-shell .bg-white\/\[0\.02\] { background-color: rgba(255, 255, 255, 0.02); }
-.admin-body-shell .bg-emerald-400\/20 { background-color: rgba(52, 211, 153, 0.2); }
-.admin-body-shell .bg-emerald-500\/10 { background-color: rgba(16, 185, 129, 0.1); }
-.admin-body-shell .bg-emerald-500\/15 { background-color: rgba(16, 185, 129, 0.15); }
-.admin-body-shell .bg-cyan-400 { background-color: #22d3ee; }
-.admin-body-shell .bg-cyan-500\/15 { background-color: rgba(6, 182, 212, 0.15); }
-.admin-body-shell .bg-amber-500\/15 { background-color: rgba(245, 158, 11, 0.15); }
-.admin-body-shell .bg-rose-500\/15 { background-color: rgba(244, 63, 94, 0.15); }
-.admin-body-shell .bg-slate-800 { background-color: #1e293b; }
-.admin-body-shell .text-cyan-300 { color: #67e8f9; }
-.admin-body-shell .text-cyan-400 { color: #22d3ee; }
-.admin-body-shell .text-rose-300 { color: #fda4af; }
+.admin-body-shell .bg-emerald-400\/20 { background-color: color-mix(in srgb, var(--a-green) 20%, transparent); }
+.admin-body-shell .bg-emerald-500\/10 { background-color: color-mix(in srgb, var(--a-green) 10%, transparent); }
+.admin-body-shell .bg-emerald-500\/15 { background-color: color-mix(in srgb, var(--a-green) 15%, transparent); }
+.admin-body-shell .bg-cyan-400 { background-color: var(--a-info); }
+.admin-body-shell .bg-cyan-500\/15 { background-color: color-mix(in srgb, var(--a-info) 15%, transparent); }
+.admin-body-shell .bg-amber-500\/15 { background-color: color-mix(in srgb, var(--a-amber) 15%, transparent); }
+.admin-body-shell .bg-rose-500\/15 { background-color: color-mix(in srgb, var(--a-red) 15%, transparent); }
+.admin-body-shell .bg-slate-800 { background-color: var(--a-surface-2); }
+.admin-body-shell .text-cyan-300 { color: var(--a-info); }
+.admin-body-shell .text-cyan-400 { color: var(--a-info); }
+.admin-body-shell .text-rose-300 { color: var(--a-red); }
 .admin-body-shell .ring-slate-950 { --tw-ring-color: #020617; }
 .admin-body-shell .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55); }
 .admin-body-shell .accent-emerald-500 { accent-color: #10b981; }
@@ -994,21 +994,21 @@ svg.w-full, .w-full { width: 100%; }
 .admin-body-shell .via-\[\#131c2e\] { --tw-gradient-stops: var(--tw-gradient-from), #131c2e, var(--tw-gradient-to); }
 .admin-body-shell .to-\[\#0e1626\] { --tw-gradient-to: #0e1626; }
 .admin-body-shell .group:hover .group-hover\:scale-105 { transform: scale(1.05); }
-.admin-body-shell .group:focus-within .group-focus-within\:text-emerald-400 { color: #34d399; }
+.admin-body-shell .group:focus-within .group-focus-within\:text-emerald-400 { color: var(--a-green); }
 .admin-body-shell .hover\:bg-white\/\[0\.05\]:hover { background-color: rgba(255, 255, 255, 0.05); }
-.admin-body-shell .hover\:bg-rose-500\/10:hover { background-color: rgba(244, 63, 94, 0.1); }
-.admin-body-shell .hover\:border-emerald-500\/30:hover { border-color: rgba(16, 185, 129, 0.3); }
-.admin-body-shell .hover\:border-emerald-500\/40:hover { border-color: rgba(16, 185, 129, 0.4); }
-.admin-body-shell .hover\:border-rose-500\/40:hover { border-color: rgba(244, 63, 94, 0.4); }
-.admin-body-shell .focus\:border-emerald-500\/40:focus { border-color: rgba(16, 185, 129, 0.4); }
-.admin-body-shell .focus\:bg-\[\#131c2e\]:focus { background-color: #131c2e; }
+.admin-body-shell .hover\:bg-rose-500\/10:hover { background-color: color-mix(in srgb, var(--a-red) 10%, transparent); }
+.admin-body-shell .hover\:border-emerald-500\/30:hover { border-color: color-mix(in srgb, var(--a-green) 30%, transparent); }
+.admin-body-shell .hover\:border-emerald-500\/40:hover { border-color: color-mix(in srgb, var(--a-green) 40%, transparent); }
+.admin-body-shell .hover\:border-rose-500\/40:hover { border-color: color-mix(in srgb, var(--a-red) 40%, transparent); }
+.admin-body-shell .focus\:border-emerald-500\/40:focus { border-color: color-mix(in srgb, var(--a-green) 40%, transparent); }
+.admin-body-shell .focus\:bg-\[\#131c2e\]:focus { background-color: var(--a-surface-3); }
 .admin-body-shell .animate-spin { animation: admin-spin 1s linear infinite; }
 @keyframes admin-spin { to { transform: rotate(360deg); } }
 
 .admin-body-shell .\!bg-\[\#0e1626\]\/95 { background-color: rgba(14, 22, 38, 0.95) !important; }
-.admin-body-shell .\!bg-rose-500\/15 { background-color: rgba(244, 63, 94, 0.15) !important; }
-.admin-body-shell .\!border-rose-500\/30 { border-color: rgba(244, 63, 94, 0.3) !important; }
-.admin-body-shell .\!text-rose-300 { color: #fda4af !important; }
+.admin-body-shell .\!bg-rose-500\/15 { background-color: color-mix(in srgb, var(--a-red) 15%, transparent) !important; }
+.admin-body-shell .\!border-rose-500\/30 { border-color: color-mix(in srgb, var(--a-red) 30%, transparent) !important; }
+.admin-body-shell .\!text-rose-300 { color: var(--a-red) !important; }
 .admin-body-shell .\!text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
 .admin-body-shell .\!w-auto { width: auto !important; }
 .admin-body-shell .\!px-1\.5 { padding-left: 0.375rem !important; padding-right: 0.375rem !important; }
@@ -1088,7 +1088,7 @@ svg.w-full, .w-full { width: 100%; }
   min-height: 0.4rem;
   border-radius: 0.65rem 0.65rem 0.2rem 0.2rem;
   background: linear-gradient(to top, var(--brand-500), var(--aqua-400));
-  box-shadow: 0 0 18px -7px rgba(52, 211, 153, 0.85);
+  box-shadow: 0 0 18px -7px color-mix(in srgb, var(--a-green) 85%, transparent);
 }
 
 .admin-ranked-list { display: grid; gap: 0.65rem; }
@@ -1109,7 +1109,7 @@ svg.w-full, .w-full { width: 100%; }
   flex: 0 0 2rem;
   border-radius: 0.7rem;
   color: var(--brand-300);
-  background: rgba(16, 185, 129, 0.12);
+  background: color-mix(in srgb, var(--a-green) 12%, transparent);
   font-size: 0.75rem;
   font-weight: 800;
 }
@@ -1123,8 +1123,8 @@ svg.w-full, .w-full { width: 100%; }
 .progress-track { height: 0.45rem; margin-top: 0.55rem; overflow: hidden; border-radius: 999px; background: rgba(148, 163, 184, 0.15); }
 .progress-fill { display: block; height: 100%; border-radius: inherit; transition: width 0.6s ease; }
 .progress-brand { background: linear-gradient(to left, var(--brand-500), var(--aqua-400)); }
-.progress-rose { background: linear-gradient(to left, #fb7185, #f43f5e); }
-.progress-amber { background: linear-gradient(to left, #fbbf24, #f59e0b); }
+.progress-rose { background: linear-gradient(to left, var(--a-red), var(--a-red)); }
+.progress-amber { background: linear-gradient(to left, var(--a-amber), var(--a-amber)); }
 
 /* Live Arvan Cloud visitor analytics. */
 .arvan-analytics-card { overflow: hidden; }
@@ -1140,7 +1140,7 @@ svg.w-full, .w-full { width: 100%; }
 .arvan-saved-card {
   border: 1px solid var(--a-border, rgba(148, 163, 184, 0.18));
   border-radius: 1rem;
-  background: color-mix(in srgb, var(--a-surface, #111827) 72%, transparent);
+  background: color-mix(in srgb, var(--a-surface, var(--a-surface-3)) 72%, transparent);
 }
 .arvan-chart-shell { min-width: 0; padding: 1rem; }
 .arvan-chart-title {
@@ -1152,8 +1152,8 @@ svg.w-full, .w-full { width: 100%; }
 }
 .arvan-chart-shell > svg { display: block; width: 100%; height: 16.25rem; overflow: visible; }
 .arvan-grid-line { stroke: var(--a-border, rgba(148, 163, 184, 0.16)); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.arvan-chart-line { stroke: #14b8a6; stroke-width: 3; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
-.arvan-chart-dot { fill: var(--a-surface, #0f172a); stroke: #2dd4bf; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+.arvan-chart-line { stroke: var(--a-green); stroke-width: 3; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
+.arvan-chart-dot { fill: var(--a-surface, var(--a-t1)); stroke: var(--a-green); stroke-width: 2.5; vector-effect: non-scaling-stroke; }
 .arvan-chart-labels { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.55rem; color: var(--a-t4); font-size: 0.65rem; direction: ltr; }
 .arvan-saved-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; }
 .arvan-saved-card { display: grid; gap: 0.75rem; padding: 1rem; }
@@ -1167,7 +1167,7 @@ svg.w-full, .w-full { width: 100%; }
   border: 1px solid var(--a-border);
   border-radius: 0.9rem;
 }
-.a-alert--error { color: #fb7185; border-color: rgba(244, 63, 94, 0.26); background: rgba(244, 63, 94, 0.08); }
+.a-alert--error { color: var(--a-red); border-color: color-mix(in srgb, var(--a-red) 26%, transparent); background: color-mix(in srgb, var(--a-red) 8%, transparent); }
 .a-select--compact { width: auto; min-width: 10rem; }
 
 .huma-table-container {
@@ -1259,9 +1259,9 @@ svg.w-full, .w-full { width: 100%; }
    Admin Modal Theme Overrides
    ========================================================================== */
 .admin-page-active .modal-panel {
-  background-color: #0e1626;
+  background-color: var(--a-surface-3);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  color: #e2e8f0;
+  color: var(--a-t1);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 }
 
@@ -1280,7 +1280,7 @@ svg.w-full, .w-full { width: 100%; }
 }
 
 .admin-page-active .modal-head button.ghost:hover {
-  color: #f87171;
+  color: var(--a-red);
   background-color: rgba(248, 113, 113, 0.1);
 }
 
@@ -1296,7 +1296,7 @@ svg.w-full, .w-full { width: 100%; }
 .admin-page-active .modal-body input[type="number"] {
   background-color: rgba(19, 28, 46, 0.6) !important;
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
-  color: #e2e8f0 !important;
+  color: var(--a-t1) !important;
   border-radius: 0.75rem !important;
   padding: 0.625rem 1rem !important;
   font-size: 0.75rem !important;
@@ -1307,10 +1307,10 @@ svg.w-full, .w-full { width: 100%; }
 .admin-page-active .modal-body .input:focus,
 .admin-page-active .modal-body .select:focus,
 .admin-page-active .modal-body input:focus {
-  border-color: rgba(16, 185, 129, 0.4) !important;
-  background-color: #131c2e !important;
+  border-color: color-mix(in srgb, var(--a-green) 40%, transparent) !important;
+  background-color: var(--a-surface-3) !important;
   outline: none !important;
-  box-shadow: 0 0 24px -6px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 24px -6px color-mix(in srgb, var(--a-green) 20%, transparent);
 }
 
 .admin-page-active .modal-body label {
@@ -1333,7 +1333,7 @@ svg.w-full, .w-full { width: 100%; }
   padding: 0.625rem 1.25rem !important;
   background-color: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #cbd5e1 !important;
+  color: var(--a-t2) !important;
   transition: all 0.3s;
 }
 
@@ -1343,21 +1343,21 @@ svg.w-full, .w-full { width: 100%; }
 }
 
 .admin-page-active .modal-foot .btn.primary {
-  background-color: #10b981 !important;
+  background-color: var(--a-green) !important;
   border: none !important;
   color: #022c22 !important;
-  box-shadow: 0 0 24px -6px rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 0 24px -6px color-mix(in srgb, var(--a-green) 45%, transparent) !important;
 }
 
 .admin-page-active .modal-foot .btn.primary:hover {
-  background-color: #34d399 !important;
-  box-shadow: 0 0 40px -8px rgba(16, 185, 129, 0.6) !important;
+  background-color: var(--a-green) !important;
+  box-shadow: 0 0 40px -8px color-mix(in srgb, var(--a-green) 60%, transparent) !important;
 }
 
 .admin-page-active .modal-body .alert.error {
-  background-color: rgba(244, 63, 94, 0.1) !important;
-  border: 1px solid rgba(244, 63, 94, 0.2) !important;
-  color: #fda4af !important;
+  background-color: color-mix(in srgb, var(--a-red) 10%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--a-red) 20%, transparent) !important;
+  color: var(--a-red) !important;
   border-radius: 0.75rem !important;
   padding: 0.75rem !important;
   font-size: 0.75rem !important;
@@ -1421,7 +1421,7 @@ svg.w-full, .w-full { width: 100%; }
 
 .taxonomy-field > span,
 .category-brands-heading strong {
-  color: #cbd5e1;
+  color: var(--a-t2);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -1471,8 +1471,8 @@ svg.w-full, .w-full { width: 100%; }
 
 .taxonomy-item:hover,
 .taxonomy-item.active {
-  border-color: rgba(16, 185, 129, 0.28);
-  background: rgba(16, 185, 129, 0.06);
+  border-color: color-mix(in srgb, var(--a-green) 28%, transparent);
+  background: color-mix(in srgb, var(--a-green) 6%, transparent);
 }
 
 .taxonomy-item-icon {
@@ -1484,7 +1484,7 @@ svg.w-full, .w-full { width: 100%; }
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 0.85rem;
   background: rgba(255, 255, 255, 0.94);
-  color: #047857;
+  color: var(--a-green);
   font-size: 1.1rem;
   font-weight: 900;
 }
@@ -1503,7 +1503,7 @@ svg.w-full, .w-full { width: 100%; }
   gap: 0.15rem;
 }
 
-.taxonomy-item-copy > strong { color: #f8fafc; font-size: 0.8rem; }
+.taxonomy-item-copy > strong { color: var(--a-t1); font-size: 0.8rem; }
 .taxonomy-item-copy > span { color: var(--ds-text-muted); font-size: 0.67rem; text-align: right; }
 .taxonomy-item-copy > small { color: #78909f; font-size: 0.62rem; }
 
@@ -1520,10 +1520,10 @@ svg.w-full, .w-full { width: 100%; }
 
 .taxonomy-delete-btn {
   padding: 0.48rem 0.7rem;
-  border: 1px solid rgba(244, 63, 94, 0.2);
+  border: 1px solid color-mix(in srgb, var(--a-red) 20%, transparent);
   border-radius: 0.7rem;
-  background: rgba(244, 63, 94, 0.09);
-  color: #fda4af;
+  background: color-mix(in srgb, var(--a-red) 9%, transparent);
+  color: var(--a-red);
   font-size: 0.68rem;
   font-weight: 700;
   cursor: pointer;
@@ -1557,7 +1557,7 @@ svg.w-full, .w-full { width: 100%; }
 .category-brands-actions button {
   border: 0;
   background: transparent;
-  color: #6ee7b7;
+  color: var(--a-green);
   font-size: 0.66rem;
   font-weight: 700;
   cursor: pointer;
@@ -1583,18 +1583,18 @@ svg.w-full, .w-full { width: 100%; }
   cursor: pointer;
 }
 
-.brand-checkbox.selected { border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.1); }
+.brand-checkbox.selected { border-color: color-mix(in srgb, var(--a-green) 35%, transparent); background: color-mix(in srgb, var(--a-green) 10%, transparent); }
 .brand-checkbox input { accent-color: #10b981; }
 .brand-checkbox > span { display: flex; flex-direction: column; min-width: 0; }
-.brand-checkbox strong { overflow: hidden; color: #e2e8f0; font-size: 0.68rem; text-overflow: ellipsis; white-space: nowrap; }
+.brand-checkbox strong { overflow: hidden; color: var(--a-t1); font-size: 0.68rem; text-overflow: ellipsis; white-space: nowrap; }
 .brand-checkbox small { overflow: hidden; color: var(--ds-text-muted); font-size: 0.58rem; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
 
 .taxonomy-brand-chips { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.35rem; }
 .taxonomy-brand-chips i {
   padding: 0.15rem 0.4rem;
   border-radius: 999px;
-  background: rgba(14, 165, 233, 0.1);
-  color: #7dd3fc;
+  background: color-mix(in srgb, var(--a-info) 10%, transparent);
+  color: var(--a-info);
   font-size: 0.56rem;
   font-style: normal;
 }
@@ -1732,7 +1732,7 @@ svg.w-full, .w-full { width: 100%; }
   place-items: center;
   padding-inline: 0.2rem;
   border-radius: 999px;
-  background: #f43f5e;
+  background: var(--a-red);
   color: var(--ds-on-interactive);
   font-size: 0.52rem;
   font-style: normal;
@@ -2135,7 +2135,7 @@ table.mobile-glass-table {
 .credit-kpi strong { display: block; margin: 0.25rem 0 0.12rem; color: var(--a-t1); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
 .credit-kpi small { display: block; color: var(--a-t3); font-size: 0.6rem; line-height: 1.6; }
 
-.credit-attention-panel { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.9rem 1rem; border: 1px solid color-mix(in srgb, #f59e0b 36%, var(--a-border)); border-radius: 0.9rem; background: color-mix(in srgb, #f59e0b 6%, var(--a-surface)); }
+.credit-attention-panel { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.9rem 1rem; border: 1px solid color-mix(in srgb, var(--a-amber) 36%, var(--a-border)); border-radius: 0.9rem; background: color-mix(in srgb, var(--a-amber) 6%, var(--a-surface)); }
 .credit-attention-head { display: flex; align-items: center; gap: 0.65rem; color: var(--ds-warning); }
 .credit-attention-head div { display: grid; gap: 0.12rem; }
 .credit-attention-head strong { color: var(--a-t1); font-size: 0.78rem; }
@@ -2207,9 +2207,9 @@ table.mobile-glass-table {
 .credit-portfolio-table td > span, .credit-portfolio-table td > small { color: var(--a-t3); }
 .credit-score-value { color: var(--a-brand) !important; font-size: 0.95rem !important; }
 .credit-risk, .credit-priority { display: inline-flex !important; width: fit-content; margin-top: 0.25rem; padding: 0.17rem 0.45rem; border-radius: 999px; font-size: 0.57rem; font-weight: 800; }
-.credit-risk--low, .credit-priority--normal { background: color-mix(in srgb, #22c55e 13%, transparent); color: #22c55e !important; }
-.credit-risk--medium, .credit-priority--follow_up { background: color-mix(in srgb, #f59e0b 13%, transparent); color: var(--ds-warning) !important; }
-.credit-risk--high, .credit-priority--urgent { background: color-mix(in srgb, #ef4444 13%, transparent); color: var(--ds-danger) !important; }
+.credit-risk--low, .credit-priority--normal { background: color-mix(in srgb, var(--a-green) 13%, transparent); color: var(--a-green) !important; }
+.credit-risk--medium, .credit-priority--follow_up { background: color-mix(in srgb, var(--a-amber) 13%, transparent); color: var(--ds-warning) !important; }
+.credit-risk--high, .credit-priority--urgent { background: color-mix(in srgb, var(--a-red) 13%, transparent); color: var(--ds-danger) !important; }
 .credit-risk--unknown { background: color-mix(in srgb, #64748b 18%, transparent); color: var(--a-t2) !important; }
 .credit-priority-reasons { display: flex; flex-wrap: wrap; gap: 0.2rem; max-width: 15rem; margin-top: 0.35rem; }
 .credit-priority-reasons small { padding: 0.1rem 0.32rem; border: 1px solid var(--a-border); border-radius: 0.35rem; color: var(--a-t3); font-size: 0.52rem; }
@@ -2291,27 +2291,27 @@ body.admin-page-active .modal-panel:has(.credit-report-overview) {
 .credit-report-section-label { display: flex; align-items: center; gap: 0.4rem; color: var(--a-t2); font-size: 0.68rem; font-weight: 800; }
 .credit-report-risk-line { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; margin: 0.7rem 0 0.55rem; }
 .credit-report-risk-badge, .credit-report-validity { display: inline-flex; width: fit-content; padding: 0.3rem 0.55rem; border-radius: 999px; font-size: 0.62rem; font-weight: 800; }
-.credit-report-risk-badge--low { background: color-mix(in srgb, #22c55e 13%, transparent); color: #22c55e; }
-.credit-report-risk-badge--medium { background: color-mix(in srgb, #f59e0b 13%, transparent); color: var(--ds-warning); }
-.credit-report-risk-badge--high { background: color-mix(in srgb, #ef4444 13%, transparent); color: var(--ds-danger); }
+.credit-report-risk-badge--low { background: color-mix(in srgb, var(--a-green) 13%, transparent); color: var(--a-green); }
+.credit-report-risk-badge--medium { background: color-mix(in srgb, var(--a-amber) 13%, transparent); color: var(--ds-warning); }
+.credit-report-risk-badge--high { background: color-mix(in srgb, var(--a-red) 13%, transparent); color: var(--ds-danger); }
 .credit-report-risk-badge--unknown { background: color-mix(in srgb, #64748b 16%, transparent); color: var(--a-t2); }
-.credit-report-validity { background: color-mix(in srgb, #22c55e 10%, transparent); color: #22c55e; }
-.credit-report-validity.is-expired { background: color-mix(in srgb, #ef4444 11%, transparent); color: var(--ds-danger); }
+.credit-report-validity { background: color-mix(in srgb, var(--a-green) 10%, transparent); color: var(--a-green); }
+.credit-report-validity.is-expired { background: color-mix(in srgb, var(--a-red) 11%, transparent); color: var(--ds-danger); }
 .credit-report-decision p { margin: 0 0 0.25rem; color: var(--a-t1); font-size: 0.72rem; font-weight: 700; line-height: 1.8; }
 .credit-report-decision > small { color: var(--a-t3); font-size: 0.56rem; line-height: 1.7; }
-.credit-confidence-ring { display: grid; place-items: center; width: min(7.8rem, 100%); aspect-ratio: 1; margin: auto; padding: 0.5rem; border-radius: 50%; background: conic-gradient(#06b6d4 0 var(--credit-confidence), var(--a-surface-3) var(--credit-confidence) 100%); }
+.credit-confidence-ring { display: grid; place-items: center; width: min(7.8rem, 100%); aspect-ratio: 1; margin: auto; padding: 0.5rem; border-radius: 50%; background: conic-gradient(var(--a-info) 0 var(--credit-confidence), var(--a-surface-3) var(--credit-confidence) 100%); }
 .credit-confidence-ring > div { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: var(--a-surface); }
-.credit-confidence-ring strong { color: #06b6d4; font-size: 1.25rem; }
+.credit-confidence-ring strong { color: var(--a-info); font-size: 1.25rem; }
 .credit-confidence-ring span { margin-top: -0.65rem; color: var(--a-t3); font-size: 0.55rem; }
 
 .credit-report-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.7rem; }
 .credit-report-kpis article { display: flex; align-items: center; gap: 0.65rem; min-height: 5rem; padding: 0.8rem; border: 1px solid var(--a-border); border-radius: 0.85rem; background: var(--a-surface); }
 .credit-report-kpis article > span { display: grid; place-items: center; flex: 0 0 2.2rem; width: 2.2rem; height: 2.2rem; border-radius: 0.65rem; }
-.credit-report-kpis .tone-blue { background: color-mix(in srgb, #0ea5e9 12%, transparent); color: #0ea5e9; }
-.credit-report-kpis .tone-red { background: color-mix(in srgb, #ef4444 12%, transparent); color: var(--ds-danger); }
-.credit-report-kpis .tone-green { background: color-mix(in srgb, #22c55e 12%, transparent); color: #22c55e; }
-.credit-report-kpis .tone-amber { background: color-mix(in srgb, #f59e0b 12%, transparent); color: var(--ds-warning); }
-.credit-report-kpis .tone-violet { background: color-mix(in srgb, #8b5cf6 12%, transparent); color: #8b5cf6; }
+.credit-report-kpis .tone-blue { background: color-mix(in srgb, var(--a-info) 12%, transparent); color: var(--a-info); }
+.credit-report-kpis .tone-red { background: color-mix(in srgb, var(--a-red) 12%, transparent); color: var(--ds-danger); }
+.credit-report-kpis .tone-green { background: color-mix(in srgb, var(--a-green) 12%, transparent); color: var(--a-green); }
+.credit-report-kpis .tone-amber { background: color-mix(in srgb, var(--a-amber) 12%, transparent); color: var(--ds-warning); }
+.credit-report-kpis .tone-violet { background: color-mix(in srgb, var(--a-info) 12%, transparent); color: var(--a-info); }
 .credit-report-kpis article div { min-width: 0; }
 .credit-report-kpis small { display: block; color: var(--a-t3); font-size: 0.58rem; }
 .credit-report-kpis strong { display: block; margin-top: 0.25rem; overflow: hidden; color: var(--a-t1); font-size: 0.72rem; text-overflow: ellipsis; white-space: nowrap; }
@@ -2330,7 +2330,7 @@ body.admin-page-active .modal-panel:has(.credit-report-overview) {
 .credit-payer-value { display: grid; grid-template-columns: auto 1fr auto 1fr; align-items: baseline; gap: 0.35rem; margin-bottom: 0.75rem; }
 .credit-payer-value strong { color: var(--a-t1); font-size: 1rem; }
 .credit-payer-value span { color: var(--a-t3); font-size: 0.55rem; }
-.credit-payer-scale { position: relative; height: 0.7rem; border-radius: 999px; background: linear-gradient(90deg, #ef4444, #f59e0b 48%, #22c55e); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--a-border) 55%, transparent); }
+.credit-payer-scale { position: relative; height: 0.7rem; border-radius: 999px; background: linear-gradient(90deg, var(--a-red), var(--a-amber) 48%, var(--a-green)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--a-border) 55%, transparent); }
 .credit-payer-scale i { position: absolute; top: -0.25rem; height: 1.2rem; border: 0.16rem solid var(--a-t1); border-radius: 999px; background: transparent; box-shadow: 0 0 0 0.16rem color-mix(in srgb, var(--a-surface) 80%, transparent); }
 .credit-payer-ticks { display: flex; justify-content: space-between; margin-top: 0.45rem; color: var(--a-t3); font-size: 0.52rem; direction: ltr; }
 .credit-inquiry-chart { display: grid; align-content: center; gap: 1rem; min-height: 8.5rem; padding: 1rem 0.4rem 0; }
@@ -2340,14 +2340,14 @@ body.admin-page-active .modal-panel:has(.credit-report-overview) {
 .credit-inquiry-chart i { display: block; height: 100%; border-radius: inherit; }
 .credit-inquiry-chart strong { color: var(--a-t1); font-size: 0.72rem; text-align: center; }
 
-.credit-report-alerts { padding: 0.95rem 1rem; border: 1px solid color-mix(in srgb, #f59e0b 38%, var(--a-border)); border-radius: 1rem; background: color-mix(in srgb, #f59e0b 6%, var(--a-surface)); }
+.credit-report-alerts { padding: 0.95rem 1rem; border: 1px solid color-mix(in srgb, var(--a-amber) 38%, var(--a-border)); border-radius: 1rem; background: color-mix(in srgb, var(--a-amber) 6%, var(--a-surface)); }
 .credit-report-alerts > header { display: flex; align-items: center; gap: 0.55rem; color: var(--ds-warning); }
 .credit-report-alerts header div { display: grid; gap: 0.1rem; }
 .credit-report-alerts header strong { color: var(--a-t1); font-size: 0.72rem; }
 .credit-report-alerts header small { color: var(--a-t3); font-size: 0.56rem; }
 .credit-report-alerts > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; margin-top: 0.75rem; }
-.credit-report-alerts p { display: flex; align-items: flex-start; gap: 0.4rem; margin: 0; padding: 0.5rem 0.6rem; border: 1px solid color-mix(in srgb, #f59e0b 24%, var(--a-border)); border-radius: 0.6rem; color: var(--a-t2); font-size: 0.62rem; line-height: 1.75; }
-.credit-report-alerts p i { flex: 0 0 0.38rem; width: 0.38rem; height: 0.38rem; margin-top: 0.35rem; border-radius: 50%; background: #f59e0b; }
+.credit-report-alerts p { display: flex; align-items: flex-start; gap: 0.4rem; margin: 0; padding: 0.5rem 0.6rem; border: 1px solid color-mix(in srgb, var(--a-amber) 24%, var(--a-border)); border-radius: 0.6rem; color: var(--a-t2); font-size: 0.62rem; line-height: 1.75; }
+.credit-report-alerts p i { flex: 0 0 0.38rem; width: 0.38rem; height: 0.38rem; margin-top: 0.35rem; border-radius: 50%; background: var(--a-amber); }
 
 .credit-identity-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.55rem; padding-top: 0.8rem; }
 .credit-identity-grid > div { min-width: 0; padding: 0.65rem 0.7rem; border: 1px solid var(--a-border); border-radius: 0.65rem; background: var(--a-surface-2); }
@@ -2357,13 +2357,13 @@ body.admin-page-active .modal-panel:has(.credit-report-overview) {
 .credit-negative-reasons { display: grid; gap: 0.55rem; padding-top: 0.8rem !important; }
 .credit-negative-reasons li { display: grid; grid-template-columns: auto 1fr; align-items: flex-start; gap: 0.55rem; padding-bottom: 0.55rem; border-bottom: 1px dashed var(--a-border); }
 .credit-negative-reasons li:last-child { padding-bottom: 0; border-bottom: 0; }
-.credit-negative-reasons span { padding: 0.18rem 0.35rem; border-radius: 0.35rem; background: color-mix(in srgb, #ef4444 11%, transparent); color: var(--ds-danger); font-size: 0.58rem; font-weight: 800; direction: ltr; }
+.credit-negative-reasons span { padding: 0.18rem 0.35rem; border-radius: 0.35rem; background: color-mix(in srgb, var(--a-red) 11%, transparent); color: var(--ds-danger); font-size: 0.58rem; font-weight: 800; direction: ltr; }
 .credit-negative-reasons p { margin: 0; color: var(--a-t2); font-size: 0.63rem; line-height: 1.85; }
 .credit-tax-timeline { display: grid; padding-top: 0.8rem; }
 .credit-tax-timeline > div { display: grid; grid-template-columns: 3rem 0.7rem 1fr; gap: 0.4rem; align-items: stretch; min-height: 3.2rem; }
 .credit-tax-timeline > div > span { color: var(--a-t1); font-size: 0.65rem; font-weight: 800; }
 .credit-tax-timeline i { position: relative; width: 0.12rem; margin-inline: auto; background: var(--a-border); }
-.credit-tax-timeline i::before { position: absolute; top: 0.1rem; right: 50%; width: 0.55rem; height: 0.55rem; border: 0.12rem solid var(--a-surface); border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 1px #22c55e; content: ''; transform: translateX(50%); }
+.credit-tax-timeline i::before { position: absolute; top: 0.1rem; right: 50%; width: 0.55rem; height: 0.55rem; border: 0.12rem solid var(--a-surface); border-radius: 50%; background: var(--a-green); box-shadow: 0 0 0 1px var(--a-green); content: ''; transform: translateX(50%); }
 .credit-tax-timeline p { margin: 0; color: var(--a-t2); font-size: 0.62rem; line-height: 1.75; }
 
 .credit-report-meta-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.55rem; padding-top: 0.8rem; }
@@ -2371,7 +2371,7 @@ body.admin-page-active .modal-panel:has(.credit-report-overview) {
 .credit-report-meta-grid span { color: var(--a-t3); font-size: 0.54rem; }
 .credit-report-meta-grid strong { grid-column: 2; overflow-wrap: anywhere; color: var(--a-t1); font-size: 0.62rem; }
 .credit-report-warnings { display: grid; gap: 0.35rem; margin-top: 0.75rem; }
-.credit-report-warnings p { display: flex; align-items: center; gap: 0.35rem; margin: 0; padding: 0.45rem; border-radius: 0.5rem; background: color-mix(in srgb, #f59e0b 8%, transparent); color: var(--ds-warning); font-size: 0.6rem; }
+.credit-report-warnings p { display: flex; align-items: center; gap: 0.35rem; margin: 0; padding: 0.45rem; border-radius: 0.5rem; background: color-mix(in srgb, var(--a-amber) 8%, transparent); color: var(--ds-warning); font-size: 0.6rem; }
 .credit-report-pages > div { display: grid; padding-top: 0.65rem; }
 .credit-report-pages details { border-bottom: 1px solid var(--a-border); }
 .credit-report-pages summary { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.7rem 0.2rem; color: var(--a-t2); font-size: 0.66rem; font-weight: 800; cursor: pointer; }
@@ -2519,7 +2519,7 @@ body.admin-page-active .modal-panel:has(.credit-report-overview) {
   height: 2.5rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 0.75rem;
-  color: var(--slate-300, #cbd5e1);
+  color: var(--slate-300, var(--a-t2));
   font-size: 0.8rem;
   font-weight: 600;
   text-decoration: none;
@@ -2527,8 +2527,8 @@ body.admin-page-active .modal-panel:has(.credit-report-overview) {
 }
 
 .nav-footer-link:hover {
-  border-color: rgba(16, 185, 129, 0.45);
-  background: rgba(16, 185, 129, 0.08);
+  border-color: color-mix(in srgb, var(--a-green) 45%, transparent);
+  background: color-mix(in srgb, var(--a-green) 8%, transparent);
   color: #fff;
 }
 
@@ -2540,9 +2540,9 @@ body.admin-page-active .modal-panel:has(.credit-report-overview) {
 body.admin-page-active.admin-theme-light .nav-footer-link {
   border-color: rgba(16, 24, 40, 0.12);
   background: rgba(16, 24, 40, 0.03);
-  color: #344054;
+  color: var(--a-t2);
 }
 
 body.admin-page-active.admin-theme-light .nav-footer-link:hover {
-  color: #101828;
+  color: var(--a-t1);
 }

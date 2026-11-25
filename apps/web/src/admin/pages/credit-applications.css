@@ -1,0 +1,180 @@
+/* CreditApplicationsPage — page-local presentation (docs/ui-guidelines.md §2, §4, §5).
+   The printable credit report keeps its own rules in admin.css (.credit-report-overview). */
+
+.ca-sections {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.ca-filterbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: var(--ds-space-4);
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-panel, 16px);
+  background: var(--a-surface);
+}
+
+.ca-filterbar .ca-search {
+  flex: 1 1 240px;
+}
+
+.ca-status-filter {
+  display: flex;
+}
+
+/* Health summary */
+.ca-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--ds-space-3);
+}
+
+.ca-stat {
+  padding: var(--ds-space-4);
+}
+
+.ca-stat-label {
+  font-size: var(--ds-text-caption);
+  color: var(--a-t3);
+}
+
+.ca-stat-value {
+  display: block;
+  margin-top: var(--ds-space-2);
+  font-size: var(--ds-text-title);
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--a-t1);
+  font-variant-numeric: tabular-nums;
+}
+
+.ca-stat-value--success { color: var(--a-green); }
+.ca-stat-value--warning { color: var(--a-amber); }
+.ca-stat-value--danger { color: var(--a-red); }
+
+.ca-table--wide { min-width: 960px; }
+.ca-table--receipts { min-width: 900px; }
+
+.ca-danger-text {
+  color: var(--a-red);
+  font-weight: 600;
+}
+
+.ca-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Review dialog */
+.ca-review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-5);
+}
+
+.ca-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ds-space-3);
+  padding: 14px var(--ds-space-4);
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-inner, 12px);
+  background: var(--a-surface-2);
+  font-size: var(--ds-text-sm);
+  line-height: 1.8;
+  color: var(--a-t2);
+}
+
+.ca-info-grid strong {
+  color: var(--a-t1);
+  font-weight: 600;
+}
+
+.ca-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+}
+
+.ca-section--divided {
+  padding-top: var(--ds-space-4);
+  border-top: 1px solid var(--a-border);
+}
+
+.ca-section-title {
+  margin: 0;
+  font-size: var(--ds-text-md);
+  font-weight: 600;
+  color: var(--a-t1);
+}
+
+.ca-docs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--ds-space-3);
+}
+
+.ca-doc {
+  display: block;
+  padding: var(--ds-space-3);
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-inner, 12px);
+  background: var(--a-surface-2);
+  color: var(--a-t1);
+  text-align: center;
+  text-decoration: none;
+  transition: background-color var(--a-motion-fast) var(--a-motion-ease), border-color var(--a-motion-fast) var(--a-motion-ease);
+}
+
+.ca-doc:hover {
+  background: var(--a-hover);
+}
+
+.ca-doc--key {
+  border-color: var(--a-t1);
+}
+
+.ca-doc-icon {
+  display: block;
+  margin-bottom: var(--ds-space-1);
+  font-size: var(--ds-text-xl);
+  line-height: 1.5;
+}
+
+.ca-doc-title {
+  display: block;
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  color: var(--a-t1);
+}
+
+.ca-doc-action {
+  display: block;
+  font-size: var(--ds-text-caption);
+  color: var(--a-t3);
+}
+
+.ca-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ca-form-grid .a-input,
+.ca-form-grid .a-select,
+.ca-review .a-textarea {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .ca-info-grid,
+  .ca-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

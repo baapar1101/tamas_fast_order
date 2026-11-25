@@ -1,0 +1,30 @@
+/* Products admin page: tokens only (docs/ui-guidelines.md §11). */
+.pp-search-icon { color: var(--a-t3); }
+
+.pp-status-dot { display: inline-block; flex: none; width: 8px; height: 8px; border-radius: 999px; background: var(--a-t4); }
+.pp-status-dot--active { background: var(--a-green); }
+.pp-status-dot--inactive { background: var(--a-red); }
+
+/* Counter chip inside toolbar buttons (§4.2: round chip with Persian digits) */
+.pp-count-chip {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  margin-inline-start: var(--ds-space-2);
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--ds-admin-interactive);
+  color: var(--ds-admin-on-interactive);
+  font-size: var(--ds-text-2xs);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}
+
+.pp-menu { min-width: 220px; }
+
+/* Table header cells: icon + label, start-aligned; numeric columns end-aligned */
+.pp-th { display: flex; align-items: center; gap: var(--ds-space-2); }
+.a-num > .pp-th { justify-content: flex-end; }
+.a-center > .pp-th { justify-content: center; }
+
+.pp-check { width: 16px; height: 16px; accent-color: var(--a-t1); cursor: pointer; }

@@ -1,44 +1,46 @@
-/* Sales funnel infographic: one hue (magnitude), 2px surface gaps between layers. */
+/* Sales funnel infographic: one hue (magnitude), 2px surface gaps between layers.
+   Band colour = chart series 1 (docs/ui-guidelines.md §2.4). */
 .funnel-infographic {
-  --fig-band: #0564c4;
-  --fig-band-hover: #0878e8;
-  --fig-band-worst: #034a92;
+  --fig-band: var(--a-series-1);
+  --fig-band-hover: color-mix(in srgb, var(--fig-band) 88%, var(--a-t1));
+  --fig-band-worst: color-mix(in srgb, var(--fig-band) 72%, var(--a-t1));
+  --fig-band-ink: var(--ds-white);
 }
 
-.funnel-infographic .a-card-head { flex-wrap: wrap; gap: 12px; }
+.funnel-infographic .a-card-head { flex-wrap: wrap; gap: var(--ds-space-3); }
 
 .funnel-ig-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  padding: 4px 20px 8px;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-1) var(--ds-space-5) var(--ds-space-2);
 }
 
 .funnel-ig-kpi {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 12px 14px;
+  padding: var(--ds-space-3) 14px;
   border: 1px solid var(--a-border);
-  border-radius: var(--a-radius-md, 12px);
+  border-radius: var(--a-radius-inner);
   background: var(--a-surface-2);
   min-width: 0;
 }
 
-.funnel-ig-kpi-label { font-size: 12px; color: var(--a-t3); }
+.funnel-ig-kpi-label { font-size: var(--ds-text-caption); color: var(--a-t3); }
 .funnel-ig-kpi strong {
-  font-size: 24px;
+  font-size: var(--ds-text-title);
   line-height: 1.3;
   color: var(--a-t1);
   font-variant-numeric: tabular-nums;
 }
-.funnel-ig-kpi strong.funnel-ig-kpi-text { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.funnel-ig-kpi-note { font-size: 12px; color: var(--a-t2); }
+.funnel-ig-kpi strong.funnel-ig-kpi-text { font-size: var(--ds-text-lg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.funnel-ig-kpi-note { font-size: var(--ds-text-caption); color: var(--a-t2); }
 
 .funnel-ig {
   list-style: none;
   margin: 0;
-  padding: 12px 20px 8px;
+  padding: var(--ds-space-3) var(--ds-space-5) var(--ds-space-2);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -54,8 +56,8 @@
 .funnel-ig-label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: var(--ds-space-2);
+  font-size: var(--ds-text-sm);
   font-weight: 600;
   color: var(--a-t1);
   min-width: 0;
@@ -70,7 +72,7 @@
   border-radius: 999px;
   border: 1px solid var(--a-border);
   color: var(--a-t2);
-  font-size: 11px;
+  font-size: var(--ds-text-xs);
 }
 
 .funnel-ig-band-wrap {
@@ -86,7 +88,7 @@
   position: absolute;
   inset: 0;
   background: var(--fig-band);
-  transition: background 0.15s ease;
+  transition: background-color 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .funnel-ig-row.is-worst .funnel-ig-band { background: var(--fig-band-worst); }
@@ -95,9 +97,9 @@
 
 .funnel-ig-count {
   position: relative;
-  font-size: 16px;
+  font-size: var(--ds-text-lg);
   font-weight: 800;
-  color: #fff;
+  color: var(--fig-band-ink);
   font-variant-numeric: tabular-nums;
   pointer-events: none;
 }
@@ -110,8 +112,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.funnel-ig-rate-main { font-size: 15px; font-weight: 700; color: var(--a-t1); }
-.funnel-ig-rate-drop { font-size: 12px; color: var(--a-t3); }
+.funnel-ig-rate-main { font-size: var(--ds-text-md); font-weight: 700; color: var(--a-t1); }
+.funnel-ig-rate-drop { font-size: var(--ds-text-caption); color: var(--a-t3); }
 .funnel-ig-row.is-worst .funnel-ig-rate-drop { color: var(--a-t1); font-weight: 600; }
 
 .funnel-ig-tip {
@@ -124,17 +126,17 @@
   flex-direction: column;
   gap: 2px;
   min-width: 200px;
-  padding: 10px 12px;
+  padding: 10px var(--ds-space-3);
   border: 1px solid var(--a-border);
   border-radius: 10px;
   background: var(--a-dropdown-bg, var(--a-surface));
-  box-shadow: var(--a-shadow-2, 0 8px 24px rgba(0, 0, 0, 0.25));
-  font-size: 12px;
+  box-shadow: var(--a-shadow-2);
+  font-size: var(--ds-text-caption);
   color: var(--a-t2);
   white-space: nowrap;
   pointer-events: none;
 }
-.funnel-ig-tip strong { font-size: 13px; color: var(--a-t1); }
+.funnel-ig-tip strong { font-size: var(--ds-text-sm); color: var(--a-t1); }
 
 .funnel-ig-foot {
   display: flex;
@@ -142,8 +144,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 8px 20px 18px;
-  font-size: 12px;
+  padding: var(--ds-space-2) var(--ds-space-5) 18px;
+  font-size: var(--ds-text-caption);
   color: var(--a-t3);
 }
 
@@ -152,29 +154,38 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 20px;
+  padding: var(--ds-space-5);
 }
 .funnel-ig-skeleton span {
   height: 40px;
   border-radius: 4px;
-  background: var(--a-surface-2);
+  background: var(--a-soft);
+  animation: funnel-ig-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+@keyframes funnel-ig-pulse { 50% { opacity: 0.5; } }
+
+.funnel-infographic .a-state { margin: var(--ds-space-1) var(--ds-space-5) var(--ds-space-5); }
 
 @media (max-width: 760px) {
-  .funnel-ig-summary { gap: 8px; padding: 4px 14px 8px; }
+  .funnel-ig-summary { gap: var(--ds-space-2); padding: var(--ds-space-1) 14px var(--ds-space-2); }
   .funnel-ig-kpi { padding: 10px; }
-  .funnel-ig-kpi strong { font-size: 18px; }
-  .funnel-ig-kpi strong.funnel-ig-kpi-text { font-size: 13px; white-space: normal; }
-  .funnel-ig-kpi-label, .funnel-ig-kpi-note { font-size: 11px; }
-  .funnel-ig { padding: 12px 14px 8px; gap: 6px; }
+  .funnel-ig-kpi strong { font-size: var(--ds-text-lead); }
+  .funnel-ig-kpi strong.funnel-ig-kpi-text { font-size: var(--ds-text-sm); white-space: normal; }
+  .funnel-ig-kpi-label, .funnel-ig-kpi-note { font-size: var(--ds-text-xs); }
+  .funnel-ig { padding: var(--ds-space-3) 14px var(--ds-space-2); gap: 6px; }
   .funnel-ig-row {
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 4px 10px;
+    gap: var(--ds-space-1) 10px;
   }
   .funnel-ig-label { grid-column: 1; grid-row: 1; }
   .funnel-ig-rate { grid-column: 2; grid-row: 1; flex-direction: row; align-items: baseline; gap: 6px; }
   .funnel-ig-band-wrap { grid-column: 1 / -1; grid-row: 2; height: 40px; }
-  .funnel-ig-foot { padding: 8px 14px 16px; }
+  .funnel-ig-foot { padding: var(--ds-space-2) 14px var(--ds-space-4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .funnel-ig-band { transition: none; }
+  .funnel-ig-skeleton span { animation: none; }
 }
 
 @media (forced-colors: active) {

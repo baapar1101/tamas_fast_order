@@ -1,0 +1,80 @@
+/* ProductEditor local styles: tokens only (docs/ui-guidelines.md §11). */
+
+/* Bundle product search */
+.pe-bundle-select { position: relative; }
+.pe-bundle-menu {
+  position: absolute;
+  z-index: var(--a-z-popover);
+  inset-inline: 0;
+  top: 100%;
+  margin-top: var(--ds-space-1);
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius-control);
+  background: var(--a-surface-3);
+  box-shadow: var(--a-shadow-2);
+}
+.pe-bundle-option {
+  display: block;
+  width: 100%;
+  padding: 10px var(--ds-space-3);
+  border: 0;
+  border-bottom: 1px solid var(--a-border);
+  background: transparent;
+  color: var(--a-t1);
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--a-motion-fast) var(--a-motion-ease);
+}
+.pe-bundle-option:last-child { border-bottom: 0; }
+.pe-bundle-option:hover, .pe-bundle-option:focus-visible { background: var(--a-hover); }
+.pe-bundle-option-title { display: block; margin-bottom: var(--ds-space-1); color: var(--a-t1); font-size: var(--ds-text-sm); font-weight: 600; }
+.pe-bundle-option-id { display: block; color: var(--a-t3); font-size: var(--ds-text-xs); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+
+/* Colour field */
+.pe-color-row { display: flex; align-items: center; gap: var(--ds-space-2); }
+.pe-color-row > .a-input { flex: 1; }
+.pe-color-swatch {
+  flex-shrink: 0;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 2px solid var(--a-border-2);
+  border-radius: var(--a-radius-control);
+  background: var(--a-surface);
+  transition: background-color var(--a-motion-fast) var(--a-motion-ease);
+}
+.pe-color-picker { width: 2.2rem; height: 2.2rem; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.pe-swatch-dot { border: 1px solid var(--a-border-2); }
+
+/* Gallery remove: hidden until hover, always visible on focus and on touch */
+.pe-gallery-remove {
+  border: 1px solid var(--a-border);
+  background: var(--a-surface-3);
+  color: var(--a-red);
+  box-shadow: var(--a-shadow-xs);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity var(--a-motion-fast) var(--a-motion-ease), background-color var(--a-motion-fast) var(--a-motion-ease);
+}
+.group:hover .pe-gallery-remove,
+.pe-gallery-remove:focus-visible { opacity: 1; }
+.pe-gallery-remove:hover { background: var(--a-red-soft); }
+@media (hover: none) { .pe-gallery-remove { opacity: 1; } }
+.pe-gallery-add { cursor: pointer; }
+.pe-gallery-add:focus-visible { outline: 2px solid var(--a-t1); outline-offset: 3px; }
+
+/* Small inline remove (attributes) */
+.pe-remove-x { border: 0; background: transparent; color: var(--a-red); cursor: pointer; transition: background-color var(--a-motion-fast) var(--a-motion-ease); }
+.pe-remove-x:hover { background: var(--a-red-soft); }
+
+/* Profit summary */
+.pe-profit-box { padding: var(--ds-space-4); border: 1px solid var(--a-border); border-radius: var(--a-radius-inner); background: var(--a-surface-2); }
+.pe-profit-value { display: block; color: var(--a-t1); font-variant-numeric: tabular-nums; }
+.pe-profit-value--neg { color: var(--a-red); }
+.pe-profit-value--pos { color: var(--a-green); }
+
+/* Sell type chips */
+.pe-sell-chip { padding: 0.5rem 0.85rem; cursor: pointer; }
+
+.pe-points-input { max-width: 96px; }

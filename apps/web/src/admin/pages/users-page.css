@@ -1,0 +1,13 @@
+/* UsersPage — page-local presentation (docs/ui-guidelines.md §4.6) */
+.users-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: var(--a-soft);
+  color: var(--a-t1);
+  font-size: var(--ds-text-md);
+  font-weight: 700;
+}

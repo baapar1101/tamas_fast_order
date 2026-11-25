@@ -1,0 +1,8 @@
+/* Price/stock Excel preview — docs/ui-guidelines.md §4.6, §5. */
+.excel-preview.a-card { border-color: var(--a-amber); }
+.excel-preview .xp-summary { margin-top: var(--ds-space-1); font-size: var(--ds-text-sm); line-height: 1.8; color: var(--a-t2); }
+.excel-preview .xp-warn { color: var(--a-red); }
+.excel-preview .xp-muted { color: var(--a-t3); }
+.excel-preview .xp-table-wrap { max-height: 420px; overflow: auto; }
+.excel-preview .xp-row--warning > td { background: var(--a-red-soft); }
+.excel-preview .xp-note { min-width: 160px; white-space: normal; color: var(--a-red); }

@@ -12,6 +12,8 @@ import {
 } from '@tamas/shared';
 import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
+import { AdminState } from '../components/AdminState';
+import './price-lists.css';
 
 interface Loaded {
   config: PriceListsConfig;
@@ -97,13 +99,19 @@ export function PriceListsPage() {
           </p>
         </div>
         <div className="a-page-actions">
-          <a className="a-btn a-btn--secondary" href="/prices" target="_blank" rel="noreferrer">صفحهٔ لیست قیمت ↗</a>
-          <button type="button" className="a-btn a-btn--primary" disabled={save.isPending} onClick={() => save.mutate()}>
+          <a className="a-btn a-btn--secondary" href="/prices" target="_blank" rel="noreferrer">مشاهدهٔ صفحهٔ لیست قیمت <span aria-hidden="true">↗</span></a>
+          <button type="button" className="a-btn a-btn--primary" disabled={save.isPending} aria-busy={save.isPending || undefined} onClick={() => save.mutate()}>
             {save.isPending ? 'در حال ذخیره…' : 'ذخیره'}
           </button>
         </div>
       </section>
 
+      {query.isError ? (
+        <AdminState kind="error" title="لیست‌های قیمت دریافت نشد." error={query.error} onRetry={() => query.refetch()} />
+      ) : query.isLoading ? (
+        <AdminState kind="loading" />
+      ) : (
+      <>
       <section className="a-card mt-4">
         <div className="a-card-head a-card-head--split">
           <div>
@@ -119,6 +127,7 @@ export function PriceListsPage() {
               className="a-btn a-btn--secondary"
               disabled={!savedTelegram?.groupId || telegramDirty || publish.isPending}
               title={telegramDirty ? 'اول تغییرات را ذخیره کنید.' : undefined}
+              aria-busy={publish.isPending || undefined}
               onClick={() => publish.mutate()}
             >
               {publish.isPending ? 'در حال ارسال…' : 'ارسال الان'}
@@ -132,7 +141,7 @@ export function PriceListsPage() {
             <label className="a-field">
               <span className="a-label">گروه لیست قیمت</span>
               <select
-                className="a-input"
+                className="a-select"
                 value={config.telegram.groupId}
                 onChange={(e) => setConfig({ ...config, telegram: { ...config.telegram, groupId: e.target.value } })}
               >
@@ -141,7 +150,7 @@ export function PriceListsPage() {
               </select>
               <span className="a-hint">گروه‌ها از تنظیمات ← تلگرام می‌آیند. قیمت‌ها کامل فرستاده می‌شوند؛ گروهی انتخاب کنید که فقط همکاران در آن هستند.</span>
             </label>
-            <label className="flex items-center gap-2 text-sm" style={{ alignSelf: 'center' }}>
+            <label className="flex items-center gap-2 text-sm price-list-auto">
               <input
                 type="checkbox"
                 checked={config.telegram.autoPublish}
@@ -158,9 +167,9 @@ export function PriceListsPage() {
         <section key={list.id} className="a-card mt-4">
           <div className="a-card-head a-card-head--split">
             <div className="flex flex-wrap items-center gap-3">
-              <input className="a-input" style={{ minWidth: 260 }} maxLength={80} value={list.title} onChange={(e) => update(index, { title: e.target.value })} aria-label="عنوان لیست" />
+              <input className="a-input price-list-title-input" maxLength={80} value={list.title} onChange={(e) => update(index, { title: e.target.value })} aria-label="عنوان لیست" />
               <span className="a-badge a-badge--neutral a-ltr">/prices?list={list.id}</span>
-              {counts.has(list.id) && <span className="a-badge a-badge--brand">{formatNumber(counts.get(list.id) ?? 0)} کالا</span>}
+              {counts.has(list.id) && <span className="a-badge a-badge--neutral">{formatNumber(counts.get(list.id) ?? 0)} کالا</span>}
             </div>
             <div className="a-card-actions">
               <label className="flex items-center gap-1.5 text-sm">
@@ -169,7 +178,7 @@ export function PriceListsPage() {
               <label className="flex items-center gap-1.5 text-sm">
                 <input type="checkbox" checked={list.inStockOnly} onChange={(e) => update(index, { inStockOnly: e.target.checked })} /> فقط کالاهای موجود
               </label>
-              <button type="button" className="a-btn a-btn--danger a-btn--xs" onClick={() => setConfig({ ...config, lists: config.lists.filter((_, i) => i !== index) })}>حذف لیست</button>
+              <button type="button" className="a-btn a-btn--danger a-btn--xs" aria-label={`حذف لیست «${list.title}»`} onClick={() => setConfig({ ...config, lists: config.lists.filter((_, i) => i !== index) })}>حذف لیست</button>
             </div>
           </div>
           <div className="a-field mt-2">
@@ -183,8 +192,12 @@ export function PriceListsPage() {
         </section>
       ))}
 
+      {config.lists.length === 0 && <AdminState kind="empty" noun="لیست قیمت" className="mt-4" />}
+
       {config.lists.length < PRICE_LISTS_MAX && (
-        <button type="button" className="a-btn a-btn--secondary mt-4" onClick={addList}>+ لیست جدید</button>
+        <button type="button" className="a-btn a-btn--secondary mt-4" onClick={addList}><span aria-hidden="true">+</span> افزودن لیست قیمت</button>
+      )}
+      </>
       )}
     </div>
   );

@@ -45,7 +45,7 @@ export function ImagePicker({ label, value, kind, onChange }: Props) {
         void qc.invalidateQueries({ queryKey: ['admin', 'uploads'] });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'آپلود ناموفق بود.');
+      toast.error(err instanceof Error ? err.message : 'تصویر آپلود نشد؛ دوباره تلاش کنید.');
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = '';
@@ -69,16 +69,18 @@ export function ImagePicker({ label, value, kind, onChange }: Props) {
         <input
           className="a-input a-ltr a-mono flex-1 w-full sm:min-w-[200px]"
           placeholder="/uploads/… یا آدرس کامل تصویر"
+          dir="ltr"
+          aria-label={label}
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button type="button" className="a-btn a-btn--secondary flex-1 sm:flex-none justify-center" disabled={busy} onClick={() => inputRef.current?.click()}>
+          <button type="button" className="a-btn a-btn--secondary flex-1 sm:flex-none justify-center" disabled={busy} aria-busy={busy || undefined} onClick={() => inputRef.current?.click()}>
             {busy ? 'در حال آپلود…' : 'آپلود'}
           </button>
           {value && (
-            <button type="button" className="a-btn a-btn--danger a-btn--sm shrink-0" onClick={() => onChange('')} aria-label="حذف تصویر">
-              ✕
+            <button type="button" className="a-btn a-btn--danger a-btn--sm shrink-0" onClick={() => onChange('')} aria-label="برداشتن تصویر" title="برداشتن تصویر">
+              <span aria-hidden="true">✕</span>
             </button>
           )}
         </div>

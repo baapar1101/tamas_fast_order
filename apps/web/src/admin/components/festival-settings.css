@@ -1,0 +1,28 @@
+/* FestivalSettings (and its MomentInput) — tokens only (docs/ui-guidelines.md §2). */
+
+.fest-moment { display: flex; gap: var(--ds-space-2); }
+.fest-moment__time { max-width: 130px; }
+
+.fest-status { margin-bottom: var(--ds-space-4); }
+.fest-gap-top { margin-top: var(--ds-space-3); }
+.fest-block { display: block; }
+
+.fest-effects { display: grid; gap: var(--ds-space-3); }
+.fest-effect { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.fest-effect__check { margin-top: var(--ds-space-1); }
+.fest-effect__label { display: block; font-weight: 600; color: var(--a-t1); }
+
+.fest-slides { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); }
+.fest-slide { display: grid; gap: 6px; cursor: pointer; }
+.fest-slide.is-inactive { opacity: .55; }
+.fest-slide__img {
+  width: 100%;
+  aspect-ratio: 4 / 1;
+  object-fit: cover;
+  border-radius: 10px;
+  outline: 1px solid var(--a-border);
+}
+.fest-slide.is-checked .fest-slide__img { outline: 2px solid var(--a-t1); }
+.fest-slide__row { display: flex; align-items: center; gap: var(--ds-space-2); }
+
+.fest-actions { display: flex; gap: var(--ds-space-2); }

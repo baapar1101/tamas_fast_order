@@ -12,7 +12,7 @@
   text-align: start;
   cursor: pointer;
 }
-.landing-editor__toggle strong { font-weight: 800; }
+.landing-editor__toggle strong { font-weight: 600; }
 .landing-editor__hint { display: block; margin-top: 2px; }
 .landing-editor__item {
   align-items: end;

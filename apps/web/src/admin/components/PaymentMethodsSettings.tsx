@@ -3,6 +3,7 @@ import type { PaymentMethodConfig } from '@tamas/shared';
 import { Modal } from '../../components/Modal';
 import { formatNumber } from '@tamas/shared';
 import { parsePaymentMethods } from '../../lib/payment-methods';
+import './payment-settings.css';
 
 interface Props {
   value: string | undefined;
@@ -11,13 +12,13 @@ interface Props {
   isSaving?: boolean;
 }
 
-const TYPE_LABELS: Record<PaymentMethodConfig['type'], { label: string; badgeClass: string; icon: string }> = {
-  wallet: { label: 'کیف پول', badgeClass: 'a-badge--success', icon: '◈' },
-  online: { label: 'درگاه آنلاین', badgeClass: 'a-badge--success', icon: '💳' },
-  manual: { label: 'کارت به کارت / واریز', badgeClass: 'a-badge--info', icon: '🏦' },
-  credit: { label: 'خرید اعتباری', badgeClass: 'a-badge--warning', icon: '⏳' },
-  cheque: { label: 'چک صیادی', badgeClass: 'a-badge--purple', icon: '📄' },
-  custom: { label: 'سفارشی / در محل', badgeClass: 'a-badge--neutral', icon: '🛍️' },
+const TYPE_LABELS: Record<PaymentMethodConfig['type'], { label: string; badgeClass: string }> = {
+  wallet: { label: 'کیف پول', badgeClass: 'a-badge--success' },
+  online: { label: 'درگاه آنلاین', badgeClass: 'a-badge--success' },
+  manual: { label: 'کارت به کارت / واریز', badgeClass: 'a-badge--info' },
+  credit: { label: 'خرید اعتباری', badgeClass: 'a-badge--warning' },
+  cheque: { label: 'چک صیادی', badgeClass: 'a-badge--neutral' },
+  custom: { label: 'سفارشی / در محل', badgeClass: 'a-badge--neutral' },
 };
 
 export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Props) {
@@ -117,113 +118,52 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
 
   return (
     <div className="a-card a-fade">
-      <div className="a-card-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: "var(--ds-space-3)" }}>
+      <div className="a-card-head pm-head">
         <div>
-          <h3 className="a-card-title">💳 پیکربندی روش‌های پرداخت</h3>
-          <p className="a-subtitle" style={{ margin: "var(--ds-space-1) 0 0" }}>
-            مدیریت، فعال/غیرفعال‌سازی و تعاریف روش‌های پرداخت هنگام ثبت سفارش توسط خریدار
+          <h3 className="a-card-title">پیکربندی روش‌های پرداخت</h3>
+          <p className="a-subtitle pm-head__sub">
+            مدیریت، فعال/غیرفعال‌سازی و تعریف روش‌های پرداخت هنگام ثبت سفارش توسط خریدار
           </p>
         </div>
-        <div style={{ display: 'flex', gap: "var(--ds-space-2)" }}>
+        <div className="pm-head__actions">
           <button type="button" className="a-btn a-btn--secondary" onClick={openCreateModal}>
-            ➕ افزودن روش پرداخت جدید
+            + افزودن روش پرداخت
           </button>
           {onSave && (
-            <button type="button" className="a-btn a-btn--primary" disabled={isSaving} onClick={onSave}>
-              {isSaving ? 'در حال ذخیره...' : 'ذخیره تغییرات'}
+            <button type="button" className="a-btn a-btn--primary" disabled={isSaving} aria-busy={isSaving || undefined} onClick={onSave}>
+              {isSaving ? 'در حال ذخیره…' : 'ذخیره تغییرات'}
             </button>
           )}
         </div>
       </div>
 
-      <div className="a-card-body" style={{ padding: "var(--ds-space-4)" }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: "var(--ds-space-3)" }}>
+      <div className="a-card-body pm-body">
+        <div className="pm-list">
           {methods.map((m, index) => {
             const typeInfo = TYPE_LABELS[m.type] ?? TYPE_LABELS.custom;
             return (
-              <div
-                key={m.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: "14px var(--ds-space-4)",
-                  background: m.enabled ? 'var(--card, #fff)' : 'var(--tamas-surface-subtle, #f8fafc)',
-                  border: m.enabled ? '1px solid var(--tamas-border, #e2e8f0)' : '1px dashed var(--tamas-border, #cbd5e1)',
-                  borderRadius: 12,
-                  opacity: m.enabled ? 1 : 0.65,
-                  transition: 'all 0.2s ease',
-                  flexWrap: 'wrap',
-                  gap: "var(--ds-space-3)",
-                }}
-              >
-                {/* Left side info */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 240, flex: 1 }}>
-                  {/* Status Toggle Switch */}
-                  <label
-                    style={{
-                      position: 'relative',
-                      display: 'inline-block',
-                      width: 44,
-                      height: 24,
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                    }}
-                    title={m.enabled ? 'فعال — جهت غیرفعال کردن کلیک کنید' : 'غیرفعال — جهت فعال کردن کلیک کنید'}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={m.enabled}
-                      onChange={() => handleToggleEnabled(m.id)}
-                      style={{ opacity: 0, width: 0, height: 0 }}
-                    />
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: m.enabled ? '#10b981' : '#cbd5e1',
-                        borderRadius: 24,
-                        transition: '0.2s',
-                      }}
-                    />
-                    <span
-                      style={{
-                        position: 'absolute',
-                        height: 18,
-                        width: 18,
-                        left: m.enabled ? 22 : 3,
-                        bottom: 3,
-                        backgroundColor: 'white',
-                        borderRadius: '50%',
-                        transition: '0.2s',
-                      }}
-                    />
-                  </label>
+              <div key={m.id} className={`pm-row${m.enabled ? '' : ' is-off'}`}>
+                <div className="pm-row__main">
+                  <button
+                    type="button"
+                    role="switch"
+                    className="a-switch"
+                    aria-checked={m.enabled}
+                    aria-label={`فعال بودن «${m.label}»`}
+                    title={m.enabled ? 'فعال؛ برای غیرفعال کردن کلیک کنید' : 'غیرفعال؛ برای فعال کردن کلیک کنید'}
+                    onClick={() => handleToggleEnabled(m.id)}
+                  />
 
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: "var(--ds-space-2)", flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: "var(--ds-text-lg)" }}>{typeInfo.icon}</span>
-                      <strong style={{ fontSize: "var(--ds-text-md)", color: 'var(--tamas-fg, #0f172a)' }}>{m.label}</strong>
-                      <span className={`a-badge ${typeInfo.badgeClass}`} style={{ fontSize: "var(--ds-text-xs)", padding: "2px var(--ds-space-2)", borderRadius: 12 }}>
-                        {typeInfo.label}
-                      </span>
-                      {!m.enabled && (
-                        <span className="a-badge a-badge--neutral" style={{ fontSize: "var(--ds-text-2xs)", color: "var(--ds-text-muted)" }}>
-                          غیرفعال
-                        </span>
-                      )}
+                    <div className="pm-row__title">
+                      <strong className="pm-row__label">{m.label}</strong>
+                      <span className={`a-badge ${typeInfo.badgeClass}`}>{typeInfo.label}</span>
+                      {!m.enabled && <span className="a-badge a-badge--neutral">غیرفعال</span>}
                     </div>
-                    {m.desc && <p style={{ fontSize: "var(--ds-text-caption)", color: 'var(--tamas-muted, #64748b)', margin: "var(--ds-space-1) 0 0" }}>{m.desc}</p>}
-                    {m.instructions && (
-                      <div style={{ fontSize: "var(--ds-text-xs)", color: 'var(--tamas-accent, #0ea5e9)', marginTop: "var(--ds-space-1)", whiteSpace: 'pre-line' }}>
-                        ℹ️ {m.instructions.split('\n')[0]}
-                      </div>
-                    )}
+                    {m.desc && <p className="pm-row__desc">{m.desc}</p>}
+                    {m.instructions && <div className="pm-row__note">{m.instructions.split('\n')[0]}</div>}
                     {(m.minAmount || m.maxAmount) && (
-                      <div style={{ fontSize: "var(--ds-text-xs)", color: "var(--ds-text-muted)", marginTop: "var(--ds-space-1)" }}>
+                      <div className="pm-row__note pm-row__note--muted">
                         {m.minAmount && <span>حداقل: {formatNumber(m.minAmount)} تومان </span>}
                         {m.maxAmount && <span> | حداکثر: {formatNumber(m.maxAmount)} تومان</span>}
                       </div>
@@ -231,37 +171,39 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
                   </div>
                 </div>
 
-                {/* Right side actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div className="pm-row__actions">
                   <button
                     type="button"
-                    className="a-btn a-btn--sm a-btn--ghost"
+                    className="a-btn a-btn--sm a-btn--ghost a-btn--icon"
                     disabled={index === 0}
                     onClick={() => handleMove(index, 'up')}
                     title="انتقال به بالاتر"
+                    aria-label={`بردن «${m.label}» به بالا`}
                   >
-                    ⬆️
+                    <span aria-hidden="true">▲</span>
                   </button>
                   <button
                     type="button"
-                    className="a-btn a-btn--sm a-btn--ghost"
+                    className="a-btn a-btn--sm a-btn--ghost a-btn--icon"
                     disabled={index === methods.length - 1}
                     onClick={() => handleMove(index, 'down')}
                     title="انتقال به پایین‌تر"
+                    aria-label={`بردن «${m.label}» به پایین`}
                   >
-                    ⬇️
+                    <span aria-hidden="true">▼</span>
                   </button>
                   <button type="button" className="a-btn a-btn--sm a-btn--secondary" onClick={() => openEditModal(m)}>
-                    ✏️ ویرایش
+                    ویرایش
                   </button>
                   <button
                     type="button"
                     className="a-btn a-btn--sm a-btn--danger"
                     disabled={methods.length <= 1}
                     onClick={() => handleDelete(m.id)}
-                    title="حذف"
+                    title={methods.length <= 1 ? 'دست‌کم یک روش پرداخت لازم است.' : 'حذف'}
+                    aria-label={`حذف «${m.label}»`}
                   >
-                    🗑️
+                    حذف
                   </button>
                 </div>
               </div>
@@ -274,99 +216,100 @@ export function PaymentMethodsSettings({ value, onChange, onSave, isSaving }: Pr
       {modalOpen && (
         <Modal
           open={modalOpen}
-          title={editingMethod ? 'ویرایش روش پرداخت' : 'افزودن روش پرداخت جدید'}
+          title={editingMethod ? 'ویرایش روش پرداخت' : 'افزودن روش پرداخت'}
           onClose={() => setModalOpen(false)}
           footer={
-            <div style={{ display: 'flex', gap: "var(--ds-space-2)", justifyContent: 'flex-end' }}>
-              <button type="button" className="a-btn a-btn--ghost" onClick={() => setModalOpen(false)}>
-                انصراف
-              </button>
+            <>
               <button type="button" className="a-btn a-btn--primary" onClick={handleSaveModal} disabled={!formLabel.trim()}>
                 ذخیره روش پرداخت
               </button>
-            </div>
+              <button type="button" className="a-btn a-btn--secondary" onClick={() => setModalOpen(false)}>
+                انصراف
+              </button>
+            </>
           }
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div className="a-field">
-              <label className="a-label">عنوان روش پرداخت (برای مشتری)</label>
+          <div className="pm-form">
+            <label className="a-field">
+              <span className="a-label">عنوان روش پرداخت (برای مشتری)</span>
               <input
                 className="a-input"
-                placeholder="مثال: پرداخت در محل (کارتخوان سیار)"
+                placeholder="مثلاً: پرداخت در محل (کارتخوان سیار)"
                 value={formLabel}
                 onChange={(e) => setFormLabel(e.target.value)}
               />
-            </div>
+            </label>
 
-            <div className="a-field">
-              <label className="a-label">توضیح کوتاه</label>
+            <label className="a-field">
+              <span className="a-label">توضیح کوتاه</span>
               <input
                 className="a-input"
-                placeholder="مثال: پرداخت کارت به کارت هنگام دریافت سفارش"
+                placeholder="مثلاً: پرداخت کارت به کارت هنگام دریافت سفارش"
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
               />
-            </div>
+            </label>
 
-            <div className="a-field">
-              <label className="a-label">نوع رفتار سیستم</label>
+            <label className="a-field">
+              <span className="a-label">نوع رفتار سیستم</span>
               <select
-                className="a-input"
+                className="a-select"
                 value={formType}
                 onChange={(e) => setFormType(e.target.value as PaymentMethodConfig['type'])}
               >
-                <option value="online">💳 درگاه پرداخت آنلاین (اتصال به درگاه بانکی)</option>
-                <option value="manual">🏦 کارت به کارت / واریز دستی (نیاز به آپلود رسید فیش)</option>
-                <option value="credit">⏳ خرید اعتباری (ثبت سفارش اعتباری)</option>
-                <option value="cheque">📄 چک صیادی (دریافت اطلاعات شماره چک)</option>
-                <option value="custom">🛍️ سفارشی / پرداخت در محل (ثبت مستقیم سفارش)</option>
+                <option value="online">درگاه پرداخت آنلاین (اتصال به درگاه بانکی)</option>
+                <option value="manual">کارت به کارت / واریز دستی (نیاز به آپلود رسید فیش)</option>
+                <option value="credit">خرید اعتباری (ثبت سفارش اعتباری)</option>
+                <option value="cheque">چک صیادی (دریافت اطلاعات شماره چک)</option>
+                <option value="custom">سفارشی / پرداخت در محل (ثبت مستقیم سفارش)</option>
               </select>
-            </div>
+            </label>
 
-            <div className="a-field">
-              <label className="a-label" style={{ display: 'flex', alignItems: 'center', gap: "var(--ds-space-2)", cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={formEnabled}
-                  onChange={(e) => setFormEnabled(e.target.checked)}
-                  style={{ width: 18, height: 18, accentColor: '#10b981' }}
-                />
-                <span>این روش پرداخت فعال باشد</span>
-              </label>
-            </div>
+            <label className="pm-check">
+              <input
+                type="checkbox"
+                checked={formEnabled}
+                onChange={(e) => setFormEnabled(e.target.checked)}
+              />
+              <span>این روش پرداخت فعال باشد</span>
+            </label>
 
-            <div className="a-field">
-              <label className="a-label">دستورالعمل، شماره حساب یا توضیحات تکمیلی مشتری (اختیاری)</label>
+            <label className="a-field">
+              <span className="a-label">دستورالعمل، شماره حساب یا توضیحات تکمیلی مشتری (اختیاری)</span>
               <textarea
                 className="a-textarea"
                 rows={3}
-                placeholder="مثلاً: شماره کارت یا شرایط تایید چک صیادی..."
+                placeholder="مثلاً: شماره کارت یا شرایط تأیید چک صیادی…"
                 value={formInstructions}
                 onChange={(e) => setFormInstructions(e.target.value)}
               />
-            </div>
+            </label>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: "var(--ds-space-3)" }}>
-              <div className="a-field">
-                <label className="a-label">حداقل مبلغ سفارش (تومان)</label>
+            <div className="pm-form__pair">
+              <label className="a-field">
+                <span className="a-label">حداقل مبلغ سفارش (تومان)</span>
                 <input
                   type="number"
+                  inputMode="numeric"
+                  dir="ltr"
                   className="a-input a-ltr"
-                  placeholder="مثال: 1000000"
+                  placeholder="مثلاً ۱٬۰۰۰٬۰۰۰"
                   value={formMinAmount}
                   onChange={(e) => setFormMinAmount(e.target.value)}
                 />
-              </div>
-              <div className="a-field">
-                <label className="a-label">حداکثر مبلغ سفارش (تومان)</label>
+              </label>
+              <label className="a-field">
+                <span className="a-label">حداکثر مبلغ سفارش (تومان)</span>
                 <input
                   type="number"
+                  inputMode="numeric"
+                  dir="ltr"
                   className="a-input a-ltr"
-                  placeholder="مثال: 50000000"
+                  placeholder="مثلاً ۵۰٬۰۰۰٬۰۰۰"
                   value={formMaxAmount}
                   onChange={(e) => setFormMaxAmount(e.target.value)}
                 />
-              </div>
+              </label>
             </div>
           </div>
         </Modal>

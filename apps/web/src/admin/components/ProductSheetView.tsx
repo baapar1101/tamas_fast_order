@@ -176,8 +176,8 @@ export function ProductSheetView({
                 type="search"
                 value={columnSearch}
                 onChange={(event) => setColumnSearch(event.target.value)}
-                placeholder="جستجوی ستون..."
-                aria-label="جستجوی ستون‌ها"
+                placeholder="جست‌وجوی ستون…"
+                aria-label="جست‌وجوی ستون‌ها"
               />}
               {(['کالا', 'قیمت و موجودی', 'نمایش'] as const).map((group) => (
                 <div className="product-sheet__column-group" key={group}>
@@ -194,8 +194,8 @@ export function ProductSheetView({
             </div>
           </details>
           {editedRows > 0 && <button type="button" className="a-btn a-btn--secondary" onClick={onDiscard} disabled={saving}>لغو تغییرات</button>}
-          <button type="button" className="a-btn a-btn--primary" disabled={!editedRows || saving} onClick={onSave}>
-            {saving ? 'در حال ذخیره…' : `ذخیره تغییرات${editedRows ? ` (${formatNumber(editedRows)})` : ''}`}
+          <button type="button" className="a-btn a-btn--primary" disabled={!editedRows || saving} aria-busy={saving || undefined} onClick={onSave}>
+            {saving ? 'در حال ذخیره…' : `ذخیرهٔ تغییرات${editedRows ? ` (${formatNumber(editedRows)})` : ''}`}
           </button>
         </div>
       </div>
@@ -212,11 +212,11 @@ export function ProductSheetView({
             <tr>
               <th className="product-sheet__identity" scope="col">
                 <div className="product-sheet__idhead">
-                  <input type="checkbox" aria-label="انتخاب همه محصولات این صفحه" checked={allOnPageSelected} onChange={(event) => onToggleAll(event.target.checked)} />
+                  <input type="checkbox" aria-label="انتخاب همهٔ محصولات این صفحه" checked={allOnPageSelected} onChange={(event) => onToggleAll(event.target.checked)} />
                   <span># / کد محصول</span>
                 </div>
               </th>
-              {visibleColumns.map((column) => <th key={column.key} scope="col" style={{ minWidth: column.width }} title={column.hint}>{column.label}{column.kind === 'read' && <span className="product-sheet__lock" aria-label="فقط نمایش">◌</span>}</th>)}
+              {visibleColumns.map((column) => <th key={column.key} scope="col" style={{ minWidth: column.width }} title={column.hint}>{column.label}{column.kind === 'read' && <><span className="product-sheet__lock" aria-hidden="true">◌</span><span className="a-sr-only">فقط نمایش</span></>}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -227,7 +227,7 @@ export function ProductSheetView({
                     <input type="checkbox" aria-label={`انتخاب ${product.productId}`} checked={selected.has(product.id)} onChange={() => onToggle(product.id)} />
                     <span className="product-sheet__rownum">{formatNumber((page - 1) * perPage + index + 1)}</span>
                     <a href={previewProductUrl(product.productId)} target="_blank" rel="noopener noreferrer" title="پیش‌نمایش محصول" className="product-sheet__code">{product.productId}</a>
-                    <button type="button" className="product-sheet__edit" title="ویرایش کامل محصول" aria-label={`ویرایش کامل ${product.productId}`} onClick={() => onEdit(product)}>✎</button>
+                    <button type="button" className="product-sheet__edit" title="ویرایش کامل محصول" aria-label={`ویرایش کامل ${product.productId}`} onClick={() => onEdit(product)}><span aria-hidden="true">✎</span></button>
                   </div>
                 </th>
                 {visibleColumns.map((column) => {

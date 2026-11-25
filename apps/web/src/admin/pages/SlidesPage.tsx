@@ -4,6 +4,7 @@ import { api } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 import { ImagePicker } from '../components/ImagePicker';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { AdminState } from '../components/AdminState';
 import { useDarkTheme } from '../../components/useDarkTheme';
 import { GoldenCampaignCopy } from '../../storefront/GoldenCampaignCopy';
 import { GOLDEN_CAMPAIGN_END_AT, GOLDEN_CAMPAIGN_LIGHT_IMAGE_URL, isGoldenCampaignSlide } from '../../storefront/goldenCampaign';
@@ -48,7 +49,7 @@ export function SlidesPage() {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [deleteTarget, setDeleteTarget] = useState<Slide | null>(null);
 
-  const { data: slides = [], isLoading } = useQuery<Slide[]>({
+  const { data: slides = [], isLoading, isError, error, refetch } = useQuery<Slide[]>({
     queryKey: ['admin', 'slides'],
     queryFn: () => api.get('/admin/slides'),
   });
@@ -65,7 +66,7 @@ export function SlidesPage() {
       refresh();
       closeForm();
     },
-    onError: (err: Error) => toast.error(err.message || 'خطا در ذخیره بنر'),
+    onError: (err: Error) => toast.error(err.message || 'بنر ذخیره نشد؛ دوباره تلاش کنید.'),
   });
 
   const toggleMutation = useMutation({
@@ -91,7 +92,7 @@ export function SlidesPage() {
       setDeleteTarget(null);
       refresh();
     },
-    onError: (err: Error) => toast.error(err.message || 'خطا در حذف بنر'),
+    onError: (err: Error) => toast.error(err.message || 'بنر حذف نشد؛ دوباره تلاش کنید.'),
   });
 
   function openEditor(slide?: Slide) {
@@ -140,7 +141,7 @@ export function SlidesPage() {
           <p className="a-subtitle">تصاویر، لینک، ترتیب و نمایش دسکتاپ و موبایل اسلایدر صفحه اصلی</p>
         </div>
         <div className="a-page-actions">
-          <span className="a-badge a-badge--neutral">{slides.length} بنر</span>
+          <span className="a-badge a-badge--neutral">{slides.length.toLocaleString('fa-IR')} بنر</span>
           <button type="button" className="a-btn a-btn--primary" onClick={() => openEditor()}>+ افزودن بنر</button>
         </div>
       </section>
@@ -149,7 +150,7 @@ export function SlidesPage() {
         <form className="a-form a-form--wide a-fade" onSubmit={handleSubmit}>
           <div className="a-form-head">
             <button type="button" className="a-form-back" onClick={closeForm} aria-label="بازگشت" title="بازگشت">
-              <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-5 w-5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+              <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-5 w-5" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
             </button>
             <div className="a-form-title">
               {editingId ? 'ویرایش بنر' : 'افزودن بنر جدید'}
@@ -157,7 +158,7 @@ export function SlidesPage() {
             </div>
             <div className="a-form-actions">
               <button type="button" className="a-btn a-btn--secondary" onClick={closeForm}>انصراف</button>
-              <button type="submit" className="a-btn a-btn--primary" disabled={saveMutation.isPending}>
+              <button type="submit" className="a-btn a-btn--primary" disabled={saveMutation.isPending} aria-busy={saveMutation.isPending || undefined}>
                 {saveMutation.isPending ? 'در حال ذخیره…' : 'ذخیره بنر'}
               </button>
             </div>
@@ -209,7 +210,7 @@ export function SlidesPage() {
                     <div className="a-option-title">نمایش در فروشگاه</div>
                     <div className="a-option-desc">با غیرفعال‌کردن، بنر ذخیره می‌ماند اما در صفحه اصلی دیده نمی‌شود.</div>
                   </div>
-                  <button type="button" role="switch" aria-checked={formData.isActive} className="a-switch" onClick={() => setFormData({ ...formData, isActive: !formData.isActive })} />
+                  <button type="button" role="switch" aria-checked={formData.isActive} aria-label="نمایش در فروشگاه" className="a-switch" onClick={() => setFormData({ ...formData, isActive: !formData.isActive })} />
                 </div>
               </section>
             </div>
@@ -221,18 +222,18 @@ export function SlidesPage() {
                   <p className="a-card-sub">تقریب نمایش در صفحه اصلی</p>
                 </div>
                 <div className="slides-device-toggle" role="group" aria-label="نوع پیش‌نمایش">
-                  <button type="button" className={previewDevice === 'desktop' ? 'active' : ''} onClick={() => setPreviewDevice('desktop')}>دسکتاپ</button>
-                  <button type="button" className={previewDevice === 'mobile' ? 'active' : ''} onClick={() => setPreviewDevice('mobile')}>موبایل</button>
+                  <button type="button" className={previewDevice === 'desktop' ? 'active' : ''} aria-pressed={previewDevice === 'desktop'} onClick={() => setPreviewDevice('desktop')}>دسکتاپ</button>
+                  <button type="button" className={previewDevice === 'mobile' ? 'active' : ''} aria-pressed={previewDevice === 'mobile'} onClick={() => setPreviewDevice('mobile')}>موبایل</button>
                 </div>
               </div>
               <div className={`slides-preview-frame slides-preview-frame--${previewDevice}${isGoldenCampaignSlide(formData) ? ' slides-preview-frame--golden' : ''}`}>
-                {themedPreviewImage ? <img src={themedPreviewImage} alt={formData.title || 'پیش‌نمایش بنر'} /> : <div className="slides-preview-empty">تصویر بنر را انتخاب کنید</div>}
+                {themedPreviewImage ? <img src={themedPreviewImage} alt={formData.title || 'پیش‌نمایش بنر'} /> : <div className="slides-preview-empty">تصویر بنر را انتخاب کنید.</div>}
                 {previewImage && isGoldenCampaignSlide(formData) && <GoldenCampaignCopy />}
               </div>
               {isGoldenCampaignSlide(formData) && <p className="a-hint mt-3">این بنر پس از پایان ۲۰ مهر ۱۴۰۵ به‌طور خودکار از فروشگاه پنهان می‌شود{Date.now() >= GOLDEN_CAMPAIGN_END_AT ? ' (اکنون منقضی شده است).' : '.'}</p>}
               <dl className="slides-preview-meta">
                 <div><dt>عنوان</dt><dd>{formData.title || 'بدون عنوان'}</dd></div>
-                <div><dt>مقصد</dt><dd dir="ltr">{formData.linkUrl || 'بدون لینک'}</dd></div>
+                <div><dt>مقصد</dt><dd className={formData.linkUrl ? 'a-ltr' : undefined}>{formData.linkUrl || 'بدون لینک'}</dd></div>
               </dl>
             </aside>
           </div>
@@ -247,9 +248,16 @@ export function SlidesPage() {
           </div>
         </div>
         {isLoading ? (
-          <div className="a-empty">در حال دریافت بنرها…</div>
+          <AdminState kind="loading" title="در حال دریافت بنرها…" />
+        ) : isError ? (
+          <AdminState kind="error" error={error} onRetry={() => void refetch()} />
         ) : slides.length === 0 ? (
-          <div className="a-empty">بنری ثبت نشده است. با «افزودن بنر» اولین بنر را بسازید.</div>
+          <AdminState
+            kind="empty"
+            noun="بنر"
+            text="با «افزودن بنر» اولین بنر را بسازید."
+            action={<button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => openEditor()}>افزودن بنر</button>}
+          />
         ) : (
           <div className="slides-card-grid">
             {slides.map((slide) => (
@@ -266,13 +274,13 @@ export function SlidesPage() {
                   <div className="slide-admin-title-row">
                     <div>
                       <h4>{slide.title || 'بنر بدون عنوان'}</h4>
-                      <p dir="ltr">{slide.linkUrl || 'بدون لینک'}</p>
+                      <p className={slide.linkUrl ? 'a-ltr' : undefined}>{slide.linkUrl || 'بدون لینک'}</p>
                     </div>
-                    <span className="slide-sort">اولویت {slide.sortOrder}</span>
+                    <span className="slide-sort">اولویت {slide.sortOrder.toLocaleString('fa-IR')}</span>
                   </div>
                   <div className="slide-admin-actions">
-                    <button type="button" className="a-btn a-btn--primary a-btn--sm" onClick={() => openEditor(slide)}>ویرایش و پیش‌نمایش</button>
-                    <button type="button" className="a-btn a-btn--secondary a-btn--sm" disabled={toggleMutation.isPending} onClick={() => toggleMutation.mutate(slide)}>{slide.isActive ? 'غیرفعال‌کردن' : 'فعال‌کردن'}</button>
+                    <button type="button" className="a-btn a-btn--secondary a-btn--sm" onClick={() => openEditor(slide)}>ویرایش و پیش‌نمایش</button>
+                    <button type="button" className="a-btn a-btn--outline a-btn--sm" disabled={toggleMutation.isPending} onClick={() => toggleMutation.mutate(slide)}>{slide.isActive ? 'غیرفعال‌کردن' : 'فعال‌کردن'}</button>
                     <button type="button" className="a-btn a-btn--danger a-btn--sm" onClick={() => setDeleteTarget(slide)}>حذف</button>
                   </div>
                 </div>
@@ -286,7 +294,8 @@ export function SlidesPage() {
         open={deleteTarget !== null}
         title="حذف بنر"
         busy={deleteMutation.isPending}
-        description={<>بنر <strong>«{deleteTarget?.title || 'بدون عنوان'}»</strong> حذف شود؟ بلافاصله از اسلایدر فروشگاه خارج خواهد شد.</>}
+        description={<>بنر <strong>«{deleteTarget?.title || 'بدون عنوان'}»</strong> حذف می‌شود و بلافاصله از اسلایدر فروشگاه خارج می‌شود؛ حذف برگشت ندارد.</>}
+        confirmLabel="حذف"
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
       />

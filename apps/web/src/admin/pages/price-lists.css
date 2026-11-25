@@ -1,0 +1,3 @@
+/* Public price lists admin page: tokens only (docs/ui-guidelines.md §11). */
+.price-list-title-input { min-width: min(260px, 100%); }
+.price-list-auto { align-self: center; }

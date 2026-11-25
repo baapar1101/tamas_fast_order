@@ -1,0 +1,2 @@
+/* Points campaign admin page: tokens only (docs/ui-guidelines.md §11). */
+.points-standings-wrap { max-height: 520px; overflow: auto; }
