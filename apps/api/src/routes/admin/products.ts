@@ -12,7 +12,7 @@ import { buildSearchText, findProductByPublicId, invalidateCatalog, toProductDTO
 import { catalogExportScopeFilter, catalogExportScopeSchema } from '../../services/catalog-export-scope.js';
 import { logAction } from '../../services/audit.js';
 import { enqueueCrmProductSync } from '../../services/crm-product-sync.js';
-import { duplicateProductMessage, findProductDuplicate } from '../../services/product-duplicates.js';
+import { changesProductIdentity, duplicateProductMessage, findProductDuplicate } from '../../services/product-duplicates.js';
 import { insertProductRecord, resolveProductCategory, resolveTaxonomy } from '../../services/product-create.js';
 import { importProductRows } from '../../services/product-import.js';
 import { attachProductPhotos, productIdsWithoutPhoto } from '../../services/product-photos.js';
@@ -255,8 +255,10 @@ const routes: FastifyPluginAsync = async (app) => {
     const [existing] = await db.select().from(products).where(eq(products.id, id)).limit(1);
     if (!existing) throw notFound('محصول پیدا نشد.');
 
-    const duplicate = await findProductDuplicate({ ...existing, ...body }, id);
-    if (duplicate) throw conflict(duplicateProductMessage(duplicate));
+    if (changesProductIdentity(existing, body)) {
+      const duplicate = await findProductDuplicate({ ...existing, ...body }, id);
+      if (duplicate) throw conflict(duplicateProductMessage(duplicate));
+    }
 
     const patch: Record<string, unknown> = { ...body, updatedAt: new Date() };
     const trackingLinks = body.trackingLinks === undefined ? undefined : await validateTrackingLinks(body.trackingLinks);

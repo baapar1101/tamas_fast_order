@@ -78,6 +78,16 @@ export function matchProductDuplicate(
   return null;
 }
 
+const IDENTITY_FIELDS = ['productId', 'sku', 'title', 'model', 'color', 'colorEn', 'type', 'digikalaLink'] as const;
+
+/**
+ * Whether an edit touches what makes a product unique. A price or stock edit
+ * must still save on a product that already collides with another one.
+ */
+export function changesProductIdentity(existing: ProductIdentityInput, patch: ProductIdentityInput): boolean {
+  return IDENTITY_FIELDS.some((field) => patch[field] !== undefined && (patch[field] ?? null) !== (existing[field] ?? null));
+}
+
 /** Finds a live logical duplicate without confusing different colour/model variants. */
 export async function findProductDuplicate(
   input: ProductIdentityInput,
