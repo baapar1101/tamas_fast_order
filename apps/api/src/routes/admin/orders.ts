@@ -144,6 +144,13 @@ const routes: FastifyPluginAsync = async (app) => {
     }
     const instructionByOrder = new Map(instructions.map((item) => [item.orderId, item]));
 
+    const instructionByOrder = new Map<number, typeof instructions[0]>();
+    for (const it of instructions) {
+      if (!instructionByOrder.has(it.orderId)) {
+        instructionByOrder.set(it.orderId, it);
+      }
+    }
+
     return {
       ok: true,
       items: rows.map((r) => toAdminOrderDTO(r, byOrder.get(r.id) ?? [], instructionByOrder.get(r.id))),
