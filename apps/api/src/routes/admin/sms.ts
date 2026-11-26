@@ -55,6 +55,11 @@ const SAMPLE_VARS: Record<string, string> = {
   code: '12345',
 };
 
+const PRECOMPILED_VARS = Object.entries(SAMPLE_VARS).map(([k, value]) => ({
+  regex: new RegExp(`\\{${k}\\}`, 'g'),
+  value,
+}));
+
 export const smsRoutes: FastifyPluginAsync = async (app) => {
   // Configuring the smart SMS templates is part of the panel settings.
   app.addHook('preHandler', app.requirePermission('manage_settings'));
@@ -93,8 +98,8 @@ export const smsRoutes: FastifyPluginAsync = async (app) => {
     if (!isValidPhone(phone)) throw badRequest('شماره همراه معتبر وارد کنید.');
 
     let text = body.text;
-    for (const [key, value] of Object.entries(SAMPLE_VARS)) {
-      text = text.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+    for (const { regex, value } of PRECOMPILED_VARS) {
+      text = text.replace(regex, value);
     }
 
     const result = body.templateKey === 'sms_template_otp'
