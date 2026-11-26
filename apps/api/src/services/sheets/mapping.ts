@@ -66,14 +66,9 @@ export interface EntityMapping {
   applySheetRow(key: string, cells: SheetCells, updatedAt: Date): Promise<ApplyOutcome>;
 }
 
-function* chunk<T>(items: T[], size: number): Generator<T[]> {
-  for (let i = 0; i < items.length; i += size) yield items.slice(i, i + size);
-}
-
 /**
- * Records "these rows now match the sheet" for a whole batch in one statement
- * per chunk — a per-row UPDATE would be thousands of round trips on a real
- * catalogue.
+ * Records "these rows now match the sheet" for a whole batch in one statement.
+ * Using `unnest` avoids executing N+1 queries in a loop while remaining highly performant.
  */
 export async function markSynced(
   mapping: EntityMapping,
@@ -84,24 +79,16 @@ export async function markSynced(
   const table = sql.raw(`"${mapping.tableName}"`);
   const keyCol = sql.raw(`"${mapping.keyDbColumn}"`);
 
-  for (const part of chunk(rows, 500)) {
-    // Both columns are cast explicitly: without a type, Postgres cannot infer
-    // one for a parameter inside a VALUES list. The timestamp comes from
-    // now() rather than a bound Date — drizzle's raw-SQL path cannot serialise
-    // a Date, and silently failing here would leave every row without a
-    // baseline, which quietly turns every later sheet edit into a conflict.
-    const tuples = sql.join(
-      part.map((r) => sql`(${r.key}::text, ${r.hash}::text)`),
-      sql`, `,
-    );
-    await db.execute(sql`
-      update ${table} as t
-         set sheet_hash = v.hash,
-             sheet_synced_at = now()
-        from (values ${tuples}) as v(key, hash)
-       where t.${keyCol} = v.key
-    `);
-  }
+  const keys = rows.map((r) => r.key);
+  const hashes = rows.map((r) => r.hash);
+
+  await db.execute(sql`
+    update ${table} as t
+       set sheet_hash = v.hash,
+           sheet_synced_at = now()
+      from unnest(${keys}::text[], ${hashes}::text[]) as v(key, hash)
+     where t.${keyCol} = v.key
+  `);
 }
 
 /* ------------------------------------------------------------------ *
