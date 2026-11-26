@@ -253,9 +253,9 @@ export async function sendTemplatedSms(
     return { ok: true, error: 'الگویی برای ارسال یافت نشد و پیامک لغو شد.' }; // Return ok if no template configured
   }
 
-  for (const [key, value] of Object.entries(variables)) {
-    text = text.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
-  }
+  text = text.replace(/\{([^}]+)\}/g, (match, key) => {
+    return Object.hasOwn(variables, key) ? variables[key]! : match;
+  });
 
   const smsConfig = await getSmsRuntimeConfig();
   const isOtp = templateKey === 'sms_template_otp';
