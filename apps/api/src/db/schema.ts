@@ -1277,6 +1277,31 @@ export const smsCampaignDeliveries = pgTable('sms_campaign_deliveries', {
   index('sms_campaign_delivery_campaign_idx').on(t.campaignId),
 ]);
 
+/** Incoming SMS pulled from the provider inbox; the provider id is kept as text and is unique per provider. */
+export const smsInboxMessages = pgTable('sms_inbox_messages', {
+  id: serial('id').primaryKey(),
+  provider: varchar('provider', { length: 24 }).notNull().default('payamresan'),
+  providerMessageId: varchar('provider_message_id', { length: 64 }).notNull(),
+  /** Sender digits as received. */
+  fromNumber: varchar('from_number', { length: 32 }).notNull(),
+  /** Sender folded to `09xxxxxxxxx`, null when the sender is not a mobile. */
+  fromPhone: varchar('from_phone', { length: 15 }),
+  toNumber: varchar('to_number', { length: 32 }).notNull(),
+  body: text('body').notNull(),
+  /** Provider time string (Iran local time) exactly as received. */
+  providerTime: varchar('provider_time', { length: 40 }).notNull().default(''),
+  receivedAt: timestamp('received_at', { withTimezone: true }).notNull(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+  handledAt: timestamp('handled_at', { withTimezone: true }),
+  handledBy: integer('handled_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [
+  uniqueIndex('sms_inbox_provider_message_key').on(t.provider, t.providerMessageId),
+  index('sms_inbox_received_idx').on(t.receivedAt),
+  index('sms_inbox_from_phone_idx').on(t.fromPhone),
+  index('sms_inbox_user_idx').on(t.userId),
+]);
+
 /* ------------------------------------------------------------------ *
  * Sales funnel: storefront behaviour, saved carts, automatic follow-ups
  * ------------------------------------------------------------------ */

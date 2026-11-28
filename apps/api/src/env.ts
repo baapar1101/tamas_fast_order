@@ -35,6 +35,8 @@ const envSchema = z.object({
   PAYAMRESAN_API_KEY: z.string().default(''),
   PAYAMRESAN_SENDER: z.string().default(''),
   PAYAMRESAN_BASE_URL: z.string().url().default('https://api.sms-webservice.com/api/V3'),
+  /** How often the server pulls the Payam Resan v4 inbox (GetInbox); 0 turns polling off. */
+  PAYAMRESAN_INBOX_POLL_SECONDS: z.coerce.number().int().min(0).max(3600).default(60),
   MELIPAYAMAK_USERNAME: z.string().default(''),
   MELIPAYAMAK_API_KEY: z.string().default(''),
   MELIPAYAMAK_FROM: z.string().default(''),

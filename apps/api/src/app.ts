@@ -41,6 +41,7 @@ import adminProductContentImport from './routes/admin/product-content-import.js'
 import adminTrackingSites from './routes/admin/tracking-sites.js';
 import { accessGroupsRoutes } from './routes/admin/access-groups.js';
 import { smsRoutes } from './routes/admin/sms.js';
+import { smsInboxRoutes } from './routes/admin/sms-inbox.js';
 import authRoutes from './routes/auth.js';
 import catalogRoutes from './routes/catalog.js';
 import orderRoutes from './routes/orders.js';
@@ -211,6 +212,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         await api.register(adminDiscountRoutes);
         await api.register(accessGroupsRoutes);
         await api.register(smsRoutes);
+        await api.register(smsInboxRoutes);
         await api.register(crmRoutes); // <-- CRM integration routes
         await api.register(creditRoutes);
         await api.register(adminCreditRoutes);

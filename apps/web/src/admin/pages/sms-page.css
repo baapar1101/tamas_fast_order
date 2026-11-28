@@ -30,3 +30,11 @@
 .sms-box-row:last-child {
   border-bottom: 0;
 }
+
+/* SmsInboxPanel — keep long messages readable inside the table */
+.sms-inbox-text {
+  min-width: 14rem;
+  max-width: 28rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

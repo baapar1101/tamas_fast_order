@@ -11,6 +11,7 @@ import { sendDueInstallmentReceiptReminders } from './services/installment-recei
 import { runScheduledTelegramBackup } from './services/telegram-backup.js';
 import { processNativeCampaigns } from './services/native-campaigns.js';
 import { processSmsCampaigns } from './services/sms-campaigns.js';
+import { pollSmsInbox } from './services/sms-inbox.js';
 import { pruneFunnelEvents, runFunnelAutomation } from './services/funnel.js';
 
 /**
@@ -31,6 +32,20 @@ export function startScheduler(log: FastifyBaseLogger): () => void {
   };
   timers.push(setTimeout(() => void smsCampaigns(), 7_000));
   timers.push(setInterval(() => void smsCampaigns(), 3_000));
+
+  if (env.PAYAMRESAN_INBOX_POLL_SECONDS > 0) {
+    const smsInbox = async () => {
+      try {
+        const report = await pollSmsInbox();
+        if (report.stored > 0) log.info(report, 'incoming SMS stored');
+      } catch (err) {
+        // PayamResanError carries no key or request body, only the provider code.
+        log.warn({ err }, 'incoming SMS poll failed');
+      }
+    };
+    timers.push(setTimeout(() => void smsInbox(), 20_000));
+    timers.push(setInterval(() => void smsInbox(), env.PAYAMRESAN_INBOX_POLL_SECONDS * 1000));
+  }
 
   if (env.SHEETS_ENABLED && env.SHEETS_SYNC_INTERVAL_SECONDS > 0) {
     const interval = env.SHEETS_SYNC_INTERVAL_SECONDS * 1000;
