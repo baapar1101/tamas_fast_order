@@ -8,7 +8,8 @@ import { SmokeyBackground } from './components/SmokeyBackground';
 import { AdminBackdrop, AdminBackgroundPicker, useAdminBackground } from './components/AdminBackdrop';
 import { AdminPasswordLogin } from './components/AdminPasswordLogin';
 import { AdminAppearanceDialog } from './components/AdminAppearanceDialog';
-import { FROST_BLUR_PX, setAdminAppearance, useAdminAppearance, useApplyAppearance, useResolvedTheme } from './appearance';
+import { AdminCommandPalette, type PaletteItem } from './components/AdminCommandPalette';
+import { FROST_BLUR_PX, useAdminAppearance, useApplyAppearance, useResolvedTheme } from './appearance';
 import { useGlassLens } from './lens';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
@@ -523,12 +524,24 @@ export default function AdminApp() {
   useApplyAppearance(appearance, theme);
   useGlassLens(appearance.skin === 'glass' && appearance.bend, Math.max(FROST_BLUR_PX[appearance.frost - 1]!, 2));
   const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Ctrl+K / ⌘K opens the section search from anywhere in the panel.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const savedBackground = useAdminBackground();
   const [backgroundPreview, setBackgroundPreview] = useState<AdminBackground | null>(null);
   const [backgroundPickerOpen, setBackgroundPickerOpen] = useState(false);
 
-  const toggleTheme = () => setAdminAppearance({ theme: theme === 'dark' ? 'light' : 'dark' });
 
   // The reference stylesheet contains a complete utility/reset layer. Mark the
   // document while this lazy route is mounted so those rules never leak into
@@ -660,7 +673,19 @@ export default function AdminApp() {
       .map((path) => NAV_ITEMS.find((item) => item.to === path))
       .filter((item): item is (typeof NAV_ITEMS)[number] => Boolean(item) && hasPermission(item!.requiredPermission)),
   })).filter((group) => group.items.length > 0);
-  const currentGroupLabel = NAV_GROUPS.find((group) => group.id === activeNavGroup(location.pathname))?.label ?? 'داشبورد';
+  const currentGroup = NAV_GROUPS.find((group) => group.id === activeNavGroup(location.pathname))?.label ?? null;
+  const currentItem = NAV_ITEMS.filter((item) =>
+    item.to === '/admin' ? location.pathname === '/admin' || location.pathname === '/admin/' : pathMatches(location.pathname, item.to),
+  ).sort((a, b) => b.to.length - a.to.length)[0];
+  const currentPageLabel = currentItem?.label ?? 'پنل مدیریت';
+  const newOrders = counters.data?.newOrders ?? 0;
+  const canSee = (to: string) => NAV_ITEMS.some((item) => item.to === to && hasPermission(item.requiredPermission));
+  const paletteItems: PaletteItem[] = [
+    ...(dashboardItem && hasPermission(dashboardItem.requiredPermission)
+      ? [{ to: dashboardItem.to, label: dashboardItem.label, group: 'پنل مدیریت', icon: dashboardItem.icon }]
+      : []),
+    ...visibleGroups.flatMap((group) => group.items.map((item) => ({ to: item.to, label: item.label, group: group.label, icon: item.icon }))),
+  ];
 
   return (
     <div className="admin-body-shell">
@@ -668,6 +693,7 @@ export default function AdminApp() {
       {/* The admin's own backdrop: animated smoke by default */}
       <AdminBackdrop background={backgroundPreview ?? savedBackground} theme={theme} />
       <AdminBackgroundPicker open={backgroundPickerOpen} onClose={() => setBackgroundPickerOpen(false)} onPreview={setBackgroundPreview} />
+      <AdminCommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} items={paletteItems} />
       <AdminAppearanceDialog
         open={appearanceOpen && !backgroundPickerOpen}
         onClose={() => setAppearanceOpen(false)}
@@ -690,25 +716,88 @@ export default function AdminApp() {
           mobileSidebarOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        {/* Brand Logo Header */}
-        <div className="flex items-center gap-3 px-6 pb-6 pt-7 border-b glass-border mb-4">
-          <div className="relative grid place-items-center">
-            <img src="/admin-logo.svg" alt="Tamas Logo" className="h-11 w-11 object-contain" />
-          </div>
-          <div>
-            <h1 className="text-lg font-extrabold glass-text-t1 leading-none">تماس مارکت</h1>
-            <p className="mt-1 text-[11px] glass-text-t4">پنل مدیریت هوشمند</p>
-          </div>
+        {/* Account row (MARK): the signed-in admin, level with the header. */}
+        <div className="mk-account">
           <button
             type="button"
-            className="admin-sidebar-close icon-btn mr-auto lg:hidden"
+            className="mk-account__trigger"
+            aria-haspopup="menu"
+            aria-expanded={profileOpen}
+            aria-label="منوی حساب مدیریت"
+            onClick={() => {
+              setProfileOpen(!profileOpen);
+              setNotifOpen(false);
+            }}
+          >
+            <span className="mk-account__avatar" aria-hidden="true">
+              {user?.name?.[0] || 'م'}
+              <span className="admin-presence-dot" />
+            </span>
+            <span className="mk-account__who">
+              <b>{user?.name} {user?.lastName}</b>
+              <small>{isAdmin ? 'مدیر سیستم' : 'اپراتور'}</small>
+            </span>
+            <svg className="mk-account__chevron" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" width="14" height="14" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="admin-sidebar-close icon-btn lg:hidden"
             onClick={() => setMobileSidebarOpen(false)}
             aria-label="بستن منو"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+          {profileOpen && (
+            <div className="mk-account__menu">
+              <div className="glass-card-static overflow-hidden p-0 shadow-2xl glass-bg-dropdown backdrop-blur-xl">
+                      <div className="flex items-center gap-3 border-b glass-border px-5 py-4">
+                        <span className="admin-avatar grid h-11 w-11 shrink-0 place-items-center rounded-xl text-base font-bold" aria-hidden="true">
+                          {user?.name?.[0] || 'م'}
+                        </span>
+                        <div>
+                          <p className="text-sm font-bold glass-text-t1">{user?.name} {user?.lastName}</p>
+                          <p className="mt-0.5 text-xs glass-text-t2 a-ltr">{user?.phone}</p>
+                          <span className="chip chip-brand mt-1.5">مدیر ارشد</span>
+                        </div>
+                      </div>
+                      <ul className="py-2">
+                        <li>
+                          <Link to="/" className="profile-menu-item glass-text-t2 hover:glass-text-t1">
+                            <svg className="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                            مشاهده وب‌سایت فروشگاه
+                          </Link>
+                        </li>
+                        <li>
+                          <Link to="/admin/settings" className="profile-menu-item glass-text-t2 hover:glass-text-t1">
+                            <svg className="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            تنظیمات سیستم
+                          </Link>
+                        </li>
+                      </ul>
+                      <div className="border-t glass-border p-2">
+                          <button
+                            type="button"
+                            className="profile-menu-item profile-menu-item--danger w-full rounded-lg text-right"
+                          onClick={() => void logout()}
+                        >
+                          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                          </svg>
+                          خروج از حساب مدیریت
+                        </button>
+                      </div>
+                    </div>
+            </div>
+          )}
         </div>
 
         {/* Sidebar Links */}
@@ -778,101 +867,51 @@ export default function AdminApp() {
             <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
             مشاهده فروشگاه
           </a>
+          <div className="mk-brand">
+            <img src="/admin-logo.svg" alt="" width="20" height="20" />
+            <span>تماس مارکت · پنل مدیریت</span>
+          </div>
         </div>
       </aside>
 
       {/* Main Container */}
       <div className="admin-main-shell relative z-10 flex min-h-screen flex-col lg:mr-72">
-        {/* Sticky Top Header */}
-        <header className="admin-topbar sticky top-0 z-20 border-b glass-border glass-bg-surface backdrop-blur-xl">
-          <div className="flex h-[4.5rem] items-center gap-3 px-4 sm:px-6 lg:px-8">
-            {/* Mobile Menu Button */}
+        {/* Header (MARK): where you are and a greeting; round icon actions at the end. */}
+        <header className="admin-topbar mk-header sticky top-0 z-20">
+          <div className="mk-header__row">
             <button
               type="button"
               className="admin-menu-toggle icon-btn lg:hidden"
               onClick={() => setMobileSidebarOpen(true)}
               aria-label="باز کردن منو"
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              </svg>
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
             </button>
 
-            <div className="mobile-admin-heading lg:hidden">
-              <strong>پنل مدیریت</strong>
-              <small>{currentGroupLabel}</small>
-            </div>
-
-            {/* Quick Search Input */}
-            <div className="group relative hidden flex-1 max-w-md sm:block">
-              <svg
-                className="pointer-events-none absolute right-3.5 top-1/2 h-5 w-5 -translate-y-1/2 glass-text-t4"
-                aria-hidden="true"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.8"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
-              <input
-                type="text"
-                placeholder="جستجو در بخش مدیریت…"
-                aria-label="جستجو در بخش مدیریت"
-                className="w-full rounded-xl border glass-border glass-bg-input py-2 pr-11 pl-4 text-xs glass-text-t1 glass-placeholder outline-none transition-all duration-300 glass-input focus:shadow-glow"
-              />
-              <kbd className="absolute left-3 top-1/2 hidden -translate-y-1/2 rounded-md border glass-border glass-bg-surface px-1.5 py-0.5 text-[10px] glass-text-t4 md:block">
-                ⌘K
-              </kbd>
-            </div>
-
-            {/* Real-time Jalali Date & Clock */}
-            <div className="mr-auto flex items-center gap-2 sm:gap-3">
-              <div className="hidden items-center gap-2.5 rounded-xl border glass-border glass-bg-surface px-4 py-2 md:flex">
-                <svg className="h-4 w-4 glass-text-t4" aria-hidden="true" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                </svg>
-                <span className="text-xs font-medium glass-text-t2">{currentTime.date || 'در حال دریافت…'}</span>
-                <span className="h-3 w-px bg-[var(--a-divider)]" />
-                <span dir="ltr" className="text-xs font-medium tabular-nums glass-text-t1">
-                  {currentTime.time || '--:--:--'}
-                </span>
-              </div>
-
-              {/* Backdrop picker */}
-              <button
-                type="button"
-                className="icon-btn"
-                onClick={() => setAppearanceOpen(true)}
-                aria-label="ظاهر پنل"
-                aria-haspopup="dialog"
-                title="ظاهر پنل: تم، پوسته، شیشه و پس‌زمینه"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z" />
-                </svg>
-              </button>
-
-              {/* Theme Toggle */}
-              <button
-                type="button"
-                className="icon-btn"
-                onClick={toggleTheme}
-                aria-label={theme === 'dark' ? 'حالت روشن' : 'حالت تیره'}
-                title={theme === 'dark' ? 'تغییر به حالت روشن' : 'تغییر به حالت تیره'}
-              >
-                {theme === 'dark' ? (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-                  </svg>
-                ) : (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-                  </svg>
+            <div className="mk-header__title">
+              <nav className="mk-crumbs" aria-label="مسیر صفحه">
+                <span aria-current="page">{currentPageLabel}</span>
+                {currentGroup && (
+                  <>
+                    <span className="mk-crumbs__sep" aria-hidden="true">/</span>
+                    <span>{currentGroup}</span>
+                  </>
                 )}
-              </button>
+              </nav>
+              <p className="mk-greeting">
+                سلام {user?.name || 'مدیر'}، {currentTime.date || '…'}
+                <span className="mk-greeting__time" dir="ltr">{currentTime.time}</span>
+              </p>
+            </div>
 
-              {/* Notification Bell Dropdown */}
+            <div className="mk-header__actions">
+              {canSee('/admin/orders') && (
+                <Link to="/admin/orders" className="icon-btn" aria-label={newOrders ? `سفارش‌های تازه، ${formatNumber(newOrders)} مورد` : 'سفارش‌ها'} title="سفارش‌ها">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75" /></svg>
+                  {newOrders > 0 && <span className="admin-count-badge">{newOrders > 9 ? '+۹' : formatNumber(newOrders)}</span>}
+                </Link>
+              )}
+
               <div className="relative">
                 <button
                   type="button"
@@ -881,18 +920,13 @@ export default function AdminApp() {
                     setNotifOpen(!notifOpen);
                     setProfileOpen(false);
                   }}
-                  aria-label="اعلان‌ها"
+                  aria-label="اعلان‌ها، ۲ مورد تازه"
                   aria-haspopup="true"
                   aria-expanded={notifOpen}
                 >
-                  <svg className="h-5 w-5" aria-hidden="true" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                  </svg>
-                  <span className="admin-count-badge absolute -left-0.5 -top-0.5">
-                    ۲
-                  </span>
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
+                  <span className="admin-count-badge">۲</span>
                 </button>
-
                 {notifOpen && (
                   <div className="absolute left-0 top-14 w-80 max-w-[calc(100vw-2rem)] z-50">
                     <div className="glass-card-static overflow-hidden p-0 shadow-2xl glass-bg-dropdown">
@@ -933,82 +967,45 @@ export default function AdminApp() {
                 )}
               </div>
 
-              {/* Profile Menu Dropdown */}
-              <div className="relative">
-                <button
-                  type="button"
-                  className="admin-profile-trigger group flex items-center gap-2.5 rounded-lg border glass-border glass-bg-surface py-1.5 pl-3 pr-1.5"
-                  aria-haspopup="true"
-                  aria-expanded={profileOpen}
-                  aria-label="منوی حساب مدیریت"
-                  onClick={() => {
-                    setProfileOpen(!profileOpen);
-                    setNotifOpen(false);
-                  }}
-                >
-                  <span className="relative">
-                    <span className="admin-avatar grid h-9 w-9 place-items-center rounded-lg text-sm font-bold" aria-hidden="true">
-                      {user?.name?.[0] || 'م'}
-                    </span>
-                    <span className="admin-presence-dot absolute -bottom-0.5 -left-0.5" aria-hidden="true" />
-                  </span>
-                  <span className="hidden text-right md:block">
-                    <span className="block text-xs font-bold glass-text-t1">{user?.name} {user?.lastName}</span>
-                    <span className="block text-[10px] glass-text-t2">مدیر سیستم</span>
-                  </span>
-                  <svg className="hidden h-4 w-4 glass-text-t4 md:block" aria-hidden="true" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                  </svg>
-                </button>
+              {canSee('/admin/messages') && (
+                <Link to="/admin/messages" className="icon-btn mk-header__optional" aria-label="پیام‌ها" title="پیام‌ها">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+                </Link>
+              )}
 
-                {profileOpen && (
-                  <div className="absolute left-0 top-14 w-72 max-w-[calc(100vw-2rem)] z-50">
-                    <div className="glass-card-static overflow-hidden p-0 shadow-2xl glass-bg-dropdown backdrop-blur-xl">
-                      <div className="flex items-center gap-3 border-b glass-border px-5 py-4">
-                        <span className="admin-avatar grid h-11 w-11 shrink-0 place-items-center rounded-xl text-base font-bold" aria-hidden="true">
-                          {user?.name?.[0] || 'م'}
-                        </span>
-                        <div>
-                          <p className="text-sm font-bold glass-text-t1">{user?.name} {user?.lastName}</p>
-                          <p className="mt-0.5 text-xs glass-text-t2 a-ltr">{user?.phone}</p>
-                          <span className="chip chip-brand mt-1.5">مدیر ارشد</span>
-                        </div>
-                      </div>
-                      <ul className="py-2">
-                        <li>
-                          <Link to="/" className="profile-menu-item glass-text-t2 hover:glass-text-t1">
-                            <svg className="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                            </svg>
-                            مشاهده وب‌سایت فروشگاه
-                          </Link>
-                        </li>
-                        <li>
-                          <Link to="/admin/settings" className="profile-menu-item glass-text-t2 hover:glass-text-t1">
-                            <svg className="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            تنظیمات سیستم
-                          </Link>
-                        </li>
-                      </ul>
-                      <div className="border-t glass-border p-2">
-                          <button
-                            type="button"
-                            className="profile-menu-item profile-menu-item--danger w-full rounded-lg text-right"
-                          onClick={() => void logout()}
-                        >
-                          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                          </svg>
-                          خروج از حساب مدیریت
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              {canSee('/admin/chat') && (
+                <Link to="/admin/chat" className="icon-btn mk-header__optional" aria-label="چت مشتریان" title="چت مشتریان">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" /></svg>
+                </Link>
+              )}
+
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => setPaletteOpen(true)}
+                aria-label="جستجو در پنل (Ctrl+K)"
+                aria-haspopup="dialog"
+                title="جستجو در پنل (Ctrl+K)"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+              </button>
+
+              <button
+                type="button"
+                className="icon-btn mk-header__optional"
+                onClick={() => setAppearanceOpen(true)}
+                aria-label="ظاهر پنل"
+                aria-haspopup="dialog"
+                title="ظاهر پنل: تم، پوسته، شیشه و پس‌زمینه"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z" /></svg>
+              </button>
+
+              {canSee('/admin/settings') && (
+                <Link to="/admin/settings" className="icon-btn" aria-label="تنظیمات" title="تنظیمات">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                </Link>
+              )}
             </div>
           </div>
         </header>

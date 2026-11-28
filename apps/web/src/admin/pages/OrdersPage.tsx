@@ -460,7 +460,7 @@ export function OrdersPage() {
                       {new Date(o.createdAt).toLocaleDateString('fa-IR')}
                     </td>
                     <td>
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center justify-start gap-2">
                         <button
                           type="button"
                           className="a-btn a-btn--secondary a-btn--sm"

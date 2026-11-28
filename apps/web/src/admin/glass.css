@@ -35,17 +35,6 @@ body.admin-page-active .admin-sidebar {
   padding: var(--ds-space-5) var(--ds-space-4);
   border-inline-start: 1px solid var(--a-border);
 }
-/* Brand row lines up with the 68px header, like MARK's account row. */
-body.admin-page-active .admin-sidebar > div:first-child {
-  min-height: var(--mk-header-h);
-  margin: calc(var(--ds-space-5) * -1) calc(var(--ds-space-4) * -1) var(--ds-space-3);
-  padding: var(--ds-space-2) var(--ds-space-6);
-  gap: var(--ds-space-3);
-  border-bottom: 1px solid var(--a-border);
-}
-body.admin-page-active .admin-sidebar > div:first-child img { width: 2.25rem; height: 2.25rem; }
-body.admin-page-active .admin-sidebar > div:first-child h1 { font-size: 0.875rem; font-weight: 700; line-height: 1.4; }
-body.admin-page-active .admin-sidebar > div:first-child p { margin-top: 0; font-size: 0.75rem; color: var(--a-t2); }
 body.admin-page-active .admin-sidebar nav { padding: 0; }
 body.admin-page-active .admin-sidebar nav > p { display: none; }
 
@@ -137,27 +126,6 @@ body.admin-page-active .admin-topbar .icon-btn {
 }
 body.admin-page-active .admin-topbar .icon-btn:hover { background: var(--a-soft); }
 body.admin-page-active .admin-topbar .icon-btn > svg { width: 1.25rem; height: 1.25rem; }
-/* Search: a 36px pill field. */
-body.admin-page-active .admin-topbar input[aria-label="جستجو در بخش مدیریت"] {
-  height: var(--mk-pill-h);
-  min-height: var(--mk-pill-h) !important;
-  border: 1px solid var(--a-border-2);
-  border-radius: 999px;
-  background: var(--a-input-bg);
-  font-size: 0.8125rem;
-  box-shadow: none;
-}
-body.admin-page-active .admin-topbar kbd { border-radius: 999px; }
-/* Date chip: MARK's pill chip (32px, 12.5px semibold). */
-body.admin-page-active .admin-topbar .md\:flex.rounded-xl {
-  min-height: 32px;
-  padding: 0 var(--ds-space-3);
-  gap: var(--ds-space-2);
-  border: 1px solid var(--a-border);
-  border-radius: 999px;
-  background: var(--a-surface);
-}
-body.admin-page-active .admin-topbar .md\:flex.rounded-xl span { font-size: 0.78125rem; font-weight: 600; }
 body.admin-page-active .admin-count-badge {
   min-width: 15px;
   height: 15px;
@@ -419,3 +387,143 @@ body.admin-page-active[data-skin="plain"] .admin-backdrop::after {
   background: rgb(18 18 20 / 0.86);
 }
 body.admin-page-active.admin-theme-light[data-skin="plain"] .admin-backdrop::after { background: rgb(244 245 247 / 0.86); }
+
+/* --------------------------------------------------------------------------
+   Tables: alignment and legibility
+   -------------------------------------------------------------------------- */
+/* A cell is always a table cell. Helpers such as .a-cell-sub are display:block
+   for stacked text; on a <td> that pulled the cell out of the grid and shifted
+   every column after it under the wrong header. */
+body.admin-page-active .a-table > :is(thead, tbody, tfoot) > tr > :is(th, td) { display: table-cell; vertical-align: middle; }
+body.admin-page-active .a-table td.a-cell-sub { margin-top: 0; }
+/* Header content follows its column: numbers at the end, checkboxes centred. */
+body.admin-page-active .a-table th.a-num > :is(div, span) { justify-content: flex-end; }
+body.admin-page-active .a-table th.a-center > :is(div, span) { justify-content: center; }
+body.admin-page-active .a-table thead th {
+  font-size: 0.78125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--a-t2);
+}
+body.admin-page-active .a-table thead th svg { width: 1rem; height: 1rem; opacity: 0.7; }
+body.admin-page-active .a-table td { color: var(--a-t1); }
+body.admin-page-active .a-table td.a-cell-sub { color: var(--a-t2); }
+/* Data tables read on a denser glass than decorative panes. */
+body.admin-page-active[data-skin="glass"] .a-table-wrap,
+body.admin-page-active[data-skin="glass"] :is(.a-card, .modal-panel) .a-table-wrap { background: rgb(24 24 26 / min(0.9, calc(var(--glass-a, 0.46) + 0.38))); }
+body.admin-page-active.admin-theme-light[data-skin="glass"] .a-table-wrap,
+body.admin-page-active.admin-theme-light[data-skin="glass"] :is(.a-card, .modal-panel) .a-table-wrap { background: rgb(255 255 255 / max(0.8, var(--glass-a, 0.46))); }
+body.admin-page-active[data-skin="glass"] .a-table thead th { background: rgb(255 255 255 / 0.06); }
+body.admin-page-active.admin-theme-light[data-skin="glass"] .a-table thead th { background: rgb(28 28 28 / 0.04); }
+
+/* MARK panes have no stroke: the frost alone separates them from the wallpaper.
+   Only dialogs, menus, buttons, chips and fields keep an edge. */
+body.admin-page-active[data-skin="glass"] :is(
+  .a-card, .a-stat-card, .a-stat, .admin-hero, .a-table-wrap, .a-segmented, .a-tabs, .a-inline-add, .crm-chat, .a-state
+) {
+  border-color: transparent !important;
+}
+/* Codes, phones and SKUs read as one token: never break them at hyphens. */
+body.admin-page-active .a-table :is(td, th):is(.a-mono, .a-ltr),
+body.admin-page-active .a-table td .a-ltr { white-space: nowrap; }
+
+/* --------------------------------------------------------------------------
+   Header and account row (MARK)
+   -------------------------------------------------------------------------- */
+body.admin-page-active .mk-header__row {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-5);
+  height: var(--mk-header-h);
+  padding-inline: 28px;
+}
+@media (max-width: 1023px) {
+  body.admin-page-active .mk-header__row { height: 64px; gap: var(--ds-space-2); padding-inline: var(--ds-space-3); }
+}
+body.admin-page-active .mk-header__title { display: flex; align-items: center; gap: var(--ds-space-5); min-width: 0; }
+body.admin-page-active .mk-crumbs { display: flex; align-items: center; gap: var(--ds-space-2); min-width: 0; font-size: 0.8125rem; white-space: nowrap; }
+body.admin-page-active .mk-crumbs > span:first-child { font-weight: 600; color: var(--a-t1); }
+body.admin-page-active .mk-crumbs > span:not(:first-child) { color: var(--a-t2); }
+body.admin-page-active .mk-crumbs__sep { color: var(--a-t4) !important; }
+body.admin-page-active .mk-greeting { display: flex; align-items: center; gap: var(--ds-space-2); margin: 0; overflow: hidden; font-size: 0.8125rem; color: var(--a-t2); text-overflow: ellipsis; white-space: nowrap; }
+body.admin-page-active .mk-greeting__time { font-variant-numeric: tabular-nums; color: var(--a-t3); }
+body.admin-page-active .mk-header__actions { display: flex; align-items: center; gap: var(--ds-space-1); margin-inline-start: auto; }
+body.admin-page-active .mk-header__actions .icon-btn { position: relative; }
+body.admin-page-active .mk-header__actions .admin-count-badge { position: absolute; top: 1px; right: 1px; }
+@media (max-width: 1100px) { body.admin-page-active .mk-greeting { display: none; } }
+@media (max-width: 639px) {
+  body.admin-page-active .mk-header__optional { display: none !important; }
+  body.admin-page-active .mk-crumbs > span:not(:first-child) { display: none; }
+}
+
+/* The notifications panel opens under its bell, as a glass menu. */
+body.admin-page-active .mk-header__actions .relative > .absolute { top: calc(100% + var(--ds-space-2)); }
+
+/* Account row: the admin at the top of the sidebar, level with the header (68px). */
+body.admin-page-active .mk-account {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  min-height: var(--mk-header-h);
+  margin: calc(var(--ds-space-5) * -1) calc(var(--ds-space-4) * -1) var(--ds-space-3);
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border-bottom: 1px solid var(--a-border);
+}
+body.admin-page-active .mk-account__trigger {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--ds-space-3);
+  min-width: 0;
+  padding: 6px var(--ds-space-2);
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--a-t1);
+  text-align: start;
+  cursor: pointer;
+}
+body.admin-page-active .mk-account__trigger:hover { background: var(--a-soft); }
+body.admin-page-active .mk-account__avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--ds-admin-interactive);
+  color: var(--ds-admin-on-interactive);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+body.admin-page-active .mk-account__avatar .admin-presence-dot { position: absolute; bottom: 0; left: 0; }
+body.admin-page-active .mk-account__who { display: flex; flex-direction: column; min-width: 0; line-height: 1.4; }
+body.admin-page-active .mk-account__who b { overflow: hidden; font-size: 0.8125rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+body.admin-page-active .mk-account__who small { font-size: 0.71875rem; color: var(--a-t2); }
+body.admin-page-active .mk-account__chevron { flex-shrink: 0; margin-inline-start: auto; opacity: 0.7; }
+body.admin-page-active .mk-account__menu { position: absolute; top: calc(100% - var(--ds-space-2)); inset-inline: var(--ds-space-3); z-index: 50; }
+body.admin-page-active .mk-account__menu > div {
+  border: 1px solid var(--a-border);
+  border-radius: 14px;
+  background: var(--a-surface-3);
+  backdrop-filter: blur(calc(var(--glass-blur, 10px) + 24px)) saturate(170%);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 10px) + 24px)) saturate(170%);
+}
+body.admin-page-active[data-skin="plain"] .mk-account__menu > div { background: var(--ds-admin-surface); }
+
+/* Brand line under the store link. */
+body.admin-page-active .mk-brand { display: flex; align-items: center; gap: var(--ds-space-2); padding: var(--ds-space-2) var(--ds-space-2) 0; font-size: 0.6875rem; color: var(--a-t3); }
+body.admin-page-active .mk-brand img { width: 20px; height: 20px; object-fit: contain; opacity: 0.85; }
+/* Menus inside a bar (sidebar, header) sit in the bar's blur root, so their own
+   frost sees nothing. MARK gives them a solid ground instead. */
+body.admin-page-active :is(.mk-account__menu > div, .mk-header__actions .relative > .absolute > div) {
+  background: rgb(36 36 38) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--a-border);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+body.admin-page-active.admin-theme-light :is(.mk-account__menu > div, .mk-header__actions .relative > .absolute > div) { background: rgb(255 255 255) !important; }
