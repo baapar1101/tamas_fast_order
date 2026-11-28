@@ -527,3 +527,46 @@ body.admin-page-active :is(.mk-account__menu > div, .mk-header__actions .relativ
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
 }
 body.admin-page-active.admin-theme-light :is(.mk-account__menu > div, .mk-header__actions .relative > .absolute > div) { background: rgb(255 255 255) !important; }
+
+/* --------------------------------------------------------------------------
+   Active nav item (MARK): a sliding glide behind the item and a rail on the
+   sidebar's outer edge (components/NavGlide.tsx). Items stay transparent and
+   no item draws its own bar.
+   -------------------------------------------------------------------------- */
+body.admin-page-active .admin-sidebar .nav-item::before,
+body.admin-page-active .admin-sidebar .nav-item::after { display: none !important; }
+body.admin-page-active .admin-sidebar .nav-item.active:not(.nav-domain-toggle),
+body.admin-page-active .admin-sidebar .nav-dashboard-item {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+body.admin-page-active .admin-sidebar .nav-dashboard-item:hover { background: var(--a-soft) !important; }
+body.admin-page-active .admin-sidebar .nav-dashboard-item.active { font-weight: 600; }
+/* The menu spans the sidebar's full width so the rail can sit on its edge. */
+body.admin-page-active .admin-nav-menu {
+  position: relative;
+  isolation: isolate;
+  margin-inline: calc(var(--ds-space-4) * -1);
+  padding-inline: var(--ds-space-4) !important;
+}
+.nav-glide,
+.nav-rail {
+  position: absolute;
+  top: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+.nav-glide { z-index: -1; border-radius: var(--mk-radius-button, 8px); background: var(--a-soft); }
+.nav-rail {
+  right: 0;
+  z-index: 1;
+  width: 5px;
+  border-radius: 0;
+  border-start-end-radius: 6px;
+  border-end-end-radius: 6px;
+  background: #c7c7f7;
+}
+/* RTL: the sidebar's outer edge is on the right, so the rail is flat there and rounded inward. */
+[dir="rtl"] .nav-rail, body.admin-page-active .nav-rail { border-radius: 6px 0 0 6px; }
+body.admin-page-active.admin-theme-light .nav-rail { background: #1c1c1c; }

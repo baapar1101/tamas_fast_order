@@ -9,6 +9,7 @@ import { AdminBackdrop, AdminBackgroundPicker, useAdminBackground } from './comp
 import { AdminPasswordLogin } from './components/AdminPasswordLogin';
 import { AdminAppearanceDialog } from './components/AdminAppearanceDialog';
 import { AdminCommandPalette, type PaletteItem } from './components/AdminCommandPalette';
+import { NavGlide } from './components/NavGlide';
 import { FROST_BLUR_PX, useAdminAppearance, useApplyAppearance, useResolvedTheme } from './appearance';
 import { useGlassLens } from './lens';
 // Load the reference admin design system first. The local stylesheet that
@@ -801,7 +802,8 @@ export default function AdminApp() {
         </div>
 
         {/* Sidebar Links */}
-        <nav className="flex-1 overflow-y-auto px-4 pb-4">
+        <nav className="admin-nav-menu flex-1 overflow-y-auto px-4 pb-4">
+          <NavGlide current={location.pathname} />
           <p className="mb-2 px-2 text-[11px] font-medium glass-text-t4">پنل مدیریت</p>
           {dashboardItem && hasPermission(dashboardItem.requiredPermission) && (
             <NavLink to={dashboardItem.to} end className={({ isActive }) => `nav-item nav-dashboard-item${isActive ? ' active' : ''}`}>
