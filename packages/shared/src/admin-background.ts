@@ -11,6 +11,16 @@ export const ADMIN_BACKGROUND_SETTING_PREFIX = 'admin_background:';
 export const ADMIN_BACKGROUND_FOLDER = 'admin-bg';
 
 export const ADMIN_BACKGROUND_PRESETS = [
+  // Photo wallpapers, served from /admin-wallpapers (same set as the MARK workspace).
+  { id: 'shore', label: 'ساحل شب' },
+  { id: 'lake', label: 'دریاچهٔ شب' },
+  { id: 'canyon', label: 'دره و ستاره' },
+  { id: 'beach', label: 'ساحل' },
+  { id: 'forest-mist', label: 'جنگل در مه' },
+  { id: 'mist', label: 'مه جنگل' },
+  { id: 'lagoon', label: 'جنگل و دریاچه' },
+  { id: 'canopy', label: 'جنگل از بالا' },
+  // Drawn scenes.
   { id: 'starry', label: 'شب پرستاره' },
   { id: 'aurora', label: 'شفق' },
   { id: 'ocean', label: 'اقیانوس' },
@@ -39,10 +49,10 @@ export type AdminBackground = z.infer<typeof adminBackgroundSchema>;
 
 export const DEFAULT_ADMIN_BACKGROUND: AdminBackground = {
   version: 1,
-  mode: 'animated',
-  preset: 'starry',
+  mode: 'preset',
+  preset: 'shore',
   imageUrl: '',
-  dim: 45,
+  dim: 0,
   blur: 0,
 };
 

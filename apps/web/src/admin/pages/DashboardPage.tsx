@@ -69,7 +69,7 @@ export function DashboardPage() {
             role="img"
             aria-label={isLoading || isError ? 'سهم کالاهای فعال در دسترس نیست' : `سهم کالاهای فعال: ${formatNumber(activeProductPercent)}٪`}
           >
-            <svg className="block h-full w-full -rotate-90" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <svg className="block h-full w-full -rotate-90" width="100%" height="100%" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
               <circle cx="60" cy="60" r="52" fill="none" className="dash-ring-track" strokeWidth="10" />
               <circle
                 cx="60"

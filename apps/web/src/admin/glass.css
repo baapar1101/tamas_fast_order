@@ -1,0 +1,421 @@
+/* ==========================================================================
+   MARK workspace skin for the admin panel: docs/ui-guidelines.md §12.
+   Loaded after guidelines.css. Two parts:
+     1. Shell metrics shared by both skins (sidebar, header, nav, page, controls).
+     2. The glass skin: body[data-skin="glass"], translucent panes over the
+        wallpaper. Variables come from appearance.ts (--glass-blur, --glass-a).
+   Values are measured from the MARK workspace, not approximated.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Shell (both skins)
+   -------------------------------------------------------------------------- */
+body.admin-page-active {
+  --mk-sidebar-w: 236px;
+  --mk-header-h: 68px;
+  --mk-radius-pane: 16px;
+  --mk-radius-widget: 26px;
+  --mk-radius-dialog: 20px;
+  --mk-radius-control: 10px;
+  --mk-radius-button: 8px;
+  --mk-field-h: 44px;
+  --mk-pill-h: 36px;
+}
+
+@media (min-width: 1024px) {
+  body.admin-page-active .admin-sidebar { width: var(--mk-sidebar-w) !important; }
+  body.admin-page-active .admin-main-shell { margin-right: var(--mk-sidebar-w) !important; }
+}
+
+@media (max-width: 1023px) {
+  body.admin-page-active .admin-sidebar { box-sizing: border-box; width: min(288px, 86vw) !important; }
+}
+body.admin-page-active .admin-sidebar {
+  gap: 0;
+  padding: var(--ds-space-5) var(--ds-space-4);
+  border-inline-start: 1px solid var(--a-border);
+}
+/* Brand row lines up with the 68px header, like MARK's account row. */
+body.admin-page-active .admin-sidebar > div:first-child {
+  min-height: var(--mk-header-h);
+  margin: calc(var(--ds-space-5) * -1) calc(var(--ds-space-4) * -1) var(--ds-space-3);
+  padding: var(--ds-space-2) var(--ds-space-6);
+  gap: var(--ds-space-3);
+  border-bottom: 1px solid var(--a-border);
+}
+body.admin-page-active .admin-sidebar > div:first-child img { width: 2.25rem; height: 2.25rem; }
+body.admin-page-active .admin-sidebar > div:first-child h1 { font-size: 0.875rem; font-weight: 700; line-height: 1.4; }
+body.admin-page-active .admin-sidebar > div:first-child p { margin-top: 0; font-size: 0.75rem; color: var(--a-t2); }
+body.admin-page-active .admin-sidebar nav { padding: 0; }
+body.admin-page-active .admin-sidebar nav > p { display: none; }
+
+/* Groups: a bold muted heading with its items under it (MARK .nav-group). */
+body.admin-page-active .admin-sidebar .nav-domain-list { display: flex; flex-direction: column; gap: 0; margin-top: var(--ds-space-3); }
+body.admin-page-active .admin-sidebar .nav-domain { padding-bottom: var(--ds-space-3); border: 0; background: none; }
+body.admin-page-active .admin-sidebar .nav-domain-toggle {
+  height: 28px;
+  min-height: 28px;
+  padding: var(--ds-space-1) var(--ds-space-3);
+  gap: var(--ds-space-2);
+  border-radius: var(--mk-radius-button);
+  background: none !important;
+  color: var(--a-t2);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+body.admin-page-active .admin-sidebar .nav-domain-toggle:hover { background: var(--a-soft) !important; }
+body.admin-page-active .admin-sidebar .nav-domain-toggle > svg.icon-svg,
+body.admin-page-active .admin-sidebar .nav-domain-toggle .nav-domain-copy small,
+body.admin-page-active .admin-sidebar .nav-domain-toggle .nav-accordion-count { display: none; }
+body.admin-page-active .admin-sidebar .nav-domain-copy strong { font: inherit; color: inherit; }
+body.admin-page-active .admin-sidebar .nav-accordion-chevron { width: 0.875rem; height: 0.875rem; margin-inline-start: auto; opacity: 0.7; }
+body.admin-page-active .admin-sidebar .nav-submenu { display: flex; flex-direction: column; gap: var(--ds-space-1); padding: var(--ds-space-1) 0 0; margin: 0; border: 0; }
+body.admin-page-active .admin-sidebar .nav-submenu::before { display: none; }
+
+/* Items: 28px rows, 13px text, 16px icons at 70% (MARK .nav-item). */
+body.admin-page-active .admin-sidebar .nav-item:not(.nav-domain-toggle) {
+  width: 100%;
+  height: 28px;
+  min-height: 28px;
+  padding: var(--ds-space-1) var(--ds-space-2);
+  gap: var(--ds-space-2);
+  border: 0;
+  border-radius: var(--mk-radius-button);
+  background: none;
+  box-shadow: none;
+  color: var(--a-t1);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  white-space: nowrap;
+}
+body.admin-page-active .admin-sidebar .nav-item:not(.nav-domain-toggle) > svg { width: 1rem; height: 1rem; flex-shrink: 0; opacity: 0.7; }
+body.admin-page-active .admin-sidebar .nav-item:not(.nav-domain-toggle):hover { background: var(--a-soft); }
+body.admin-page-active .admin-sidebar .nav-item.active:not(.nav-domain-toggle) {
+  background: var(--a-soft);
+  color: var(--a-t1);
+  font-weight: 600;
+}
+body.admin-page-active .admin-sidebar .nav-item.active:not(.nav-domain-toggle)::before,
+body.admin-page-active .admin-sidebar .nav-item.active:not(.nav-domain-toggle)::after { display: none; }
+body.admin-page-active .admin-sidebar .nav-domain-badge {
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: rgb(208 59 59);
+  color: rgb(255 255 255);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
+body.admin-page-active .admin-sidebar .nav-footer { padding: var(--ds-space-3) 0 0; border-top: 1px solid var(--a-border); }
+body.admin-page-active .admin-sidebar .nav-footer-link { height: 28px; padding: var(--ds-space-1) var(--ds-space-2); border-radius: var(--mk-radius-button); font-size: 0.8125rem; color: var(--a-t2); }
+body.admin-page-active .admin-sidebar .nav-footer-link:hover { background: var(--a-soft); color: var(--a-t1); }
+
+/* Header: 68px, 20px × 28px padding, round 36px icon buttons. */
+body.admin-page-active .admin-topbar { border-bottom: 1px solid var(--a-border); }
+body.admin-page-active .admin-topbar > div {
+  height: var(--mk-header-h);
+  gap: var(--ds-space-5);
+  padding-inline: 28px;
+}
+@media (max-width: 1023px) {
+  body.admin-page-active .admin-topbar > div { height: 64px; gap: var(--ds-space-2); padding-inline: var(--ds-space-3); }
+}
+body.admin-page-active .admin-topbar .icon-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: var(--ds-space-1);
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--a-t1);
+  box-shadow: none;
+}
+body.admin-page-active .admin-topbar .icon-btn:hover { background: var(--a-soft); }
+body.admin-page-active .admin-topbar .icon-btn > svg { width: 1.25rem; height: 1.25rem; }
+/* Search: a 36px pill field. */
+body.admin-page-active .admin-topbar input[aria-label="جستجو در بخش مدیریت"] {
+  height: var(--mk-pill-h);
+  min-height: var(--mk-pill-h) !important;
+  border: 1px solid var(--a-border-2);
+  border-radius: 999px;
+  background: var(--a-input-bg);
+  font-size: 0.8125rem;
+  box-shadow: none;
+}
+body.admin-page-active .admin-topbar kbd { border-radius: 999px; }
+/* Date chip: MARK's pill chip (32px, 12.5px semibold). */
+body.admin-page-active .admin-topbar .md\:flex.rounded-xl {
+  min-height: 32px;
+  padding: 0 var(--ds-space-3);
+  gap: var(--ds-space-2);
+  border: 1px solid var(--a-border);
+  border-radius: 999px;
+  background: var(--a-surface);
+}
+body.admin-page-active .admin-topbar .md\:flex.rounded-xl span { font-size: 0.78125rem; font-weight: 600; }
+body.admin-page-active .admin-count-badge {
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: rgb(208 59 59);
+  color: rgb(255 255 255);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  line-height: 15px;
+}
+
+/* Page: MARK's view-content column (max 1300px, 28px gutters). */
+body.admin-page-active .admin-main-content { padding: 28px; }
+@media (max-width: 1023px) { body.admin-page-active .admin-main-content { padding: var(--ds-space-5); } }
+@media (max-width: 639px) { body.admin-page-active .admin-main-content { padding: var(--ds-space-3); } }
+body.admin-page-active .admin-main-content > .max-w-6xl { max-width: 1300px; }
+body.admin-page-active .admin-main-content > .a-page,
+body.admin-page-active .admin-main-content .a-page:not(.a-page .a-page) { width: 100%; max-width: 1300px; margin-inline: auto; gap: var(--ds-space-5); }
+body.admin-page-active .a-page-head .a-title,
+body.admin-page-active .a-page-head h1,
+body.admin-page-active .a-page-head h2 { font-size: 1.375rem; font-weight: 700; line-height: 1.25; }
+body.admin-page-active .a-page-head .a-subtitle,
+body.admin-page-active .a-page-head .a-titles p { margin-top: 6px; font-size: 0.8125rem; color: var(--a-t2); }
+
+/* Panes. */
+body.admin-page-active .a-card,
+body.admin-page-active .a-table-wrap { border-radius: var(--mk-radius-pane); box-shadow: none; }
+body.admin-page-active :is(.a-stat-card, .admin-hero) { border-radius: var(--mk-radius-widget); box-shadow: none; }
+body.admin-page-active .modal-panel { border-radius: var(--mk-radius-dialog); }
+
+/* Controls. */
+body.admin-page-active .a-btn { border-radius: var(--mk-radius-button); font-weight: 500; }
+body.admin-page-active :is(.a-btn--primary, .a-btn--secondary, .a-btn--outline, .a-btn--ghost, .a-btn--danger, .a-btn--info):not(.a-btn--sm):not(.a-btn--xs):not(.a-btn--lg):not(.a-btn--icon) { min-height: 32px; padding: 1px var(--ds-space-3); }
+body.admin-page-active .a-btn--primary { background: var(--ds-admin-interactive); color: var(--ds-admin-on-interactive); }
+body.admin-page-active .a-btn--primary:hover:not(:disabled) { filter: brightness(0.94); }
+body.admin-page-active :where(.a-input, .a-select):not(textarea) { min-height: var(--mk-field-h) !important; }
+body.admin-page-active :is(.a-input, .a-select, .a-textarea) {
+  border-radius: var(--mk-radius-control);
+  padding-block: var(--ds-space-2);
+  padding-inline: var(--ds-space-3);
+  font-size: 0.875rem;
+  box-shadow: none;
+}
+body.admin-page-active .a-select { padding-inline-start: var(--ds-space-8); }
+body.admin-page-active .a-searchbar :is(input, .a-input) { min-height: var(--mk-pill-h) !important; border-radius: 999px; font-size: 0.8125rem; }
+
+/* Segmented control and tabs: a pill track with a solid thumb (MARK seg). */
+body.admin-page-active :is(.a-segmented, .a-tabs) {
+  display: flex;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-1);
+  border: 0;
+  border-radius: 999px;
+  background: var(--a-surface);
+}
+body.admin-page-active :is(.a-seg, .a-tab) {
+  min-height: 28px;
+  padding: 6px var(--ds-space-3);
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--a-t2);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.33;
+  white-space: nowrap;
+}
+body.admin-page-active :is(.a-seg, .a-tab):hover { color: var(--a-t1); background: var(--a-soft); }
+body.admin-page-active :is(.a-seg--on, .a-tab--on),
+body.admin-page-active :is(.a-seg--on, .a-tab--on):hover {
+  /* MARK's thumb is solid white with dark text in both themes. */
+  background: rgb(255 255 255);
+  color: #1c1c1c;
+  font-weight: 600;
+  box-shadow: none;
+}
+body.admin-page-active.admin-theme-light :is(.a-seg--on, .a-tab--on) { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+
+/* Compact density: tighter rows and controls. */
+body.admin-page-active[data-density="compact"] {
+  --mk-field-h: 36px;
+  --mk-pill-h: 32px;
+}
+body.admin-page-active[data-density="compact"] .admin-main-content { padding: var(--ds-space-5); }
+body.admin-page-active[data-density="compact"] .a-page { gap: var(--ds-space-3); }
+body.admin-page-active[data-density="compact"] .a-card { padding: var(--ds-space-3); }
+body.admin-page-active[data-density="compact"] .a-table :is(th, td) { padding-block: 6px; }
+body.admin-page-active[data-density="compact"] .admin-sidebar .nav-item { height: 26px; min-height: 26px; }
+
+/* --------------------------------------------------------------------------
+   2. Glass skin
+   -------------------------------------------------------------------------- */
+body.admin-page-active[data-skin="glass"],
+body.admin-page-active[data-skin="glass"] .admin-body-shell {
+  --g-border: rgba(255, 255, 255, 0.12);
+  --g-bg: rgb(28 28 28 / var(--glass-a, 0.46));
+  --g-panel: rgb(40 40 40 / var(--glass-a, 0.46));
+  --g-field: rgba(0, 0, 0, 0.38);
+  --g-field-edge: rgba(255, 255, 255, 0.26);
+  --g-soft: rgba(255, 255, 255, 0.1);
+  --g-selected: rgba(255, 255, 255, 0.2);
+  --g-popover: rgb(28 28 28 / min(1, calc(var(--glass-a, 0.46) + 0.13)));
+  --g-bar: rgb(20 20 20 / max(0.04, calc(var(--glass-a, 0.46) - 0.04)));
+  --g-solid: rgb(36 36 38);
+  --g-frost: blur(var(--glass-blur, 10px)) saturate(170%);
+
+  /* Feed the admin's own tokens, so every existing component turns to glass. */
+  --a-surface: var(--g-panel);
+  --a-surface-2: var(--g-soft);
+  --a-surface-3: var(--g-popover);
+  --a-dropdown-bg: var(--g-popover);
+  --a-border: var(--g-border);
+  --a-border-2: var(--g-field-edge);
+  --a-divider: var(--g-border);
+  --a-input-bg: var(--g-field);
+  --a-field-bg: var(--g-field);
+  --a-hover: var(--g-soft);
+  --a-soft: var(--g-soft);
+  --a-shadow: none;
+  --a-shadow-xs: none;
+  --a-t1: rgb(255 255 255);
+  --a-t2: rgba(255, 255, 255, 0.9);
+  --a-t3: rgba(255, 255, 255, 0.78);
+  --a-t4: rgba(255, 255, 255, 0.62);
+  --a-thumb: rgba(255, 255, 255, 0.26);
+}
+body.admin-page-active.admin-theme-light[data-skin="glass"],
+body.admin-page-active.admin-theme-light[data-skin="glass"] .admin-body-shell {
+  --g-border: rgba(28, 28, 28, 0.12);
+  /* Dark text needs a lighter ground than MARK's raw tint gives over a night
+     photo, so light panes never drop below 62% (popovers 75%). */
+  --g-bg: rgb(255 255 255 / max(0.62, var(--glass-a, 0.46)));
+  --g-panel: rgb(247 249 251 / max(0.62, var(--glass-a, 0.46)));
+  --g-field: rgba(255, 255, 255, 0.62);
+  --g-field-edge: rgba(28, 28, 28, 0.24);
+  --g-soft: rgba(28, 28, 28, 0.06);
+  --g-selected: rgba(255, 255, 255, 0.6);
+  --g-popover: rgb(255 255 255 / max(0.75, min(1, calc(var(--glass-a, 0.46) + 0.13))));
+  --g-bar: rgb(250 250 252 / max(0.62, calc(var(--glass-a, 0.46) - 0.04)));
+  --g-solid: rgb(255 255 255);
+  --a-t1: #1c1c1c;
+  --a-t2: rgba(20, 20, 20, 0.86);
+  --a-t3: rgba(20, 20, 20, 0.72);
+  --a-t4: rgba(20, 20, 20, 0.56);
+  --a-thumb: rgba(0, 0, 0, 0.22);
+}
+@media (prefers-reduced-transparency: reduce) {
+  body.admin-page-active[data-skin="glass"] { --glass-a: 0.94 !important; }
+}
+
+/* The wallpaper shows through; nothing paints over it. */
+body.admin-page-active[data-skin="glass"] :is(.admin-body-shell, .admin-main-shell, .admin-main-content) { background: transparent; }
+
+/* Bars: sidebar, header, mobile nav (frost + 20px). */
+body.admin-page-active[data-skin="glass"] :is(.admin-sidebar, .admin-topbar, .mobile-admin-nav) {
+  background: var(--g-bar) !important;
+  border-color: var(--g-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(calc(var(--glass-blur, 10px) + 20px)) saturate(170%) !important;
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 10px) + 20px)) saturate(170%) !important;
+}
+
+/* Panes: cards, widgets, tables, stat strips, search and tab tracks, chat. */
+body.admin-page-active[data-skin="glass"] :is(
+  .a-card, .a-stat-card, .a-stat, .admin-hero, .a-table-wrap, .a-searchbar, .a-segmented, .a-tabs,
+  .a-list-item, .a-chip-opt, .a-inline-add, .crm-chat, .a-state:not(.a-state--compact)
+) {
+  background: var(--g-panel);
+  border-color: var(--g-border);
+  box-shadow: none;
+  backdrop-filter: var(--g-frost);
+  -webkit-backdrop-filter: var(--g-frost);
+}
+body.admin-page-active[data-skin="glass"] .a-searchbar { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; border: 0; }
+
+/* Dialogs and menus: denser glass (frost + 14px). */
+body.admin-page-active[data-skin="glass"] :is(.modal-panel, .admin-modal-surface, .admin-glass-popover, .profile-menu, [role="menu"], [role="listbox"]) {
+  background: var(--g-bg);
+  border: 1px solid var(--g-border);
+  box-shadow: none;
+  backdrop-filter: blur(calc(var(--glass-blur, 10px) + 14px)) saturate(170%);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 10px) + 14px)) saturate(170%);
+}
+/* The overlay must not blur: an element with backdrop-filter becomes the
+   backdrop root of its children, so the dialog's own frost would see nothing. */
+body.admin-page-active[data-skin="glass"] :is(.modal-backdrop, .admin-modal-backdrop) {
+  background: rgba(0, 0, 0, 0.32) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body.admin-page-active[data-skin="glass"] .modal-head,
+body.admin-page-active[data-skin="glass"] .modal-foot { background: transparent; border-color: var(--g-border); }
+body.admin-page-active[data-skin="glass"] :is(.toast) {
+  background: var(--g-popover);
+  border-color: var(--g-border);
+  backdrop-filter: blur(calc(var(--glass-blur, 10px) + 24px)) saturate(170%);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 10px) + 24px)) saturate(170%);
+}
+
+/* Glass inside glass would blur twice; inner panes only tint. */
+body.admin-page-active[data-skin="glass"] :is(.a-card, .a-stat-card, .admin-hero, .modal-panel, .admin-glass-popover, .crm-chat, [role="dialog"], [role="menu"])
+  :is(.a-card, .a-stat-card, .a-stat, .a-table-wrap, .a-segmented, .a-tabs, .a-list-item, .a-chip-opt, .a-inline-add, .a-state, .a-btn) {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+body.admin-page-active[data-skin="glass"] :is(.a-card, .modal-panel) .a-table-wrap { background: transparent; }
+body.admin-page-active[data-skin="glass"] :is(.admin-sidebar, .admin-topbar, .mobile-admin-nav) :is(.a-card, [role="menu"], .admin-glass-popover, .profile-menu) {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--g-popover);
+}
+
+/* Fields. */
+body.admin-page-active[data-skin="glass"] :is(.a-input, .a-select, .a-textarea),
+body.admin-page-active[data-skin="glass"] .admin-body-shell :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), select, textarea),
+body.admin-page-active[data-skin="glass"] .modal-backdrop :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), select, textarea) {
+  background-color: var(--g-field) !important;
+  border-color: var(--g-field-edge) !important;
+}
+
+/* Buttons: secondary/outline are glass with an edge; ghost stays clear. */
+body.admin-page-active[data-skin="glass"] :is(.a-btn--secondary, .a-btn--outline) {
+  background: var(--g-panel);
+  border: 1px solid var(--g-border);
+  color: var(--a-t1);
+  backdrop-filter: var(--g-frost);
+  -webkit-backdrop-filter: var(--g-frost);
+}
+body.admin-page-active[data-skin="glass"] :is(.a-btn--secondary, .a-btn--outline):hover:not(:disabled) { background: var(--g-selected); }
+body.admin-page-active[data-skin="glass"] .a-btn--ghost:hover:not(:disabled) { background: var(--g-soft); }
+
+/* Tables. */
+body.admin-page-active[data-skin="glass"] .a-table thead th { background: var(--g-soft); border-color: var(--g-border); color: var(--a-t2); }
+body.admin-page-active[data-skin="glass"] .a-table :is(td, th) { border-color: var(--g-border); }
+body.admin-page-active[data-skin="glass"] .a-table tbody tr:hover > td { background: var(--g-soft); }
+
+/* Solid islands: badges and counts keep an opaque ground for legibility. */
+body.admin-page-active[data-skin="glass"] .a-badge--neutral { background: var(--g-solid); }
+
+/* Panes rise in when a page opens. */
+@keyframes mk-glass-enter { from { transform: translateY(5px); } }
+@keyframes mk-glass-rise { from { transform: translateY(8px) scale(0.98); } }
+body.admin-page-active[data-skin="glass"] .admin-main-content :is(.a-card, .a-stat-card, .admin-hero) { animation: mk-glass-enter 200ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+body.admin-page-active[data-skin="glass"] .modal-panel { animation: mk-glass-rise 200ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+@media (prefers-reduced-motion: reduce) {
+  body.admin-page-active[data-skin="glass"] :is(.a-card, .a-stat-card, .admin-hero, .modal-panel) { animation: none; }
+}
+
+/* Scrollbars follow the glass. */
+body.admin-page-active[data-skin="glass"] * { scrollbar-color: var(--a-thumb) transparent; }
+
+/* Plain skin: the wallpaper sits under MARK's veil, so pages read on an
+   almost-solid ground (--wall-veil). */
+body.admin-page-active[data-skin="plain"] .admin-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(18 18 20 / 0.86);
+}
+body.admin-page-active.admin-theme-light[data-skin="plain"] .admin-backdrop::after { background: rgb(244 245 247 / 0.86); }

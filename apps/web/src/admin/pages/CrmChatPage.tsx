@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
@@ -26,24 +26,93 @@ interface Message {
   created_at: string;
 }
 
+type Filter = 'all' | 'open' | 'closed';
+
+const fa = (n: number) => n.toLocaleString('fa-IR');
+
+function listOf<T>(data: any): T[] {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.data?.items)) return data.data.items;
+  if (Array.isArray(data?.items)) return data.items;
+  return [];
+}
+
+function displayName(c: Conversation): string {
+  const first = c.first_name || c.visitor_first_name || '';
+  const last = c.last_name || c.visitor_last_name || '';
+  return `${first} ${last}`.trim() || 'کاربر ناشناس';
+}
+
+function contactOf(c: Conversation): string | null {
+  return c.phone || c.visitor_phone || c.email || c.visitor_email || null;
+}
+
+function initials(name: string): string {
+  if (name === 'کاربر ناشناس') return '؟';
+  const parts = name.split(/\s+/).filter(Boolean);
+  return parts.slice(0, 2).map((part) => part[0]).join('‌');
+}
+
+/** A stable hue per conversation, so each avatar keeps its colour. */
+function avatarHue(id: number): number {
+  return (id * 47) % 360;
+}
+
+const isOpen = (status: string) => status !== 'closed' && status !== 'resolved' && status !== 'archived';
+
+function dayKey(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function dayLabel(iso: string): string {
+  const d = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  if (dayKey(iso) === dayKey(today.toISOString())) return 'امروز';
+  if (dayKey(iso) === dayKey(yesterday.toISOString())) return 'دیروز';
+  return new Intl.DateTimeFormat('fa-IR', { weekday: 'long', day: 'numeric', month: 'long' }).format(d);
+}
+
+const timeOf = (iso: string) => new Date(iso).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+
+/** List stamp: time today, «دیروز», weekday this week, otherwise the date. */
+function listStamp(iso: string): string {
+  const d = new Date(iso);
+  const days = Math.floor((Date.now() - d.getTime()) / 86_400_000);
+  if (dayKey(iso) === dayKey(new Date().toISOString())) return timeOf(iso);
+  if (days < 2 && dayLabel(iso) === 'دیروز') return 'دیروز';
+  if (days < 7) return new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d);
+  return new Intl.DateTimeFormat('fa-IR', { day: 'numeric', month: 'long' }).format(d);
+}
+
+function Avatar({ c, size = 'md' }: { c: Conversation; size?: 'md' | 'sm' }) {
+  const name = displayName(c);
+  return (
+    <span className={`crm-chat-avatar crm-chat-avatar--${size}`} style={{ '--hue': avatarHue(c.id) } as React.CSSProperties} aria-hidden="true">
+      {initials(name)}
+    </span>
+  );
+}
+
 export function CrmChatPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [activeConvId, setActiveConvId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<Filter>('all');
+  const streamRef = useRef<HTMLDivElement>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: convData, isLoading: isLoadingConvs, isError: isConvError, error: convError, refetch: refetchConvs } = useQuery({
     queryKey: ['admin', 'crm-chat-conversations'],
     queryFn: () => api.get<any>('/crm/chat/conversations'),
     refetchInterval: 15000,
   });
-
-  let conversations: Conversation[] = [];
-  if (Array.isArray(convData)) conversations = convData;
-  else if (Array.isArray(convData?.data)) conversations = convData.data;
-  else if (Array.isArray(convData?.data?.items)) conversations = convData.data.items;
-  else if (Array.isArray(convData?.items)) conversations = convData.items;
+  const conversations = listOf<Conversation>(convData);
 
   const { data: msgData, isLoading: isLoadingMsgs, isError: isMsgError, error: msgError, refetch: refetchMsgs } = useQuery({
     queryKey: ['admin', 'crm-chat-messages', activeConvId],
@@ -51,12 +120,7 @@ export function CrmChatPage() {
     enabled: !!activeConvId,
     refetchInterval: 10000,
   });
-
-  let messages: Message[] = [];
-  if (Array.isArray(msgData)) messages = msgData;
-  else if (Array.isArray(msgData?.data)) messages = msgData.data;
-  else if (Array.isArray(msgData?.data?.items)) messages = msgData.data.items;
-  else if (Array.isArray(msgData?.items)) messages = msgData.items;
+  const messages = listOf<Message>(msgData);
 
   const sendMutation = useMutation({
     mutationFn: (text: string) => api.post(`/crm/chat/conversations/${activeConvId}/messages`, { body: text }),
@@ -67,149 +131,255 @@ export function CrmChatPage() {
     onError: () => toast.error('پیام ارسال نشد؛ دوباره تلاش کنید.'),
   });
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!replyText.trim() || !activeConvId) return;
-    sendMutation.mutate(replyText);
-  };
+  const active = conversations.find((c) => c.id === activeConvId) ?? null;
+  const openCount = conversations.filter((c) => isOpen(c.status)).length;
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const visible = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return conversations.filter((c) => {
+      if (filter === 'open' && !isOpen(c.status)) return false;
+      if (filter === 'closed' && isOpen(c.status)) return false;
+      if (!q) return true;
+      return `${displayName(c)} ${contactOf(c) ?? ''} ${c.id}`.toLowerCase().includes(q);
+    });
+  }, [conversations, search, filter]);
+
+  // Day separators, and consecutive messages from one side grouped together.
+  const rows = useMemo(() => {
+    const out: ({ kind: 'day'; key: string; label: string } | { kind: 'msg'; m: Message; first: boolean; last: boolean })[] = [];
+    messages.forEach((m, i) => {
+      const prev = messages[i - 1];
+      const next = messages[i + 1];
+      if (!prev || dayKey(prev.created_at) !== dayKey(m.created_at)) out.push({ kind: 'day', key: `d-${m.id}`, label: dayLabel(m.created_at) });
+      const sameAsPrev = prev && prev.sender_role === m.sender_role && dayKey(prev.created_at) === dayKey(m.created_at);
+      const sameAsNext = next && next.sender_role === m.sender_role && dayKey(next.created_at) === dayKey(m.created_at);
+      out.push({ kind: 'msg', m, first: !sameAsPrev, last: !sameAsNext });
+    });
+    return out;
   }, [messages]);
 
+  // Jump to the newest message when a conversation opens; follow new ones smoothly.
+  const lastConvRef = useRef<number | null>(null);
+  useLayoutEffect(() => {
+    const el = streamRef.current;
+    if (!el) return;
+    const switched = lastConvRef.current !== activeConvId;
+    lastConvRef.current = activeConvId;
+    el.scrollTo({ top: el.scrollHeight, behavior: switched ? 'auto' : 'smooth' });
+  }, [activeConvId, messages.length]);
+
+  // The composer grows with its text, up to six lines.
+  useEffect(() => {
+    const el = composerRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  }, [replyText]);
+
+  useEffect(() => {
+    if (activeConvId) composerRef.current?.focus();
+  }, [activeConvId]);
+
+  const send = () => {
+    if (!replyText.trim() || !activeConvId || sendMutation.isPending) return;
+    sendMutation.mutate(replyText);
+  };
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    send();
+  };
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      send();
+    }
+  };
+
   return (
-    <div className="a-page a-fade">
-      <section className="a-page-head">
-        <div className="a-titles">
-          <h2 className="a-title">چت مشتریان</h2>
-        </div>
-      </section>
-      <div className="a-page-content flex flex-col lg:flex-row gap-4 h-[calc(100vh-140px)] min-h-[500px] pb-4">
-        {/* Section 1: Conversations List */}
-        <div className="crm-chat-panel w-full lg:w-80 h-48 lg:h-auto shrink-0">
-          <div className="crm-chat-panel-head">
-            <span>مکالمات</span>
-            <small>{conversations.length.toLocaleString('fa-IR')} مکالمه</small>
+    <div className="a-page a-fade crm-chat-page">
+      <section className={`crm-chat${active ? ' has-active' : ''}`} aria-label="چت مشتریان">
+        {/* Conversation list */}
+        <aside className="crm-chat-list" aria-label="مکالمه‌ها">
+          <header className="crm-chat-list__head">
+            <h2>چت مشتریان</h2>
+            <span className="crm-chat-list__count">{fa(conversations.length)} مکالمه</span>
+          </header>
+
+          <div className="crm-chat-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="جست‌وجوی نام، شماره یا ایمیل…"
+              aria-label="جست‌وجو در مکالمه‌ها"
+            />
           </div>
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
+
+          <div className="a-segmented crm-chat-filter" role="radiogroup" aria-label="فیلتر مکالمه‌ها">
+            {([
+              ['all', 'همه'],
+              ['open', `باز${openCount ? ` ${fa(openCount)}` : ''}`],
+              ['closed', 'بسته'],
+            ] as [Filter, string][]).map(([id, label]) => (
+              <button key={id} type="button" role="radio" aria-checked={filter === id} className={`a-seg${filter === id ? ' a-seg--on' : ''}`} onClick={() => setFilter(id)}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="crm-chat-list__scroll">
             {isLoadingConvs ? (
               <AdminState compact kind="loading" />
             ) : isConvError ? (
               <AdminState compact kind="error" error={convError} onRetry={() => void refetchConvs()} />
             ) : conversations.length === 0 ? (
               <AdminState compact kind="empty" noun="مکالمه" />
+            ) : visible.length === 0 ? (
+              <AdminState compact kind="filtered" noun="مکالمه" />
             ) : (
-              conversations.map((c) => {
-                const contact = c.phone || c.visitor_phone || c.email || c.visitor_email;
-                return (
-                  <button
-                    type="button"
-                    key={c.id}
-                    onClick={() => setActiveConvId(c.id)}
-                    className="crm-chat-conv"
-                    aria-current={activeConvId === c.id ? 'true' : undefined}
-                  >
-                    <div className="crm-chat-conv-name">
-                      {c.first_name || c.visitor_first_name} {c.last_name || c.visitor_last_name}
-                      {!(c.first_name || c.visitor_first_name) && 'کاربر ناشناس'}
-                    </div>
-                    <div className="crm-chat-conv-sub">
-                      {contact ? <span className="a-ltr">{contact}</span> : 'بدون اطلاعات تماس'}
-                    </div>
-                  </button>
-                );
-              })
+              <ul className="crm-chat-rows">
+                {visible.map((c) => {
+                  const contact = contactOf(c);
+                  return (
+                    <li key={c.id}>
+                      <button
+                        type="button"
+                        className="crm-chat-row"
+                        aria-current={activeConvId === c.id ? 'true' : undefined}
+                        onClick={() => setActiveConvId(c.id)}
+                      >
+                        <Avatar c={c} />
+                        <span className="crm-chat-row__body">
+                          <span className="crm-chat-row__top">
+                            <b>{displayName(c)}</b>
+                            <small>{listStamp(c.created_at)}</small>
+                          </span>
+                          <span className="crm-chat-row__bottom">
+                            <span className={contact ? 'a-ltr' : undefined}>{contact ?? 'بدون اطلاعات تماس'}</span>
+                            {isOpen(c.status) && <span className="crm-chat-row__open" aria-label="باز" />}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </div>
-        </div>
+        </aside>
 
-        {/* Section 2 & 3: Chat Area (Messages + Reply Form) */}
-        <div className="crm-chat-panel flex-1">
-          {!activeConvId ? (
-            <div className="crm-chat-placeholder flex-1 flex flex-col items-center justify-center gap-3 p-6 text-center" role="status">
-              <svg className="w-14 h-14 opacity-40" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-              </svg>
-              <span className="text-sm">یک مکالمه را برای نمایش انتخاب کنید.</span>
+        {/* Thread */}
+        <div className="crm-chat-thread">
+          {!active ? (
+            <div className="crm-chat-empty" role="status">
+              <span className="crm-chat-empty__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="28" height="28">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+                </svg>
+              </span>
+              <strong>یک مکالمه را انتخاب کنید.</strong>
+              <span>پیام‌های مشتری این‌جا نمایش داده می‌شود و می‌توانید همین‌جا پاسخ دهید.</span>
             </div>
           ) : (
             <>
-              {/* Header */}
-              <div className="crm-chat-panel-head">
-                <div>
-                  {(() => {
-                    const c = conversations.find(x => x.id === activeConvId);
-                    if (!c) return '';
-                    const f = c.first_name || c.visitor_first_name;
-                    const l = c.last_name || c.visitor_last_name;
-                    return (f || l) ? `${f || ''} ${l || ''}` : 'کاربر ناشناس';
-                  })()}
-                </div>
-                <small>
-                  شناسه مکالمه: {activeConvId.toLocaleString('fa-IR')}
-                </small>
-              </div>
+              <header className="crm-chat-thread__head">
+                <button type="button" className="crm-chat-back a-btn a-btn--ghost a-btn--icon" onClick={() => setActiveConvId(null)} aria-label="بازگشت به فهرست مکالمه‌ها">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                  </svg>
+                </button>
+                <Avatar c={active} size="sm" />
+                <span className="crm-chat-thread__who">
+                  <b>{displayName(active)}</b>
+                  <small>
+                    {contactOf(active) ? <span className="a-ltr">{contactOf(active)}</span> : 'بدون اطلاعات تماس'}
+                    <span aria-hidden="true"> · </span>
+                    مکالمهٔ {fa(active.id)}
+                  </small>
+                </span>
+                <span className={`a-badge ${isOpen(active.status) ? 'a-badge--success' : 'a-badge--neutral'}`}>{isOpen(active.status) ? 'باز' : 'بسته'}</span>
+              </header>
 
-              {/* Section 2: Messages Stream */}
-              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar">
+              <div className="crm-chat-stream" ref={streamRef} role="log" aria-live="polite" aria-label={`پیام‌های ${displayName(active)}`}>
                 {isLoadingMsgs ? (
                   <AdminState compact kind="loading" />
                 ) : isMsgError ? (
                   <AdminState compact kind="error" error={msgError} onRetry={() => void refetchMsgs()} />
                 ) : messages.length === 0 ? (
-                  <AdminState compact kind="empty" noun="پیام" />
+                  <AdminState compact kind="empty" noun="پیام" text="اولین پیام را شما بفرستید." />
                 ) : (
-                  messages.map(m => {
-                    const isAgent = m.sender_role === 'agent' || m.sender_role === 'system';
-                    return (
-                      <div key={m.id} className={`flex flex-col max-w-[85%] sm:max-w-[75%] ${isAgent ? 'self-end' : 'self-start'}`}>
-                        <div className={`crm-chat-bubble ${isAgent ? 'crm-chat-bubble--agent' : 'crm-chat-bubble--visitor'}`}>
-                          {m.body}
+                  rows.map((row) => {
+                    if (row.kind === 'day') {
+                      return (
+                        <div key={row.key} className="crm-chat-day" role="separator">
+                          <span>{row.label}</span>
                         </div>
-                        <div className={`crm-chat-time ${isAgent ? 'crm-chat-time--agent' : ''}`}>
-                          {new Date(m.created_at).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
+                      );
+                    }
+                    const { m, first, last } = row;
+                    if (m.sender_role === 'system') {
+                      return (
+                        <div key={m.id} className="crm-chat-system">
+                          <span>{m.body}</span>
+                        </div>
+                      );
+                    }
+                    const mine = m.sender_role === 'agent';
+                    return (
+                      <div key={m.id} className={`crm-chat-msg ${mine ? 'crm-chat-msg--mine' : 'crm-chat-msg--them'}${first ? ' is-first' : ''}${last ? ' is-last' : ''}`}>
+                        <div className="crm-chat-bubble">
+                          <span className="crm-chat-bubble__text">{m.body}</span>
+                          <time className="crm-chat-bubble__time" dateTime={m.created_at}>
+                            {timeOf(m.created_at)}
+                            {mine && (
+                              <svg viewBox="0 0 16 11" width="14" height="10" fill="none" stroke="currentColor" strokeWidth="1.5" aria-label="ارسال شد">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m1 6 3 3 6-7M7 9l1 1 6-7" />
+                              </svg>
+                            )}
+                          </time>
                         </div>
                       </div>
-                    )
+                    );
                   })
                 )}
-                <div ref={messagesEndRef} />
               </div>
 
-              {/* Section 3: Reply Box */}
-              <div className="crm-chat-reply p-3">
-                <form onSubmit={handleSend} className="flex gap-2">
-                  <input
-                    type="text"
-                    className="a-input flex-1"
-                    placeholder="پاسخ خود را بنویسید…"
-                    aria-label="متن پاسخ به مشتری"
-                    value={replyText}
-                    onChange={e => setReplyText(e.target.value)}
-                    disabled={sendMutation.isPending}
-                    autoFocus
-                  />
-                  <button
-                    type="submit"
-                    className="a-btn a-btn--primary px-4 shrink-0 flex items-center gap-1.5"
-                    disabled={sendMutation.isPending || !replyText.trim()}
-                    aria-busy={sendMutation.isPending || undefined}
-                  >
-                    {sendMutation.isPending ? 'در حال ارسال…' : (
-                      <>
-                        <span>ارسال</span>
-                        <svg className="w-4 h-4 rtl:-scale-x-100" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                        </svg>
-                      </>
-                    )}
-                  </button>
-                </form>
-              </div>
+              <form className="crm-chat-composer" onSubmit={handleSubmit}>
+                <textarea
+                  ref={composerRef}
+                  rows={1}
+                  className="crm-chat-composer__field"
+                  placeholder="پیام…"
+                  aria-label="متن پاسخ به مشتری"
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={sendMutation.isPending}
+                />
+                <button
+                  type="submit"
+                  className="crm-chat-send"
+                  disabled={sendMutation.isPending || !replyText.trim()}
+                  aria-busy={sendMutation.isPending || undefined}
+                  aria-label={sendMutation.isPending ? 'در حال ارسال…' : 'ارسال پیام'}
+                >
+                  {sendMutation.isPending ? (
+                    <span className="crm-chat-send__spin" aria-hidden="true" />
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                    </svg>
+                  )}
+                </button>
+              </form>
+              <p className="crm-chat-hint">Enter برای ارسال · Shift+Enter برای خط تازه</p>
             </>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

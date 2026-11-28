@@ -162,7 +162,7 @@ export function AdminBackgroundPicker({ open, onClose, onPreview }: PickerProps)
       footer={
         <>
           <button type="button" className="a-btn a-btn--primary" disabled={busy} onClick={() => void save(draft)}>
-            {saving ? 'در حال ذخیره...' : 'ذخیره'}
+            {saving ? 'در حال ذخیره…' : 'ذخیره'}
           </button>
           <button type="button" className="a-btn a-btn--secondary" disabled={busy} onClick={close}>
             انصراف
@@ -190,7 +190,7 @@ export function AdminBackgroundPicker({ open, onClose, onPreview }: PickerProps)
             onClick={() => update({ mode: 'animated' })}
           >
             <span className="admin-bg-tile__swatch admin-bg-tile__swatch--animated" />
-            <span className="admin-bg-tile__label">دود متحرک (پیش‌فرض)</span>
+            <span className="admin-bg-tile__label">دود متحرک</span>
           </button>
 
           {ADMIN_BACKGROUND_PRESETS.map((preset) => {
@@ -227,7 +227,7 @@ export function AdminBackgroundPicker({ open, onClose, onPreview }: PickerProps)
                 </svg>
               </span>
             )}
-            <span className="admin-bg-tile__label">{uploading ? 'در حال آپلود...' : 'عکس خودم'}</span>
+            <span className="admin-bg-tile__label">{uploading ? 'در حال آپلود…' : 'عکس خودم'}</span>
           </button>
         </div>
 

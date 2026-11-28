@@ -7,6 +7,9 @@ import { useAuth } from '../store/auth';
 import { SmokeyBackground } from './components/SmokeyBackground';
 import { AdminBackdrop, AdminBackgroundPicker, useAdminBackground } from './components/AdminBackdrop';
 import { AdminPasswordLogin } from './components/AdminPasswordLogin';
+import { AdminAppearanceDialog } from './components/AdminAppearanceDialog';
+import { FROST_BLUR_PX, setAdminAppearance, useAdminAppearance, useApplyAppearance, useResolvedTheme } from './appearance';
+import { useGlassLens } from './lens';
 // Load the reference admin design system first. The local stylesheet that
 // follows contains the React-specific compatibility and component overrides.
 import './reference.css';
@@ -14,6 +17,7 @@ import './admin.css';
 import './theme.css';
 import './foundation.css';
 import './guidelines.css';
+import './glass.css';
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const ProductsPage = lazy(() => import('./pages/ProductsPage').then((m) => ({ default: m.ProductsPage })));
@@ -514,33 +518,17 @@ export default function AdminApp() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState({ date: '', time: '' });
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    try {
-      return localStorage.getItem('tamas_admin_theme') === 'light' ? 'light' : 'dark';
-    } catch {
-      return 'dark';
-    }
-  });
+  const appearance = useAdminAppearance();
+  const theme = useResolvedTheme(appearance.theme);
+  useApplyAppearance(appearance, theme);
+  useGlassLens(appearance.skin === 'glass' && appearance.bend, Math.max(FROST_BLUR_PX[appearance.frost - 1]!, 2));
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
 
   const savedBackground = useAdminBackground();
   const [backgroundPreview, setBackgroundPreview] = useState<AdminBackground | null>(null);
   const [backgroundPickerOpen, setBackgroundPickerOpen] = useState(false);
 
-  const toggleTheme = () => {
-    setTheme((current) => {
-      const next = current === 'dark' ? 'light' : 'dark';
-      try {
-        localStorage.setItem('tamas_admin_theme', next);
-      } catch {}
-      return next;
-    });
-  };
-
-  useEffect(() => {
-    if (theme === 'light') document.body.classList.add('admin-theme-light');
-    else document.body.classList.remove('admin-theme-light');
-    return () => document.body.classList.remove('admin-theme-light');
-  }, [theme]);
+  const toggleTheme = () => setAdminAppearance({ theme: theme === 'dark' ? 'light' : 'dark' });
 
   // The reference stylesheet contains a complete utility/reset layer. Mark the
   // document while this lazy route is mounted so those rules never leak into
@@ -680,6 +668,12 @@ export default function AdminApp() {
       {/* The admin's own backdrop: animated smoke by default */}
       <AdminBackdrop background={backgroundPreview ?? savedBackground} theme={theme} />
       <AdminBackgroundPicker open={backgroundPickerOpen} onClose={() => setBackgroundPickerOpen(false)} onPreview={setBackgroundPreview} />
+      <AdminAppearanceDialog
+        open={appearanceOpen && !backgroundPickerOpen}
+        onClose={() => setAppearanceOpen(false)}
+        background={backgroundPreview ?? savedBackground}
+        onPickBackground={() => setBackgroundPickerOpen(true)}
+      />
 
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
@@ -849,12 +843,13 @@ export default function AdminApp() {
               <button
                 type="button"
                 className="icon-btn"
-                onClick={() => setBackgroundPickerOpen(true)}
-                aria-label="پس‌زمینه پنل"
-                title="تغییر پس‌زمینه پنل"
+                onClick={() => setAppearanceOpen(true)}
+                aria-label="ظاهر پنل"
+                aria-haspopup="dialog"
+                title="ظاهر پنل: تم، پوسته، شیشه و پس‌زمینه"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.16-5.16a2.25 2.25 0 0 1 3.18 0l5.16 5.16m-1.5-1.5 1.41-1.41a2.25 2.25 0 0 1 3.18 0l2.91 2.91M3.75 21h16.5A1.5 1.5 0 0 0 21.75 19.5V4.5A1.5 1.5 0 0 0 20.25 3H3.75A1.5 1.5 0 0 0 2.25 4.5v15A1.5 1.5 0 0 0 3.75 21Zm10.5-11.25h.008v.008h-.008V9.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z" />
                 </svg>
               </button>
 

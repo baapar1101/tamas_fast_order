@@ -196,3 +196,22 @@ body.admin-theme-light .admin-backdrop__dim {
 .admin-bg-picker__reset {
   margin-inline-end: auto;
 }
+
+/* ---- photo wallpapers (the MARK workspace set). The scene loads the full photo,
+   the picker swatch only its thumbnail. ---- */
+.admin-backdrop__scene.admin-backdrop--shore { background-image: url('/admin-wallpapers/shore.webp'); }
+.admin-backdrop__scene.admin-backdrop--lake { background-image: url('/admin-wallpapers/lake.webp'); }
+.admin-backdrop__scene.admin-backdrop--canyon { background-image: url('/admin-wallpapers/canyon.webp'); }
+.admin-backdrop__scene.admin-backdrop--beach { background-image: url('/admin-wallpapers/beach.webp'); }
+.admin-backdrop__scene.admin-backdrop--forest-mist { background-image: url('/admin-wallpapers/forest.webp'); }
+.admin-backdrop__scene.admin-backdrop--mist { background-image: url('/admin-wallpapers/mist.webp'); }
+.admin-backdrop__scene.admin-backdrop--lagoon { background-image: url('/admin-wallpapers/lagoon.webp'); }
+.admin-backdrop__scene.admin-backdrop--canopy { background-image: url('/admin-wallpapers/canopy.webp'); }
+.admin-bg-tile__swatch.admin-backdrop--shore { background: center / cover no-repeat url('/admin-wallpapers/thumbs/shore.webp'); }
+.admin-bg-tile__swatch.admin-backdrop--lake { background: center / cover no-repeat url('/admin-wallpapers/thumbs/lake.webp'); }
+.admin-bg-tile__swatch.admin-backdrop--canyon { background: center / cover no-repeat url('/admin-wallpapers/thumbs/canyon.webp'); }
+.admin-bg-tile__swatch.admin-backdrop--beach { background: center / cover no-repeat url('/admin-wallpapers/thumbs/beach.webp'); }
+.admin-bg-tile__swatch.admin-backdrop--forest-mist { background: center / cover no-repeat url('/admin-wallpapers/thumbs/forest.webp'); }
+.admin-bg-tile__swatch.admin-backdrop--mist { background: center / cover no-repeat url('/admin-wallpapers/thumbs/mist.webp'); }
+.admin-bg-tile__swatch.admin-backdrop--lagoon { background: center / cover no-repeat url('/admin-wallpapers/thumbs/lagoon.webp'); }
+.admin-bg-tile__swatch.admin-backdrop--canopy { background: center / cover no-repeat url('/admin-wallpapers/thumbs/canopy.webp'); }

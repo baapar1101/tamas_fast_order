@@ -1,107 +1,252 @@
-/* CrmChatPage — page-local presentation (docs/ui-guidelines.md §2, §4, §8) */
-.crm-chat-panel {
-  display: flex;
-  flex-direction: column;
+/* Customer chat: a two-pane messenger modelled on MARK's conversations window
+   (docs/ui-guidelines.md §12). One glass section: list (320px) beside the thread.
+   On phones it is one pane at a time; the thread has a back button. */
+.crm-chat-page { height: calc(100dvh - var(--mk-header-h, 68px) - 56px); min-height: 520px; }
+@media (max-width: 1023px) { .crm-chat-page { height: calc(100dvh - 64px - 40px - 4rem - env(safe-area-inset-bottom)); } }
+
+.crm-chat {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
-  min-width: 0;
-  background: var(--a-surface);
   border: 1px solid var(--a-border);
-  border-radius: var(--a-radius-panel, 16px);
+  border-radius: var(--mk-radius-dialog, 20px);
+  background: var(--a-surface);
 }
 
-.crm-chat-panel-head {
+/* ---- List ---- */
+.crm-chat-list {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-inline-end: 1px solid var(--a-border);
+}
+.crm-chat-list__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-2);
-  padding: var(--ds-space-3) 14px;
-  border-bottom: 1px solid var(--a-border);
-  background: var(--a-surface);
-  font-size: var(--ds-text-md);
-  font-weight: 600;
-  color: var(--a-t1);
+  padding: var(--ds-space-4) var(--ds-space-4) var(--ds-space-3);
 }
+.crm-chat-list__head h2 { margin: 0; font-size: 1.0625rem; font-weight: 700; color: var(--a-t1); }
+.crm-chat-list__count { font-size: 0.71875rem; color: var(--a-t3); font-variant-numeric: tabular-nums; }
 
-.crm-chat-panel-head small {
-  font-size: var(--ds-text-caption);
-  font-weight: 400;
-  color: var(--a-t3);
-}
-
-.crm-chat-conv {
-  display: block;
+.crm-chat-search { position: relative; margin: 0 var(--ds-space-4) var(--ds-space-2); }
+.crm-chat-search svg { position: absolute; inset-inline-start: 14px; top: 50%; transform: translateY(-50%); color: var(--a-t3); pointer-events: none; }
+body.admin-page-active .crm-chat-search input {
   width: 100%;
-  padding: var(--ds-space-3);
+  height: 36px;
+  min-height: 36px !important;
+  padding: var(--ds-space-1) var(--ds-space-10) var(--ds-space-1) var(--ds-space-3) !important;
+  padding-inline: var(--ds-space-10) var(--ds-space-3) !important;
+  border: 1px solid var(--a-border-2);
+  border-radius: 999px;
+  background: var(--a-input-bg);
+  color: var(--a-t1);
+  font-size: 0.8125rem;
+  box-shadow: none;
+}
+.crm-chat-search input::placeholder { color: var(--a-t4); }
+.crm-chat-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+.crm-chat-filter { margin: 0 var(--ds-space-4) var(--ds-space-2); }
+.crm-chat-filter .a-seg { flex: 1; }
+
+.crm-chat-list__scroll { flex: 1; min-height: 0; overflow-y: auto; padding: var(--ds-space-1) var(--ds-space-2) var(--ds-space-3); }
+.crm-chat-rows { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.crm-chat-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--ds-space-2) 10px;
   border: 0;
-  border-bottom: 1px solid var(--a-border);
-  border-inline-start: 3px solid transparent;
+  border-radius: 14px;
   background: transparent;
-  color: inherit;
+  color: var(--a-t1);
   font: inherit;
   text-align: start;
   cursor: pointer;
-  transition: background-color var(--a-motion-fast) var(--a-motion-ease), border-color var(--a-motion-fast) var(--a-motion-ease);
+  transition: background-color 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+.crm-chat-row:hover { background: var(--a-soft); }
+.crm-chat-row[aria-current="true"] { background: rgb(255 255 255 / 0.08); }
+body.admin-page-active.admin-theme-light .crm-chat-row[aria-current="true"] { background: rgb(28 28 28 / 0.06); }
+.crm-chat-row:focus-visible { outline: 2px solid var(--a-t1); outline-offset: -2px; }
+.crm-chat-row__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.crm-chat-row__top, .crm-chat-row__bottom { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-2); min-width: 0; }
+.crm-chat-row__top b { overflow: hidden; font-size: 0.875rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.crm-chat-row__top small { flex-shrink: 0; font-size: 0.71875rem; color: var(--a-t2); font-variant-numeric: tabular-nums; }
+.crm-chat-row__bottom > span:first-child { overflow: hidden; font-size: 0.78125rem; color: var(--a-t2); text-overflow: ellipsis; white-space: nowrap; }
+.crm-chat-row__open { flex-shrink: 0; width: 8px; height: 8px; border-radius: 999px; background: var(--a-green); }
 
-.crm-chat-conv:hover {
-  background: var(--a-hover);
+/* Avatars: initials on a per-conversation hue. */
+.crm-chat-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: hsl(var(--hue, 210) 42% 42%);
+  color: rgb(255 255 255);
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
 }
+.crm-chat-avatar--md { width: 50px; height: 50px; font-size: 1rem; }
+.crm-chat-avatar--sm { width: 36px; height: 36px; font-size: 0.8125rem; }
 
-.crm-chat-conv[aria-current='true'] {
-  background: var(--a-soft);
-  border-inline-start-color: var(--a-t1);
+/* ---- Thread ---- */
+.crm-chat-thread { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.crm-chat-thread__head {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  min-height: 64px;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-bottom: 1px solid var(--a-border);
 }
+.crm-chat-thread__who { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.crm-chat-thread__who b { overflow: hidden; font-size: 0.9375rem; font-weight: 700; color: var(--a-t1); text-overflow: ellipsis; white-space: nowrap; }
+.crm-chat-thread__who small { overflow: hidden; font-size: 0.75rem; color: var(--a-t2); text-overflow: ellipsis; white-space: nowrap; }
+.crm-chat-back { display: none !important; }
 
-.crm-chat-conv-name {
-  margin-bottom: var(--ds-space-1);
-  font-size: var(--ds-text-md);
+.crm-chat-stream {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--ds-space-4) var(--ds-space-5);
+  overscroll-behavior: contain;
+}
+.crm-chat-stream > .a-state { margin: auto; }
+
+.crm-chat-day { position: sticky; top: 0; z-index: 1; display: flex; justify-content: center; margin: var(--ds-space-3) 0 var(--ds-space-2); pointer-events: none; }
+.crm-chat-day span,
+.crm-chat-system span {
+  padding: var(--ds-space-1) var(--ds-space-3);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.32);
+  color: rgb(255 255 255 / 0.92);
+  font-size: 0.71875rem;
   font-weight: 600;
-  color: var(--a-t1);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
 }
+body.admin-page-active.admin-theme-light :is(.crm-chat-day, .crm-chat-system) span { background: rgb(255 255 255 / 0.78); color: rgb(20 20 20 / 0.8); }
+.crm-chat-system { display: flex; justify-content: center; margin: var(--ds-space-2) 0; text-align: center; }
+.crm-chat-system span { max-width: 80%; font-weight: 500; line-height: 1.7; }
 
-.crm-chat-conv-sub {
-  font-size: var(--ds-text-caption);
-  color: var(--a-t3);
-}
-
-.crm-chat-placeholder {
-  color: var(--a-t3);
-}
+.crm-chat-msg { display: flex; }
+.crm-chat-msg.is-first { margin-top: 6px; }
+.crm-chat-msg--mine { justify-content: flex-end; }
+.crm-chat-msg--them { justify-content: flex-start; }
 
 .crm-chat-bubble {
-  padding: var(--ds-space-3) var(--ds-space-4);
-  border-radius: 16px;
-  font-size: var(--ds-text-md);
-  line-height: 1.8;
-  white-space: pre-wrap;
+  position: relative;
+  max-width: min(78%, 34rem);
+  padding: 7px var(--ds-space-3) 6px;
+  border-radius: 18px;
+  font-size: 0.875rem;
+  line-height: 1.75;
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  animation: crm-chat-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 }
+/* Mine sits at the end (left in RTL) in the interactive colour; theirs is glass. */
+.crm-chat-msg--mine .crm-chat-bubble { background: var(--ds-admin-interactive); color: var(--ds-admin-on-interactive); }
+.crm-chat-msg--them .crm-chat-bubble { background: var(--a-soft); color: var(--a-t1); box-shadow: inset 0 0 0 1px var(--a-border); }
+/* Grouped bubbles: flat inner corners, a tail only on the last one. */
+.crm-chat-msg--mine:not(.is-first) .crm-chat-bubble { border-start-end-radius: 6px; }
+.crm-chat-msg--mine:not(.is-last) .crm-chat-bubble { border-end-end-radius: 6px; }
+.crm-chat-msg--mine.is-last .crm-chat-bubble { border-end-end-radius: 4px; }
+.crm-chat-msg--them:not(.is-first) .crm-chat-bubble { border-start-start-radius: 6px; }
+.crm-chat-msg--them:not(.is-last) .crm-chat-bubble { border-end-start-radius: 6px; }
+.crm-chat-msg--them.is-last .crm-chat-bubble { border-end-start-radius: 4px; }
 
-.crm-chat-bubble--agent {
-  background: var(--a-brand);
-  color: var(--a-brand-contrast);
-  border-end-end-radius: 4px;
+/* Time rides inside the bubble, floated to its far corner. */
+.crm-chat-bubble__time {
+  float: inline-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin: 6px var(--ds-space-2) -2px 0;
+  margin-inline: var(--ds-space-2) 0;
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  opacity: 0.62;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
+@keyframes crm-chat-in { from { opacity: 0; transform: translateY(4px); } }
 
-.crm-chat-bubble--visitor {
-  background: var(--a-surface-2);
-  color: var(--a-t1);
-  border: 1px solid var(--a-border);
-  border-end-start-radius: 4px;
-}
-
-.crm-chat-time {
-  margin-top: var(--ds-space-1);
-  padding-inline: var(--ds-space-1);
-  font-size: var(--ds-text-xs);
-  color: var(--a-t3);
-  text-align: start;
-}
-
-.crm-chat-time--agent {
-  text-align: end;
-}
-
-.crm-chat-reply {
+/* ---- Composer ---- */
+.crm-chat-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-3) var(--ds-space-4) var(--ds-space-1);
   border-top: 1px solid var(--a-border);
+}
+body.admin-page-active .crm-chat-composer__field {
+  flex: 1;
+  min-height: 40px !important;
+  max-height: 160px;
+  padding: 9px var(--ds-space-4) !important;
+  border: 1px solid var(--a-border-2);
+  border-radius: 20px;
+  background: var(--a-input-bg);
+  color: var(--a-t1);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  resize: none;
+  box-shadow: none;
+}
+.crm-chat-composer__field::placeholder { color: var(--a-t4); }
+.crm-chat-send {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ds-admin-interactive);
+  color: var(--ds-admin-on-interactive);
+  cursor: pointer;
+  transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 140ms ease;
+}
+.crm-chat-send svg { transform: scaleX(-1); }
+.crm-chat-send:hover:not(:disabled) { transform: scale(1.05); }
+.crm-chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
+.crm-chat-send:focus-visible { outline: 2px solid var(--a-t1); outline-offset: 3px; }
+.crm-chat-send__spin { width: 16px; height: 16px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 999px; animation: crm-chat-spin 700ms linear infinite; }
+@keyframes crm-chat-spin { to { transform: rotate(360deg); } }
+.crm-chat-hint { margin: 0; padding: 2px var(--ds-space-4) var(--ds-space-2); font-size: 0.6875rem; color: var(--a-t4); text-align: start; }
+
+/* ---- Empty thread ---- */
+.crm-chat-empty { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: var(--ds-space-2); padding: var(--ds-space-6); text-align: center; color: var(--a-t2); }
+.crm-chat-empty__icon { display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: var(--ds-space-1); border-radius: 999px; background: var(--a-soft); color: var(--a-t2); }
+.crm-chat-empty strong { font-size: 0.9375rem; color: var(--a-t1); }
+.crm-chat-empty span { max-width: 22rem; font-size: 0.8125rem; line-height: 1.8; }
+
+/* ---- One pane at a time on narrow screens ---- */
+@media (max-width: 860px) {
+  .crm-chat { grid-template-columns: minmax(0, 1fr); }
+  .crm-chat-list { border-inline-end: 0; }
+  .crm-chat.has-active .crm-chat-list { display: none; }
+  .crm-chat:not(.has-active) .crm-chat-thread { display: none; }
+  .crm-chat-back { display: inline-grid !important; }
+  .crm-chat-stream { padding-inline: var(--ds-space-3); }
+  .crm-chat-bubble { max-width: 86%; }
+  .crm-chat-hint { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crm-chat-bubble { animation: none; }
+  .crm-chat-send { transition: none; }
 }

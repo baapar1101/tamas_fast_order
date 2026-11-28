@@ -5,7 +5,7 @@ import { ownImageKey } from '../src/routes/admin/appearance.js';
 
 const UUID = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
 
-test('a missing or broken stored backdrop falls back to the animated default', () => {
+test('a missing or broken stored backdrop falls back to the default', () => {
   assert.deepEqual(parseAdminBackground(null), DEFAULT_ADMIN_BACKGROUND);
   assert.deepEqual(parseAdminBackground('not json'), DEFAULT_ADMIN_BACKGROUND);
   assert.deepEqual(parseAdminBackground(JSON.stringify({ mode: 'preset', preset: 'nope' })), DEFAULT_ADMIN_BACKGROUND);

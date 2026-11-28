@@ -470,6 +470,13 @@ body.admin-page-active .a-card {
 }
 body.admin-page-active .a-card--flush { padding: 0; gap: 0; overflow: hidden; }
 body.admin-page-active .a-page > .a-card { width: 100%; }
+/* One column width per page: header, stats, search, tabs and table all line up.
+   theme.css capped only some of them (cards, stat strips), which split the edges on
+   wide screens. Deliberately narrow form pages keep their .a-container-* width. */
+body.admin-page-active .a-page > :where(.a-card, .a-stat-strip):not([class*="a-container-"]) {
+  max-width: none;
+  margin-inline: 0;
+}
 body.admin-page-active .a-card--flush > .a-filterbar,
 body.admin-page-active .a-card--flush > .a-card-head { padding: var(--ds-space-3) var(--ds-space-4); }
 body.admin-page-active .a-card--flush > .a-table-wrap { border: 0; border-radius: 0; }
@@ -568,6 +575,10 @@ body.admin-page-active .a-textarea {
   box-shadow: var(--a-shadow-xs);
 }
 body.admin-page-active .a-select { padding-inline-start: var(--ds-space-8); }
+/* A leading icon is the input's previous sibling; a trailing shortcut hint (⌘K) is its
+   next sibling. Keep the text clear of both, over foundation.css's !important padding. */
+body.admin-page-active :where(svg) + :where(input, .a-input) { padding-inline-start: 2.75rem !important; }
+body.admin-page-active :where(input, .a-input):has(+ kbd) { padding-inline-end: 3.5rem !important; }
 body.admin-page-active .a-textarea { padding-block: var(--ds-space-2); line-height: 1.8; }
 body.admin-page-active :where(.a-input, .a-textarea)::placeholder { color: var(--a-t4); opacity: 1; }
 body.admin-page-active :where(.a-input, .a-select, .a-textarea):disabled { opacity: 0.5; cursor: not-allowed; }
