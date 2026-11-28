@@ -215,7 +215,7 @@ export class SmsService {
       clearTimeout(timer);
     }
 
-    let data: Partial<PayamResanEnvelope<Res>> | null = null;
+    let data: Partial<PayamResanEnvelope<Res>> | null;
     try {
       data = (await response.json()) as Partial<PayamResanEnvelope<Res>>;
     } catch {

@@ -4,7 +4,6 @@ import { ORDER_STATUSES, ORDER_STATUS_LABELS } from '@tamas/shared';
 import { useToast } from '../../components/Toast';
 import { api } from '../../lib/api';
 import { SmsCampaignPanel } from './SmsCampaignPanel';
-import { SmsInboxPanel } from './SmsInboxPanel';
 import { AdminState } from '../components/AdminState';
 import './sms-page.css';
 
@@ -321,7 +320,7 @@ export function SmsPage() {
       <section className="a-page-head">
         <div className="a-titles">
           <h2 className="a-title">پیامک به مشتریان و پیامک هوشمند</h2>
-          <p className="a-subtitle">پیامک‌های دریافتی، ارسال دستی به مشتریان، پیگیری ارسال و تنظیم پیامک‌های خودکار</p>
+          <p className="a-subtitle">ارسال دستی به مشتریان، پیگیری ارسال و تنظیم پیامک‌های خودکار</p>
         </div>
         <div className="a-page-actions">
           <span className="a-badge a-badge--brand">{savedCount.toLocaleString('fa-IR')} پیامک فعال</span>
@@ -342,8 +341,6 @@ export function SmsPage() {
       ) : settings.isLoading ? (
         <AdminState compact kind="loading" title="در حال دریافت تنظیمات پیامک…" />
       ) : null}
-
-      <SmsInboxPanel />
 
       <SmsCampaignPanel />
 
